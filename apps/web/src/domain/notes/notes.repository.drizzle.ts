@@ -15,6 +15,7 @@ const toCollection = (row: TCollectionRow): TNoteCollection => ({
 	businessId: row.businessId,
 	name: row.name,
 	description: row.description,
+	sortOrder: row.sortOrder,
 	isArchived: row.isArchived,
 	createdBy: row.createdBy,
 	createdAt: row.createdAt,
@@ -59,7 +60,10 @@ export const NotesRepositoryDrizzle = Layer.effect(
 											eq(noteCollections.isArchived, false),
 										),
 									)
-									.orderBy(asc(noteCollections.name))
+									.orderBy(
+										asc(noteCollections.sortOrder),
+										asc(noteCollections.name),
+									)
 							).map(toCollection),
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
@@ -75,6 +79,7 @@ export const NotesRepositoryDrizzle = Layer.effect(
 									createdBy: userId,
 									name: input.name,
 									description: input.description ?? null,
+									sortOrder: input.sortOrder ?? 0,
 								})
 								.returning();
 							if (!row) throw new Error("Note collection was not created");
@@ -92,6 +97,9 @@ export const NotesRepositoryDrizzle = Layer.effect(
 								.set({
 									name: input.name.trim() || "Untitled",
 									description: input.description ?? null,
+									...(input.sortOrder !== undefined
+										? { sortOrder: input.sortOrder }
+										: {}),
 									updatedAt: new Date().toISOString(),
 								})
 								.where(

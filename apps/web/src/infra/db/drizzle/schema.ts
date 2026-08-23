@@ -2905,6 +2905,7 @@ export const noteCollections = pgTable(
 		businessId: uuid("business_id").notNull(),
 		name: text().notNull(),
 		description: text(),
+		sortOrder: integer("sort_order").default(0).notNull(),
 		isArchived: boolean("is_archived").default(false).notNull(),
 		createdBy: uuid("created_by").notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })

@@ -117,6 +117,9 @@ export function createNotesHandlers(
 						name: body.name.trim(),
 						description:
 							typeof body.description === "string" ? body.description : null,
+						...(typeof body.sortOrder === "number"
+							? { sortOrder: body.sortOrder }
+							: {}),
 					},
 				),
 				requestId,
@@ -138,6 +141,9 @@ export function createNotesHandlers(
 						name: body.name.trim(),
 						description:
 							typeof body.description === "string" ? body.description : null,
+						...(typeof body.sortOrder === "number"
+							? { sortOrder: body.sortOrder }
+							: {}),
 					},
 				);
 				return collection

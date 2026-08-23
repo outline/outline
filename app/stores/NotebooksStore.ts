@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
 import {
@@ -27,7 +26,7 @@ export default class NotebooksStore extends Store<Notebook> {
       color: null,
       permission: NotebookPermission.ReadWrite,
       sharing: false,
-      index: collection.name,
+      index: String(collection.sortOrder).padStart(8, "0"),
       sort: { field: "updatedAt", direction: "desc" },
       templateManagement: NotebookPermission.Admin,
       commenting: false,
@@ -42,6 +41,7 @@ export default class NotebooksStore extends Store<Notebook> {
     const collection = await petsoClient.admin.createNoteCollection({
       name: params.name,
       description: null,
+      sortOrder: Number(params.index) || 0,
     });
     return this.mapCollection(collection);
   }
@@ -49,6 +49,7 @@ export default class NotebooksStore extends Store<Notebook> {
     const collection = await petsoClient.admin.updateNoteCollection(params.id, {
       name: params.name,
       description: null,
+      sortOrder: Number(params.index) || 0,
     });
     return this.mapCollection(collection);
   }
@@ -134,14 +135,14 @@ export default class NotebooksStore extends Store<Notebook> {
   };
   @action
   move = async (notebookId: string, index: string) => {
-    const res = await client.post("/collections.move", {
-      id: notebookId,
-      index,
-    });
-    invariant(res?.success, "Notebook could not be moved");
     const notebook = this.get(notebookId);
     if (notebook) {
-      notebook.updateIndex(res.data.index);
+      const updated = await petsoClient.admin.updateNoteCollection(notebookId, {
+        name: notebook.name,
+        description: null,
+        sortOrder: Number(index) || 0,
+      });
+      this.mapCollection(updated);
     }
   };
   @action

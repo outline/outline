@@ -3,6 +3,7 @@ export interface TNoteCollection {
 	readonly businessId: string;
 	readonly name: string;
 	readonly description: string | null;
+	readonly sortOrder: number;
 	readonly isArchived: boolean;
 	readonly createdBy: string;
 	readonly createdAt: string;
@@ -52,4 +53,5 @@ export interface TUpdateNoteInput {
 export interface TCreateNoteCollectionInput {
 	readonly name: string;
 	readonly description?: string | null;
+	readonly sortOrder?: number;
 }
