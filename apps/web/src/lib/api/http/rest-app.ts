@@ -13,6 +13,15 @@ import {
 	getMovementsProgram,
 } from "@/domain/inventory/inventory.programs";
 import {
+	createOrderProgram,
+	getOrdersProgram,
+	voidOrderProgram,
+} from "@/domain/order/order.programs";
+import {
+	CreateOrderSchema,
+	VoidOrderSchema,
+} from "@/domain/order/order.schemas";
+import {
 	addPetProgram,
 	deletePetProgram,
 	getPetsProgram,
@@ -49,6 +58,7 @@ import {
 	createInventoryHandlers,
 	type InventoryHandlers,
 } from "./inventory.handlers";
+import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
 
@@ -63,6 +73,7 @@ export function createRestRequestHandler(
 	branchHandlers?: BranchHandlers,
 	catalogHandlers?: CatalogHandlers,
 	inventoryHandlers?: InventoryHandlers,
+	orderHandlers?: OrderHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -168,6 +179,26 @@ export function createRestRequestHandler(
 			request.method === "POST"
 		) {
 			return inventoryHandlers.adjust(request, requestId);
+		}
+		if (
+			orderHandlers &&
+			url.pathname === "/api/v1/admin/orders" &&
+			request.method === "GET"
+		) {
+			return orderHandlers.list(request, requestId);
+		}
+		if (
+			orderHandlers &&
+			url.pathname === "/api/v1/admin/orders" &&
+			request.method === "POST"
+		) {
+			return orderHandlers.create(request, requestId);
+		}
+		const voidOrderMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/orders\/([^/]+)\/void$/,
+		);
+		if (orderHandlers && voidOrderMatch && request.method === "POST") {
+			return orderHandlers.void(request, requestId, voidOrderMatch[1] ?? "");
 		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
@@ -351,6 +382,35 @@ const defaultRestRequestHandler = createRestRequestHandler(
 					}),
 				);
 			}
+		},
+	}),
+	createOrderHandlers({
+		session: async (token) => {
+			const session = await authProgramDependencies.session(token);
+			if (!session) return null;
+			return {
+				business: session.business,
+				user: session.user,
+				branchId: session.branches[0]?.id ?? "",
+			};
+		},
+		list: async (businessId) => {
+			return runApp(getOrdersProgram(businessId as TTenantId));
+		},
+		create: async (businessId, userId, input) => {
+			const value = Schema.decodeUnknownSync(CreateOrderSchema)(input);
+			return runApp(
+				createOrderProgram(value, businessId as TTenantId, userId as TUserId),
+			);
+		},
+		void: async (businessId, userId, id, reason) => {
+			const value = Schema.decodeUnknownSync(VoidOrderSchema)({
+				orderId: id,
+				reason,
+			});
+			await runApp(
+				voidOrderProgram(value, businessId as TTenantId, userId as TUserId),
+			);
 		},
 	}),
 );

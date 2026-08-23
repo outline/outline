@@ -37,6 +37,7 @@ import type {
 import type {
   TCustomerRecordDto,
   TInventorySnapshot,
+  TOrderDto,
   TPetDto,
   TProductDto,
   TStaffMemberDto,
@@ -238,6 +239,28 @@ function mapInventoryMovement(
     quantity: movement.quantity,
     reference: movement.referenceId ?? movement.referenceType ?? "",
     createdAt: movement.createdAt,
+  };
+}
+
+function mapOrder(order: TOrderDto): Order {
+  const isVoided = Boolean(order.voidedAt) || order.status === "voided";
+  const isPaid = (order.payments?.length ?? 0) > 0;
+  return {
+    id: order.id,
+    number: order.id,
+    customerName: order.customerId ?? "Walk-in customer",
+    channel: "pos",
+    soldById: order.createdBy,
+    total: order.totalAmount,
+    paidAt: isPaid ? (order.payments?.[0]?.createdAt ?? null) : null,
+    status: isVoided ? "void" : isPaid ? "paid" : "draft",
+    items: order.items.map((item) => ({
+      productId: item.productId,
+      ...(item.variantId ? { variantId: item.variantId } : {}),
+      name: item.productName ?? item.productId,
+      quantity: item.quantity,
+      price: item.priceAtTime,
+    })),
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -728,7 +751,7 @@ export const useShop = create<State>((set, get) => ({
         petDtos,
         boardings,
         rooms,
-        orders,
+        orderDtos,
         suppliers,
         warehouses,
         inventorySnapshot,
@@ -774,7 +797,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.pets(),
         client.post("/boardings.list"),
         client.post("/rooms.list"),
-        client.post("/orders.list"),
+        petsoClient.admin.orders(),
         client.post("/suppliers.list"),
         client.post("/warehouses.list"),
         petsoClient.admin.inventory(),
@@ -828,7 +851,7 @@ export const useShop = create<State>((set, get) => ({
         ),
         boardings: boardings.data,
         rooms: rooms.data,
-        orders: orders.data,
+        orders: orderDtos.map(mapOrder),
         suppliers: suppliers.data,
         warehouses: warehouses.data,
         batches: inventorySnapshot.batches.map((batch) =>
@@ -961,24 +984,46 @@ export const useShop = create<State>((set, get) => ({
     });
     await get().fetchAll();
   },
-  createOrder: async (items, customerName) => {
-    const response = await client.post("/orders.create", {
-      items,
-      customerName,
+  createOrder: async (items, _customerName) => {
+    const branchId = get().branches[0]?.id ?? "";
+    const order = await petsoClient.admin.createOrder({
+      branchId,
+      customerId: null,
+      status: "completed",
+      items: items.map((item) => {
+        const product = get().products.find(
+          (entry) => entry.id === item.productId
+        );
+        return {
+          productId: item.productId,
+          variantId: item.variantId ?? product?.variants?.[0]?.id ?? null,
+          quantity: item.quantity,
+          priceAtTime: item.price,
+        };
+      }),
+      payments: [
+        {
+          method: "cash",
+          amount: items.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0
+          ),
+        },
+      ],
     });
     await get().fetchAll();
-    return response.data;
+    return mapOrder(order);
   },
   markOrderPaid: async (id) => {
     await client.post("/orders.markPaid", { id });
     await get().fetchAll();
   },
   voidOrder: async (id) => {
-    const response = await client.post("/orders.void", { id });
-    if (response.data?.voided) {
+    const response = await petsoClient.admin.voidOrder(id, "Voided from POS");
+    if (response.voided) {
       await get().fetchAll();
     }
-    return response.data;
+    return response;
   },
   receivePurchaseOrder: async (id, quantities) => {
     const response = await client.post("/purchaseOrders.receive", {

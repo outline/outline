@@ -185,6 +185,21 @@ export class PetsoClient {
 				"/api/v1/admin/inventory/adjust",
 				{ method: "POST", body: input },
 			),
+		orders: (): Promise<readonly TOrderDto[]> =>
+			this.fetchApi<readonly TOrderDto[]>("/api/v1/admin/orders"),
+		createOrder: (input: TCreateOrderInput): Promise<TOrderDto> =>
+			this.fetchApi<TOrderDto>("/api/v1/admin/orders", {
+				method: "POST",
+				body: input,
+			}),
+		voidOrder: (
+			id: string,
+			reason: string,
+		): Promise<{ readonly voided: boolean }> =>
+			this.fetchApi<{ readonly voided: boolean }>(
+				`/api/v1/admin/orders/${id}/void`,
+				{ method: "POST", body: { reason } },
+			),
 		customers: (): Promise<readonly TCustomerRecordDto[]> =>
 			this.fetchApi<readonly TCustomerRecordDto[]>("/api/v1/admin/customers"),
 		pets: (): Promise<readonly TPetDto[]> =>
