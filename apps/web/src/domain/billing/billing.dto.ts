@@ -3,11 +3,13 @@ import type {
 	TPaymentResult,
 	TSubscription,
 } from "./billing.types";
+import { PLAN_LIMITS } from "./billing.module";
 
 export type TSubscriptionDto = {
 	readonly plan: string;
 	readonly status: string;
 	readonly currentPeriodEnd: string | null;
+	readonly limits: (typeof PLAN_LIMITS)[keyof typeof PLAN_LIMITS];
 };
 
 export type TBillingEventDto = {
@@ -28,6 +30,7 @@ export const toSubscriptionDto = (s: TSubscription): TSubscriptionDto => ({
 	currentPeriodEnd: s.currentPeriodEnd
 		? s.currentPeriodEnd.toISOString()
 		: null,
+	limits: PLAN_LIMITS[s.plan],
 });
 
 export const toBillingEventDto = (e: TBillingEvent): TBillingEventDto => ({

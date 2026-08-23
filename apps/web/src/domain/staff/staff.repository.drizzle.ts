@@ -234,25 +234,59 @@ export const StaffRepositoryDrizzle = Layer.effect(
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
 				),
-			updateProfile: (userId, tenantId, fullName, email) =>
+			updateProfile: (userId, tenantId, fullName, email, commissionRate) =>
 				withRetry(
 					Effect.tryPromise({
 						try: async () => {
-							const result = await db
-								.update(profiles)
-								.set({
-									fullName,
-									email,
-									updatedAt: new Date().toISOString(),
-								})
-								.where(
-									and(
-										eq(profiles.userId, userId),
-										eq(profiles.businessId, tenantId),
-									),
-								)
-								.returning({ id: profiles.id });
-							return result.length > 0;
+							return await db.transaction(async (tx) => {
+								const result = await tx
+									.update(profiles)
+									.set({
+										fullName,
+										email,
+										updatedAt: new Date().toISOString(),
+									})
+									.where(
+										and(
+											eq(profiles.userId, userId),
+											eq(profiles.businessId, tenantId),
+										),
+									)
+									.returning({ id: profiles.id });
+								if (result.length === 0 || commissionRate === undefined) {
+									return result.length > 0;
+								}
+								const existing = await tx
+									.select({ id: commissionRules.id })
+									.from(commissionRules)
+									.where(
+										and(
+											eq(commissionRules.staffId, userId),
+											eq(commissionRules.businessId, tenantId),
+										),
+									)
+									.limit(1);
+								if (existing[0]) {
+									await tx
+										.update(commissionRules)
+										.set({
+											ratePercent: String(commissionRate),
+											model: "percentage",
+											isActive: true,
+											updatedAt: new Date().toISOString(),
+										})
+										.where(eq(commissionRules.id, existing[0].id));
+								} else {
+									await tx.insert(commissionRules).values({
+										businessId: tenantId,
+										staffId: userId,
+										model: "percentage",
+										ratePercent: String(commissionRate),
+										isActive: true,
+									});
+								}
+								return true;
+							});
 						},
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),

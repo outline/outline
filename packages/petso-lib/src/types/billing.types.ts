@@ -2,6 +2,11 @@ export interface TBillingSubscriptionDto {
 	readonly plan: string;
 	readonly status: string;
 	readonly currentPeriodEnd: string | null;
+	readonly limits: {
+		readonly staff: number;
+		readonly branches: number;
+		readonly boardingsPerMonth: number;
+	};
 }
 
 export interface TBillingInvoiceDto {

@@ -10,7 +10,12 @@ interface StaffProfileHandlerDependencies {
 	readonly update: (
 		businessId: string,
 		userId: string,
-		input: { readonly fullName: string; readonly email: string },
+		input: {
+			readonly fullName: string;
+			readonly email: string;
+			readonly commissionRate?: number;
+		},
+		commissionRate?: number,
 	) => Promise<boolean>;
 }
 
@@ -35,7 +40,11 @@ export function createStaffProfileHandlers(
 			const body = await readBody(request);
 			if (
 				typeof body?.fullName !== "string" ||
-				typeof body.email !== "string"
+				typeof body.email !== "string" ||
+				(body.commissionRate !== undefined &&
+					(typeof body.commissionRate !== "number" ||
+						body.commissionRate < 0 ||
+						body.commissionRate > 100))
 			) {
 				return jsonError(
 					new ApiHttpError(
@@ -46,12 +55,16 @@ export function createStaffProfileHandlers(
 					requestId,
 				);
 			}
+			const commissionRate =
+				typeof body.commissionRate === "number"
+					? body.commissionRate
+					: undefined;
 			return jsonSuccess(
 				{
 					updated: await dependencies.update(session.business.id, userId, {
 						fullName: body.fullName,
 						email: body.email,
-					}),
+					}, commissionRate),
 				},
 				requestId,
 			);

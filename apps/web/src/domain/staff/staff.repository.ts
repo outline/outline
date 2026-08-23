@@ -40,6 +40,7 @@ export class IStaffRepository extends Context.Tag("IStaffRepository")<
 			tenantId: TTenantId,
 			fullName: string,
 			email: string,
+			commissionRate?: number,
 		) => Effect.Effect<boolean, DatabaseError>;
 	}
 >() {}

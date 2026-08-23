@@ -40,11 +40,12 @@ export const updateStaffProfileProgram = (
 	userId: TUserId,
 	fullName: string,
 	email: string,
+	commissionRate?: number,
 ) =>
 	Effect.gen(function* () {
 		const repo = yield* IStaffRepository;
 		if (!repo.updateProfile) return false;
-		return yield* repo.updateProfile(userId, tenantId, fullName, email);
+		return yield* repo.updateProfile(userId, tenantId, fullName, email, commissionRate);
 	});
 
 // Looking up the branch name is purely for personalizing the email body.

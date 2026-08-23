@@ -2,7 +2,14 @@ import type {
 	TBillingCycle,
 	TSubscription,
 	TSubscriptionPlan,
+	TPlanLimits,
 } from "./billing.types";
+
+export const PLAN_LIMITS: Record<TSubscriptionPlan, TPlanLimits> = {
+	free: { staff: 3, branches: 1, boardingsPerMonth: 30 },
+	pro: { staff: 10, branches: 3, boardingsPerMonth: 200 },
+	business: { staff: 50, branches: 20, boardingsPerMonth: 2000 },
+};
 
 export const BillingModule = {
 	calculateAmount: (plan: TSubscriptionPlan, cycle: TBillingCycle): number => {

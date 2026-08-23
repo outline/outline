@@ -2044,6 +2044,7 @@ const defaultRestRequestHandler = createRestRequestHandler(
 					userId as TUserId,
 					input.fullName,
 					input.email,
+					input.commissionRate,
 				),
 			),
 	}),

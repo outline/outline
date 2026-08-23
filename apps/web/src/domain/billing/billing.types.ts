@@ -11,6 +11,12 @@ export const SUBSCRIPTION_PLAN = {
 export type TSubscriptionPlan =
 	(typeof SUBSCRIPTION_PLAN)[keyof typeof SUBSCRIPTION_PLAN];
 
+export type TPlanLimits = {
+	readonly staff: number;
+	readonly branches: number;
+	readonly boardingsPerMonth: number;
+};
+
 export const BILLING_CYCLE = {
 	MONTHLY: "monthly",
 	YEARLY: "yearly",

@@ -12,4 +12,5 @@ export interface TInviteStaffResult {
 export interface TUpdateStaffProfileInput {
 	readonly fullName: string;
 	readonly email: string;
+	readonly commissionRate?: number;
 }
