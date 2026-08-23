@@ -9,6 +9,7 @@ import {
 	getJournalEntriesProgram,
 } from "@/domain/accounting/accounting.programs";
 import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
+import { getAuditLogsProgram } from "@/domain/audit/audit.programs";
 import {
 	createBoardingProgram,
 	getBoardingsProgram,
@@ -179,6 +180,7 @@ import {
 	type AccountingReportHandlers,
 	createAccountingReportHandlers,
 } from "./accounting-report.handlers";
+import { type AuditHandlers, createAuditHandlers } from "./audit.handlers";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
 import {
@@ -268,6 +270,7 @@ export function createRestRequestHandler(
 	ledgerHandlers?: LedgerHandlers,
 	accountingReportHandlers?: AccountingReportHandlers,
 	loyaltyHandlers?: LoyaltyHandlers,
+	auditHandlers?: AuditHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -284,6 +287,13 @@ export function createRestRequestHandler(
 		}
 		if (url.pathname === "/api/v1/auth/session" && request.method === "GET") {
 			return authHandlers.session(request, requestId);
+		}
+		if (
+			auditHandlers &&
+			url.pathname === "/api/v1/admin/audit" &&
+			request.method === "GET"
+		) {
+			return auditHandlers.list(request, requestId);
 		}
 		if (
 			branchHandlers &&
@@ -1537,6 +1547,15 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				points: input.points,
 			});
 			return runApp(redeemPointsProgram(command, businessId as TTenantId));
+		},
+	}),
+	createAuditHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const result = await runApp(
+				getAuditLogsProgram(businessId as TTenantId, {}),
+			);
+			return result.logs;
 		},
 	}),
 );

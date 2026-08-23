@@ -51,6 +51,7 @@ export type {
 	TCreateExpenseInput,
 	TExpenseDto,
 	TAccountingDashboardMetricsDto,
+	TAuditLogDto,
 	TAccountDto,
 	TJournalEntryDto,
 	TJournalEntryLineDto,

@@ -52,6 +52,7 @@ import type {
 	TCreateExpenseInput,
 	TExpenseDto,
 	TAccountingDashboardMetricsDto,
+	TAuditLogDto,
 	TAccountDto,
 	TJournalEntryDto,
 	TCashFlowReportDto,
@@ -482,6 +483,8 @@ export class PetsoClient {
 			this.fetchApi<readonly TCommissionReportDto[]>(
 				"/api/v1/admin/accounting/commissions",
 			),
+		audit: (): Promise<readonly TAuditLogDto[]> =>
+			this.fetchApi<readonly TAuditLogDto[]>("/api/v1/admin/audit"),
 		loyaltyConfig: (): Promise<TLoyaltyConfigDto> =>
 			this.fetchApi<TLoyaltyConfigDto>("/api/v1/admin/loyalty/config"),
 		loyaltyMovements: (): Promise<readonly TLoyaltyMovementDto[]> =>
