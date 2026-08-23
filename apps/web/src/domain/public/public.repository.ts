@@ -20,6 +20,7 @@ export class IPublicRepository extends Context.Tag("IPublicRepository")<
 
 		readonly getRooms: (
 			businessId: string,
+			targetDate?: Date,
 		) => Effect.Effect<readonly TPublicRoom[], DatabaseError>;
 
 		readonly getProduct: (

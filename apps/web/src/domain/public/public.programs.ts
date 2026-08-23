@@ -26,10 +26,13 @@ export const getPublicBranchesProgram = (
 
 export const getPublicRoomsProgram = (
 	businessId: string,
+	targetDate?: Date,
 ): Effect.Effect<readonly TPublicRoom[], DatabaseError, IPublicRepository> =>
 	Effect.gen(function* () {
 		const repo = yield* IPublicRepository;
-		return yield* repo.getRooms(businessId);
+		return yield* (targetDate === undefined
+			? repo.getRooms(businessId)
+			: repo.getRooms(businessId, targetDate));
 	});
 
 export const getPublicProductProgram = (

@@ -2085,7 +2085,8 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			runApp(getPublicBusinessBySlugProgram(slug)),
 		branches: async (businessId) =>
 			runApp(getPublicBranchesProgram(businessId)),
-		rooms: async (businessId) => runApp(getPublicRoomsProgram(businessId)),
+		rooms: async (businessId, targetDate) =>
+			runApp(getPublicRoomsProgram(businessId, targetDate)),
 		featured: async (businessId) =>
 			runApp(getPublicFeaturedProductsProgram(businessId)),
 		product: async (businessId, productId) =>

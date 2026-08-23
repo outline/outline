@@ -15,7 +15,10 @@ import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 interface PublicHandlerDependencies {
   readonly business: (slug: string) => Promise<TPublicBusiness | null>;
   readonly branches: (businessId: string) => Promise<readonly TPublicBranch[]>;
-  readonly rooms: (businessId: string) => Promise<readonly TPublicRoom[]>;
+	readonly rooms: (
+		businessId: string,
+		targetDate?: Date,
+	) => Promise<readonly TPublicRoom[]>;
   readonly featured: (businessId: string) => Promise<readonly TPublicProduct[]>;
   readonly product: (
     businessId: string,
@@ -85,12 +88,20 @@ export function createPublicHandlers(
       }
       return jsonSuccess(await dependencies.branches(business.id), requestId);
     },
-    rooms: async (_request, requestId, slug) => {
+    rooms: async (request, requestId, slug) => {
       const business = await findBusiness(slug);
       if (!business) {
         return notFound(requestId);
       }
-      return jsonSuccess(await dependencies.rooms(business.id), requestId);
+		const dateParam = new URL(request.url).searchParams.get("date");
+		const targetDate = dateParam ? new Date(dateParam) : undefined;
+		if (dateParam && Number.isNaN(targetDate?.getTime())) {
+			return validationError(requestId);
+		}
+		return jsonSuccess(
+			await dependencies.rooms(business.id, targetDate),
+			requestId,
+		);
     },
     featured: async (_request, requestId, slug) => {
       const business = await findBusiness(slug);

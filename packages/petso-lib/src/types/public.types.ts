@@ -27,6 +27,8 @@ export interface TPublicRoomDto {
 	readonly capacity: number;
 	readonly dailyRate: number;
 	readonly isActive: boolean;
+	readonly occupied: number;
+	readonly available: number;
 }
 
 export interface TPublicProductDto {

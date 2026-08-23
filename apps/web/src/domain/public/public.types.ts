@@ -34,6 +34,8 @@ export type TPublicRoom = {
 	readonly capacity: number;
 	readonly dailyRate: number;
 	readonly isActive: boolean;
+	readonly occupied: number;
+	readonly available: number;
 };
 
 export type TPublicProduct = {

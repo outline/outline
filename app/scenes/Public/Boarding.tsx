@@ -34,7 +34,7 @@ function Boarding() {
         setAvailability(
           response.map((room) => ({
             type: room.roomType || room.name,
-            free: room.capacity,
+            free: room.available,
             total: room.capacity,
             from: room.dailyRate,
           })),

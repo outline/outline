@@ -146,6 +146,8 @@ describe("getPublicRoomsProgram", () => {
 				capacity: 2,
 				dailyRate: 50000,
 				isActive: true,
+				occupied: 0,
+				available: 2,
 			},
 		];
 		const { mock, layer } = makeLayer({

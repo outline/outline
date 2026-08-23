@@ -1,6 +1,7 @@
-import { sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
+import { boardings } from "@/infra/db/drizzle/schema";
 import type {
 	branches,
 	businesses,
@@ -55,6 +56,8 @@ const mapRoom = (row: TRoomsRow): TPublicRoom => ({
 	capacity: row.capacity,
 	dailyRate: Number(row.dailyRate),
 	isActive: row.isActive,
+	occupied: 0,
+	available: row.capacity,
 });
 
 const mapProduct = (row: TProductsRow): TPublicProduct => ({
@@ -111,7 +114,7 @@ export const PublicRepositoryDrizzle = Layer.effect(
 					}),
 				),
 
-			getRooms: (businessId: string) =>
+			getRooms: (businessId: string, targetDate = new Date()) =>
 				withRetry(
 					Effect.tryPromise({
 						try: async () => {
@@ -124,7 +127,44 @@ export const PublicRepositoryDrizzle = Layer.effect(
 									) ?? sql``,
 								},
 							});
-							return rows.map(mapRoom);
+							const boardingRows = await db
+								.select({
+									roomId: boardings.roomId,
+									checkInDate: boardings.checkInDate,
+									estimatedCheckOutDate: boardings.estimatedCheckOutDate,
+								})
+								.from(boardings)
+								.where(
+									and(
+										eq(boardings.businessId, businessId),
+										inArray(boardings.status, ["active", "draft"]),
+									),
+								);
+							const target = targetDate.toISOString().slice(0, 10);
+							const occupiedByRoom = new Map<string, number>();
+							for (const boarding of boardingRows) {
+								if (
+									!boarding.roomId ||
+									boarding.checkInDate > target ||
+									(boarding.estimatedCheckOutDate !== null &&
+										boarding.estimatedCheckOutDate <= target)
+								) {
+									continue;
+								}
+								occupiedByRoom.set(
+									boarding.roomId,
+									(occupiedByRoom.get(boarding.roomId) ?? 0) + 1,
+								);
+							}
+							return rows.map((row) => {
+								const room = mapRoom(row);
+								const occupied = occupiedByRoom.get(room.id) ?? 0;
+								return {
+									...room,
+									occupied,
+									available: Math.max(0, room.capacity - occupied),
+								};
+							});
 						},
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),

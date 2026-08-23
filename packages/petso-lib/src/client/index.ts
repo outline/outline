@@ -234,9 +234,12 @@ export class PetsoClient {
 				`/api/v1/public/business/${encodeURIComponent(slug)}/branches`,
 			),
 
-		rooms: (slug: string): Promise<readonly TPublicRoomDto[]> =>
+		rooms: (
+			slug: string,
+			targetDate?: string,
+		): Promise<readonly TPublicRoomDto[]> =>
 			this.fetchApi<readonly TPublicRoomDto[]>(
-				`/api/v1/public/business/${encodeURIComponent(slug)}/rooms`,
+				`/api/v1/public/business/${encodeURIComponent(slug)}/rooms${targetDate ? `?date=${encodeURIComponent(targetDate)}` : ""}`,
 			),
 
 		products: (slug: string): Promise<readonly TPublicProductDto[]> =>

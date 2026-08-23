@@ -25,7 +25,12 @@ function Booking() {
   const [roomType, setRoomType] = useState("");
   const [branchId, setBranchId] = useState<string>();
   const [rooms, setRooms] = useState<
-    readonly { roomType: string; name: string; dailyRate: number }[]
+    readonly {
+      roomType: string;
+      name: string;
+      dailyRate: number;
+      available: number;
+    }[]
   >([]);
   const [scheduledAt, setScheduledAt] = useState(() => {
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -45,7 +50,10 @@ function Booking() {
   useEffect(() => {
     let cancelled = false;
     void Promise.all([
-      petsoClient.public.rooms(businessSlug ?? ""),
+      petsoClient.public.rooms(
+        businessSlug ?? "",
+        new Date(scheduledAt).toISOString(),
+      ),
       petsoClient.public.branches(businessSlug ?? ""),
     ])
       .then(([loadedRooms, branches]) => {
@@ -57,9 +65,12 @@ function Booking() {
             roomType: room.roomType,
             name: room.name,
             dailyRate: room.dailyRate,
+            available: room.available,
           })),
         );
-        setRoomType(loadedRooms[0]?.roomType ?? "");
+        setRoomType(
+          loadedRooms.find((room) => room.available > 0)?.roomType ?? "",
+        );
         setBranchId(branches[0]?.id);
       })
       .catch(() => {
@@ -70,7 +81,7 @@ function Booking() {
     return () => {
       cancelled = true;
     };
-  }, [businessSlug]);
+  }, [businessSlug, scheduledAt]);
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
@@ -202,6 +213,7 @@ function Booking() {
                   value={option.roomType}
                   checked={roomType === option.roomType}
                   onChange={() => setRoomType(option.roomType)}
+                  disabled={option.available === 0}
                   className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                 />
                 <span className="font-medium text-gray-900">
@@ -209,6 +221,11 @@ function Booking() {
                 </span>
                 <span className="text-gray-500">
                   from {money(option.dailyRate)} / night
+                </span>
+                <span className="ml-auto text-xs text-gray-500">
+                  {option.available > 0
+                    ? `${option.available} available`
+                    : "Full"}
                 </span>
               </label>
             ))}
