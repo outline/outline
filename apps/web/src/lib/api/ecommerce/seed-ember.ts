@@ -3,7 +3,17 @@ import { validateApiKey } from "@/infra/auth/api-auth";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import { branches, products } from "@/infra/db/drizzle/schema";
 import { runApp } from "@/infra/runtime/app.runtime";
+import { getResolvedConfig } from "@/shared/env/app.config";
 import { Effect } from "effect";
+
+const isProduction = (workerEnv?: unknown): boolean => {
+	const envRecord = workerEnv as Record<string, string | undefined>;
+	return (
+		envRecord?.NODE_ENV === "production" ||
+		envRecord?.ENVIRONMENT === "production" ||
+		getResolvedConfig().environment === "production"
+	);
+};
 
 const emberHeaders = (baseUrl: string, apiKey: string): Record<string, string> => ({
 	Authorization: `Bearer ${apiKey}`,
@@ -44,6 +54,13 @@ export const handleSeedEmber = async (
 	request: Request,
 	workerEnv?: unknown,
 ): Promise<Response> => {
+	if (isProduction(workerEnv)) {
+		return new Response(JSON.stringify({ success: false, error: "Not Found" }), {
+			status: 404,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+
 	const authHeader = request.headers.get("Authorization");
 	const validation = await validateApiKey(authHeader);
 
@@ -55,9 +72,19 @@ export const handleSeedEmber = async (
 	}
 
 	const envRecord = workerEnv as Record<string, string | undefined>;
-	const apiKey = envRecord?.EMBER_API_KEY || "sk_live_ember_petstore_secret_2026";
-	const baseUrl = envRecord?.EMBER_BASE_URL || "https://ember.treonstudio.com";
-	const bucket = envRecord?.EMBER_BUCKET || "pet-store";
+	const apiKey = envRecord?.EMBER_API_KEY;
+	const baseUrl = envRecord?.EMBER_BASE_URL;
+	const bucket = envRecord?.EMBER_BUCKET;
+
+	if (!apiKey || !baseUrl || !bucket) {
+		return new Response(
+			JSON.stringify({ success: false, error: "Storage configuration is missing" }),
+			{
+				status: 503,
+				headers: { "Content-Type": "application/json" },
+			},
+		);
+	}
 
 	try {
 		// 1. Seed/Upsert Himajin Hobby Branches

@@ -20,17 +20,5 @@
 	"dependencies": {
 		"@effect/schema": "^0.75.5",
 		"effect": "3.22.0"
-	},
-	"peerDependencies": {
-		"@effect/schema": ">=0.75.5",
-		"effect": ">=3.22.0"
-	},
-	"peerDependenciesMeta": {
-		"@effect/schema": {
-			"optional": true
-		},
-		"effect": {
-			"optional": true
-		}
 	}
 }
