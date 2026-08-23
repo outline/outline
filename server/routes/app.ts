@@ -85,6 +85,7 @@ export const renderApp = async (
     shortcutIcon?: string;
     rootShareId?: string;
     isShare?: boolean;
+    markdownUrl?: string;
     analytics?: Integration<IntegrationType.Analytics>[];
     allowIndexing?: boolean;
   } = {}
@@ -133,9 +134,14 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
+  const alternateTag = options.markdownUrl
+    ? `<link rel="alternate" type="text/markdown" href="${escape(options.markdownUrl)}" />`
+    : "";
+
   let headTags = `
     <meta name="robots" content="${allowIndexing ? "index, follow" : "noindex, nofollow"}" />
     <link rel="canonical" href="${escape(canonical)}" />
+    ${alternateTag}
     <link
       rel="shortcut icon"
       type="image/png"
@@ -179,6 +185,15 @@ export const renderApp = async (
     `;
   }
 
+  // Advertise the markdown representation so that clients can discover it from
+  // the response headers alone, without parsing the page.
+  if (options.markdownUrl) {
+    ctx.response.set(
+      "Link",
+      `<${options.markdownUrl}>; rel="alternate"; type="text/markdown"`
+    );
+  }
+
   // Ensure no caching is performed
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
   ctx.response.set("Expires", "-1");
@@ -202,6 +217,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const shareId = rootShareId ?? ctx.params.shareId;
   const collectionSlug = ctx.params.collectionSlug;
   const documentSlug = ctx.params.documentSlug;
+
+  // The response depends on the Accept header, caches must key on it.
+  ctx.vary("Accept");
 
   // Find the share record if published so that the document title can be returned
   // in the server-rendered HTML. This allows it to appear in unfurls more reliably.
@@ -250,6 +268,16 @@ export const renderShare = async (ctx: Context, next: Next) => {
     ctx.status = 404;
   }
 
+  // The markdown representation lives at the same path with a .md suffix, only
+  // on the routes that accept a format suffix.
+  const markdownPath = ctx.params.shareId
+    ? `/s/${ctx.params.shareId}${documentSlug ? `/doc/${documentSlug}` : ""}`
+    : undefined;
+  const markdownUrl =
+    markdownPath && markdownPath === ctx.request.path
+      ? `${ctx.request.URL.origin}${markdownPath}.md`
+      : undefined;
+
   // If the client explicitly requests markdown and prefers it over HTML,
   // or the URL path ends with .md, return the document as markdown. This is
   // useful for LLMs and API clients.
@@ -282,6 +310,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
     }
 
     ctx.type = "text/markdown";
+    ctx.response.set("Cache-Control", "no-cache, must-revalidate");
+    ctx.response.set("Expires", "-1");
     ctx.body = markdown;
     return;
   }
@@ -341,5 +371,6 @@ export const renderShare = async (ctx: Context, next: Next) => {
     rootShareId,
     canonical: canonicalUrl,
     allowIndexing: share?.allowIndexing,
+    markdownUrl: document || collection ? markdownUrl : undefined,
   });
 };

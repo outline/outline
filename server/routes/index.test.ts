@@ -109,6 +109,59 @@ describe("/s/:id", () => {
     expect(body).toContain(`<title>${document.title}</title>`);
   });
 
+  it("should vary on Accept and advertise the markdown alternate in html", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("vary")).toContain("Accept");
+    const origin = new URL(res.url).origin;
+    expect(res.headers.get("link")).toEqual(
+      `<${origin}/s/${share.id}.md>; rel="alternate"; type="text/markdown"`
+    );
+    expect(body).toContain(
+      `<link rel="alternate" type="text/markdown" href="${origin}/s/${share.id}.md" />`
+    );
+  });
+
+  it("should advertise the markdown alternate for a nested document", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}/doc/${document.urlId}`);
+    expect(res.status).toEqual(200);
+    const origin = new URL(res.url).origin;
+    expect(res.headers.get("link")).toEqual(
+      `<${origin}/s/${share.id}/doc/${document.urlId}.md>; rel="alternate"; type="text/markdown"`
+    );
+  });
+
+  it("should not advertise the markdown alternate when share is not found", async () => {
+    const res = await server.get(`/s/junk`);
+    expect(res.status).toEqual(404);
+    expect(res.headers.get("link")).toEqual(null);
+  });
+
+  it("should vary on Accept and prevent caching of markdown", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}.md`);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("vary")).toContain("Accept");
+    expect(res.headers.get("cache-control")).toEqual(
+      "no-cache, must-revalidate"
+    );
+  });
+
   it("should include child documents list in markdown when includeChildDocuments is true", async () => {
     const parent = await buildDocument();
     const child1 = await buildDocument({
