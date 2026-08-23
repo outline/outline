@@ -997,7 +997,6 @@ export const useShop = create<State>((set, get) => ({
         journal,
         expenses,
         shifts,
-        trialBalance,
         commissions,
         loyalty,
         whatsappTemplates,
@@ -1039,7 +1038,6 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.journal(),
         petsoClient.admin.expenses(),
         petsoClient.admin.shifts(),
-        client.post("/accounting.trialBalance"),
         petsoClient.admin.commissions(),
         petsoClient.admin.loyaltyMovements(),
         petsoClient.admin.whatsappTemplates(),
@@ -1089,6 +1087,33 @@ export const useShop = create<State>((set, get) => ({
       for (const staffMember of staffDtos) {
         staffNames.set(staffMember.userId, staffMember.fullName);
       }
+      const journalTotals = new Map<
+        string,
+        { debit: number; credit: number }
+      >();
+      for (const entry of journal) {
+        for (const line of entry.lines) {
+          const totals = journalTotals.get(line.accountId) ?? {
+            debit: 0,
+            credit: 0,
+          };
+          totals.debit += line.debit;
+          totals.credit += line.credit;
+          journalTotals.set(line.accountId, totals);
+        }
+      }
+      const trialBalanceRows = accounts.map((account) => {
+        const totals = journalTotals.get(account.id) ?? { debit: 0, credit: 0 };
+        return {
+          id: account.id,
+          code: account.code,
+          name: account.name,
+          type: account.type === "revenue" ? "income" : account.type,
+          debit: totals.debit,
+          credit: totals.credit,
+          balance: totals.debit - totals.credit,
+        };
+      });
       set({
         dashboard: mapDashboardMetrics(dashboard),
         products: productDtos.map(mapProduct),
@@ -1152,7 +1177,7 @@ export const useShop = create<State>((set, get) => ({
           clockIn: shift.clockIn ?? "",
           clockOut: shift.clockOut,
         })),
-        trialBalance: trialBalance.data,
+        trialBalance: trialBalanceRows,
         commissions: commissions.map((row: TCommissionReportDto) => ({
           id: `${row.staffId}-${row.date}-${row.service}`,
           name: row.staffName,
