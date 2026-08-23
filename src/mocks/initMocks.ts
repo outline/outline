@@ -20,18 +20,20 @@ export const MOCK_ENV: Record<string, unknown> = {
 };
 
 export function initMocks(): void {
-  if (typeof window !== "undefined") {
-    // Provide default window.env required by Outline React app (app/env.ts & Analytics.tsx)
-    window.env = {
-      ...MOCK_ENV,
-      ...window.env,
-    };
-
-    setupApiMock();
-    setupWebsocketMock();
-    // oxlint-disable-next-line no-console
-    console.log(
-      "[Outline Mock] Window environment, API & WebSocket Mock System initialized successfully!"
-    );
+  if (typeof window === "undefined" || !import.meta.env.DEV) {
+    return;
   }
+
+  // Provide default window.env required by Outline React app (app/env.ts & Analytics.tsx)
+  window.env = {
+    ...MOCK_ENV,
+    ...window.env,
+  };
+
+  setupApiMock();
+  setupWebsocketMock();
+  // oxlint-disable-next-line no-console
+  console.log(
+    "[Outline Mock] Window environment, API & WebSocket Mock System initialized successfully!"
+  );
 }
