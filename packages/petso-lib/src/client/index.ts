@@ -55,6 +55,7 @@ import type {
 	TExpenseDto,
 	TAccountingDashboardMetricsDto,
 	TAdvanceDto,
+	TCreateAdvanceInput,
 	TBillingSummaryDto,
 	TWhatsAppTemplateDto,
 	TAuditLogDto,
@@ -484,6 +485,22 @@ export class PetsoClient {
 			),
 		advances: (): Promise<readonly TAdvanceDto[]> =>
 			this.fetchApi<readonly TAdvanceDto[]>("/api/v1/admin/advances"),
+		createAdvance: (
+			input: TCreateAdvanceInput,
+		): Promise<{ readonly created: boolean; readonly id: string }> =>
+			this.fetchApi<{ readonly created: boolean; readonly id: string }>(
+				"/api/v1/admin/advances",
+				{ method: "POST", body: input },
+			),
+		repayAdvance: (input: {
+			readonly kasbonId: string;
+			readonly amount: number;
+			readonly source: "manual" | "commission_deduction";
+		}): Promise<{ readonly repaid: boolean }> =>
+			this.fetchApi<{ readonly repaid: boolean }>(
+				"/api/v1/admin/advances/repay",
+				{ method: "POST", body: input },
+			),
 		billingSummary: (): Promise<TBillingSummaryDto> =>
 			this.fetchApi<TBillingSummaryDto>("/api/v1/admin/billing"),
 		whatsappTemplates: (): Promise<readonly TWhatsAppTemplateDto[]> =>

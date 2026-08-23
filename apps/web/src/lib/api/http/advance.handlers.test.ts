@@ -7,6 +7,8 @@ describe("REST advance handlers", () => {
 		const handlers = createAdvanceHandlers({
 			session: vi.fn().mockResolvedValue({ business: { id: "business-1" } }),
 			list,
+			create: vi.fn(),
+			repay: vi.fn(),
 		});
 		const response = await handlers.list(
 			new Request("https://pet-store.test/api/v1/admin/advances", {

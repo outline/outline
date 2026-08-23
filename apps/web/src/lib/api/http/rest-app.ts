@@ -35,7 +35,15 @@ import {
 	CreateBranchSchema,
 	UpdateBranchSchema,
 } from "@/domain/branch/branch.schemas";
-import { getAllKasbonProgram } from "@/domain/commission/commission.programs";
+import {
+	addKasbonProgram,
+	getAllKasbonProgram,
+	payKasbonProgram,
+} from "@/domain/commission/commission.programs";
+import {
+	CreateKasbonSchema,
+	PayKasbonSchema,
+} from "@/domain/commission/commission.schemas";
 import {
 	createCustomerProgram,
 	deleteCustomerProgram,
@@ -334,6 +342,20 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return advanceHandlers.list(request, requestId);
+		}
+		if (
+			advanceHandlers &&
+			url.pathname === "/api/v1/admin/advances" &&
+			request.method === "POST"
+		) {
+			return advanceHandlers.create(request, requestId);
+		}
+		if (
+			advanceHandlers &&
+			url.pathname === "/api/v1/admin/advances/repay" &&
+			request.method === "POST"
+		) {
+			return advanceHandlers.repay(request, requestId);
 		}
 		if (
 			whatsAppHandlers &&
@@ -1678,6 +1700,21 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				status: kasbon.status,
 				createdAt: kasbon.createdAt.toISOString(),
 			}));
+		},
+		create: async (businessId, input) => {
+			const value = Schema.decodeUnknownSync(CreateKasbonSchema)({
+				...input,
+				installmentAmount: input.installmentAmount ?? input.installment,
+			});
+			const kasbon = await runApp(
+				addKasbonProgram(businessId as TTenantId, value),
+			);
+			return { created: true, id: kasbon.id };
+		},
+		repay: async (businessId, input) => {
+			const value = Schema.decodeUnknownSync(PayKasbonSchema)(input);
+			await runApp(payKasbonProgram(businessId as TTenantId, value));
+			return { repaid: true };
 		},
 	}),
 	createWhatsAppHandlers({

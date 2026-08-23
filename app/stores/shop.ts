@@ -1829,22 +1829,27 @@ export const useShop = create<State>((set, get) => ({
     return { ok: true };
   },
   createAdvance: async (advance) => {
-    const response = await client.post("/advances.create", advance);
-    if (response.data?.created) {
+    const response = await petsoClient.admin.createAdvance({
+      staffId: advance.staffId,
+      amount: advance.amount,
+      installmentAmount: advance.installment,
+      notes: advance.notes || null,
+    });
+    if (response.created) {
       await get().fetchAll();
     }
-    return Boolean(response.data?.created);
+    return response.created;
   },
   repayAdvance: async (id, amount, source) => {
-    const response = await client.post("/advances.repay", {
-      id,
+    const response = await petsoClient.admin.repayAdvance({
+      kasbonId: id,
       amount,
-      source,
+      source: source === "commission" ? "commission_deduction" : "manual",
     });
-    if (response.data?.repaid) {
+    if (response.repaid) {
       await get().fetchAll();
     }
-    return response.data;
+    return { repaid: response.repaid };
   },
   setStaffStatus: async (id, status) => {
     await client.post("/staff.setStatus", { id, status });
