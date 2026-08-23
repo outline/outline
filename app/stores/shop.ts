@@ -53,6 +53,8 @@ import type {
   TBranchHolidayDto,
   TExpenseDto,
   TAccountingDashboardMetricsDto,
+  TAccountDto,
+  TJournalEntryDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -1034,8 +1036,8 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.branches.list(),
         petsoClient.admin.staff(),
         petsoClient.admin.groomingAppointments(),
-        client.post("/accounts.list"),
-        client.post("/journal.list"),
+        petsoClient.admin.accounts(),
+        petsoClient.admin.journal(),
         petsoClient.admin.expenses(),
         client.post("/shifts.list"),
         client.post("/accounting.trialBalance"),
@@ -1120,8 +1122,23 @@ export const useShop = create<State>((set, get) => ({
         ),
         branches: branches.map(mapBranch),
         staff: staffDtos.map(mapStaff),
-        accounts: accounts.data,
-        journal: journal.data,
+        accounts: accounts.map((account: TAccountDto) => ({
+          id: account.id,
+          code: account.code,
+          name: account.name,
+          type: account.type === "revenue" ? "income" : account.type,
+        })),
+        journal: journal.map((entry: TJournalEntryDto) => ({
+          id: entry.id,
+          date: entry.entryDate,
+          reference: entry.referenceType ?? entry.entryNumber,
+          memo: entry.description ?? "",
+          lines: entry.lines.map((line) => ({
+            accountId: line.accountId,
+            debit: line.debit,
+            credit: line.credit,
+          })),
+        })),
         expenses: expenses.map((expense: TExpenseDto) => ({
           id: expense.id,
           date: expense.expenseDate,

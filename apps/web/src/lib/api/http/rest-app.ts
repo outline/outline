@@ -1,8 +1,10 @@
 import { Effect, Schema } from "effect";
 import {
 	createExpenseProgram,
+	getChartOfAccountsProgram,
 	getDashboardMetricsProgram,
 	getExpensesProgram,
+	getJournalEntriesProgram,
 } from "@/domain/accounting/accounting.programs";
 import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
 import {
@@ -200,6 +202,7 @@ import {
 	createInvoiceHandlers,
 	type InvoiceHandlers,
 } from "./invoice.handlers";
+import { createLedgerHandlers, type LedgerHandlers } from "./ledger.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import { createPortalHandlers, type PortalHandlers } from "./portal.handlers";
 import {
@@ -242,6 +245,7 @@ export function createRestRequestHandler(
 	holidayHandlers?: HolidayHandlers,
 	expenseHandlers?: ExpenseHandlers,
 	accountingHandlers?: AccountingHandlers,
+	ledgerHandlers?: LedgerHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -427,6 +431,20 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return accountingHandlers.dashboardMetrics(request, requestId);
+		}
+		if (
+			ledgerHandlers &&
+			url.pathname === "/api/v1/admin/accounting/accounts" &&
+			request.method === "GET"
+		) {
+			return ledgerHandlers.accounts(request, requestId);
+		}
+		if (
+			ledgerHandlers &&
+			url.pathname === "/api/v1/admin/accounting/journal" &&
+			request.method === "GET"
+		) {
+			return ledgerHandlers.journal(request, requestId);
 		}
 		if (
 			expenseHandlers &&
@@ -1382,6 +1400,13 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		session: async (token) => authProgramDependencies.session(token),
 		dashboardMetrics: async (businessId) =>
 			runApp(getDashboardMetricsProgram(businessId as TTenantId)),
+	}),
+	createLedgerHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		accounts: async (businessId) =>
+			runApp(getChartOfAccountsProgram(businessId as TTenantId)),
+		journal: async (businessId) =>
+			runApp(getJournalEntriesProgram(businessId as TTenantId)),
 	}),
 );
 
