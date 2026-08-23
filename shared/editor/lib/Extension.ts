@@ -11,6 +11,8 @@ export type WidgetProps = {
   rtl: boolean;
   readOnly: boolean | undefined;
   selection?: Selection;
+  /** Whether the editor currently holds focus */
+  isEditorFocused: boolean;
 };
 
 export default class Extension<TOptions extends object = object> {

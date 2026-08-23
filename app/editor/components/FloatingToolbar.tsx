@@ -281,13 +281,29 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   // iOS specifics.
   useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
 
+  // Tapping the bar must not move focus out of the editor: that would dismiss
+  // the on-screen keyboard, and the toolbar is only shown while the editor is
+  // being edited so the bar itself would disappear from under the finger before
+  // the tap became a click. Preventing the default action of mousedown (which
+  // is what assigns focus, and is dispatched from a tap before click) leaves
+  // focus and the selection where they are. Fields inside the bar – the link
+  // editor's input – do need focus, so they are excluded.
+  const handleMouseDown = (event: React.MouseEvent) => {
+    if (
+      event.target instanceof Element &&
+      !event.target.closest("input, textarea, [contenteditable='true']")
+    ) {
+      event.preventDefault();
+    }
+  };
+
   if (isMobile) {
     if (isMobileToolbarVisible) {
       // Vertical position (above the keyboard) is owned entirely by
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
         <ReactPortal>
-          <MobileWrapper ref={menuRef}>
+          <MobileWrapper ref={menuRef} onMouseDown={handleMouseDown}>
             <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
         </ReactPortal>

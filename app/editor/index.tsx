@@ -1031,6 +1031,7 @@ export class Editor extends React.PureComponent<
                   rtl={isRTL}
                   readOnly={readOnly}
                   selection={this.view.state.selection}
+                  isEditorFocused={this.state.isEditorFocused}
                 />
               ))}
             <Observer>
