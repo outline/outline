@@ -41,14 +41,26 @@ const isInlineMarkActive =
     }
 
     const { from, $from, to, empty } = state.selection;
+    const marksAtCursor = state.storedMarks || $from.marks();
     const hasMark = !!(empty
-      ? type.isInSet(state.storedMarks || $from.marks())
+      ? type.isInSet(marksAtCursor)
       : state.doc.rangeHasMark(from, to, type));
 
     if (!hasMark) {
       return false;
     }
     if (attrs || options) {
+      // A cursor covers no range, so the marks that will apply to the text
+      // typed there answer the question, and the range options do not apply.
+      if (empty) {
+        return marksAtCursor.some(
+          (mark) =>
+            mark.type === type &&
+            (!attrs ||
+              Object.keys(attrs).every((key) => mark.attrs[key] === attrs[key]))
+        );
+      }
+
       const results = getMarksBetween(from, to, state);
       return results.some(
         ({ mark, start, end }) =>
