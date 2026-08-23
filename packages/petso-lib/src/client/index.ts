@@ -94,6 +94,12 @@ import type {
 	TVoucherDto,
 	TVoucherValidationResult,
 	TWebhookEndpoint,
+	TPublicBookingInput,
+	TPublicBookingResult,
+	TPublicBranchDto,
+	TPublicBusinessDto,
+	TPublicProductDto,
+	TPublicRoomDto,
 } from "../types";
 
 export class PetsoClientError extends Error {
@@ -214,6 +220,42 @@ export class PetsoClient {
 
 		session: (): Promise<TSessionDto> =>
 			this.fetchApi<TSessionDto>("/api/v1/auth/session"),
+	};
+
+	readonly public = {
+		business: (slug: string): Promise<TPublicBusinessDto> =>
+			this.fetchApi<TPublicBusinessDto>(
+				`/api/v1/public/business/${encodeURIComponent(slug)}`,
+			),
+
+		branches: (slug: string): Promise<readonly TPublicBranchDto[]> =>
+			this.fetchApi<readonly TPublicBranchDto[]>(
+				`/api/v1/public/business/${encodeURIComponent(slug)}/branches`,
+			),
+
+		rooms: (slug: string): Promise<readonly TPublicRoomDto[]> =>
+			this.fetchApi<readonly TPublicRoomDto[]>(
+				`/api/v1/public/business/${encodeURIComponent(slug)}/rooms`,
+			),
+
+		products: (slug: string): Promise<readonly TPublicProductDto[]> =>
+			this.fetchApi<readonly TPublicProductDto[]>(
+				`/api/v1/public/business/${encodeURIComponent(slug)}/products`,
+			),
+
+		product: (slug: string, id: string): Promise<TPublicProductDto> =>
+			this.fetchApi<TPublicProductDto>(
+				`/api/v1/public/business/${encodeURIComponent(slug)}/products/${encodeURIComponent(id)}`,
+			),
+
+		createBooking: (
+			slug: string,
+			input: TPublicBookingInput,
+		): Promise<TPublicBookingResult> =>
+			this.fetchApi<TPublicBookingResult>(
+				`/api/v1/public/business/${encodeURIComponent(slug)}/bookings`,
+				{ method: "POST", body: input },
+			),
 	};
 
 	readonly admin = {

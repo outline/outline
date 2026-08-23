@@ -157,3 +157,12 @@ export type {
 	TVoucherValidationResult,
 } from "./voucher.types";
 export type { TWebhookEndpoint, TWebhookEventPayload } from "./webhook.types";
+export type {
+	TPublicBookingDto,
+	TPublicBookingInput,
+	TPublicBookingResult,
+	TPublicBranchDto,
+	TPublicBusinessDto,
+	TPublicProductDto,
+	TPublicRoomDto,
+} from "./public.types";

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
 import { BusinessLayout } from "./BusinessLayout";
 /** A product on the public shopfront. */
 interface FeaturedProduct {
@@ -30,15 +30,22 @@ function Featured() {
   const [products, setProducts] = useState<FeaturedProduct[]>([]);
   useEffect(() => {
     let cancelled = false;
-    void client.post("/public.featured").then((response) => {
+    void petsoClient.public.products(businessSlug ?? "").then((response) => {
       if (!cancelled) {
-        setProducts(response.data ?? []);
+        setProducts(
+          response.map((product) => ({
+            id: product.id,
+            name: product.name,
+            category: product.category ?? "",
+            price: product.price,
+          })),
+        );
       }
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [businessSlug]);
   return (
     <BusinessLayout current="featured">
       <h2 className="text-lg font-semibold text-gray-900">In the shop</h2>

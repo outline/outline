@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageTitle from "~/components/PageTitle";
-import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
 /** A shopfront as a visitor sees it. */
 export interface Business {
   slug: string;
@@ -24,11 +24,18 @@ export function useBusiness() {
   const [business, setBusiness] = useState<Business | null>();
   useEffect(() => {
     let cancelled = false;
-    void client
-      .post("/public.business", { slug: businessSlug })
+    void petsoClient.public
+      .business(businessSlug ?? "")
       .then((response) => {
         if (!cancelled) {
-          setBusiness(response.data ?? null);
+          setBusiness({
+            slug: response.slug ?? businessSlug ?? "",
+            name: response.name,
+            tagline: "",
+            address: response.address ?? "",
+            phone: response.phone ?? "",
+            hours: "",
+          });
         }
       })
       .catch(() => {

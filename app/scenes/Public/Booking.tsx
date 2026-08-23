@@ -1,11 +1,7 @@
-import { useState } from "react";
-import { client } from "~/utils/ApiClient";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { petsoClient } from "~/utils/petsoClient";
 import { BusinessLayout } from "./BusinessLayout";
-const ROOM_TYPES = [
-  { value: "standard", label: "Standard", from: 150000 },
-  { value: "deluxe", label: "Deluxe", from: 210000 },
-  { value: "suite", label: "Suite", from: 275000 },
-];
 /** Formats rupiah for the public pages. */
 const money = (amount: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -23,9 +19,20 @@ const money = (amount: number) =>
  * @returns the rendered booking page.
  */
 function Booking() {
+  const { businessSlug } = useParams<{ businessSlug: string }>();
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [petName, setPetName] = useState("");
-  const [roomType, setRoomType] = useState("standard");
+  const [roomType, setRoomType] = useState("");
+  const [branchId, setBranchId] = useState<string>();
+  const [rooms, setRooms] = useState<
+    readonly { roomType: string; name: string; dailyRate: number }[]
+  >([]);
+  const [scheduledAt, setScheduledAt] = useState(() => {
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+    return tomorrow.toISOString().slice(0, 16);
+  });
   const [result, setResult] = useState<
     | {
         created: boolean;
@@ -36,20 +43,58 @@ function Booking() {
     | undefined
   >();
   const [isSaving, setIsSaving] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      petsoClient.public.rooms(businessSlug ?? ""),
+      petsoClient.public.branches(businessSlug ?? ""),
+    ])
+      .then(([loadedRooms, branches]) => {
+        if (cancelled) {
+          return;
+        }
+        setRooms(
+          loadedRooms.map((room) => ({
+            roomType: room.roomType,
+            name: room.name,
+            dailyRate: room.dailyRate,
+          })),
+        );
+        setRoomType(loadedRooms[0]?.roomType ?? "");
+        setBranchId(branches[0]?.id);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRooms([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [businessSlug]);
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
     try {
-      const response = await client.post("/public.booking.create", {
-        customerName,
-        petName,
-        roomType,
-      });
-      setResult(response.data);
-      if (response.data?.created) {
+      const response = await petsoClient.public.createBooking(
+        businessSlug ?? "",
+        {
+          customerName,
+          customerPhone,
+          petName,
+          scheduledAt: new Date(scheduledAt).toISOString(),
+          ...(branchId ? { branchId } : {}),
+          notes: roomType ? `Room type requested: ${roomType}` : undefined,
+        },
+      );
+      setResult({ created: response.created, code: response.code });
+      if (response.created) {
         setCustomerName("");
+        setCustomerPhone("");
         setPetName("");
       }
+    } catch {
+      setResult({ created: false, reason: "invalid" });
     } finally {
       setIsSaving(false);
     }
@@ -85,6 +130,21 @@ function Booking() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <div>
           <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-900"
+          >
+            Phone number
+          </label>
+          <input
+            id="phone"
+            value={customerPhone}
+            onChange={(event) => setCustomerPhone(event.target.value)}
+            className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label
             htmlFor="owner"
             className="block text-sm font-medium text-gray-900"
           >
@@ -94,6 +154,22 @@ function Booking() {
             id="owner"
             value={customerName}
             onChange={(event) => setCustomerName(event.target.value)}
+            className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="scheduled-at"
+            className="block text-sm font-medium text-gray-900"
+          >
+            Check-in date
+          </label>
+          <input
+            id="scheduled-at"
+            type="datetime-local"
+            value={scheduledAt}
+            onChange={(event) => setScheduledAt(event.target.value)}
             className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
           />
         </div>
@@ -116,24 +192,24 @@ function Booking() {
         <fieldset>
           <legend className="text-sm font-medium text-gray-900">Room</legend>
           <div className="mt-2 space-y-2">
-            {ROOM_TYPES.map((option) => (
+            {rooms.map((option) => (
               <label
-                key={option.value}
+                key={option.roomType || option.name}
                 className="flex items-center gap-3 rounded-md border border-gray-200 p-3 text-sm"
               >
                 <input
                   type="radio"
                   name="roomType"
-                  value={option.value}
-                  checked={roomType === option.value}
-                  onChange={() => setRoomType(option.value)}
+                  value={option.roomType}
+                  checked={roomType === option.roomType}
+                  onChange={() => setRoomType(option.roomType)}
                   className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                 />
                 <span className="font-medium text-gray-900">
-                  {option.label}
+                  {option.roomType || option.name}
                 </span>
                 <span className="text-gray-500">
-                  from {money(option.from)} / night
+                  from {money(option.dailyRate)} / night
                 </span>
               </label>
             ))}

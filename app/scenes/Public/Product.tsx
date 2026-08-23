@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
 import { BusinessLayout } from "./BusinessLayout";
 /** A product as the public shopfront describes it. */
 interface PublicProduct {
@@ -34,11 +34,23 @@ function Product() {
   const [product, setProduct] = useState<PublicProduct | null | undefined>();
   useEffect(() => {
     let cancelled = false;
-    void client
-      .post("/public.product", { slug: businessSlug, id: productId })
+    void petsoClient.public
+      .product(businessSlug ?? "", productId ?? "")
       .then((response) => {
         if (!cancelled) {
-          setProduct(response.data ?? null);
+          setProduct({
+            id: response.id,
+            name: response.name,
+            category: response.category ?? "",
+            price: response.price,
+            sku: response.sku ?? response.id,
+            inStock: response.stock > 0,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProduct(null);
         }
       });
     return () => {

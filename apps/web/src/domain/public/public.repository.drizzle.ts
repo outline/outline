@@ -22,12 +22,17 @@ type TRoomsRow = typeof rooms.$inferSelect;
 type TProductsRow = typeof products.$inferSelect;
 
 const mapBusiness = (
-	row: Pick<typeof businesses.$inferSelect, "id" | "name" | "slug" | "logoUrl">,
+	row: Pick<
+		typeof businesses.$inferSelect,
+		"id" | "name" | "slug" | "logoUrl" | "address" | "phone"
+	>,
 ): TPublicBusiness => ({
 	id: row.id,
 	name: row.name,
 	slug: row.slug,
 	logoUrl: row.logoUrl,
+	address: row.address,
+	phone: row.phone,
 });
 
 const mapBranch = (row: TBranchesRow): TPublicBranch => ({
@@ -81,6 +86,8 @@ export const PublicRepositoryDrizzle = Layer.effect(
 									name: true,
 									slug: true,
 									logoUrl: true,
+									address: true,
+									phone: true,
 								},
 							});
 							return row ? mapBusiness(row) : null;

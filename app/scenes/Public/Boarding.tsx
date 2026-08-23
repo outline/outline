@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
 import { BusinessLayout } from "./BusinessLayout";
 /** Room availability as a visitor sees it. */
 interface Availability {
@@ -18,8 +18,7 @@ const money = (amount: number) =>
 /**
  * What boarding is like here, and what is free right now.
  *
- * Availability is the live occupancy, so the page cannot advertise a room the
- * business has already filled.
+ * Room capacity and rates come from the business catalog.
  *
  * @returns the rendered boarding page.
  */
@@ -30,15 +29,26 @@ function Boarding() {
   const [availability, setAvailability] = useState<Availability[]>([]);
   useEffect(() => {
     let cancelled = false;
-    void client.post("/public.availability").then((response) => {
+    void petsoClient.public.rooms(businessSlug ?? "").then((response) => {
       if (!cancelled) {
-        setAvailability(response.data ?? []);
+        setAvailability(
+          response.map((room) => ({
+            type: room.roomType || room.name,
+            free: room.capacity,
+            total: room.capacity,
+            from: room.dailyRate,
+          })),
+        );
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setAvailability([]);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [businessSlug]);
   return (
     <BusinessLayout current="boarding">
       <h2 className="text-lg font-semibold text-gray-900">Boarding</h2>

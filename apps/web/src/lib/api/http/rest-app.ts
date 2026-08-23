@@ -128,6 +128,7 @@ import {
 import type { TPetId } from "@/domain/pet/pet.types";
 import {
 	createPortalServiceProgram,
+	createPortalBookingProgram,
 	deletePortalServiceProgram,
 	getPortalConfigProgram,
 	getPortalReviewsProgram,
@@ -136,6 +137,13 @@ import {
 	updatePortalConfigProgram,
 	updatePortalServiceStatusProgram,
 } from "@/domain/portal/portal.programs";
+import {
+	getPublicBranchesProgram,
+	getPublicBusinessBySlugProgram,
+	getPublicFeaturedProductsProgram,
+	getPublicProductProgram,
+	getPublicRoomsProgram,
+} from "@/domain/public/public.programs";
 import type { UpdatePortalConfigCommand } from "@/domain/portal/portal.schemas";
 import type { TPortalServiceId } from "@/domain/portal/portal.types";
 import {
@@ -279,6 +287,7 @@ import {
 	type LoyaltyHandlers,
 } from "./loyalty.handlers";
 import { createNotesHandlers, type NotesHandlers } from "./notes.handlers";
+import { createPublicHandlers, type PublicHandlers } from "./public.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import { createPortalHandlers, type PortalHandlers } from "./portal.handlers";
 import {
@@ -348,6 +357,7 @@ export function createRestRequestHandler(
 	staffStatusHandlers?: StaffStatusHandlers,
 	staffProfileHandlers?: StaffProfileHandlers,
 	notesHandlers?: NotesHandlers,
+	publicHandlers?: PublicHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -364,6 +374,31 @@ export function createRestRequestHandler(
 		}
 		if (url.pathname === "/api/v1/auth/session" && request.method === "GET") {
 			return authHandlers.session(request, requestId);
+		}
+		const publicBusinessMatch = url.pathname.match(
+			/^\/api\/v1\/public\/business\/([^/]+)(?:\/(branches|rooms|products|bookings)(?:\/([^/]+))?)?$/,
+		);
+		if (publicHandlers && publicBusinessMatch) {
+			const slug = decodeURIComponent(publicBusinessMatch[1] ?? "");
+			const resource = publicBusinessMatch[2];
+			const resourceId = publicBusinessMatch[3];
+			if (!resource && request.method === "GET") {
+				return publicHandlers.business(request, requestId, slug);
+			}
+			if (resource === "branches" && request.method === "GET") {
+				return publicHandlers.branches(request, requestId, slug);
+			}
+			if (resource === "rooms" && request.method === "GET") {
+				return publicHandlers.rooms(request, requestId, slug);
+			}
+			if (resource === "products" && request.method === "GET") {
+				return resourceId
+					? publicHandlers.product(request, requestId, slug, decodeURIComponent(resourceId))
+					: publicHandlers.featured(request, requestId, slug);
+			}
+			if (resource === "bookings" && request.method === "POST" && !resourceId) {
+				return publicHandlers.booking(request, requestId, slug);
+			}
 		}
 		if (
 			auditHandlers &&
@@ -2002,6 +2037,19 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		emptyTrash: async (businessId) => {
 			await runApp(emptyNotesTrashProgram(businessId));
 		},
+	}),
+	createPublicHandlers({
+		business: async (slug) =>
+			runApp(getPublicBusinessBySlugProgram(slug)),
+		branches: async (businessId) =>
+			runApp(getPublicBranchesProgram(businessId)),
+		rooms: async (businessId) => runApp(getPublicRoomsProgram(businessId)),
+		featured: async (businessId) =>
+			runApp(getPublicFeaturedProductsProgram(businessId)),
+		product: async (businessId, productId) =>
+			runApp(getPublicProductProgram(businessId, productId)),
+		createBooking: async (input, businessId) =>
+			runApp(createPortalBookingProgram(businessId as TTenantId, input)),
 	}),
 );
 

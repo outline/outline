@@ -1,20 +1,13 @@
-import type { TId } from "@/shared/types/common.types";
-
-export type TPublicBusinessId = TId & { readonly _brand: "PublicBusinessId" };
-export type TPublicBranchId = TId & { readonly _brand: "PublicBranchId" };
-export type TPublicRoomId = TId & { readonly _brand: "PublicRoomId" };
-export type TPublicProductId = TId & { readonly _brand: "PublicProductId" };
-
-export type TPublicBusiness = {
+export interface TPublicBusinessDto {
 	readonly id: string;
 	readonly name: string;
 	readonly slug: string | null;
 	readonly logoUrl: string | null;
 	readonly address?: string | null;
 	readonly phone?: string | null;
-};
+}
 
-export type TPublicBranch = {
+export interface TPublicBranchDto {
 	readonly id: string;
 	readonly businessId: string;
 	readonly name: string;
@@ -22,9 +15,9 @@ export type TPublicBranch = {
 	readonly phone: string | null;
 	readonly capacity: number;
 	readonly isActive: boolean;
-};
+}
 
-export type TPublicRoom = {
+export interface TPublicRoomDto {
 	readonly id: string;
 	readonly businessId: string;
 	readonly branchId: string | null;
@@ -34,9 +27,9 @@ export type TPublicRoom = {
 	readonly capacity: number;
 	readonly dailyRate: number;
 	readonly isActive: boolean;
-};
+}
 
-export type TPublicProduct = {
+export interface TPublicProductDto {
 	readonly id: string;
 	readonly businessId: string;
 	readonly name: string;
@@ -48,4 +41,24 @@ export type TPublicProduct = {
 	readonly sku: string | null;
 	readonly stock: number;
 	readonly unit: string | null;
-};
+}
+
+export interface TPublicBookingInput {
+	readonly customerName: string;
+	readonly customerPhone: string;
+	readonly petName: string;
+	readonly scheduledAt: string;
+	readonly branchId?: string;
+	readonly notes?: string;
+}
+
+export interface TPublicBookingDto {
+	readonly id: string;
+	readonly code: string;
+}
+
+export interface TPublicBookingResult {
+	readonly created: boolean;
+	readonly code: string;
+	readonly booking: TPublicBookingDto;
+}
