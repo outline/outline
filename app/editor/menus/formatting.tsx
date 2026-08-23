@@ -32,7 +32,11 @@ import { isInList } from "@shared/editor/queries/isInList";
 import { isListActive } from "@shared/editor/queries/isListActive";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem, SelectionContext } from "@shared/editor/types";
+import {
+  MenuItemGroup,
+  type MenuItem,
+  type SelectionContext,
+} from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { t } from "i18next";
 import CircleIcon from "~/components/Icons/CircleIcon";
@@ -65,15 +69,18 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     isEmpty,
     isInCode,
     isInCodeBlock,
-    isInList: isList,
     isTableCell,
   } = ctx;
 
-  const highlight = getMarksBetween(
-    state.selection.from,
-    state.selection.to,
-    state
-  ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+  // With a cursor rather than a range the highlight that matters is the one
+  // that will be applied to the text typed next, which is not in the document.
+  const highlight = isEmpty
+    ? (state.storedMarks || state.selection.$from.marks()).find(
+        (mark) => mark.type === schema.marks.highlight
+      )
+    : getMarksBetween(state.selection.from, state.selection.to, state).find(
+        ({ mark }) => mark.type === schema.marks.highlight
+      )?.mark;
 
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
@@ -83,47 +90,191 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     : false;
 
   const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
+  const canFormat = !isInCodeBlock;
 
-  const canFormatInline = !isInCodeBlock && (!isMobile || !isEmpty);
-  const canFormatBlock = !isInCodeBlock && (!isMobile || isEmpty);
-
+  // The block controls come first, so they are the ones on screen with a bare
+  // cursor and the bar scrolls right to the text controls for a selection.
   return [
     {
-      name: "placeholder",
-      tooltip: t("Placeholder"),
-      icon: <InputIcon />,
-      active: isMarkActive(schema.marks.placeholder),
-      visible: isTemplate && (!isMobile || !isEmpty),
+      name: "heading",
+      group: MenuItemGroup.block,
+      tooltip: t("Heading"),
+      shortcut: `⇧+Ctrl+1`,
+      icon: <Heading1Icon />,
+      active: isNodeActive(schema.nodes.heading, { level: 1 }),
+      attrs: { level: 1 },
+      visible: canFormat,
+    },
+    {
+      name: "heading",
+      group: MenuItemGroup.block,
+      tooltip: t("Subheading"),
+      shortcut: `⇧+Ctrl+2`,
+      icon: <Heading2Icon />,
+      active: isNodeActive(schema.nodes.heading, { level: 2 }),
+      attrs: { level: 2 },
+      visible: canFormat,
+    },
+    {
+      name: "heading",
+      group: MenuItemGroup.block,
+      tooltip: t("Subheading"),
+      shortcut: `⇧+Ctrl+3`,
+      icon: <Heading3Icon />,
+      active: isNodeActive(schema.nodes.heading, { level: 3 }),
+      attrs: { level: 3 },
+      visible: canFormat,
+    },
+    {
+      name: "blockquote",
+      group: MenuItemGroup.block,
+      tooltip: t("Quote"),
+      shortcut: `${metaDisplay}+]`,
+      icon: <BlockQuoteIcon />,
+      active: isNodeActive(schema.nodes.blockquote),
+      attrs: { level: 2 },
+      visible: !isInCodeBlock && !isTableCell,
     },
     {
       name: "separator",
-      visible: isTemplate && (!isMobile || !isEmpty),
+    },
+    {
+      name: "mergeCells",
+      group: MenuItemGroup.block,
+      tooltip: t("Merge cells"),
+      icon: <TableMergeCellsIcon />,
+      visible: isMultipleCellSelection(state),
+    },
+    {
+      name: "splitCell",
+      group: MenuItemGroup.block,
+      tooltip: t("Split cell"),
+      icon: <TableSplitCellsIcon />,
+      visible: isMergedCellSelection(state),
+    },
+    {
+      name: "container_toggle",
+      group: MenuItemGroup.block,
+      icon: <CollapseIcon />,
+      tooltip: t("Toggle block"),
+      active: isNodeActive(schema.nodes.container_toggle),
+      attrs: { id: uuidv4() },
+      visible: canFormat,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "checkbox_list",
+      group: MenuItemGroup.block,
+      tooltip: t("Todo list"),
+      shortcut: `⇧+Ctrl+7`,
+      icon: <TodoListIcon />,
+      keywords: "checklist checkbox task",
+      active: isListActive(schema.nodes.checkbox_list),
+      visible: !isInCodeBlock && !isTableCell,
+    },
+    {
+      name: "bullet_list",
+      group: MenuItemGroup.block,
+      tooltip: t("Bulleted list"),
+      shortcut: `⇧+Ctrl+8`,
+      icon: <BulletedListIcon />,
+      active: isListActive(schema.nodes.bullet_list),
+      visible: !isInCodeBlock && !isTableCell,
+    },
+    {
+      name: "ordered_list",
+      group: MenuItemGroup.block,
+      tooltip: t("Ordered list"),
+      shortcut: `⇧+Ctrl+9`,
+      icon: <OrderedListIcon />,
+      active: isListActive(schema.nodes.ordered_list),
+      visible: !isInCodeBlock && !isTableCell,
+    },
+    {
+      name: "outdentList",
+      group: MenuItemGroup.block,
+      tooltip: t("Outdent"),
+      shortcut: `⇧+Tab`,
+      icon: <OutdentIcon />,
+      visible:
+        (isTouch || isMobile) &&
+        isInList(state, { types: ["ordered_list", "bullet_list"] }),
+    },
+    {
+      name: "indentList",
+      group: MenuItemGroup.block,
+      tooltip: t("Indent"),
+      shortcut: `Tab`,
+      icon: <IndentIcon />,
+      visible:
+        (isTouch || isMobile) &&
+        isInList(state, { types: ["ordered_list", "bullet_list"] }),
+    },
+    {
+      name: "outdentCheckboxList",
+      group: MenuItemGroup.block,
+      tooltip: t("Outdent"),
+      shortcut: `⇧+Tab`,
+      icon: <OutdentIcon />,
+      visible:
+        (isTouch || isMobile) && isInList(state, { types: ["checkbox_list"] }),
+    },
+    {
+      name: "indentCheckboxList",
+      group: MenuItemGroup.block,
+      tooltip: t("Indent"),
+      shortcut: `Tab`,
+      icon: <IndentIcon />,
+      visible:
+        (isTouch || isMobile) && isInList(state, { types: ["checkbox_list"] }),
+    },
+    {
+      name: "separator",
+      visible: !isInCodeBlock,
+    },
+    {
+      name: "placeholder",
+      group: MenuItemGroup.inline,
+      tooltip: t("Placeholder"),
+      icon: <InputIcon />,
+      active: isMarkActive(schema.marks.placeholder),
+      visible: isTemplate,
+    },
+    {
+      name: "separator",
+      visible: isTemplate,
     },
     {
       name: "strong",
+      group: MenuItemGroup.inline,
       tooltip: t("Bold"),
       shortcut: `${metaDisplay}+B`,
       icon: <BoldIcon />,
       active: isMarkActive(schema.marks.strong),
-      visible: canFormatInline,
+      visible: canFormat,
     },
     {
       name: "em",
+      group: MenuItemGroup.inline,
       tooltip: t("Italic"),
       shortcut: `${metaDisplay}+I`,
       icon: <ItalicIcon />,
       active: isMarkActive(schema.marks.em),
-      visible: canFormatInline,
+      visible: canFormat,
     },
     {
       name: "strikethrough",
+      group: MenuItemGroup.inline,
       tooltip: t("Strikethrough"),
       shortcut: `${metaDisplay}+D`,
       icon: <StrikethroughIcon />,
       active: isMarkActive(schema.marks.strikethrough),
-      visible: canFormatInline,
+      visible: canFormat,
     },
     {
+      group: MenuItemGroup.inline,
       tooltip: t("Background color"),
       icon:
         getColorSetForSelectedCells(state.selection).size > 1 ? (
@@ -137,7 +288,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
         ) : (
           <PaletteIcon />
         ),
-      visible: !isInCode && (!isMobile || !isEmpty) && isTableCell,
+      visible: !isInCode && isTableCell,
       children: (): MenuItem[] => {
         const documentTableColors = getDocumentTableBackgroundColors(state);
 
@@ -216,21 +367,22 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       },
     },
     {
+      group: MenuItemGroup.inline,
       tooltip: t("Highlight"),
       shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
         <CircleIcon
-          color={highlight.mark.attrs.color || Highlight.presetColors[0].hex}
+          color={highlight.attrs.color || Highlight.presetColors[0].hex}
         />
       ) : (
         <HighlightIcon />
       ),
       active: () => !!highlight,
-      visible: !isInCode && (!isMobile || !isEmpty) && !isTableCell,
+      visible: !isInCode && !isTableCell,
       children: (): MenuItem[] => {
         const documentHighlightColors = getDocumentHighlightColors(state);
 
-        const currentHighlightColor = highlight?.mark.attrs.color;
+        const currentHighlightColor = highlight?.attrs.color;
         const nonPresetDocumentColors = documentHighlightColors.filter(
           (color: string) =>
             !Highlight.isPresetColor(color) && color !== currentHighlightColor
@@ -244,7 +396,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
                   label: t("None"),
                   icon: <DottedCircleIcon retainColor color="transparent" />,
                   active: () => false,
-                  attrs: { color: highlight.mark.attrs.color },
+                  attrs: { color: highlight.attrs.color },
                 },
               ]
             : []),
@@ -256,22 +408,19 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
             attrs: { color: preset.hex },
           })),
           ...(highlight &&
-          highlight.mark.attrs.color &&
-          !Highlight.isPresetColor(highlight.mark.attrs.color)
+          highlight.attrs.color &&
+          !Highlight.isPresetColor(highlight.attrs.color)
             ? [
                 {
                   name: "highlight",
-                  label: highlight.mark.attrs.color,
+                  label: highlight.attrs.color,
                   icon: (
-                    <CircleIcon
-                      retainColor
-                      color={highlight.mark.attrs.color}
-                    />
+                    <CircleIcon retainColor color={highlight.attrs.color} />
                   ),
                   active: isMarkActive(schema.marks.highlight, {
-                    color: highlight.mark.attrs.color,
+                    color: highlight.attrs.color,
                   }),
-                  attrs: { color: highlight.mark.attrs.color },
+                  attrs: { color: highlight.attrs.color },
                 },
               ]
             : []),
@@ -290,8 +439,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
                 content: (
                   <HighlightColorPicker
                     activeColor={
-                      highlight?.mark.attrs.color ||
-                      Highlight.presetColors[0].hex
+                      highlight?.attrs.color || Highlight.presetColors[0].hex
                     }
                   />
                 ),
@@ -307,136 +455,12 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     },
     {
       name: "code_inline",
+      group: MenuItemGroup.inline,
       tooltip: t("Code"),
       shortcut: `${metaDisplay}+E`,
       icon: <CodeIcon />,
       active: isMarkActive(schema.marks.code_inline),
-      visible: canFormatInline,
-    },
-    {
-      name: "separator",
-      visible: !isInCodeBlock,
-    },
-    {
-      name: "heading",
-      tooltip: t("Heading"),
-      shortcut: `⇧+Ctrl+1`,
-      icon: <Heading1Icon />,
-      active: isNodeActive(schema.nodes.heading, { level: 1 }),
-      attrs: { level: 1 },
-      visible: canFormatBlock,
-    },
-    {
-      name: "heading",
-      tooltip: t("Subheading"),
-      shortcut: `⇧+Ctrl+2`,
-      icon: <Heading2Icon />,
-      active: isNodeActive(schema.nodes.heading, { level: 2 }),
-      attrs: { level: 2 },
-      visible: canFormatBlock,
-    },
-    {
-      name: "heading",
-      tooltip: t("Subheading"),
-      shortcut: `⇧+Ctrl+3`,
-      icon: <Heading3Icon />,
-      active: isNodeActive(schema.nodes.heading, { level: 3 }),
-      attrs: { level: 3 },
-      visible: canFormatBlock,
-    },
-    {
-      name: "blockquote",
-      tooltip: t("Quote"),
-      shortcut: `${metaDisplay}+]`,
-      icon: <BlockQuoteIcon />,
-      active: isNodeActive(schema.nodes.blockquote),
-      attrs: { level: 2 },
-      visible: !isInCodeBlock && !isTableCell && (!isMobile || isEmpty),
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "mergeCells",
-      tooltip: t("Merge cells"),
-      icon: <TableMergeCellsIcon />,
-      visible: isMultipleCellSelection(state),
-    },
-    {
-      name: "splitCell",
-      tooltip: t("Split cell"),
-      icon: <TableSplitCellsIcon />,
-      visible: isMergedCellSelection(state),
-    },
-    {
-      name: "container_toggle",
-      icon: <CollapseIcon />,
-      tooltip: t("Toggle block"),
-      active: isNodeActive(schema.nodes.container_toggle),
-      attrs: { id: uuidv4() },
-      visible: canFormatBlock,
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "checkbox_list",
-      tooltip: t("Todo list"),
-      shortcut: `⇧+Ctrl+7`,
-      icon: <TodoListIcon />,
-      keywords: "checklist checkbox task",
-      active: isListActive(schema.nodes.checkbox_list),
-      visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
-    },
-    {
-      name: "bullet_list",
-      tooltip: t("Bulleted list"),
-      shortcut: `⇧+Ctrl+8`,
-      icon: <BulletedListIcon />,
-      active: isListActive(schema.nodes.bullet_list),
-      visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
-    },
-    {
-      name: "ordered_list",
-      tooltip: t("Ordered list"),
-      shortcut: `⇧+Ctrl+9`,
-      icon: <OrderedListIcon />,
-      active: isListActive(schema.nodes.ordered_list),
-      visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
-    },
-    {
-      name: "outdentList",
-      tooltip: t("Outdent"),
-      shortcut: `⇧+Tab`,
-      icon: <OutdentIcon />,
-      visible:
-        (isTouch || isMobile) &&
-        isInList(state, { types: ["ordered_list", "bullet_list"] }),
-    },
-    {
-      name: "indentList",
-      tooltip: t("Indent"),
-      shortcut: `Tab`,
-      icon: <IndentIcon />,
-      visible:
-        (isTouch || isMobile) &&
-        isInList(state, { types: ["ordered_list", "bullet_list"] }),
-    },
-    {
-      name: "outdentCheckboxList",
-      tooltip: t("Outdent"),
-      shortcut: `⇧+Tab`,
-      icon: <OutdentIcon />,
-      visible:
-        (isTouch || isMobile) && isInList(state, { types: ["checkbox_list"] }),
-    },
-    {
-      name: "indentCheckboxList",
-      tooltip: t("Indent"),
-      shortcut: `Tab`,
-      icon: <IndentIcon />,
-      visible:
-        (isTouch || isMobile) && isInList(state, { types: ["checkbox_list"] }),
+      visible: canFormat,
     },
     {
       name: "separator",
@@ -444,15 +468,18 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     },
     {
       name: "addLink",
+      group: MenuItemGroup.inline,
       tooltip: t("Create link"),
       shortcut: `${metaDisplay}+K`,
       icon: <LinkIcon />,
       attrs: { href: "" },
       active: isMarkActive(schema.marks.link, undefined, { exact: true }),
-      visible: canFormatInline,
+      // A link cannot be made without text to attach it to.
+      visible: canFormat && !isEmpty,
     },
     {
       name: "comment",
+      group: MenuItemGroup.inline,
       tooltip: t("Comment"),
       shortcut: `${metaDisplay}+⌥+M`,
       icon: <CommentIcon />,
@@ -462,7 +489,6 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
         { resolved: false },
         { exact: true }
       ),
-      visible: !isMobile || !isEmpty,
     },
     {
       name: "separator",
@@ -470,9 +496,11 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     },
     {
       name: "copyToClipboard",
+      group: MenuItemGroup.inline,
       icon: <CopyIcon />,
       tooltip: t("Copy"),
       shortcut: `${metaDisplay}+C`,
+      // Copy acts on the selected text, so it has nothing to do without one.
       visible: isInCode && !isInCodeBlock && (!isMobile || !isEmpty),
     },
   ];

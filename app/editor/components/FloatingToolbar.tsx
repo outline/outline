@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
@@ -6,7 +7,7 @@ import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { depths, hairline, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
@@ -360,6 +361,7 @@ const MobileWrapper = styled.div`
   right: 0;
   width: 100vw;
   box-sizing: border-box;
+  padding: 0 8px 8px;
   z-index: ${depths.editorToolbar};
   will-change: transform;
 
@@ -368,15 +370,28 @@ const MobileWrapper = styled.div`
   }
 `;
 
+// A rounded bar floating clear of the edges of the screen, with the buttons
+// inside clipped to its corners as they scroll.
 const MobileBackground = styled.div`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 10px 6px;
-  min-height: 60px;
+  padding: 4px;
+  min-height: 48px;
+  overflow: hidden;
   background-color: ${s("menuBackground")};
-  border-top: 1px solid ${s("divider")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 24px;
+  ${(props) => hairline(props.theme.divider)}
+
+  // The frosted glass of the iOS accessory bars.
+  @supports (backdrop-filter: blur(20px)) or
+    (-webkit-backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px) saturate(180%);
+    background-color: ${(props) =>
+      transparentize(0.2, props.theme.menuBackground)};
+  }
 `;
 
 const Background = styled.div<{ align: Props["align"] }>`

@@ -1,6 +1,6 @@
 import type { PluginSimple } from "markdown-it";
 import type { InputRule } from "prosemirror-inputrules";
-import type { NodeType, MarkType, Schema } from "prosemirror-model";
+import type { Mark, NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
 import type { SelectionToolbarMenuDescriptor } from "../types";
@@ -15,6 +15,8 @@ export type WidgetProps = {
   readOnly: boolean | undefined;
   /** The current editor selection */
   selection?: Selection;
+  /** The marks that will be applied to text typed at the cursor */
+  storedMarks?: readonly Mark[] | null;
   /** Whether the editor currently holds focus */
   isEditorFocused: boolean;
 };
