@@ -36,6 +36,7 @@ import type {
 } from "../../src/mocks/shop";
 import type {
   TCustomerRecordDto,
+  TInventorySnapshot,
   TPetDto,
   TProductDto,
   TStaffMemberDto,
@@ -205,6 +206,38 @@ function mapStaff(member: TStaffMemberDto): Staff {
     phone: "",
     status: "active",
     commissionRate: 0,
+  };
+}
+
+function mapInventoryBatch(
+  batch: TInventorySnapshot["batches"][number],
+  productNames: ReadonlyMap<string, string>
+): Batch {
+  return {
+    id: batch.id,
+    productId: batch.variantId,
+    productName: productNames.get(batch.variantId) ?? "",
+    warehouseId: "",
+    lot: batch.batchNumber ?? "",
+    quantity: batch.quantity,
+    expiresAt: batch.expiryDate ?? "",
+  };
+}
+
+function mapInventoryMovement(
+  movement: TInventorySnapshot["movements"][number],
+  productNames: ReadonlyMap<string, string>
+): Movement {
+  const types: Movement["type"][] = ["in", "out", "transfer", "adjustment"];
+  return {
+    id: movement.id,
+    productId: movement.variantId,
+    productName: productNames.get(movement.variantId) ?? "",
+    warehouseId: "",
+    type: types.find((type) => type === movement.type) ?? "adjustment",
+    quantity: movement.quantity,
+    reference: movement.referenceId ?? movement.referenceType ?? "",
+    createdAt: movement.createdAt,
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -698,8 +731,7 @@ export const useShop = create<State>((set, get) => ({
         orders,
         suppliers,
         warehouses,
-        batches,
-        movements,
+        inventorySnapshot,
         purchaseOrders,
         branches,
         staffDtos,
@@ -745,8 +777,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/orders.list"),
         client.post("/suppliers.list"),
         client.post("/warehouses.list"),
-        client.post("/batches.list"),
-        client.post("/movements.list"),
+        petsoClient.admin.inventory(),
         client.post("/purchaseOrders.list"),
         petsoClient.branches.list(),
         petsoClient.admin.staff(),
@@ -783,6 +814,12 @@ export const useShop = create<State>((set, get) => ({
         client.post("/staff.invites"),
         client.post("/grooming.calendar", { days: 14 }),
       ]);
+      const productNames = new Map<string, string>();
+      for (const product of productDtos) {
+        for (const variant of product.variants) {
+          productNames.set(variant.id, product.name);
+        }
+      }
       set({
         dashboard: dashboard.data,
         products: productDtos.map(mapProduct),
@@ -794,8 +831,12 @@ export const useShop = create<State>((set, get) => ({
         orders: orders.data,
         suppliers: suppliers.data,
         warehouses: warehouses.data,
-        batches: batches.data,
-        movements: movements.data,
+        batches: inventorySnapshot.batches.map((batch) =>
+          mapInventoryBatch(batch, productNames)
+        ),
+        movements: inventorySnapshot.movements.map((movement) =>
+          mapInventoryMovement(movement, productNames)
+        ),
         purchaseOrders: purchaseOrders.data,
         branches: branches.map(mapBranch),
         staff: staffDtos.map(mapStaff),
@@ -908,14 +949,16 @@ export const useShop = create<State>((set, get) => ({
     return response.data;
   },
   adjustStock: async (id, delta) => {
-    set((state) => ({
-      products: state.products.map((product) =>
-        product.id === id
-          ? { ...product, stock: Math.max(0, product.stock + delta) }
-          : product
-      ),
-    }));
-    await client.post("/products.adjustStock", { id, delta });
+    const product = get().products.find((item) => item.id === id);
+    const variantId = product?.variants?.[0]?.id;
+    if (!variantId) {
+      return;
+    }
+    await petsoClient.admin.adjustStock({
+      variantId,
+      quantity: delta,
+      notes: "Manual stock adjustment",
+    });
     await get().fetchAll();
   },
   createOrder: async (items, customerName) => {

@@ -26,6 +26,12 @@ export type {
 export type { TCreatePetInput, TPetDto, TUpdatePetInput } from "./pet.types";
 export type { TStaffMemberDto } from "./staff.types";
 export type {
+	TAdjustStockInput,
+	TInventoryBatchDto,
+	TInventoryMovementDto,
+	TInventorySnapshot,
+} from "./inventory.types";
+export type {
 	TDashboardMetrics,
 	TDashboardSummaryDto,
 	TLowStockItem,

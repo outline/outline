@@ -7,6 +7,12 @@ import {
 	updateCustomerProgram,
 } from "@/domain/customer/customer.programs";
 import {
+	addBatchProgram,
+	deductStockProgram,
+	getBatchesProgram,
+	getMovementsProgram,
+} from "@/domain/inventory/inventory.programs";
+import {
 	addPetProgram,
 	deletePetProgram,
 	getPetsProgram,
@@ -28,6 +34,7 @@ import {
 	UpdateProductSchema,
 	UpdateVariantSchema,
 } from "@/domain/product/product.schemas";
+import type { TProductVariantId } from "@/domain/product/product.types";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
@@ -38,6 +45,10 @@ import {
 	type CatalogHandlers,
 	createCatalogHandlers,
 } from "./catalog.handlers";
+import {
+	createInventoryHandlers,
+	type InventoryHandlers,
+} from "./inventory.handlers";
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
 
@@ -51,6 +62,7 @@ export function createRestRequestHandler(
 	authHandlers: AuthHandlers,
 	branchHandlers?: BranchHandlers,
 	catalogHandlers?: CatalogHandlers,
+	inventoryHandlers?: InventoryHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -142,6 +154,20 @@ export function createRestRequestHandler(
 			(request.method === "PATCH" || request.method === "DELETE")
 		) {
 			return catalogHandlers.mutateProduct(request, requestId, productMatch[1]);
+		}
+		if (
+			inventoryHandlers &&
+			url.pathname === "/api/v1/admin/inventory" &&
+			request.method === "GET"
+		) {
+			return inventoryHandlers.snapshot(request, requestId);
+		}
+		if (
+			inventoryHandlers &&
+			url.pathname === "/api/v1/admin/inventory/adjust" &&
+			request.method === "POST"
+		) {
+			return inventoryHandlers.adjust(request, requestId);
 		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
@@ -253,6 +279,78 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			await runApp(
 				deleteProductProgram(id, businessId as TTenantId, userId as TUserId),
 			);
+		},
+	}),
+	createInventoryHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		snapshot: async (businessId) => {
+			const products = await runApp(
+				getProductsProgram(businessId as TTenantId),
+			);
+			const variants = products.flatMap((product) => product.variants);
+			const batches = await Promise.all(
+				variants.map((variant) =>
+					runApp(
+						getBatchesProgram(
+							businessId as TTenantId,
+							variant.id as TProductVariantId,
+						),
+					),
+				),
+			);
+			const movements = await Promise.all(
+				variants.map((variant) =>
+					runApp(
+						getMovementsProgram(
+							businessId as TTenantId,
+							variant.id as TProductVariantId,
+						),
+					),
+				),
+			);
+			return {
+				batches: batches.flat().map((batch) => ({
+					...batch,
+					receivedAt: batch.receivedAt.toISOString(),
+					expiryDate: batch.expiryDate?.toISOString() ?? null,
+					createdAt: batch.createdAt.toISOString(),
+					updatedAt: batch.updatedAt.toISOString(),
+				})),
+				movements: movements.flat().map((movement) => ({
+					...movement,
+					createdAt: movement.createdAt.toISOString(),
+				})),
+			};
+		},
+		adjust: async (businessId, input) => {
+			const variantId = String(input.variantId);
+			const quantity = typeof input.quantity === "number" ? input.quantity : 0;
+			const notes =
+				typeof input.notes === "string" ? input.notes : "Manual adjustment";
+			if (quantity > 0) {
+				await runApp(
+					addBatchProgram(businessId as TTenantId, {
+						variantId,
+						batchNumber: "MANUAL",
+						quantity,
+						costPrice: 0,
+						expiryDate: null,
+						notes,
+					}),
+				);
+				return;
+			}
+			if (quantity < 0) {
+				await runApp(
+					deductStockProgram(businessId as TTenantId, {
+						variantId,
+						quantity: Math.abs(quantity),
+						referenceType: "adjustment",
+						referenceId: crypto.randomUUID(),
+						notes,
+					}),
+				);
+			}
 		},
 	}),
 );

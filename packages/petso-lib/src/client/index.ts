@@ -3,6 +3,7 @@ import type {
 	TAdminProductInput,
 	TAuthCredentials,
 	TAuthResult,
+	TAdjustStockInput,
 	TBranchContactDto,
 	TBranchDto,
 	TCreateOrderInput,
@@ -30,6 +31,7 @@ import type {
 	TSignupResult,
 	TUpdateStatusInput,
 	TStaffMemberDto,
+	TInventorySnapshot,
 	TValidateVoucherInput,
 	TVoucherDto,
 	TVoucherValidationResult,
@@ -173,6 +175,15 @@ export class PetsoClient {
 			this.fetchApi<{ readonly deleted: boolean }>(
 				`/api/v1/admin/products/${id}`,
 				{ method: "DELETE" },
+			),
+		inventory: (): Promise<TInventorySnapshot> =>
+			this.fetchApi<TInventorySnapshot>("/api/v1/admin/inventory"),
+		adjustStock: (
+			input: TAdjustStockInput,
+		): Promise<{ readonly adjusted: boolean }> =>
+			this.fetchApi<{ readonly adjusted: boolean }>(
+				"/api/v1/admin/inventory/adjust",
+				{ method: "POST", body: input },
 			),
 		customers: (): Promise<readonly TCustomerRecordDto[]> =>
 			this.fetchApi<readonly TCustomerRecordDto[]>("/api/v1/admin/customers"),
