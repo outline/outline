@@ -22,6 +22,11 @@ import {
 	updateCustomerProgram,
 } from "@/domain/customer/customer.programs";
 import {
+	getCalendarPrograms,
+	updateAppointmentStatusProgram,
+} from "@/domain/grooming/grooming.programs";
+import type { TGroomingAppointment } from "@/domain/grooming/grooming.types";
+import {
 	addBatchProgram,
 	deductStockProgram,
 	getBatchesProgram,
@@ -132,6 +137,10 @@ import {
 	createCatalogHandlers,
 } from "./catalog.handlers";
 import {
+	createGroomingHandlers,
+	type GroomingHandlers,
+} from "./grooming.handlers";
+import {
 	createInventoryHandlers,
 	type InventoryHandlers,
 } from "./inventory.handlers";
@@ -173,6 +182,7 @@ export function createRestRequestHandler(
 	shiftHandlers?: ShiftHandlers,
 	returnHandlers?: ReturnHandlers,
 	boardingHandlers?: BoardingHandlers,
+	groomingHandlers?: GroomingHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -296,6 +306,23 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return boardingHandlers.list(request, requestId);
+		}
+		if (
+			groomingHandlers &&
+			url.pathname === "/api/v1/admin/grooming/appointments" &&
+			request.method === "GET"
+		) {
+			return groomingHandlers.list(request, requestId);
+		}
+		const groomingStatusMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/grooming\/appointments\/([^/]+)\/status$/,
+		);
+		if (groomingHandlers && groomingStatusMatch && request.method === "PATCH") {
+			return groomingHandlers.updateStatus(
+				request,
+				requestId,
+				groomingStatusMatch[1] ?? "",
+			);
 		}
 		if (
 			boardingHandlers &&
@@ -979,7 +1006,40 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			);
 		},
 	}),
+	createGroomingHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const appointments = await runApp(
+				getCalendarPrograms(businessId as TTenantId, {
+					start: new Date(0),
+					end: new Date("2100-01-01T00:00:00.000Z"),
+				}),
+			);
+			return appointments.map(serializeGroomingAppointment);
+		},
+		updateStatus: async (businessId, id, status) =>
+			serializeGroomingAppointment(
+				await runApp(
+					updateAppointmentStatusProgram(
+						businessId as TTenantId,
+						id as TGroomingAppointment["id"],
+						status,
+					),
+				),
+			),
+	}),
 );
+
+function serializeGroomingAppointment(appointment: TGroomingAppointment) {
+	return {
+		...appointment,
+		scheduledAt: appointment.scheduledAt.toISOString(),
+		startedAt: appointment.startedAt?.toISOString() ?? null,
+		completedAt: appointment.completedAt?.toISOString() ?? null,
+		createdAt: appointment.createdAt.toISOString(),
+		updatedAt: appointment.updatedAt.toISOString(),
+	};
+}
 
 const InvoiceCreateSchema = Schema.Struct({
 	customerId: Schema.String,

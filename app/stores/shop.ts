@@ -48,6 +48,7 @@ import type {
   TRoomDto,
   TInvoiceDto,
   TBoardingDto,
+  TGroomingAppointmentDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -421,6 +422,42 @@ function mapBoarding(
     checkOut: boarding.estimatedCheckOutDate ?? boarding.checkInDate,
     status,
     ratePerNight: boarding.dailyRate,
+  };
+}
+
+function mapGrooming(
+  appointment: TGroomingAppointmentDto,
+  customerNames: ReadonlyMap<string, string>,
+  petNames: ReadonlyMap<string, string>,
+  staffNames: ReadonlyMap<string, string>,
+  branchNames: ReadonlyMap<string, string>
+): Grooming {
+  const status: Grooming["status"] =
+    appointment.status === "in_progress"
+      ? "in_progress"
+      : appointment.status === "completed"
+        ? "done"
+        : appointment.status === "cancelled"
+          ? "cancelled"
+          : "booked";
+  return {
+    id: appointment.id,
+    customerId: appointment.customerId ?? "",
+    customerName: appointment.customerId
+      ? (customerNames.get(appointment.customerId) ?? appointment.customerId)
+      : "Walk-in customer",
+    petName: petNames.get(appointment.petId) ?? appointment.petId,
+    service: appointment.serviceId,
+    groomerId: appointment.groomerId ?? "",
+    groomerName: appointment.groomerId
+      ? (staffNames.get(appointment.groomerId) ?? appointment.groomerId)
+      : "Unassigned",
+    branch: appointment.branchId
+      ? (branchNames.get(appointment.branchId) ?? appointment.branchId)
+      : "",
+    scheduledAt: appointment.scheduledAt,
+    status,
+    price: appointment.price,
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -918,13 +955,13 @@ export const useShop = create<State>((set, get) => ({
         purchaseOrderDtos,
         branches,
         staffDtos,
+        groomingAppointments,
         accounts,
         journal,
         expenses,
         shifts,
         trialBalance,
         commissions,
-        grooming,
         loyalty,
         whatsappTemplates,
         whatsappMessages,
@@ -964,13 +1001,13 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.purchaseOrders(),
         petsoClient.branches.list(),
         petsoClient.admin.staff(),
+        petsoClient.admin.groomingAppointments(),
         client.post("/accounts.list"),
         client.post("/journal.list"),
         client.post("/expenses.list"),
         client.post("/shifts.list"),
         client.post("/accounting.trialBalance"),
         client.post("/accounting.commissions"),
-        client.post("/grooming.list"),
         client.post("/loyalty.list"),
         client.post("/whatsapp.templates"),
         client.post("/whatsapp.messages"),
@@ -1015,6 +1052,14 @@ export const useShop = create<State>((set, get) => ({
       for (const supplier of supplierDtos) {
         supplierNames.set(supplier.id, supplier.name);
       }
+      const petNames = new Map<string, string>();
+      for (const pet of petDtos) {
+        petNames.set(pet.id, pet.name);
+      }
+      const staffNames = new Map<string, string>();
+      for (const staffMember of staffDtos) {
+        staffNames.set(staffMember.userId, staffMember.fullName);
+      }
       set({
         dashboard: dashboard.data,
         products: productDtos.map(mapProduct),
@@ -1051,7 +1096,15 @@ export const useShop = create<State>((set, get) => ({
         shifts: shifts.data,
         trialBalance: trialBalance.data,
         commissions: commissions.data,
-        grooming: grooming.data,
+        grooming: groomingAppointments.map((appointment) =>
+          mapGrooming(
+            appointment,
+            customerNames,
+            petNames,
+            staffNames,
+            branchNames
+          )
+        ),
         loyalty: loyalty.data,
         whatsappTemplates: whatsappTemplates.data,
         whatsappMessages: whatsappMessages.data,
@@ -1616,7 +1669,15 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
   },
   setGroomingStatus: async (id, status) => {
-    await client.post("/grooming.setStatus", { id, status });
+    const backendStatus =
+      status === "in_progress"
+        ? "in_progress"
+        : status === "done"
+          ? "completed"
+          : status === "cancelled"
+            ? "cancelled"
+            : "confirmed";
+    await petsoClient.admin.updateGroomingStatus(id, backendStatus);
     await get().fetchAll();
   },
   sendWhatsapp: async (templateId, customerId) => {

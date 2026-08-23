@@ -43,6 +43,7 @@ import type {
 	TCreateReturnInput,
 	TBoardingDto,
 	TCreateBoardingInput,
+	TGroomingAppointmentDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -370,6 +371,18 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
+		groomingAppointments: (): Promise<readonly TGroomingAppointmentDto[]> =>
+			this.fetchApi<readonly TGroomingAppointmentDto[]>(
+				"/api/v1/admin/grooming/appointments",
+			),
+		updateGroomingStatus: (
+			id: string,
+			status: TGroomingAppointmentDto["status"],
+		): Promise<TGroomingAppointmentDto> =>
+			this.fetchApi<TGroomingAppointmentDto>(
+				`/api/v1/admin/grooming/appointments/${id}/status`,
+				{ method: "PATCH", body: { status } },
+			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",
