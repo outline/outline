@@ -11,6 +11,8 @@ export type {
 	TCustomerDto,
 	TCustomerOrderDto,
 	TCustomerRecordDto,
+	TCreateCustomerInput,
+	TUpdateCustomerInput,
 	TDashboardMetrics,
 	TDashboardSummaryDto,
 	TLowStockItem,

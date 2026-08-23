@@ -20,6 +20,8 @@ export type {
 	TCustomerDto,
 	TCustomerOrderDto,
 	TCustomerRecordDto,
+	TCreateCustomerInput,
+	TUpdateCustomerInput,
 } from "./customer.types";
 export type { TPetDto } from "./pet.types";
 export type { TStaffMemberDto } from "./staff.types";

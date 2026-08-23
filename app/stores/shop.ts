@@ -970,8 +970,29 @@ export const useShop = create<State>((set, get) => ({
   },
   saveProduct: async (product) => write("/products.save", product, get),
   deleteProduct: async (id) => write("/products.delete", { id }, get),
-  saveCustomer: async (customer) => write("/customers.save", customer, get),
-  deleteCustomer: async (id) => write("/customers.delete", { id }, get),
+  saveCustomer: async (customer) => {
+    if (customer.id) {
+      await petsoClient.admin.updateCustomer({
+        id: customer.id,
+        fullName: customer.name,
+        phone: customer.phone ?? "",
+        email: customer.email ?? null,
+      });
+    } else {
+      await petsoClient.admin.createCustomer({
+        fullName: customer.name,
+        phone: customer.phone ?? "",
+        email: customer.email ?? null,
+      });
+    }
+    await get().fetchAll();
+    return { saved: true };
+  },
+  deleteCustomer: async (id) => {
+    await petsoClient.admin.deleteCustomer(id);
+    await get().fetchAll();
+    return { removed: true };
+  },
   saveStaff: async (member) => write("/staff.save", member, get),
   deleteStaff: async (id) => write("/staff.delete", { id }, get),
   saveSupplier: async (supplier) => write("/suppliers.save", supplier, get),

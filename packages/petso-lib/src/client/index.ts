@@ -5,8 +5,10 @@ import type {
 	TBranchContactDto,
 	TBranchDto,
 	TCreateOrderInput,
+	TCreateCustomerInput,
 	TCustomerDto,
 	TCustomerRecordDto,
+	TUpdateCustomerInput,
 	TCustomerOrderDto,
 	TDashboardSummaryDto,
 	TLowStockItem,
@@ -160,6 +162,23 @@ export class PetsoClient {
 			this.fetchApi<readonly TPetDto[]>("/api/v1/admin/pets"),
 		staff: (): Promise<readonly TStaffMemberDto[]> =>
 			this.fetchApi<readonly TStaffMemberDto[]>("/api/v1/admin/staff"),
+		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
+			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
+				method: "POST",
+				body: input,
+			}),
+		updateCustomer: (
+			input: TUpdateCustomerInput,
+		): Promise<TCustomerRecordDto> =>
+			this.fetchApi<TCustomerRecordDto>(
+				`/api/v1/admin/customers/${input.id}`,
+				{ method: "PATCH", body: input },
+			),
+		deleteCustomer: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/customers/${id}`,
+				{ method: "DELETE" },
+			),
 	};
 
 	readonly products = {

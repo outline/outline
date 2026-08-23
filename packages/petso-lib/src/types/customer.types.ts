@@ -22,6 +22,18 @@ export interface TCustomerRecordDto {
 	readonly updatedAt: string;
 }
 
+export interface TCreateCustomerInput {
+	readonly fullName: string;
+	readonly phone: string;
+	readonly email?: string | null;
+	readonly address?: string | null;
+	readonly notes?: string | null;
+}
+
+export interface TUpdateCustomerInput extends TCreateCustomerInput {
+	readonly id: string;
+}
+
 export type TCustomerOrderDto = {
 	readonly id: string;
 	readonly totalAmount: number;
