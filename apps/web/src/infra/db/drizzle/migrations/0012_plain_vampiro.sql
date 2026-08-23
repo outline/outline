@@ -1,0 +1,1 @@
+ALTER TABLE "portal_services" ADD CONSTRAINT "portal_services_category_check" CHECK ("portal_services"."category" IN ('freshwater', 'saltwater', 'terrarium', 'other') OR "portal_services"."category" IS NULL);

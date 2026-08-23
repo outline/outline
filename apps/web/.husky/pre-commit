@@ -1,0 +1,13 @@
+bun run typecheck
+bun run lint:arch:affected
+npx lint-staged
+
+# Refresh local graphify cache so `bun run graphify:query` reflects recent
+# code changes. Fast path: cluster-only re-runs clustering on existing
+# graph.json (skips AST re-extraction). For full refresh of new/changed
+# files, run manually: `bun run graphify:update`.
+# Note: graphify-out/ is gitignored, so nothing is staged here.
+if command -v graphify &> /dev/null; then
+    echo "🔄 Refreshing graphify (cluster-only)..."
+    graphify cluster-only . --no-viz 2>/dev/null || echo "⚠️  Graphify refresh skipped"
+fi

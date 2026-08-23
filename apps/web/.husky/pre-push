@@ -1,0 +1,23 @@
+#!/bin/bash
+# Pre-push hook: run vulnerability scan, type check, architecture lint
+
+echo "🔒 Running vulnerability scan..."
+
+if ! bun audit; then
+	echo ""
+	echo "❌ Vulnerability scan failed."
+	echo "   Review the output above and fix issues before pushing."
+	echo "   To bypass this check in an emergency, use: git push --no-verify"
+	exit 1
+fi
+
+echo "📐 Running architecture lint..."
+if ! bun run lint:arch; then
+	echo ""
+	echo "❌ Architecture violations detected (deep cross-domain imports)."
+	echo "   Run 'bun run lint:arch' to see violations."
+	echo "   Use barrel re-exports (e.g. from '@/domain/<name>') instead of deep paths."
+	exit 1
+fi
+
+echo "✅ Pre-push checks complete"

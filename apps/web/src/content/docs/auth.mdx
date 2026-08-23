@@ -1,0 +1,170 @@
+# Authentication
+
+Secure access control for your team. Only authorized staff can access the platform.
+
+## Overview
+
+Petso uses password-based authentication with session management. This provides:
+- Secure password-based login
+- Session management
+- Role-based access control
+
+## User Roles
+
+| Role | Description | Typical Users |
+|------|-------------|---------------|
+| **Admin** | Full system access | Business owners, managers |
+| **Staff** | Limited operational access | Front desk, groomers |
+
+## Sign Up
+
+### For Admins
+
+1. Go to the signup page
+2. Enter your email address
+3. Create a strong password
+4. Verify your email (check inbox)
+5. Complete business profile setup
+
+### For Staff
+
+Staff accounts are created by admins via invitation. You'll receive an email with:
+- Invitation link
+- Instructions to set up your account
+
+## Login
+
+### Standard Login
+
+1. Go to the login page
+2. Enter your email
+3. Enter your password
+4. Click **Sign In**
+
+### Session Management
+
+After login, your session is maintained until:
+- You explicitly sign out
+- Session timeout (after inactivity)
+- Password is changed
+
+## Password Requirements
+
+Passwords must meet these requirements:
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+
+## Security Features
+
+### Password Hashing
+All passwords are hashed using bcrypt. Plain text passwords are never stored.
+
+### Session Tokens
+Sessions use JWT tokens:
+- Encrypted authentication
+- Automatic expiration
+- Secure refresh mechanism
+
+### Failed Login Protection
+After5 failed attempts:
+- Account temporarily locked
+- Wait 15 minutes before retry
+- Admin can unlock early
+
+## Two-Factor Authentication
+
+> **Coming soon:** 2FA support for enhanced security.
+
+## Account Recovery
+
+### Forgot Password
+
+1. Click **Forgot Password** on login page
+2. Enter your email
+3. Check your inbox for reset link
+4. Click the link
+5. Create a new password
+
+### Account Locked
+
+If your account is locked:
+1. Wait 15 minutes, or
+2. Contact admin to unlock
+
+## Role-Based Access
+
+### Admin Access
+- Full access to all features
+- Can manage staff
+- Can configure settings
+- Can view financial reports
+
+### Staff Access
+- POS operations
+- Boarding management
+- Inventory viewing and updates
+- Limited to assigned branches
+
+## Session Security
+
+### Active Sessions
+
+View your active sessions:
+1. Go to **Settings** → **Account**
+2. See list of active sessions
+3. View last activity time
+
+### Signing Out
+
+To sign out:
+1. Click your profile
+2. Select **Sign Out**
+3. Confirm the action
+
+> **Tip:** Always sign out on shared devices.
+
+### Remote Sign Out
+
+Admins can force sign out any user:
+1. Go to **Settings** → **Staff**
+2. Find the staff member
+3. Click **Force Sign Out**
+4. Confirm
+
+## Security Best Practices
+
+### For Users
+- Use a unique, strong password
+- Don't share credentials
+- Sign out on shared devices
+- Report suspicious activity
+
+### For Admins
+- Review active sessions regularly
+- Remove unused accounts
+- Enable2FA when available
+- Monitor for unusual logins
+
+## Troubleshooting
+
+### Can't Login
+1. Verify email is correct
+2. Check Caps Lock is off
+3. Clear browser cache
+4. Try incognito/private window
+
+### Session Expired
+1. Reload the page
+2. If still expired, login again
+3. Check your internet connection
+
+### Account Not Found
+1. Verify email spelling
+2. Check if account was created
+3. Contact admin if invited
+
+---
+
+**Next:** Explore [user stories](/docs/stories/auth) or [boarding operations](/docs/boarding).

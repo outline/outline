@@ -1,0 +1,144 @@
+@import "tw-animate-css";
+@import "./untitledui-theme.css";
+@import "tailwindcss" source(none);
+@source "./**/*.{ts,tsx,mdx}";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark-mode, .dark-mode *));
+
+@utility scrollbar-hide {
+	&::-webkit-scrollbar {
+		display: none;
+		-webkit-appearance: none;
+	}
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+@utility transition-inherit-all {
+	transition-property: inherit;
+	transition-duration: inherit;
+	transition-timing-function: inherit;
+}
+
+@theme {
+	/* Project-specific colors */
+	--color-mint-green: #0c8c5e;
+	--color-ink-black: #08090a;
+	--color-true-black: #000000;
+	--color-paper-white: #ffffff;
+	--color-mist-gray: #f2f2f2;
+	--color-cloud-gray: #dddddd;
+
+	/* Typography */
+	--font-inter:
+		"Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", Roboto, sans-serif;
+	--font-sans: var(--font-inter);
+	--font-display: var(--font-inter);
+
+	/* Legacy overrides for shadcn/ui compatibility */
+	--color-background: var(--color-bg-primary);
+	--color-foreground: var(--color-text-primary);
+	--color-card: var(--color-bg-primary);
+	--color-card-foreground: var(--color-text-primary);
+	--color-popover: var(--color-bg-primary);
+	--color-popover-foreground: var(--color-text-primary);
+	--color-primary: var(--color-brand-600);
+	--color-primary-foreground: var(--color-white);
+	--color-secondary: var(--color-bg-tertiary);
+	--color-secondary-foreground: var(--color-text-primary);
+	--color-muted: var(--color-bg-tertiary);
+	--color-muted-foreground: var(--color-text-tertiary);
+	--color-accent: var(--color-bg-tertiary);
+	--color-accent-foreground: var(--color-text-primary);
+	--color-destructive: var(--color-red-600);
+	--color-destructive-foreground: var(--color-white);
+	--color-border: var(--color-border-secondary);
+	--color-input: var(--color-border-primary);
+	--color-ring: var(--color-focus-ring);
+	--radius: 0.5rem;
+
+	/* Missing aliases for badge and specific components */
+	--color-brand-solid: var(--color-brand-600);
+	--color-brand-solid_hover: var(--color-brand-700);
+	--color-brand-primary: var(--color-brand-900);
+
+	/* Fix Tailwind v4 property-specific overrides */
+	--background-color-primary: var(--color-brand-600);
+	--text-color-primary: var(--color-brand-600);
+	--border-color-primary: var(--color-brand-600);
+	--ring-color-primary: var(--color-brand-600);
+	--outline-color-primary: var(--color-brand-600);
+
+	--background-color-destructive: var(--color-red-600);
+	--text-color-destructive: var(--color-red-600);
+	--border-color-destructive: var(--color-red-600);
+	--ring-color-destructive: var(--color-red-600);
+	--outline-color-destructive: var(--color-red-600);
+}
+
+@layer base {
+	* {
+		border-color: var(--color-border);
+	}
+	html {
+		scroll-behavior: smooth;
+	}
+	body {
+		background-color: var(--color-background);
+		background-image: linear-gradient(
+			180deg,
+			var(--color-utility-brand-50) 0%,
+			var(--color-background) 50vh
+		);
+		background-repeat: no-repeat;
+		color: var(--color-foreground);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		overflow-x: hidden;
+		max-width: 100vw;
+	}
+
+	/* Hide default arrows from number inputs */
+	input::-webkit-outer-spin-button,
+	input::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+	input[type="number"] {
+		-moz-appearance: textfield;
+	}
+
+	/* Hide default clear button from search inputs */
+	input[type="search"]::-webkit-search-cancel-button {
+		-webkit-appearance: none;
+	}
+}
+
+/* Gooey Animation Classes */
+.gooey-effect {
+	filter: url("#gooey");
+}
+
+@keyframes gooey-in {
+	0% {
+		transform: scale(0.5);
+		opacity: 0;
+		filter: blur(10px);
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+		filter: blur(0);
+	}
+}
+
+@utility cursor-pencil {
+	cursor:
+		url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'/></svg>")
+		0 24,
+		pointer;
+}

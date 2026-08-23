@@ -1,0 +1,24 @@
+name = "pet-store-app"
+main = "dist/server/index.mjs"
+compatibility_date = "2026-07-26"
+compatibility_flags = ["nodejs_compat"]
+assets = { directory = "dist/client" }
+
+# Secrets (DATABASE_URL, UPSTASH_*, MIDTRANS_*) are NOT set in this file.
+# `process.env` is not available inside a Cloudflare Worker — secrets are
+# injected via `wrangler secret put <NAME>` and accessed through the
+# runtime env. Without DATABASE_URL the server functions that hit Drizzle
+# (login, boardings, products, …) fail at runtime. Set it once with:
+#
+#   set -a; source .env; set +a
+#   wrangler secret put DATABASE_URL   # then paste or pipe the value
+#
+# Upstash/MCP/Midtrans have empty defaults in src/shared/env/app.config.ts
+# and are safe to omit — they no-op cleanly when the corresponding adapter
+# is missing the env it expects.
+
+# File uploads go through Ember (https://ember.treonstudio.com), a shared
+# multi-tenant storage service - see src/infra/adapters/ember.adapter.ts.
+# Set the API key once with:
+#
+#   wrangler secret put EMBER_API_KEY

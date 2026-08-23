@@ -1,0 +1,9 @@
+{
+	"name": "Pet Store",
+	"short_name": "PetStore",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#10b981",
+	"icons": []
+}

@@ -1,0 +1,85 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.4/schema.json",
+	"extends": ["@treonstudio/biome-config/web.json"],
+	"files": {
+		"includes": [
+			"!!**/dist",
+			"!!**/.output",
+			"!!src/components/ui",
+			"!!graphify-out",
+			"!!src/routeTree.gen.ts",
+			"!!node_modules",
+			"!!playwright-report",
+			"!!test-results",
+			"!!test-*.html",
+			"!!test.html",
+			"!!.wrangler",
+			"!!.venv",
+			"!!coverage",
+			"!!.worktrees"
+		]
+	},
+	"formatter": {
+		"indentStyle": "tab"
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"linter": {
+		"rules": {
+			"suspicious": {
+				"noArrayIndexKey": "off",
+				"noImplicitAnyLet": "off"
+			},
+			"correctness": {
+				"noInvalidUseBeforeDeclaration": "off",
+				"noUnusedImports": "warn"
+			},
+			"a11y": {
+				"noLabelWithoutControl": "off",
+				"useButtonType": "off",
+				"useKeyWithClickEvents": "off",
+				"noStaticElementInteractions": "off"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["src/shared/utils/cookie.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noDocumentCookie": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/domain/branch/components/BranchCard/BranchCard.tsx",
+				"src/domain/customer/components/CustomerTable.tsx",
+				"src/domain/customer/components/CustomerDetailSheet.tsx",
+				"src/domain/boarding/components/BoardingForm/BoardingSuccessView.tsx",
+				"src/domain/boarding/components/BoardingDetail/BoardingDetail.tsx",
+				"src/routes/p.$businessId.products.$productId.tsx"
+			],
+			"linter": {
+				"rules": {
+					"security": {
+						"noDangerouslySetInnerHtml": "off"
+					}
+				}
+			}
+		}
+	],
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

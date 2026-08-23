@@ -1,6 +1,11 @@
 {
   "name": "outline",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/@pet-store-app/*"
+  ],
   "license": "Business Source License 1.1",
   "main": "index.js",
   "scripts": {
@@ -23,6 +28,10 @@
     "vite:dev": "VITE_CJS_IGNORE_WARNING=true vite",
     "vite:build": "VITE_CJS_IGNORE_WARNING=true vite build",
     "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview",
+    "pet:dev": "yarn workspace @pet-store-app/web dev",
+    "pet:build": "yarn workspace @pet-store-app/web build",
+    "pet:typecheck": "yarn workspace @pet-store-app/web typecheck",
+    "pet:test": "yarn workspace @pet-store-app/web test:unit",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build -o storybook-static"
   },
@@ -379,11 +388,9 @@
     "vitest": "^4.1.5"
   },
   "resolutions": {
-    "@types/react": "17.0.91",
     "@types/koa": "2.15.1",
     "prosemirror-transform": "1.10.5",
     "prismjs": "1.30.0",
-    "zod": "^4.4.3",
     "@types/markdown-it": "14.1.2",
     "ip-address@npm:10.1.0": "^10.2.0",
     "minimatch@npm:9.0.1": "9.0.9",

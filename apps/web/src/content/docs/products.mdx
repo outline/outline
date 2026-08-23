@@ -1,0 +1,135 @@
+# Products
+
+The Products module manages your product catalog and inventory. Every item you sell through POS comes from here.
+
+## Product Information
+
+Each product has these fields:
+
+| Field | Required | Description |
+|--------|----------|-------------|
+| **Name** | Yes | Product display name |
+| **Price** | Yes | Selling price (must be positive) |
+| **Stock** | Yes | Current inventory (must be 0 or more) |
+| **SKU** | No | Stock keeping unit code |
+| **Category** | No | Product grouping |
+| **Description** | No | Additional details |
+
+## Managing Products
+
+### View Product List
+Navigate to **Products** to see all items in a table view.
+
+The table shows:
+- Product name
+- SKU (if set)
+- Category
+- Stock level
+- Price
+
+You can sort by any column.
+
+### Add a New Product
+
+1. Click **Add Product**
+2. Fill in the required fields:
+   - Name
+   - Price
+   - Initial stock
+3. Optionally add:
+   - SKU
+   - Category
+   - Description
+4. Click **Save**
+
+### Edit a Product
+
+1. Find the product in the list
+2. Click **Edit** (pencil icon)
+3. Update the fields
+4. Click **Save**
+
+### Delete a Product
+
+> **Warning:** Deleting a product is permanent and cannot be undone. Consider setting stock to 0 instead.
+
+1. Find the product in the list
+2. Click **Delete** (trash icon)
+3. Confirm deletion
+
+## Stock Management
+
+### Automatic Deduction
+When you make a POS sale, stock is automatically reduced:
+
+```
+Stock = Stock - Quantity Sold
+```
+
+### Manual Adjustment
+You can manually adjust stock:
+
+1. Edit the product
+2. Update the Stock field
+3. Save
+
+Common reasons for manual adjustment:
+- Physical inventory count correction
+- Damaged or expired items
+- Received new shipment
+
+### Low Stock Alerts
+
+Products are flagged as "low stock" when inventory reaches 5 units or below.
+
+On the Dashboard, the **Low Stock** metric shows the count of flagged products.
+
+To view all low stock products:
+1. Click the Low Stock card on Dashboard
+2. Or go to Products and filter by low stock
+
+## Categories
+
+Organize products with categories. Examples:
+
+- Food (Dry, Wet, Treats)
+- Grooming (Shampoo, Brushes, Tools)
+- Accessories (Collars, Leashes, Beds)
+- Medicine (Supplements, Treatments)
+
+Categories help:
+- Staff find products faster
+- Reports analyze sales by type
+- Customers browse logically
+
+## Best Practices
+
+### Stock Levels
+- Monitor low stock alerts daily
+- Restock before running out
+- Set reorder points (e.g., reorder when stock = 10)
+
+### Product Names
+- Use clear, descriptive names
+- Include size or quantity if relevant
+- Be consistent with naming conventions
+
+### Pricing
+- Keep prices up to date
+- Use whole numbers where possible
+- Consider psychological pricing (e.g., Rp 99,000 not Rp 100,000)
+
+## Multi-Branch Inventory
+
+If you have multiple branches, inventory is tracked per branch.
+
+A product can have different stock levels at each location:
+- Branch A: 15 units
+- Branch B: 8 units
+- Branch C: 0 units
+
+POS transactions deduct from the current branch's inventory.
+
+---
+
+**Next:** Learn about [boarding operations](/docs/boarding) or [branches management](/docs/branches).

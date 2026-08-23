@@ -1,0 +1,125 @@
+# Branches
+
+Branches represent your physical locations. Each branch operates with isolated data for inventory, boardings, and transactions.
+
+## Why Branches Matter
+
+- **Data Isolation** — Sales, inventory, and boardings tracked per location
+- **Staff Assignment** — Team members assigned to specific branches
+- **Capacity Tracking** — Each branch has its own occupancy limits
+- **Financial Reporting** — Revenue and expenses attributed to each branch
+
+## Branch Features
+
+### Inventory Independence
+Product stock is tracked separately per branch. A product can have:
+- 20 units at Branch A
+- 5 units at Branch B
+- 0 units at Branch C
+
+When you sell via POS, inventory is deducted from the current branch.
+
+### Staff Assignments
+Staff members can be assigned to:
+- Single branch
+- Multiple branches
+- All branches (admin only)
+
+### Boarding Capacity
+Each branch has maximum occupancy for boardings. Track:
+- Current active boardings
+- Maximum slots
+- Available capacity
+
+## Branch Switching
+
+If you have access to multiple branches, switch between them using the **Branch Switcher** in the header.
+
+### How to Switch
+
+1. Find the branch switcher (top of the page)
+2. Click to open branch selector
+3. Choose the branch you need
+4. The view updates to show that branch's data
+
+> **Note:** All subsequent operations (POS, boardings, inventory) will be attributed to the selected branch.
+
+## Managing Branches
+
+### View All Branches
+Navigate to **Branches** to see:
+- Branch list
+- Status (active/inactive)
+- Staff count
+- Current occupancy
+
+### Add a Branch
+
+1. Click **Add Branch**
+2. Enter branch details:
+   - Name
+   - Address
+   - Contact info
+   - Maximum capacity
+3. Save
+
+### Edit a Branch
+
+1. Find the branch in the list
+2. Click **Edit**
+3. Update the details
+4. Save
+
+### Deactivate a Branch
+
+Branches can be deactivated (not deleted) to hide them from the list while preserving historical data.
+
+## Use Cases
+
+### Single Location
+If you run one branch:
+- You won't see the branch switcher
+- All data is automatically attributed to your branch
+
+### Multiple Locations
+If you run several branches:
+- Use branch switcher to navigate between them
+- Each branch has its own inventory view
+- Boardings are tied to their originating branch
+
+### Franchise Model
+If you're expanding:
+- Each franchise location is a branch
+- Central management can view all branches
+- Local managers see only their branch
+
+## Best Practices
+
+### Branch Setup
+- Use clear, descriptive names (e.g., "Jakarta Pusat" not "Branch 1")
+- Set realistic capacity limits
+- Assign staff during onboarding
+
+### Daily Operations
+- Switch to correct branch before any operation
+- Check capacity before accepting boardings
+- Monitor stock levels per branch
+
+### Reporting
+- Review per-branch performance regularly
+- Identify top-performing locations
+- Address underperforming branches
+
+## Permissions
+
+| Action | Admin | Manager | Staff |
+|--------|-------|---------|-------|
+| View all branches | Yes | Limited | No |
+| Switch branches | Yes | Limited | Limited |
+| Create branch | Yes | No | No |
+| Edit branch | Yes | Limited | No |
+| Delete branch | Yes | No | No |
+
+---
+
+**Next:** Learn about [staff management](/docs/staff) or [loyalty programs](/docs/loyalty).

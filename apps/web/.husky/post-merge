@@ -1,0 +1,10 @@
+#!/bin/bash
+# Post-merge hook: update graphify knowledge graph after pull/merge
+
+if command -v graphify &> /dev/null; then
+	echo "🔄 Updating graphify knowledge graph..."
+	graphify update --force 2>/dev/null || echo "⚠️  Graphify update skipped"
+	echo "✅ Graphify update complete"
+else
+	echo "⚠️  graphify not found, skipping"
+fi

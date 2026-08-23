@@ -1,0 +1,95 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+.dist
+.vite
+.output
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Cache
+.cache
+.turbo
+.eslintcache
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Superpowers worktrees
+.worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Wrangler / Cloudflare
+.wrangler
+.workersklad
+.dev.vars
+
+# Supabase
+.supabase
+
+# Graphify knowledge-graph cache (auto-generated, regenerate via `bun run graphify:update`)
+graphify-out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# Python virtualenv (graphify CLI)
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OpenCode's own dependency tree
+.opencode/node_modules/
+
+# Other AI tooling configs
+.agents/
+.cursor/
+.claude/
+.kimchi/
+
+# TanStack Start / Nitro temp files
+.tanstack/
+.tmp/
+
+# Scratch / debug files at repo root
+scratch/
+.scratch/
+test-*.html
+test.html
+test-*.ts
+test-*.tsx
+scratch-*.ts
+scratch-*.tsx
+scratch-*.cjs
+scratch-*.js
+update_types.cjs
+
+# Database backups (created by scripts/db-rollback-remote.sh)
+backups/

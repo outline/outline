@@ -1,0 +1,172 @@
+# Loyalty Program
+
+The Loyalty module creates customer rewards through a points-based system. Build customer retention with every transaction.
+
+## Overview
+
+The loyalty system works like this:
+
+1. Customers earn points on every purchase
+2. Points accumulate over time
+3. Points can be redeemed for discounts
+4. Tiers reward loyal customers with better benefits
+
+## Configuration
+
+### Basic Settings
+
+| Setting | What it does | Default |
+|---------|--------------|---------|
+| **Points Per Rupiah** | Points earned per 1 IDR spent | 1 point |
+| **Points Expiry Days** | Days until unused points expire | 365 days |
+| **Min Redeem Points** | Minimum points needed to redeem | 100 points |
+| **Active** | Enable or disable loyalty program | Off |
+
+### Points Calculation
+
+```
+Points Earned = Transaction Total × Points Per Rupiah
+```
+
+**Example:**
+- Transaction: Rp 150,000
+- Points Per Rupiah: 1
+- Points Earned: 150,000 points
+
+### Points Expiry
+
+Points expire after the configured number of days. This encourages customers to use their points.
+
+**Example:**
+- Points earned: June 1
+- Expiry: 365 days
+- Points expire: June 1 next year
+
+## Tier System
+
+Tiers reward frequent customers with escalating benefits:
+
+| Tier | Min Points | Discount | Benefits |
+|------|------------|----------|----------|
+| **Bronze** | 0 | 0% | Basic earning rate |
+| **Silver** | 500 | 5% | Faster point earning |
+| **Gold** | 1,000 | 10% | Premium benefits |
+| **Platinum** | 2,000 | 15% | Best rewards |
+
+### How Tiers Work
+
+1. Customers automatically move up tiers based on points
+2. Higher tiers get better discount percentages
+3. Tier benefits are applied at POS checkout
+
+### Tier Benefits
+
+Each tier can have custom benefits:
+- Silver: "Earn 1.5x points on all purchases"
+- Gold: "Priority boarding, 10% discount"
+- Platinum: "Free grooming with stays over 3 days"
+
+## Customer Tracking
+
+### Customer Records
+
+Each loyalty customer has:
+- **Name** — Full name
+- **Phone** — Contact number
+- **Total Points** — Current balance
+- **Current Tier** — Their tier level
+- **Points History** — Earned and redeemed transactions
+
+### Registration
+
+Customers can be registered:
+- At POS checkout
+- During boarding check-in
+- Via staff entry
+
+## Redeeming Points
+
+### How Redemption Works
+
+```
+Discount = Points Redeemed × Redemption Rate
+```
+
+### Minimum Redemption
+
+Customers need at least **Min Redeem Points** (default: 100) to redeem.
+
+### At Checkout
+
+1. Staff selects customer at POS
+2. System shows available points
+3. Staff enters points to redeem
+4. Discount applied to transaction
+
+## Setting Up Loyalty
+
+### Step 1: Enable Loyalty
+1. Go to **Settings** → **Loyalty**
+2. Toggle **Active** to On
+
+### Step 2: Configure Points
+1. Set **Points Per Rupiah** (1 is standard)
+2. Set **Points Expiry Days** (365 is common)
+3. Set **Min Redeem Points** (100 is common)
+
+### Step 3: Create Tiers
+1. Add tier definitions
+2. Set minimum points for each
+3. Define discount percentages
+4. List tier benefits
+
+### Step 4: Train Staff
+1. Show how to link customers
+2. Explain redemption process
+3. Demonstrate tier benefits
+
+## Best Practices
+
+### Point Earning
+- Start with 1 point per rupiah (easy to track)
+- Consider bonus points for specific products
+- Run seasonal promotions for extra points
+
+### Tier Management
+- Keep tier thresholds achievable
+- Make benefits tangible and valuable
+- Communicate tier changes to customers
+
+### Expiry Strategy
+- Set expiry to encourage engagement
+- Send reminders before points expire
+- Consider rollover for loyalty
+
+### Customer Communication
+- Share how to check points balance
+- Announce tier upgrades
+- Promote redemption options
+
+## Common Scenarios
+
+### First Purchase
+New customer makes first purchase:
+1. Register at checkout
+2. Earn points immediately
+3. Start at Bronze tier
+
+### Tier Upgrade
+Customer crosses a tier threshold:
+1. System automatically upgrades
+2. New discount applies immediately
+3. Notify customer of upgrade
+
+### Expired Points
+Points reach expiry date:
+1. System auto-removes expired points
+2. Customer notified (optional)
+3. Remaining points stay active
+
+---
+
+**Next:** Learn about [accounting](/docs/accounting) or [WhatsApp integration](/docs/whatsapp).

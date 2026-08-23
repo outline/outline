@@ -1,0 +1,173 @@
+# Boarding
+
+The Boarding module manages pet check-ins and check-outs. Track your guests from arrival to departure.
+
+## Supported Pet Types
+
+| Type | Icon | Notes |
+|------|------|-------|
+| **Cat** | 🐱 | Full support with temperament tracking |
+| **Dog** | 🐕 | Exercise and socialization needs |
+| **Rabbit** | 🐰 | Habitat requirements |
+| **Other** | 🐾 | Custom care notes |
+
+## Boarding Status Workflow
+
+Every boarding goes through these stages:
+
+```
+Draft → Active → Completed
+```
+
+| Status | Meaning | Actions Available |
+|--------|---------|-------------------|
+| **Draft** | Registration started but not confirmed | Continue editing, submit, or delete |
+| **Active** | Pet is currently staying | View details, update status, check-out |
+| **Completed** | Pet has been picked up | View record only |
+
+## What You Capture
+
+### Owner Information
+- Full name
+- Address
+- Phone number
+- Emergency contact (name and phone)
+
+### Pet Information
+- Name
+- Type (cat, dog, rabbit, other)
+- Breed
+- Weight
+- Vaccination status (yes/no)
+- Health status
+- Initial condition notes
+
+### Booking Details
+- Check-in date
+- Estimated check-out date
+- Actual check-out date
+- Notes and special instructions
+
+### Legal
+- Digital consent acceptance (timestamp)
+- Who created the record
+
+## How to Check In a Pet
+
+### Step 1: Start New Boarding
+1. Go to **Boardings**
+2. Click **New Check-in**
+
+### Step 2: Fill Owner Details
+1. Enter owner's full name
+2. Enter address
+3. Enter phone number
+4. Optionally add emergency contact
+
+### Step 3: Add Pet Details
+1. Enter pet's name
+2. Select pet type
+3. Enter breed
+4. Add weight (optional)
+5. Mark vaccination status
+6. Describe health status
+7. Add initial condition notes (optional)
+
+### Step 4: Select Branch
+Choose which branch the pet will stay at.
+
+### Step 5: Set Dates
+1. Set check-in date (defaults to today)
+2. Set estimated check-out date
+
+### Step 6: Accept Consent
+Digital consent is required before submission.
+
+### Step 7: Submit
+Click **Submit** to complete registration.
+
+The boarding status changes to **Active**.
+
+## How to Check Out a Pet
+
+### Step 1: Find the Boarding
+1. Go to **Boardings**
+2. Filter by **Active** status
+3. Find the pet to check out
+
+### Step 2: Process Check-out
+1. Click the boarding record
+2. Click **Process Check-out**
+3. Confirm the action
+
+The boarding status changes to **Completed**.
+
+## Viewing Boarding Records
+
+### Active Boardings
+Shows all pets currently staying. Use this to:
+- See who's checked in
+- Monitor stay duration
+- Plan capacity
+
+### All Boardings
+Shows all records including:
+- Draft (incomplete registrations)
+- Active (currently staying)
+- Completed (checked out)
+
+Filter and search to find specific records.
+
+## Health and Condition Tracking
+
+### During Stay
+You can update:
+- Health status
+- Condition notes
+- Any special requirements
+
+### Initial Assessment
+Record the pet's condition at check-in:
+- General health
+- Appetite
+- Behavior
+- Any pre-existing conditions
+
+This provides a baseline for monitoring.
+
+## Best Practices
+
+### At Check-in
+- Verify vaccination records
+- Document existing conditions clearly
+- Confirm emergency contact is reachable
+- Set realistic check-out expectations
+
+### During Stay
+- Update notes daily if needed
+- Flag any health concerns immediately
+- Keep emergency contacts accessible
+
+### At Check-out
+- Verify pet's current condition
+- Confirm all charges are captured
+- Return pet to owner (or authorized person)
+- Archive the record properly
+
+## Capacity Planning
+
+### Branch Capacity
+Each branch has a maximum occupancy. Track:
+- Current active boardings
+- Available slots
+- When to redirect to other branches
+
+### Overflow Management
+If a branch is full:
+1. Check other branch availability
+2. Discuss alternatives with owner
+3. Consider waitlist for busy periods
+
+---
+
+**Next:** Learn about [branches management](/docs/branches) or [dashboard metrics](/docs/dashboard).

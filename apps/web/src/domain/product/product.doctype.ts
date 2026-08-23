@@ -1,0 +1,198 @@
+import type { TDocType } from "@/lib/form-builder/types";
+import { i18n } from "@/shared/i18n/i18n.config";
+
+export const ProductDocType: TDocType = {
+	name: "Product",
+	fields: [
+		{
+			fieldname: "basic_section",
+			fieldtype: "section_break",
+			label: i18n.t("product.basic_info"),
+		},
+		{
+			fieldname: "name",
+			fieldtype: "text",
+			label: i18n.t("product.product_name"),
+			required: true,
+			placeholder: i18n.t("product.product_name_placeholder"),
+			colspan: 2,
+		},
+		{
+			fieldname: "category",
+			fieldtype: "select",
+			label: i18n.t("product.category_label"),
+			options: [
+				{ label: i18n.t("product.categories.food"), value: "food" },
+				{
+					label: i18n.t("product.categories.accessories"),
+					value: "accessories",
+				},
+				{ label: i18n.t("product.categories.medicine"), value: "medicine" },
+				{ label: i18n.t("product.categories.grooming"), value: "grooming" },
+				{ label: i18n.t("product.categories.toys"), value: "toys" },
+				{ label: i18n.t("product.categories.other"), value: "other" },
+			],
+			colspan: 1,
+		},
+		{
+			fieldname: "brand",
+			fieldtype: "text",
+			label: i18n.t("product.brand_label"),
+			placeholder: i18n.t("product.brand_placeholder"),
+			colspan: 1,
+		},
+		{
+			fieldname: "description",
+			fieldtype: "long_text",
+			label: i18n.t("common.description"),
+			placeholder: i18n.t(
+				"product.description_placeholder",
+				"Deskripsi produk...",
+			),
+			colspan: 2,
+		},
+		{
+			fieldname: "imageUrl",
+			fieldtype: "image",
+			label: i18n.t("product.image_label", "Foto Produk"),
+			colspan: 2,
+		},
+		{
+			fieldname: "isActive",
+			fieldtype: "check",
+			label: i18n.t("product.active_status"),
+			default_value: true,
+			colspan: 2,
+		},
+
+		{
+			fieldname: "variant_section",
+			fieldtype: "section_break",
+			label: i18n.t("product.price_variants"),
+		},
+		{
+			fieldname: "hasVariants",
+			fieldtype: "check",
+			label: i18n.t("product.has_variants"),
+			default_value: false,
+			colspan: 2,
+		},
+
+		// Single Product Fields
+		{
+			fieldname: "price",
+			fieldtype: "number",
+			label: i18n.t("product.selling_price"),
+			required: true,
+			depends_on: "eval:!doc.hasVariants",
+			colspan: 1,
+		},
+		{
+			fieldname: "stock",
+			fieldtype: "number",
+			label: i18n.t("common.stock"),
+			required: true,
+			depends_on: "eval:!doc.hasVariants",
+			colspan: 1,
+		},
+		{
+			fieldname: "unit",
+			fieldtype: "select",
+			label: i18n.t("product.unit_label"),
+			default_value: "pcs",
+			depends_on: "eval:!doc.hasVariants",
+			options: [
+				{ label: "pcs", value: "pcs" },
+				{ label: "kg", value: "kg" },
+				{ label: "gr", value: "gr" },
+				{ label: "ml", value: "ml" },
+				{ label: "pack", value: "pack" },
+				{ label: "box", value: "box" },
+				{ label: "sachet", value: "sachet" },
+			],
+			colspan: 1,
+		},
+		{
+			fieldname: "isFractional",
+			fieldtype: "check",
+			label: i18n.t("product.fractional_desc"),
+			default_value: false,
+			depends_on: "eval:!doc.hasVariants",
+			colspan: 2,
+		},
+
+		// Variants Table
+		{
+			fieldname: "variants",
+			fieldtype: "table",
+			label: i18n.t("product.variant_list"),
+			depends_on: "hasVariants",
+			child_doctype: "Product Variant",
+			child_fields: [
+				{
+					fieldname: "name",
+					fieldtype: "text",
+					label: i18n.t("product.variant_name"),
+					placeholder: i18n.t("product.variant_name_placeholder"),
+					required: true,
+					in_list_view: true,
+					colspan: 1,
+				},
+				{
+					fieldname: "sku",
+					fieldtype: "text",
+					label: i18n.t("product.sku_label"),
+					in_list_view: true,
+					colspan: 1,
+				},
+				{
+					fieldname: "price",
+					fieldtype: "number",
+					label: i18n.t("common.price"),
+					required: true,
+					in_list_view: true,
+					colspan: 1,
+				},
+				{
+					fieldname: "stock",
+					fieldtype: "number",
+					label: i18n.t("common.stock"),
+					required: true,
+					in_list_view: true,
+					colspan: 1,
+				},
+				{
+					fieldname: "unit",
+					fieldtype: "select",
+					label: i18n.t("product.unit_label"),
+					default_value: "pcs",
+					options: [
+						{ label: "pcs", value: "pcs" },
+						{ label: "kg", value: "kg" },
+						{ label: "gr", value: "gr" },
+						{ label: "ml", value: "ml" },
+						{ label: "pack", value: "pack" },
+						{ label: "box", value: "box" },
+						{ label: "sachet", value: "sachet" },
+					],
+					colspan: 1,
+				},
+				{
+					fieldname: "isFractional",
+					fieldtype: "check",
+					label: i18n.t("product.fractional_label", "Jual per berat/volume"),
+					default_value: false,
+					colspan: 1,
+				},
+				{
+					fieldname: "isActive",
+					fieldtype: "check",
+					label: i18n.t("common.active"),
+					default_value: true,
+					colspan: 1,
+				},
+			],
+			colspan: 2,
+		},
+	],
+};

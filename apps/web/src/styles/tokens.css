@@ -1,0 +1,52 @@
+:root {
+	/* Colors */
+	--mint-green: #0c8c5e;
+	--ink-black: #08090a;
+	--true-black: #000000;
+	--paper-white: #ffffff;
+	--mist-gray: #f2f2f2;
+	--cloud-gray: #dddddd;
+
+	/* Semantic */
+	--bg: var(--paper-white);
+	--fg: var(--true-black);
+	--primary: var(--ink-black);
+	--secondary: var(--mist-gray);
+	--accent: var(--mint-green);
+	--error: #ef4444;
+	--border: var(--mist-gray);
+
+	/* Spacing */
+	--s-1: 0.25rem;
+	--s-2: 0.5rem;
+	--s-3: 0.75rem;
+	--s-4: 1rem;
+	--s-6: 1.5rem;
+	--s-8: 2rem;
+
+	/* Typography Scale */
+	--t-caption: 13px;
+	--t-body: 16px;
+	--t-subheading: 20px;
+	--t-heading-sm: 24px;
+	--t-heading: 40px;
+	/* Gooey Animation */
+	--gooey-intensity: 10px;
+}
+
+.gooey-effect {
+	filter: url("#gooey");
+}
+
+@keyframes gooey-in {
+	0% {
+		transform: scale(0.5);
+		opacity: 0;
+		filter: blur(var(--gooey-intensity));
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+		filter: blur(0);
+	}
+}

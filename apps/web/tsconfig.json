@@ -1,0 +1,40 @@
+{
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"vite.config.ts",
+		"eslint.config.js"
+	],
+	"compilerOptions": {
+		"target": "ESNext",
+		"jsx": "react-jsx",
+		"module": "ESNext",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vite/client"],
+
+		/* Bundler mode */
+		"moduleResolution": "Bundler",
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": false,
+		"noEmit": true,
+
+		/* Strict Linting (FP Standards) */
+		"skipLibCheck": true,
+		"strict": true,
+		"exactOptionalPropertyTypes": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noUncheckedSideEffectImports": true,
+
+		"paths": {
+			"@/*": ["./src/*"],
+			"@shared/*": ["./src/shared/*"],
+			"@domain/*": ["./src/domain/*"],
+			"@infra/*": ["./src/infra/*"],
+			"@ui/*": ["./src/components/ui/*"]
+		}
+	}
+}

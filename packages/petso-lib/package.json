@@ -1,0 +1,36 @@
+{
+	"name": "@treonstudio/petso-lib",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"import": "./src/index.ts",
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		},
+		"./schemas": {
+			"import": "./src/schemas/index.ts",
+			"types": "./src/schemas/index.ts",
+			"default": "./src/schemas/index.ts"
+		}
+	},
+	"dependencies": {
+		"@effect/schema": "^0.75.5",
+		"effect": "^3.22.0"
+	},
+	"peerDependencies": {
+		"@effect/schema": ">=0.75.5",
+		"effect": ">=3.22.0"
+	},
+	"peerDependenciesMeta": {
+		"@effect/schema": {
+			"optional": true
+		},
+		"effect": {
+			"optional": true
+		}
+	}
+}

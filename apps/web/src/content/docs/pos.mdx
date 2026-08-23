@@ -1,0 +1,124 @@
+# Point of Sale (POS)
+
+The POS system handles all your sales transactions. It's designed to be fast, accurate, and easy to use during busy hours.
+
+## Overview
+
+Petso POS supports three payment methods:
+
+| Method | How it works |
+|--------|--------------|
+| **Cash** | Pay in person with physical currency |
+| **Transfer** | Bank transfer with confirmation |
+| **QRIS** | Scan any QR code from e-wallets |
+
+> **Tip:** QRIS is the fastest option for customers. Most prefer it over cash.
+
+## How to Process a Sale
+
+### Step 1: Open POS
+Navigate to **POS** from the sidebar or Dashboard.
+
+### Step 2: Add Products
+1. Browse the product grid
+2. Click a product to add it to the cart
+3. Adjust quantity if needed
+4. Add more products as required
+
+### Step 3: Review Cart
+Check the cart sidebar shows:
+- Products added
+- Quantities
+- Item prices
+- Total amount
+
+### Step 4: Select Payment Method
+Choose how the customer will pay:
+- **Cash** — Select if paying with physical money
+- **Transfer** — Select if doing bank transfer
+- **QRIS** — Select if scanning QR code
+
+### Step 5: Complete Transaction
+Click **Bayar** (Pay) to complete.
+
+The system will:
+- Save the transaction
+- Deduct product inventory
+- Show a success confirmation
+
+## Cart Features
+
+### Quantity Adjustment
+- Click **+** or **-** to change quantity
+- Set to 0 to remove item
+- Maximum quantity: 99 per item
+
+### Clear Cart
+Click **Clear** to remove all items and start over.
+
+### Running Total
+The cart always shows the current total. Updates automatically as you add or remove items.
+
+## Inventory Integration
+
+When a transaction completes, inventory is automatically adjusted:
+
+```
+Stock After Sale = Stock Before Sale - Quantity Sold
+```
+
+For example, if you sell 3 units of "Cat Food Premium":
+- Before: 15 units
+- After: 12 units
+
+### Low Stock Alerts
+Products automatically flagged when inventory drops to 5 units or below. These appear on the Dashboard.
+
+## Transaction Records
+
+Every completed transaction includes:
+
+| Field | Description |
+|-------|-------------|
+| Transaction ID | Unique identifier |
+| Branch | Where the sale happened |
+| Items | Products sold |
+| Total | Amount collected |
+| Payment Method | How customer paid |
+| Timestamp | When sale occurred |
+| Processed By | Staff who handled it |
+
+## Voiding Transactions
+
+Sometimes you need to cancel a transaction. Here's how:
+
+1. Go to the transaction record
+2. Click **Void**
+3. Enter the reason (required)
+4. Confirm void
+
+> **Note:** Voiding restores the inventory that was deducted. The transaction is marked as voided but not deleted.
+
+## Best Practices
+
+- **Process one customer at a time** — Clear the cart between customers
+- **Verify totals before charging** — Avoid embarrassing corrections
+- **Keep QRIS codes visible** — Place them where customers can scan easily
+- **Count cash regularly** — Reconcile at end of shift
+
+## Common Scenarios
+
+### Customer Returns an Item
+1. Void the original transaction
+2. Process a new transaction with corrected items
+3. Or manually adjust inventory if keeping the sale
+
+### Partial Payment
+Not supported in current version. Process full transactions only.
+
+### Split Payment
+Not supported in current version. Use a single payment method per transaction.
+
+---
+
+**Next:** Learn about [product management](/docs/products) or [boarding operations](/docs/boarding).

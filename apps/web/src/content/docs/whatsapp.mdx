@@ -1,0 +1,160 @@
+# WhatsApp Integration
+
+Connect with customers through WhatsApp. Send automated notifications and templated messages for better engagement.
+
+## Overview
+
+WhatsApp integration enables:
+- **Automated notifications** — Alerts for check-in, check-out, and updates
+- **Customer communication** — Direct messaging via WhatsApp
+- **Template messages** — Pre-approved messages for consistent communication
+
+## What You Can Do
+
+### Send Notifications
+Automated messages for:
+- Boarding confirmation
+- Check-in reminders
+- Check-out alerts
+- Payment confirmations
+
+### Template Messages
+Pre-approved message templates:
+- "Your pet has been checked in successfully"
+- "Reminder: Pick-up time is approaching"
+- "Thank you for choosing us!"
+
+### Direct Messaging
+Send messages directly to customers:
+- Respond to inquiries
+- Share updates
+- Follow up on bookings
+
+## Setting Up WhatsApp
+
+### Requirements
+
+Before you start, ensure you have:
+1. **WhatsApp Business Account** — Created on Meta Business
+2. **Facebook Business Manager** — For managing the WhatsApp Business API
+3. **Verified Phone Number** — Dedicated business number
+4. **API Credentials** — From Meta Developer Portal
+
+### Configuration Steps
+
+#### Step 1: Access WhatsApp Settings
+1. Go to **Settings** → **WhatsApp**
+2. Click **Configure**
+
+#### Step 2: Enter Credentials
+1. Enter your WhatsApp Business API credentials
+2. Verify phone number
+3. Configure webhook URL
+
+#### Step 3: Test Connection
+1. Click **Test Connection**
+2. Verify status shows "Connected"
+
+## Message Templates
+
+### Pre-Approved Templates
+
+WhatsApp requires pre-approved templates for automated messages.
+
+Common templates:
+
+| Template Name | Purpose |
+|---------------|---------|
+| **boarding_confirmation** | Confirm pet check-in |
+| **checkout_reminder** | Remind about pickup time |
+| **payment_received** | Confirm payment received |
+| **feedback_request** | Request review after checkout |
+
+### Creating Templates
+
+1. Go to **WhatsApp** → **Templates**
+2. Click **Create Template**
+3. Enter:
+   - Template name
+   - Category (transactional, marketing, etc.)
+   - Language
+   - Message content
+4. Submit for approval
+
+> **Note:** Templates require Meta approval. Plan for 24-48 hours processing time.
+
+## Using WhatsApp Notifications
+
+### Automatic Triggers
+
+Configure which events trigger notifications:
+
+| Event | Message Template | When |
+|-------|-----------------|------|
+| Check-in | boarding_confirmation | After pet checked in |
+| 24h before checkout | checkout_reminder | Day before pickup |
+| Payment completed | payment_received | After POS transaction |
+| New booking | booking_confirmed | After boarding created |
+
+### Notification Settings
+
+Control which notifications are active:
+- Toggle each notification type on/off
+- Set timing for scheduled messages
+- Choose customer phone number source
+
+## Best Practices
+
+### Message Content
+- Keep messages short and clear
+- Include relevant details (pet name, time, branch)
+- Add a call-to-action when needed
+- Avoid promotional content in transactional templates
+
+### Timing
+- Send notifications during business hours
+- Respect customer preferences
+- Don't send too frequently
+
+### Phone Numbers
+- Always verify phone number format
+- Include country code for international
+- Handle missing numbers gracefully
+
+## Security and Privacy
+
+### Data Protection
+- Phone numbers are masked in logs
+- Messages encrypted in transit
+- Access logged for audit
+
+### Customer Consent
+- Only send to customers who opted in
+- Respect opt-out requests
+- Keep communication relevant
+
+## Troubleshooting
+
+### Connection Issues
+1. Verify API credentials
+2. Check webhook configuration
+3. Ensure phone number is verified
+
+### Template Rejection
+1. Review Meta's style guidelines
+2. Avoid promotional language
+3. Keep formatting simple
+4. Resubmit with corrections
+
+### Message Delivery Failures
+1. Check customer's phone number
+2. Verify template is approved
+3. Ensure WhatsApp is installed
+
+## Supported Countries
+
+WhatsApp Business works in most countries. Check Meta's documentation for any regional restrictions.
+
+---
+
+**Next:** Learn about [authentication](/docs/auth) or [dashboard overview](/docs/dashboard).

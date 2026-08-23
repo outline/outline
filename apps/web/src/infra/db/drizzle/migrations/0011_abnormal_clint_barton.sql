@@ -1,0 +1,1 @@
+ALTER TABLE "portal_services" ADD COLUMN "category" text;
