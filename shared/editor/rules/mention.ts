@@ -58,14 +58,19 @@ function parseMentionHref(href: string): {
 }
 
 const renderMention = (md: MarkdownIt) => (tokens: Token[], idx: number) => {
-  const id = tokens[idx].attrGet("id");
-  const mType = tokens[idx].attrGet("type");
-  const mId = tokens[idx].attrGet("modelId");
+  // The label and attributes originate in the document, and markdown-it leaves
+  // any markup in them intact when `html` is disabled, so everything written
+  // into the tag is escaped here.
+  const esc = (value: string | null) => md.utils.escapeHtml(value ?? "");
+
+  const id = esc(tokens[idx].attrGet("id"));
+  const mType = esc(tokens[idx].attrGet("type"));
+  const mId = esc(tokens[idx].attrGet("modelId"));
   const href = tokens[idx].attrGet("href");
-  const label = tokens[idx].content;
+  const label = esc(tokens[idx].content);
 
   return href
-    ? `<a id="${id}" class="mention" href="${md.utils.escapeHtml(sanitizeUrl(href) ?? "")}" data-type="${mType}" data-id="${mId}">${label}</a>`
+    ? `<a id="${id}" class="mention" href="${esc(sanitizeUrl(href) ?? "")}" data-type="${mType}" data-id="${mId}">${label}</a>`
     : `<span id="${id}" class="mention" data-type="${mType}" data-id="${mId}">${label}</span>`;
 };
 

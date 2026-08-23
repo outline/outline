@@ -201,6 +201,24 @@ describe("mention rule", () => {
     });
   });
 
+  describe("rendering", () => {
+    it("should escape markup in the label", () => {
+      const html = md.render(
+        "@[<img src=x onerror=alert(1)>](mention://user/abc123)"
+      );
+
+      expect(html).not.toContain("<img");
+      expect(html).toContain("&lt;img");
+    });
+
+    it("should not allow an external href to break out of the attribute", () => {
+      const html = md.render('@[Example](https://example.com/"onmouseover=1)');
+
+      expect(html).not.toContain('"onmouseover');
+      expect(html).toContain('href="https://example.com/%22onmouseover=1"');
+    });
+  });
+
   describe("non-mentions", () => {
     it("should not parse regular links as mentions", () => {
       const result = md.parse("[John Doe](https://example.com)", {});
