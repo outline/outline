@@ -1008,7 +1008,6 @@ export const useShop = create<State>((set, get) => ({
         documentTemplates,
         returns,
         audit,
-        insights,
         topSellers,
         onShift,
         cashFlow,
@@ -1045,7 +1044,6 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.documentTemplates(),
         petsoClient.admin.returns(),
         petsoClient.admin.audit(),
-        client.post("/insights.list"),
         petsoClient.admin.topSellers(),
         petsoClient.admin.onShift(),
         petsoClient.admin.cashFlow(),
@@ -1237,6 +1235,37 @@ export const useShop = create<State>((set, get) => ({
           path: "/products",
         },
       ];
+      const insightRows: Insight[] = [];
+      for (const product of productDtos) {
+        for (const variant of product.variants) {
+          const threshold = variant.lowStockThreshold ?? 0;
+          if (variant.stock <= threshold) {
+            insightRows.push({
+              id: `low-stock-${variant.id}`,
+              type: "alert",
+              severity: variant.stock === 0 ? "critical" : "warning",
+              title: variant.stock === 0 ? "Product out of stock" : "Low stock",
+              description: `${product.name} (${variant.name}) has ${variant.stock} remaining.`,
+              module: "inventory",
+              relatedId: variant.id,
+            });
+          }
+        }
+      }
+      const unpaidOrders = orderDtos.filter(
+        (order) => order.status === "unpaid" || order.status === "partial"
+      );
+      if (unpaidOrders.length > 0) {
+        insightRows.push({
+          id: "unpaid-orders",
+          type: "alert",
+          severity: "warning",
+          title: "Unpaid orders need attention",
+          description: `${unpaidOrders.length} orders have an outstanding balance.`,
+          module: "orders",
+          relatedId: null,
+        });
+      }
       set({
         dashboard: mapDashboardMetrics(dashboard),
         products: productDtos.map(mapProduct),
@@ -1404,7 +1433,7 @@ export const useShop = create<State>((set, get) => ({
           role: entry.entityType,
           summary: entry.entityId ?? entry.action,
         })),
-        insights: insights.data,
+        insights: insightRows,
         trend: trendRows,
         topSellers: topSellers.map((item) => ({
           name: item.name,
