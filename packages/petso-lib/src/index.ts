@@ -40,6 +40,7 @@ export type {
 	TShiftDto,
 	TOnShiftDto,
 	TCreateReturnInput,
+	TReturnDto,
 	TBoardingDto,
 	TBoardingPetDto,
 	TCreateBoardingInput,

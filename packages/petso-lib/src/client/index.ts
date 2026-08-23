@@ -43,6 +43,7 @@ import type {
 	TShiftDto,
 	TOnShiftDto,
 	TCreateReturnInput,
+	TReturnDto,
 	TBoardingDto,
 	TCreateBoardingInput,
 	TGroomingAppointmentDto,
@@ -374,8 +375,8 @@ export class PetsoClient {
 			this.fetchApi<readonly TShiftDto[]>("/api/v1/admin/shifts"),
 		onShift: (): Promise<readonly TOnShiftDto[]> =>
 			this.fetchApi<readonly TOnShiftDto[]>("/api/v1/admin/shifts/on-shift"),
-		returns: (): Promise<readonly Record<string, unknown>[]> =>
-			this.fetchApi<readonly Record<string, unknown>[]>("/api/v1/admin/returns"),
+		returns: (): Promise<readonly TReturnDto[]> =>
+			this.fetchApi<readonly TReturnDto[]>("/api/v1/admin/returns"),
 		createReturn: (
 			input: TCreateReturnInput,
 		): Promise<{ readonly created: boolean; readonly id: string }> =>
