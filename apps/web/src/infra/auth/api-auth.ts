@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import { businessApiKeys, idempotencyKeys } from "@/infra/db/drizzle/schema";
@@ -149,7 +149,12 @@ export const getIdempotentResponse = async (
 					db
 						.select()
 						.from(idempotencyKeys)
-						.where(eq(idempotencyKeys.idempotencyKey, idempotencyKey))
+						.where(
+							and(
+								eq(idempotencyKeys.businessId, _businessId),
+								eq(idempotencyKeys.idempotencyKey, idempotencyKey),
+							),
+						)
 						.limit(1),
 				catch: (e) => e as Error,
 			});

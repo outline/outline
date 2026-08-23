@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { validateSessionProgram } from "@/domain/identity/auth/auth.programs.drizzle";
 import { AuthRepositoryDrizzle } from "@/domain/identity/auth/auth.repository.drizzle";
@@ -40,7 +40,12 @@ const resolveRoleAndTenant = (
 				db
 					.select()
 					.from(userRoles)
-					.where(eq(userRoles.userId, userId))
+					.where(
+						and(
+							eq(userRoles.userId, userId),
+							eq(userRoles.businessId, profileRow.businessId),
+						),
+					)
 					.limit(1),
 			catch: (e) => e as Error,
 		});
