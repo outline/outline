@@ -83,6 +83,11 @@ export type {
 	TCommissionReportDto,
 } from "./accounting-report.types";
 export type {
+	TLoyaltyConfigDto,
+	TLoyaltyTierDto,
+	TUpdateLoyaltyConfigInput,
+} from "./loyalty.types";
+export type {
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalConfigDto,

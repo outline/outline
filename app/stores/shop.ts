@@ -1060,7 +1060,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.topSellers(),
         client.post("/shifts.onShift"),
         petsoClient.admin.cashFlow(),
-        client.post("/loyalty.config"),
+        petsoClient.admin.loyaltyConfig(),
         petsoClient.admin.branchHolidays(),
         client.post("/occupancy.calendar", { days: 14 }),
         client.post("/onboarding.steps"),
@@ -1233,7 +1233,15 @@ export const useShop = create<State>((set, get) => ({
             closing: -row.amount,
           })),
         ],
-        loyaltyConfig: loyaltyConfig.data,
+        loyaltyConfig: {
+          rupiahPerPoint: loyaltyConfig.pointsPerRupiah
+            ? 1 / loyaltyConfig.pointsPerRupiah
+            : 0,
+          tiers: loyaltyConfig.tiers.map((tier) => ({
+            name: tier.name,
+            from: tier.minPoints,
+          })),
+        },
         branchHolidays: branchHolidayDtos.map((holiday: TBranchHolidayDto) => ({
           id: holiday.id,
           branch: branchNames.get(holiday.branchId) ?? holiday.branchId,
@@ -1751,11 +1759,18 @@ export const useShop = create<State>((set, get) => ({
     return { removed: true };
   },
   saveLoyaltyConfig: async (config) => {
-    const response = await client.post("/loyalty.saveConfig", config);
-    if (response.data?.saved) {
-      await get().fetchAll();
-    }
-    return response.data;
+    const current = get().loyaltyConfig;
+    await petsoClient.admin.updateLoyaltyConfig({
+      pointsPerRupiah:
+        config.rupiahPerPoint && config.rupiahPerPoint > 0
+          ? 1 / config.rupiahPerPoint
+          : 0.01,
+      pointsExpiryDays: 365,
+      minRedeemPoints: 100,
+      isActive: current ? true : true,
+    });
+    await get().fetchAll();
+    return { saved: true };
   },
   clockIn: async (staffId) => {
     await petsoClient.admin.clockIn({
@@ -1863,11 +1878,11 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
   },
   redeemPoints: async (customerId, points) => {
-    const response = await client.post("/loyalty.redeem", {
+    const response = await petsoClient.admin.redeemLoyaltyPoints({
       customerId,
       points,
     });
     await get().fetchAll();
-    return Boolean(response.data?.redeemed);
+    return response.pointsRedeemed > 0;
   },
 }));

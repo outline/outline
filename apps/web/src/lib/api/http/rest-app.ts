@@ -69,6 +69,15 @@ import type {
 } from "@/domain/invoice/invoice.repository";
 import type { TInvoiceId } from "@/domain/invoice/invoice.types";
 import {
+	getLoyaltyConfigProgram,
+	redeemPointsProgram,
+	updateLoyaltyConfigProgram,
+} from "@/domain/loyalty/loyalty.programs";
+import {
+	RedeemPointsSchema,
+	UpdateLoyaltyConfigSchema,
+} from "@/domain/loyalty/loyalty.schemas";
+import {
 	createOrderProgram,
 	getOrdersProgram,
 	voidOrderProgram,
@@ -209,6 +218,10 @@ import {
 	type InvoiceHandlers,
 } from "./invoice.handlers";
 import { createLedgerHandlers, type LedgerHandlers } from "./ledger.handlers";
+import {
+	createLoyaltyHandlers,
+	type LoyaltyHandlers,
+} from "./loyalty.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import { createPortalHandlers, type PortalHandlers } from "./portal.handlers";
 import {
@@ -253,6 +266,7 @@ export function createRestRequestHandler(
 	accountingHandlers?: AccountingHandlers,
 	ledgerHandlers?: LedgerHandlers,
 	accountingReportHandlers?: AccountingReportHandlers,
+	loyaltyHandlers?: LoyaltyHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -466,6 +480,27 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return accountingReportHandlers.commissions(request, requestId);
+		}
+		if (
+			loyaltyHandlers &&
+			url.pathname === "/api/v1/admin/loyalty/config" &&
+			request.method === "GET"
+		) {
+			return loyaltyHandlers.config(request, requestId);
+		}
+		if (
+			loyaltyHandlers &&
+			url.pathname === "/api/v1/admin/loyalty/config" &&
+			request.method === "PATCH"
+		) {
+			return loyaltyHandlers.updateConfig(request, requestId);
+		}
+		if (
+			loyaltyHandlers &&
+			url.pathname === "/api/v1/admin/loyalty/redeem" &&
+			request.method === "POST"
+		) {
+			return loyaltyHandlers.redeem(request, requestId);
 		}
 		if (
 			expenseHandlers &&
@@ -1441,6 +1476,43 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				...row,
 				date: row.date.toISOString(),
 			}));
+		},
+	}),
+	createLoyaltyHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		config: async (businessId) => {
+			const result = await runApp(
+				getLoyaltyConfigProgram(businessId as TTenantId),
+			);
+			return {
+				pointsPerRupiah: result.config.pointsPerRupiah,
+				pointsExpiryDays: result.config.pointsExpiryDays,
+				minRedeemPoints: result.config.minRedeemPoints,
+				isActive: result.config.isActive,
+				tiers: result.tiers.map((tier) => ({
+					name: tier.name,
+					minPoints: tier.minPoints,
+					discountPercent: tier.discountPercent,
+				})),
+			};
+		},
+		updateConfig: async (businessId, input) => {
+			const command = Schema.decodeUnknownSync(UpdateLoyaltyConfigSchema)({
+				pointsPerRupiah: input.pointsPerRupiah,
+				pointsExpiryDays: input.pointsExpiryDays,
+				minRedeemPoints: input.minRedeemPoints,
+				isActive: input.isActive,
+			});
+			await runApp(
+				updateLoyaltyConfigProgram(command, businessId as TTenantId),
+			);
+		},
+		redeem: async (businessId, input) => {
+			const command = Schema.decodeUnknownSync(RedeemPointsSchema)({
+				customerId: input.customerId,
+				points: input.points,
+			});
+			return runApp(redeemPointsProgram(command, businessId as TTenantId));
 		},
 	}),
 );

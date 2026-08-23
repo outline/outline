@@ -56,6 +56,8 @@ import type {
 	TJournalEntryDto,
 	TCashFlowReportDto,
 	TCommissionReportDto,
+	TLoyaltyConfigDto,
+	TUpdateLoyaltyConfigInput,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalServiceDto,
@@ -478,6 +480,22 @@ export class PetsoClient {
 		commissions: (): Promise<readonly TCommissionReportDto[]> =>
 			this.fetchApi<readonly TCommissionReportDto[]>(
 				"/api/v1/admin/accounting/commissions",
+			),
+		loyaltyConfig: (): Promise<TLoyaltyConfigDto> =>
+			this.fetchApi<TLoyaltyConfigDto>("/api/v1/admin/loyalty/config"),
+		updateLoyaltyConfig: (
+			input: TUpdateLoyaltyConfigInput,
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+				"/api/v1/admin/loyalty/config",
+				{ method: "PATCH", body: input },
+			),
+		redeemLoyaltyPoints: (
+			input: { readonly customerId: string; readonly points: number },
+		): Promise<{ readonly pointsRedeemed: number; readonly newTotal: number }> =>
+			this.fetchApi<{ readonly pointsRedeemed: number; readonly newTotal: number }>(
+				"/api/v1/admin/loyalty/redeem",
+				{ method: "POST", body: input },
 			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
