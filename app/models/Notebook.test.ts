@@ -1,6 +1,7 @@
 /* oxlint-disable */
 import stores from "~/stores";
 import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
 describe("Notebook model", () => {
   test("should initialize with data", () => {
     const notebook = stores.notebooks.add({
@@ -50,29 +51,38 @@ describe("Notebook model", () => {
     save.mockRestore();
   });
   test("serializes aliased fields for store creates", async () => {
-    const post = vi.spyOn(client, "post").mockResolvedValue({
-      data: {
+    const createNote = vi
+      .spyOn(petsoClient.admin, "createNote")
+      .mockResolvedValue({
         id: "note-store-wire",
-        title: "Store wire",
+        businessId: "business-1",
         collectionId: "123",
-      },
-      policies: [],
-    });
+        parentNoteId: null,
+        createdBy: "user-1",
+        title: "Store wire",
+        content: {},
+        icon: null,
+        color: null,
+        isPublished: false,
+        publishedAt: null,
+        isArchived: false,
+        archivedAt: null,
+        deletedAt: null,
+        revision: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
     await stores.notes.create({
       title: "Store wire",
       notebookId: "123",
     });
 
-    expect(post).toHaveBeenCalledWith(
-      `/${stores.notes.apiEndpoint}.create`,
+    expect(createNote).toHaveBeenCalledWith(
       expect.objectContaining({ collectionId: "123" })
     );
-    const createCall = post.mock.calls.find(
-      ([path]) => path === `/${stores.notes.apiEndpoint}.create`
-    );
-    expect(createCall?.[1]).not.toHaveProperty("notebookId");
-    post.mockRestore();
+    expect(createNote.mock.calls[0]?.[0]).not.toHaveProperty("notebookId");
+    createNote.mockRestore();
   });
   test("serializes aliased fields for pin list requests", async () => {
     const post = vi.spyOn(client, "post").mockResolvedValue({

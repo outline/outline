@@ -2,6 +2,7 @@ import invariant from "invariant";
 import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
+import type { JSONObject } from "@shared/types";
 import {
   AttachmentPreset,
   SubscriptionType,
@@ -15,14 +16,11 @@ import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Note from "~/models/Note";
 import env from "~/env";
-import type {
-  FetchOptions,
-  PaginationParams,
-  PartialExcept,
-  SearchResult,
-} from "~/types";
+import type { FetchOptions, PaginationParams, SearchResult } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { extname, uploadFile } from "~/utils/files";
+import { petsoClient } from "~/utils/petsoClient";
+import type { TNoteDto } from "@treonstudio/petso-lib";
 type FetchPageParams = PaginationParams & {
   template?: boolean;
   notebookId?: string;
@@ -78,6 +76,71 @@ export default class NotesStore extends Store<Note> {
   ];
   constructor(rootStore: RootStore) {
     super(rootStore, Note);
+  }
+  private mapPetNote(note: TNoteDto): Note {
+    return this.add({
+      id: note.id,
+      title: note.title,
+      data: note.content,
+      notebookId: note.collectionId,
+      parentNoteId: note.parentNoteId ?? undefined,
+      icon: note.icon,
+      color: note.color,
+      publishedAt: note.publishedAt ?? undefined,
+      archivedAt: note.archivedAt ?? undefined,
+      deletedAt: note.deletedAt ?? undefined,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+      revision: note.revision,
+      createdBy: { id: note.createdBy },
+      updatedBy: { id: note.createdBy },
+      url: `/doc/${note.id}`,
+      urlId: note.id,
+      tasks: { completed: 0, total: 0 },
+      popularityScore: 0,
+      fullWidth: false,
+      insightsEnabled: false,
+      isNotebookDeleted: false,
+    });
+  }
+  private noteInput(params: Properties<Note>) {
+    const content = params.data;
+    return {
+      ...(typeof params.title === "string" ? { title: params.title } : {}),
+      ...(content && typeof content === "object" && !Array.isArray(content)
+        ? { content: Object.fromEntries(Object.entries(content)) }
+        : {}),
+      ...(params.notebookId !== undefined
+        ? { collectionId: params.notebookId }
+        : {}),
+      ...(params.parentNoteId !== undefined
+        ? { parentNoteId: params.parentNoteId }
+        : {}),
+      ...(params.icon !== undefined ? { icon: params.icon } : {}),
+      ...(params.color !== undefined ? { color: params.color } : {}),
+    };
+  }
+  override async create(
+    params: Properties<Note>,
+    options?: JSONObject
+  ): Promise<Note> {
+    const created = await petsoClient.admin.createNote({
+      ...this.noteInput(params),
+      ...(options?.publish === true ? { publish: true } : {}),
+    });
+    return this.mapPetNote(created);
+  }
+  override async update(
+    params: Properties<Note>,
+    options?: JSONObject
+  ): Promise<Note> {
+    const updated = await petsoClient.admin.updateNote(params.id, {
+      ...this.noteInput(params),
+      ...(typeof options?.publish === "boolean"
+        ? { publish: options.publish }
+        : {}),
+    });
+    return this.mapPetNote(updated);
   }
   @computed
   get importFileTypesString(): string {
@@ -272,30 +335,41 @@ export default class NotesStore extends Store<Note> {
   }
   @action
   fetchChildNotes = async (noteId: string): Promise<void> => {
-    const res = await client.post(`/documents.list`, {
-      parentDocumentId: noteId,
-    });
-    invariant(res?.data, "Note list not available");
+    const notes = await petsoClient.admin.notes();
     runInAction("NotesStore#fetchChildNotes", () => {
-      res.data.forEach(this.add);
-      this.addPolicies(res.policies);
+      notes
+        .filter((note) => note.parentNoteId === noteId)
+        .forEach((note) => this.mapPetNote(note));
     });
   };
   @action
   fetchNamedPage = async (
     request = "list",
-    options: FetchPageParams | undefined
+    _options: FetchPageParams | undefined
   ): Promise<Note[]> => {
     this.isFetching = true;
     try {
-      const res = await client.post(`/documents.${request}`, options);
-      invariant(res?.data, "Note list not available");
+      const notes = await petsoClient.admin.notes(request === "deleted");
+      const filtered = notes.filter((note) => {
+        if (request === "archived") {
+          return note.isArchived && !note.deletedAt;
+        }
+        if (request === "deleted") {
+          return !!note.deletedAt;
+        }
+        if (request === "drafts") {
+          return !note.isPublished && !note.deletedAt;
+        }
+        if (request === "starred") {
+          return false;
+        }
+        return !note.isArchived && !note.deletedAt;
+      });
       runInAction("NotesStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
-        this.addPolicies(res.policies);
+        filtered.forEach((note) => this.mapPetNote(note));
         this.isLoaded = true;
       });
-      return res.data;
+      return filtered.map((note) => this.mapPetNote(note));
     } finally {
       this.isFetching = false;
     }
@@ -420,22 +494,19 @@ export default class NotesStore extends Store<Note> {
     }
     return;
   };
-  override fetch = (id: string, options: FetchOptions = {}) =>
-    super.fetch(
-      id,
-      options,
-      (res: {
-        data: {
-          document: PartialExcept<Note, "id">;
-        };
-      }) => res.data.document
-    );
+  override fetch = async (id: string, options: FetchOptions = {}) => {
+    const existing = this.get(id);
+    if (existing && !options.force) {
+      return existing;
+    }
+    return this.mapPetNote(await petsoClient.admin.note(id));
+  };
   @action
   move = async ({
     noteId,
     notebookId,
     parentNoteId,
-    index,
+    _index,
   }: {
     noteId: string;
     notebookId?: string | null;
@@ -444,15 +515,11 @@ export default class NotesStore extends Store<Note> {
   }) => {
     this.movingNoteId = noteId;
     try {
-      const res = await client.post("/documents.move", {
-        id: noteId,
-        collectionId: notebookId,
-        parentNoteId,
-        index,
+      const moved = await petsoClient.admin.updateNote(noteId, {
+        ...(notebookId !== undefined ? { collectionId: notebookId } : {}),
+        ...(parentNoteId !== undefined ? { parentNoteId } : {}),
       });
-      invariant(res?.data, "Data not available");
-      res.data.documents.forEach(this.add);
-      this.addPolicies(res.policies);
+      this.mapPetNote(moved);
       // The websocket "documents.move" event is only broadcast to the
       // notebook channel, so users with note-only access never receive
       // it. Refresh the affected membership tree locally so the sidebar
@@ -472,15 +539,20 @@ export default class NotesStore extends Store<Note> {
       title?: string;
       publish?: boolean;
       recursive?: boolean;
+      notebookId?: string | null;
+      parentNoteId?: string;
     }
   ): Promise<Note[]> => {
-    const res = await client.post("/documents.duplicate", {
-      id: note.id,
-      ...options,
+    const created = await petsoClient.admin.createNote({
+      title: options?.title ?? `${note.title} copy`,
+      content: note.data,
+      collectionId: options?.notebookId ?? note.notebookId,
+      parentNoteId: options?.parentNoteId ?? note.parentNoteId,
+      icon: note.icon,
+      color: note.color,
+      ...(options?.publish !== undefined ? { publish: options.publish } : {}),
     });
-    invariant(res?.data, "Data should be available");
-    this.addPolicies(res.policies);
-    return res.data.documents.map(this.add);
+    return [this.mapPetNote(created)];
   };
   @action
   import = async (
@@ -529,7 +601,12 @@ export default class NotesStore extends Store<Note> {
       permanent: boolean;
     }
   ) {
-    await super.delete(note, options);
+    if (note.isNew) {
+      this.remove(note.id);
+    } else {
+      const deleted = await petsoClient.admin.deleteNote(note.id);
+      this.mapPetNote(deleted);
+    }
     // For permanent deletion, we need to actually remove the note from the
     // local store data Map, as the base Store's remove() method only soft-deletes
     // ParanoidModel instances by setting deletedAt.
@@ -549,13 +626,9 @@ export default class NotesStore extends Store<Note> {
   }
   @action
   archive = async (note: Note) => {
-    const res = await client.post("/documents.archive", {
-      id: note.id,
-    });
+    const archived = await petsoClient.admin.archiveNote(note.id);
     runInAction("Note#archive", () => {
-      invariant(res?.data, "Data should be available");
-      note.updateData(res.data);
-      this.addPolicies(res.policies);
+      this.mapPetNote(archived);
     });
     const notebook = this.getNotebookForNote(note);
     if (notebook) {
@@ -565,20 +638,14 @@ export default class NotesStore extends Store<Note> {
   @action
   restore = async (
     note: Note,
-    options: {
+    _options: {
       revisionId?: string;
       notebookId?: string;
     } = {}
   ) => {
-    const res = await client.post("/documents.restore", {
-      id: note.id,
-      revisionId: options.revisionId,
-      collectionId: options.notebookId,
-    });
+    const restored = await petsoClient.admin.restoreNote(note.id);
     runInAction("Note#restore", () => {
-      invariant(res?.data, "Data should be available");
-      note.updateData(res.data);
-      this.addPolicies(res.policies);
+      this.mapPetNote(restored);
     });
     const notebook = this.getNotebookForNote(note);
     if (notebook) {
@@ -588,23 +655,18 @@ export default class NotesStore extends Store<Note> {
   @action
   unpublish = async (
     note: Note,
-    options: {
+    _options: {
       detach?: boolean;
     } = {
       detach: false,
     }
   ) => {
-    const res = await client.post("/documents.unpublish", {
-      id: note.id,
-      ...options,
+    const unpublished = await petsoClient.admin.updateNote(note.id, {
+      publish: false,
     });
     runInAction("Note#unpublish", () => {
-      invariant(res?.data, "Data should be available");
-      // unpublishing could sometimes detach the note from the notebook.
-      // so, get the notebook id before data is updated.
       const notebookId = note.notebookId;
-      note.updateData(res.data);
-      this.addPolicies(res.policies);
+      this.mapPetNote(unpublished);
       if (notebookId) {
         const notebook = this.rootStore.notebooks.get(notebookId);
         notebook?.removeNote(note.id);
@@ -613,7 +675,7 @@ export default class NotesStore extends Store<Note> {
   };
   @action
   emptyTrash = async () => {
-    await client.post("/documents.empty_trash");
+    await petsoClient.admin.emptyNotesTrash();
     const noteIdsSet = new Set(this.deleted.map((doc) => doc.id));
     // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Note) => noteIdsSet.has(doc.id));
