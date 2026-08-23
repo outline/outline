@@ -129,6 +129,7 @@ function DocumentMenu({
 
   const rootAction = useDocumentMenuAction({
     documentId: document.id,
+    isViewing: showDisplayOptions,
     onFindAndReplace,
     onRename,
     onSelectTemplate,

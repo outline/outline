@@ -45,6 +45,8 @@ import { useTemplateMenuActions } from "./useTemplateMenuActions";
 type Props = {
   /** Document ID for which the actions are generated */
   documentId: string;
+  /** Whether the document is currently being viewed */
+  isViewing?: boolean;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
   /** Invoked when the "Rename" menu item is clicked */
@@ -55,6 +57,7 @@ type Props = {
 
 export function useDocumentMenuAction({
   documentId,
+  isViewing,
   onFindAndReplace,
   onRename,
   onSelectTemplate,
@@ -106,7 +109,7 @@ export function useDocumentMenuAction({
         openDocumentComments,
         openDocumentHistory,
         openDocumentInsights,
-        toggleDocumentStats,
+        ...(isViewing ? [toggleDocumentStats] : []),
         openDocumentInSplit,
         openDocumentInDesktop,
         presentDocument,
@@ -118,6 +121,14 @@ export function useDocumentMenuAction({
         permanentlyDeleteDocument,
         leaveDocument,
       ]),
-    [t, isMobile, templateMenuActions, documentId, onFindAndReplace, onRename]
+    [
+      t,
+      isMobile,
+      isViewing,
+      templateMenuActions,
+      documentId,
+      onFindAndReplace,
+      onRename,
+    ]
   );
 }
