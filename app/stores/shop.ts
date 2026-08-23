@@ -149,6 +149,15 @@ export type CartLine = {
 import { petsoClient } from "~/utils/petsoClient";
 import { currentBranch } from "~/utils/shopScope";
 
+const PLAN_LIMITS: Record<
+  Subscription["plan"],
+  Subscription["limits"]
+> = {
+  free: { staff: 3, branches: 1, boardingsPerMonth: 30 },
+  pro: { staff: 10, branches: 3, boardingsPerMonth: 200 },
+  business: { staff: 50, branches: 20, boardingsPerMonth: 2000 },
+};
+
 function mapProduct(product: TProductDto): Product {
   const variants: ProductVariant[] = product.variants.map((variant) => ({
     id: variant.id,
@@ -1380,7 +1389,9 @@ export const useShop = create<State>((set, get) => ({
                 billing.subscription.status === "past_due"
                   ? "past_due"
                   : "active",
-              limits: { staff: 0, branches: 0, boardingsPerMonth: 0 },
+              limits: PLAN_LIMITS[
+                billing.subscription.plan as Subscription["plan"]
+              ],
             }
           : undefined,
         billingInvoices: billing.invoices,
