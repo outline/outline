@@ -38,6 +38,8 @@ export type {
 	TStaffMemberDto,
 	TStaffAttendanceDto,
 	TCreateReturnInput,
+	TBoardingDto,
+	TBoardingPetDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,

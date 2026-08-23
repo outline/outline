@@ -1,5 +1,9 @@
 import { Effect, Schema } from "effect";
 import {
+	getBoardingsProgram,
+	updateBoardingStatusProgram,
+} from "@/domain/boarding/boarding.programs";
+import {
 	createBranchProgram,
 	deleteBranchProgram,
 	getBranchesProgram,
@@ -116,6 +120,10 @@ import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
+import {
+	type BoardingHandlers,
+	createBoardingHandlers,
+} from "./boarding.handlers";
 import { type BranchHandlers, createBranchHandlers } from "./branch.handlers";
 import {
 	type CatalogHandlers,
@@ -162,6 +170,7 @@ export function createRestRequestHandler(
 	invoiceHandlers?: InvoiceHandlers,
 	shiftHandlers?: ShiftHandlers,
 	returnHandlers?: ReturnHandlers,
+	boardingHandlers?: BoardingHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -278,6 +287,23 @@ export function createRestRequestHandler(
 			request.method === "POST"
 		) {
 			return returnHandlers.create(request, requestId);
+		}
+		if (
+			boardingHandlers &&
+			url.pathname === "/api/v1/admin/boardings" &&
+			request.method === "GET"
+		) {
+			return boardingHandlers.list(request, requestId);
+		}
+		const boardingStatusMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/boardings\/([^/]+)\/status$/,
+		);
+		if (boardingHandlers && boardingStatusMatch && request.method === "PATCH") {
+			return boardingHandlers.updateStatus(
+				request,
+				requestId,
+				boardingStatusMatch[1] ?? "",
+			);
 		}
 		if (
 			catalogHandlers &&
@@ -919,6 +945,19 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				processReturnProgram(value, businessId as TTenantId, userId as TUserId),
 			);
 			return id;
+		},
+	}),
+	createBoardingHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) =>
+			runApp(getBoardingsProgram(businessId as TTenantId)),
+		updateStatus: async (businessId, id, status) => {
+			await runApp(
+				updateBoardingStatusProgram(
+					{ id, status: status as "draft" | "active" | "completed" },
+					businessId as TTenantId,
+				),
+			);
 		},
 	}),
 );

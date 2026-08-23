@@ -47,6 +47,7 @@ import type {
   TBranchDto,
   TRoomDto,
   TInvoiceDto,
+  TBoardingDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -389,6 +390,37 @@ function mapInvoice(
             : "unpaid",
     isOverdue:
       due > 0 && invoice.dueDate < new Date().toISOString().slice(0, 10),
+  };
+}
+
+function mapBoarding(
+  boarding: TBoardingDto,
+  branchNames: ReadonlyMap<string, string>,
+  roomNames: ReadonlyMap<string, string>
+): Boarding {
+  const status: Boarding["status"] =
+    boarding.status === "completed"
+      ? "checked_out"
+      : boarding.status === "active"
+        ? "checked_in"
+        : boarding.status === "cancelled"
+          ? "cancelled"
+          : "booked";
+  return {
+    id: boarding.id,
+    code: boarding.id,
+    customerId: boarding.customerId ?? "",
+    customerName: boarding.ownerName,
+    petName: boarding.pets[0]?.name ?? "",
+    roomId: boarding.roomId ?? "",
+    roomName: boarding.roomId
+      ? (roomNames.get(boarding.roomId) ?? boarding.roomId)
+      : "",
+    branch: branchNames.get(boarding.branchId) ?? boarding.branchId,
+    checkIn: boarding.checkInDate,
+    checkOut: boarding.estimatedCheckOutDate ?? boarding.checkInDate,
+    status,
+    ratePerNight: boarding.dailyRate,
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -923,7 +955,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.products(),
         petsoClient.admin.customers(),
         petsoClient.admin.pets(),
-        client.post("/boardings.list"),
+        petsoClient.admin.boardings(),
         petsoClient.admin.rooms(),
         petsoClient.admin.orders(),
         petsoClient.admin.suppliers(),
@@ -989,7 +1021,13 @@ export const useShop = create<State>((set, get) => ({
         customers: customerDtos.map((customer) =>
           mapCustomer(customer, petDtos)
         ),
-        boardings: boardings.data,
+        boardings: boardings.map((boarding) =>
+          mapBoarding(
+            boarding,
+            branchNames,
+            new Map(rooms.map((room) => [room.id, room.name]))
+          )
+        ),
         rooms: rooms.map((room) => mapRoom(room, branchNames)),
         orders: orderDtos.map(mapOrder),
         suppliers: supplierDtos.map(mapSupplier),
@@ -1049,13 +1087,18 @@ export const useShop = create<State>((set, get) => ({
     }
   },
   setBoardingStatus: async (id, status) => {
-    // Applied optimistically; the list reflects the change before the round trip.
-    set((state) => ({
-      boardings: state.boardings.map((boarding) =>
-        boarding.id === id ? { ...boarding, status } : boarding
-      ),
-    }));
-    await client.post("/boardings.updateStatus", { id, status });
+    if (status === "cancelled") {
+      return;
+    }
+    const backendStatus =
+      status === "checked_out"
+        ? "completed"
+        : status === "checked_in"
+          ? "active"
+          : status === "booked"
+            ? "draft"
+            : status;
+    await petsoClient.admin.updateBoardingStatus(id, backendStatus);
     await get().fetchAll();
   },
   createInvoice: async (invoice) => {

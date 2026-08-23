@@ -41,6 +41,7 @@ import type {
 	TStaffMemberDto,
 	TStaffAttendanceDto,
 	TCreateReturnInput,
+	TBoardingDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -350,6 +351,16 @@ export class PetsoClient {
 			this.fetchApi<{ readonly created: boolean; readonly id: string }>(
 				"/api/v1/admin/returns",
 				{ method: "POST", body: input },
+			),
+		boardings: (): Promise<readonly TBoardingDto[]> =>
+			this.fetchApi<readonly TBoardingDto[]>("/api/v1/admin/boardings"),
+		updateBoardingStatus: (
+			id: string,
+			status: "draft" | "active" | "completed",
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+				`/api/v1/admin/boardings/${id}/status`,
+				{ method: "PATCH", body: { status } },
 			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
