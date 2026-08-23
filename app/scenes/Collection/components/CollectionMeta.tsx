@@ -77,7 +77,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
           </Tooltip>
         </>
       )}
-      {!!documentCount && (
+      {documentCount !== undefined && (
         <span>
           <Separator />
           {t("{{ count }} document", { count: documentCount })}
