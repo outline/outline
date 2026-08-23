@@ -6,12 +6,16 @@ import {
 } from "@/domain/boarding/boarding.programs";
 import { CreateBoardingSchema } from "@/domain/boarding/boarding.schemas";
 import {
+	createBranchHolidayProgram,
 	createBranchProgram,
+	deleteBranchHolidayProgram,
 	deleteBranchProgram,
 	getBranchesProgram,
+	getBranchHolidaysProgram,
 	updateBranchProgram,
 } from "@/domain/branch/branch.programs";
 import {
+	CreateBranchHolidaySchema,
 	CreateBranchSchema,
 	UpdateBranchSchema,
 } from "@/domain/branch/branch.schemas";
@@ -171,6 +175,10 @@ import {
 	type GroomingHandlers,
 } from "./grooming.handlers";
 import {
+	createHolidayHandlers,
+	type HolidayHandlers,
+} from "./holiday.handlers";
+import {
 	createInventoryHandlers,
 	type InventoryHandlers,
 } from "./inventory.handlers";
@@ -217,6 +225,7 @@ export function createRestRequestHandler(
 	documentTemplateHandlers?: DocumentTemplateHandlers,
 	dashboardHandlers?: DashboardHandlers,
 	portalHandlers?: PortalHandlers,
+	holidayHandlers?: HolidayHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -368,6 +377,26 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return portalHandlers.get(request, requestId);
+		}
+		if (
+			holidayHandlers &&
+			url.pathname === "/api/v1/admin/branch-holidays" &&
+			request.method === "GET"
+		) {
+			return holidayHandlers.list(request, requestId);
+		}
+		if (
+			holidayHandlers &&
+			url.pathname === "/api/v1/admin/branch-holidays" &&
+			request.method === "POST"
+		) {
+			return holidayHandlers.create(request, requestId);
+		}
+		const holidayMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/branch-holidays\/([^/]+)$/,
+		);
+		if (holidayHandlers && holidayMatch && request.method === "DELETE") {
+			return holidayHandlers.delete(request, requestId, holidayMatch[1] ?? "");
 		}
 		if (
 			portalHandlers &&
@@ -1239,6 +1268,53 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			await runApp(updatePortalConfigProgram(command, businessId as TTenantId));
 		},
 	}),
+	createHolidayHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const branches = await runApp(
+				getBranchesProgram(businessId as TTenantId),
+			);
+			const holidays = await Promise.all(
+				branches.map((branch) =>
+					runApp(getBranchHolidaysProgram(branch.id, businessId as TTenantId)),
+				),
+			);
+			return holidays.flat().map(serializeBranchHoliday);
+		},
+		create: async (businessId, input) => {
+			const command = Schema.decodeUnknownSync(CreateBranchHolidaySchema)({
+				...input,
+				date: new Date(
+					typeof input.date === "string"
+						? input.date
+						: new Date().toISOString(),
+				),
+			});
+			return serializeBranchHoliday(
+				await runApp(
+					createBranchHolidayProgram(command, businessId as TTenantId),
+				),
+			);
+		},
+		delete: async (businessId, id) => {
+			const branches = await runApp(
+				getBranchesProgram(businessId as TTenantId),
+			);
+			const holidays = await Promise.all(
+				branches.map((branch) =>
+					runApp(getBranchHolidaysProgram(branch.id, businessId as TTenantId)),
+				),
+			);
+			const holiday = holidays.flat().find((item) => item.id === id);
+			if (!holiday) return;
+			await runApp(
+				deleteBranchHolidayProgram(
+					{ id, branchId: holiday.branchId },
+					businessId as TTenantId,
+				),
+			);
+		},
+	}),
 );
 
 function serializeGroomingAppointment(appointment: TGroomingAppointment) {
@@ -1261,6 +1337,21 @@ function serializeDocumentTemplate(template: IDocumentTemplate) {
 		isActive: template.isActive,
 		createdAt: template.createdAt.toISOString(),
 		updatedAt: template.updatedAt.toISOString(),
+	};
+}
+
+function serializeBranchHoliday(holiday: {
+	readonly id: string;
+	readonly branchId: string;
+	readonly name: string;
+	readonly date: Date;
+	readonly isRecurring: boolean;
+	readonly createdAt: Date;
+}) {
+	return {
+		...holiday,
+		date: holiday.date.toISOString().slice(0, 10),
+		createdAt: holiday.createdAt.toISOString(),
 	};
 }
 

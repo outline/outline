@@ -47,6 +47,8 @@ import type {
 	TDocumentTemplateDto,
 	TSaveDocumentTemplateInput,
 	TTopSellerDto,
+	TBranchHolidayDto,
+	TCreateBranchHolidayInput,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalServiceDto,
@@ -433,6 +435,22 @@ export class PetsoClient {
 				method: "PATCH",
 				body: input,
 			}),
+		branchHolidays: (): Promise<readonly TBranchHolidayDto[]> =>
+			this.fetchApi<readonly TBranchHolidayDto[]>(
+				"/api/v1/admin/branch-holidays",
+			),
+		createBranchHoliday: (
+			input: TCreateBranchHolidayInput,
+		): Promise<TBranchHolidayDto> =>
+			this.fetchApi<TBranchHolidayDto>("/api/v1/admin/branch-holidays", {
+				method: "POST",
+				body: input,
+			}),
+		deleteBranchHoliday: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/branch-holidays/${id}`,
+				{ method: "DELETE" },
+			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",

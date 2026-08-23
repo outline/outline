@@ -46,6 +46,8 @@ export type {
 	TDocumentTemplateDto,
 	TSaveDocumentTemplateInput,
 	TTopSellerDto,
+	TBranchHolidayDto,
+	TCreateBranchHolidayInput,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalConfigDto,

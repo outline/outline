@@ -50,6 +50,7 @@ import type {
   TBoardingDto,
   TGroomingAppointmentDto,
   TDocumentTemplateDto,
+  TBranchHolidayDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -995,7 +996,7 @@ export const useShop = create<State>((set, get) => ({
         onShift,
         cashFlow,
         loyaltyConfig,
-        branchHolidays,
+        branchHolidayDtos,
         calendar,
         onboarding,
         staffInvites,
@@ -1039,7 +1040,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/shifts.onShift"),
         client.post("/accounting.cashFlow"),
         client.post("/loyalty.config"),
-        client.post("/branches.holidays"),
+        petsoClient.admin.branchHolidays(),
         client.post("/occupancy.calendar", { days: 14 }),
         client.post("/onboarding.steps"),
         client.post("/staff.invites"),
@@ -1165,7 +1166,12 @@ export const useShop = create<State>((set, get) => ({
         onShift: onShift.data,
         cashFlow: cashFlow.data,
         loyaltyConfig: loyaltyConfig.data,
-        branchHolidays: branchHolidays.data,
+        branchHolidays: branchHolidayDtos.map((holiday: TBranchHolidayDto) => ({
+          id: holiday.id,
+          branch: branchNames.get(holiday.branchId) ?? holiday.branchId,
+          date: holiday.date,
+          reason: holiday.name,
+        })),
         calendar: calendar.data,
         onboarding: onboarding.data,
         staffInvites: staffInvites.data,
@@ -1627,9 +1633,23 @@ export const useShop = create<State>((set, get) => ({
     await client.post("/staff.withdrawInvite", { id });
     await get().fetchAll();
   },
-  addHoliday: async (holiday) => write("/branches.addHoliday", holiday, get),
+  addHoliday: async (holiday) => {
+    const branchId = get().branches.find(
+      (branch) => branch.name === holiday.branch
+    )?.id;
+    if (!branchId || !holiday.date || !holiday.reason) {
+      return { saved: false, reason: "Branch, date, and reason are required" };
+    }
+    await petsoClient.admin.createBranchHoliday({
+      branchId,
+      name: holiday.reason,
+      date: holiday.date,
+    });
+    await get().fetchAll();
+    return { saved: true };
+  },
   removeHoliday: async (id) => {
-    await client.post("/branches.removeHoliday", { id });
+    await petsoClient.admin.deleteBranchHoliday(id);
     await get().fetchAll();
   },
   saveBranch: async (branch) => {
