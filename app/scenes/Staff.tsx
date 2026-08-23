@@ -36,10 +36,7 @@ function Staff() {
   const onShift = useShop((state) => state.onShift);
   const saveStaff = useShop((state) => state.saveStaff);
   const deleteStaff = useShop((state) => state.deleteStaff);
-  const staffInvites = useShop((state) => state.staffInvites);
   const inviteStaff = useShop((state) => state.inviteStaff);
-  const acceptInvite = useShop((state) => state.acceptInvite);
-  const withdrawInvite = useShop((state) => state.withdrawInvite);
   const panels = usePanel();
   const submission = useSubmit();
   const handleSave = (values: Record<string, string>) =>
@@ -108,45 +105,6 @@ function Staff() {
           {submission.notice}
         </Text>
       ) : null}
-
-      {(() => {
-        const pending = staffInvites.filter(
-          (invite) => invite.status === "pending"
-        );
-        return pending.length === 0 ? null : (
-          <>
-            <Subheading>
-              {t("Invited, not started")} · {pending.length}
-            </Subheading>
-            {pending.map((invite) => (
-              <ListItem
-                key={invite.id}
-                title={invite.name || invite.email}
-                subtitle={`${t(invite.role)} · ${invite.branch} · ${invite.email}`}
-                actions={
-                  <Flex align="center" gap={8}>
-                    <Button
-                      neutral
-                      borderOnHover
-                      onClick={() => void acceptInvite(invite.id)}
-                    >
-                      {t("They have started")}
-                    </Button>
-                    <Button
-                      neutral
-                      borderOnHover
-                      onClick={() => void withdrawInvite(invite.id)}
-                    >
-                      {t("Withdraw")}
-                    </Button>
-                  </Flex>
-                }
-                border
-              />
-            ))}
-          </>
-        );
-      })()}
 
       {panels.isOpen("invite") ? (
         <>

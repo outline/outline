@@ -93,6 +93,7 @@ function Branches() {
       branch,
       capacity: Number(values.capacity) || 1,
       type: values.type,
+      dailyRate: Number(values.dailyRate) || 0,
     });
     resetForm();
   };
@@ -101,6 +102,7 @@ function Branches() {
       name: values.name.trim() || undefined,
       capacity: Number(values.capacity) || 1,
       type: values.type,
+      dailyRate: Number(values.dailyRate) || 0,
     });
     resetForm();
   };
@@ -249,6 +251,7 @@ function Branches() {
                       name: room.name,
                       type: room.type,
                       capacity: String(room.capacity),
+                      dailyRate: String(room.dailyRate),
                     }
                   )}
                 </div>

@@ -47,6 +47,15 @@ export const RoomDocType: DocType = {
       dependsOn: "type == suite",
       placeholder: "Private run, evening photo",
     },
+    {
+      fieldname: "dailyRate",
+      label: "Daily rate",
+      fieldtype: "number",
+      required: true,
+      defaultValue: "0",
+      min: 0,
+      short: true,
+    },
   ],
 };
 /** A product in the catalogue. */

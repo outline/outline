@@ -59,6 +59,7 @@ import type {
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
+  dailyRate: number;
   occupied: number;
   isFull: boolean;
   guests: {
@@ -179,7 +180,8 @@ function mapBranch(branch: TBranchDto): Branch {
 
 function mapCustomer(
   customer: TCustomerRecordDto,
-  pets: readonly TPetDto[]
+  pets: readonly TPetDto[],
+  loyaltyPoints: number
 ): Customer {
   return {
     id: customer.id,
@@ -196,7 +198,7 @@ function mapCustomer(
           breed: pet.breed ?? "",
         })
       ),
-    loyaltyPoints: 0,
+    loyaltyPoints,
     joinedAt: customer.createdAt,
   };
 }
@@ -254,13 +256,18 @@ function mapInventoryMovement(
   };
 }
 
-function mapOrder(order: TOrderDto): Order {
+function mapOrder(
+  order: TOrderDto,
+  customerNames?: ReadonlyMap<string, string>
+): Order {
   const isVoided = Boolean(order.voidedAt) || order.status === "voided";
   const isPaid = (order.payments?.length ?? 0) > 0;
   return {
     id: order.id,
     number: order.id,
-    customerName: order.customerId ?? "Walk-in customer",
+    customerName: order.customerId
+      ? (customerNames?.get(order.customerId) ?? order.customerId)
+      : "Walk-in customer",
     channel: "pos",
     soldById: order.createdBy,
     total: order.totalAmount,
@@ -300,8 +307,17 @@ function mapWarehouse(
 
 function mapRoom(
   room: TRoomDto,
-  branchNames: ReadonlyMap<string, string>
+  branchNames: ReadonlyMap<string, string>,
+  boardings: readonly TBoardingDto[]
 ): RoomOccupancy {
+  const today = new Date().toISOString().slice(0, 10);
+  const occupied = boardings.filter(
+    (boarding) =>
+      boarding.roomId === room.id &&
+      boarding.status === "active" &&
+      boarding.checkInDate.slice(0, 10) <= today &&
+      (boarding.estimatedCheckOutDate?.slice(0, 10) ?? today) >= today
+  ).length;
   return {
     id: room.id,
     name: room.name,
@@ -309,9 +325,10 @@ function mapRoom(
       ? (branchNames.get(room.branchId) ?? room.branchId)
       : "",
     capacity: room.capacity,
+    dailyRate: room.dailyRate,
     type: room.roomType === "vip" ? "suite" : (room.roomType as Room["type"]),
-    occupied: 0,
-    isFull: false,
+    occupied,
+    isFull: occupied >= room.capacity,
     guests: [],
   };
 }
@@ -493,18 +510,39 @@ export interface Dashboard {
 }
 
 function mapDashboardMetrics(
-  metrics: TAccountingDashboardMetricsDto
+  metrics: TAccountingDashboardMetricsDto,
+  boardings: readonly TBoardingDto[],
+  rooms: readonly TRoomDto[],
+  orders: readonly TOrderDto[]
 ): Dashboard {
+  const today = new Date().toISOString().slice(0, 10);
+  const activeBoardings = boardings.filter(
+    (boarding) =>
+      boarding.status === "active" &&
+      boarding.checkInDate.slice(0, 10) <= today &&
+      (boarding.estimatedCheckOutDate?.slice(0, 10) ?? today) >= today
+  );
+  const occupied = activeBoardings.filter((boarding) => boarding.roomId).length;
+  const capacity = rooms.reduce((total, room) => total + room.capacity, 0);
+  const arrivalsToday = boardings.filter(
+    (boarding) =>
+      boarding.status !== "cancelled" &&
+      boarding.status !== "completed" &&
+      boarding.checkInDate.slice(0, 10) === today
+  ).length;
+  const unpaidOrders = orders.filter(
+    (order) => order.status === "unpaid" || order.status === "partial"
+  ).length;
   return {
     revenueToday: metrics.revenueToday,
     ordersToday: metrics.transactionsToday,
     activeBoardings: metrics.activeBoardings,
-    arrivalsToday: 0,
-    occupancyRate: 0,
-    capacity: 0,
-    occupied: 0,
+    arrivalsToday,
+    occupancyRate: capacity ? Math.round((occupied / capacity) * 100) : 0,
+    capacity,
+    occupied,
     lowStock: metrics.lowStockProducts,
-    unpaidOrders: 0,
+    unpaidOrders,
   };
 }
 interface State {
@@ -582,15 +620,6 @@ interface State {
         price: number;
       }[];
     }[];
-  }[];
-  staffInvites: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    branch: string;
-    status: string;
-    sentAt: string;
   }[];
   calendar: {
     roomId: string;
@@ -780,10 +809,6 @@ interface State {
     sent: boolean;
     reason?: string;
   }>;
-  acceptInvite: (id: string) => Promise<{
-    accepted: boolean;
-  }>;
-  withdrawInvite: (id: string) => Promise<void>;
   addHoliday: (holiday: {
     branch: string;
     date: string;
@@ -881,6 +906,7 @@ interface State {
     branch: string;
     capacity: number;
     type: string;
+    dailyRate: number;
   }) => Promise<void>;
   updateRoom: (
     id: string,
@@ -888,6 +914,7 @@ interface State {
       name?: string;
       capacity?: number;
       type?: string;
+      dailyRate?: number;
     }
   ) => Promise<void>;
   deleteRoom: (id: string) => Promise<boolean>;
@@ -943,7 +970,6 @@ export const useShop = create<State>((set, get) => ({
   branchHolidays: [],
   onboarding: [],
   groomingCalendar: [],
-  staffInvites: [],
   calendar: [],
   cashFlow: [],
   noteTemplates: [],
@@ -1045,6 +1071,14 @@ export const useShop = create<State>((set, get) => ({
       const petNames = new Map<string, string>();
       for (const pet of petDtos) {
         petNames.set(pet.id, pet.name);
+      }
+      const loyaltyPointsByCustomer = new Map<string, number>();
+      for (const movement of loyalty) {
+        loyaltyPointsByCustomer.set(
+          movement.customerId,
+          (loyaltyPointsByCustomer.get(movement.customerId) ?? 0) +
+            movement.points
+        );
       }
       const staffNames = new Map<string, string>();
       for (const staffMember of staffDtos) {
@@ -1240,10 +1274,14 @@ export const useShop = create<State>((set, get) => ({
         });
       }
       set({
-        dashboard: mapDashboardMetrics(dashboard),
+        dashboard: mapDashboardMetrics(dashboard, boardings, rooms, orderDtos),
         products: productDtos.map(mapProduct),
         customers: customerDtos.map((customer) =>
-          mapCustomer(customer, petDtos)
+          mapCustomer(
+            customer,
+            petDtos,
+            loyaltyPointsByCustomer.get(customer.id) ?? 0
+          )
         ),
         boardings: boardings.map((boarding) =>
           mapBoarding(
@@ -1252,8 +1290,8 @@ export const useShop = create<State>((set, get) => ({
             new Map(rooms.map((room) => [room.id, room.name]))
           )
         ),
-        rooms: rooms.map((room) => mapRoom(room, branchNames)),
-        orders: orderDtos.map(mapOrder),
+        rooms: rooms.map((room) => mapRoom(room, branchNames, boardings)),
+        orders: orderDtos.map((order) => mapOrder(order, customerNames)),
         suppliers: supplierDtos.map(mapSupplier),
         warehouses: warehouseDtos.map((warehouse) =>
           mapWarehouse(warehouse, branchNames)
@@ -1453,7 +1491,6 @@ export const useShop = create<State>((set, get) => ({
         })),
         calendar: calendarRows,
         onboarding: onboardingRows,
-        staffInvites: [],
         groomingCalendar: groomingRows,
         isLoading: false,
       });
@@ -1465,9 +1502,6 @@ export const useShop = create<State>((set, get) => ({
     }
   },
   setBoardingStatus: async (id, status) => {
-    if (status === "cancelled") {
-      return;
-    }
     const backendStatus =
       status === "checked_out"
         ? "completed"
@@ -1584,16 +1618,17 @@ export const useShop = create<State>((set, get) => ({
       species === "cat" || species === "dog" || species === "rabbit"
         ? species
         : "other";
-    await petsoClient.admin.createBoarding({
+    const response = await petsoClient.admin.createBoarding({
       branchId,
       customerId: customer.id,
       ownerName: customer.name,
-      ownerAddress: "Not provided",
-      ownerPhone: customer.phone || "Not provided",
+      ownerAddress: "",
+      ownerPhone: customer.phone,
       checkInDate: boarding.checkIn,
       estimatedCheckOutDate: boarding.checkOut,
       roomId: boarding.roomId,
-      dailyRate: 0,
+      dailyRate:
+        get().rooms.find((room) => room.id === boarding.roomId)?.dailyRate ?? 0,
       status: "active",
       pets: [
         {
@@ -1609,7 +1644,14 @@ export const useShop = create<State>((set, get) => ({
       ],
     });
     await get().fetchAll();
-    return { created: true };
+    return {
+      created: true,
+      boarding: mapBoarding(
+        response,
+        new Map(get().branches.map((branch) => [branch.id, branch.name])),
+        new Map(get().rooms.map((room) => [room.id, room.name]))
+      ),
+    };
   },
   adjustStock: async (id, delta) => {
     const product = get().products.find((item) => item.id === id);
@@ -1951,13 +1993,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response;
   },
-  acceptInvite: async (id) => {
-    void id;
-    return { accepted: false };
-  },
-  withdrawInvite: async (id) => {
-    void id;
-  },
   addHoliday: async (holiday) => {
     const branchId = get().branches.find(
       (branch) => branch.name === holiday.branch
@@ -2075,7 +2110,7 @@ export const useShop = create<State>((set, get) => ({
       name: room.name,
       roomType: room.type,
       capacity: room.capacity,
-      dailyRate: 0,
+      dailyRate: room.dailyRate,
       description: null,
     });
     await get().fetchAll();
@@ -2085,6 +2120,9 @@ export const useShop = create<State>((set, get) => ({
       id,
       ...(changes.name ? { name: changes.name } : {}),
       ...(changes.capacity ? { capacity: changes.capacity } : {}),
+      ...(changes.dailyRate !== undefined
+        ? { dailyRate: changes.dailyRate }
+        : {}),
       ...(changes.type ? { roomType: changes.type } : {}),
     });
     await get().fetchAll();
