@@ -1373,7 +1373,7 @@ export const useShop = create<State>((set, get) => ({
         subscription: billing.subscription
           ? {
               plan: billing.subscription.plan as Subscription["plan"],
-              price: 0,
+              price: billing.invoices[0]?.amount ?? 0,
               interval: "month",
               renewsAt: billing.subscription.currentPeriodEnd ?? "",
               status:
