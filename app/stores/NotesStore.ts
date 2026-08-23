@@ -1,10 +1,8 @@
-import invariant from "invariant";
 import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import type { JSONObject } from "@shared/types";
 import {
-  AttachmentPreset,
   SubscriptionType,
   type DateFilter,
   type StatusFilter,
@@ -17,8 +15,7 @@ import Store from "~/stores/base/Store";
 import Note from "~/models/Note";
 import env from "~/env";
 import type { FetchOptions, PaginationParams, SearchResult } from "~/types";
-import { client } from "~/utils/ApiClient";
-import { extname, uploadFile } from "~/utils/files";
+import { extname } from "~/utils/files";
 import { petsoClient } from "~/utils/petsoClient";
 import type { TNoteDto } from "@treonstudio/petso-lib";
 type FetchPageParams = PaginationParams & {
@@ -297,24 +294,22 @@ export default class NotesStore extends Store<Note> {
   }
   @action
   fetchRelationships = async (noteId: string): Promise<void> => {
-    const res = await client.post("/relationships.list", {
-      documentId: noteId,
-    });
-    invariant(res?.data, "Relationships not available");
+    const note = await petsoClient.admin.note(noteId);
+    const allNotes = await petsoClient.admin.notes();
+    const linked = allNotes.filter((candidate) =>
+      candidate.content
+        ? JSON.stringify(candidate.content).includes(note.title)
+        : false
+    );
     runInAction("NotesStore#fetchRelationships", () => {
-      res.data.documents.forEach(this.add);
-      this.addPolicies(res.policies);
-      const backlinkIds: string[] = [];
-      const similarIds: string[] = [];
-      for (const relationship of res.data.relationships) {
-        if (relationship.type === "backlink") {
-          backlinkIds.push(relationship.reverseNoteId);
-        } else if (relationship.type === "similar") {
-          similarIds.push(relationship.reverseNoteId);
-        }
-      }
-      this.backlinks.set(noteId, backlinkIds);
-      this.similar.set(noteId, similarIds);
+      linked.forEach((candidate) => this.mapPetNote(candidate));
+      this.backlinks.set(
+        noteId,
+        linked
+          .filter((candidate) => candidate.id !== noteId)
+          .map((candidate) => candidate.id)
+      );
+      this.similar.set(noteId, []);
     });
   };
   getBacklinkedNotes(noteId: string): Note[] {
@@ -430,58 +425,31 @@ export default class NotesStore extends Store<Note> {
   @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
-    const res = await client.post("/documents.search_titles", {
-      ...compactedOptions,
-    });
-    invariant(res?.data, "Search response should be available");
-    // add the notes and associated policies to the store
-    runInAction("NotesStore#searchTitles", () => {
-      res.data.forEach(this.add);
-      this.addPolicies(res.policies);
-    });
-    // store a reference to the note model in the search cache instead
-    // of the original result from the API.
+    const notes = await petsoClient.admin.notes();
+    const query = String(compactedOptions.query ?? "").toLowerCase();
+    const matches = notes.filter((candidate) =>
+      candidate.title.toLowerCase().includes(query)
+    );
+    const mapped = matches.map((candidate) => this.mapPetNote(candidate));
     const results: SearchResult[] = compact(
-      res.data.map((result: SearchResult) => {
-        const note = this.data.get(result.id);
-        if (!note) {
-          return null;
-        }
-        return {
-          id: note.id,
-          note: note,
-        };
-      })
+      mapped.map((note) => ({ id: note.id, note }))
     );
     return results;
   };
   @action
   search = async (options: SearchParams): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
-    const res = await client.post("/documents.search", {
-      ...compactedOptions,
-    });
-    invariant(res?.data, "Search response should be available");
-    // add the notes and associated policies to the store
-    runInAction("NotesStore#search", () => {
-      res.data.forEach((result: SearchResult) => this.add(result.note));
-      this.addPolicies(res.policies);
-    });
-    // store a reference to the note model in the search cache instead
-    // of the original result from the API.
+    const notes = await petsoClient.admin.notes();
+    const query = String(compactedOptions.query ?? "").toLowerCase();
+    const mapped = notes
+      .filter((candidate) =>
+        `${candidate.title} ${JSON.stringify(candidate.content)}`
+          .toLowerCase()
+          .includes(query)
+      )
+      .map((candidate) => this.mapPetNote(candidate));
     const results: SearchResult[] = compact(
-      res.data.map((result: SearchResult) => {
-        const note = this.data.get(result.note.id);
-        if (!note) {
-          return null;
-        }
-        return {
-          id: note.id,
-          ranking: result.ranking,
-          context: result.context,
-          note: note,
-        };
-      })
+      mapped.map((note) => ({ id: note.id, ranking: 1, note }))
     );
     return results;
   };
@@ -574,25 +542,21 @@ export default class NotesStore extends Store<Note> {
         `The selected file was larger than the ${bytesToHumanReadable(env.FILE_STORAGE_IMPORT_MAX_SIZE)} maximum size`
       );
     }
-    const attachment = await uploadFile(file, {
-      name: file.name,
-      preset: AttachmentPreset.Import,
-    });
-    const res = await client.post(
-      "/documents.import",
-      {
-        attachmentId: attachment.id,
-        parentDocumentId: parentNoteId,
-        collectionId: notebookId,
-        publish: options.publish,
+    const text = await file.text();
+    const imported = await petsoClient.admin.createNote({
+      title: file.name.replace(/\.[^.]+$/, "") || "Imported note",
+      content: {
+        type: "doc",
+        content: text.split(/\r?\n/).map((line) => ({
+          type: "paragraph",
+          content: line ? [{ type: "text", text: line }] : [],
+        })),
       },
-      {
-        retry: false,
-      }
-    );
-    invariant(res?.data, "Data should be available");
-    this.addPolicies(res.policies);
-    return this.add(res.data);
+      collectionId: notebookId ?? null,
+      parentNoteId: parentNoteId ?? null,
+      publish: options.publish,
+    });
+    return this.mapPetNote(imported);
   };
   @action
   async delete(
