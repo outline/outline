@@ -591,7 +591,11 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         ? 0
         : regexIndexOf(text, breakCharsRegex, offsetStartIndex)
     );
-    const endIndex = regexLastIndexOf(text, breakCharsRegex, startIndex + 250);
+    // Ends on the last word boundary within the window, or at the window
+    // itself when the text has none.
+    const maxEndIndex = Math.min(text.length, startIndex + 250);
+    const breakIndex = regexLastIndexOf(text, breakCharsRegex, maxEndIndex);
+    const endIndex = breakIndex > startIndex ? breakIndex : maxEndIndex;
 
     // Highlight after slicing, as the inserted tags shift every index that
     // follows an earlier match.

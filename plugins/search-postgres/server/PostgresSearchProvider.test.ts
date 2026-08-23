@@ -798,6 +798,28 @@ describe("PostgresSearchProvider", () => {
       );
     });
 
+    it("should return context for text with no word boundaries", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const text = "abcdefghij".repeat(40);
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "hello world",
+        text,
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "hello world",
+      });
+      expect(results.length).toBe(1);
+      expect(results[0].context).toBe(text.slice(0, 250));
+    });
+
     it("should correctly handle removal of trailing spaces", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
