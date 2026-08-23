@@ -4,7 +4,7 @@ import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { AppPage } from "~/components/AppPage";
-import { canAccessRoute, MIN_ROLE_FOR_ROUTE } from "../../src/mocks/access";
+import { canAccessRoute, MIN_ROLE_FOR_ROUTE } from "~/utils/shopAccess";
 import { currentRole } from "~/utils/shopScope";
 interface Props {
   children: JSX.Element;

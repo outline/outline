@@ -29,11 +29,11 @@ import type {
   Invoice,
   Advance,
   PurchaseOrderItem,
-  DocumentTemplate,
   Return,
   AuditEntry,
   Insight,
 } from "../../src/mocks/shop";
+import type { DocumentTemplate } from "~/types/shop";
 import type {
   TCustomerRecordDto,
   TInventorySnapshot,

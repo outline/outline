@@ -11,7 +11,7 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
-import type { DocumentTemplate as Template } from "../../../src/mocks/shop";
+import type { DocumentTemplate as Template } from "~/types/shop";
 interface Props {
   /** Which of the two printable documents this page edits. */
   type: Template["type"];

@@ -20,7 +20,7 @@ import {
   TdMono,
   Th,
 } from "~/components/Surface";
-import { canAccessRoute } from "../../src/mocks/access";
+import { canAccessRoute } from "~/utils/shopAccess";
 import { currentRole } from "~/utils/shopScope";
 import { SchemaForm } from "~/components/SchemaForm";
 import { SupplierDocType, warehouseDocType } from "~/utils/doctypes";
