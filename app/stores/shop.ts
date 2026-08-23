@@ -968,8 +968,29 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-  saveProduct: async (product) => write("/products.save", product, get),
-  deleteProduct: async (id) => write("/products.delete", { id }, get),
+  saveProduct: async (product) => {
+    const input = {
+      ...(product.id ? { id: product.id } : {}),
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      price: product.price,
+      stock: product.stock ?? 0,
+      reorderLevel: product.reorderLevel ?? 0,
+    };
+    if (product.id) {
+      await petsoClient.admin.updateProduct(input);
+    } else {
+      await petsoClient.admin.createProduct(input);
+    }
+    await get().fetchAll();
+    return { saved: true };
+  },
+  deleteProduct: async (id) => {
+    await petsoClient.admin.deleteProduct(id);
+    await get().fetchAll();
+    return { removed: true };
+  },
   saveCustomer: async (customer) => {
     const savedCustomer = customer.id
       ? await petsoClient.admin.updateCustomer({

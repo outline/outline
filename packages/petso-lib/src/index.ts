@@ -26,6 +26,7 @@ export type {
 	TPaginated,
 	TPaginationInput,
 	TProductDto,
+	TAdminProductInput,
 	TProductListParams,
 	TProductListResult,
 	TProductSuggestResult,

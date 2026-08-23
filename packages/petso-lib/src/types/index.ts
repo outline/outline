@@ -45,6 +45,7 @@ export type {
 } from "./order.types";
 export type {
 	TProductDto,
+	TAdminProductInput,
 	TProductListParams,
 	TProductListResult,
 	TProductSuggestResult,

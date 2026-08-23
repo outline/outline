@@ -15,6 +15,16 @@ export type TProductVariantDto = {
 	readonly updatedAt: string;
 };
 
+export interface TAdminProductInput {
+	readonly id?: string;
+	readonly name: string;
+	readonly sku: string;
+	readonly category: string;
+	readonly price: number;
+	readonly stock: number;
+	readonly reorderLevel: number;
+}
+
 export type TProductDto = {
 	readonly id: string;
 	readonly name: string;

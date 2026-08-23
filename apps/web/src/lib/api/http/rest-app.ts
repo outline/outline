@@ -1,3 +1,4 @@
+import { Effect, Schema } from "effect";
 import { getBranchesProgram } from "@/domain/branch/branch.programs";
 import {
 	createCustomerProgram,
@@ -12,10 +13,24 @@ import {
 	updatePetProgram,
 } from "@/domain/pet/pet.programs";
 import type { TPetId } from "@/domain/pet/pet.types";
-import { getProductsProgram } from "@/domain/product/product.programs";
+import {
+	addProductProgram,
+	addVariantProgram,
+	deleteProductProgram,
+	getProductProgram,
+	getProductsProgram,
+	updateProductProgram,
+	updateVariantProgram,
+} from "@/domain/product/product.programs";
+import {
+	CreateProductSchema,
+	CreateVariantSchema,
+	UpdateProductSchema,
+	UpdateVariantSchema,
+} from "@/domain/product/product.schemas";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
-import type { TTenantId } from "@/shared/types/common.types";
+import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
 import { type BranchHandlers, createBranchHandlers } from "./branch.handlers";
@@ -111,6 +126,23 @@ export function createRestRequestHandler(
 				customerMatch[1],
 			);
 		}
+		if (
+			catalogHandlers &&
+			url.pathname === "/api/v1/admin/products" &&
+			request.method === "POST"
+		) {
+			return catalogHandlers.mutateProduct(request, requestId);
+		}
+		const productMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/products\/([^/]+)$/,
+		);
+		if (
+			catalogHandlers &&
+			productMatch &&
+			(request.method === "PATCH" || request.method === "DELETE")
+		) {
+			return catalogHandlers.mutateProduct(request, requestId, productMatch[1]);
+		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
 		}
@@ -149,6 +181,78 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			runApp(updatePetProgram(businessId as TTenantId, input)),
 		deletePet: async (businessId, id) => {
 			await runApp(deletePetProgram(businessId as TTenantId, id as TPetId));
+		},
+		createProduct: async (businessId, input) => {
+			const product = await runApp(
+				Effect.flatMap(
+					Schema.decodeUnknown(CreateProductSchema)({
+						name: input.name,
+						category: input.category ?? null,
+						hasVariants: false,
+						isActive: true,
+					}),
+					(command) => addProductProgram(command, businessId as TTenantId),
+				),
+			);
+			const variant = await runApp(
+				Effect.flatMap(
+					Schema.decodeUnknown(CreateVariantSchema)({
+						productId: product.id,
+						name: "Default",
+						sku: typeof input.sku === "string" ? input.sku : null,
+						price: typeof input.price === "number" ? input.price : 0,
+						stock: typeof input.stock === "number" ? input.stock : 0,
+						lowStockThreshold:
+							typeof input.reorderLevel === "number" ? input.reorderLevel : 0,
+						unit: "pcs",
+					}),
+					(command) => addVariantProgram(command, businessId as TTenantId),
+				),
+			);
+			return { ...product, variants: [variant] };
+		},
+		updateProduct: async (businessId, input) => {
+			const product = await runApp(
+				Effect.flatMap(
+					Schema.decodeUnknown(UpdateProductSchema)({
+						id: input.id,
+						name: input.name,
+						category: input.category ?? null,
+					}),
+					(command) => updateProductProgram(command, businessId as TTenantId),
+				),
+			);
+			const existing = await runApp(
+				getProductProgram(product.id, businessId as TTenantId),
+			);
+			const variant = existing?.variants[0];
+			if (!variant) return product;
+			const updatedVariant = await runApp(
+				Effect.flatMap(
+					Schema.decodeUnknown(UpdateVariantSchema)({
+						id: variant.id,
+						productId: product.id,
+						name: variant.name,
+						sku: typeof input.sku === "string" ? input.sku : variant.sku,
+						price:
+							typeof input.price === "number" ? input.price : variant.price,
+						stock:
+							typeof input.stock === "number" ? input.stock : variant.stock,
+						lowStockThreshold:
+							typeof input.reorderLevel === "number"
+								? input.reorderLevel
+								: variant.lowStockThreshold,
+						unit: variant.unit,
+					}),
+					(command) => updateVariantProgram(command, businessId as TTenantId),
+				),
+			);
+			return { ...product, variants: [updatedVariant] };
+		},
+		deleteProduct: async (businessId, userId, id) => {
+			await runApp(
+				deleteProductProgram(id, businessId as TTenantId, userId as TUserId),
+			);
 		},
 	}),
 );

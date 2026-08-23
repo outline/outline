@@ -1,5 +1,6 @@
 import type {
 	TApiResponse,
+	TAdminProductInput,
 	TAuthCredentials,
 	TAuthResult,
 	TBranchContactDto,
@@ -158,6 +159,21 @@ export class PetsoClient {
 	readonly admin = {
 		products: (): Promise<readonly TProductDto[]> =>
 			this.fetchApi<readonly TProductDto[]>("/api/v1/admin/products"),
+		createProduct: (input: TAdminProductInput): Promise<TProductDto> =>
+			this.fetchApi<TProductDto>("/api/v1/admin/products", {
+				method: "POST",
+				body: input,
+			}),
+		updateProduct: (input: TAdminProductInput): Promise<TProductDto> =>
+			this.fetchApi<TProductDto>(`/api/v1/admin/products/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		deleteProduct: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/products/${id}`,
+				{ method: "DELETE" },
+			),
 		customers: (): Promise<readonly TCustomerRecordDto[]> =>
 			this.fetchApi<readonly TCustomerRecordDto[]>("/api/v1/admin/customers"),
 		pets: (): Promise<readonly TPetDto[]> =>

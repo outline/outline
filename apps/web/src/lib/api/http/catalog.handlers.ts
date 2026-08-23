@@ -12,6 +12,7 @@ import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 
 interface CatalogSession {
 	readonly business: { readonly id: string };
+	readonly user: { readonly id: string };
 }
 
 interface CatalogHandlerDependencies {
@@ -32,6 +33,19 @@ interface CatalogHandlerDependencies {
 	readonly createPet: (businessId: string, input: unknown) => Promise<TPet>;
 	readonly updatePet: (businessId: string, input: unknown) => Promise<TPet>;
 	readonly deletePet: (businessId: string, id: string) => Promise<void>;
+	readonly createProduct: (
+		businessId: string,
+		input: Record<string, unknown>,
+	) => Promise<TProductDto>;
+	readonly updateProduct: (
+		businessId: string,
+		input: Record<string, unknown>,
+	) => Promise<TProductDto>;
+	readonly deleteProduct: (
+		businessId: string,
+		userId: string,
+		id: string,
+	) => Promise<void>;
 }
 
 type CatalogResource = "products" | "customers" | "pets" | "staff";
@@ -48,6 +62,11 @@ export interface CatalogHandlers {
 		id?: string,
 	) => Promise<Response>;
 	readonly mutatePet: (
+		request: Request,
+		requestId: string,
+		id?: string,
+	) => Promise<Response>;
+	readonly mutateProduct: (
 		request: Request,
 		requestId: string,
 		id?: string,
@@ -139,6 +158,34 @@ export function createCatalogHandlers(
 				? await dependencies.updatePet(session.business.id, input)
 				: await dependencies.createPet(session.business.id, input);
 			return jsonSuccess(pet, requestId, id ? 200 : 201);
+		},
+		mutateProduct: async (request, requestId, id) => {
+			const token = readSessionToken(request);
+			if (!token) return unauthorized(requestId);
+			const session = await dependencies.session(token);
+			if (!session) return unauthorized(requestId);
+
+			if (request.method === "DELETE" && id) {
+				await dependencies.deleteProduct(
+					session.business.id,
+					session.user.id,
+					id,
+				);
+				return jsonSuccess({ deleted: true }, requestId);
+			}
+
+			const body = await readBody(request);
+			if (!body || typeof body.name !== "string") {
+				return jsonError(
+					new ApiHttpError(422, "validation_error", "Product name is required"),
+					requestId,
+				);
+			}
+			const input = id ? { ...body, id } : body;
+			const product = id
+				? await dependencies.updateProduct(session.business.id, input)
+				: await dependencies.createProduct(session.business.id, input);
+			return jsonSuccess(product, requestId, id ? 200 : 201);
 		},
 	};
 }
