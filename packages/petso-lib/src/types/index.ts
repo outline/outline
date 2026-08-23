@@ -73,6 +73,12 @@ export type {
 } from "./holiday.types";
 export type { TCreateExpenseInput, TExpenseDto } from "./expense.types";
 export type { TAccountingDashboardMetricsDto } from "./accounting.types";
+export type {
+	TBillingInvoiceDto,
+	TBillingSubscriptionDto,
+	TBillingSummaryDto,
+	TBillingUsageDto,
+} from "./billing.types";
 export type { TAuditLogDto } from "./audit.types";
 export type {
 	TAccountDto,

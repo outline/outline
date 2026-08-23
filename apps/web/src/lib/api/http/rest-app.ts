@@ -11,6 +11,11 @@ import {
 import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
 import { getAuditLogsProgram } from "@/domain/audit/audit.programs";
 import {
+	getBillingHistoryProgram,
+	getCurrentSubscriptionProgram,
+	getUsageMetricsProgram,
+} from "@/domain/billing/billing.programs";
+import {
 	createBoardingProgram,
 	getBoardingsProgram,
 	updateBoardingStatusProgram,
@@ -188,6 +193,10 @@ import { type AuditHandlers, createAuditHandlers } from "./audit.handlers";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
 import {
+	type BillingHandlers,
+	createBillingHandlers,
+} from "./billing.handlers";
+import {
 	type BoardingHandlers,
 	createBoardingHandlers,
 } from "./boarding.handlers";
@@ -275,6 +284,7 @@ export function createRestRequestHandler(
 	accountingReportHandlers?: AccountingReportHandlers,
 	loyaltyHandlers?: LoyaltyHandlers,
 	auditHandlers?: AuditHandlers,
+	billingHandlers?: BillingHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -298,6 +308,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return auditHandlers.list(request, requestId);
+		}
+		if (
+			billingHandlers &&
+			url.pathname === "/api/v1/admin/billing" &&
+			request.method === "GET"
+		) {
+			return billingHandlers.get(request, requestId);
 		}
 		if (
 			branchHandlers &&
@@ -1595,6 +1612,28 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				getAuditLogsProgram(businessId as TTenantId, {}),
 			);
 			return result.logs;
+		},
+	}),
+	createBillingHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		get: async (businessId) => {
+			const tenantId = businessId as TTenantId;
+			const [subscription, history, usage] = await Promise.all([
+				runApp(getCurrentSubscriptionProgram(tenantId)),
+				runApp(getBillingHistoryProgram(tenantId)),
+				runApp(getUsageMetricsProgram(tenantId)),
+			]);
+			return {
+				subscription,
+				invoices: history.map((event) => ({
+					id: event.id,
+					number: event.externalOrderId ?? event.id,
+					date: event.createdAt,
+					amount: event.amount,
+					status: event.status === "success" ? "paid" : "open",
+				})),
+				usage,
+			};
 		},
 	}),
 );

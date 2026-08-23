@@ -1002,9 +1002,7 @@ export const useShop = create<State>((set, get) => ({
         loyalty,
         whatsappTemplates,
         whatsappMessages,
-        subscription,
-        billingInvoices,
-        usage,
+        billing,
         invoices,
         portalAdmin,
         advances,
@@ -1046,9 +1044,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.loyaltyMovements(),
         client.post("/whatsapp.templates"),
         client.post("/whatsapp.messages"),
-        client.post("/billing.subscription"),
-        client.post("/billing.invoices"),
-        client.post("/billing.usage"),
+        petsoClient.admin.billingSummary(),
         petsoClient.admin.invoices(),
         petsoClient.admin.portal(),
         client.post("/advances.list"),
@@ -1178,9 +1174,21 @@ export const useShop = create<State>((set, get) => ({
         loyalty,
         whatsappTemplates: whatsappTemplates.data,
         whatsappMessages: whatsappMessages.data,
-        subscription: subscription.data,
-        billingInvoices: billingInvoices.data,
-        usage: usage.data,
+        subscription: billing.subscription
+          ? {
+              plan: billing.subscription.plan as Subscription["plan"],
+              price: 0,
+              interval: "month",
+              renewsAt: billing.subscription.currentPeriodEnd ?? "",
+              status:
+                billing.subscription.status === "past_due"
+                  ? "past_due"
+                  : "active",
+              limits: { staff: 0, branches: 0, boardingsPerMonth: 0 },
+            }
+          : undefined,
+        billingInvoices: billing.invoices,
+        usage: billing.usage,
         invoices: invoices.map((invoice) => mapInvoice(invoice, customerNames)),
         portalStats: {
           reviews: portalAdmin.stats.totalReviews,

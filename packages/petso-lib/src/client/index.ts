@@ -54,6 +54,7 @@ import type {
 	TCreateExpenseInput,
 	TExpenseDto,
 	TAccountingDashboardMetricsDto,
+	TBillingSummaryDto,
 	TAuditLogDto,
 	TAccountDto,
 	TJournalEntryDto,
@@ -479,6 +480,8 @@ export class PetsoClient {
 			this.fetchApi<TAccountingDashboardMetricsDto>(
 				"/api/v1/admin/accounting/dashboard-metrics",
 			),
+		billingSummary: (): Promise<TBillingSummaryDto> =>
+			this.fetchApi<TBillingSummaryDto>("/api/v1/admin/billing"),
 		accounts: (): Promise<readonly TAccountDto[]> =>
 			this.fetchApi<readonly TAccountDto[]>("/api/v1/admin/accounting/accounts"),
 		journal: (): Promise<readonly TJournalEntryDto[]> =>
