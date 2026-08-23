@@ -9,6 +9,13 @@ import Pricing from "@/components/pricing-section-one";
 import { APP_CONFIG } from "@/lib/constants";
 import { i18n } from "@/shared/i18n/i18n.config";
 
+declare global {
+	interface Window {
+		__anisWidgetDestroy?: () => void;
+		__anisWidgetLoaded?: boolean;
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Anis AI Chat Widget — scoped to landing page only (not in dashboard)
 // Replace ANIS_WIDGET_WORKSPACE_ID with the Petso workspace ID from Anis dashboard
@@ -27,10 +34,10 @@ function AnisWidgetLoader() {
 		const SCRIPT_ID = "anis-widget-script";
 
 		// If widget is already loaded globally, just ensure it's not destroyed
-		if ((window as any).__anisWidgetLoaded) {
+		if (window.__anisWidgetLoaded) {
 			return () => {
-				if (typeof (window as any).__anisWidgetDestroy === "function") {
-					(window as any).__anisWidgetDestroy();
+				if (window.__anisWidgetDestroy) {
+					window.__anisWidgetDestroy();
 				}
 			};
 		}
@@ -59,9 +66,9 @@ function AnisWidgetLoader() {
 			// Clean up the widget UI and global state when leaving the landing page
 			if (
 				typeof window !== "undefined" &&
-				typeof (window as any).__anisWidgetDestroy === "function"
+				window.__anisWidgetDestroy
 			) {
-				(window as any).__anisWidgetDestroy();
+				window.__anisWidgetDestroy();
 			}
 			// We can leave the script tag in the DOM, it won't hurt, but the widget UI is destroyed.
 		};
