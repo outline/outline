@@ -20,6 +20,10 @@ export default function ScrollToTop({ children }: Props) {
     ) {
       return;
     }
+    // The destination has an anchor, scrolling is handled by the target itself
+    if (location.hash) {
+      return;
+    }
     // exception for when entering or exiting document edit, scroll position should not reset
     if (
       location.pathname.match(/\/edit\/?$/) ||
@@ -31,6 +35,7 @@ export default function ScrollToTop({ children }: Props) {
   }, [
     scrollContainerRef,
     location.pathname,
+    location.hash,
     previousLocationPathname,
     location.state?.retainScrollPosition,
   ]);

@@ -43,6 +43,9 @@ const DocumentMemberListItem = ({
     [onRemove, onUpdate]
   );
 
+  // Access inherited from a parent document cannot be removed here.
+  const canRemove = !membership?.sourceId;
+
   const permissions: Permission[] = [
     {
       label: t("View only"),
@@ -56,11 +59,15 @@ const DocumentMemberListItem = ({
       label: t("Manage"),
       value: DocumentPermission.Admin,
     },
-    {
-      divider: true,
-      label: t("Remove"),
-      value: EmptySelectValue,
-    },
+    ...(canRemove
+      ? ([
+          {
+            divider: true,
+            label: t("Remove"),
+            value: EmptySelectValue,
+          },
+        ] satisfies Permission[])
+      : []),
   ];
 
   const currentPermission = permissions.find(
@@ -105,10 +112,14 @@ const DocumentMemberListItem = ({
               onLeave
                 ? [
                     currentPermission,
-                    {
-                      label: `${t("Leave")}…`,
-                      value: EmptySelectValue,
-                    },
+                    ...(canRemove
+                      ? ([
+                          {
+                            label: `${t("Leave")}…`,
+                            value: EmptySelectValue,
+                          },
+                        ] satisfies Permission[])
+                      : []),
                   ]
                 : permissions
             }

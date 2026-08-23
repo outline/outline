@@ -3,6 +3,7 @@ import { Node } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import type { ProsemirrorData } from "../types";
+import { hashString } from "./string";
 import { TextHelper } from "./TextHelper";
 import env from "../env";
 import { findChildren } from "@shared/editor/queries/findChildren";
@@ -16,6 +17,8 @@ export type Heading = {
   level: number;
   /* The unique id of the heading */
   id: string;
+  /* Whether the heading is nested inside a table */
+  inTable?: boolean;
 };
 
 export type CommentMark = {
@@ -260,6 +263,55 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Computes a stable identifier for a node derived from its type and
+   * attributes. The `marks` attribute is excluded as it changes when comments
+   * are added or removed from the node.
+   *
+   * @param node the node to compute an identifier for.
+   * @returns a hex-encoded hash identifying the node.
+   */
+  static getNodeHash(node: Node): string {
+    const { marks: _marks, ...attrs } = node.attrs;
+    const sorted = Object.keys(attrs)
+      .sort()
+      .reduce<Record<string, unknown>>((acc, key) => {
+        acc[key] = attrs[key];
+        return acc;
+      }, {});
+
+    return hashString(`${node.type.name}:${JSON.stringify(sorted)}`);
+  }
+
+  /**
+   * Finds a node in the document by the hash of its attributes, see
+   * `getNodeHash`. When multiple nodes share the same hash the first
+   * occurrence in document order is returned.
+   *
+   * @param doc Prosemirror document node.
+   * @param hash the node hash to search for.
+   * @returns the matching node and its position, or null if no match.
+   */
+  static findNodeByHash(
+    doc: Node,
+    hash: string
+  ): { node: Node; pos: number } | null {
+    let result: { node: Node; pos: number } | null = null;
+
+    doc.descendants((node, pos) => {
+      if (result) {
+        return false;
+      }
+      if (!node.isText && ProsemirrorHelper.getNodeHash(node) === hash) {
+        result = { node, pos };
+        return false;
+      }
+      return true;
+    });
+
+    return result;
+  }
+
+  /**
    * Returns the ids of comment marks attached to the node at the given position.
    *
    * @param doc Prosemirror document node.
@@ -443,8 +495,13 @@ export class ProsemirrorHelper {
   static getHeadings(doc: Node) {
     const headings: Heading[] = [];
     const previouslySeen: Record<string, number> = {};
+    let tableEnd = 0;
 
-    doc.descendants((node) => {
+    doc.descendants((node, pos) => {
+      if (node.type.name === "table") {
+        // A nested table must not shrink the range of its outer table.
+        tableEnd = Math.max(tableEnd, pos + node.nodeSize);
+      }
       if (node.type.name === "heading") {
         // calculate the optimal id
         const id = headingToSlug(node);
@@ -465,6 +522,7 @@ export class ProsemirrorHelper {
           title: ProsemirrorHelper.toPlainText(node),
           level: node.attrs.level,
           id: name,
+          inTable: pos < tableEnd,
         });
       }
     });

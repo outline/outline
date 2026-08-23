@@ -27,14 +27,14 @@ import {
   openDocumentInsights,
   openDocumentInDesktop,
   openDocumentInSplit,
-  downloadDocument,
+  exportDocument,
   copyDocument,
   presentDocument,
-  printDocument,
   searchInDocument,
   deleteDocument,
   leaveDocument,
   permanentlyDeleteDocument,
+  toggleDocumentStats,
 } from "~/actions/definitions/documents";
 import { renameActionFactory } from "~/actions/definitions/common";
 import { ActiveDocumentSection } from "~/actions/sections";
@@ -45,6 +45,8 @@ import { useTemplateMenuActions } from "./useTemplateMenuActions";
 type Props = {
   /** Document ID for which the actions are generated */
   documentId: string;
+  /** Whether the document is currently being viewed */
+  isViewing?: boolean;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
   /** Invoked when the "Rename" menu item is clicked */
@@ -55,6 +57,7 @@ type Props = {
 
 export function useDocumentMenuAction({
   documentId,
+  isViewing = false,
   onFindAndReplace,
   onRename,
   onSelectTemplate,
@@ -106,18 +109,26 @@ export function useDocumentMenuAction({
         openDocumentComments,
         openDocumentHistory,
         openDocumentInsights,
+        ...(isViewing ? [toggleDocumentStats] : []),
         openDocumentInSplit,
         openDocumentInDesktop,
         presentDocument,
-        downloadDocument,
+        exportDocument,
         copyDocument,
-        printDocument,
         searchInDocument,
         ActionSeparator,
         deleteDocument,
         permanentlyDeleteDocument,
         leaveDocument,
       ]),
-    [t, isMobile, templateMenuActions, documentId, onFindAndReplace, onRename]
+    [
+      t,
+      isMobile,
+      isViewing,
+      templateMenuActions,
+      documentId,
+      onFindAndReplace,
+      onRename,
+    ]
   );
 }

@@ -43,6 +43,7 @@ import {
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
+import { TableColumnResizePlugin } from "../plugins/TableColumnResizePlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -168,6 +169,7 @@ export default class Table extends Node {
         defaultCellMinWidth: 25,
       }),
       tableEditing(),
+      new TableColumnResizePlugin(),
       new FixTablesPlugin(),
       new TableLayoutPlugin(),
     ];

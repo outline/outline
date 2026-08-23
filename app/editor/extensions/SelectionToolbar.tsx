@@ -85,7 +85,8 @@ export default class SelectionToolbarExtension extends Extension {
       {
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "image",
-        getItems: (ctx) => getImageMenuItems(ctx),
+        getItems: (ctx) =>
+          getImageMenuItems(ctx, this.editor.props.canComment ?? false),
       },
       {
         priority: 50,
@@ -96,7 +97,7 @@ export default class SelectionToolbarExtension extends Extension {
         priority: 30,
         matches: (ctx) => ctx.readOnly,
         getItems: (ctx) =>
-          getReadOnlyMenuItems(ctx, this.editor.props.canUpdate ?? false),
+          getReadOnlyMenuItems(ctx, this.editor.props.canComment ?? false),
       },
       {
         priority: 20,

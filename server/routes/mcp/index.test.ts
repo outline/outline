@@ -294,7 +294,7 @@ describe("POST /mcp/", () => {
       });
       expect(res?.result?.isError).toBeUndefined();
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-      expect(data.document.title).toEqual("Created Document");
+      expect(data.title).toEqual("Created Document");
     });
 
     it("create-scoped token does not have update_document tool", async () => {
@@ -351,7 +351,7 @@ describe("POST /mcp/", () => {
         accessToken,
         "update_document",
         {
-          id: created.document.id,
+          id: created.id,
           title: "Updated by Write Token",
         }
       );

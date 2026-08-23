@@ -2,13 +2,29 @@ import { isEqual, pick } from "es-toolkit/compat";
 import { observable, action, toJS } from "mobx";
 import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
+import type { PartialExcept } from "~/types";
 import Logger from "~/utils/Logger";
-import { getFieldsForModel } from "../decorators/Field";
+import { getFieldsForModel, getFieldsForModelClass } from "../decorators/Field";
 import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
 
 export default abstract class Model {
   static modelName: string;
+
+  /**
+   * Restores data written by toPersisted to the shape the model expects,
+   * discarding any properties that are not declared fields. Records written by
+   * a different version of the app may not match the current model.
+   *
+   * @param record the persisted representation of a model.
+   * @returns the data to construct or update a model with.
+   */
+  static fromPersisted<T extends Model>(
+    record: Record<string, unknown>
+  ): PartialExcept<T, "id"> {
+    const fields = getFieldsForModelClass(this);
+    return JSON.parse(JSON.stringify(pick(record, ["id", ...fields])));
+  }
 
   @observable
   id: string;
@@ -59,7 +75,7 @@ export default abstract class Model {
         const store = this.store.rootStore.getStoreForModelName(
           properties.relationClassResolver().modelName
         );
-        if ("fetch" in store) {
+        if ("canFetchById" in store && store.canFetchById) {
           const id = this[properties.idKey];
           if (id) {
             promises.push(store.fetch(id as string));
@@ -69,7 +85,7 @@ export default abstract class Model {
     }
 
     const policy = this.store.rootStore.policies.get(this.id);
-    if (!policy && !options.withoutPolicies) {
+    if (!policy && !options.withoutPolicies && this.store.canFetchById) {
       promises.push(this.store.fetch(this.id, { force: true }));
     }
 
@@ -200,6 +216,16 @@ export default abstract class Model {
     const fields = getFieldsForModel(this);
     return pick(this, fields);
   };
+
+  /**
+   * Returns a plain object representation of the model, containing its
+   * identifier and declared fields only, safe to store outside of memory.
+   * Internal state and observables are not included.
+   *
+   * @returns A plain object representation of the model
+   */
+  toPersisted = (): PartialExcept<Model, "id"> =>
+    JSON.parse(JSON.stringify({ ...this.toAPI(), id: this.id }));
 
   /**
    * Returns a plain object representation of all the properties on the model

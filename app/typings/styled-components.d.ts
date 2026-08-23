@@ -120,6 +120,7 @@ declare module "styled-components" {
     sidebarCollapsedWidth: number;
     sidebarMinWidth: number;
     sidebarMaxWidth: number;
+    sidebarResizeMinWidth: number;
   }
 
   export interface DefaultTheme

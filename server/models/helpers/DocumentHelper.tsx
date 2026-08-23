@@ -13,6 +13,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { parser, serializer, schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
@@ -103,6 +104,24 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns the collaborative state for a document. Documents that have never been opened in a
+   * collaborative session have no state, in which case one is derived from the content, falling
+   * back to Markdown.
+   *
+   * @param document The document to convert
+   * @returns The collaborative state
+   */
+  static toState(document: Document): Uint8Array {
+    if (document.state) {
+      return document.state;
+    }
+
+    return ProsemirrorHelper.toState(
+      ProsemirrorHelper.toYDoc(document.content ?? document.text ?? "")
+    );
+  }
+
+  /**
    * Returns the document as a plain JSON object. This method uses the derived content if available
    * then the collaborative state, otherwise it falls back to Markdown.
    *
@@ -124,7 +143,7 @@ export class DocumentHelper {
     }
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
-    let data;
+    let data: ProsemirrorData;
 
     if ("content" in document && document.content) {
       // Optimized path for documents with content available and no transformation required.
@@ -153,7 +172,7 @@ export class DocumentHelper {
         options.signedUrls
       );
     } else {
-      data = doc?.toJSON() ?? {};
+      data = doc?.toJSON() ?? ProsemirrorDataHelper.getEmpty();
     }
 
     if (options?.internalUrlBase) {
@@ -277,6 +296,12 @@ export class DocumentHelper {
       signedUrls?: number;
       /** The team context */
       teamId?: string;
+      /**
+       * Whether the Markdown is leaving Outline, in which case portable
+       * CommonMark is written in place of Outline's internal representation
+       * (default: false)
+       */
+      commonMark?: boolean;
     }
   ) {
     let node = DocumentHelper.toProsemirror(document);
@@ -291,7 +316,7 @@ export class DocumentHelper {
     }
 
     const text = serializer
-      .serialize(node)
+      .serialize(node, { commonMark: options?.commonMark })
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
 
@@ -433,7 +458,8 @@ export class DocumentHelper {
    * @param after The after document
    * @param options Options passed to HTML generation
    * @returns The diff as an HTML string, an empty string when there is no
-   * before document, or undefined when the documents contain no changes.
+   * before document, or undefined when the documents contain no changes or
+   * the changeset was too expensive to compute.
    */
   static async toEmailDiff(
     before: Document | Revision | null,
@@ -444,7 +470,26 @@ export class DocumentHelper {
       return "";
     }
 
-    const html = await DocumentHelper.diff(before, after, options);
+    addTags({
+      beforeId: before.id,
+      documentId: after.documentId,
+      options,
+    });
+
+    const beforeJSON = await DocumentHelper.toJSON(before);
+    const afterJSON = await DocumentHelper.toJSON(after);
+    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
+
+    // Without a changeset no diff elements can render, so skip the expensive
+    // HTML generation and clipping entirely.
+    if (!changeset?.changes.length) {
+      return undefined;
+    }
+
+    const html = await DocumentHelper.toHTML(after, {
+      ...options,
+      changes: changeset.changes,
+    });
     // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
     const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(html);

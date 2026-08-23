@@ -7,6 +7,8 @@ import Store from "./base/Store";
 export default class PoliciesStore extends Store<Policy> {
   actions = [];
 
+  persistable = true;
+
   constructor(rootStore: RootStore) {
     super(rootStore, Policy);
   }
@@ -35,6 +37,10 @@ export default class PoliciesStore extends Store<Policy> {
           } else {
             policy.abilities[key] = can;
           }
+
+          // The abilities are mutated in place rather than through add(), so
+          // the persisted copy must be refreshed explicitly.
+          this.persistence?.persist(policy.id);
 
           Logger.debug("policies", "Removed membership from policy", {
             policy: policy.id,

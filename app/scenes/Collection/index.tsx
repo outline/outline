@@ -188,8 +188,8 @@ const CollectionScene = observer(function CollectionScene_() {
 
           <PinnedDocuments
             pins={pins}
-            canUpdate={can.update}
             placeholderCount={count}
+            collapseKey={collection.id}
           />
 
           <Content>

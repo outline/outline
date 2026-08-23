@@ -18,7 +18,7 @@ class Policy extends Model {
   /**
    * Abilities flattened to an object with boolean values.
    */
-  @computed
+  @computed({ keepAlive: true })
   get flattenedAbilities() {
     const abilities: Record<string, boolean> = {};
     for (const [key, value] of Object.entries(this.abilities)) {

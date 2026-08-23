@@ -13,6 +13,14 @@ export enum Scope {
   Create = "create",
 }
 
+/** The method used to authenticate a request. */
+export enum AuthenticationType {
+  API = "api",
+  APP = "app",
+  MCP = "mcp",
+  OAUTH = "oauth",
+}
+
 export type DateFilter = "day" | "week" | "month" | "year";
 
 export enum StatusFilter {
@@ -56,6 +64,7 @@ export enum Client {
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
+  TextBundle = "application/x-textbundle",
   Pdf = "application/pdf",
 }
 
@@ -63,6 +72,7 @@ export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
+  TextBundleZip = "textbundle",
   PDF = "pdf",
   Notion = "notion",
 }
@@ -125,7 +135,10 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
+  /** ID of the share mounted at the root of a custom domain, if any. */
   ROOT_SHARE_ID?: string;
+  /** Whether the page is a publicly shared view. */
+  isShare?: boolean;
   analytics: {
     service: IntegrationService;
     settings: IntegrationSettings<IntegrationType.Analytics>;
@@ -326,8 +339,21 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                     };
                   }
                 | { serviceTeamId: string }
-                | { measurementId: string }
+                | {
+                    measurementId: string;
+                    instanceUrl?: string;
+                    scriptName?: string;
+                  }
                 | undefined;
+
+export enum SidebarSection {
+  /** The starred documents section. */
+  Starred = "starred",
+  /** The documents shared with the user directly or via groups. */
+  SharedWithMe = "shared",
+  /** The collections section. */
+  Collections = "collections",
+}
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -346,9 +372,33 @@ export enum UserPreference {
   CommentsInGutter = "commentsInGutter",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** Whether live word, character, and paragraph counts are shown in documents. */
+  ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** The display order of the reorderable sections in the sidebar. */
+  SidebarSectionOrder = "sidebarSectionOrder",
 }
+
+export enum HeadingPrefixStyle {
+  /** Headings are displayed without a prefix. */
+  None = "none",
+  /** Numeric prefixes, for example: 1, 1.1, 1.1.1 */
+  Numeric = "numeric",
+  /** Alphanumeric prefixes, for example: 1, 1.a, 1.a.i */
+  Alphanumeric = "alphanumeric",
+  /** Outline-style prefixes, for example: I, I.A, I.A.1 */
+  Outline = "outline",
+}
+
+export enum DocumentPreference {
+  /** The style of prefix displayed before headings in the document. */
+  HeadingPrefix = "headingPrefix",
+}
+
+export type DocumentPreferences = {
+  [DocumentPreference.HeadingPrefix]?: HeadingPrefixStyle;
+};
 
 export enum NotificationBadgeType {
   /** Do not show a notification badge. */
@@ -368,7 +418,9 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.CommentsInGutter]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.SidebarSectionOrder]?: SidebarSection[];
 };
 
 export type SourceMetadata = {
@@ -386,6 +438,10 @@ export type SourceMetadata = {
   trial?: boolean;
   /** The ID of the original document when this document was duplicated. */
   originalDocumentId?: string;
+  /** The ID of the original collection when this collection was duplicated. */
+  originalCollectionId?: string;
+  /** The type of authentication used to make the change. */
+  authType?: AuthenticationType;
 };
 
 export type CustomTheme = {

@@ -8,6 +8,7 @@ export default function presentEvent(event: Event, isAdmin = false) {
     modelId: event.modelId,
     userId: event.userId,
     actorId: event.actorId,
+    authType: event.authType,
     actorIpAddress: event.ip || undefined,
     collectionId: event.collectionId,
     documentId: event.documentId,

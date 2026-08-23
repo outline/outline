@@ -45,7 +45,7 @@ export class ToggleBlockView implements NodeView {
 
     this.contentDOM = document.createElement("div");
     this.contentDOM.className = EditorStyleHelper.toggleBlockContent;
-    this.contentDOM.addEventListener("mousedown", this.handleToggleHeadClick);
+    this.contentDOM.addEventListener("click", this.handleToggleHeadClick);
 
     this.dom.appendChild(this.button);
     this.dom.appendChild(this.contentDOM);
@@ -68,33 +68,32 @@ export class ToggleBlockView implements NodeView {
   };
 
   private handleToggleHeadClick = (event: MouseEvent) => {
+    // When editable, clicking the title places the caret rather than toggling.
+    if (this.view.editable || event.button !== 0) {
+      return;
+    }
+
+    const target = event.target as HTMLElement;
     const head = this.contentDOM.querySelector(
       `.${EditorStyleHelper.toggleBlockHead}`
     );
-    if (!head || !head.contains(event.target as HTMLElement)) {
+    if (!head || !head.contains(target)) {
       return;
     }
 
-    const pos = this.getPos();
-    if (pos === undefined) {
+    // Let interactive elements within the title handle their own clicks.
+    const interactive = target.closest("a, button, input, label");
+    if (interactive && head.contains(interactive)) {
       return;
     }
 
-    if (!this.view.editable) {
-      // pos points "before" the toggle block node
-      // pos + 1 points "before" the toggle block head node(para | heading)
-      // pos + 2 points at "start" of the toggle block head node
-      const $headPos = this.view.state.doc.resolve(pos + 2);
-      const headStartCoords = this.view.coordsAtPos($headPos.start());
-      const headEndCoords = this.view.coordsAtPos($headPos.end());
-      if (
-        event.clientX >= headStartCoords.left &&
-        event.clientX <= headEndCoords.left
-      ) {
-        event.preventDefault();
-        this.handleToggle();
-      }
+    // Selecting text within the title should not fold or unfold it.
+    if (window.getSelection()?.isCollapsed === false) {
+      return;
     }
+
+    event.preventDefault();
+    this.handleToggle();
   };
 
   private handleToggle = () => {
@@ -168,10 +167,7 @@ export class ToggleBlockView implements NodeView {
 
   destroy() {
     this.button.removeEventListener("mousedown", this.handleToggleButtonClick);
-    this.contentDOM.removeEventListener(
-      "mousedown",
-      this.handleToggleHeadClick
-    );
+    this.contentDOM.removeEventListener("click", this.handleToggleHeadClick);
     window.removeEventListener("storage", this.boundBroadcastFoldState);
   }
 }

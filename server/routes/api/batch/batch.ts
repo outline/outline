@@ -1,4 +1,4 @@
-import { chunk, snakeCase } from "es-toolkit/compat";
+import { chunk, omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
 import Router from "koa-router";
@@ -11,10 +11,13 @@ import validate from "@server/middlewares/validate";
 import type { APIContext, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { BatchableApiMethods } from "@shared/constants";
 import { toError } from "@shared/utils/error";
 import collections from "../collections";
 import documents from "../documents";
 import apiErrorHandler from "../middlewares/apiErrorHandler";
+import pins from "../pins";
+import stars from "../stars";
 import * as T from "./schema";
 
 const router = new Router();
@@ -37,22 +40,10 @@ const enforceRateLimit = defaultRateLimiter();
  * curated to simple JSON mutations — no reads (pagination), redirects, file
  * responses, or endpoints that set response headers.
  */
-const allowedMethods = new Set<string>([
-  "documents.update",
-  "documents.move",
-  "documents.archive",
-  "documents.restore",
-  "documents.unpublish",
-  "documents.delete",
-  "collections.update",
-  "collections.move",
-  "collections.archive",
-  "collections.restore",
-  "collections.delete",
-]);
+const allowedMethods = new Set<string>(BatchableApiMethods);
 
 /** Routers searched for an allowed method's middleware stack. */
-const dispatchableRouters: Router[] = [documents, collections];
+const dispatchableRouters: Router[] = [documents, collections, stars, pins];
 
 /** The number of sub-requests dispatched in parallel, to limit pool pressure. */
 const BatchConcurrency = 2;
@@ -119,12 +110,20 @@ function createSubContext(
   // concurrent sub-requests or back to the parent.
   sub.state = { ...ctx.state };
   sub.request = Object.create(ctx.request);
-  sub.request.body = body;
+  // The parent's credential is the actor for every sub-request, so a token in
+  // the sub-request body must not re-authenticate it as a different one.
+  sub.request.body = omit(body, ["token"]);
   // Present the sub-request's own path so per-method rate limiting keys on the
   // dispatched method rather than the shared /batch path.
   Object.defineProperty(sub, "path", {
     configurable: true,
     get: () => `/${method}`,
+  });
+  // Credential scope is enforced against originalUrl, so it must also name the
+  // dispatched method rather than the parent /api/batch path.
+  Object.defineProperty(sub, "originalUrl", {
+    configurable: true,
+    get: () => `/api/${method}`,
   });
 
   const captured: { body?: RouteResponse; status: number } = { status: 404 };

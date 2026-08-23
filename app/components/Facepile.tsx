@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type User from "~/models/User";
+import type { AvatarProps } from "~/components/Avatar";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import { s } from "@shared/styles";
@@ -18,11 +19,7 @@ type Props = {
   /** The maximum number of users to display, defaults to 8 */
   limit?: number;
   /** A component to render the avatar, defaults to Avatar. */
-  renderAvatar?: React.ComponentType<
-    React.ComponentProps<typeof Avatar> & {
-      model: User;
-    }
-  >;
+  renderAvatar?: React.ComponentType<AvatarProps>;
   /** Whether to show tooltips on hover, defaults to true */
   showTooltip?: boolean;
 };
@@ -55,7 +52,7 @@ function Facepile({
   }
 
   return (
-    <Avatars {...rest}>
+    <Avatars $size={size} {...rest}>
       {filtered.map((model, index) => {
         const lastChild = index === 0;
         return (
@@ -111,14 +108,22 @@ const SVG = styled.svg`
   left: 0;
 `;
 
-const Avatars = styled(Flex)`
+const Avatars = styled(Flex)<{ $size: number }>`
   align-items: center;
   flex-direction: row-reverse;
   cursor: var(--pointer);
 
+  // Every avatar but the first in the DOM order is clipped on its right edge,
+  // move the initials left by half of what is removed so they stay centered on
+  // the part that remains visible.
+  > *:not(:first-child) {
+    --initials-inset: ${(props) => props.$size / 10}px;
+  }
+
   *:hover {
     clip-path: none !important;
     box-shadow: 0 0 0 2px ${s("background")};
+    --initials-inset: 0;
   }
 `;
 

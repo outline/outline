@@ -1,10 +1,13 @@
 import Router from "koa-router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
-import { StatusFilter } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
+import {
+  FamiliarityHelper,
+  type FamiliarityScores,
+} from "@server/models/helpers/FamiliarityHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { can } from "@server/policies";
@@ -29,14 +32,16 @@ router.post(
     const { offset, limit } = ctx.state.pagination;
     const actor = ctx.state.auth.user;
 
-    const [documents, users, groups, collections] = await Promise.all([
-      SearchProviderManager.getProvider().searchTitlesForUser(actor, {
-        query,
-        offset,
-        limit,
-        statusFilter: [StatusFilter.Published],
-      }),
-      User.findAll({
+    const suggestUsers = async (): Promise<{
+      users: User[];
+      familiarity: FamiliarityScores;
+    }> => {
+      if (!can(actor, "listUsers", actor.team)) {
+        return { users: [], familiarity: {} };
+      }
+
+      const groupIds = await actor.groupIds();
+      const users = await User.findAll({
         where: {
           teamId: actor.teamId,
           suspendedAt: {
@@ -55,32 +60,59 @@ router.post(
               }
             : {},
         },
-        order: [["name", "ASC"]],
-        replacements: { query: QueryHelper.likeContains(query ?? "") },
-        offset,
-        limit,
-      }),
-      Group.findAll({
-        where: {
-          teamId: actor.teamId,
-          disableMentions: false,
-          [Op.and]: query
-            ? Sequelize.literal(
-                `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-              )
-            : {},
+        order: [...FamiliarityHelper.userOrder(groupIds), ["name", "ASC"]],
+        replacements: {
+          query: QueryHelper.likeContains(query ?? ""),
+          groupIds,
         },
-        order: [["name", "ASC"]],
-        replacements: { query: QueryHelper.likeContains(query ?? "") },
         offset,
         limit,
-      }),
-      SearchProviderManager.getProvider().searchCollectionsForUser(actor, {
-        query,
-        offset,
-        limit,
-      }),
-    ]);
+      });
+
+      return {
+        users,
+        familiarity: await FamiliarityHelper.forUsers(users, groupIds),
+      };
+    };
+
+    const [documents, { users, familiarity }, groups, collections] =
+      await Promise.all([
+        SearchProviderManager.getProvider().searchTitlesForUser(actor, {
+          query,
+          offset,
+          limit,
+          filter: {
+            operator: "AND",
+            filters: [
+              { field: "archivedAt", operator: "isNull" },
+              { field: "publishedAt", operator: "isNotNull" },
+            ],
+          },
+        }),
+        suggestUsers(),
+        can(actor, "listGroups", actor.team)
+          ? Group.findAll({
+              where: {
+                teamId: actor.teamId,
+                disableMentions: false,
+                [Op.and]: query
+                  ? Sequelize.literal(
+                      `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                    )
+                  : {},
+              },
+              order: [["name", "ASC"]],
+              replacements: { query: QueryHelper.likeContains(query ?? "") },
+              offset,
+              limit,
+            })
+          : [],
+        SearchProviderManager.getProvider().searchCollectionsForUser(actor, {
+          query,
+          offset,
+          limit,
+        }),
+      ]);
 
     ctx.body = {
       pagination: ctx.state.pagination,
@@ -94,6 +126,7 @@ router.post(
         ),
         groups: await Promise.all(groups.map((group) => presentGroup(group))),
         collections,
+        familiarity,
       },
     };
   }

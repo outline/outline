@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@v10
+        id: stale
         with:
           stale-pr-message: "This PR is stale because it has been open 90 days with no activity. Remove stale label or comment or this will be closed in 5 days"
           stale-issue-message: "This issue is stale because it has been open 90 days with no activity. Remove stale label or comment or this will be closed in 5 days"
@@ -26,4 +27,7 @@ jobs:
           stale-pr-label: stale
           exempt-issue-labels: "security,pinned,A1"
       - name: Print outputs
-        run: echo ${{ join(steps.stale.outputs.*, ',') }}
+        env:
+          STALED: ${{ steps.stale.outputs['staled-issues-prs'] }}
+          CLOSED: ${{ steps.stale.outputs['closed-issues-prs'] }}
+        run: echo "$STALED,$CLOSED"

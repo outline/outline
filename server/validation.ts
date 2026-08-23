@@ -13,6 +13,8 @@ import { isUrl } from "@shared/utils/urls";
 import { ParamRequiredError, ValidationError } from "./errors";
 import { Buckets } from "./models/helpers/AttachmentHelper";
 
+export { isISO8601Duration } from "@shared/utils/date";
+
 type IncomingValue = Primitive | string[];
 
 export const assertPresent = (value: IncomingValue, message: string) => {
@@ -218,6 +220,16 @@ export class ValidateKey {
       .join("/")
       .concat(`/${sanitize(filename.replace(/#/g, ""))}`);
   };
+
+  /**
+   * Sanitizes a string for use as a single segment of a key, removing any
+   * characters that would allow it to change the location the key points to.
+   *
+   * @param name the string to sanitize.
+   * @returns the sanitized segment.
+   */
+  public static sanitizeSegment = (name: string) =>
+    sanitize(name.replace(/#/g, ""));
 
   public static message = "Must be of the form <bucket>/<uuid>/<uuid>/<name>?";
 }

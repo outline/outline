@@ -46,6 +46,14 @@ allow(User, "read", Collection, (user, collection) => {
   return true;
 });
 
+allow(User, "duplicate", Collection, (actor, collection) =>
+  and(
+    !!collection?.isActive,
+    can(actor, "read", collection),
+    can(actor, "createCollection", actor.team)
+  )
+);
+
 allow(User, "download", Collection, (actor, collection) =>
   and(
     can(actor, "read", collection),

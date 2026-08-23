@@ -10,7 +10,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { dateToRelativeReadable, parseISODate } from "../../utils/date";
+import {
+  dateToRelativeReadable,
+  hasTimeComponent,
+  parseISODate,
+} from "../../utils/date";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
@@ -29,7 +33,7 @@ import {
 } from "../../types";
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
-import { toDisplayUrl, cdnPath } from "../../utils/urls";
+import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
 
 type Attrs = {
@@ -69,7 +73,7 @@ export const MentionUser = observer(function MentionUser_(
       })}
     >
       <EmailIcon size={18} />
-      {user?.name || node.attrs.label}
+      <span>{user?.name || node.attrs.label}</span>
     </span>
   );
 });
@@ -90,7 +94,7 @@ export const MentionGroup = observer(function MentionGroup_(
       })}
     >
       <EmailIcon size={18} />
-      {group?.name || node.attrs.label}
+      <span>{group?.name || node.attrs.label}</span>
     </span>
   );
 });
@@ -131,7 +135,7 @@ export const MentionDocument = observer(function MentionDocument_(
       ) : (
         <DocumentIcon size={18} />
       )}
-      {doc?.title || node.attrs.label}
+      <span>{doc?.title || node.attrs.label}</span>
     </Link>
   );
 });
@@ -169,7 +173,7 @@ export const MentionCollection = observer(function MentionCollection_(
       ) : (
         <CollectionIcon size={18} />
       )}
-      {collection?.title || node.attrs.label}
+      <span>{collection?.title || node.attrs.label}</span>
     </Link>
   );
 });
@@ -269,7 +273,9 @@ export const MentionURL = (props: IssueUrlProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        {unfurl.faviconUrl ? <Logo src={unfurl.faviconUrl} alt="" /> : null}
+        {unfurl.faviconUrl ? (
+          <Logo src={sanitizeImageSrc(unfurl.faviconUrl)} alt="" />
+        ) : null}
         <Text>
           <Backticks content={unfurl.title} />
         </Text>
@@ -422,7 +428,7 @@ export const MentionProject = observer((props: ProjectProps) => {
     >
       <Flex align="center" gap={6}>
         {project.avatarUrl ? (
-          <ProjectAvatar src={project.avatarUrl} alt="" />
+          <ProjectAvatar src={sanitizeImageSrc(project.avatarUrl)} alt="" />
         ) : (
           <Squircle color={project.color} size={12} />
         )}
@@ -554,6 +560,7 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
     <React.Suspense fallback={content}>
       <DateMentionPicker
         selectedDate={selectedDate}
+        includeTime={hasTimeComponent(iso)}
         language={language}
         onChange={onChangeDate}
       >

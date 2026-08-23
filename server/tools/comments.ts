@@ -4,7 +4,6 @@ import { Op, Transaction } from "sequelize";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { sequelize } from "@server/storage/database";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { CommentStatusFilter } from "@shared/types";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { commentParser } from "@server/editor";
@@ -25,25 +24,25 @@ import {
 import { ValidationError } from "@server/errors";
 
 /**
- * Presents a comment with a plain-text rendering of its content so that
+ * Presents a comment with a markdown rendering of its content so that
  * MCP consumers (typically AI agents) can read it without parsing
- * ProseMirror JSON.
+ * ProseMirror JSON, which is omitted from the response.
  *
  * @param comment - the comment model instance.
  * @param commentMarks - optional precomputed comment marks to avoid reparsing.
- * @returns the presented comment with an additional `text` field.
+ * @returns the presented comment with a markdown `text` field.
  */
 function presentCommentWithText(
   comment: Comment,
   commentMarks?: CommentMark[]
 ) {
-  const presented = presentComment(comment, {
+  const { data: _data, ...presented } = presentComment(comment, {
     includeAnchorText: true,
     commentMarks,
   });
   return {
     ...presented,
-    text: comment.toPlainText(),
+    text: comment.toMarkdown(),
   };
 }
 
@@ -296,14 +295,8 @@ export function commentTools(server: McpServer, scopes: string[]) {
               authorize(user, "comment", document);
 
               if (anchorText) {
-                if (!document.state) {
-                  throw ValidationError(
-                    "Cannot inline comment on this document"
-                  );
-                }
-
-                const updatedState = ProsemirrorHelper.applyCommentMarkByText({
-                  docState: document.state,
+                const updated = ProsemirrorHelper.applyCommentMarkByText({
+                  docState: DocumentHelper.toState(document),
                   anchorText,
                   commentId,
                   userId: user.id,
@@ -311,34 +304,32 @@ export function commentTools(server: McpServer, scopes: string[]) {
                   suffix: anchorSuffix,
                 });
 
-                if (!updatedState) {
+                if (!updated) {
                   throw ValidationError(
                     "Could not anchor comment to the provided text in the document"
                   );
                 }
 
-                await document.updateWithCtx(ctx, { state: updatedState });
+                await document.updateWithCtx(ctx, {
+                  state: updated.state,
+                  content: updated.content,
+                });
               }
 
-              const created = await Comment.createWithCtx(ctx, {
+              return Comment.createWithCtx(ctx, {
                 id: commentId,
                 data,
                 createdById: user.id,
                 documentId,
                 parentCommentId,
               });
-
-              created.createdBy = user;
-              created.document = document!;
-              return created;
             });
 
-            const presented = presentCommentWithText(comment);
-            return {
-              content: [
-                { type: "text" as const, text: JSON.stringify(presented) },
-              ],
-            } satisfies CallToolResult;
+            return success({
+              success: true,
+              id: comment.id,
+              documentId: comment.documentId,
+            });
           } catch (err) {
             return error(err);
           }
@@ -419,13 +410,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
 
           await comment.saveWithCtx(ctx, status ? { silent: true } : undefined);
 
-          comment.document = document!;
-          const presented = presentCommentWithText(comment);
-          return {
-            content: [
-              { type: "text" as const, text: JSON.stringify(presented) },
-            ],
-          } satisfies CallToolResult;
+          return success({
+            success: true,
+            id: comment.id,
+            documentId: comment.documentId,
+          });
         } catch (err) {
           return error(err);
         }

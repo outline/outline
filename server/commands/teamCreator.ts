@@ -57,12 +57,13 @@ async function findAvailableSubdomain(
     lower: true,
     strict: true,
   });
-  let subdomain =
+  const baseSubdomain =
     normalizedSubdomain.length < 3 ||
     RESERVED_SUBDOMAINS.includes(normalizedSubdomain)
       ? "team"
       : normalizedSubdomain;
 
+  let subdomain = baseSubdomain;
   let append = 0;
 
   for (;;) {
@@ -74,7 +75,7 @@ async function findAvailableSubdomain(
 
     if (existing) {
       // subdomain was invalid or already used, try another
-      subdomain = `${normalizedSubdomain}${++append}`;
+      subdomain = `${baseSubdomain}${++append}`;
     } else {
       break;
     }

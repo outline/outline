@@ -21,6 +21,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      code: ${{ steps.filter.outputs.code }}
       config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
       app: ${{ steps.filter.outputs.app }}
@@ -31,6 +32,12 @@ jobs:
         id: filter
         with:
           filters: |
+            code:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!public/**'
+              - '!shared/i18n/locales/**'
             config:
               - '.github/**'
               - 'vite.config.ts'
@@ -38,6 +45,7 @@ jobs:
             server:
               - 'server/**'
               - 'shared/**'
+              - 'plugins/**'
               - 'package.json'
               - 'yarn.lock'
             app:
@@ -51,13 +59,27 @@ jobs:
               - '.yarnrc.yml'
 
   lint:
+    needs: changes
+    if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
       - run: yarn lint --quiet
 
+  actionlint:
+    needs: changes
+    if: ${{ needs.changes.outputs.config == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+
   types:
+    needs: changes
+    if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -123,7 +145,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
       - name: Set environment to production
-        run: echo "NODE_ENV=production" >> $GITHUB_ENV
+        run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
       - run: yarn vite:build
       - name: Send bundle stats to RelativeCI
         if: ${{ env.RELATIVE_CI_KEY != '' }}
@@ -134,3 +156,18 @@ jobs:
           key: ${{ secrets.RELATIVE_CI_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
           webpackStatsFile: ./build/app/webpack-stats.json
+
+  # Always runs, so it can be used as the single required status check. Jobs
+  # above are skipped when irrelevant to the changes, which is a pass here.
+  # Audit is intentionally excluded, it reports advisories that can have no
+  # fix available or affect dev only and should not block merging.
+  ci:
+    needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: |
+          echo "One or more jobs failed or were cancelled."
+          exit 1

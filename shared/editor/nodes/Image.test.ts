@@ -1,11 +1,5 @@
-import { extensionManager, findNodes, schema } from "../../test/editor";
+import { findNodes, parser, serializer } from "../../test/editor";
 import { ImageSource } from "../lib/FileHelper";
-
-const serializer = extensionManager.serializer();
-const parser = extensionManager.parser({
-  schema,
-  plugins: extensionManager.rulePlugins,
-});
 
 const findImageNode = (doc: ReturnType<typeof parser.parse>) => {
   const imageNode = findNodes(doc?.toJSON(), "image")[0];

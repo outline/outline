@@ -3,10 +3,13 @@ import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
-import Desktop from "~/utils/Desktop";
 import browserHistory, { patchLocation } from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { isSplittablePath, openRouteInSplit } from "~/utils/splitView";
+import {
+  isSplittablePath,
+  isSplitViewModifierEvent,
+  openRouteInSplit,
+} from "~/utils/splitView";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
 import { isFirefox } from "@shared/utils/browser";
@@ -101,14 +104,10 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           ui.setPresentingDocument(null);
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else if (
-          Desktop.isElectron() &&
-          isModKey(event) &&
-          !event.shiftKey &&
+          isSplitViewModifierEvent(event) &&
           event.button !== 1 &&
           isSplittablePath(parsePath(navigateTo).pathname)
         ) {
-          // In the desktop app a modifier-click opens the link in a split
-          // view, standing in for the browser's open-in-new-tab behavior.
           openRouteInSplit(browserHistory, navigateTo);
         } else {
           window.open(navigateTo, "_blank");

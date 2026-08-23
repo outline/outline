@@ -41,9 +41,12 @@ export default class Emoji extends Extension {
         },
       },
       inline: true,
+      // Legacy documents contain emoji nodes with text content, so the schema
+      // stays permissive – `atom` is what prevents content being added or edited.
       content: "text*",
       marks: "",
       group: "inline",
+      atom: true,
       selectable: false,
       parseDOM: [
         {

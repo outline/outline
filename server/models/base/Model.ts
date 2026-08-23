@@ -4,6 +4,7 @@ import type {
   Attributes,
   CreateOptions,
   CreationAttributes,
+  DestroyOptions,
   FindOptions,
   FindOrCreateOptions,
   ModelStatic,
@@ -50,6 +51,13 @@ class Model<
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
+  /**
+   * Disables Sequelize's public class field detection, which reports a false positive for the
+   * per-instance accessors that sequelize-strict-attributes installs on attributes omitted from
+   * a query's selection.
+   */
+  static _overwrittenAttributesChecked = true;
+
   /**
    * The namespace to use for events - defaults to the table name if none is provided.
    */
@@ -178,6 +186,34 @@ class Model<
       }
       throw err;
     }
+  }
+
+  /**
+   * Destroys every row that matches the given options, publishing an event for
+   * each. Rows are matched when the destroy runs, so rows written after the
+   * options were prepared are destroyed too.
+   *
+   * @param ctx The API context.
+   * @param options The destroy options.
+   * @param eventOpts Optional event override options.
+   * @returns the number of destroyed rows.
+   */
+  public static destroyWithCtx<M extends Model>(
+    this: ModelStatic<M>,
+    ctx: APIContext,
+    options: DestroyOptions<Attributes<M>>,
+    eventOpts?: EventOverrideOptions
+  ) {
+    const hookContext = {
+      ...ctx.context,
+      ...options,
+      individualHooks: true,
+      event: {
+        ...eventOpts,
+        publish: true,
+      },
+    };
+    return this.destroy(hookContext);
   }
 
   /**

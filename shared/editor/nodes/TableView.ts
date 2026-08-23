@@ -1,7 +1,11 @@
 import type { Node } from "prosemirror-model";
-import { TableView as ProsemirrorTableView } from "prosemirror-tables";
+import {
+  TableMap,
+  TableView as ProsemirrorTableView,
+} from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
+import { HEADER_HEIGHT } from "../../constants";
 import { isBrowser } from "../../utils/browser";
 
 export class TableView extends ProsemirrorTableView {
@@ -80,6 +84,11 @@ export class TableView extends ProsemirrorTableView {
       node.attrs.layout === TableLayout.fullWidth
     );
 
+    this.dom.classList.toggle(
+      EditorStyleHelper.tableStickyColumn,
+      this.hasHeaderColumn(node)
+    );
+
     const shadowLeft = !!(this.scrollable && this.scrollable.scrollLeft > 0);
     const shadowRight = !!(
       this.scrollable &&
@@ -106,12 +115,38 @@ export class TableView extends ProsemirrorTableView {
     }
   }
 
+  /**
+   * Whether every cell in the first column of the table is a header cell. Nodes
+   * are immutable, so the answer is cached until the node itself changes.
+   *
+   * @param node the table node.
+   * @returns true if the first column is a header column.
+   */
+  private hasHeaderColumn(node: Node) {
+    if (node !== this.headerColumnNode) {
+      const map = TableMap.get(node);
+
+      this.headerColumnNode = node;
+      this.headerColumn =
+        map.width > 0 &&
+        map.height > 0 &&
+        map
+          .cellsInRect({ left: 0, top: 0, right: 1, bottom: map.height })
+          .every(
+            (pos) => node.nodeAt(pos)?.type.spec.tableRole === "header_cell"
+          );
+    }
+
+    return this.headerColumn;
+  }
+
+  private headerColumnNode: Node | null = null;
+
+  private headerColumn = false;
+
   private scrollable: HTMLDivElement | null = null;
 
   private scrollHandler: (() => void) | null = null;
-
-  /** Default height of the app's fixed header */
-  private static readonly HEADER_HEIGHT = 64;
 
   /**
    * Sets up the scroll listener for sticky header behavior. Nested tables
@@ -207,12 +242,12 @@ export class TableView extends ProsemirrorTableView {
    */
   private getHeaderOffset(): number {
     if (!isBrowser) {
-      return TableView.HEADER_HEIGHT;
+      return HEADER_HEIGHT;
     }
 
     const value = getComputedStyle(document.documentElement).getPropertyValue(
       "--header-offset"
     );
-    return value ? parseFloat(value) : TableView.HEADER_HEIGHT;
+    return value ? parseFloat(value) : HEADER_HEIGHT;
   }
 }

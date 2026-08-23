@@ -1,11 +1,15 @@
 import type { Mock } from "vitest";
+import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
+import { View } from "@server/models";
 import {
   buildCollection,
   buildDocument,
   buildShare,
+  buildTeam,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -153,6 +157,51 @@ describe("#urls.unfurl", () => {
     expect(body.name).toEqual(mentionedUser.name);
   });
 
+  it("should include the mentioned user's viewing activity when insights are enabled", async () => {
+    const mentionedUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      insightsEnabled: true,
+    });
+    await View.incrementOrCreate(createContext({ user: mentionedUser }), {
+      documentId: document.id,
+      userId: mentionedUser.id,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.lastActive).toContain("Viewed");
+  });
+
+  it("should not include the mentioned user's viewing activity when insights are disabled", async () => {
+    const mentionedUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      insightsEnabled: false,
+    });
+    await View.incrementOrCreate(createContext({ user: mentionedUser }), {
+      documentId: document.id,
+      userId: mentionedUser.id,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.lastActive).not.toContain("Viewed");
+    expect(body.lastActive).not.toContain("Never viewed");
+  });
+
   it("should return 204 when internal document url points to non-existent document", async () => {
     const res = await server.post("/api/urls.unfurl", user, {
       body: {
@@ -204,6 +253,74 @@ Usage instructions here.`,
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Document);
     expect(body.url).toEqual(`${document.url}#h-installation`);
+    expect(body.summary).toEqual(
+      `## Installation
+
+Install instructions here.`
+    );
+  });
+
+  it("should succeed when document url is on the team custom domain", async () => {
+    const team = await buildTeam({
+      domain: `${randomString(10)}.example.com`,
+    });
+    const teamUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: teamUser.id,
+      text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.`,
+    });
+
+    const res = await server.post("/api/urls.unfurl", teamUser, {
+      body: {
+        url: `${team.url}/${document.url}#h-installation`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.id).toEqual(document.id);
+    expect(body.summary).toEqual(
+      `## Installation
+
+Install instructions here.`
+    );
+  });
+
+  it("should succeed when document url is on the team subdomain", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
+
+    const team = await buildTeam({
+      subdomain: randomString({
+        length: 10,
+        charset: "alphabetic",
+        capitalization: "lowercase",
+      }),
+    });
+    const teamUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: teamUser.id,
+      text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.`,
+    });
+
+    const res = await server.post("/api/urls.unfurl", teamUser, {
+      body: {
+        url: `${team.url}/${document.url}#h-installation`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.id).toEqual(document.id);
     expect(body.summary).toEqual(
       `## Installation
 
@@ -279,6 +396,30 @@ Install instructions here.`
     expect(body.type).toEqual(UnfurlResourceType.Document);
     expect(body.title).toEqual(document.titleWithDefault);
     expect(body.id).toEqual(document.id);
+  });
+
+  it("should not include last activity for a share url the user can read", async () => {
+    const author = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: author.id,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: author.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.id).toEqual(document.id);
+    expect(body.lastActivityByViewer).toBeUndefined();
   });
 
   it("should return share-scoped url in unfurl response", async () => {

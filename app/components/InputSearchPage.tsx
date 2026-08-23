@@ -129,6 +129,7 @@ const InputMaxWidth = styled(Input).attrs({ round: true })`
 const Shortcut = styled.span<{ $visible: boolean }>`
   flex-shrink: 0;
   font-size: 13px;
+  font-feature-settings: "cv08", "zero";
   color: ${s("textTertiary")};
   padding-inline: 0 10px;
   pointer-events: none;

@@ -13,12 +13,15 @@ import {
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
+import { UserHoverCard } from "~/components/UserHoverCard";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import UserSelectionToolbar from "./UserSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 
@@ -38,18 +41,26 @@ const UserRowContextMenu = observer(function UserRowContextMenu({
   menuLabel: string;
   children: React.ReactNode;
 }) {
-  const action = useUserMenuActions(user);
+  const action = useUserMenuActions();
   return (
-    <ContextMenu action={action} ariaLabel={menuLabel}>
-      {children}
-    </ContextMenu>
+    <ActionContextProvider value={{ activeModels: [user] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
   );
 });
 
-export function MembersTable({ canManage, ...rest }: Props) {
+export function UsersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
+
+  // The current user is excluded, none of the bulk actions apply to yourself.
+  const isRowSelectable = useCallback(
+    (user: User) => canManage && user.id !== currentUser.id,
+    [canManage, currentUser.id]
+  );
 
   const applyContextMenu = useCallback(
     (user: User, rowElement: React.ReactNode) => {
@@ -91,7 +102,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
           ),
           width: "4fr",
         },
-        canManage && !isMobile
+        canManage
           ? {
               type: "data",
               id: "email",
@@ -99,21 +110,52 @@ export function MembersTable({ canManage, ...rest }: Props) {
               accessor: (user) => user.email,
               component: (user) => <>{user.email}</>,
               width: "4fr",
+              hideOnMobile: true,
             }
           : undefined,
-        isMobile
-          ? undefined
-          : {
+        {
+          type: "data",
+          id: "lastActiveAt",
+          header: t("Last active"),
+          accessor: (user) => user.lastActiveAt,
+          component: (user) =>
+            user.lastActiveAt ? (
+              <Time dateTime={user.lastActiveAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
+        canManage
+          ? {
               type: "data",
-              id: "lastActiveAt",
-              header: t("Last active"),
-              accessor: (user) => user.lastActiveAt,
+              id: "invitedBy",
+              header: t("Invited by"),
+              accessor: (user) => user.invitedBy?.name,
               component: (user) =>
-                user.lastActiveAt ? (
-                  <Time dateTime={user.lastActiveAt} addSuffix shorten />
+                user.invitedBy ? (
+                  <UserHoverCard user={user.invitedBy}>
+                    <Text selectable ellipsis>
+                      {user.invitedBy.name}
+                    </Text>
+                  </UserHoverCard>
                 ) : null,
+              sortable: false,
               width: "2fr",
-            },
+              hideOnMobile: true,
+            }
+          : undefined,
+        {
+          type: "data",
+          id: "createdAt",
+          header: t("Joined"),
+          accessor: (user) => user.createdAt,
+          component: (user) =>
+            user.createdAt ? (
+              <Time dateTime={user.createdAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
         {
           type: "data",
           id: "role",
@@ -134,7 +176,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </HStack>
           ),
-          width: "2fr",
+          width: "1.4fr",
         },
         canManage
           ? {
@@ -151,10 +193,13 @@ export function MembersTable({ canManage, ...rest }: Props) {
 
   return (
     <SortableTable
+      id="users"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<UserSelectionToolbar />}
       {...rest}
     />
   );

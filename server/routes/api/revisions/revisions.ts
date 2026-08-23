@@ -3,19 +3,19 @@ import Router from "koa-router";
 import contentDisposition from "content-disposition";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
-import { errToString } from "@shared/utils/error";
-import { UserRole } from "@shared/types";
+import { ExportContentType, UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
 import { ValidationError, IncorrectEditionError } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Attachment, Document, Revision } from "@server/models";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentRevision } from "@server/presenters";
 import type { APIContext } from "@server/types";
@@ -42,11 +42,14 @@ router.post(
 
       const document = await Document.findByPk(revision.documentId, {
         userId: user.id,
+        includeContent: false,
+        includeViews: false,
       });
       authorize(user, "listRevisions", document);
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        includeViews: false,
       });
       authorize(user, "listRevisions", document);
       revision = Revision.buildFromDocument(document);
@@ -76,6 +79,8 @@ router.post(
     });
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "update", document);
     authorize(user, "update", revision);
@@ -110,6 +115,8 @@ router.post(
     });
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "read", document);
     authorize(user, "delete", revision);
@@ -139,11 +146,17 @@ router.post(
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
       rejectOnEmpty: true,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "listRevisions", document);
 
     let contentType: string;
     let content: string;
+
+    // A TextBundle is a directory of files, so unlike the other formats it has
+    // no self-contained single-file form to fall back to.
+    const isTextBundle = !!accept?.includes(ExportContentType.TextBundle);
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
@@ -155,12 +168,14 @@ router.post(
       throw IncorrectEditionError(
         "PDF export is not available in the community edition"
       );
-    } else if (accept?.includes("text/markdown")) {
+    } else if (isTextBundle || accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = await DocumentHelper.toMarkdown(revision);
+      content = await DocumentHelper.toMarkdown(revision, {
+        commonMark: true,
+      });
     } else {
       ctx.body = {
-        data: await DocumentHelper.toMarkdown(revision),
+        data: await DocumentHelper.toMarkdown(revision, { commonMark: true }),
       };
       return;
     }
@@ -183,6 +198,46 @@ router.post(
         })
       : [];
 
+    if (isTextBundle) {
+      const root = `${fileName}.${TextBundleHelper.bundleExtension}`;
+      const usedAssetNames = new Set<string>();
+
+      streamZipResponse(
+        ctx,
+        `${fileName}.${TextBundleHelper.packExtension}`,
+        async (zip) => {
+          for (const attachment of attachments) {
+            const reference = TextBundleHelper.assetPath(
+              attachment.name,
+              usedAssetNames
+            );
+            zip.addBuffer(
+              await AttachmentHelper.readBuffer(attachment),
+              path.join(root, reference),
+              { mtime: attachment.updatedAt }
+            );
+
+            content = content.replace(
+              new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+              encodeURI(reference)
+            );
+          }
+
+          zip.addBuffer(
+            Buffer.from(TextBundleHelper.info(document, revision.id)),
+            path.join(root, TextBundleHelper.infoFileName),
+            { mtime: revision.updatedAt }
+          );
+          zip.addBuffer(
+            Buffer.from(content),
+            path.join(root, TextBundleHelper.textFileName),
+            { mtime: revision.updatedAt }
+          );
+        }
+      );
+      return;
+    }
+
     if (attachments.length === 0) {
       ctx.set("Content-Type", contentType);
       ctx.set(
@@ -201,18 +256,9 @@ router.post(
           "attachments",
           `${attachment.id}.${mime.extension(attachment.contentType)}`
         );
-        let buffer: Buffer;
-        try {
-          buffer = await attachment.buffer;
-        } catch (err) {
-          Logger.warn(`Failed to read attachment from storage`, {
-            attachmentId: attachment.id,
-            teamId: attachment.teamId,
-            error: errToString(err),
-          });
-          buffer = Buffer.from("");
-        }
-        zip.addBuffer(buffer, location, { mtime: attachment.updatedAt });
+        zip.addBuffer(await AttachmentHelper.readBuffer(attachment), location, {
+          mtime: attachment.updatedAt,
+        });
 
         content = content.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
@@ -239,10 +285,21 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       paranoid: false,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "listRevisions", document);
 
+    // History remains visible for a document in the trash,
+    // but only to those that could restore it.
+    if (document.deletedAt) {
+      authorize(user, "restore", document);
+    }
+
     const revisions = await Revision.findAll({
+      attributes: {
+        exclude: ["content", "text"],
+      },
       where: {
         documentId: document.id,
       },

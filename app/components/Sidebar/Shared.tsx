@@ -66,7 +66,7 @@ function SharedSidebar({ share }: Props) {
   }
 
   return (
-    <Sidebar canCollapse={false}>
+    <Sidebar canCollapse={false} showAccountMenu={false}>
       {brandingAvailable && (
         <SidebarButton
           title={displayName}
@@ -139,7 +139,7 @@ const SearchButton = styled.button`
   gap: 8px;
   width: 100%;
   padding: 6px 12px;
-  margin: 8px 0;
+  margin: 4px 0 12px;
   border: 1px solid ${s("inputBorder")};
   border-radius: 16px;
   background: ${s("background")};
@@ -161,6 +161,7 @@ const SearchLabel = styled.span`
 const Shortcut = styled.span`
   flex-shrink: 0;
   font-size: 13px;
+  font-feature-settings: "cv08", "zero";
 `;
 
 export default observer(SharedSidebar);

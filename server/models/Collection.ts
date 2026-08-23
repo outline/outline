@@ -1,6 +1,6 @@
 /* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
-import { find, findIndex, isNil, remove, uniq } from "es-toolkit/compat";
+import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {
   Identifier,
   Transaction,
@@ -471,9 +471,12 @@ class Collection extends ParanoidModel<
 
   @BeforeDestroy
   static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+    // A bulk update rather than a destroy per document, so `deletedById` is
+    // written here instead of by the hook on ParanoidModel.
     await Document.update(
       {
         lastModifiedById: ctx.auth.user.id,
+        deletedById: ctx.auth.user.id,
         deletedAt: new Date(),
       },
       {
@@ -915,28 +918,40 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  deleteDocument = async (document: Document, options?: FindOptions) => {
-    await this.removeDocumentInStructure(document, options);
+  /**
+   * Removes a document from this collection's structure and soft deletes it
+   * along with all of its descendants.
+   *
+   * @param ctx the API context, which attributes the deletion to the acting user.
+   * @param document the document to delete.
+   */
+  deleteDocument = async (ctx: APIContext, document: Document) => {
+    const { transaction } = ctx.context;
 
-    // Helper to destroy all child documents for a document
-    const loopChildren = async (
-      documentId: string,
-      opts?: FindOptions<Document>
-    ) => {
+    await this.removeDocumentInStructure(document, { transaction });
+
+    // IDs come back breadth-first so reversing them destroys the deepest
+    // descendants first.
+    const childDocumentIds = (
+      await document.findAllChildDocumentIds(undefined, { transaction })
+    ).reverse();
+
+    if (childDocumentIds.length) {
       const childDocuments = await Document.findAll({
+        transaction,
         where: {
-          parentDocumentId: documentId,
+          id: childDocumentIds,
         },
       });
+      const childDocumentsById = keyBy(childDocuments, (child) => child.id);
 
-      for (const child of childDocuments) {
-        await loopChildren(child.id, opts);
-        await child.destroy(opts);
+      // Destroyed one at a time to ensure model hooks run for each document.
+      for (const childDocumentId of childDocumentIds) {
+        await childDocumentsById[childDocumentId]?.destroy(ctx.context);
       }
-    };
+    }
 
-    await loopChildren(document.id, options);
-    await document.destroy(options);
+    await document.destroy(ctx.context);
   };
 
   removeDocumentInStructure = async (

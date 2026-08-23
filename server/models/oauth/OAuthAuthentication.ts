@@ -241,6 +241,24 @@ class OAuthAuthentication extends ParanoidModel<
       ...options,
     });
   }
+
+  /**
+   * Revokes the OAuthAuthentication with the given refresh token. The update is
+   * atomic, so concurrent attempts to rotate one refresh token result in a
+   * single successful caller.
+   *
+   * @param input The refresh token to revoke
+   * @returns True if this call revoked the authentication
+   */
+  public static async revokeByRefreshToken(input: string) {
+    const count = await this.destroy({
+      where: {
+        refreshTokenHash: hash(input),
+      },
+    });
+
+    return count > 0;
+  }
 }
 
 export default OAuthAuthentication;

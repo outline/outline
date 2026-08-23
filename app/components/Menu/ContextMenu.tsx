@@ -91,7 +91,7 @@ export const ContextMenu = observer(
     return (
       <MenuProvider variant="context">
         <Menu open={open} onOpenChange={handleOpenChange}>
-          <MenuTrigger aria-label={ariaLabel}>{children}</MenuTrigger>
+          <MenuTrigger>{children}</MenuTrigger>
           <MenuContent
             aria-label={ariaLabel}
             onAnimationStart={disablePointerEvents}

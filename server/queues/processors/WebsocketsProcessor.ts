@@ -203,11 +203,12 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.permanent_delete": {
-        return socketio
-          .to(`collection-${event.collectionId}`)
-          .emit(event.name, {
-            modelId: event.documentId,
-          });
+        // The document is already gone, so the channels it was published to
+        // cannot be resolved. The payload is an ID only, so it is broadcast to
+        // the team to ensure everyone holding a copy discards it.
+        return socketio.to(`team-${event.teamId}`).emit(event.name, {
+          modelId: event.documentId,
+        });
       }
 
       case "documents.archive":
@@ -231,8 +232,19 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
+        // Documents are invalidated in both the source and destination
+        // collections – members of the former may no longer have access to
+        // them. This is distinct from the collection invalidation below, which
+        // only refreshes the document structure.
+        const documentChannels = uniq(
+          concat(
+            event.data.collectionIds.map((id) => `collection-${id}`),
+            `collection-${event.collectionId}`
+          )
+        );
+
         documents.forEach((document) => {
-          socketio.to(`collection-${document.collectionId}`).emit("entities", {
+          socketio.to(documentChannels).emit("entities", {
             event: event.name,
             invalidatedPolicies: [document.id],
             documentIds: [
@@ -369,10 +381,6 @@ export default class WebsocketsProcessor {
         // the collection became private, rebuild the channel from explicit
         // memberships only.
         if (attributes?.permission === null && previous?.permission) {
-          socketio
-            .in(`collection-${collection.id}`)
-            .socketsLeave(`collection-${collection.id}`);
-
           const [memberships, groupMemberships] = await Promise.all([
             UserMembership.findAll({
               where: { collectionId: collection.id },
@@ -385,6 +393,18 @@ export default class WebsocketsProcessor {
             ...memberships.map((m) => `user-${m.userId}`),
             ...groupMemberships.map((m) => `group-${m.groupId}`),
           ];
+
+          // Everyone in the channel without an explicit membership has lost
+          // access to the documents within and must discard them.
+          socketio
+            .in(`collection-${collection.id}`)
+            .except(rooms)
+            .emit("collections.revoke_access", { modelId: collection.id });
+
+          socketio
+            .in(`collection-${collection.id}`)
+            .socketsLeave(`collection-${collection.id}`);
+
           if (rooms.length) {
             socketio.in(rooms).socketsJoin(`collection-${collection.id}`);
           }

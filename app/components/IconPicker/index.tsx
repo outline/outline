@@ -2,7 +2,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { SmileyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
 import theme from "@shared/styles/theme";
@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import { Tab, TabsGroup } from "~/components/Tabs";
 import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
 import { Drawer, DrawerContent, DrawerTrigger } from "../primitives/Drawer";
@@ -238,22 +239,26 @@ const Content = ({
   return (
     <Tabs.Root value={activeTab} onValueChange={onTabChange}>
       <TabActionsWrapper justify="space-between" align="center">
-        <Tabs.List>
-          <StyledTab
-            value={TAB_NAMES["Icon"]}
-            aria-label={t("Icons")}
-            $active={activeTab === TAB_NAMES["Icon"]}
-          >
-            {t("Icons")}
-          </StyledTab>
-          <StyledTab
-            value={TAB_NAMES["Emoji"]}
-            aria-label={t("Emojis")}
-            $active={activeTab === TAB_NAMES["Emoji"]}
-          >
-            {t("Emojis")}
-          </StyledTab>
-        </Tabs.List>
+        <TabsGroup>
+          <TabsList>
+            <Tabs.Trigger value={TAB_NAMES["Icon"]} asChild>
+              <Tab
+                aria-label={t("Icons")}
+                active={activeTab === TAB_NAMES["Icon"]}
+              >
+                {t("Icons")}
+              </Tab>
+            </Tabs.Trigger>
+            <Tabs.Trigger value={TAB_NAMES["Emoji"]} asChild>
+              <Tab
+                aria-label={t("Emojis")}
+                active={activeTab === TAB_NAMES["Emoji"]}
+              >
+                {t("Emojis")}
+              </Tab>
+            </Tabs.Trigger>
+          </TabsList>
+        </TabsGroup>
         {allowDelete && (
           <RemoveButton onClick={onIconRemove}>{t("Remove")}</RemoveButton>
         )}
@@ -308,35 +313,9 @@ const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
-  position: relative;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: var(--pointer);
-  background: none;
-  border: 0;
-  padding: 8px 12px;
-  user-select: none;
-  color: ${({ $active }) => ($active ? s("textSecondary") : s("textTertiary"))};
-  transition: color 100ms ease-in-out;
-
-  &: ${hover} {
-    color: ${s("textSecondary")};
-  }
-
-  ${({ $active }) =>
-    $active &&
-    css`
-      &:after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: ${s("textSecondary")};
-      }
-    `}
+const TabsList = styled(Tabs.List)`
+  display: flex;
+  gap: 24px;
 `;
 
 const StyledTabContent = styled(Tabs.Content)`

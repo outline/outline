@@ -1,9 +1,4 @@
-import {
-  DirectionFilter,
-  DocumentPermission,
-  SortFilter,
-  StatusFilter,
-} from "@shared/types";
+import { DirectionFilter, DocumentPermission, SortFilter } from "@shared/types";
 import {
   buildDocument,
   buildDraftDocument,
@@ -98,7 +93,7 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForTeam(team, {
         query: "test",
-        collectionId: collection.id,
+        filter: { field: "collectionId", operator: "eq", value: collection.id },
       });
       expect(results.length).toBe(1);
     });
@@ -127,7 +122,7 @@ describe("PostgresSearchProvider", () => {
 
       const { results } = await provider.searchForTeam(team, {
         query: "test",
-        collectionId: collection.id,
+        filter: { field: "collectionId", operator: "eq", value: collection.id },
         share,
       });
       expect(results.length).toBe(1);
@@ -295,7 +290,7 @@ describe("PostgresSearchProvider", () => {
         }),
       ]);
       const { results } = await provider.searchForUser(user, {
-        collectionId: collection.id,
+        filter: { field: "collectionId", operator: "eq", value: collection.id },
       });
       expect(results.length).toBe(2);
       expect(results.map((r) => r.document.id).sort()).toEqual(
@@ -343,7 +338,11 @@ describe("PostgresSearchProvider", () => {
         }),
       ]);
       const { results } = await provider.searchForUser(user, {
-        collectionId: collection1.id,
+        filter: {
+          field: "collectionId",
+          operator: "eq",
+          value: collection1.id,
+        },
       });
       expect(results.length).toBe(2);
       expect(results.map((r) => r.document.id).sort()).toEqual(
@@ -386,7 +385,13 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Draft],
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        },
       });
       expect(results.length).toBe(1);
     });
@@ -402,7 +407,13 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Draft],
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        },
       });
       expect(results.length).toBe(1);
       expect(results[0].document?.id).toBe(draft.id);
@@ -426,7 +437,13 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Draft],
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        },
       });
       expect(results.length).toBe(0);
     });
@@ -451,7 +468,19 @@ describe("PostgresSearchProvider", () => {
 
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Published, StatusFilter.Archived],
+        filter: {
+          operator: "OR",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+            { field: "archivedAt", operator: "isNotNull" },
+          ],
+        },
       });
       expect(results.length).toBe(0);
     });
@@ -482,7 +511,13 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Published],
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNotNull" },
+          ],
+        },
       });
       expect(results.length).toBe(1);
     });
@@ -519,7 +554,7 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Archived],
+        filter: { field: "archivedAt", operator: "isNotNull" },
       });
       expect(results.length).toBe(1);
     });
@@ -547,7 +582,19 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Archived, StatusFilter.Published],
+        filter: {
+          operator: "OR",
+          filters: [
+            { field: "archivedAt", operator: "isNotNull" },
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+          ],
+        },
       });
       expect(results.length).toBe(2);
     });
@@ -575,7 +622,25 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "draft",
-        statusFilter: [StatusFilter.Published, StatusFilter.Draft],
+        filter: {
+          operator: "OR",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNull" },
+              ],
+            },
+          ],
+        },
       });
       expect(results.length).toBe(2);
     });
@@ -603,7 +668,19 @@ describe("PostgresSearchProvider", () => {
       });
       const { results } = await provider.searchForUser(user, {
         query: "draft",
-        statusFilter: [StatusFilter.Draft, StatusFilter.Archived],
+        filter: {
+          operator: "OR",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNull" },
+              ],
+            },
+            { field: "archivedAt", operator: "isNotNull" },
+          ],
+        },
       });
       expect(results.length).toBe(2);
     });
@@ -696,6 +773,53 @@ describe("PostgresSearchProvider", () => {
       expect(total).toBe(1);
     });
 
+    it("should return context that is not shifted by earlier highlights", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "change",
+        text: "world war two was a very large conflict that involved many nations over six years. Later on, hello world became the canonical first program.",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "hello world",
+      });
+      expect(results.length).toBe(1);
+      // The earlier "world" is highlighted too, which must not move the start
+      // of the slice into the middle of a word.
+      expect(results[0].context).toBe(
+        " conflict that involved many nations over six years. Later on, <b>hello world</b> became the canonical first program"
+      );
+    });
+
+    it("should return context for text with no word boundaries", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const text = "abcdefghij".repeat(40);
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "hello world",
+        text,
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "hello world",
+      });
+      expect(results.length).toBe(1);
+      expect(results[0].context).toBe(text.slice(0, 250));
+    });
+
     it("should correctly handle removal of trailing spaces", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
@@ -763,6 +887,72 @@ describe("PostgresSearchProvider", () => {
       expect(results[0].ranking).toBeTruthy();
       expect(results[0].document?.id).toBe(document.id);
     });
+
+    it("should return no results for a user with no collection or document access", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const privateCollection = await buildCollection({
+        teamId: team.id,
+        userId: otherUser.id,
+        permission: null,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        title: "test",
+      });
+
+      const { results, total } = await provider.searchForUser(user, {
+        query: "test",
+      });
+
+      expect(results.length).toBe(0);
+      expect(total).toBe(0);
+    });
+
+    it("should include drafts shared with the user through a group", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const draft = await buildDraftDocument({
+        teamId: team.id,
+        userId: otherUser.id,
+        createdById: otherUser.id,
+        collectionId: null,
+        title: "group draft test",
+      });
+
+      const group = await buildGroup({
+        teamId: team.id,
+      });
+      await group.$add("user", user, {
+        through: {
+          createdById: otherUser.id,
+        },
+      });
+      await GroupMembership.create({
+        createdById: otherUser.id,
+        groupId: group.id,
+        documentId: draft.id,
+        permission: DocumentPermission.Read,
+      });
+
+      const { results } = await provider.searchForUser(user, {
+        query: "group draft",
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        },
+      });
+
+      expect(results.length).toBe(1);
+      expect(results[0].document?.id).toBe(draft.id);
+    });
   });
 
   describe("#searchTitlesForUser", () => {
@@ -816,7 +1006,7 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "test",
-        collectionId: collection.id,
+        filter: { field: "collectionId", operator: "eq", value: collection.id },
       });
       expect(documents.length).toBe(1);
       expect(documents[0]?.id).toBe(document.id);
@@ -857,7 +1047,13 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Draft],
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        },
       });
       expect(documents.length).toBe(1);
     });
@@ -888,7 +1084,13 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Published],
+        filter: {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNotNull" },
+          ],
+        },
       });
       expect(documents.length).toBe(1);
     });
@@ -925,7 +1127,7 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Archived],
+        filter: { field: "archivedAt", operator: "isNotNull" },
       });
       expect(documents.length).toBe(1);
     });
@@ -953,7 +1155,19 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "test",
-        statusFilter: [StatusFilter.Archived, StatusFilter.Published],
+        filter: {
+          operator: "OR",
+          filters: [
+            { field: "archivedAt", operator: "isNotNull" },
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+          ],
+        },
       });
       expect(documents.length).toBe(2);
     });
@@ -981,7 +1195,25 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "draft",
-        statusFilter: [StatusFilter.Published, StatusFilter.Draft],
+        filter: {
+          operator: "OR",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNull" },
+              ],
+            },
+          ],
+        },
       });
       expect(documents.length).toBe(2);
     });
@@ -1009,7 +1241,19 @@ describe("PostgresSearchProvider", () => {
       });
       const documents = await provider.searchTitlesForUser(user, {
         query: "draft",
-        statusFilter: [StatusFilter.Draft, StatusFilter.Archived],
+        filter: {
+          operator: "OR",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNull" },
+              ],
+            },
+            { field: "archivedAt", operator: "isNotNull" },
+          ],
+        },
       });
       expect(documents.length).toBe(2);
     });

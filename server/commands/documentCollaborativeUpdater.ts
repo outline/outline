@@ -55,11 +55,14 @@ export default async function documentCollaborativeUpdater({
 
     // Round-trip through the schema so the stored JSON is canonical. The raw
     // y-prosemirror output includes empty `attrs: {}` on every mark, and outputs
-    // properties in a different order - resulting in spurious "edits"
-    const content = Node.fromJSON(
-      schema,
-      yDocToProsemirrorJSON(ydoc, "default")
-    ).toJSON() as ProsemirrorData;
+    // properties in a different order - resulting in spurious "edits". The JSON
+    // round-trip additionally drops undefined-valued attrs, which are absent
+    // from previously stored content but present on `Node.toJSON` output.
+    const content = JSON.parse(
+      JSON.stringify(
+        Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default")).toJSON()
+      )
+    ) as ProsemirrorData;
     const isUnchanged = isEqual(document.content, content);
     const isDeleted = !!document.deletedAt;
     // Attribute to the most recent editor, which is the tail of the ordered list.
@@ -104,6 +107,9 @@ export default async function documentCollaborativeUpdater({
         lastModifiedById,
         collaboratorIds,
         editorVersion,
+        // Hooks are disabled below, so the revision increment that normally
+        // happens in BeforeUpdate must be applied manually.
+        revisionCount: document.revisionCount + 1,
       },
       {
         transaction,

@@ -1,14 +1,17 @@
 import { observer } from "mobx-react";
+import { ArchiveIcon, CodeIcon } from "outline-icons";
 import * as React from "react";
-import { Trans, useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { FileOperationFormat, NotificationEventType } from "@shared/types";
 import type Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
+import { FileFormatSelector } from "~/components/Export/FileFormatSelector";
+import type { FileFormat } from "~/components/Export/FileFormatSelector";
+import MarkdownIcon from "~/components/Icons/MarkdownIcon";
+import OutlineIcon from "~/components/Icons/OutlineIcon";
 import Text from "~/components/Text";
-import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
@@ -17,7 +20,7 @@ type Props = {
   onSubmit: () => void;
 };
 
-function ExportDialog({ collection, onSubmit }: Props) {
+export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
   const [format, setFormat] = React.useState<FileOperationFormat>(
     FileOperationFormat.MarkdownZip
   );
@@ -27,14 +30,6 @@ function ExportDialog({ collection, onSubmit }: Props) {
   const user = useCurrentUser();
   const { collections, ui } = useStores();
   const { t } = useTranslation();
-  const appName = env.APP_NAME;
-
-  const handleFormatChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setFormat(ev.target.value as FileOperationFormat);
-    },
-    []
-  );
 
   const handleIncludeAttachmentsChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,54 +59,36 @@ function ExportDialog({ collection, onSubmit }: Props) {
     }
 
     if (response?.data?.fileOperation) {
-      const fileOperationId = response.data.fileOperation.id;
-      const toastId = `export-${fileOperationId}`;
-
-      const timeoutId = setTimeout(() => {
-        toast.success(t("Export started"), {
-          id: toastId,
-          description: t("A link to your file will be sent through email soon"),
-          duration: 3000,
-        });
-        ui.exportToasts.delete(fileOperationId);
-      }, 6000);
-
-      ui.registerExportToast(fileOperationId, toastId, timeoutId);
-
-      toast.loading(t("Export started"), {
-        id: toastId,
-        description: `${t("Preparing your download")}…`,
-        duration: Infinity,
-      });
+      ui.showExportToast(response.data.fileOperation.id);
     }
 
     onSubmit();
   };
 
-  const items = [
+  const formats: FileFormat<FileOperationFormat>[] = [
     {
       title: "Markdown",
-      description: t(
-        "A ZIP file containing the images, and documents in the Markdown format."
-      ),
+      extension: ".markdown.zip",
       value: FileOperationFormat.MarkdownZip,
+      icon: <MarkdownIcon />,
     },
     {
       title: "HTML",
-      description: t(
-        "A ZIP file containing the images, and documents as HTML files."
-      ),
+      extension: ".html.zip",
       value: FileOperationFormat.HTMLZip,
+      icon: <CodeIcon />,
+    },
+    {
+      title: "TextBundle",
+      extension: ".textbundle.zip",
+      value: FileOperationFormat.TextBundleZip,
+      icon: <ArchiveIcon />,
     },
     {
       title: "JSON",
-      description: t(
-        "Structured data that can be used to transfer data to another compatible {{ appName }} instance.",
-        {
-          appName,
-        }
-      ),
+      extension: ".json.zip",
       value: FileOperationFormat.JSON,
+      icon: <OutlineIcon />,
     },
   ];
 
@@ -119,40 +96,16 @@ function ExportDialog({ collection, onSubmit }: Props) {
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
       {collection && (
         <Text as="p">
-          <Trans
-            defaults="Exporting the collection <em>{{collectionName}}</em> may take some time."
-            values={{
-              collectionName: collection.name,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />{" "}
+          {t("Exporting the collection may take some time.")}{" "}
           {user.subscribedToEventType(NotificationEventType.ExportCompleted) &&
             t("You will receive an email when it's complete.")}
         </Text>
       )}
-      <Flex gap={12} column>
-        {items.map((item) => (
-          <Option key={item.value}>
-            <input
-              type="radio"
-              name="format"
-              value={item.value}
-              checked={format === item.value}
-              onChange={handleFormatChange}
-            />
-            <div>
-              <Text as="p" size="small" weight="bold">
-                {item.title}
-              </Text>
-              <Text size="small" type="secondary">
-                {item.description}
-              </Text>
-            </div>
-          </Option>
-        ))}
-      </Flex>
+      <FileFormatSelector
+        formats={formats}
+        value={format}
+        onChange={setFormat}
+      />
       <HR />
       <Flex gap={12} column>
         <Option>
@@ -168,7 +121,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
             </Text>
             <Text size="small" type="secondary">
               {t("Including uploaded images and files in the exported data")}.
-            </Text>{" "}
+            </Text>
           </div>
         </Option>
         {!collection && (
@@ -183,13 +136,19 @@ function ExportDialog({ collection, onSubmit }: Props) {
               <Text as="p" size="small" weight="bold">
                 {t("Include private collections")}
               </Text>
+              <Text size="small" type="secondary">
+                {t(
+                  "As an admin you can export collections you are not currently a member of"
+                )}
+                .
+              </Text>
             </div>
           </Option>
         )}
       </Flex>
     </ConfirmationDialog>
   );
-}
+});
 
 const HR = styled.hr`
   margin: 16px 0;
@@ -208,5 +167,3 @@ const Option = styled.label`
     margin: 0;
   }
 `;
-
-export default observer(ExportDialog);

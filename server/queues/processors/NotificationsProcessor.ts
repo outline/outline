@@ -77,7 +77,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   }
 
   async documentAddUser(event: DocumentUserEvent) {
-    if (!event.data.isNew || event.userId === event.actorId) {
+    if (!event.data?.isNew || event.userId === event.actorId) {
       return;
     }
     await new DocumentAddUserNotificationsTask().schedule(event);
@@ -112,7 +112,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   }
 
   async collectionAddUser(event: CollectionUserEvent) {
-    if (!event.data.isNew || event.userId === event.actorId) {
+    if (!event.data?.isNew || event.userId === event.actorId) {
       return;
     }
 

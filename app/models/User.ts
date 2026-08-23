@@ -12,12 +12,14 @@ import {
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import type { locales } from "@shared/utils/date";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { client } from "~/utils/ApiClient";
 import type Document from "./Document";
 import type Group from "./Group";
 import type UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 import type { Searchable } from "./interfaces/Searchable";
 
 class User extends ParanoidModel implements Searchable {
@@ -78,6 +80,13 @@ class User extends ParanoidModel implements Searchable {
 
   @observable
   isSuspended: boolean;
+
+  @observable
+  invitedById: string | undefined;
+
+  /** The user that invited this user, if they were invited. */
+  @Relation(() => User)
+  invitedBy: User | undefined;
 
   @computed
   get searchContent(): string[] {
@@ -150,6 +159,30 @@ class User extends ParanoidModel implements Searchable {
   @computed
   get isRecentlyActive(): boolean {
     return new Date(this.lastActiveAt) > subMinutes(now(10000), 5);
+  }
+
+  /**
+   * The current time where the user is located, formatted for the locale of the
+   * signed-in user.
+   *
+   * @returns the formatted time, or undefined if the user's timezone is unknown
+   */
+  @computed
+  get localTime(): string | undefined {
+    if (!this.timezone) {
+      return undefined;
+    }
+
+    const language = this.store.rootStore.auth?.user?.language;
+
+    try {
+      return new Date(now(60000)).toLocaleTimeString(
+        language ? unicodeCLDRtoBCP47(language) : undefined,
+        { hour: "numeric", minute: "numeric", timeZone: this.timezone }
+      );
+    } catch {
+      return undefined;
+    }
   }
 
   /**

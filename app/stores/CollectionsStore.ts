@@ -1,9 +1,9 @@
 import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
-  CollectionStatusFilter,
   type FileOperationFormat,
   SubscriptionType,
 } from "@shared/types";
@@ -94,6 +94,23 @@ export default class CollectionsStore extends Store<Collection> {
   };
 
   @action
+  duplicate = async (
+    collection: Collection,
+    options?: {
+      name?: string;
+    }
+  ): Promise<Collection> => {
+    const res = await client.post("/collections.duplicate", {
+      id: collection.id,
+      ...options,
+    });
+    invariant(res?.data, "Data should be available");
+
+    this.addPolicies(res.policies);
+    return this.add(res.data);
+  };
+
+  @action
   move = async (collectionId: string, index: string) => {
     const res = await client.post("/collections.move", {
       id: collectionId,
@@ -149,21 +166,19 @@ export default class CollectionsStore extends Store<Collection> {
   @action
   fetchNamedPage = async (
     request = "list",
-    options:
-      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
-      | undefined
+    options: (PaginationParams & { filters?: Filter[] }) | undefined
   ): Promise<Collection[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/collections.${request}`, options);
       invariant(res?.data, "Collection list not available");
-      runInAction("CollectionsStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
+      return runInAction("CollectionsStore#fetchNamedPage", () => {
+        const collections = res.data.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
+        return collections;
       });
-      return res.data;
     } finally {
       this.isFetching = false;
     }
@@ -173,7 +188,7 @@ export default class CollectionsStore extends Store<Collection> {
   fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
     this.fetchNamedPage("list", {
       ...options,
-      statusFilter: [CollectionStatusFilter.Archived],
+      filters: [{ field: "archivedAt", operator: "isNotNull" }],
     });
 
   get(id: string = ""): Collection | undefined {

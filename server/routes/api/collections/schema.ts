@@ -1,5 +1,6 @@
 import { isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
+import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
   CollectionStatusFilter,
@@ -62,6 +63,17 @@ export const CollectionsCreateSchema = BaseSchema.extend({
 });
 
 export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
+
+export const CollectionsDuplicateSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** New collection name */
+    name: z.string().optional(),
+  }),
+});
+
+export type CollectionsDuplicateReq = z.infer<
+  typeof CollectionsDuplicateSchema
+>;
 
 export const CollectionsInfoSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
@@ -204,16 +216,47 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
 
 export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
 
+const collectionListFilter = createFilterSchema({
+  name: "string",
+  createdAt: "date",
+  updatedAt: "date",
+  archivedAt: "date",
+  createdById: "uuid",
+  permission: {
+    kind: "string",
+    operators: ["eq", "neq", "in", "notIn", "isNull", "isNotNull"],
+    values: Object.values(CollectionPermission),
+  },
+} as const);
+
 export const CollectionsListSchema = BaseSchema.extend({
   body: z.object({
     includeListOnly: z.boolean().prefault(false),
 
+    /**
+     * Filter results by collection name.
+     * @deprecated use `filters` with field `name` and operator `contains` instead.
+     */
     query: z.string().optional(),
 
-    /** Collection statuses to include in results */
+    /**
+     * Collection statuses to include in results.
+     * @deprecated use `filters` with field `archivedAt` instead.
+     */
     statusFilter: z.enum(CollectionStatusFilter).array().optional(),
+
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: collectionListFilter.FilterListSchema.optional(),
   }),
-});
+}).refine(
+  (req) =>
+    req.body.filters === undefined ||
+    (req.body.query === undefined && req.body.statusFilter === undefined),
+  {
+    message:
+      "filters cannot be combined with deprecated parameters query or statusFilter",
+  }
+);
 
 export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
 

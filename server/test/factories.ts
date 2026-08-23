@@ -469,6 +469,7 @@ export async function buildTemplate(
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
       editorVersion: "12.0.0",
+      publishedAt: new Date(),
       ...overrides,
     },
     {

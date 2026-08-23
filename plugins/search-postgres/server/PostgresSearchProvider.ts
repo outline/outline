@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { escapeRegExp, find, map } from "es-toolkit/compat";
+import { compact, escapeRegExp, find, map } from "es-toolkit/compat";
 import queryParser from "pg-tsquery";
 import type {
   BindOrReplacements,
@@ -9,8 +9,9 @@ import type {
   WhereOptions,
 } from "sequelize";
 import { Op, Sequelize } from "sequelize";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type { SearchableModel } from "@shared/types";
-import { DirectionFilter, SortFilter, StatusFilter } from "@shared/types";
+import { DirectionFilter, SortFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
@@ -20,7 +21,11 @@ import Document from "@server/models/Document";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { sequelize } from "@server/storage/database";
+import {
+  buildSearchWhere,
+  collectEqValues,
+} from "@server/models/helpers/Filters";
+import { sequelizeReadOnly } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import type {
   SearchOptions,
@@ -189,7 +194,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     const where = await PostgresSearchProvider.buildWhere(team, {
       ...options,
-      statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
+      // Team-context search (used by shares) is always restricted to
+      // published, non-archived documents.
+      filter: PostgresSearchProvider.withPublishedConstraint(options.filter),
     });
 
     if (options.share) {
@@ -230,33 +237,35 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     });
 
     try {
-      const resultsQuery = Document.unscoped().findAll({
-        ...findOptions,
+      const results = await PostgresSearchProvider.findRankedResults({
+        findOptions,
         where,
         limit,
         offset,
-      }) as unknown as Promise<RankedDocument[]>;
-
-      const countQuery = Document.unscoped().count({
-        // @ts-expect-error Types are incorrect for count
-        replacements: findOptions.replacements,
-        where,
-      }) as unknown as Promise<number>;
-      const [results, count] = await Promise.all([resultsQuery, countQuery]);
+      });
 
       // Final query to get associated document data
-      const documents = await Document.findAll({
-        where: {
-          id: map(results, "id"),
-          teamId: team.id,
-        },
-        include: [
-          {
-            model: Collection,
-            as: "collection",
+      const [documents, count] = await Promise.all([
+        Document.findAll({
+          where: {
+            id: map(results, "id"),
+            teamId: team.id,
           },
-        ],
-      });
+          include: [
+            {
+              model: Collection,
+              as: "collection",
+            },
+          ],
+        }),
+        PostgresSearchProvider.countResults({
+          results,
+          limit,
+          offset,
+          replacements: findOptions.replacements,
+          where,
+        }),
+      ]);
 
       return PostgresSearchProvider.buildResponse({
         query,
@@ -288,59 +297,16 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       });
     }
 
-    const include = [
-      {
-        association: "memberships",
-        where: {
-          userId: user.id,
-        },
-        required: false,
-        separate: false,
-      },
-      {
-        association: "groupMemberships",
-        required: false,
-        separate: false,
-        include: [
-          {
-            association: "group",
-            required: true,
-            include: [
-              {
-                association: "groupUsers",
-                required: true,
-                where: {
-                  userId: user.id,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: User,
-        as: "createdBy",
-        paranoid: false,
-      },
-      {
-        model: User,
-        as: "updatedBy",
-        paranoid: false,
-      },
-    ];
-
     return Document.withMembershipScope(user.id, {
       includeDrafts: true,
     }).findAll({
       where,
-      subQuery: false,
       order: [
         [
           options.sort ?? SortFilter.UpdatedAt,
           options.direction ?? DirectionFilter.DESC,
         ],
       ],
-      include,
       offset,
       limit,
     });
@@ -389,54 +355,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       direction: options.direction,
     });
 
-    const include = [
-      {
-        association: "memberships",
-        where: {
-          userId: user.id,
-        },
-        required: false,
-        separate: false,
-      },
-      {
-        association: "groupMemberships",
-        required: false,
-        separate: false,
-        include: [
-          {
-            association: "group",
-            required: true,
-            include: [
-              {
-                association: "groupUsers",
-                required: true,
-                where: {
-                  userId: user.id,
-                },
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
     try {
-      const results = (await Document.unscoped().findAll({
-        ...findOptions,
-        subQuery: false,
-        include,
+      const results = await PostgresSearchProvider.findRankedResults({
+        findOptions,
         where,
         limit,
         offset,
-      })) as unknown as RankedDocument[];
-
-      const countQuery = Document.unscoped().count({
-        // @ts-expect-error Types are incorrect for count
-        subQuery: false,
-        include,
-        replacements: findOptions.replacements,
-        where,
-      }) as unknown as Promise<number>;
+      });
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
@@ -446,9 +371,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
             id: map(results, "id"),
           },
         }),
-        results.length < limit && offset === 0
-          ? Promise.resolve(results.length)
-          : countQuery,
+        PostgresSearchProvider.countResults({
+          results,
+          limit,
+          offset,
+          replacements: findOptions.replacements,
+          where,
+        }),
       ]);
 
       return PostgresSearchProvider.buildResponse({
@@ -509,6 +438,69 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     _metadata: Record<string, unknown>
   ): Promise<void> {
     // PostgreSQL metadata lives in the same row as the document
+  }
+
+  /**
+   * Executes the ranked search query inside a transaction opened on the
+   * read-replica connection, offloading the most expensive query from the
+   * primary. The transaction also ensures the statement timeout for
+   * request-handling processes applies, cancelling a pathological query at
+   * the database rather than letting it run unbounded.
+   */
+  private static findRankedResults({
+    findOptions,
+    where,
+    limit,
+    offset,
+  }: {
+    findOptions: FindOptions;
+    where: WhereOptions<Document>;
+    limit: number;
+    offset: number;
+  }): Promise<RankedDocument[]> {
+    return sequelizeReadOnly.transaction(
+      (transaction) =>
+        Document.unscoped().findAll({
+          ...findOptions,
+          where,
+          limit,
+          offset,
+          transaction,
+        }) as unknown as Promise<RankedDocument[]>
+    );
+  }
+
+  /**
+   * Returns the total number of documents matching the search, avoiding a
+   * second query over the search conditions when the requested page was not
+   * filled and the total can be inferred.
+   */
+  private static countResults({
+    results,
+    limit,
+    offset,
+    replacements,
+    where,
+  }: {
+    results: RankedDocument[];
+    limit: number;
+    offset: number;
+    replacements?: BindOrReplacements;
+    where: WhereOptions<Document>;
+  }): Promise<number> {
+    if (results.length < limit && (offset === 0 || results.length > 0)) {
+      return Promise.resolve(offset + results.length);
+    }
+
+    return sequelizeReadOnly.transaction(
+      (transaction) =>
+        Document.unscoped().count({
+          // @ts-expect-error Types are incorrect for count
+          replacements,
+          where,
+          transaction,
+        }) as unknown as Promise<number>
+    );
   }
 
   private static buildFindOptions({
@@ -599,14 +591,37 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         ? 0
         : regexIndexOf(text, breakCharsRegex, offsetStartIndex)
     );
-    const context = text.replace(highlightRegex, "<b>$&</b>");
-    const endIndex = regexLastIndexOf(
-      context,
-      breakCharsRegex,
-      startIndex + 250
-    );
+    // Ends on the last word boundary within the window, or at the window
+    // itself when the text has none.
+    const maxEndIndex = Math.min(text.length, startIndex + 250);
+    const breakIndex = regexLastIndexOf(text, breakCharsRegex, maxEndIndex);
+    const endIndex = breakIndex > startIndex ? breakIndex : maxEndIndex;
 
-    return context.slice(startIndex, endIndex);
+    // Highlight after slicing, as the inserted tags shift every index that
+    // follows an earlier match.
+    return text
+      .slice(startIndex, endIndex)
+      .replace(highlightRegex, "<b>$&</b>");
+  }
+
+  /**
+   * AND a "published, non-archived" constraint into a filter expression.
+   *
+   * @param filter the filter to constrain, or undefined.
+   * @returns a filter that always requires Published status.
+   */
+  private static withPublishedConstraint(filter: Filter | undefined): Filter {
+    const publishedShape: Filter = {
+      operator: "AND",
+      filters: [
+        { field: "archivedAt", operator: "isNull" },
+        { field: "publishedAt", operator: "isNotNull" },
+      ],
+    };
+    if (!filter) {
+      return publishedShape;
+    }
+    return { operator: "AND", filters: [filter, publishedShape] };
   }
 
   private static async buildWhere(model: User | Team, options: SearchOptions) {
@@ -632,114 +647,64 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       ],
     };
 
-    if (model instanceof User) {
-      where[Op.or].push(
-        { "$memberships.id$": { [Op.ne]: null } },
-        { "$groupMemberships.id$": { [Op.ne]: null } }
-      );
+    const filter = options.filter;
 
-      // Allow users to see their own drafts that have no collection, where no
-      // membership or collection access applies. Drafts in collections remain
-      // gated by the collection/membership checks above.
-      if (options.statusFilter?.includes(StatusFilter.Draft)) {
-        where[Op.or].push({
-          createdById: model.id,
-          collectionId: { [Op.is]: null },
-          publishedAt: { [Op.eq]: null },
-          archivedAt: { [Op.eq]: null },
-        });
+    // A document is visible if any of:
+    //
+    //   - direct or group membership on the document
+    //   - the user is the creator AND the doc has no collection (unplaced
+    //     drafts that no membership/collection check can reach)
+    //   - the doc is published AND lives in a collection the user can access
+    //     (the common case for non-draft visibility)
+    //   - the user is the creator AND the doc lives in a collection they can
+    //     access (covers own drafts in shared collections — collection access
+    //     alone does not grant visibility into other users' drafts)
+    //
+    // Membership and collection access are resolved to id lists upfront so the
+    // search query needs no membership joins. Status/date narrowing is applied
+    // separately via `filter`.
+    //
+    // For Team contexts (share-based search), the caller is privileged and has
+    // done its own authorization — narrow to the filter's collectionId if
+    // specified, otherwise to the team's publicly-permissioned set.
+    if (model instanceof User) {
+      const [membershipDocumentIds, collectionIds] = await Promise.all([
+        Document.membershipDocumentIds(model.id),
+        model.collectionIds(),
+      ]);
+      if (membershipDocumentIds.length) {
+        where[Op.or].push({ id: membershipDocumentIds });
+      }
+      where[Op.or].push({
+        createdById: model.id,
+        collectionId: { [Op.is]: null },
+      });
+      if (collectionIds.length) {
+        where[Op.or].push(
+          {
+            collectionId: collectionIds,
+            publishedAt: { [Op.ne]: null },
+          },
+          {
+            createdById: model.id,
+            collectionId: collectionIds,
+          }
+        );
+      }
+    } else {
+      const explicitCollectionIds = filter
+        ? collectEqValues(filter, "collectionId")
+        : [];
+      const collectionIds = explicitCollectionIds.length
+        ? explicitCollectionIds
+        : await model.collectionIds();
+      if (collectionIds.length) {
+        where[Op.or].push({ collectionId: collectionIds });
       }
     }
 
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    const collectionIds = options.collectionId
-      ? [options.collectionId]
-      : await model.collectionIds();
-
-    if (options.collectionId) {
-      where[Op.and].push({ collectionId: options.collectionId });
-    }
-    if (collectionIds.length) {
-      where[Op.or].push({ collectionId: collectionIds });
-    }
-
-    if (options.dateFilter) {
-      where[Op.and].push({
-        updatedAt: {
-          [Op.gt]: sequelize.literal(
-            `now() - interval '1 ${options.dateFilter}'`
-          ),
-        },
-      });
-    }
-
-    if (options.collaboratorIds) {
-      where[Op.and].push({
-        collaboratorIds: {
-          [Op.contains]: options.collaboratorIds,
-        },
-      });
-    }
-
-    if (options.documentIds) {
-      where[Op.and].push({
-        id: options.documentIds,
-      });
-    }
-
-    const statusQuery = [];
-    if (options.statusFilter?.includes(StatusFilter.Published)) {
-      statusQuery.push({
-        [Op.and]: [
-          {
-            publishedAt: {
-              [Op.ne]: null,
-            },
-            archivedAt: {
-              [Op.eq]: null,
-            },
-          },
-        ],
-      });
-    }
-
-    if (
-      options.statusFilter?.includes(StatusFilter.Draft) &&
-      // Only ever include draft results for the user's own documents
-      model instanceof User
-    ) {
-      statusQuery.push({
-        [Op.and]: [
-          {
-            publishedAt: {
-              [Op.eq]: null,
-            },
-            archivedAt: {
-              [Op.eq]: null,
-            },
-            [Op.or]: [
-              { createdById: model.id },
-              { "$memberships.id$": { [Op.ne]: null } },
-            ],
-          },
-        ],
-      });
-    }
-
-    if (options.statusFilter?.includes(StatusFilter.Archived)) {
-      statusQuery.push({
-        archivedAt: {
-          [Op.ne]: null,
-        },
-      });
-    }
-
-    if (statusQuery.length) {
-      where[Op.and].push({
-        [Op.or]: statusQuery,
-      });
+    if (filter) {
+      where[Op.and].push(buildSearchWhere<Document>(filter));
     }
 
     if (options.query) {
@@ -815,19 +780,27 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     count: number;
   }): SearchResponse {
     return {
-      results: map(results, (result) => {
-        const document = find(documents, {
-          id: result.id,
-        }) as Document;
+      results: compact(
+        map(results, (result) => {
+          const document = find(documents, {
+            id: result.id,
+          });
 
-        return {
-          ranking: result.dataValues.searchRanking,
-          context: query
-            ? PostgresSearchProvider.buildResultContext(document, query)
-            : undefined,
-          document,
-        };
-      }),
+          // The ranked query may run on a read replica, so a document can be
+          // returned that has since been removed on the primary.
+          if (!document) {
+            return null;
+          }
+
+          return {
+            ranking: result.dataValues.searchRanking,
+            context: query
+              ? PostgresSearchProvider.buildResultContext(document, query)
+              : undefined,
+            document,
+          };
+        })
+      ),
       total: count,
     };
   }

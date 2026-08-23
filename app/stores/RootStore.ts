@@ -35,7 +35,7 @@ import UserMembershipsStore from "./UserMembershipsStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
-import type Store from "./base/Store";
+import Store from "./base/Store";
 
 export default class RootStore {
   apiKeys: ApiKeysStore;
@@ -113,6 +113,40 @@ export default class RootStore {
 
     // AuthStore must be initialized last as it makes use of the other stores.
     this.registerStore(AuthStore, "auth");
+
+    // AuthStore will have synchronously rehydrated the current team from
+    // localStorage at this point, if a session exists.
+    this.enablePersistence();
+  }
+
+  /**
+   * Enable IndexedDB persistence for all stores marked as persistable, scoped
+   * to the current team. A no-op when there is no authenticated team or
+   * persistence is already enabled.
+   */
+  public enablePersistence() {
+    const teamId = this.auth.currentTeamId;
+    if (!teamId) {
+      return;
+    }
+
+    Object.values(this).forEach((store) => {
+      if (store instanceof Store) {
+        void store.enablePersistence(teamId);
+      }
+    });
+  }
+
+  /**
+   * Disable IndexedDB persistence for all stores, closing any open connections
+   * so that the databases can be deleted or upgraded.
+   */
+  public disablePersistence() {
+    Object.values(this).forEach((store) => {
+      if (store instanceof Store) {
+        store.disablePersistence();
+      }
+    });
   }
 
   /**

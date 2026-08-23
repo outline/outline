@@ -12,6 +12,7 @@ import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
+import { getTokenFromCookie } from "@server/utils/csrf";
 import BaseStorage from "./BaseStorage";
 import { CSRF } from "@shared/constants";
 import type { AppContext } from "@server/types";
@@ -37,7 +38,7 @@ export default class LocalStorage extends BaseStorage {
         maxUploadSize: String(maxUploadSize),
         contentType,
         sig,
-        [CSRF.fieldName]: ctx.cookies.get(CSRF.cookieName) || "",
+        [CSRF.fieldName]: getTokenFromCookie(ctx) ?? "",
       },
     });
   }
@@ -116,6 +117,9 @@ export default class LocalStorage extends BaseStorage {
       {
         key,
         type: "attachment",
+        iat: Math.floor(
+          LocalStorage.getSigningDate(expiresIn).getTime() / 1000
+        ),
       },
       env.SECRET_KEY,
       {
@@ -180,6 +184,12 @@ export default class LocalStorage extends BaseStorage {
       env.FILE_STORAGE_LOCAL_ROOT_DIR,
       "FILE_STORAGE_LOCAL_ROOT_DIR is required"
     );
+
+    // resolve-path only rejects a path that climbs above the root, it will
+    // silently normalize one that moves between buckets inside it.
+    if (key.split(/[\\/]/).includes("..")) {
+      throw ValidationError(`Invalid file key ${key}`);
+    }
 
     return safeResolvePath(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
   }

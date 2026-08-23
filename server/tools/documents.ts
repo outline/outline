@@ -10,6 +10,7 @@ import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Collection, Document, SearchQuery, Template } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
+import { combineFilters } from "@server/models/helpers/Filters";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import { sequelize } from "@server/storage/database";
 import { authorize, can } from "@server/policies";
@@ -33,7 +34,9 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
-import { StatusFilter, TextEditMode } from "@shared/types";
+import { ValidationError } from "@server/errors";
+import { TextEditMode } from "@shared/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
@@ -70,7 +73,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Search documents",
         description:
-          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
+          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Archived documents are excluded unless includeArchived is set. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
         annotations: {
           idempotentHint: true,
           readOnlyHint: true,
@@ -82,6 +85,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "A collection ID to filter documents by."
           ),
+          includeArchived: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to include archived documents in the results. Defaults to false, as archived documents are usually outdated."
+            ),
           offset: z.coerce
             .number()
             .int()
@@ -101,7 +110,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing(
         "list_documents",
-        async ({ query, collectionId, offset, limit }, extra) => {
+        async (
+          { query, collectionId, includeArchived, offset, limit },
+          extra
+        ) => {
           try {
             const user = getActorFromContext(extra);
             const effectiveOffset = offset ?? 0;
@@ -144,11 +156,25 @@ export function documentTools(server: McpServer, scopes: string[]) {
               }
 
               const searchStartedAt = Date.now();
+              const searchFilters: Filter[] = [];
+              if (!includeArchived) {
+                searchFilters.push({
+                  field: "archivedAt",
+                  operator: "isNull",
+                });
+              }
+              if (collectionId) {
+                searchFilters.push({
+                  field: "collectionId",
+                  operator: "eq",
+                  value: collectionId,
+                });
+              }
               const { results, total } = await searchProvider.searchForUser(
                 user,
                 {
                   query,
-                  collectionId,
+                  filter: combineFilters(searchFilters),
                   offset: effectiveOffset,
                   limit: effectiveLimit,
                 }
@@ -232,11 +258,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
             // List recent documents via the search provider (with no query) so
             // access control matches the search path exactly.
             const searchProvider = SearchProviderManager.getProvider();
+            const filters: Filter[] = [
+              { field: "publishedAt", operator: "isNotNull" },
+            ];
+            if (!includeArchived) {
+              filters.push({ field: "archivedAt", operator: "isNull" });
+            }
+            if (collectionId) {
+              filters.push({
+                field: "collectionId",
+                operator: "eq",
+                value: collectionId,
+              });
+            }
             const { results } = await searchProvider.searchForUser(user, {
-              collectionId,
+              filter: { operator: "AND", filters },
               offset: effectiveOffset,
               limit: effectiveLimit,
-              statusFilter: [StatusFilter.Published],
             });
 
             const documents = results.map((result) => result.document);
@@ -425,47 +463,39 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   authType: ctx.state.auth.type,
                   ip: ctx.context.ip,
                 })
-              : await documentCreator(ctx, {
-                  title: input.title,
-                  text: input.text,
-                  icon: input.icon,
-                  color: input.color,
-                  parentDocumentId,
-                  publish: input.publish !== false,
-                  collectionId: collection?.id,
-                  template,
-                  fullWidth: input.fullWidth,
-                  sourceMetadata: input.sourceFileName
-                    ? {
-                        fileName: input.sourceFileName,
-                        mimeType: "text/markdown",
-                      }
-                    : undefined,
+              : await sequelize.transaction(async (transaction) => {
+                  ctx.state.transaction = transaction;
+                  ctx.context.transaction = transaction;
+
+                  return documentCreator(ctx, {
+                    title: input.title,
+                    text: input.text,
+                    icon: input.icon,
+                    color: input.color,
+                    parentDocumentId,
+                    publish: input.publish !== false,
+                    collectionId: collection?.id,
+                    template,
+                    fullWidth: input.fullWidth,
+                    sourceMetadata: input.sourceFileName
+                      ? {
+                          fileName: input.sourceFileName,
+                          mimeType: "text/markdown",
+                        }
+                      : undefined,
+                  });
                 });
 
-          const [{ text, ...attributes }, breadcrumb] = await Promise.all([
-            presentDocument(document, {
-              includeData: false,
-              includeText: true,
-              includeUpdatedAt: true,
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
             }),
-            getDocumentBreadcrumb(document, user),
-          ]);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  document: pathToUrl(user.team, attributes),
-                  ...(breadcrumb !== undefined && { breadcrumb }),
-                }),
-              },
-              {
-                type: "text" as const,
-                text: typeof text === "string" ? text : "",
-              },
-            ],
-          } satisfies CallToolResult;
+            ...(breadcrumb !== undefined && { breadcrumb }),
+          });
         } catch (message) {
           return error(message);
         }
@@ -509,7 +539,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          return await sequelize.transaction(async (transaction) => {
+          const document = await sequelize.transaction(async (transaction) => {
             ctx.state.transaction = transaction;
             ctx.context.transaction = transaction;
 
@@ -525,7 +555,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
-                return error("Cannot nest a document inside itself");
+                throw ValidationError("Cannot nest a document inside itself");
               }
 
               const parent = await Document.findByPk(input.parentDocumentId, {
@@ -538,10 +568,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
               collectionId = parent.collectionId!;
 
               if (!parent.publishedAt) {
-                return error("Cannot move document inside a draft");
+                throw ValidationError("Cannot move document inside a draft");
               }
             } else if (!collectionId) {
-              return error(
+              throw ValidationError(
                 "Either collectionId or parentDocumentId is required"
               );
             } else {
@@ -553,53 +583,26 @@ export function documentTools(server: McpServer, scopes: string[]) {
               authorize(user, "updateDocument", collection);
             }
 
-            const { documents, collections } = await documentMover(ctx, {
+            await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
               index: input.index,
             });
 
-            const indexMap = new Map<string, number>();
-            for (const col of collections) {
-              if (col.documentStructure) {
-                for (const [id, idx] of buildSiblingIndexMap(
-                  col.documentStructure
-                )) {
-                  indexMap.set(id, idx);
-                }
-              }
-            }
+            return document;
+          });
 
-            const [breadcrumbs, shareUrls] = await Promise.all([
-              getBreadcrumbsForDocuments(documents, user),
-              getPublicShareUrlsForDocuments(
-                user.team,
-                documents.map((document) => document.id)
-              ),
-            ]);
-
-            const presented = await Promise.all(
-              documents.map(async (document) => {
-                const doc = pathToUrl(
-                  user.team,
-                  await presentDocument(document, {
-                    includeData: false,
-                    includeText: false,
-                  })
-                );
-                const breadcrumb = breadcrumbs.get(document.id);
-                const shareUrl = shareUrls.get(document.id);
-                const siblingIndex = indexMap.get(document.id);
-                return {
-                  document: doc,
-                  ...(breadcrumb !== undefined && { breadcrumb }),
-                  ...(shareUrl !== undefined && { shareUrl }),
-                  ...(siblingIndex !== undefined && { index: siblingIndex }),
-                };
-              })
-            );
-            return success(presented);
+          // Resolved after commit so the breadcrumb reflects the new location.
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
+            }),
+            ...(breadcrumb !== undefined && { breadcrumb }),
           });
         } catch (message) {
           return error(message);
@@ -715,6 +718,22 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
           }
 
+          // A patch only rewrites part of the document, so the resulting
+          // content is echoed back for the caller to verify what was applied.
+          // Other modes have nothing to report beyond the write succeeding.
+          if (input.editMode !== TextEditMode.Patch) {
+            const breadcrumb = await getDocumentBreadcrumb(updated, user);
+            return success({
+              success: true,
+              ...pathToUrl(user.team, {
+                id: updated.id,
+                title: updated.title,
+                url: updated.url,
+              }),
+              ...(breadcrumb !== undefined && { breadcrumb }),
+            });
+          }
+
           const [{ text, ...attributes }, breadcrumb, shareUrl] =
             await Promise.all([
               presentDocument(updated, {
@@ -828,7 +847,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          return await sequelize.transaction(async (transaction) => {
+          const document = await sequelize.transaction(async (transaction) => {
             ctx.state.transaction = transaction;
             ctx.context.transaction = transaction;
 
@@ -840,37 +859,24 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
 
             if (!document.deletedAt && !document.archivedAt) {
-              return error("Document is not archived or trashed");
+              throw ValidationError("Document is not archived or trashed");
             }
 
             await documentRestorer(ctx, { document, collectionId });
 
-            const [{ text, ...attributes }, breadcrumb, shareUrl] =
-              await Promise.all([
-                presentDocument(document, {
-                  includeData: false,
-                  includeText: true,
-                  includeUpdatedAt: true,
-                }),
-                getDocumentBreadcrumb(document, user),
-                getPublicShareUrlForDocument(user.team, document.id),
-              ]);
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify({
-                    document: pathToUrl(user.team, attributes),
-                    ...(breadcrumb !== undefined && { breadcrumb }),
-                    ...(shareUrl !== undefined && { shareUrl }),
-                  }),
-                },
-                {
-                  type: "text" as const,
-                  text: typeof text === "string" ? text : "",
-                },
-              ],
-            } satisfies CallToolResult;
+            return document;
+          });
+
+          // Resolved after commit so the breadcrumb reflects the new location.
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
+            }),
+            ...(breadcrumb !== undefined && { breadcrumb }),
           });
         } catch (message) {
           return error(message);

@@ -23,6 +23,7 @@ import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import ParanoidModel from "~/models/base/ParanoidModel";
+import StorePersistence from "./StorePersistence";
 
 type ListPredicate<T> =
   | ((value: T, index: number, collection: ArrayLike<T>) => boolean)
@@ -75,7 +76,15 @@ export default abstract class Store<T extends Model> {
 
   apiEndpoint: string;
 
+  /**
+   * Whether the store's data should be persisted to IndexedDB, and restored
+   * at boot, once persistence is enabled for the authenticated team.
+   */
+  persistable = false;
+
   rootStore: RootStore;
+
+  protected persistence?: StorePersistence<T>;
 
   actions = [
     RPCAction.Info,
@@ -98,19 +107,68 @@ export default abstract class Store<T extends Model> {
   @action
   clear() {
     this.data.clear();
+    void this.persistence?.clear();
+  }
+
+  /**
+   * Enables persistence of this store's data to IndexedDB, scoped to the
+   * given team, and hydrates any previously persisted records into the store.
+   * A no-op if the store is not persistable, persistence is unsupported, or it
+   * is already enabled, so it is safe to call on every store and more than once.
+   *
+   * @param teamId the ID of the team the persisted data belongs to.
+   * @returns a promise that resolves when hydration is complete.
+   */
+  async enablePersistence(teamId: string): Promise<void> {
+    if (
+      !this.persistable ||
+      this.persistence ||
+      !StorePersistence.isSupported
+    ) {
+      return;
+    }
+
+    this.persistence = new StorePersistence<T>(this, teamId);
+    await this.persistence.hydrate();
+  }
+
+  /**
+   * Disables persistence of this store's data, closing the connection to the
+   * database without removing anything that was already persisted. Safe to call
+   * whether or not persistence is currently enabled.
+   */
+  disablePersistence(): void {
+    this.persistence?.disable();
+    this.persistence = undefined;
   }
 
   addPolicies = (policies: Policy[]) => {
     policies?.forEach((policy) => this.rootStore.policies.add(policy));
   };
 
-  findByQuery = (query: string, options?: { maxResults: number }): T[] => {
+  /**
+   * Finds the items that match the given query, ordered by relevance.
+   *
+   * @param query the search query, all items are returned when it is empty.
+   * @param options the maximum number of results, and a weight applied to the
+   * relevance score of each item, for example how familiar it is to the user.
+   * @returns the matching items.
+   */
+  findByQuery = (
+    query: string,
+    options?: { maxResults?: number; weight?: (item: T) => number }
+  ): T[] => {
     const normalized = deburr((query ?? "").trim().toLocaleLowerCase());
+    const weight = options?.weight;
 
     if (!normalized) {
-      return this.orderedData
-        .filter((item: T & Searchable) => !item.searchSuppressed)
-        .slice(0, options?.maxResults);
+      const items = this.orderedData.filter(
+        (item: T & Searchable) => !item.searchSuppressed
+      );
+
+      return (
+        weight ? items.sort((a, b) => weight(b) - weight(a)) : items
+      ).slice(0, options?.maxResults);
     }
 
     return this.orderedData
@@ -138,9 +196,11 @@ export default abstract class Store<T extends Model> {
 
         return {
           score:
-            seachables
+            (seachables
               .map((searchable) => commandScore(normalized, searchable))
-              .reduce((a, b) => a + b, 0) / seachables.length,
+              .reduce((a, b) => a + b, 0) /
+              seachables.length) *
+            (weight?.(item) ?? 1),
           item,
         };
       })
@@ -158,21 +218,32 @@ export default abstract class Store<T extends Model> {
 
       if (existingModel) {
         existingModel.updateData(item);
+        this.persistence?.persist(existingModel.id);
         return existingModel;
       }
 
       // @ts-expect-error TS thinks that we're instantiating an abstract class here
       const newModel = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
+      this.persistence?.persist(newModel.id);
       return newModel;
     }
 
     this.data.set(item.id, item);
+    this.persistence?.persist(item.id);
     return item;
   };
 
+  /**
+   * Remove a model, and any models that cascade from it, from the store.
+   *
+   * @param id the ID of the model to remove.
+   * @param options.permanent whether soft-deletable models should be evicted
+   * from the store entirely rather than marked as deleted. Use when the model
+   * is gone for good, or is no longer accessible to the current user.
+   */
   @action
-  remove(id: string): void {
+  remove(id: string, options?: { permanent?: boolean }): void {
     const model = this.data.get(id);
     if (!model) {
       return;
@@ -195,7 +266,7 @@ export default abstract class Store<T extends Model> {
           }
 
           if (deleteBehavior === "cascade") {
-            store.remove(item.id);
+            store.remove(item.id, options);
           } else if (deleteBehavior === "null") {
             // @ts-expect-error TODO
             item[relation.idKey] = null;
@@ -211,13 +282,17 @@ export default abstract class Store<T extends Model> {
 
     LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
 
-    if (model instanceof ParanoidModel) {
+    if (model instanceof ParanoidModel && !options?.permanent) {
       model.deletedAt = new Date().toISOString();
     } else {
       this.data.delete(id);
     }
 
     LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
+
+    // Persists the soft-deleted model, or removes the persisted record if the
+    // model was hard-deleted from the store.
+    this.persistence?.persist(id);
   }
 
   @action
@@ -352,6 +427,13 @@ export default abstract class Store<T extends Model> {
     } finally {
       this.isSaving = false;
     }
+  }
+
+  /**
+   * Whether individual models can be fetched by ID from this store.
+   */
+  get canFetchById(): boolean {
+    return this.actions.includes(RPCAction.Info);
   }
 
   @action

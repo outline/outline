@@ -35,6 +35,8 @@ type Props = {
   isTemplate: boolean;
   /** Whether the toolbar is currently active/visible */
   isActive: boolean;
+  /** Whether the editor currently holds focus */
+  isEditorFocused: boolean;
   /** The current selection */
   selection?: Selection;
   /** Whether the editor is in read-only mode */
@@ -66,11 +68,16 @@ enum Toolbar {
 }
 
 export function SelectionToolbar(props: Props) {
-  const { readOnly = false } = props;
+  const { readOnly = false, isEditorFocused } = props;
   const { view, extensions, commands, selectionToolbarMenus } = useEditor();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
+
+  // On mobile the toolbar is docked above the on-screen keyboard, so it stays
+  // visible for as long as the editor is being edited rather than only while
+  // there is a selection.
+  const isMobileEditing = isMobile && !readOnly && isEditorFocused;
   const { state } = view;
   const [autoFocusLinkInput, setAutoFocusLinkInput] = React.useState(false);
   const isDragging = useIsDragging(state);
@@ -126,21 +133,20 @@ export function SelectionToolbar(props: Props) {
     isNoticeSelection,
   ]);
 
-  React.useLayoutEffect(() => {
-    if (autoFocusLinkInput && activeToolbar !== Toolbar.Link) {
-      setAutoFocusLinkInput(false);
-    }
-  }, [activeToolbar, autoFocusLinkInput]);
-
+  // Focus is re-armed when the link editor closes rather than whenever the
+  // active toolbar isn't the link editor – the two pieces of state are not
+  // always updated in the same render.
   const prevActiveToolbar = React.useRef(activeToolbar);
   React.useLayoutEffect(() => {
     if (
       prevActiveToolbar.current === Toolbar.Link &&
-      activeToolbar !== Toolbar.Link &&
-      !readOnly &&
-      isActive
+      activeToolbar !== Toolbar.Link
     ) {
-      view.focus();
+      setAutoFocusLinkInput(false);
+
+      if (!readOnly && isActive) {
+        view.focus();
+      }
     }
     prevActiveToolbar.current = activeToolbar;
   }, [activeToolbar, readOnly, isActive, view]);
@@ -199,9 +205,7 @@ export function SelectionToolbar(props: Props) {
         ev.preventDefault();
         ev.stopPropagation();
         setAutoFocusLinkInput(true);
-        setActiveToolbar(
-          activeToolbar === Toolbar.Link ? Toolbar.Menu : Toolbar.Link
-        );
+        setActiveToolbar(Toolbar.Link);
       }
     },
     view.dom,
@@ -327,7 +331,8 @@ export function SelectionToolbar(props: Props) {
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={handleClickOutsideLinkEditor}
         />
-      ) : activeToolbar === Toolbar.Menu && items.length ? (
+      ) : (activeToolbar === Toolbar.Menu || isMobileEditing) &&
+        items.length ? (
         <ToolbarMenu items={items} {...rest} />
       ) : null}
     </FloatingToolbar>

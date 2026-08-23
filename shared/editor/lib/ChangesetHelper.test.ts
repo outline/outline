@@ -166,6 +166,65 @@ describe("ChangesetHelper.getChangeset", () => {
     });
   });
 
+  describe("comment marks", () => {
+    /**
+     * Builds a paragraph where the given word carries a comment mark.
+     */
+    function commented(
+      before: string,
+      word: string,
+      after: string
+    ): ProsemirrorData {
+      return {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: before },
+              {
+                type: "text",
+                text: word,
+                marks: [
+                  { type: "comment", attrs: { id: "comment-id", userId: "u" } },
+                ],
+              },
+              { type: "text", text: after },
+            ],
+          },
+        ],
+      };
+    }
+
+    it("ignores a comment mark added to otherwise unchanged text", () => {
+      const changes = changesFor(
+        commented("Hello ", "brave", " world"),
+        para("Hello brave world")
+      );
+
+      expect(changes).toHaveLength(0);
+    });
+
+    it("ignores a comment mark removed from otherwise unchanged text", () => {
+      const changes = changesFor(
+        para("Hello brave world"),
+        commented("Hello ", "brave", " world")
+      );
+
+      expect(changes).toHaveLength(0);
+    });
+
+    it("still reports text changes within commented text", () => {
+      const changes = changesFor(
+        commented("Hello ", "bold", " world"),
+        commented("Hello ", "brave", " world")
+      );
+
+      expect(changes).toHaveLength(1);
+      expect(deletedText(changes[0])).toBe("brave");
+    });
+  });
+
   it("does not affect a simple single-word change", () => {
     const changes = changesFor(
       para("Hello modified world"),
@@ -174,5 +233,26 @@ describe("ChangesetHelper.getChangeset", () => {
 
     expect(changes).toHaveLength(1);
     expect(changes[0].inserted).toHaveLength(1);
+  });
+
+  describe("complexity guard", () => {
+    const texts = Array.from(
+      { length: 500 },
+      (_, i) => `paragraph ${i} ${"lorem ipsum dolor sit amet ".repeat(12)}`
+    );
+
+    it("returns null when the changeset is too expensive to compute", () => {
+      const before = paras(...texts);
+      const after = paras(...texts.map((text) => `${text} rewritten`));
+
+      expect(ChangesetHelper.getChangeset(after, before)).toBeNull();
+    });
+
+    it("still computes a changeset for a small change to a large document", () => {
+      const before = paras(...texts);
+      const after = paras(...texts.slice(0, -1), "a different final paragraph");
+
+      expect(ChangesetHelper.getChangeset(after, before)).not.toBeNull();
+    });
   });
 });

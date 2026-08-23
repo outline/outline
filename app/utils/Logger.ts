@@ -67,11 +67,16 @@ class Logger {
    * @param message A description of the error
    * @param error The error that occurred
    * @param extra Arbitrary data to be logged that will appear in prod logs
+   * @param fingerprint Overrides how the error is grouped when reported
    */
-  error(message: string, error: Error, extra?: Extra) {
+  error(message: string, error: Error, extra?: Extra, fingerprint?: string[]) {
     if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
         scope.setLevel("error");
+
+        if (fingerprint) {
+          scope.setFingerprint(fingerprint);
+        }
 
         for (const key in extra) {
           scope.setExtra(key, extra[key]);

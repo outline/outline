@@ -142,12 +142,14 @@ type BaseAction = {
   name: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   section: ((context: ActionContext) => string) | string;
   description?: ((context: ActionContext) => string) | string;
-  shortcut?: string[];
+  shortcut?: ((context: ActionContext) => string[] | undefined) | string[];
   keywords?: string;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
   icon?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   iconInContextMenu?: boolean;
+  /** Additional content displayed at the end of the item in the command bar. */
+  badge?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: ((context: ActionContext) => boolean) | boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;

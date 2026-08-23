@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
   CollectionStatusFilter,
@@ -12,6 +13,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
+import collectionDuplicator from "@server/commands/collectionDuplicator";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
@@ -29,6 +31,11 @@ import {
   Document,
   Import,
 } from "@server/models";
+import {
+  buildWhere,
+  combineFilters,
+  hasFieldInFilter,
+} from "@server/models/helpers/Filters";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -102,6 +109,36 @@ router.post(
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
+    };
+  }
+);
+
+router.post(
+  "collections.duplicate",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  validate(T.CollectionsDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const collection = await Collection.findByPk(id, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "duplicate", collection);
+
+    const duplicated = await collectionDuplicator(ctx, {
+      collection,
+      name,
+    });
+
+    ctx.body = {
+      data: await presentCollection(ctx, duplicated),
+      policies: presentPolicies(user, [duplicated]),
     };
   }
 );
@@ -707,7 +744,12 @@ router.post(
   pagination(),
   transaction(),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { includeListOnly, query, statusFilter } = ctx.input.body;
+    const {
+      includeListOnly,
+      query,
+      statusFilter,
+      filters: rawFilters,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const collectionIds = await user.collectionIds({ transaction });
@@ -725,11 +767,24 @@ router.post(
       ],
     };
 
-    const includeArchived = !!statusFilter?.includes(
-      CollectionStatusFilter.Archived
-    );
+    // The schema rejects callers that combine `filters` with the deprecated
+    // top-level params, so at most one of the two shapes is set.
+    const legacyLeaves: Filter[] = [];
+    if (query) {
+      legacyLeaves.push({ field: "name", operator: "contains", value: query });
+    }
+    if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
+      legacyLeaves.push({ field: "archivedAt", operator: "isNotNull" });
+    }
+    const filter = combineFilters(rawFilters ?? legacyLeaves);
 
-    if (!statusFilter) {
+    // Results can contain archived collections once the caller targets
+    // archivedAt themselves, so hydrate the archiving user for presentation.
+    const includeArchived =
+      filter !== undefined && hasFieldInFilter(filter, "archivedAt");
+
+    // Exclude archived collections unless the caller targets archivedAt.
+    if (statusFilter === undefined && !includeArchived) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
@@ -739,28 +794,9 @@ router.post(
       where[Op.and].push({ id: collectionIds });
     }
 
-    if (query) {
-      where[Op.and].push(
-        Sequelize.literal(`unaccent(LOWER(name)) like unaccent(LOWER(:query))`)
-      );
+    if (filter) {
+      where[Op.and].push(buildWhere<Collection>(filter));
     }
-
-    const statusQuery = [];
-    if (includeArchived) {
-      statusQuery.push({
-        archivedAt: {
-          [Op.ne]: null,
-        },
-      });
-    }
-
-    if (statusQuery.length) {
-      where[Op.and].push({
-        [Op.or]: statusQuery,
-      });
-    }
-
-    const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const [collections, total] = await Promise.all([
       Collection.scope(
@@ -776,7 +812,6 @@ router.post(
             }
       ).findAll({
         where,
-        replacements,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),
           ["updatedAt", "DESC"],
@@ -787,8 +822,6 @@ router.post(
       }),
       Collection.count({
         where,
-        // @ts-expect-error Types are incorrect for count
-        replacements,
         transaction,
       }),
     ]);
@@ -927,7 +960,7 @@ router.post(
 
     let collection = await Collection.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(user, "move", collection);
 

@@ -9,7 +9,10 @@ import { Tab, Tabs } from "~/components/Tabs";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
-import ReferenceListItem from "./ReferenceListItem";
+import usePolicy from "~/hooks/usePolicy";
+import ReferenceListItem, {
+  NewChildReferenceListItem,
+} from "./ReferenceListItem";
 import useShare from "@shared/hooks/useShare";
 import type { NavigationNode } from "@shared/types";
 import { flattenTree } from "@shared/utils/tree";
@@ -26,20 +29,32 @@ function References({ document }: Props) {
   const locationSidebarContext = useLocationSidebarContext();
   const { sharedTree, isShare } = useShare();
   const [activeTab, setActiveTab] = useState<TabType>("children");
+  const isJustCreated = useMemo(
+    () => document.isJustCreated,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [document.id]
+  );
 
   useEffect(() => {
-    if (!isShare) {
+    if (!isShare && !isJustCreated) {
       void documents.fetchRelationships(document.id);
     }
-  }, [isShare, documents, document.id]);
+  }, [isShare, documents, document.id, isJustCreated]);
 
   const children = useChildren(document, sharedTree);
   const backlinks = useBacklinks(document, sharedTree);
+  const can = usePolicy(document);
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
+  const showNewChildDocument =
+    showChildDocuments && !isShare && !!can.createChildDocument;
   const shouldFade = useRef(!showBacklinks && !showChildDocuments);
   const isBacklinksTab = activeTab === "backlinks" || !showChildDocuments;
-  const height = Math.max(backlinks.length, children.length) * 40;
+  const height =
+    Math.max(
+      backlinks.length,
+      children.length + (showNewChildDocument ? 1 : 0)
+    ) * 40;
   const Component = shouldFade.current ? Fade : Fragment;
 
   return showBacklinks || showChildDocuments ? (
@@ -106,6 +121,12 @@ function References({ document }: Props) {
                 />
               );
             })}
+            {showNewChildDocument && (
+              <NewChildReferenceListItem
+                parentDocumentId={document.id}
+                sidebarContext={locationSidebarContext}
+              />
+            )}
           </List>
         )}
       </Content>

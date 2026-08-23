@@ -67,12 +67,12 @@ export default class FileHelper {
    * Loads the dimensions of a video file.
    *
    * @param file The file to load the dimensions for
-   * @returns The dimensions of the video
+   * @returns The dimensions of the video, if known.
    */
   static getVideoDimensions(
     file: File
-  ): Promise<{ width: number; height: number }> {
-    return new Promise((resolve, reject) => {
+  ): Promise<{ width: number; height: number } | undefined> {
+    return new Promise((resolve) => {
       const video = document.createElement("video");
       video.preload = "metadata";
       video.crossOrigin = "anonymous";
@@ -82,7 +82,9 @@ export default class FileHelper {
       };
       video.onerror = () => {
         window.URL.revokeObjectURL(video.src);
-        reject(new Error("Failed to load video for dimensions"));
+        // oxlint-disable-next-line no-console
+        console.warn("Failed to load video for dimensions");
+        resolve(undefined);
       };
       video.src = URL.createObjectURL(file);
     });
@@ -150,7 +152,7 @@ export default class FileHelper {
       }
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const img = new Image();
       img.onload = function () {
         window.URL.revokeObjectURL(img.src);
@@ -159,7 +161,9 @@ export default class FileHelper {
 
       img.onerror = () => {
         window.URL.revokeObjectURL(img.src);
-        reject(new Error("Failed to load image for dimensions"));
+        // oxlint-disable-next-line no-console
+        console.warn("Failed to load image for dimensions");
+        resolve(undefined);
       };
       img.src = URL.createObjectURL(file);
     });

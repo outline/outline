@@ -1,5 +1,5 @@
 import type { Mark, Slice } from "prosemirror-model";
-import { Node, Schema } from "prosemirror-model";
+import { Fragment, Node, Schema } from "prosemirror-model";
 import type { Change, TokenEncoder } from "prosemirror-changeset";
 import { ChangeSet, simplifyChanges } from "prosemirror-changeset";
 import { ReplaceStep, type Step } from "prosemirror-transform";
@@ -158,6 +158,41 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
 }
 
 /**
+ * The maximum estimated cost of computing a changeset, as the number of patch
+ * operations multiplied by the document node size. Step recreation copies and
+ * validates the full document once per operation, so its runtime grows with
+ * this product; above the bound the changeset is skipped instead of blocking
+ * the process for seconds or minutes.
+ */
+const MAX_CHANGESET_COMPLEXITY = 50_000_000;
+
+/**
+ * Marks that carry no document content and should not be surfaced as changes.
+ */
+const IGNORED_MARKS = ["comment"];
+
+/**
+ * Recursively removes marks that are irrelevant to a diff from a node, so that
+ * adding or removing one does not render as a change to the text it covers.
+ *
+ * @param node - The node to strip marks from.
+ * @returns an equivalent node without the ignored marks.
+ */
+function removeIgnoredMarks(node: Node): Node {
+  const marks = node.marks.filter(
+    (mark) => !IGNORED_MARKS.includes(mark.type.name)
+  );
+
+  if (node.isText || !node.childCount) {
+    return node.mark(marks);
+  }
+
+  const children: Node[] = [];
+  node.content.forEach((child) => children.push(removeIgnoredMarks(child)));
+  return node.copy(Fragment.fromArray(children)).mark(marks);
+}
+
+/**
  * Represents a modification (attribute change) in the document.
  */
 export type Modification = {
@@ -246,7 +281,9 @@ export class ChangesetHelper {
    *
    * @param revision - The current revision data.
    * @param previousRevision - The previous revision data to compare against.
-   * @returns An object containing the simplified changes and the new document.
+   * @returns An object containing the simplified changes and the new document,
+   * or null when there is nothing to compare against or the changeset is too
+   * expensive to compute.
    */
   public static getChangeset(
     revision?: ProsemirrorData | null,
@@ -268,14 +305,23 @@ export class ChangesetHelper {
       });
 
       // Parse documents from JSON (old = previous revision, new = current revision)
-      const docOld = Node.fromJSON(schema, previousRevision);
-      const docNew = Node.fromJSON(schema, revision);
+      const original = Node.fromJSON(schema, revision);
 
-      // Calculate the transform and changeset
+      // Diffing runs against copies without the ignored marks. Stripping marks
+      // leaves every position unchanged, so the resulting changes still line up
+      // with the original document.
+      const docOld = removeIgnoredMarks(
+        Node.fromJSON(schema, previousRevision)
+      );
+      const docNew = removeIgnoredMarks(original);
+
+      // Calculate the transform and changeset. Throws, and so returns null,
+      // when the diff is too expensive to compute.
       const tr = recreateTransform(docOld, docNew, {
         complexSteps: false,
         wordDiffs: true,
         simplifyDiff: true,
+        maxComplexity: MAX_CHANGESET_COMPLEXITY,
       });
 
       // Map steps to capture the actual content being replaced from the document
@@ -421,7 +467,7 @@ export class ChangesetHelper {
 
       return {
         changes: extendedChanges,
-        doc: tr.doc,
+        doc: original,
       };
     } catch {
       return null;

@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import Squircle from "@shared/components/Squircle";
-import { s, hover, ellipsis } from "@shared/styles";
+import { s, hover, ellipsis, borderRadius } from "@shared/styles";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type Document from "~/models/Document";
@@ -18,7 +18,9 @@ import type Pin from "~/models/Pin";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { DocumentContextMenu } from "~/menus/DocumentContextMenu";
 import CollectionIcon from "./Icons/CollectionIcon";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
@@ -31,8 +33,6 @@ type Props = {
   pin: Pin | undefined;
   /** The document related to the pin */
   document: Document;
-  /** Whether the user has permission to delete or reorder the pin */
-  canUpdatePin?: boolean;
   /** Whether this pin can be reordered by dragging */
   isDraggable?: boolean;
 };
@@ -41,8 +41,16 @@ function DocumentCard(props: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
   const theme = useTheme();
-  const { document, pin, canUpdatePin, isDraggable } = props;
+  const { document, pin, isDraggable } = props;
+  const canPin = usePolicy(pin);
+  const canDocument = usePolicy(document);
   const pinnedToHome = useRef(!pin?.collectionId).current;
+
+  // Pins in a collection are governed by the document policy, pins on home by
+  // the policy of the pin itself.
+  const canReorder = pin?.collectionId ? canDocument.pin : canPin.update;
+  const canUnpin = pin?.collectionId ? canDocument.unpin : canPin.delete;
+
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -55,7 +63,7 @@ function DocumentCard(props: Props) {
     isDragging,
   } = useSortable({
     id: props.document.id,
-    disabled: !isDraggable || !canUpdatePin,
+    disabled: !isDraggable || !canReorder,
   });
 
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
@@ -66,13 +74,19 @@ function DocumentCard(props: Props) {
   };
 
   const handleUnpin = useCallback(
-    async (ev) => {
+    async (ev: React.MouseEvent) => {
       ev.preventDefault();
       ev.stopPropagation();
       await pin?.delete();
     },
     [pin]
   );
+
+  // Keep the drag sensor from claiming the pointer, otherwise holding the
+  // button for longer than the activation delay starts a drag
+  const handleActionsPointerDown = useCallback((ev: React.PointerEvent) => {
+    ev.stopPropagation();
+  }, []);
 
   // If the document was updated within the last 7 days, show a timestamp instead of reading time
   const isRecentlyUpdated =
@@ -106,80 +120,84 @@ function DocumentCard(props: Props) {
         }}
         exit={{ opacity: 0, scale: 0.95 }}
       >
-        <DocumentLink
-          dir={document.dir}
-          $isDragging={isDragging}
-          to={{
-            pathname: document.path,
-            state: {
-              title: document.titleWithDefault,
-            },
-          }}
-        >
-          <Content justify="space-between" column>
-            <Fold
-              width="20"
-              height="21"
-              viewBox="0 0 20 21"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M19.5 20.5H6C2.96243 20.5 0.5 18.0376 0.5 15V0.5H0.792893L19.5 19.2071V20.5Z" />
-              <path d="M19.5 19.5H6C2.96243 19.5 0.5 17.0376 0.5 14V0.5H0.792893L19.5 19.2071V19.5Z" />
-            </Fold>
-
-            {document.icon ? (
-              <DocumentSquircle
-                icon={document.icon}
-                color={document.color ?? undefined}
-                initial={document.initial}
-              />
-            ) : (
-              <Squircle
-                color={
-                  collection?.color ??
-                  (pinnedToHome ? theme.slateLight : theme.slateDark)
-                }
+        <DocumentContextMenu document={document}>
+          <DocumentLink
+            dir={document.dir}
+            $isDragging={isDragging}
+            to={{
+              pathname: document.path,
+              state: {
+                title: document.titleWithDefault,
+              },
+            }}
+          >
+            <Content justify="space-between" column>
+              <Fold
+                width="20"
+                height="21"
+                viewBox="0 0 20 21"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                {collection?.icon &&
-                collection?.icon !== "letter" &&
-                collection?.icon !== "collection" &&
-                pinnedToHome ? (
-                  <CollectionIcon collection={collection} color="white" />
-                ) : (
-                  <DocumentIcon color="white" />
-                )}
-              </Squircle>
-            )}
-            <div>
-              <Heading dir={document.dir}>
-                {hasEmojiInTitle
-                  ? document.titleWithDefault.replace(document.icon!, "")
-                  : document.titleWithDefault}
-              </Heading>
-              <DocumentMeta size="xsmall">
-                {isRecentlyUpdated ? (
-                  updatedAt
-                ) : (
-                  <Suspense fallback={updatedAt}>
-                    <ReadingTime document={document} />
-                  </Suspense>
-                )}
-              </DocumentMeta>
-            </div>
-          </Content>
-          {canUpdatePin && (
-            <Actions dir={document.dir} gap={4}>
-              {!isDragging && pin && (
+                <path d="M19.5 20.5H6C2.96243 20.5 0.5 18.0376 0.5 15V0.5H0.792893L19.5 19.2071V20.5Z" />
+                <path d="M19.5 19.5H6C2.96243 19.5 0.5 17.0376 0.5 14V0.5H0.792893L19.5 19.2071V19.5Z" />
+              </Fold>
+
+              {document.icon ? (
+                <DocumentSquircle
+                  icon={document.icon}
+                  color={document.color ?? undefined}
+                  initial={document.initial}
+                />
+              ) : (
+                <Squircle
+                  color={
+                    collection?.color ??
+                    (pinnedToHome ? theme.slateLight : theme.slateDark)
+                  }
+                >
+                  {collection?.icon &&
+                  collection?.icon !== "letter" &&
+                  collection?.icon !== "collection" &&
+                  pinnedToHome ? (
+                    <CollectionIcon collection={collection} color="white" />
+                  ) : (
+                    <DocumentIcon color="white" />
+                  )}
+                </Squircle>
+              )}
+              <div>
+                <Heading dir={document.dir}>
+                  {hasEmojiInTitle
+                    ? document.titleWithDefault.replace(document.icon!, "")
+                    : document.titleWithDefault}
+                </Heading>
+                <DocumentMeta size="xsmall">
+                  {isRecentlyUpdated ? (
+                    updatedAt
+                  ) : (
+                    <Suspense fallback={updatedAt}>
+                      <ReadingTime document={document} />
+                    </Suspense>
+                  )}
+                </DocumentMeta>
+              </div>
+            </Content>
+            {canUnpin && !isDragging && pin && (
+              <Actions
+                dir={document.dir}
+                gap={4}
+                onPointerDown={handleActionsPointerDown}
+              >
                 <Tooltip content={t("Unpin")}>
                   <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
                     <CloseIcon />
                   </PinButton>
                 </Tooltip>
-              )}
-            </Actions>
-          )}
-        </DocumentLink>
+              </Actions>
+            )}
+          </DocumentLink>
+        </DocumentContextMenu>
       </AnimatePresence>
     </Reorderable>
   );
@@ -287,7 +305,7 @@ const DocumentLink = styled(Link)<{
   padding: 12px;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
+  ${borderRadius(8)}
   cursor: var(--pointer);
   background: ${s("background")};
   transition: transform 50ms ease-in-out;
@@ -299,10 +317,13 @@ const DocumentLink = styled(Link)<{
     opacity: 0;
   }
 
+  // data-state is set by the context menu trigger, so the treatment stays
+  // active while the menu is open
   &:${hover},
   &:active,
   &:focus,
-  &:focus-within {
+  &:focus-within,
+  &[data-state="open"] {
     transform: ${(props) => (props.$isDragging ? "scale(1.1)" : "scale(1.08)")}
       rotate(-2deg);
     box-shadow: ${(props) =>

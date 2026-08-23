@@ -17,6 +17,7 @@ import type Document from "~/models/Document";
 import type Event from "~/models/Event";
 import Time from "~/components/Time";
 import Logger from "~/utils/Logger";
+import { authTypeSuffix } from "./utils";
 
 type Props = {
   document: Document;
@@ -94,7 +95,8 @@ const EventListItem = ({ item }: Props) => {
         {icon}
       </IconWrapper>
       <Text size="xsmall" type="secondary">
-        {meta} &middot;{" "}
+        {meta}
+        {authTypeSuffix(item.authType, t)} &middot;{" "}
         <Time dateTime={item.createdAt} relative shorten addSuffix />
       </Text>
     </EventItem>

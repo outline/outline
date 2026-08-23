@@ -25,8 +25,14 @@ import type { withContext } from "./types";
 
 @trace()
 export default class PersistenceExtension implements Extension {
+  /** The maximum number of times persisting a single entity will be retried. */
+  private static maxPersistFailures = 5;
+
   /** The names of entities that have changed since they were last persisted. */
   private unsavedDocumentNames = new Set<string>();
+
+  /** The number of consecutive persistence failures, keyed by document name. */
+  private persistFailureCounts = new Map<string, number>();
 
   async onLoadDocument({
     documentName,
@@ -136,13 +142,27 @@ export default class PersistenceExtension implements Extension {
           clientVersion,
         });
       }
+
+      this.persistFailureCounts.delete(documentName);
     } catch (err) {
-      // Restore the flag so that a subsequent store will retry the write.
-      this.unsavedDocumentNames.add(documentName);
+      const failures = (this.persistFailureCounts.get(documentName) ?? 0) + 1;
+      const giveUp = failures >= PersistenceExtension.maxPersistFailures;
+
+      if (giveUp) {
+        // Stop retrying, the error is unlikely to be transient. Further changes
+        // to the entity will set the flag again and restart the count.
+        this.persistFailureCounts.delete(documentName);
+      } else {
+        // Restore the flag so that a subsequent store will retry the write.
+        this.persistFailureCounts.set(documentName, failures);
+        this.unsavedDocumentNames.add(documentName);
+      }
 
       Logger.error(`Unable to persist ${type}`, toError(err), {
         documentId: id,
         userId: context.user?.id,
+        failures,
+        giveUp,
       });
     }
   }

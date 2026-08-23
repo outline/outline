@@ -1511,6 +1511,71 @@ describe("#shares.subscribe", () => {
     expect(subscription.confirmedAt).toBeNull();
   });
 
+  it("should resend confirmation for a stale unconfirmed subscription", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint:
+        ShareSubscription.normalizeEmailFingerprint("user@example.com"),
+      secret: randomString(32),
+    });
+    const staleDate = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    await ShareSubscription.update(
+      { createdAt: staleDate, updatedAt: staleDate },
+      { where: { id: subscription.id }, silent: true }
+    );
+    const previousSecret = subscription.secret;
+
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "user@example.com",
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await subscription.reload();
+    expect(subscription.secret).not.toBe(previousSecret);
+  });
+
+  it("should back off resending confirmation as the subscription ages", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint:
+        ShareSubscription.normalizeEmailFingerprint("user@example.com"),
+      secret: randomString(32),
+    });
+    // Created ten days ago with a confirmation resent two hours ago
+    await ShareSubscription.update(
+      {
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+      { where: { id: subscription.id }, silent: true }
+    );
+    const previousSecret = subscription.secret;
+
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "user@example.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+
+    await subscription.reload();
+    expect(subscription.secret).toBe(previousSecret);
+  });
+
   it("should fail for unpublished share", async () => {
     const share = await buildShare({ published: false });
     const res = await server.post("/api/shares.subscribe", {
