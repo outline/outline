@@ -35,6 +35,18 @@ export const setStaffActiveProgram = (
 		return yield* repo.setActive(userId, tenantId, isActive);
 	});
 
+export const updateStaffProfileProgram = (
+	tenantId: TTenantId,
+	userId: TUserId,
+	fullName: string,
+	email: string,
+) =>
+	Effect.gen(function* () {
+		const repo = yield* IStaffRepository;
+		if (!repo.updateProfile) return false;
+		return yield* repo.updateProfile(userId, tenantId, fullName, email);
+	});
+
 // Looking up the branch name is purely for personalizing the email body.
 // The staff invite (repo.inviteStaff) has already been committed by the
 // time this runs, so a failure here (branch lookup or send) must never

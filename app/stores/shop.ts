@@ -142,8 +142,6 @@ export type CartLine = {
   price: number;
   quantity: number;
 };
-import type { JSONObject } from "@shared/types";
-import { client } from "~/utils/ApiClient";
 import { petsoClient } from "~/utils/petsoClient";
 
 function mapProduct(product: TProductDto): Product {
@@ -903,29 +901,6 @@ interface State {
   redeemPoints: (customerId: string, points: number) => Promise<boolean>;
   sendWhatsapp: (templateId: string, customerId: string) => Promise<boolean>;
   changePlan: (plan: "free" | "pro" | "business") => Promise<void>;
-}
-/**
- * Posts a change and reloads when it took.
- *
- * The master data pages all save and remove the same way, so the round trip
- * lives here rather than being repeated a dozen times.
- *
- * @param path the endpoint to post to.
- * @param body what to send.
- * @param get the store accessor, for reloading.
- * @returns the mock's answer.
- */
-async function write<
-  T extends {
-    saved?: boolean;
-    removed?: boolean;
-  },
->(path: string, body: JSONObject, get: () => State): Promise<T> {
-  const response = await client.post(path, body);
-  if (response.data?.saved || response.data?.removed) {
-    await get().fetchAll();
-  }
-  return response.data as T;
 }
 /**
  * State for the pet store domains.
@@ -1862,7 +1837,39 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
     return { removed: true };
   },
-  saveStaff: async (member) => write("/staff.save", member, get),
+  saveStaff: async (member) => {
+    if (member.id) {
+      await petsoClient.admin.updateStaffProfile(member.id, {
+        fullName: member.name,
+        email: member.email,
+      });
+      await get().fetchAll();
+      return { saved: true };
+    }
+    const branch =
+      get().branches.find((item) => item.name === member.branch) ??
+      get().branches[0];
+    if (!branch) {
+      return { saved: false, reason: "No branch is available" };
+    }
+    const role =
+      member.role === "caretaker" || member.role === "groomer"
+        ? "staff_daycare"
+        : member.role === "cashier"
+          ? "kasir"
+          : member.role === "owner" || member.role === "manager"
+            ? member.role
+            : "staff_daycare";
+    const response = await petsoClient.admin.inviteStaff({
+      email: member.email,
+      branchId: branch.id,
+      role,
+    });
+    if (response.sent) {
+      await get().fetchAll();
+    }
+    return { saved: response.sent, reason: response.reason };
+  },
   deleteStaff: async (id) => {
     const branchId = get().branches[0]?.id;
     if (!branchId) {

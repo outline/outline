@@ -209,6 +209,29 @@ export const StaffRepositoryDrizzle = Layer.effect(
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
 				),
+			updateProfile: (userId, tenantId, fullName, email) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const result = await db
+								.update(profiles)
+								.set({
+									fullName,
+									email,
+									updatedAt: new Date().toISOString(),
+								})
+								.where(
+									and(
+										eq(profiles.userId, userId),
+										eq(profiles.businessId, tenantId),
+									),
+								)
+								.returning({ id: profiles.id });
+							return result.length > 0;
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
 			removeFromBranch: (
 				userId: TUserId,
 				branchId: TBranchId,

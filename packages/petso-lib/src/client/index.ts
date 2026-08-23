@@ -42,6 +42,7 @@ import type {
 	TStaffMemberDto,
 	TInviteStaffInput,
 	TInviteStaffResult,
+	TUpdateStaffProfileInput,
 	TStaffAttendanceDto,
 	TShiftDto,
 	TOnShiftDto,
@@ -383,6 +384,14 @@ export class PetsoClient {
 			this.fetchApi<{ readonly updated: boolean }>(
 				`/api/v1/admin/staff/${userId}/status`,
 				{ method: "PATCH", body: { isActive } },
+			),
+		updateStaffProfile: (
+			userId: string,
+			input: TUpdateStaffProfileInput,
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+				`/api/v1/admin/staff/${userId}/profile`,
+				{ method: "PATCH", body: input },
 			),
 		clockIn: (
 			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },

@@ -35,5 +35,11 @@ export class IStaffRepository extends Context.Tag("IStaffRepository")<
 			tenantId: TTenantId,
 			isActive: boolean,
 		) => Effect.Effect<boolean, DatabaseError>;
+		readonly updateProfile?: (
+			userId: TUserId,
+			tenantId: TTenantId,
+			fullName: string,
+			email: string,
+		) => Effect.Effect<boolean, DatabaseError>;
 	}
 >() {}

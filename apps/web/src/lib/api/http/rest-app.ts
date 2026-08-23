@@ -172,6 +172,7 @@ import {
 	inviteStaffProgram,
 	removeStaffFromBranchProgram,
 	setStaffActiveProgram,
+	updateStaffProfileProgram,
 } from "@/domain/staff/staff.programs";
 import { InviteStaffSchema } from "@/domain/staff/staff.schemas";
 import {
@@ -282,6 +283,10 @@ import {
 	type StaffInviteHandlers,
 } from "./staff-invite.handlers";
 import {
+	createStaffProfileHandlers,
+	type StaffProfileHandlers,
+} from "./staff-profile.handlers";
+import {
 	createStaffStatusHandlers,
 	type StaffStatusHandlers,
 } from "./staff-status.handlers";
@@ -325,6 +330,7 @@ export function createRestRequestHandler(
 	whatsAppHandlers?: WhatsAppHandlers,
 	staffInviteHandlers?: StaffInviteHandlers,
 	staffStatusHandlers?: StaffStatusHandlers,
+	staffProfileHandlers?: StaffProfileHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -420,6 +426,20 @@ export function createRestRequestHandler(
 				request,
 				requestId,
 				staffStatusMatch[1] ?? "",
+			);
+		}
+		const staffProfileMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/staff\/([^/]+)\/profile$/,
+		);
+		if (
+			staffProfileHandlers &&
+			staffProfileMatch &&
+			request.method === "PATCH"
+		) {
+			return staffProfileHandlers.update(
+				request,
+				requestId,
+				staffProfileMatch[1] ?? "",
 			);
 		}
 		if (
@@ -1869,6 +1889,18 @@ const defaultRestRequestHandler = createRestRequestHandler(
 					businessId as TTenantId,
 					userId as TUserId,
 					isActive,
+				),
+			),
+	}),
+	createStaffProfileHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		update: async (businessId, userId, input) =>
+			runApp(
+				updateStaffProfileProgram(
+					businessId as TTenantId,
+					userId as TUserId,
+					input.fullName,
+					input.email,
 				),
 			),
 	}),

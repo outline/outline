@@ -8,3 +8,8 @@ export interface TInviteStaffResult {
 	readonly sent: boolean;
 	readonly reason?: string;
 }
+
+export interface TUpdateStaffProfileInput {
+	readonly fullName: string;
+	readonly email: string;
+}

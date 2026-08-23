@@ -38,6 +38,7 @@ export type {
 	TStaffMemberDto,
 	TInviteStaffInput,
 	TInviteStaffResult,
+	TUpdateStaffProfileInput,
 	TStaffAttendanceDto,
 	TShiftDto,
 	TOnShiftDto,
