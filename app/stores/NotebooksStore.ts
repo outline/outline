@@ -10,6 +10,7 @@ import Notebook from "~/models/Notebook";
 import type { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { petsoClient } from "~/utils/petsoClient";
+import { exportPetStoreNotes } from "~/utils/exportPetStoreNotes";
 import type { TNoteCollectionDto } from "@treonstudio/petso-lib";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
@@ -247,5 +248,5 @@ export default class NotebooksStore extends Store<Notebook> {
     format: FileOperationFormat;
     includeAttachments: boolean;
     includePrivate: boolean;
-  }) => client.post("/collections.export_all", options);
+  }) => exportPetStoreNotes(undefined, options.format, "pet-store-notes");
 }

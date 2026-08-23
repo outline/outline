@@ -10,8 +10,8 @@ import { sortNavigationNodes } from "@shared/utils/notebooks";
 import type NotebooksStore from "~/stores/NotebooksStore";
 import type Note from "~/models/Note";
 import ParanoidModel from "~/models/base/ParanoidModel";
-import { client } from "~/utils/ApiClient";
 import { petsoClient } from "~/utils/petsoClient";
+import { exportPetStoreNotes } from "~/utils/exportPetStoreNotes";
 import type User from "./User";
 import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
@@ -363,12 +363,8 @@ export default class Notebook extends ParanoidModel {
    */
   duplicate = (options?: { name?: string }) =>
     this.store.duplicate(this, options);
-  export = (format: FileOperationFormat, includeAttachments: boolean) =>
-    client.post("/collections.export", {
-      id: this.id,
-      format,
-      includeAttachments,
-    });
+  export = (format: FileOperationFormat, _includeAttachments: boolean) =>
+    exportPetStoreNotes(this.id, format, this.name);
   // hooks
   @AfterChange
   static removePolicies(
