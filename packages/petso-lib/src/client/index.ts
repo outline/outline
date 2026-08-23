@@ -3,6 +3,7 @@ import type {
 	TAuthCredentials,
 	TAuthResult,
 	TBranchContactDto,
+	TBranchDto,
 	TCreateOrderInput,
 	TCustomerDto,
 	TCustomerOrderDto,
@@ -201,6 +202,9 @@ export class PetsoClient {
 	};
 
 	readonly branches = {
+		list: (): Promise<readonly TBranchDto[]> =>
+			this.fetchApi<readonly TBranchDto[]>("/api/v1/branches"),
+
 		get: (branchId: string): Promise<TBranchContactDto> =>
 			this.fetchApi<TBranchContactDto>(`/api/v1/branches/${branchId}`),
 	};

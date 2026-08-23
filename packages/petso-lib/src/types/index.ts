@@ -1,4 +1,5 @@
 export type {
+	TBranchDto,
 	TBranchContactDto,
 	TDayHoursDto,
 	TOperatingHoursDto,

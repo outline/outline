@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import useStores from "~/hooks/useStores";
-import { client } from "~/utils/ApiClient";
+import { PetsoClientError } from "@treonstudio/petso-lib";
+import { petsoClient } from "~/utils/petsoClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
 const MESSAGES: Record<string, string> = {
   missing: "Enter your email and password.",
@@ -24,17 +25,25 @@ function Login() {
     setIsSaving(true);
     setError(undefined);
     try {
-      const response = await client.post("/auth.signIn", { email, password });
-      if (response.data?.ok) {
-        // The session is open. Navigate with a full load rather than a
-        // client-side push: AuthStore is populated asynchronously, and
-        // Authenticated redirects straight back to /login if it mounts before
-        // the observable has propagated.
-        await auth.fetchAuth();
-        window.location.href = "/dashboard";
-        return;
+      await petsoClient.auth.login({ email, password });
+      // The session is open. Navigate with a full load rather than a
+      // client-side push: AuthStore is populated asynchronously, and
+      // Authenticated redirects straight back to /login if it mounts before
+      // the observable has propagated.
+      await auth.fetchAuth();
+      window.location.href = "/dashboard";
+    } catch (error) {
+      if (error instanceof PetsoClientError) {
+        if (error.status === 429) {
+          setError("Too many attempts. Please try again shortly.");
+        } else if (error.status === 401) {
+          setError(MESSAGES.invalid);
+        } else {
+          setError(error.message || "Could not sign you in.");
+        }
+      } else {
+        setError("Could not sign you in.");
       }
-      setError(MESSAGES[response.data?.reason] ?? "Could not sign you in.");
     } finally {
       setIsSaving(false);
     }

@@ -29,3 +29,9 @@ export type TBranchContactDto = {
 	readonly longitude: number | null;
 	readonly operatingHours: TOperatingHoursDto | null;
 };
+
+export interface TBranchDto extends TBranchContactDto {
+	readonly address: string | null;
+	readonly phone: string | null;
+	readonly createdAt: string;
+}

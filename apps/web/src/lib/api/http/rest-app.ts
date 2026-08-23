@@ -1,7 +1,11 @@
 import { createAuthHandlers, type AuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
+import { createBranchHandlers, type BranchHandlers } from "./branch.handlers";
+import { getBranchesProgram } from "@/domain/branch/branch.programs";
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
+import { runApp } from "@/infra/runtime/app.runtime";
+import type { TTenantId } from "@/shared/types/common.types";
 
 /**
  * Creates the direct REST request dispatcher.
@@ -11,6 +15,7 @@ import { jsonSuccess } from "./response";
  */
 export function createRestRequestHandler(
 	authHandlers: AuthHandlers,
+	branchHandlers?: BranchHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -28,6 +33,13 @@ export function createRestRequestHandler(
 		if (url.pathname === "/api/v1/auth/session" && request.method === "GET") {
 			return authHandlers.session(request, requestId);
 		}
+		if (
+			branchHandlers &&
+			url.pathname === "/api/v1/branches" &&
+			request.method === "GET"
+		) {
+			return branchHandlers.list(request, requestId);
+		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
 		}
@@ -38,6 +50,11 @@ export function createRestRequestHandler(
 
 const defaultRestRequestHandler = createRestRequestHandler(
 	createAuthHandlers(createAuthProgramDependencies()),
+	createBranchHandlers({
+		session: async (token) => createAuthProgramDependencies().session(token),
+		list: async (businessId) =>
+			runApp(getBranchesProgram(businessId as TTenantId)),
+	}),
 );
 
 /**
