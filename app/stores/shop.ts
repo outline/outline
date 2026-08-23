@@ -1014,10 +1014,7 @@ export const useShop = create<State>((set, get) => ({
         cashFlow,
         loyaltyConfig,
         branchHolidayDtos,
-        calendar,
-        onboarding,
         staffInvites,
-        groomingCalendar,
       ] = await Promise.all([
         petsoClient.admin.accountingDashboardMetrics(),
         petsoClient.admin.products(),
@@ -1054,10 +1051,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.cashFlow(),
         petsoClient.admin.loyaltyConfig(),
         petsoClient.admin.branchHolidays(),
-        client.post("/occupancy.calendar", { days: 14 }),
-        client.post("/onboarding.steps"),
         client.post("/staff.invites"),
-        client.post("/grooming.calendar", { days: 14 }),
       ]);
       const productNames = new Map<string, string>();
       for (const product of productDtos) {
@@ -1133,6 +1127,116 @@ export const useShop = create<State>((set, get) => ({
         const totals = trendTotals.get(date) ?? { revenue: 0, orders: 0 };
         return { date, ...totals };
       });
+      const calendarRows = rooms.map((room) => ({
+        roomId: room.id,
+        roomName: room.name,
+        branch: branchNames.get(room.branchId ?? "") ?? room.branchId ?? "",
+        capacity: room.capacity,
+        days: Array.from({ length: 14 }, (_, index) => {
+          const day = new Date();
+          day.setDate(day.getDate() + index);
+          const date = day.toISOString().slice(0, 10);
+          const guests = boardings.filter((boarding) => {
+            const checkIn = boarding.checkInDate.slice(0, 10);
+            const checkOut =
+              boarding.estimatedCheckOutDate?.slice(0, 10) ?? checkIn;
+            return (
+              boarding.roomId === room.id &&
+              boarding.status !== "cancelled" &&
+              boarding.status !== "completed" &&
+              checkIn <= date &&
+              checkOut >= date
+            );
+          });
+          return {
+            date: day.toISOString(),
+            occupied: guests.length,
+            isFull: guests.length >= room.capacity,
+            isClosed: branchHolidayDtos.some(
+              (holiday) =>
+                holiday.branchId === room.branchId && holiday.date === date
+            ),
+            guests: guests.map((guest) => ({
+              boardingId: guest.id,
+              petName: guest.pets[0]?.name ?? "",
+              customerName: guest.ownerName,
+            })),
+          };
+        }),
+      }));
+      const groomingRows = staffDtos
+        .filter((staffMember) => staffMember.role === "groomer")
+        .map((groomer) => {
+          const branch = groomer.branches[0];
+          return {
+            groomerId: groomer.userId,
+            groomerName: groomer.fullName,
+            branch: branch?.name ?? "",
+            days: Array.from({ length: 14 }, (_, index) => {
+              const day = new Date();
+              day.setDate(day.getDate() + index);
+              const date = day.toDateString();
+              return {
+                date: day.toISOString(),
+                isClosed: branchHolidayDtos.some(
+                  (holiday) =>
+                    holiday.branchId === branch?.id &&
+                    holiday.date === day.toISOString().slice(0, 10)
+                ),
+                appointments: groomingAppointments
+                  .map((appointment) =>
+                    mapGrooming(
+                      appointment,
+                      customerNames,
+                      petNames,
+                      staffNames,
+                      branchNames
+                    )
+                  )
+                  .filter(
+                    (appointment) =>
+                      appointment.groomerId === groomer.userId &&
+                      appointment.status !== "cancelled" &&
+                      new Date(appointment.scheduledAt).toDateString() === date
+                  )
+                  .map((appointment) => ({
+                    id: appointment.id,
+                    petName: appointment.petName,
+                    customerName: appointment.customerName,
+                    service: appointment.service,
+                    status: appointment.status,
+                    price: appointment.price,
+                  })),
+              };
+            }),
+          };
+        });
+      const onboardingRows = [
+        {
+          id: "branches",
+          title: "Add where you trade from",
+          done: branches.length > 0,
+          path: "/branches",
+        },
+        {
+          id: "rooms",
+          title: "Add the rooms you board in",
+          done: rooms.length > 0,
+          path: "/branches",
+        },
+        {
+          id: "staff",
+          title: "Add the people who work here",
+          done: staffDtos.length > 0,
+          path: "/staff",
+        },
+        {
+          id: "products",
+          title: "Put something in the catalogue",
+          done: productDtos.length > 0,
+          path: "/products",
+        },
+      ];
       set({
         dashboard: mapDashboardMetrics(dashboard),
         products: productDtos.map(mapProduct),
@@ -1345,10 +1449,10 @@ export const useShop = create<State>((set, get) => ({
           date: holiday.date,
           reason: holiday.name,
         })),
-        calendar: calendar.data,
-        onboarding: onboarding.data,
+        calendar: calendarRows,
+        onboarding: onboardingRows,
         staffInvites: staffInvites.data,
-        groomingCalendar: groomingCalendar.data,
+        groomingCalendar: groomingRows,
         isLoading: false,
       });
     } catch (err) {
