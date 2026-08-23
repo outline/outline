@@ -62,6 +62,7 @@ export type {
 	TBillingSubscriptionDto,
 	TBillingSummaryDto,
 	TBillingUsageDto,
+	TChangePlanInput,
 	TWhatsAppTemplateDto,
 	TWhatsAppMessageDto,
 	TSendWhatsAppInput,

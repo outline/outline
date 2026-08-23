@@ -60,6 +60,7 @@ import type {
 	TAdvanceDto,
 	TCreateAdvanceInput,
 	TBillingSummaryDto,
+	TChangePlanInput,
 	TWhatsAppTemplateDto,
 	TWhatsAppMessageDto,
 	TSendWhatsAppInput,
@@ -516,6 +517,11 @@ export class PetsoClient {
 			),
 		billingSummary: (): Promise<TBillingSummaryDto> =>
 			this.fetchApi<TBillingSummaryDto>("/api/v1/admin/billing"),
+		changePlan: (input: TChangePlanInput): Promise<{ readonly changed: boolean }> =>
+			this.fetchApi<{ readonly changed: boolean }>("/api/v1/admin/billing/plan", {
+				method: "POST",
+				body: input,
+			}),
 		whatsappTemplates: (): Promise<readonly TWhatsAppTemplateDto[]> =>
 			this.fetchApi<readonly TWhatsAppTemplateDto[]>(
 				"/api/v1/admin/whatsapp/templates",

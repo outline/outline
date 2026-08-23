@@ -11,6 +11,7 @@ import {
 import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
 import { getAuditLogsProgram } from "@/domain/audit/audit.programs";
 import {
+	changeSubscriptionPlanProgram,
 	getBillingHistoryProgram,
 	getCurrentSubscriptionProgram,
 	getUsageMetricsProgram,
@@ -347,6 +348,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return billingHandlers.get(request, requestId);
+		}
+		if (
+			billingHandlers &&
+			url.pathname === "/api/v1/admin/billing/plan" &&
+			request.method === "POST"
+		) {
+			return billingHandlers.changePlan(request, requestId);
 		}
 		if (
 			advanceHandlers &&
@@ -1714,6 +1722,18 @@ const defaultRestRequestHandler = createRestRequestHandler(
 					status: event.status === "success" ? "paid" : "open",
 				})),
 				usage,
+			};
+		},
+		changePlan: async (businessId, input) => {
+			const value = Schema.decodeUnknownSync(
+				Schema.Struct({
+					plan: Schema.Literal("free", "pro", "business"),
+				}),
+			)(input);
+			return {
+				changed: await runApp(
+					changeSubscriptionPlanProgram(businessId as TTenantId, value.plan),
+				),
 			};
 		},
 	}),

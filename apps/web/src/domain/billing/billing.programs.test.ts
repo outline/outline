@@ -204,11 +204,13 @@ describe("getBillingHistoryProgram", () => {
 
 		expect(result).toHaveLength(1);
 		expect(result[0]).toEqual({
+			id: mockEvent.id,
 			eventType: "subscription_created",
 			plan: "pro",
 			amount: 199000,
 			status: "pending",
 			createdAt: mockEvent.createdAt.toISOString(),
+			externalOrderId: mockEvent.externalOrderId,
 		});
 		expect(getHistory).toHaveBeenCalledWith(tenantId);
 	});

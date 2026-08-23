@@ -80,6 +80,7 @@ export type {
 	TBillingSubscriptionDto,
 	TBillingSummaryDto,
 	TBillingUsageDto,
+	TChangePlanInput,
 } from "./billing.types";
 export type { TWhatsAppTemplateDto } from "./whatsapp.types";
 export type { TWhatsAppMessageDto } from "./whatsapp-message.types";

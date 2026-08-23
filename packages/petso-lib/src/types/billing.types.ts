@@ -25,3 +25,7 @@ export interface TBillingSummaryDto {
 	readonly invoices: readonly TBillingInvoiceDto[];
 	readonly usage: TBillingUsageDto;
 }
+
+export interface TChangePlanInput {
+	readonly plan: "free" | "pro" | "business";
+}

@@ -7,6 +7,7 @@ describe("REST billing handlers", () => {
 		const handlers = createBillingHandlers({
 			session: vi.fn().mockResolvedValue({ business: { id: "business-1" } }),
 			get,
+			changePlan: vi.fn(),
 		});
 		const response = await handlers.get(
 			new Request("https://pet-store.test/api/v1/admin/billing", {

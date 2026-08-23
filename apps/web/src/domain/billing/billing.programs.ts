@@ -55,6 +55,18 @@ export const getBillingHistoryProgram = (
 		return events.map(toBillingEventDto);
 	});
 
+export const changeSubscriptionPlanProgram = (
+	tenantId: TTenantId,
+	plan: TSubscriptionPlan,
+): Effect.Effect<boolean, DatabaseError, IBillingRepository> =>
+	Effect.gen(function* () {
+		const repo = yield* IBillingRepository;
+		const subscription = yield* repo.findSubscriptionByTenantId(tenantId);
+		if (!subscription) return false;
+		yield* repo.updateSubscription({ ...subscription, plan });
+		return true;
+	});
+
 export const createSubscriptionPaymentProgram = (
 	command: CreatePaymentCommand,
 	tenantId: TTenantId,

@@ -2125,7 +2125,7 @@ export const useShop = create<State>((set, get) => ({
     return response.sent;
   },
   changePlan: async (plan) => {
-    await client.post("/billing.changePlan", { plan });
+    await petsoClient.admin.changePlan({ plan });
     await get().fetchAll();
   },
   redeemPoints: async (customerId, points) => {
