@@ -52,6 +52,7 @@ import type {
   TDocumentTemplateDto,
   TBranchHolidayDto,
   TExpenseDto,
+  TAccountingDashboardMetricsDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -488,6 +489,22 @@ export interface Dashboard {
   occupied: number;
   lowStock: number;
   unpaidOrders: number;
+}
+
+function mapDashboardMetrics(
+  metrics: TAccountingDashboardMetricsDto
+): Dashboard {
+  return {
+    revenueToday: metrics.revenueToday,
+    ordersToday: metrics.transactionsToday,
+    activeBoardings: metrics.activeBoardings,
+    arrivalsToday: 0,
+    occupancyRate: 0,
+    capacity: 0,
+    occupied: 0,
+    lowStock: metrics.lowStockProducts,
+    unpaidOrders: 0,
+  };
 }
 interface State {
   dashboard?: Dashboard;
@@ -1003,7 +1020,7 @@ export const useShop = create<State>((set, get) => ({
         staffInvites,
         groomingCalendar,
       ] = await Promise.all([
-        client.post("/dashboard"),
+        petsoClient.admin.accountingDashboardMetrics(),
         petsoClient.admin.products(),
         petsoClient.admin.customers(),
         petsoClient.admin.pets(),
@@ -1074,7 +1091,7 @@ export const useShop = create<State>((set, get) => ({
         staffNames.set(staffMember.userId, staffMember.fullName);
       }
       set({
-        dashboard: dashboard.data,
+        dashboard: mapDashboardMetrics(dashboard),
         products: productDtos.map(mapProduct),
         customers: customerDtos.map((customer) =>
           mapCustomer(customer, petDtos)

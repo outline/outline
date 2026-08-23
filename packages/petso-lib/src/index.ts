@@ -50,6 +50,7 @@ export type {
 	TCreateBranchHolidayInput,
 	TCreateExpenseInput,
 	TExpenseDto,
+	TAccountingDashboardMetricsDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalConfigDto,

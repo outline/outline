@@ -1,6 +1,7 @@
 import { Effect, Schema } from "effect";
 import {
 	createExpenseProgram,
+	getDashboardMetricsProgram,
 	getExpensesProgram,
 } from "@/domain/accounting/accounting.programs";
 import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
@@ -156,6 +157,10 @@ import { CreateWarehouseSchema } from "@/domain/warehouse/warehouse.schemas";
 import type { TWarehouseId } from "@/domain/warehouse/warehouse.types";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
+import {
+	type AccountingHandlers,
+	createAccountingHandlers,
+} from "./accounting.handlers";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
 import {
@@ -236,6 +241,7 @@ export function createRestRequestHandler(
 	portalHandlers?: PortalHandlers,
 	holidayHandlers?: HolidayHandlers,
 	expenseHandlers?: ExpenseHandlers,
+	accountingHandlers?: AccountingHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -414,6 +420,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return expenseHandlers.list(request, requestId);
+		}
+		if (
+			accountingHandlers &&
+			url.pathname === "/api/v1/admin/accounting/dashboard-metrics" &&
+			request.method === "GET"
+		) {
+			return accountingHandlers.dashboardMetrics(request, requestId);
 		}
 		if (
 			expenseHandlers &&
@@ -1364,6 +1377,11 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				),
 			);
 		},
+	}),
+	createAccountingHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		dashboardMetrics: async (businessId) =>
+			runApp(getDashboardMetricsProgram(businessId as TTenantId)),
 	}),
 );
 

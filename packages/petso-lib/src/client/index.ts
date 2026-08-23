@@ -51,6 +51,7 @@ import type {
 	TCreateBranchHolidayInput,
 	TCreateExpenseInput,
 	TExpenseDto,
+	TAccountingDashboardMetricsDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalServiceDto,
@@ -460,6 +461,10 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
+		accountingDashboardMetrics: (): Promise<TAccountingDashboardMetricsDto> =>
+			this.fetchApi<TAccountingDashboardMetricsDto>(
+				"/api/v1/admin/accounting/dashboard-metrics",
+			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",
