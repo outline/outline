@@ -1009,7 +1009,6 @@ export const useShop = create<State>((set, get) => ({
         returns,
         audit,
         insights,
-        trend,
         topSellers,
         onShift,
         cashFlow,
@@ -1050,7 +1049,6 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.returns(),
         petsoClient.admin.audit(),
         client.post("/insights.list"),
-        client.post("/dashboard.trend", { days: 14 }),
         petsoClient.admin.topSellers(),
         petsoClient.admin.onShift(),
         petsoClient.admin.cashFlow(),
@@ -1113,6 +1111,27 @@ export const useShop = create<State>((set, get) => ({
           credit: totals.credit,
           balance: totals.debit - totals.credit,
         };
+      });
+      const trendTotals = new Map<
+        string,
+        { revenue: number; orders: number }
+      >();
+      for (const order of orderDtos) {
+        if (order.status === "void" || order.status === "cancelled") {
+          continue;
+        }
+        const date = order.createdAt.slice(0, 10);
+        const totals = trendTotals.get(date) ?? { revenue: 0, orders: 0 };
+        totals.revenue += order.totalAmount;
+        totals.orders += 1;
+        trendTotals.set(date, totals);
+      }
+      const trendRows = Array.from({ length: 14 }, (_, index) => {
+        const day = new Date();
+        day.setDate(day.getDate() - (13 - index));
+        const date = day.toISOString().slice(0, 10);
+        const totals = trendTotals.get(date) ?? { revenue: 0, orders: 0 };
+        return { date, ...totals };
       });
       set({
         dashboard: mapDashboardMetrics(dashboard),
@@ -1282,7 +1301,7 @@ export const useShop = create<State>((set, get) => ({
           summary: entry.entityId ?? entry.action,
         })),
         insights: insights.data,
-        trend: trend.data,
+        trend: trendRows,
         topSellers: topSellers.map((item) => ({
           name: item.name,
           units: item.salesCount,
