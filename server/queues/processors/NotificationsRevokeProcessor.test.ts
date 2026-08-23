@@ -172,4 +172,58 @@ describe("NotificationsRevokeProcessor", () => {
       expect.objectContaining({ userId: other.id, collectionId: collection.id })
     );
   });
+
+  it("should schedule a check for every recipient when a document is moved", async () => {
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const [first, second] = await Promise.all([
+      buildUser({ teamId: team.id }),
+      buildUser({ teamId: team.id }),
+    ]);
+    await Promise.all([
+      buildNotification({
+        teamId: team.id,
+        userId: first.id,
+        documentId: document.id,
+      }),
+      buildNotification({
+        teamId: team.id,
+        userId: second.id,
+        documentId: document.id,
+      }),
+    ]);
+
+    await new NotificationsRevokeProcessor().perform({
+      name: "documents.move",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: actor.id,
+      ip: "127.0.0.1",
+      authType: AuthenticationType.APP,
+      data: {
+        collectionIds: [collection.id],
+        documentIds: [document.id],
+      },
+    });
+
+    expect(schedule).toHaveBeenCalledTimes(2);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: first.id,
+        documentId: document.id,
+      })
+    );
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: second.id,
+        documentId: document.id,
+      })
+    );
+  });
 });

@@ -244,4 +244,29 @@ describe("RevokeUserNotificationsTask", () => {
 
     expect(await Notification.findByPk(notification.id)).not.toBeNull();
   });
+
+  it("should revoke notifications for a draft when scoped to the document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const document = await buildDraftDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const notification = await buildNotification({
+      teamId: team.id,
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    await new RevokeUserNotificationsTask().perform({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    expect(await Notification.findByPk(notification.id)).toBeNull();
+  });
 });

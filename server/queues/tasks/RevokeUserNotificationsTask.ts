@@ -46,7 +46,7 @@ export default class RevokeUserNotificationsTask extends BaseTask<Props> {
 
     // Documents that are no longer visible to the user are not returned by this query at all, in
     // which case the notification is left alone – only a document that exists and is unreadable is
-    // grounds for revoking.
+    // grounds for revoking. Naming a scope replaces the default scope, so drafts are included.
     const documents = candidateIds.length
       ? await Document.scope({
           method: ["withMembership", user.id],
