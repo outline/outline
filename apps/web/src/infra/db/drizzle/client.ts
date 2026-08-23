@@ -1,10 +1,13 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { defineRelations } from "drizzle-orm/relations";
 import { Context, Effect, Layer } from "effect";
 import { getResolvedConfig } from "@/shared/env/app.config";
 import * as schema from "./schema";
 
-export type DrizzleClient = NeonHttpDatabase<typeof schema>;
+const relationalSchema = defineRelations(schema);
+
+export type DrizzleClient = NeonHttpDatabase<typeof relationalSchema>;
 
 export class IDrizzleClient extends Context.Tag("IDrizzleClient")<
 	IDrizzleClient,
@@ -23,6 +26,6 @@ export const DrizzleClientLive = Layer.scoped(
 			dbUrl = "postgres://" + dbUrl.substring("postgresql://".length);
 		}
 		const sql = neon(dbUrl);
-		return drizzle({ client: sql, schema });
+		return drizzle({ client: sql, schema: relationalSchema });
 	}),
 );
