@@ -18,6 +18,9 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
 
+/** Headings deeper than this level are not listed in the contents. */
+const MAX_HEADING_LEVEL = 4;
+
 function Contents() {
   const history = useHistory();
   const [scrolledSlug, setScrolledSlug] = useState<string>();
@@ -33,11 +36,35 @@ function Contents() {
   );
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
+  const headingPrefix =
+    documentContext.document?.getPreference(DocumentPreference.HeadingPrefix) ??
+    HeadingPrefixStyle.None;
+
+  // Prefix labels are computed over every heading so that they match the
+  // numbering shown in the document, and attached before the deeper headings
+  // are dropped. Those headings are not listed, so they also take no part in
+  // tracking the active one — a reader inside a deep section keeps the nearest
+  // listed heading highlighted rather than losing the highlight entirely.
+  const items = useMemo(() => {
+    const labels =
+      headingPrefix === HeadingPrefixStyle.None
+        ? undefined
+        : HeadingPrefixHelper.labels(
+            headings.map((heading) => heading.level),
+            headingPrefix,
+            { indented: true }
+          );
+
+    return headings
+      .map((heading, index) => ({ heading, label: labels?.[index] }))
+      .filter(({ heading }) => heading.level <= MAX_HEADING_LEVEL);
+  }, [headings, headingPrefix]);
+
   // A heading chosen from the contents stays highlighted until the reader
   // scrolls themselves. Headings near the end of a document cannot reach the
   // top of the viewport, so the scroll position alone would never select them.
   const activeSlug =
-    selectedSlug && headings.some((heading) => heading.id === selectedSlug)
+    selectedSlug && items.some(({ heading }) => heading.id === selectedSlug)
       ? selectedSlug
       : scrolledSlug;
 
@@ -93,10 +120,9 @@ function Contents() {
   }, [selectedSlug]);
 
   useEffect(() => {
-    let activeId = headings.length > 0 ? headings[0].id : undefined;
+    let activeId = items.length > 0 ? items[0].heading.id : undefined;
 
-    for (let key = 0; key < headings.length; key++) {
-      const heading = headings[key];
+    for (const { heading } of items) {
       const element = window.document.getElementById(
         decodeURIComponentSafe(heading.id)
       );
@@ -113,7 +139,7 @@ function Contents() {
     if (scrolledSlug !== activeId) {
       setScrolledSlug(activeId);
     }
-  }, [scrollPosition, headings, scrolledSlug]);
+  }, [scrollPosition, items, scrolledSlug]);
 
   useEffect(() => {
     const activeItem = activeSlug ? itemRefs.current[activeSlug] : undefined;
@@ -128,31 +154,14 @@ function Contents() {
   // calculate the minimum heading level and adjust all the headings to make
   // that the top-most. This prevents the contents from being weirdly indented
   // if all of the headings in the document start at level 3, for example.
-  const minHeading = headings.reduce(
-    (memo, heading) => (heading.level < memo ? heading.level : memo),
+  const minHeading = items.reduce(
+    (memo, { heading }) => (heading.level < memo ? heading.level : memo),
     Infinity
   );
   const headingAdjustment = minHeading - 1;
   const { t } = useTranslation();
 
-  // Compute prefix labels over all headings so they match the numbering shown
-  // in the document, then attach them before headings are filtered for display.
-  const headingPrefix =
-    documentContext.document?.getPreference(DocumentPreference.HeadingPrefix) ??
-    HeadingPrefixStyle.None;
-  const prefixLabels = useMemo(
-    () =>
-      headingPrefix === HeadingPrefixStyle.None
-        ? undefined
-        : HeadingPrefixHelper.labels(
-            headings.map((heading) => heading.level),
-            headingPrefix,
-            { indented: true }
-          ),
-    [headings, headingPrefix]
-  );
-
-  if (headings.length === 0) {
+  if (items.length === 0) {
     return <StickyWrapper />;
   }
 
@@ -160,28 +169,22 @@ function Contents() {
     <StickyWrapper>
       <Heading>{t("Contents")}</Heading>
       <List>
-        {headings
-          .map((heading, index) => ({
-            heading,
-            label: prefixLabels?.[index],
-          }))
-          .filter(({ heading }) => heading.level <= 4)
-          .map(({ heading, label }) => (
-            <ListItem
-              key={heading.id}
-              ref={(el) => (itemRefs.current[heading.id] = el)}
-              level={heading.level - headingAdjustment}
-              active={activeSlug === heading.id}
+        {items.map(({ heading, label }) => (
+          <ListItem
+            key={heading.id}
+            ref={(el) => (itemRefs.current[heading.id] = el)}
+            level={heading.level - headingAdjustment}
+            active={activeSlug === heading.id}
+          >
+            <Link
+              href={`#${heading.id}`}
+              onClick={(event) => handleClick(event, heading.id)}
             >
-              <Link
-                href={`#${heading.id}`}
-                onClick={(event) => handleClick(event, heading.id)}
-              >
-                {label && <Prefix>{label}</Prefix>}
-                <EmojiText>{heading.title}</EmojiText>
-              </Link>
-            </ListItem>
-          ))}
+              {label && <Prefix>{label}</Prefix>}
+              <EmojiText>{heading.title}</EmojiText>
+            </Link>
+          </ListItem>
+        ))}
       </List>
     </StickyWrapper>
   );
