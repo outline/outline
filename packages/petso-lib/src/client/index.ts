@@ -42,6 +42,7 @@ import type {
 	TStaffAttendanceDto,
 	TCreateReturnInput,
 	TBoardingDto,
+	TCreateBoardingInput,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -362,6 +363,13 @@ export class PetsoClient {
 				`/api/v1/admin/boardings/${id}/status`,
 				{ method: "PATCH", body: { status } },
 			),
+		createBoarding: (
+			input: TCreateBoardingInput,
+		): Promise<TBoardingDto> =>
+			this.fetchApi<TBoardingDto>("/api/v1/admin/boardings", {
+				method: "POST",
+				body: input,
+			}),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",

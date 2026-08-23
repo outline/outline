@@ -40,6 +40,7 @@ export type {
 	TCreateReturnInput,
 	TBoardingDto,
 	TBoardingPetDto,
+	TCreateBoardingInput,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,

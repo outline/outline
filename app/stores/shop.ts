@@ -1179,13 +1179,45 @@ export const useShop = create<State>((set, get) => ({
     return response.data;
   },
   createBoarding: async (boarding) => {
-    // Not optimistic: the room may be taken for those nights, and the answer
-    // decides whether the form clears or reports why it could not.
-    const response = await client.post("/boardings.create", boarding);
-    if (response.data?.created) {
-      await get().fetchAll();
+    const customer = get().customers.find(
+      (entry) => entry.name === boarding.customerName
+    );
+    const pet = customer?.pets.find((entry) => entry.name === boarding.petName);
+    const branchId = get().branches[0]?.id;
+    if (!customer || !pet || !branchId) {
+      return { created: false, reason: "Customer, pet, or branch not found" };
     }
-    return response.data;
+    const species = pet.species.toLowerCase();
+    const kind =
+      species === "cat" || species === "dog" || species === "rabbit"
+        ? species
+        : "other";
+    await petsoClient.admin.createBoarding({
+      branchId,
+      customerId: customer.id,
+      ownerName: customer.name,
+      ownerAddress: "Not provided",
+      ownerPhone: customer.phone || "Not provided",
+      checkInDate: boarding.checkIn,
+      estimatedCheckOutDate: boarding.checkOut,
+      roomId: boarding.roomId,
+      dailyRate: 0,
+      status: "active",
+      pets: [
+        {
+          name: pet.name,
+          kind,
+          breed: pet.breed || "Unknown",
+          vaccinated: "no",
+          weight: null,
+          healthStatus: "Normal",
+          initialCondition: null,
+          notes: null,
+        },
+      ],
+    });
+    await get().fetchAll();
+    return { created: true };
   },
   adjustStock: async (id, delta) => {
     const product = get().products.find((item) => item.id === id);

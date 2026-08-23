@@ -29,6 +29,7 @@ export type { TStaffMemberDto } from "./staff.types";
 export type { TStaffAttendanceDto } from "./shift.types";
 export type { TCreateReturnInput } from "./return.types";
 export type { TBoardingDto, TBoardingPetDto } from "./boarding.types";
+export type { TCreateBoardingInput } from "./boarding-input.types";
 export type {
 	TCreateRoomInput,
 	TRoomDto,

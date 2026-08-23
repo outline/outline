@@ -3,6 +3,7 @@ import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 
 interface BoardingSession {
 	readonly business: { readonly id: string };
+	readonly user: { readonly id: string };
 }
 
 interface BoardingHandlerDependencies {
@@ -13,10 +14,16 @@ interface BoardingHandlerDependencies {
 		id: string,
 		status: string,
 	) => Promise<void>;
+	readonly create: (
+		businessId: string,
+		userId: string,
+		input: Record<string, unknown>,
+	) => Promise<unknown>;
 }
 
 export interface BoardingHandlers {
 	readonly list: (request: Request, requestId: string) => Promise<Response>;
+	readonly create: (request: Request, requestId: string) => Promise<Response>;
 	readonly updateStatus: (
 		request: Request,
 		requestId: string,
@@ -35,6 +42,26 @@ export function createBoardingHandlers(
 			return jsonSuccess(
 				await dependencies.list(session.business.id),
 				requestId,
+			);
+		},
+		create: async (request, requestId) => {
+			const session = await getSession(request, dependencies.session);
+			if (!session) return unauthorized(requestId);
+			const body = await readBody(request);
+			if (!body) {
+				return jsonError(
+					new ApiHttpError(
+						422,
+						"validation_error",
+						"Boarding data is required",
+					),
+					requestId,
+				);
+			}
+			return jsonSuccess(
+				await dependencies.create(session.business.id, session.user.id, body),
+				requestId,
+				201,
 			);
 		},
 		updateStatus: async (request, requestId, id) => {

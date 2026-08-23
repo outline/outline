@@ -1,8 +1,10 @@
 import { Effect, Schema } from "effect";
 import {
+	createBoardingProgram,
 	getBoardingsProgram,
 	updateBoardingStatusProgram,
 } from "@/domain/boarding/boarding.programs";
+import { CreateBoardingSchema } from "@/domain/boarding/boarding.schemas";
 import {
 	createBranchProgram,
 	deleteBranchProgram,
@@ -294,6 +296,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return boardingHandlers.list(request, requestId);
+		}
+		if (
+			boardingHandlers &&
+			url.pathname === "/api/v1/admin/boardings" &&
+			request.method === "POST"
+		) {
+			return boardingHandlers.create(request, requestId);
 		}
 		const boardingStatusMatch = url.pathname.match(
 			/^\/api\/v1\/admin\/boardings\/([^/]+)\/status$/,
@@ -951,6 +960,16 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		session: async (token) => authProgramDependencies.session(token),
 		list: async (businessId) =>
 			runApp(getBoardingsProgram(businessId as TTenantId)),
+		create: async (businessId, userId, input) => {
+			const value = Schema.decodeUnknownSync(CreateBoardingSchema)(input);
+			return runApp(
+				createBoardingProgram(
+					value,
+					businessId as TTenantId,
+					userId as TUserId,
+				),
+			);
+		},
 		updateStatus: async (businessId, id, status) => {
 			await runApp(
 				updateBoardingStatusProgram(
