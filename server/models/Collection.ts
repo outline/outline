@@ -422,9 +422,12 @@ class Collection extends ParanoidModel<
 
   @BeforeDestroy
   static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+    // A bulk update rather than a destroy per document, so `deletedById` is
+    // written here instead of by the hook on ParanoidModel.
     await Document.update(
       {
         lastModifiedById: ctx.auth.user.id,
+        deletedById: ctx.auth.user.id,
         deletedAt: new Date(),
       },
       {
@@ -861,26 +864,23 @@ class Collection extends ParanoidModel<
    * Removes a document from this collection's structure and soft deletes it
    * along with all of its descendants.
    *
+   * @param ctx the API context, which attributes the deletion to the acting user.
    * @param document the document to delete.
-   * @param user the user performing the deletion, recorded on every document.
-   * @param options the find options, including an optional transaction.
    */
-  deleteDocument = async (
-    document: Document,
-    user: User,
-    options?: FindOptions
-  ) => {
-    await this.removeDocumentInStructure(document, options);
+  deleteDocument = async (ctx: APIContext, document: Document) => {
+    const { transaction } = ctx.context;
+
+    await this.removeDocumentInStructure(document, { transaction });
 
     // IDs come back breadth-first so reversing them destroys the deepest
     // descendants first.
     const childDocumentIds = (
-      await document.findAllChildDocumentIds(undefined, options)
+      await document.findAllChildDocumentIds(undefined, { transaction })
     ).reverse();
 
     if (childDocumentIds.length) {
       const childDocuments = await Document.findAll({
-        ...options,
+        transaction,
         where: {
           id: childDocumentIds,
         },
@@ -889,18 +889,11 @@ class Collection extends ParanoidModel<
 
       // Destroyed one at a time to ensure model hooks run for each document.
       for (const childDocumentId of childDocumentIds) {
-        const childDocument = childDocumentsById[childDocumentId];
-        if (childDocument) {
-          // Attributes the deletion of the whole tree to the acting user, which
-          // the trash relies on to show a person their own deletions.
-          childDocument.lastModifiedById = user.id;
-          childDocument.updatedBy = user;
-          await childDocument.destroy(options);
-        }
+        await childDocumentsById[childDocumentId]?.destroy(ctx.context);
       }
     }
 
-    await document.destroy(options);
+    await document.destroy(ctx.context);
   };
 
   removeDocumentInStructure = async (
