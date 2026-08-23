@@ -81,14 +81,23 @@ export class PetsoClient {
 			headers["Content-Type"] = "application/json";
 		}
 
-		const response = await fetch(url, {
-			method: options.method ?? "GET",
-			headers,
-			body: options.body !== undefined ? JSON.stringify(options.body) : null,
-			credentials: "include",
-			signal: options.signal ?? null,
-			...(options.cf ? { cf: options.cf } : {}),
-		} as RequestInit);
+		let response: Response;
+		try {
+			response = await fetch(url, {
+				method: options.method ?? "GET",
+				headers,
+				body: options.body !== undefined ? JSON.stringify(options.body) : null,
+				credentials: "include",
+				signal: options.signal ?? null,
+				...(options.cf ? { cf: options.cf } : {}),
+			} as RequestInit);
+		} catch (error) {
+			throw new PetsoClientError(
+				0,
+				"Unable to reach Pet Store API",
+				error instanceof Error ? error.message : undefined,
+			);
+		}
 
 		const json = (await response
 			.json()

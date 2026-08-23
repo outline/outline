@@ -6,12 +6,15 @@ import { getCookie, setCookie } from "tiny-cookie";
 import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
-import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { getCookieDomain } from "@shared/utils/domains";
 import type RootStore from "~/stores/RootStore";
 import Team from "~/models/Team";
 import env from "~/env";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
+import { PetsoClientError } from "@treonstudio/petso-lib";
+import { mapPetStoreLanguage, mapPetStoreRole } from "./petStoreAuth";
 import Desktop from "~/utils/Desktop";
 import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
@@ -177,50 +180,51 @@ export default class AuthStore extends Store<Team> {
   fetchAuth = async () => {
     this.isFetching = true;
     try {
-      const res = await client.post("/auth.info", undefined, {
-        credentials: "same-origin",
-      });
-      invariant(res?.data, "Auth not available");
+      const session = await petsoClient.auth.session();
       runInAction("AuthStore#refresh", () => {
-        const { data } = res;
-        this.addPolicies(res.policies);
-        this.add(data.team);
-        this.rootStore.users.add(data.user);
-        data.groups.map(this.rootStore.groups.add);
-        data.groupUsers.map(this.rootStore.groupUsers.add);
-        this.currentUserId = data.user.id;
-        this.currentTeamId = data.team.id;
-        this.availableTeams = res.data.availableTeams;
-        this.collaborationToken = res.data.collaborationToken;
+        this.add({
+          id: session.business.id,
+          name: session.business.name,
+          avatarUrl: session.business.logoUrl ?? "",
+        });
+        this.rootStore.users.add({
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          avatarUrl: session.user.avatarUrl ?? "",
+          language: mapPetStoreLanguage(session.user.language),
+          role: mapPetStoreRole(session.user.role),
+        });
+        this.rootStore.policies.add({
+          id: session.business.id,
+          abilities: session.permissions,
+        });
+        this.currentUserId = session.user.id;
+        this.currentTeamId = session.business.id;
+        this.availableTeams = [
+          {
+            id: session.business.id,
+            name: session.business.name,
+            avatarUrl: session.business.logoUrl ?? "",
+            url: window.location.origin,
+            isSignedIn: true,
+          },
+        ];
+        this.collaborationToken = null;
         if (env.SENTRY_DSN) {
           const scope = Sentry.getCurrentScope();
           scope.setUser({ id: this.currentUserId! });
           scope.setExtra("team", this.team?.name);
           scope.setExtra("teamId", this.currentTeamId);
         }
-        // Redirect to the correct custom domain or team subdomain if needed
-        // Occurs when the (sub)domain is changed in admin and the user hits an old url
-        const { hostname, pathname } = window.location;
-        if (data.team.domain) {
-          if (data.team.domain !== hostname) {
-            window.location.href = `${data.team.url}${pathname}`;
-            return;
-          }
-        } else if (
-          isCloudHosted &&
-          parseDomain(hostname).teamSubdomain !== (data.team.subdomain ?? "")
-        ) {
-          window.location.href = `${data.team.url}${pathname}`;
-          return;
-        }
-        // Update the user's timezone if it has changed
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (data.user.timezone !== timezone) {
-          const user = this.rootStore.users.get(data.user.id);
-          void user?.save({ timezone });
-        }
       });
     } catch (err) {
+		if (
+			err instanceof PetsoClientError &&
+			(err.status === 0 || err.status === 401)
+		) {
+        return;
+      }
       if (
         err instanceof Error &&
         "error" in err &&

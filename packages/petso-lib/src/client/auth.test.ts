@@ -34,4 +34,15 @@ describe("PetsoClient.auth", () => {
 			}),
 		);
 	});
+
+	it("wraps network failures as a PetsoClientError", async () => {
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+
+		const client = new PetsoClient({ baseUrl: "https://pet-store.test" });
+
+		await expect(client.auth.session()).rejects.toMatchObject({
+			name: "PetsoClientError",
+			status: 0,
+		});
+	});
 });
