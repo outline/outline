@@ -249,11 +249,10 @@ export default class DocumentsStore extends Store<Document> {
       (d) => d.deletedAt && !d.destroyedAt
     );
 
-    // The deleting user is recorded as the last to modify the document.
     if (options.userId) {
       deleted = filter(
         deleted,
-        (document) => document.updatedBy?.id === options.userId
+        (document) => document.deletedBy?.id === options.userId
       );
     }
 
@@ -660,11 +659,11 @@ export default class DocumentsStore extends Store<Document> {
       // acting user against the document and its descendants. The trash relies
       // on this to filter by who deleted an item before the next fetch.
       const user = this.rootStore.auth.user ?? undefined;
-      const setUpdatedBy = (doc: Document) => {
-        doc.updatedBy = user;
-        doc.childDocuments.forEach(setUpdatedBy);
+      const setDeletedBy = (doc: Document) => {
+        doc.deletedBy = user;
+        doc.childDocuments.forEach(setDeletedBy);
       };
-      setUpdatedBy(document);
+      setDeletedBy(document);
     }
 
     // check to see if we have any shares related to this document already

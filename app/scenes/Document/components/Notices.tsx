@@ -62,7 +62,7 @@ export default function Notices({ document }: Props) {
       {document.deletedAt && (
         <Notice icon={<TrashIcon />} description={destroyedDescription()}>
           {t("Deleted by {{userName}}", {
-            userName: document.updatedBy?.name ?? t("Unknown"),
+            userName: document.deletedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.deletedAt} addSuffix />
