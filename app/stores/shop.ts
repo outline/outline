@@ -1013,7 +1013,6 @@ export const useShop = create<State>((set, get) => ({
         cashFlow,
         loyaltyConfig,
         branchHolidayDtos,
-        staffInvites,
       ] = await Promise.all([
         petsoClient.admin.accountingDashboardMetrics(),
         petsoClient.admin.products(),
@@ -1049,7 +1048,6 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.cashFlow(),
         petsoClient.admin.loyaltyConfig(),
         petsoClient.admin.branchHolidays(),
-        client.post("/staff.invites"),
       ]);
       const productNames = new Map<string, string>();
       for (const product of productDtos) {
@@ -1480,7 +1478,7 @@ export const useShop = create<State>((set, get) => ({
         })),
         calendar: calendarRows,
         onboarding: onboardingRows,
-        staffInvites: staffInvites.data,
+        staffInvites: [],
         groomingCalendar: groomingRows,
         isLoading: false,
       });
