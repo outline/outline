@@ -39,6 +39,9 @@ import type {
 	TSignupResult,
 	TUpdateStatusInput,
 	TStaffMemberDto,
+	TRoomDto,
+	TCreateRoomInput,
+	TUpdateRoomInput,
 	TInventorySnapshot,
 	TValidateVoucherInput,
 	TVoucherDto,
@@ -230,6 +233,25 @@ export class PetsoClient {
 		purchaseOrders: (): Promise<readonly TPurchaseOrderDto[]> =>
 			this.fetchApi<readonly TPurchaseOrderDto[]>(
 				"/api/v1/admin/purchase-orders",
+			),
+		rooms: (branchId?: string): Promise<readonly TRoomDto[]> =>
+			this.fetchApi<readonly TRoomDto[]>(
+				`/api/v1/admin/rooms${branchId ? `?branchId=${encodeURIComponent(branchId)}` : ""}`,
+			),
+		createRoom: (input: TCreateRoomInput): Promise<TRoomDto> =>
+			this.fetchApi<TRoomDto>("/api/v1/admin/rooms", {
+				method: "POST",
+				body: input,
+			}),
+		updateRoom: (input: TUpdateRoomInput): Promise<TRoomDto> =>
+			this.fetchApi<TRoomDto>(`/api/v1/admin/rooms/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		deleteRoom: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/rooms/${id}`,
+				{ method: "DELETE" },
 			),
 		createPurchaseOrder: (
 			input: TCreatePurchaseOrderInput,

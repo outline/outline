@@ -64,6 +64,13 @@ import {
 	ReceivePurchaseOrderSchema,
 } from "@/domain/purchase-order/purchase-order.schemas";
 import type { TPurchaseOrderId } from "@/domain/purchase-order/purchase-order.types";
+import {
+	createRoomProgram,
+	deleteRoomProgram,
+	updateRoomProgram,
+} from "@/domain/room/room.programs";
+import { RoomRepository } from "@/domain/room/room.repository";
+import type { TRoomId } from "@/domain/room/room.types";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import {
 	addSupplierProgram,
@@ -108,6 +115,7 @@ import {
 } from "./reference.handlers";
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
+import { createRoomHandlers, type RoomHandlers } from "./room.handlers";
 
 /**
  * Creates the direct REST request dispatcher.
@@ -122,6 +130,7 @@ export function createRestRequestHandler(
 	inventoryHandlers?: InventoryHandlers,
 	orderHandlers?: OrderHandlers,
 	referenceHandlers?: ReferenceHandlers,
+	roomHandlers?: RoomHandlers,
 	purchaseHandlers?: PurchaseHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
@@ -158,6 +167,25 @@ export function createRestRequestHandler(
 				request.method === "DELETE")
 		) {
 			return branchHandlers.mutate(request, requestId, branchMatch[1]);
+		}
+		if (
+			roomHandlers &&
+			url.pathname === "/api/v1/admin/rooms" &&
+			request.method === "GET"
+		) {
+			return roomHandlers.list(request, requestId);
+		}
+		const roomMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/rooms(?:\/([^/]+))?$/,
+		);
+		if (
+			roomHandlers &&
+			roomMatch &&
+			(request.method === "POST" ||
+				request.method === "PATCH" ||
+				request.method === "DELETE")
+		) {
+			return roomHandlers.mutate(request, requestId, roomMatch[1]);
 		}
 		if (
 			catalogHandlers &&
@@ -620,6 +648,36 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			);
 		},
 	}),
+	createRoomHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId, branchId) => {
+			const rooms = await runApp(
+				Effect.gen(function* (_) {
+					const repo = yield* _(RoomRepository);
+					return yield* _(
+						repo.getRooms(businessId as TTenantId, branchId ?? ""),
+					);
+				}),
+			);
+			return rooms.map(serializeRoom);
+		},
+		mutate: async (businessId, id, input) => {
+			if (id && Object.keys(input).length === 0) {
+				await runApp(deleteRoomProgram(businessId as TTenantId, id as TRoomId));
+				return { deleted: true };
+			}
+			if (id) {
+				return serializeRoom(
+					await runApp(
+						updateRoomProgram(businessId as TTenantId, id as TRoomId, input),
+					),
+				);
+			}
+			return serializeRoom(
+				await runApp(createRoomProgram(businessId as TTenantId, input)),
+			);
+		},
+	}),
 	createPurchaseHandlers({
 		session: async (token) => {
 			const session = await authProgramDependencies.session(token);
@@ -714,6 +772,21 @@ function serializeReference<
 		...value,
 		createdAt: value.createdAt.toISOString(),
 		updatedAt: value.updatedAt.toISOString(),
+	};
+}
+
+function serializeRoom<
+	T extends { readonly createdAt: Date; readonly updatedAt: Date },
+>(
+	room: T,
+): Omit<T, "createdAt" | "updatedAt"> & {
+	createdAt: string;
+	updatedAt: string;
+} {
+	return {
+		...room,
+		createdAt: room.createdAt.toISOString(),
+		updatedAt: room.updatedAt.toISOString(),
 	};
 }
 

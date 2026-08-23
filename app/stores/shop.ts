@@ -45,6 +45,7 @@ import type {
   TSupplierDto,
   TWarehouseDto,
   TBranchDto,
+  TRoomDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -285,6 +286,24 @@ function mapWarehouse(
     id: warehouse.id,
     name: warehouse.name,
     branch: branchNames.get(warehouse.branchId) ?? warehouse.branchId,
+  };
+}
+
+function mapRoom(
+  room: TRoomDto,
+  branchNames: ReadonlyMap<string, string>
+): RoomOccupancy {
+  return {
+    id: room.id,
+    name: room.name,
+    branch: room.branchId
+      ? (branchNames.get(room.branchId) ?? room.branchId)
+      : "",
+    capacity: room.capacity,
+    type: room.roomType === "vip" ? "suite" : (room.roomType as Room["type"]),
+    occupied: 0,
+    isFull: false,
+    guests: [],
   };
 }
 
@@ -854,7 +873,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.customers(),
         petsoClient.admin.pets(),
         client.post("/boardings.list"),
-        client.post("/rooms.list"),
+        petsoClient.admin.rooms(),
         petsoClient.admin.orders(),
         petsoClient.admin.suppliers(),
         petsoClient.admin.warehouses(),
@@ -916,7 +935,7 @@ export const useShop = create<State>((set, get) => ({
           mapCustomer(customer, petDtos)
         ),
         boardings: boardings.data,
-        rooms: rooms.data,
+        rooms: rooms.map((room) => mapRoom(room, branchNames)),
         orders: orderDtos.map(mapOrder),
         suppliers: supplierDtos.map(mapSupplier),
         warehouses: warehouseDtos.map((warehouse) =>
@@ -1367,17 +1386,32 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
   },
   createRoom: async (room) => {
-    await client.post("/rooms.create", room);
+    const branchId =
+      get().branches.find((branch) => branch.name === room.branch)?.id ??
+      room.branch;
+    await petsoClient.admin.createRoom({
+      branchId,
+      name: room.name,
+      roomType: room.type,
+      capacity: room.capacity,
+      dailyRate: 0,
+      description: null,
+    });
     await get().fetchAll();
   },
   updateRoom: async (id, changes) => {
-    await client.post("/rooms.update", { id, ...changes });
+    await petsoClient.admin.updateRoom({
+      id,
+      ...(changes.name ? { name: changes.name } : {}),
+      ...(changes.capacity ? { capacity: changes.capacity } : {}),
+      ...(changes.type ? { roomType: changes.type } : {}),
+    });
     await get().fetchAll();
   },
   deleteRoom: async (id) => {
-    const response = await client.post("/rooms.delete", { id });
+    const response = await petsoClient.admin.deleteRoom(id);
     await get().fetchAll();
-    return Boolean(response.data?.deleted);
+    return response.deleted;
   },
   createExpense: async (expense) => {
     await client.post("/expenses.create", expense);
