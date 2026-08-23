@@ -222,7 +222,8 @@ export const createOrderProgram = (
 		// uses LoyaltyModule.validatePromoCode which throws the typed
 		// PromoCode* errors when the code is unknown/expired/exhausted.
 		const subtotalAmount = command.items.reduce(
-			(sum, i) => sum + i.quantity * i.priceAtTime,
+			(sum: number, i: CreateOrderCommand["items"][number]) =>
+				sum + i.quantity * i.priceAtTime,
 			0,
 		);
 		const requestedDiscount = Math.max(0, command.voucherDiscount ?? 0);
@@ -300,7 +301,7 @@ export const createOrderProgram = (
 			tenantId,
 			command.branchId as TBranchId,
 			userId,
-			command.items.map((i) => ({
+			command.items.map((i: CreateOrderCommand["items"][number]) => ({
 				productId: i.productId as TProductId,
 				variantId: i.variantId ?? null,
 				quantity: i.quantity,
@@ -326,10 +327,12 @@ export const createOrderProgram = (
 				voucherCode: validatedVoucher?.code ?? null,
 				voucherDiscount: appliedVoucherDiscount,
 				...(command.payments !== undefined && {
-					payments: command.payments.map((p) => ({
+					payments: command.payments.map(
+						(p: NonNullable<CreateOrderCommand["payments"]>[number]) => ({
 						method: p.method as TPaymentMethod,
 						amount: p.amount,
-					})),
+						}),
+					),
 				}),
 			},
 		);
