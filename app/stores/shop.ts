@@ -38,6 +38,7 @@ import type {
   TCustomerRecordDto,
   TInventorySnapshot,
   TOrderDto,
+  TPurchaseOrderDto,
   TPetDto,
   TProductDto,
   TStaffMemberDto,
@@ -284,6 +285,39 @@ function mapWarehouse(
     id: warehouse.id,
     name: warehouse.name,
     branch: branchNames.get(warehouse.branchId) ?? warehouse.branchId,
+  };
+}
+
+function mapPurchaseOrder(
+  order: TPurchaseOrderDto,
+  productNames: ReadonlyMap<string, string>,
+  supplierNames: ReadonlyMap<string, string>
+): PurchaseOrder {
+  const statuses: PurchaseOrder["status"][] = [
+    "draft",
+    "ordered",
+    "partial",
+    "received",
+    "cancelled",
+  ];
+  const normalizedStatus = order.status === "sent" ? "ordered" : order.status;
+  const status =
+    statuses.find((value) => value === normalizedStatus) ?? "draft";
+  return {
+    id: order.id,
+    number: order.poNumber,
+    supplierId: order.supplierId,
+    supplierName: supplierNames.get(order.supplierId) ?? "",
+    status,
+    expectedAt: order.expectedDate ?? order.orderDate,
+    items: order.items.map((item) => ({
+      productId: item.variantId,
+      variantId: item.variantId,
+      name: productNames.get(item.variantId) ?? "",
+      quantity: item.qtyOrdered,
+      cost: item.unitCost,
+      received: item.qtyReceived,
+    })),
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -778,7 +812,7 @@ export const useShop = create<State>((set, get) => ({
         supplierDtos,
         warehouseDtos,
         inventorySnapshot,
-        purchaseOrders,
+        purchaseOrderDtos,
         branches,
         staffDtos,
         accounts,
@@ -824,7 +858,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.suppliers(),
         petsoClient.admin.warehouses(),
         petsoClient.admin.inventory(),
-        client.post("/purchaseOrders.list"),
+        petsoClient.admin.purchaseOrders(),
         petsoClient.branches.list(),
         petsoClient.admin.staff(),
         client.post("/accounts.list"),
@@ -870,6 +904,10 @@ export const useShop = create<State>((set, get) => ({
       for (const branch of branches) {
         branchNames.set(branch.id, branch.name);
       }
+      const supplierNames = new Map<string, string>();
+      for (const supplier of supplierDtos) {
+        supplierNames.set(supplier.id, supplier.name);
+      }
       set({
         dashboard: dashboard.data,
         products: productDtos.map(mapProduct),
@@ -889,7 +927,9 @@ export const useShop = create<State>((set, get) => ({
         movements: inventorySnapshot.movements.map((movement) =>
           mapInventoryMovement(movement, productNames)
         ),
-        purchaseOrders: purchaseOrders.data,
+        purchaseOrders: purchaseOrderDtos.map((order) =>
+          mapPurchaseOrder(order, productNames, supplierNames)
+        ),
         branches: branches.map(mapBranch),
         staff: staffDtos.map(mapStaff),
         accounts: accounts.data,

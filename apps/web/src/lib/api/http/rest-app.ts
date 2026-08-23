@@ -44,6 +44,7 @@ import {
 	UpdateVariantSchema,
 } from "@/domain/product/product.schemas";
 import type { TProductVariantId } from "@/domain/product/product.types";
+import { getPurchaseOrdersProgram } from "@/domain/purchase-order/purchase-order.programs";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import { getSuppliersProgram } from "@/domain/supplier/supplier.programs";
 import { getWarehousesProgram } from "@/domain/warehouse/warehouse.programs";
@@ -61,6 +62,10 @@ import {
 	type InventoryHandlers,
 } from "./inventory.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
+import {
+	createPurchaseHandlers,
+	type PurchaseHandlers,
+} from "./purchase.handlers";
 import {
 	createReferenceHandlers,
 	type ReferenceHandlers,
@@ -81,6 +86,7 @@ export function createRestRequestHandler(
 	inventoryHandlers?: InventoryHandlers,
 	orderHandlers?: OrderHandlers,
 	referenceHandlers?: ReferenceHandlers,
+	purchaseHandlers?: PurchaseHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -216,6 +222,13 @@ export function createRestRequestHandler(
 			if (resource === "suppliers" || resource === "warehouses") {
 				return referenceHandlers.list(resource, request, requestId);
 			}
+		}
+		if (
+			purchaseHandlers &&
+			url.pathname === "/api/v1/admin/purchase-orders" &&
+			request.method === "GET"
+		) {
+			return purchaseHandlers.list(request, requestId);
 		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
@@ -450,6 +463,21 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				...warehouse,
 				createdAt: warehouse.createdAt.toISOString(),
 				updatedAt: warehouse.updatedAt.toISOString(),
+			}));
+		},
+	}),
+	createPurchaseHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const orders = await runApp(
+				getPurchaseOrdersProgram(businessId as TTenantId),
+			);
+			return orders.map((order) => ({
+				...order,
+				orderDate: order.orderDate.toISOString(),
+				expectedDate: order.expectedDate?.toISOString() ?? null,
+				createdAt: order.createdAt.toISOString(),
+				updatedAt: order.updatedAt.toISOString(),
 			}));
 		},
 	}),

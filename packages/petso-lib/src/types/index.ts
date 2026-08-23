@@ -32,6 +32,7 @@ export type {
 	TInventorySnapshot,
 } from "./inventory.types";
 export type { TSupplierDto, TWarehouseDto } from "./reference.types";
+export type { TPurchaseOrderDto, TPurchaseOrderItemDto } from "./purchase.types";
 export type {
 	TDashboardMetrics,
 	TDashboardSummaryDto,

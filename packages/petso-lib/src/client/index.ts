@@ -18,6 +18,7 @@ import type {
 	TOrderListParams,
 	TOrderListResult,
 	TOrderTimelineEntry,
+	TPurchaseOrderDto,
 	TProductDto,
 	TProductListParams,
 	TProductListResult,
@@ -191,6 +192,10 @@ export class PetsoClient {
 			this.fetchApi<readonly TSupplierDto[]>("/api/v1/admin/suppliers"),
 		warehouses: (): Promise<readonly TWarehouseDto[]> =>
 			this.fetchApi<readonly TWarehouseDto[]>("/api/v1/admin/warehouses"),
+		purchaseOrders: (): Promise<readonly TPurchaseOrderDto[]> =>
+			this.fetchApi<readonly TPurchaseOrderDto[]>(
+				"/api/v1/admin/purchase-orders",
+			),
 		orders: (): Promise<readonly TOrderDto[]> =>
 			this.fetchApi<readonly TOrderDto[]>("/api/v1/admin/orders"),
 		createOrder: (input: TCreateOrderInput): Promise<TOrderDto> =>

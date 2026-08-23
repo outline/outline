@@ -41,6 +41,8 @@ export type {
 	TInventorySnapshot,
 	TSupplierDto,
 	TWarehouseDto,
+	TPurchaseOrderDto,
+	TPurchaseOrderItemDto,
 	TSessionDto,
 	TSignupInput,
 	TSignupResult,
