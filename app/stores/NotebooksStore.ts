@@ -8,7 +8,6 @@ import {
 } from "@shared/types";
 import Notebook from "~/models/Notebook";
 import type { PaginationParams, Properties } from "~/types";
-import { client } from "~/utils/ApiClient";
 import { petsoClient } from "~/utils/petsoClient";
 import { exportPetStoreNotes } from "~/utils/exportPetStoreNotes";
 import type { TNoteCollectionDto } from "@treonstudio/petso-lib";
@@ -108,19 +107,6 @@ export default class NotebooksStore extends Store<Notebook> {
   get all(): Notebook[] {
     return sortBy(Array.from(this.data.values()), (notebook) => notebook.name);
   }
-  @action
-  import = async (
-    attachmentId: string,
-    options: {
-      format?: string;
-      permission?: NotebookPermission | null;
-    }
-  ) => {
-    await client.post("/collections.import", {
-      attachmentId,
-      ...options,
-    });
-  };
   @action
   duplicate = async (
     notebook: Notebook,

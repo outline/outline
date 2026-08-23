@@ -38,7 +38,7 @@ const Receipts = lazy(() => import("~/scenes/Settings/Receipts"));
 const Notes = lazy(() => import("~/scenes/Settings/Notes"));
 const Audit = lazy(() => import("~/scenes/Settings/Audit"));
 import { hasRequiredRole } from "../../src/mocks/access";
-import { currentRole } from "../../src/mocks/shop";
+import { currentRole } from "~/utils/shopScope";
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));

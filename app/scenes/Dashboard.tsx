@@ -1,5 +1,5 @@
 import { useShop } from "~/stores/shop";
-import { currentBranch } from "../../src/mocks/shop";
+import { currentBranch } from "~/utils/shopScope";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
 import { Insights } from "~/components/Insights";

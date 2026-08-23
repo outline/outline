@@ -21,7 +21,7 @@ import {
   Th,
 } from "~/components/Surface";
 import { canAccessRoute } from "../../src/mocks/access";
-import { currentRole } from "../../src/mocks/shop";
+import { currentRole } from "~/utils/shopScope";
 import { SchemaForm } from "~/components/SchemaForm";
 import { SupplierDocType, warehouseDocType } from "~/utils/doctypes";
 import Subheading from "~/components/Subheading";

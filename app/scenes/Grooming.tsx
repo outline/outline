@@ -10,7 +10,7 @@ import Text from "~/components/Text";
 import { CalendarsMonthView } from "~/components/CalendarsMonthView";
 import { groomingToCalendar } from "~/components/scheduleDays";
 import { useShop } from "~/stores/shop";
-import { currentBranch } from "../../src/mocks/shop";
+import { currentBranch } from "~/utils/shopScope";
 import { formatCurrency, formatDate } from "~/utils/format";
 /**
  * The grooming table, grouped by where each appointment has got to.

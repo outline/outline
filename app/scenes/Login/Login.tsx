@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
-import { currentRole } from "../../../src/mocks/shop";
+import { currentRole } from "~/utils/shopScope";
 import { s } from "@shared/styles";
 import { Client, UserPreference } from "@shared/types";
 import { isPWA } from "@shared/utils/browser";

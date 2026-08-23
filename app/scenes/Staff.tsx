@@ -10,7 +10,7 @@ import ListItem from "~/components/List/Item";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
-import { currentBranch } from "../../src/mocks/shop";
+import { currentBranch } from "~/utils/shopScope";
 import { AppPage } from "~/components/AppPage";
 import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";

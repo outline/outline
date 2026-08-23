@@ -18,7 +18,7 @@ import { CalendarsMonthView } from "~/components/CalendarsMonthView";
 import { StatsSimpleInCards } from "~/components/StatsSimpleInCards";
 import { boardingsToCalendar } from "~/components/scheduleDays";
 import { useShop } from "~/stores/shop";
-import { currentBranch } from "../../src/mocks/shop";
+import { currentBranch } from "~/utils/shopScope";
 import { AppPage } from "~/components/AppPage";
 import { formatDate } from "~/utils/format";
 const Gauge = styled.div`

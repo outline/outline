@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { canAccessRoute } from "../../../../src/mocks/access";
-import { currentRole } from "../../../../src/mocks/shop";
+import { currentRole } from "~/utils/shopScope";
 import { BranchSwitcher } from "~/components/BranchSwitcher";
 /** Every shop destination, in the order the sidebar lists them. */
 const LINKS = [

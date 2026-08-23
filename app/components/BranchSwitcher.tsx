@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { useShop } from "~/stores/shop";
-import { currentBranch, setCurrentBranch } from "../../src/mocks/shop";
+import { currentBranch, setCurrentBranch } from "~/utils/shopScope";
 const Select = styled.select`
   width: 100%;
   margin: 4px 12px 8px;

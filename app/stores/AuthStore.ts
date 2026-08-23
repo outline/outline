@@ -15,7 +15,7 @@ import { client } from "~/utils/ApiClient";
 import { petsoClient } from "~/utils/petsoClient";
 import { PetsoClientError } from "@treonstudio/petso-lib";
 import { mapPetStoreLanguage, mapPetStoreRole } from "./petStoreAuth";
-import { setCurrentRole } from "../../src/mocks/shop";
+import { setCurrentRole } from "~/utils/shopScope";
 import Desktop from "~/utils/Desktop";
 import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
