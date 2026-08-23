@@ -144,6 +144,7 @@ export type CartLine = {
   quantity: number;
 };
 import { petsoClient } from "~/utils/petsoClient";
+import { currentBranch } from "~/utils/shopScope";
 
 function mapProduct(product: TProductDto): Product {
   const variants: ProductVariant[] = product.variants.map((variant) => ({
@@ -1609,7 +1610,10 @@ export const useShop = create<State>((set, get) => ({
       (entry) => entry.name === boarding.customerName
     );
     const pet = customer?.pets.find((entry) => entry.name === boarding.petName);
-    const branchId = get().branches[0]?.id;
+    const room = get().rooms.find((entry) => entry.id === boarding.roomId);
+    const branchId = get().branches.find(
+      (branch) => branch.name === room?.branch
+    )?.id;
     if (!customer || !pet || !branchId) {
       return { created: false, reason: "Customer, pet, or branch not found" };
     }
@@ -1627,8 +1631,7 @@ export const useShop = create<State>((set, get) => ({
       checkInDate: boarding.checkIn,
       estimatedCheckOutDate: boarding.checkOut,
       roomId: boarding.roomId,
-      dailyRate:
-        get().rooms.find((room) => room.id === boarding.roomId)?.dailyRate ?? 0,
+      dailyRate: room?.dailyRate ?? 0,
       status: "active",
       pets: [
         {
@@ -1666,11 +1669,18 @@ export const useShop = create<State>((set, get) => ({
     });
     await get().fetchAll();
   },
-  createOrder: async (items, _customerName) => {
-    const branchId = get().branches[0]?.id ?? "";
+  createOrder: async (items, customerName) => {
+    const selectedBranch = currentBranch();
+    const branchId =
+      get().branches.find((branch) => branch.name === selectedBranch)?.id ??
+      get().branches[0]?.id ??
+      "";
+    const customerId =
+      get().customers.find((customer) => customer.name === customerName)?.id ??
+      null;
     const order = await petsoClient.admin.createOrder({
       branchId,
-      customerId: null,
+      customerId,
       status: "completed",
       items: items.map((item) => {
         const product = get().products.find(
@@ -1731,7 +1741,11 @@ export const useShop = create<State>((set, get) => ({
     return { received: true, result: response };
   },
   createPurchaseOrder: async (order) => {
-    const branchId = get().branches[0]?.id ?? null;
+    const selectedBranch = currentBranch();
+    const branchId =
+      get().branches.find((branch) => branch.name === selectedBranch)?.id ??
+      get().branches[0]?.id ??
+      null;
     const response = await petsoClient.admin.createPurchaseOrder({
       branchId,
       supplierId: order.supplierId,
@@ -1913,7 +1927,10 @@ export const useShop = create<State>((set, get) => ({
     return { saved: response.sent, reason: response.reason };
   },
   deleteStaff: async (id) => {
-    const branchId = get().branches[0]?.id;
+    const member = get().staff.find((staff) => staff.id === id);
+    const branchId = get().branches.find(
+      (branch) => branch.name === member?.branch
+    )?.id;
     if (!branchId) {
       return { removed: false, reason: "No branch is available" };
     }
@@ -2133,8 +2150,12 @@ export const useShop = create<State>((set, get) => ({
     return response.deleted;
   },
   createExpense: async (expense) => {
+    const selectedBranch = currentBranch();
     await petsoClient.admin.createExpense({
-      branchId: get().branches[0]?.id ?? null,
+      branchId:
+        get().branches.find((branch) => branch.name === selectedBranch)?.id ??
+        get().branches[0]?.id ??
+        null,
       category: expense.category,
       description: expense.description,
       amount: expense.amount,
