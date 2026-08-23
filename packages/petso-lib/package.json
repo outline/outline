@@ -19,7 +19,7 @@
 	},
 	"dependencies": {
 		"@effect/schema": "^0.75.5",
-		"effect": "^3.22.0"
+		"effect": "3.22.0"
 	},
 	"peerDependencies": {
 		"@effect/schema": ">=0.75.5",

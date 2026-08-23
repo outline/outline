@@ -7631,8 +7631,8 @@ __metadata:
     date-fns: "npm:^4.4.0"
     dependency-cruiser: "npm:^17.4.3"
     drizzle-kit: "npm:^0.31.10"
-    drizzle-orm: "npm:^1.0.0-rc.4-de6c356"
-    effect: "npm:^3.22.0"
+    drizzle-orm: "npm:1.0.0-rc.4-de6c356"
+    effect: "npm:3.22.0"
     embla-carousel-react: "npm:^8.6.0"
     framer-motion: "npm:^12.42.2"
     globals: "npm:^15.15.0"
@@ -11609,7 +11609,7 @@ __metadata:
   resolution: "@treonstudio/petso-lib@workspace:packages/petso-lib"
   dependencies:
     "@effect/schema": "npm:^0.75.5"
-    effect: "npm:^3.22.0"
+    effect: "npm:3.22.0"
   peerDependencies:
     "@effect/schema": ">=0.75.5"
     effect: ">=3.22.0"
@@ -17494,36 +17494,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"drizzle-orm@npm:^1.0.0-rc.4-de6c356":
-  version: 1.0.0-rc.5-ab785fc
-  resolution: "drizzle-orm@npm:1.0.0-rc.5-ab785fc"
+"drizzle-orm@npm:1.0.0-rc.4-de6c356":
+  version: 1.0.0-rc.4-de6c356
+  resolution: "drizzle-orm@npm:1.0.0-rc.4-de6c356"
   peerDependencies:
     "@aws-sdk/client-rds-data": ">=3"
     "@cloudflare/workers-types": ">=4"
-    "@effect/sql-d1": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-libsql": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-mysql2": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-pg": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-pglite": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-sqlite-bun": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-sqlite-do": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-sqlite-node": ">=4.0.0-beta.105 || >=4.0.0"
-    "@effect/sql-sqlite-wasm": ">=4.0.0-beta.105 || >=4.0.0"
+    "@effect/sql-d1": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-libsql": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-mysql2": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-pg": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-pglite": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-sqlite-bun": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-sqlite-do": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-sqlite-node": ">=4.0.0-beta.83 || >=4.0.0"
+    "@effect/sql-sqlite-wasm": ">=4.0.0-beta.83 || >=4.0.0"
     "@electric-sql/pglite": ">=0.2.0"
     "@libsql/client": ">=0.10.0"
     "@libsql/client-wasm": ">=0.10.0"
     "@neondatabase/serverless": ">=0.10.0"
-    "@op-engineering/op-sqlite": ">=17"
+    "@op-engineering/op-sqlite": ">=2"
     "@opentelemetry/api": ^1.4.1
     "@planetscale/database": ">=1.13"
     "@sinclair/typebox": ">=0.34.8"
     "@sqlitecloud/drivers": ">=1.0.653"
     "@tidbcloud/serverless": "*"
-    "@tursodatabase/database": ">=0.7.1"
-    "@tursodatabase/database-common": ">=0.7.1"
-    "@tursodatabase/database-wasm": ">=0.7.1"
-    "@tursodatabase/serverless": ">=1.4.0"
-    "@tursodatabase/sync": ">=0.7.1"
+    "@tursodatabase/database": ">=0.6.0-pre.28 || >=0.6.0"
+    "@tursodatabase/database-common": ">=0.6.0-pre.28 || >=0.6.0"
+    "@tursodatabase/database-wasm": ">=0.6.0-pre.28 || >=0.6.0"
+    "@tursodatabase/serverless": ">=1.1.3"
+    "@tursodatabase/sync": ">=0.6.0-pre.28 || >=0.6.0"
     "@types/better-sqlite3": "*"
     "@types/mssql": ^9.1.4
     "@types/pg": "*"
@@ -17534,16 +17534,16 @@ __metadata:
     arktype: ">=2.0.0"
     better-sqlite3: ">=9.3.0"
     bun-types: "*"
-    effect: ">=4.0.0-beta.105 || >=4.0.0"
+    effect: ">=4.0.0-beta.83 || >=4.0.0"
     expo-sqlite: ">=14.0.0"
-    minipg: ">=0.2.0"
+    minipg: ">=0.1.0"
     mssql: ^11.0.1
     mysql2: ">=2"
     pg: ">=8"
     postgres: ">=3"
     sql.js: ">=1"
     sqlite3: ">=5"
-    typebox: ">=1.2.0"
+    typebox: ">=1.0.0"
     valibot: ">=1.0.0-beta.7"
     zod: ^3.25.0 || ^4.0.0
   peerDependenciesMeta:
@@ -17643,7 +17643,7 @@ __metadata:
       optional: true
     zod:
       optional: true
-  checksum: 10c0/f3ee042ebdf9080da2813d527aa0921c3a908014c57a0603224d02d601ad4dc17d85bdabbf539edbd47f515ffdd3b1c1b050057474629ade513f859a24f8585c
+  checksum: 10c0/b982e1cadcdc68ca62c74c888993d0c2b803ed563868071c2dd63a3a5fbf8403ec63d36318f154ef1b1b2c4a51f63d8e1593d860ecffdc2fc1da36d97be4cebf
   languageName: node
   linkType: hard
 
@@ -17754,13 +17754,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"effect@npm:^3.22.0":
-  version: 3.22.1
-  resolution: "effect@npm:3.22.1"
+"effect@npm:3.22.0":
+  version: 3.22.0
+  resolution: "effect@npm:3.22.0"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     fast-check: "npm:^3.23.1"
-  checksum: 10c0/c384860f2a09508c445c6a181caf30858134ce4067eccf061770ae153ce303ffc82ef5335c6399c73c0741098dce796e8578a5346c78416c4c3f8095fc33693c
+  checksum: 10c0/3a9fe54271eef30e03b018592de66afaec2a0fec3351cf526569e919257702ce58e97375def2ab95946ad0e1f30c4b41fae7a08e4210976e8e1a43628505ac4c
   languageName: node
   linkType: hard
 
