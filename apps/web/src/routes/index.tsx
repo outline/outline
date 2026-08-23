@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Features from "@/components/features-one";
 import FooterSection from "@/components/footer-one";
 import HeroSection from "@/components/hero-section-two";
+import { MistHeader } from "@/components/mist-header";
 import Pricing from "@/components/pricing-section-one";
 import { APP_CONFIG } from "@/lib/constants";
 import { i18n } from "@/shared/i18n/i18n.config";
@@ -149,6 +150,7 @@ function LandingPage() {
 	return (
 		<div className="w-full min-h-screen bg-paper-white text-true-black font-inter selection:bg-mint-green/20 selection:text-ink-black">
 			<AnisWidgetLoader />
+			<MistHeader />
 			<HeroSection />
 			<Features />
 
