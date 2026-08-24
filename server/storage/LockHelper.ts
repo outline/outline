@@ -3,6 +3,9 @@ import { QueryTypes } from "sequelize";
 
 /**
  * Helper for taking advisory locks in the database.
+ *
+ * These locks are scoped to a transaction. When the routine to serialize is not
+ * a transaction, or it calls an external service, use `MutexLock` instead.
  */
 export class LockHelper {
   /**
