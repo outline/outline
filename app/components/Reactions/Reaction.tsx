@@ -13,6 +13,7 @@ import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useEmojiIndex } from "~/hooks/useEmojiIndex";
 import { isUUID } from "validator";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
 import useStores from "~/hooks/useStores";
@@ -43,21 +44,23 @@ const useTooltipContent = ({
 }) => {
   const { t } = useTranslation();
   const { emojis } = useStores();
+  const isCustomEmoji = isUUID(emoji);
   const customEmoji = emojis.get(emoji);
-  const [transformedEmoji, setTransformedEmoji] = React.useState(
-    customEmoji?.shortName ?? `:${getEmojiId(emoji)}:`
-  );
 
-  // If the emoji is a custom emoji ID, we need to get its short name for display
+  // The emoji dataset is needed to name the emoji in this tooltip, if not already loaded
+  useEmojiIndex(!isCustomEmoji);
+
+  // If the emoji is a custom emoji ID, fetch it so the observed store lookup
+  // above resolves to its short name.
   React.useEffect(() => {
-    if (isUUID(emoji)) {
-      void emojis.fetch(emoji).then((ce) => {
-        if (ce) {
-          setTransformedEmoji(ce.shortName);
-        }
-      });
+    if (isCustomEmoji) {
+      void emojis.fetch(emoji);
     }
-  }, [emoji, emojis]);
+  }, [emoji, emojis, isCustomEmoji]);
+
+  const emojiId = getEmojiId(emoji);
+  const transformedEmoji =
+    customEmoji?.shortName ?? (emojiId ? `:${emojiId}:` : emoji);
 
   if (!reactedUsers.length) {
     return;

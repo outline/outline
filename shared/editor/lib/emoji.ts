@@ -24,6 +24,7 @@ export const snakeCase = (str: string) => str.replace(/(\w)-(\w)/g, "$1_$2");
 export let nameToEmoji: Record<string, string> = {};
 
 let emojiDataLoaded = false;
+let dataPromise: Promise<EmojiMartData> | undefined;
 
 /**
  * Synchronously populate nameToEmoji from the given emoji data. This mutates
@@ -45,18 +46,20 @@ export function populateEmojiData(data: EmojiMartData): void {
 }
 
 /**
- * Lazily load the emoji data and populate nameToEmoji. Use this on the client
- * to avoid including @emoji-mart/data in the initial bundle.
+ * Lazily load the emoji data and populate nameToEmoji. The import is memoized
+ * so the dataset is fetched at most once however many consumers await it. Use
+ * this on the client to avoid including @emoji-mart/data in the initial bundle.
  *
- * @returns the populated nameToEmoji map.
+ * @returns the raw emoji dataset.
  */
-export async function loadEmojiData(): Promise<Record<string, string>> {
-  if (emojiDataLoaded) {
-    return nameToEmoji;
-  }
-  const { default: data } = await import("@emoji-mart/data");
-  populateEmojiData(data as EmojiMartData);
-  return nameToEmoji;
+export function loadEmojiData(): Promise<EmojiMartData> {
+  // This is the one sanctioned place the dataset is pulled in on the client.
+  // oxlint-disable-next-line no-restricted-imports
+  dataPromise ??= import("@emoji-mart/data").then(({ default: data }) => {
+    populateEmojiData(data as EmojiMartData);
+    return data as EmojiMartData;
+  });
+  return dataPromise;
 }
 
 /**
