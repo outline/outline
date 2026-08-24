@@ -174,6 +174,12 @@ router.get(
   }
 );
 
+// MCP clients sometimes probe the origin for a legacy HTTP+SSE endpoint. The
+// application shell is not a valid response to that probe, so answer with a 404.
+router.get("/sse", (ctx) => {
+  ctx.status = 404;
+});
+
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse();
 });

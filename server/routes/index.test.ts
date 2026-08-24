@@ -341,6 +341,13 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("returns 404 for the legacy SSE transport probe", async () => {
+    const res = await server.get("/sse");
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).not.toContain("<title>");
+  });
+
   it("still serves the OAuth well-known endpoint", async () => {
     const res = await server.get("/.well-known/oauth-authorization-server");
     expect(res.status).toEqual(200);
