@@ -40,8 +40,9 @@ describe("EmbedDescriptor", () => {
   it("does not match once the settings are removed", () => {
     const embed = descriptor();
     embed.settings = { diagrams: { url: "https://drawio.example.com/" } };
-    embed.settings = undefined;
+    expect(embed.matcher("https://drawio.example.com/#R123")).toBeTruthy();
 
+    embed.settings = undefined;
     expect(embed.matcher("https://drawio.example.com/#R123")).toBe(false);
   });
 });
