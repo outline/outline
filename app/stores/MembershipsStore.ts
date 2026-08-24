@@ -33,7 +33,9 @@ export default class MembershipsStore extends Store<Membership> {
   fetchPage = async (
     params: (PaginationParams & { id?: string }) | undefined
   ): Promise<PaginatedResponse<Membership>> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/collections.memberships`, params);
@@ -48,7 +50,9 @@ export default class MembershipsStore extends Store<Membership> {
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

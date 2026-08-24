@@ -23,7 +23,9 @@ export default class GroupUsersStore extends Store<GroupUser> {
   fetchPage = async (
     params: PaginationParams | undefined
   ): Promise<PaginatedResponse<GroupUser>> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/groups.memberships`, params);
@@ -39,7 +41,9 @@ export default class GroupUsersStore extends Store<GroupUser> {
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

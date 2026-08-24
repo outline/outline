@@ -41,7 +41,9 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     collectionId?: string;
     groupId?: string;
   }): Promise<PaginatedResponse<GroupMembership>> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = collectionId
@@ -68,7 +70,9 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

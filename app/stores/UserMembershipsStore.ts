@@ -31,7 +31,9 @@ export default class UserMembershipsStore extends Store<UserMembership> {
   }
 
   fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/userMemberships.list`, params);
@@ -44,7 +46,9 @@ export default class UserMembershipsStore extends Store<UserMembership> {
         return res.data.memberships.map(this.add);
       });
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

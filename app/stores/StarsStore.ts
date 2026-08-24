@@ -12,7 +12,9 @@ export default class StarsStore extends Store<Star> {
   }
 
   fetchPage = async (params?: PaginationParams): Promise<Star[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/stars.list`, params);
@@ -26,7 +28,9 @@ export default class StarsStore extends Store<Star> {
         return models;
       });
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

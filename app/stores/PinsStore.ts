@@ -53,7 +53,9 @@ export default class PinsStore extends Store<Pin> {
   }
 
   fetchPage = async (params?: FetchParams): Promise<Pin[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/pins.list`, params);
@@ -69,7 +71,9 @@ export default class PinsStore extends Store<Pin> {
 
       return models;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

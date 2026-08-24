@@ -18,7 +18,9 @@ export default class NotificationsStore extends Store<Notification> {
   fetchPage = async (
     options: ({ archived?: boolean } & PaginationParams) | undefined
   ): Promise<Notification[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post("/notifications.list", options);
@@ -32,7 +34,9 @@ export default class NotificationsStore extends Store<Notification> {
 
       return models;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

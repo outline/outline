@@ -506,7 +506,9 @@ export default abstract class Store<T extends Model> {
       throw new Error(`Cannot list ${this.modelName}`);
     }
 
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/${this.apiEndpoint}.list`, params);
@@ -523,7 +525,9 @@ export default abstract class Store<T extends Model> {
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

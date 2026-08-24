@@ -21,7 +21,9 @@ export default class GroupsStore extends Store<Group> {
   }
 
   fetchPage = async (params: FetchPageParams | undefined): Promise<Group[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/groups.list`, params);
@@ -36,7 +38,9 @@ export default class GroupsStore extends Store<Group> {
       });
       return models;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 
