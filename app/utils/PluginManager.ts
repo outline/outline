@@ -1,5 +1,5 @@
 import { isArray, sortBy } from "es-toolkit/compat";
-import { action, makeObservable, observable } from "mobx";
+import { action, makeObservable, observable, runInAction } from "mobx";
 import type { IObservableArray } from "mobx";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
@@ -144,7 +144,9 @@ export class PluginManager {
 
     const r = import.meta.glob("../../plugins/*/client/index.{ts,js,tsx,jsx}");
     await Promise.all(Object.keys(r).map((key: string) => r[key]()));
-    this.loaded = true;
+    runInAction(() => {
+      this.loaded = true;
+    });
   }
 
   /**

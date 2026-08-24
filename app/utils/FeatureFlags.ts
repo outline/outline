@@ -1,4 +1,4 @@
-import { makeObservable, observable } from "mobx";
+import { makeObservable, observable, runInAction } from "mobx";
 import Storage from "@shared/utils/Storage";
 
 /**
@@ -27,14 +27,16 @@ export class FeatureFlags {
   public static isEnabled(flag: Feature) {
     // init on first read
     if (this.initalized === false) {
-      this.cache = new Set();
-      for (const key of Object.values(Feature)) {
-        const value = Storage.get(key);
-        if (value === true) {
-          this.cache.add(key);
+      runInAction(() => {
+        this.cache = new Set();
+        for (const key of Object.values(Feature)) {
+          const value = Storage.get(key);
+          if (value === true) {
+            this.cache.add(key);
+          }
         }
-      }
-      this.initalized = true;
+        this.initalized = true;
+      });
     }
 
     return this.cache.has(flag) ? true : (FeatureDefaults[flag] ?? false);
@@ -46,7 +48,9 @@ export class FeatureFlags {
    * @param flag the feature flag to enable.
    */
   public static enable(flag: Feature) {
-    this.cache.add(flag);
+    runInAction(() => {
+      this.cache.add(flag);
+    });
     Storage.set(flag, true);
   }
 
@@ -56,7 +60,9 @@ export class FeatureFlags {
    * @param flag the feature flag to disable.
    */
   public static disable(flag: Feature) {
-    this.cache.delete(flag);
+    runInAction(() => {
+      this.cache.delete(flag);
+    });
     Storage.set(flag, false);
   }
 
