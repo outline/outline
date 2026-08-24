@@ -1,15 +1,28 @@
-import RawData from "@emoji-mart/data";
 import type { EmojiMartData, Skin } from "@emoji-mart/data";
-import { init, Data } from "emoji-mart";
 import FuzzySearch from "fuzzy-search";
-import { capitalize, sortBy } from "es-toolkit/compat";
+import { capitalize, compact, sortBy } from "es-toolkit/compat";
+import { loadEmojiData } from "../editor/lib/emoji";
 import type { Emoji, EmojiVariants } from "../types";
 import { EmojiCategory, EmojiSkinTone } from "../types";
 
-init({ data: RawData });
+/** An emoji record with the search terms emoji-mart adds during init. */
+type IndexedEmoji = EmojiMartData["emojis"][string];
 
-// Data has the pre-processed "search" terms.
-const TypedData = Data as EmojiMartData;
+interface EmojiIndex {
+  /** Fuzzy searcher over the pre-processed emoji-mart search terms. */
+  searcher: FuzzySearch<IndexedEmoji>;
+  /** Skin tone variants of every emoji, keyed by emoji id. */
+  variantsById: Record<string, EmojiVariants>;
+  /** Emoji ids in each category, in display order. */
+  idsByCategory: Record<EmojiCategory, string[]>;
+  /** Emoji id for every native character, including skin tone variants. */
+  idByNative: Record<string, string>;
+  /** Cache of getEmojisWithCategory results, which are immutable per tone. */
+  emojisByCategory: Map<EmojiSkinTone, Record<EmojiCategory, Emoji[]>>;
+}
+
+let index: EmojiIndex | undefined;
+let loading: Promise<void> | undefined;
 
 // Slightly modified version of https://github.com/koala-interactive/is-emoji-supported/blob/master/src/is-emoji-supported.ts
 const isFlagEmojiSupported = (): boolean => {
@@ -78,32 +91,6 @@ const isFlagEmojiSupported = (): boolean => {
   return true;
 };
 
-const allowFlagEmoji = isFlagEmojiSupported();
-
-const flagEmojiIds =
-  TypedData.categories
-    .filter(({ id }) => id === EmojiCategory.Flags.toLowerCase())
-    .map(({ emojis }) => emojis)[0] ?? [];
-
-const Categories = allowFlagEmoji
-  ? TypedData.categories
-  : TypedData.categories.filter(
-      ({ id }) => capitalize(id) !== EmojiCategory.Flags
-    );
-
-const Emojis = allowFlagEmoji
-  ? TypedData.emojis
-  : Object.fromEntries(
-      Object.entries(TypedData.emojis).filter(
-        ([id]) => !flagEmojiIds.includes(id)
-      )
-    );
-
-const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
-  caseSensitive: false,
-  sort: true,
-});
-
 // Codes defined by unicode.org
 const SKINTONE_CODE_TO_ENUM = {
   "1f3fb": EmojiSkinTone.Light,
@@ -130,66 +117,147 @@ const getVariants = ({ id, name, skins }: GetVariantsProps): EmojiVariants =>
     return obj;
   }, {} as EmojiVariants);
 
-const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
-  (obj, [id, emoji]) => {
-    obj[id] = getVariants({
+const buildIndex = (data: EmojiMartData): EmojiIndex => {
+  let categories = data.categories;
+  let emojis = data.emojis;
+
+  if (!isFlagEmojiSupported()) {
+    const isFlagCategory = ({ id }: { id: string }) =>
+      capitalize(id) === EmojiCategory.Flags;
+    const flagEmojiIds = new Set(categories.find(isFlagCategory)?.emojis ?? []);
+    categories = categories.filter((category) => !isFlagCategory(category));
+    emojis = Object.fromEntries(
+      Object.entries(emojis).filter(([id]) => !flagEmojiIds.has(id))
+    );
+  }
+
+  const variantsById: Record<string, EmojiVariants> = {};
+  const idByNative: Record<string, string> = {};
+  for (const [id, emoji] of Object.entries(emojis)) {
+    variantsById[id] = getVariants({
       id,
       name: emoji.name,
       skins: emoji.skins,
     });
-    return obj;
-  },
-  {} as Record<string, EmojiVariants>
-);
+    for (const skin of emoji.skins) {
+      idByNative[skin.native] = id;
+    }
+  }
 
-const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
-  Categories.reduce(
-    (obj, { id, emojis }) => {
+  const idsByCategory = categories.reduce(
+    (obj, { id, emojis: emojiIds }) => {
       const key = capitalize(id) as EmojiCategory;
       const category = EmojiCategory[key];
       if (!category) {
         return obj;
       }
-      obj[category] = emojis;
+      obj[category] = emojiIds;
       return obj;
     },
     {} as Record<EmojiCategory, string[]>
   );
 
+  return {
+    // Both the pre-processed search terms and the queries are lowercase, so
+    // skip the per-item lowercasing a case-insensitive search would do.
+    searcher: new FuzzySearch(Object.values(emojis), ["search"], {
+      caseSensitive: true,
+      sort: true,
+    }),
+    variantsById,
+    idsByCategory,
+    idByNative,
+    emojisByCategory: new Map(),
+  };
+};
+
+const variantForSkinTone = (
+  id: string,
+  skinTone: EmojiSkinTone
+): Emoji | undefined => {
+  const variants = index?.variantsById[id];
+  return variants?.[skinTone] ?? variants?.[EmojiSkinTone.Default];
+};
+
+/**
+ * Load the emoji dataset and build the search index. The dataset is large, so it
+ * is fetched on demand rather than included in the initial bundle. Until it
+ * resolves the accessors in this module behave as if no emoji exist.
+ *
+ * @returns a promise that resolves once emoji search and categories are ready.
+ */
+export function loadEmojiIndex(): Promise<void> {
+  loading ??= (async () => {
+    const [data, emojiMart] = await Promise.all([
+      loadEmojiData(),
+      import("emoji-mart"),
+    ]);
+    await emojiMart.init({ data });
+    // Read through the namespace, as Data is only assigned during init. It has
+    // the pre-processed "search" terms the raw dataset lacks.
+    index = buildIndex(emojiMart.Data as EmojiMartData);
+  })();
+
+  return loading;
+}
+
+/**
+ * Whether the emoji dataset has finished loading.
+ *
+ * @returns true once emoji search and categories are available.
+ */
+export const isEmojiIndexLoaded = (): boolean => index !== undefined;
+
+/**
+ * Get the emoji for each of the given ids in a particular skin tone.
+ *
+ * @param ids The emoji ids to look up.
+ * @param skinTone The preferred skin tone, falling back to the default.
+ * @returns the matching emoji, omitting any id that is not recognized.
+ */
 export const getEmojis = ({
   ids,
   skinTone,
 }: {
   ids: string[];
   skinTone: EmojiSkinTone;
-}): Emoji[] =>
-  ids.map(
-    (id) =>
-      EMOJI_ID_TO_VARIANTS[id][skinTone] ??
-      EMOJI_ID_TO_VARIANTS[id][EmojiSkinTone.Default]
-  );
+}): Emoji[] => compact(ids.map((id) => variantForSkinTone(id, skinTone)));
 
+/**
+ * Get every emoji grouped by the category it belongs to.
+ *
+ * @param skinTone The preferred skin tone, falling back to the default.
+ * @returns the emoji in each category, empty until the dataset has loaded.
+ */
 export const getEmojisWithCategory = ({
   skinTone,
 }: {
   skinTone: EmojiSkinTone;
-}): Record<EmojiCategory, Emoji[]> =>
-  Object.keys(CATEGORY_TO_EMOJI_IDS).reduce(
-    (obj, category: EmojiCategory) => {
-      const emojiIds = CATEGORY_TO_EMOJI_IDS[category];
-      const emojis = emojiIds.map(
-        (emojiId) =>
-          EMOJI_ID_TO_VARIANTS[emojiId][skinTone] ??
-          EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkinTone.Default]
-      );
-      obj[category] = emojis;
-      return obj;
-    },
-    {} as Record<EmojiCategory, Emoji[]>
-  );
+}): Record<EmojiCategory, Emoji[]> => {
+  if (!index) {
+    return {} as Record<EmojiCategory, Emoji[]>;
+  }
+  let emojis = index.emojisByCategory.get(skinTone);
+  if (!emojis) {
+    emojis = Object.fromEntries(
+      Object.entries(index.idsByCategory).map(([category, ids]) => [
+        category,
+        getEmojis({ ids, skinTone }),
+      ])
+    ) as Record<EmojiCategory, Emoji[]>;
+    index.emojisByCategory.set(skinTone, emojis);
+  }
+  return emojis;
+};
 
+/**
+ * Get the skin tone variants of a single emoji.
+ *
+ * @param id The emoji id.
+ * @returns the variants, or undefined if the emoji is unknown.
+ */
 export const getEmojiVariants = ({ id }: { id: string }) =>
-  EMOJI_ID_TO_VARIANTS[id];
+  index?.variantsById[id];
 
 type CustomEmoji = {
   id: string;
@@ -197,6 +265,14 @@ type CustomEmoji = {
   url: string;
 };
 
+/**
+ * Search the built-in and custom emoji by name.
+ *
+ * @param query The search query.
+ * @param skinTone The preferred skin tone, falling back to the default.
+ * @param customEmojis The team's custom emoji to include in the results.
+ * @returns the matching emoji, best match first.
+ */
 export const search = ({
   query,
   skinTone,
@@ -210,13 +286,10 @@ export const search = ({
   const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
 
   // Search built-in emojis
-  const matchedEmojis = searcher
-    .search(queryLowercase)
-    .map(
-      (emoji) =>
-        EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
-        EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
-    );
+  const matchedEmojis = getEmojis({
+    ids: index?.searcher.search(queryLowercase).map(({ id }) => id) ?? [],
+    skinTone: emojiSkinTone,
+  });
 
   // Search custom emojis
   const matchedCustomEmojis = customEmojis
@@ -246,10 +319,10 @@ export const search = ({
 };
 
 /**
- * Get an emoji's human-readable ID from its string.
+ * Get an emoji's human-readable ID from its native character.
  *
  * @param emoji - The string representation of the emoji.
  * @returns The emoji id, if found.
  */
 export const getEmojiId = (emoji: string): string | undefined =>
-  searcher.search(emoji)[0]?.id;
+  index?.idByNative[emoji];

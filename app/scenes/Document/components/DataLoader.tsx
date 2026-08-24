@@ -16,6 +16,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import { useSplitView } from "~/components/SplitView/context";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { usePreloadEmojiIndex } from "~/hooks/useEmojiIndex";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -104,6 +105,10 @@ function DataLoader({ match, children }: Props) {
   );
 
   useDocumentSidebar();
+
+  // Users who can write or comment are likely to open an emoji menu soon, so
+  // fetch the dataset ahead of the first use.
+  usePreloadEmojiIndex(!!(can.update || can.comment));
 
   React.useEffect(() => {
     async function fetchDocument() {

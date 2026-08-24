@@ -23,7 +23,9 @@ const SkinTonePicker = ({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
-  const handEmojiVariants = useMemo(() => getEmojiVariants({ id: "hand" }), []);
+  // EmojiPanel, the only parent, loads the emoji dataset and re-renders us
+  // once it arrives. The variants are a stable reference after that.
+  const handEmojiVariants = getEmojiVariants({ id: "hand" });
 
   const handleSkinClick = useCallback(
     (emojiSkin: EmojiSkinTone) => {
@@ -37,7 +39,7 @@ const SkinTonePicker = ({
     () =>
       Object.values(EmojiSkinTone)
         .map((skinTone) => {
-          const emoji = handEmojiVariants[skinTone];
+          const emoji = handEmojiVariants?.[skinTone];
           return emoji ? (
             <IconButton
               key={emoji.value}
@@ -57,7 +59,7 @@ const SkinTonePicker = ({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
         <MenuButton aria-label={t("Choose default skin tone")}>
-          {handEmojiVariants[skinTone]?.value}
+          {handEmojiVariants?.[skinTone]?.value}
         </MenuButton>
       </PopoverTrigger>
       <PopoverContent

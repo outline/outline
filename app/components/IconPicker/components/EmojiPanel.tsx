@@ -14,6 +14,7 @@ import { IconPreview, PREVIEW_HEIGHT } from "./IconPreview";
 import SkinTonePicker from "./SkinTonePicker";
 import { StyledInputSearch, UserInputContainer } from "./Components";
 import { useIconState } from "../useIconState";
+import { useEmojiIndex } from "~/hooks/useEmojiIndex";
 import useStores from "~/hooks/useStores";
 import type Emoji from "~/models/Emoji";
 import { useComputed } from "~/hooks/useComputed";
@@ -47,6 +48,7 @@ const EmojiPanel = ({
   const can = usePolicy(team);
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  useEmojiIndex();
   const customEmojis = useComputed(
     () => emojis.orderedData.map(toIcon),
     [emojis.orderedData]

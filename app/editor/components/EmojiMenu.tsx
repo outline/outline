@@ -6,6 +6,7 @@ import { search as emojiSearch } from "@shared/utils/emoji";
 import EmojiMenuItem from "./EmojiMenuItem";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
+import { useEmojiIndex } from "~/hooks/useEmojiIndex";
 import useStores from "~/hooks/useStores";
 import { determineIconType } from "@shared/utils/icon";
 import { IconType } from "@shared/types";
@@ -27,37 +28,42 @@ const EmojiMenu = (props: Props) => {
   const { emojis } = useStores();
   const { search = "" } = props;
 
+  // The dataset is fetched once the user opens the menu.
+  const emojiIndexLoaded = useEmojiIndex(props.isActive);
+
   useEffect(() => {
     if (search) {
       void emojis.fetchPage({ query: search });
     }
   }, [emojis, search]);
 
-  const items = useMemo(
-    () =>
-      emojiSearch({ customEmojis: emojis.orderedData, query: search })
-        .map((item) => {
-          // We snake_case the shortcode for backwards compatability with gemoji to
-          // avoid multiple formats being written into documents.
-          const id = emojiMartToGemoji[item.id] || item.id;
-          const type = determineIconType(id);
-          const value = type === IconType.Custom ? id : snakeCase(id);
-          const emoji = item.value;
+  const items = useMemo(() => {
+    // Until the dataset has loaded only custom emoji can match.
+    if (!emojiIndexLoaded && !emojis.orderedData.length) {
+      return [];
+    }
+    return emojiSearch({ customEmojis: emojis.orderedData, query: search })
+      .map((item) => {
+        // We snake_case the shortcode for backwards compatability with gemoji to
+        // avoid multiple formats being written into documents.
+        const id = emojiMartToGemoji[item.id] || item.id;
+        const type = determineIconType(id);
+        const value = type === IconType.Custom ? id : snakeCase(id);
+        const emoji = item.value;
 
-          return {
-            name: "emoji",
-            title: emoji,
-            description:
-              type === IconType.Custom
-                ? item.name
-                : capitalize(item.name.toLowerCase()),
-            emoji,
-            attrs: { "data-name": value },
-          };
-        })
-        .slice(0, 15),
-    [search, emojis.orderedData]
-  );
+        return {
+          name: "emoji",
+          title: emoji,
+          description:
+            type === IconType.Custom
+              ? item.name
+              : capitalize(item.name.toLowerCase()),
+          emoji,
+          attrs: { "data-name": value },
+        };
+      })
+      .slice(0, 15);
+  }, [search, emojis.orderedData, emojiIndexLoaded]);
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
