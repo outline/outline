@@ -1680,19 +1680,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@datadog/flagging-core@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@datadog/flagging-core@npm:1.2.1"
-  dependencies:
-    spark-md5: "npm:^3.0.2"
-  checksum: 10c0/105dd13dcb8b241e5ed1a76c4d9b3a43bf4f6867af5893e3ae92bb98344907adca3a2b7c3d04511762012459b0803fb9e82feded5cf8eebfac7122de6a27eeff
-  languageName: node
-  linkType: hard
-
-"@datadog/libdatadog@npm:0.9.4":
-  version: 0.9.4
-  resolution: "@datadog/libdatadog@npm:0.9.4"
-  checksum: 10c0/f1dbfb960f3249d4ae8f8f7f110ad1ea22ef3e71667dc6b7ea00f6f02651660f9deec593a534a2f35ac2b0c279baa7e86a45d42de75f31d11c3c8124ec6c3948
+"@datadog/libdatadog@npm:0.12.1":
+  version: 0.12.1
+  resolution: "@datadog/libdatadog@npm:0.12.1"
+  checksum: 10c0/92bb0b0d011d78d3166ffbe07d3f531de355b3b65ee311143ad1bc91754ab0de04582152522da40e0fbb227b0f5386826d8b1fc82ca61552f2d951ae642ee66b
   languageName: node
   linkType: hard
 
@@ -1727,38 +1718,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@datadog/openfeature-node-server@npm:2.0.0":
-  version: 2.0.0
-  resolution: "@datadog/openfeature-node-server@npm:2.0.0"
-  dependencies:
-    "@datadog/flagging-core": "npm:1.2.1"
-  peerDependencies:
-    "@openfeature/server-sdk": ">=1.15.1"
-  checksum: 10c0/5126bcf3e8907f5dc5d0839c88f4a9998984ce296f0766d39ee0cbee6fc01de2814c857d76de776df6600a3d58175d522566019675437340615011995e80a050
-  languageName: node
-  linkType: hard
-
-"@datadog/pprof@npm:5.17.0":
-  version: 5.17.0
-  resolution: "@datadog/pprof@npm:5.17.0"
+"@datadog/pprof@npm:5.18.1":
+  version: 5.18.1
+  resolution: "@datadog/pprof@npm:5.18.1"
   dependencies:
     node-gyp: "npm:latest"
     node-gyp-build: "npm:^4.8.4"
-    pprof-format: "npm:^2.2.1"
+    pprof-format: "npm:^2.3.1"
     source-map: "npm:^0.8.0"
-  checksum: 10c0/e3e405dbf387c748ed3c5f976d7a3c487233d6c9866f4125b9a008e32d174c7657c7c81925a1a1239684b4eb3bebcd2694d53bbe99b04514c93de61856e0aa02
+  checksum: 10c0/fdc0fcbe0465acbdfbd37d2084faef3e53d0579cd4fc5d1140081a8b9c23fa58b66e610e910e5bf5e73becf59ab0c7e8cfb5d37fe4a702237e31d194b2cad93a
   languageName: node
   linkType: hard
 
-"@datadog/wasm-js-rewriter@npm:5.0.1":
-  version: 5.0.1
-  resolution: "@datadog/wasm-js-rewriter@npm:5.0.1"
+"@datadog/wasm-js-rewriter@npm:5.0.3":
+  version: 5.0.3
+  resolution: "@datadog/wasm-js-rewriter@npm:5.0.3"
   dependencies:
-    js-yaml: "npm:^4.1.0"
+    js-yaml: "npm:^4.3.1"
     lru-cache: "npm:^7.14.0"
-    module-details-from-path: "npm:^1.0.3"
-    node-gyp-build: "npm:^4.5.0"
-  checksum: 10c0/e5f665f53b8d292efe85ac401f56923112860cfd14c5d84097ad22e1b86c8a30f3cd39cc92e1ec6e8f5f9de5fef028af46554752d8ae2d0f80b7c3a44827f0db
+    module-details-from-path: "npm:^1.0.4"
+    node-gyp-build: "npm:^4.8.4"
+  checksum: 10c0/59bcf6a0da066dfc7a8fa6c2642f97e534f5927de54edbd5e69c2d00a9563a0a452559874332d1a4c7931bd02dec92840f65e7c69924e5b7f78bd997a230f42d
   languageName: node
   linkType: hard
 
@@ -10156,17 +10136,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dd-trace@npm:^5.117.0":
-  version: 5.117.0
-  resolution: "dd-trace@npm:5.117.0"
+"dd-trace@npm:^5.123.0":
+  version: 5.123.0
+  resolution: "dd-trace@npm:5.123.0"
   dependencies:
-    "@datadog/libdatadog": "npm:0.9.4"
+    "@datadog/libdatadog": "npm:0.12.1"
     "@datadog/native-appsec": "npm:11.0.1"
     "@datadog/native-iast-taint-tracking": "npm:4.2.0"
     "@datadog/native-metrics": "npm:3.1.2"
-    "@datadog/openfeature-node-server": "npm:2.0.0"
-    "@datadog/pprof": "npm:5.17.0"
-    "@datadog/wasm-js-rewriter": "npm:5.0.1"
+    "@datadog/pprof": "npm:5.18.1"
+    "@datadog/wasm-js-rewriter": "npm:5.0.3"
     "@opentelemetry/api": "npm:>=1.0.0 <1.10.0"
     "@opentelemetry/api-logs": "npm:<1.0.0"
     dc-polyfill: "npm:^0.1.11"
@@ -10182,8 +10161,6 @@ __metadata:
       optional: true
     "@datadog/native-metrics":
       optional: true
-    "@datadog/openfeature-node-server":
-      optional: true
     "@datadog/pprof":
       optional: true
     "@datadog/wasm-js-rewriter":
@@ -10194,7 +10171,7 @@ __metadata:
       optional: true
     oxc-parser:
       optional: true
-  checksum: 10c0/14a4dff5897accf5953cfbc7244407ed0ffe25e7e65d0e62f8abfb09d99ce1b0c8f2e7c5c44266cd63e1fd9ef4e0a39fbb76fa73acdc16ea5ebf34d485a9b7ea
+  checksum: 10c0/cd8e13e6e3ed391b3d360ab84856c7d0dd3ee200bd653eb72923001ebfcb13fc8229f101fd0ad1714984ed992936b0650c8205e4ddffdb67d3046a6be3536216
   languageName: node
   linkType: hard
 
@@ -15323,7 +15300,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.5.0, node-gyp-build@npm:^4.8.4":
+"node-gyp-build@npm:^4.8.4":
   version: 4.8.4
   resolution: "node-gyp-build@npm:4.8.4"
   bin:
@@ -15832,7 +15809,7 @@ __metadata:
     core-js: "npm:^3.49.0"
     crypto-js: "npm:^4.2.0"
     date-fns: "npm:^3.6.0"
-    dd-trace: "npm:^5.117.0"
+    dd-trace: "npm:^5.123.0"
     diff: "npm:^5.2.2"
     discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^1.14.0"
@@ -16985,10 +16962,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pprof-format@npm:^2.2.1":
-  version: 2.2.1
-  resolution: "pprof-format@npm:2.2.1"
-  checksum: 10c0/1c8051b3e3ebba1ac2b8d7cf0a84ce501fdabe5e72a803c7daa6ddf67cbee33e9b5d6dbc6ffbeb740e3e56600c875f372576304ed718a4ffa4c89c18185494ae
+"pprof-format@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "pprof-format@npm:2.3.1"
+  checksum: 10c0/5372d63b5c3152c550a79edd132c1f99be766df5558b14a1a85904756bd9fd12f26e41e861c223742693724aaec5f9395983500ef1566577a32490e175110d99
   languageName: node
   linkType: hard
 
@@ -19181,13 +19158,6 @@ __metadata:
   version: 1.1.5
   resolution: "space-separated-tokens@npm:1.1.5"
   checksum: 10c0/3ee0a6905f89e1ffdfe474124b1ade9fe97276a377a0b01350bc079b6ec566eb5b219e26064cc5b7f3899c05bde51ffbc9154290b96eaf82916a1e2c2c13ead9
-  languageName: node
-  linkType: hard
-
-"spark-md5@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "spark-md5@npm:3.0.2"
-  checksum: 10c0/3fd11735eac5e7d60d6006d99ac0a055f148a89e9baf5f0b51ac103022dec30556b44190b37f6737ca50f81e8e50dc13e724f9edf6290c412ff5ab2101ce7780
   languageName: node
   linkType: hard
 
