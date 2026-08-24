@@ -19,6 +19,7 @@ import {
 	getPortalBySlug,
 	getPortalServicesBySlug,
 } from "@/lib/api/portal.functions";
+import { getPublicRooms } from "@/lib/api/public.functions";
 import { QUERY_POLICY } from "@/shared/cache/cache-policy";
 import { queryKeys } from "@/shared/cache/query-keys";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,8 +38,12 @@ export function resolvePreselectedServiceId(
 	requestedServiceId: string | undefined,
 	services: readonly { id: string }[] | undefined,
 ): string | undefined {
-	if (!requestedServiceId) return undefined;
-	if (!services?.some((s) => s.id === requestedServiceId)) return undefined;
+	if (!requestedServiceId) {
+		return undefined;
+	}
+	if (!services?.some((s) => s.id === requestedServiceId)) {
+		return undefined;
+	}
 	return requestedServiceId;
 }
 
@@ -63,6 +68,8 @@ function PortalBookingPage() {
 		notes: "",
 		serviceId: "",
 		branchId: "",
+		roomId: "",
+		estimatedCheckOutAt: "",
 	});
 
 	const { data: portal, isLoading: isLoadingPortal } = useQuery({
@@ -85,13 +92,21 @@ function PortalBookingPage() {
 			preselectedServiceId,
 			services,
 		);
-		if (!shouldApplyPreselectedService(resolved, formData.serviceId)) return;
+		if (!shouldApplyPreselectedService(resolved, formData.serviceId)) {
+			return;
+		}
 		setFormData((prev) => ({ ...prev, serviceId: resolved as string }));
 	}, [preselectedServiceId, services, formData.serviceId]);
 
 	const { data: branches = [], isLoading: isLoadingBranches } = useQuery({
 		queryKey: queryKeys.publicPortal.branches(businessSlug),
 		queryFn: () => getPortalBranchesBySlug({ data: businessSlug }),
+		enabled: !!portal,
+	});
+
+	const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
+		queryKey: ["public-portal", businessSlug, "rooms"],
+		queryFn: () => getPublicRooms({ data: portal?.tenantId ?? "" }),
 		enabled: !!portal,
 	});
 
@@ -122,7 +137,9 @@ function PortalBookingPage() {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!portal) return;
+		if (!portal) {
+			return;
+		}
 
 		if (branches.length > 0 && !formData.branchId) {
 			toast.error(t("common.error"), {
@@ -132,12 +149,19 @@ function PortalBookingPage() {
 			});
 			return;
 		}
+		if (!formData.roomId || !formData.estimatedCheckOutAt) {
+			toast.error(t("common.error"), {
+				description: "Silakan pilih kamar dan tanggal checkout",
+			});
+			return;
+		}
 
 		createBookingMutation.mutate({
 			data: {
 				businessId: portal.tenantId,
-				branchId: formData.branchId || undefined,
+				branchId: formData.branchId,
 				serviceId: formData.serviceId || undefined,
+				roomId: formData.roomId,
 				customerName: formData.customerName,
 				customerPhone: formData.customerPhone,
 				customerEmail: formData.customerEmail || undefined,
@@ -145,6 +169,7 @@ function PortalBookingPage() {
 				petSpecies: formData.petSpecies,
 				petBreed: formData.petBreed || undefined,
 				scheduledAt: new Date(formData.scheduledAt),
+				estimatedCheckOutAt: new Date(formData.estimatedCheckOutAt),
 				notes: formData.notes || undefined,
 				idempotencyKey: crypto.randomUUID(),
 			},
@@ -246,8 +271,12 @@ function PortalBookingPage() {
 											value={formData.customerPhone}
 											onChange={(e) => {
 												let val = e.target.value.replace(/\D/g, "");
-												if (val.startsWith("0")) val = val.substring(1);
-												if (val.startsWith("62")) val = val.substring(2);
+												if (val.startsWith("0")) {
+													val = val.substring(1);
+												}
+												if (val.startsWith("62")) {
+													val = val.substring(2);
+												}
 												setFormData({
 													...formData,
 													customerPhone: val,
@@ -415,6 +444,41 @@ function PortalBookingPage() {
 									</div>
 								)}
 
+								{!isLoadingRooms && rooms.length > 0 && (
+									<div>
+										<label
+											className="block text-sm font-medium text-neutral-700 mb-1"
+											htmlFor="roomId"
+										>
+											Kamar *
+										</label>
+										<Select
+											value={formData.roomId}
+											onValueChange={(value) =>
+												setFormData({ ...formData, roomId: value })
+											}
+										>
+											<SelectTrigger id="roomId">
+												<SelectValue placeholder={t("common.select_option")} />
+											</SelectTrigger>
+											<SelectContent>
+												{rooms
+													.filter(
+														(room) =>
+															room.branchId === formData.branchId &&
+															room.available > 0,
+													)
+													.map((room) => (
+														<SelectItem key={room.id} value={room.id}>
+															{room.name} - Rp{" "}
+															{room.dailyRate.toLocaleString("id-ID")}
+														</SelectItem>
+													))}
+											</SelectContent>
+										</Select>
+									</div>
+								)}
+
 								<div>
 									<label
 										className="block text-sm font-medium text-neutral-700 mb-1"
@@ -428,6 +492,28 @@ function PortalBookingPage() {
 										value={formData.scheduledAt}
 										onChange={(e) =>
 											setFormData({ ...formData, scheduledAt: e.target.value })
+										}
+										required
+									/>
+								</div>
+
+								<div>
+									<label
+										className="block text-sm font-medium text-neutral-700 mb-1"
+										htmlFor="checkoutDate"
+									>
+										Tanggal checkout *
+									</label>
+									<Input
+										id="checkoutDate"
+										type="datetime-local"
+										min={formData.scheduledAt}
+										value={formData.estimatedCheckOutAt}
+										onChange={(e) =>
+											setFormData({
+												...formData,
+												estimatedCheckOutAt: e.target.value,
+											})
 										}
 										required
 									/>

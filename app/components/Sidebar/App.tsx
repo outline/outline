@@ -1,63 +1,31 @@
 import { observer } from "mobx-react";
-import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { SidebarIcon } from "outline-icons";
+import { useEffect, useState, useRef } from "react";
 import {
   DragActiveProvider,
   SidebarScrollProvider,
 } from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
-import { navigateToImport } from "~/actions/definitions/navigation";
-import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
-import * as Scenes from "~/routes/scenes";
-import { homePath, searchPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
-import ArchiveLink from "./components/ArchiveLink";
-import Notebooks from "./components/Notebooks";
-import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
-import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
-import Header from "./components/Header";
 import { ShopLinks } from "./components/ShopLinks";
 import Section from "./components/Section";
-import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
-import SidebarLink from "./components/SidebarLink";
-import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
-import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
 function AppSidebar() {
   const { t } = useTranslation();
-  const { notes, ui, notebooks } = useStores();
+  const { ui } = useStores();
   const team = useCurrentTeam();
-  const user = useCurrentUser();
-  const can = usePolicy(team);
-  const history = useHistory();
   const isMobile = useMobile();
-  const handleSearchClick = useCallback(() => {
-    const basePath = searchPath();
-    const { pathname, search } = history.location;
-    if (pathname.startsWith(basePath) && (search || pathname !== basePath)) {
-      history.push(basePath);
-    }
-  }, [history]);
-  useEffect(() => {
-    void notebooks.fetchAll();
-    if (!user.isViewer) {
-      void notes.fetchDrafts();
-    }
-  }, [notes, notebooks, user.isViewer]);
   // Scrollable reads ref.current internally for its shadow/ResizeObserver
   // logic, so we must pass an object ref — a callback ref would leave those
   // reads undefined. We mirror the attached node into state so the
@@ -104,51 +72,6 @@ function AppSidebar() {
           <SidebarScrollProvider value={scrollArea}>
             <Section>
               <ShopLinks />
-            </Section>
-            <Section>
-              <Header id="notes" title={t("Notes")}>
-                <SidebarLink
-                  to={homePath()}
-                  icon={<HomeIcon />}
-                  exact={false}
-                  label={t("Home")}
-                  onClickIntent={Scenes.Home.preload}
-                />
-                <SidebarLink
-                  to={searchPath()}
-                  icon={<SearchIcon />}
-                  label={t("Search")}
-                  exact={false}
-                  onClick={handleSearchClick}
-                  onClickIntent={Scenes.Search.preload}
-                />
-                {can.createNote && <DraftsLink />}
-                <Section>
-                  <Starred />
-                </Section>
-                <Section>
-                  <SharedWithMe />
-                </Section>
-                <Section>
-                  <Notebooks />
-                </Section>
-                {can.createNote && (
-                  <Section>
-                    <ArchiveLink />
-                  </Section>
-                )}
-                <Section>
-                  {can.createNote && <TrashLink />}
-                  <DismissableSidebarAction
-                    id="sidebar-import-hidden"
-                    action={navigateToImport}
-                  />
-                  <DismissableSidebarAction
-                    id="sidebar-invite-hidden"
-                    action={inviteUser}
-                  />
-                </Section>
-              </Header>
             </Section>
           </SidebarScrollProvider>
         </Scrollable>

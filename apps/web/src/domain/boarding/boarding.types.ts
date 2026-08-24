@@ -17,6 +17,7 @@ export const BOARDING_STATUS = {
 	DRAFT: "draft",
 	ACTIVE: "active",
 	COMPLETED: "completed",
+	CANCELLED: "cancelled",
 } as const;
 export type TBoardingStatus =
 	(typeof BOARDING_STATUS)[keyof typeof BOARDING_STATUS];

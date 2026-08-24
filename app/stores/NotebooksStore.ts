@@ -38,16 +38,22 @@ export default class NotebooksStore extends Store<Notebook> {
     });
   }
   override async create(params: Properties<Notebook>): Promise<Notebook> {
+    const name = params.name?.trim() || "Untitled collection";
     const collection = await petsoClient.admin.createNoteCollection({
-      name: params.name,
+      name,
       description: null,
       sortOrder: Number(params.index) || 0,
     });
     return this.mapCollection(collection);
   }
   override async update(params: Properties<Notebook>): Promise<Notebook> {
+    if (!params.id) {
+      throw new Error("A collection id is required to update a collection");
+    }
+    const existing = this.get(params.id);
+    const name = params.name?.trim() || existing?.name || "Untitled collection";
     const collection = await petsoClient.admin.updateNoteCollection(params.id, {
-      name: params.name,
+      name,
       description: null,
       sortOrder: Number(params.index) || 0,
     });

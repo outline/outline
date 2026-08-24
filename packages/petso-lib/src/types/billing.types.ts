@@ -33,4 +33,12 @@ export interface TBillingSummaryDto {
 
 export interface TChangePlanInput {
 	readonly plan: "free" | "pro" | "business";
+	readonly billingCycle?: "monthly" | "yearly";
+}
+
+export interface TChangePlanResult {
+	readonly changed: boolean;
+	readonly orderId?: string;
+	readonly snapToken?: string;
+	readonly redirectUrl?: string;
 }

@@ -4,6 +4,7 @@ export { PetsoClient, PetsoClientError } from "./client";
 export type {
 	TAuthCredentials,
 	TAuthResult,
+	TBranchDto,
 	TBranchInput,
 	TApiResponse,
 	TCreateOrderInput,
@@ -69,6 +70,7 @@ export type {
 	TBillingSummaryDto,
 	TBillingUsageDto,
 	TChangePlanInput,
+	TChangePlanResult,
 	TWhatsAppTemplateDto,
 	TWhatsAppMessageDto,
 	TSendWhatsAppInput,
@@ -85,6 +87,7 @@ export type {
 	TLoyaltyMovementDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
+	TPortalBookingDto,
 	TPortalConfigDto,
 	TPortalReviewDto,
 	TPortalServiceDto,

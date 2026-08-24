@@ -27,6 +27,30 @@ describe("REST app", () => {
 		expect(response).toBeUndefined();
 	});
 
+	it("rejects unauthenticated admin REST requests before dispatch", async () => {
+		const response = await handleRestRequest(
+			new Request("https://pet-store.test/api/v1/admin/products"),
+		);
+
+		expect(response?.status).toBe(401);
+		expect(await response?.json()).toMatchObject({
+			success: false,
+			error: { code: "unauthenticated" },
+		});
+	});
+
+	it("fails closed for an unknown admin REST resource", async () => {
+		const response = await handleRestRequest(
+			new Request("https://pet-store.test/api/v1/admin/future-resource"),
+		);
+
+		expect(response?.status).toBe(401);
+		expect(await response?.json()).toMatchObject({
+			success: false,
+			error: { code: "unauthenticated" },
+		});
+	});
+
 	it("dispatches auth routes to the direct HTTP handlers", async () => {
 		const loginResponse = new Response("login", { status: 200 });
 		const authHandlers: AuthHandlers = {
@@ -41,6 +65,9 @@ describe("REST app", () => {
 		});
 
 		expect(await handleRequest(request)).toBe(loginResponse);
-		expect(authHandlers.login).toHaveBeenCalledWith(request, expect.any(String));
+		expect(authHandlers.login).toHaveBeenCalledWith(
+			request,
+			expect.any(String),
+		);
 	});
 });

@@ -12,6 +12,7 @@ import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
 import { getAuditLogsProgram } from "@/domain/audit/audit.programs";
 import {
 	changeSubscriptionPlanProgram,
+	createSubscriptionPaymentProgram,
 	getBillingHistoryProgram,
 	getCurrentSubscriptionProgram,
 	getUsageMetricsProgram,
@@ -127,11 +128,12 @@ import {
 } from "@/domain/pet/pet.programs";
 import type { TPetId } from "@/domain/pet/pet.types";
 import {
-	createPortalServiceProgram,
 	createPortalBookingProgram,
+	createPortalServiceProgram,
 	deletePortalServiceProgram,
-	getPortalConfigProgram,
 	getPortalBookingsProgram,
+	getPortalConfigBySlugProgram,
+	getPortalConfigProgram,
 	getPortalReviewsProgram,
 	getPortalServicesProgram,
 	getPortalStatsProgram,
@@ -139,13 +141,6 @@ import {
 	updatePortalConfigProgram,
 	updatePortalServiceStatusProgram,
 } from "@/domain/portal/portal.programs";
-import {
-	getPublicBranchesProgram,
-	getPublicBusinessBySlugProgram,
-	getPublicFeaturedProductsProgram,
-	getPublicProductProgram,
-	getPublicRoomsProgram,
-} from "@/domain/public/public.programs";
 import type { UpdatePortalConfigCommand } from "@/domain/portal/portal.schemas";
 import type { TPortalServiceId } from "@/domain/portal/portal.types";
 import {
@@ -164,6 +159,13 @@ import {
 	UpdateVariantSchema,
 } from "@/domain/product/product.schemas";
 import type { TProductVariantId } from "@/domain/product/product.types";
+import {
+	getPublicBranchesProgram,
+	getPublicBusinessBySlugProgram,
+	getPublicFeaturedProductsProgram,
+	getPublicProductProgram,
+	getPublicRoomsProgram,
+} from "@/domain/public/public.programs";
 import {
 	createPurchaseOrderProgram,
 	getPurchaseOrdersProgram,
@@ -225,8 +227,20 @@ import {
 	sendWhatsAppTemplateProgram,
 } from "@/domain/whatsapp/whatsapp.programs";
 import { SendWhatsAppTemplateSchema } from "@/domain/whatsapp/whatsapp.schemas";
+import { readSessionToken } from "@/infra/auth/http-session-cookie";
+import { hasCapability, type TCapability } from "@/infra/auth/security-context";
 import { runApp } from "@/infra/runtime/app.runtime";
-import type { TTenantId, TUserId } from "@/shared/types/common.types";
+import { idempotencyServiceFromAppLayer } from "@/infra/runtime/idempotency-bridge";
+import type {
+	TTenantId,
+	TUserId,
+	TUserRole,
+} from "@/shared/types/common.types";
+import {
+	IdempotencyConflictError,
+	IdempotencyRequestInProgressError,
+	runWithIdempotency,
+} from "@/shared/utils/idempotency";
 import {
 	type AccountingHandlers,
 	createAccountingHandlers,
@@ -289,9 +303,9 @@ import {
 	type LoyaltyHandlers,
 } from "./loyalty.handlers";
 import { createNotesHandlers, type NotesHandlers } from "./notes.handlers";
-import { createPublicHandlers, type PublicHandlers } from "./public.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import { createPortalHandlers, type PortalHandlers } from "./portal.handlers";
+import { createPublicHandlers, type PublicHandlers } from "./public.handlers";
 import {
 	createPurchaseHandlers,
 	type PurchaseHandlers,
@@ -301,7 +315,7 @@ import {
 	type ReferenceHandlers,
 } from "./reference.handlers";
 import { getRequestId } from "./request-context";
-import { jsonSuccess } from "./response";
+import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 import { createReturnHandlers, type ReturnHandlers } from "./return.handlers";
 import { createRoomHandlers, type RoomHandlers } from "./room.handlers";
 import { createShiftHandlers, type ShiftHandlers } from "./shift.handlers";
@@ -360,6 +374,10 @@ export function createRestRequestHandler(
 	staffProfileHandlers?: StaffProfileHandlers,
 	notesHandlers?: NotesHandlers,
 	publicHandlers?: PublicHandlers,
+	authorize?: (
+		request: Request,
+		capability: TCapability,
+	) => Promise<"allowed" | "unauthenticated" | "forbidden">,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -395,11 +413,32 @@ export function createRestRequestHandler(
 			}
 			if (resource === "products" && request.method === "GET") {
 				return resourceId
-					? publicHandlers.product(request, requestId, slug, decodeURIComponent(resourceId))
+					? publicHandlers.product(
+							request,
+							requestId,
+							slug,
+							decodeURIComponent(resourceId),
+						)
 					: publicHandlers.featured(request, requestId, slug);
 			}
 			if (resource === "bookings" && request.method === "POST" && !resourceId) {
 				return publicHandlers.booking(request, requestId, slug);
+			}
+		}
+		const capability = getRequiredAdminCapability(url.pathname, request.method);
+		if (capability && authorize) {
+			const authorization = await authorize(request, capability);
+			if (authorization !== "allowed") {
+				return jsonError(
+					new ApiHttpError(
+						authorization === "unauthenticated" ? 401 : 403,
+						authorization,
+						authorization === "unauthenticated"
+							? "Authentication required"
+							: "You do not have permission to perform this action",
+					),
+					requestId,
+				);
 			}
 		}
 		if (
@@ -1064,6 +1103,96 @@ export function createRestRequestHandler(
 	};
 }
 
+function getRequiredAdminCapability(
+	pathname: string,
+	method: string,
+): TCapability | null {
+	if (!pathname.startsWith("/api/v1/admin/")) {
+		return null;
+	}
+	const resource = pathname.split("/")[4] ?? "";
+	const isRead = method === "GET";
+	switch (resource) {
+		case "branches":
+		case "branch-holidays":
+		case "holidays":
+			return isRead ? "branch:read" : "branch:write";
+		case "products":
+			return isRead
+				? "product:read"
+				: method === "DELETE"
+					? "product:delete"
+					: "product:write";
+		case "inventory":
+			return isRead ? "inventory:read" : "inventory:write";
+		case "orders":
+			return pathname.endsWith("/void")
+				? "order:void"
+				: isRead
+					? "order:read"
+					: "order:write";
+		case "customers":
+			return isRead ? "customer:read" : "customer:write";
+		case "pets":
+			return "pet:write";
+		case "rooms":
+			return isRead ? "boarding:read" : "room:write";
+		case "boardings":
+			return isRead ? "boarding:read" : "boarding:write";
+		case "staff":
+			if (isRead) {
+				return "staff:read";
+			}
+			return pathname.includes("/remove") ? "staff:remove" : "staff:invite";
+		case "billing":
+			return isRead ? "billing:read" : "billing:write";
+		case "suppliers":
+		case "warehouses":
+			return isRead ? "inventory:read" : "supplier:write";
+		case "purchase-orders":
+			return "po:write";
+		case "invoices":
+			return "invoice:write";
+		case "returns":
+			return "return:write";
+		case "grooming":
+			return "grooming:write";
+		case "shifts":
+			return "shift:write";
+		case "document-templates":
+		case "note-collections":
+		case "notes":
+			return "document:write";
+		case "portal":
+			return "portal:write";
+		case "expenses":
+		case "accounting":
+		case "ledger":
+		case "reports":
+		case "advances":
+			return "accounting:write";
+		case "loyalty":
+			return "loyalty:write";
+		case "whatsapp":
+			return "whatsapp:write";
+		case "audit":
+			return "settings:manage";
+		case "dashboard":
+			return "order:read";
+		default:
+			return "settings:manage";
+	}
+}
+
+function isUserRole(value: string): value is TUserRole {
+	return (
+		value === "owner" ||
+		value === "manager" ||
+		value === "kasir" ||
+		value === "staff_daycare"
+	);
+}
+
 const authProgramDependencies = createAuthProgramDependencies();
 const defaultRestRequestHandler = createRestRequestHandler(
 	createAuthHandlers(authProgramDependencies),
@@ -1158,7 +1287,9 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				getProductProgram(product.id, businessId as TTenantId),
 			);
 			const variant = existing?.variants[0];
-			if (!variant) return product;
+			if (!variant) {
+				return product;
+			}
 			const updatedVariant = await runApp(
 				Effect.flatMap(
 					Schema.decodeUnknown(UpdateVariantSchema)({
@@ -1270,16 +1401,17 @@ const defaultRestRequestHandler = createRestRequestHandler(
 	createOrderHandlers({
 		session: async (token) => {
 			const session = await authProgramDependencies.session(token);
-			if (!session) return null;
+			if (!session) {
+				return null;
+			}
 			return {
 				business: session.business,
 				user: session.user,
 				branchId: session.branches[0]?.id ?? "",
 			};
 		},
-		list: async (businessId) => {
-			return runApp(getOrdersProgram(businessId as TTenantId));
-		},
+		list: async (businessId) =>
+			runApp(getOrdersProgram(businessId as TTenantId)),
 		create: async (businessId, userId, input) => {
 			const value = Schema.decodeUnknownSync(CreateOrderSchema)(input);
 			return runApp(
@@ -1401,7 +1533,9 @@ const defaultRestRequestHandler = createRestRequestHandler(
 	createPurchaseHandlers({
 		session: async (token) => {
 			const session = await authProgramDependencies.session(token);
-			if (!session) return null;
+			if (!session) {
+				return null;
+			}
 			return { business: session.business, userId: session.user.id };
 		},
 		list: async (businessId) => {
@@ -1453,7 +1587,9 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				...input,
 				items: Array.isArray(input.items)
 					? input.items.map((item) => {
-							if (!isRecord(item)) return item;
+							if (!isRecord(item)) {
+								return item;
+							}
 							return {
 								...item,
 								expiryDate:
@@ -1721,12 +1857,13 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			};
 			await runApp(updatePortalConfigProgram(command, businessId as TTenantId));
 		},
-		updateBookingStatus: async (businessId, bookingId, status) =>
+		updateBookingStatus: async (businessId, bookingId, status, actorUserId) =>
 			runApp(
-				updatePortalBookingStatusProgram(businessId as TTenantId, {
-					bookingId,
-					status,
-				}),
+				updatePortalBookingStatusProgram(
+					businessId as TTenantId,
+					{ bookingId, status },
+					actorUserId,
+				),
 			),
 	}),
 	createHolidayHandlers({
@@ -1767,7 +1904,9 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				),
 			);
 			const holiday = holidays.flat().find((item) => item.id === id);
-			if (!holiday) return;
+			if (!holiday) {
+				return;
+			}
 			await runApp(
 				deleteBranchHolidayProgram(
 					{ id, branchId: holiday.branchId },
@@ -1911,15 +2050,36 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				usage,
 			};
 		},
-		changePlan: async (businessId, input) => {
+		changePlan: async (session, input) => {
 			const value = Schema.decodeUnknownSync(
 				Schema.Struct({
 					plan: Schema.Literal("free", "pro", "business"),
+					billingCycle: Schema.optional(Schema.Literal("monthly", "yearly")),
 				}),
 			)(input);
+			if (value.plan !== "free") {
+				const payment = await runApp(
+					createSubscriptionPaymentProgram(
+						{
+							plan: value.plan,
+							billingCycle: value.billingCycle ?? "monthly",
+						},
+						session.business.id as TTenantId,
+						session.user.id as TUserId,
+						{
+							name: session.user.name,
+							email: session.user.email,
+						},
+					),
+				);
+				return { changed: false, ...payment };
+			}
 			return {
 				changed: await runApp(
-					changeSubscriptionPlanProgram(businessId as TTenantId, value.plan),
+					changeSubscriptionPlanProgram(
+						session.business.id as TTenantId,
+						value.plan,
+					),
 				),
 			};
 		},
@@ -2051,7 +2211,9 @@ const defaultRestRequestHandler = createRestRequestHandler(
 	createNotesHandlers({
 		session: async (token) => {
 			const session = await authProgramDependencies.session(token);
-			if (!session) return null;
+			if (!session) {
+				return null;
+			}
 			return { business: session.business, user: session.user };
 		},
 		listCollections: async (businessId) =>
@@ -2081,8 +2243,10 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		},
 	}),
 	createPublicHandlers({
-		business: async (slug) =>
-			runApp(getPublicBusinessBySlugProgram(slug)),
+		business: async (slug) => runApp(getPublicBusinessBySlugProgram(slug)),
+		portal: async (slug) => runApp(getPortalConfigBySlugProgram(slug)),
+		services: async (businessId) =>
+			runApp(getPortalServicesProgram(businessId as TTenantId)),
 		branches: async (businessId) =>
 			runApp(getPublicBranchesProgram(businessId)),
 		rooms: async (businessId, targetDate) =>
@@ -2091,9 +2255,45 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			runApp(getPublicFeaturedProductsProgram(businessId)),
 		product: async (businessId, productId) =>
 			runApp(getPublicProductProgram(businessId, productId)),
-		createBooking: async (input, businessId) =>
-			runApp(createPortalBookingProgram(businessId as TTenantId, input)),
+		createBooking: async (input, businessId) => {
+			const { idempotencyKey, ...command } = input;
+			try {
+				return await runWithIdempotency(
+					{
+						tenantId: businessId,
+						idempotencyKey,
+						requestPayload: command,
+					},
+					async () =>
+						runApp(createPortalBookingProgram(businessId as TTenantId, input)),
+					idempotencyServiceFromAppLayer,
+				);
+			} catch (error) {
+				if (
+					error instanceof IdempotencyConflictError ||
+					error instanceof IdempotencyRequestInProgressError
+				) {
+					throw new ApiHttpError(error.status, error.code, error.message);
+				}
+				throw error;
+			}
+		},
 	}),
+	async (request, capability) => {
+		const token = readSessionToken(request);
+		if (!token) {
+			return "unauthenticated";
+		}
+		const session = await authProgramDependencies.session(token);
+		if (!session) {
+			return "unauthenticated";
+		}
+		const role = session.user.role;
+		if (!isUserRole(role) || !hasCapability(role, capability)) {
+			return "forbidden";
+		}
+		return "allowed";
+	},
 );
 
 function serializeGroomingAppointment(appointment: TGroomingAppointment) {

@@ -130,6 +130,11 @@ describe("getCurrentSubscriptionProgram", () => {
 			plan: "pro",
 			status: "active",
 			currentPeriodEnd: mockSubscription.currentPeriodEnd?.toISOString(),
+			limits: {
+				staff: 10,
+				branches: 3,
+				boardingsPerMonth: 200,
+			},
 		});
 		expect(findSubscriptionByTenantId).toHaveBeenCalledWith(tenantId);
 	});

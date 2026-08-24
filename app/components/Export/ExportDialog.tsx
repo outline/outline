@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { ArchiveIcon, CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import styled from "styled-components";
 import { FileOperationFormat, NotificationEventType } from "@shared/types";
 import type Notebook from "~/models/Notebook";
@@ -27,7 +26,7 @@ export const ExportDialog = observer(({ notebook, onSubmit }: Props) => {
     React.useState<boolean>(true);
   const [includePrivate, setIncludePrivate] = React.useState<boolean>(true);
   const user = useCurrentUser();
-  const { notebooks, ui } = useStores();
+  const { notebooks } = useStores();
   const { t } = useTranslation();
   const handleIncludeAttachmentsChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,32 +41,13 @@ export const ExportDialog = observer(({ notebook, onSubmit }: Props) => {
     []
   );
   const handleSubmit = async () => {
-    let response;
     if (notebook) {
-      response = await notebook.export(format, includeAttachments);
+      await notebook.export(format, includeAttachments);
     } else {
-      response = await notebooks.export({
+      await notebooks.export({
         format,
         includeAttachments,
         includePrivate,
-      });
-    }
-    if (response?.data?.fileOperation) {
-      const fileOperationId = response.data.fileOperation.id;
-      const toastId = `export-${fileOperationId}`;
-      const timeoutId = setTimeout(() => {
-        toast.success(t("Export started"), {
-          id: toastId,
-          description: t("A link to your file will be sent through email soon"),
-          duration: 3000,
-        });
-        ui.exportToasts.delete(fileOperationId);
-      }, 6000);
-      ui.registerExportToast(fileOperationId, toastId, timeoutId);
-      toast.loading(t("Export started"), {
-        id: toastId,
-        description: `${t("Preparing your download")}…`,
-        duration: Infinity,
       });
     }
     onSubmit();

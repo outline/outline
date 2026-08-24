@@ -1,3 +1,5 @@
+import { PLAN_LIMITS } from "@/domain/billing/billing.module";
+
 // ============================================================
 // APP CONFIGURATION
 // ============================================================
@@ -105,40 +107,40 @@ export const PLAN_PRICING = {
 		label: "Free",
 	},
 	pro: {
-		monthly: 388000,
-		yearly: 3880000,
+		monthly: 199000,
+		yearly: 1990000,
 		label: "Pro",
 	},
 	business: {
-		monthly: 888000,
-		yearly: 8880000,
+		monthly: 449000,
+		yearly: 4490000,
 		label: "Business",
 	},
 } as const;
 
 export const SAAS_LIMITS = {
 	free: {
-		branches: 1,
+		branches: PLAN_LIMITS.free.branches,
 		products: 50,
 		transactions: 100,
-		staff: 2,
-		activeBoardings: 10,
+		staff: PLAN_LIMITS.free.staff,
+		activeBoardings: PLAN_LIMITS.free.boardingsPerMonth,
 		...PLAN_PRICING.free,
 	},
 	pro: {
-		branches: 5,
+		branches: PLAN_LIMITS.pro.branches,
 		products: Number.POSITIVE_INFINITY,
 		transactions: Number.POSITIVE_INFINITY,
-		staff: 10,
-		activeBoardings: Number.POSITIVE_INFINITY,
+		staff: PLAN_LIMITS.pro.staff,
+		activeBoardings: PLAN_LIMITS.pro.boardingsPerMonth,
 		...PLAN_PRICING.pro,
 	},
 	business: {
-		branches: Number.POSITIVE_INFINITY,
+		branches: PLAN_LIMITS.business.branches,
 		products: Number.POSITIVE_INFINITY,
 		transactions: Number.POSITIVE_INFINITY,
-		staff: Number.POSITIVE_INFINITY,
-		activeBoardings: Number.POSITIVE_INFINITY,
+		staff: PLAN_LIMITS.business.staff,
+		activeBoardings: PLAN_LIMITS.business.boardingsPerMonth,
 		...PLAN_PRICING.business,
 	},
 };

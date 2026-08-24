@@ -58,6 +58,7 @@ export const UpdateBoardingStatusSchema = Schema.Struct({
 		Schema.Literal("draft"),
 		Schema.Literal("active"),
 		Schema.Literal("completed"),
+		Schema.Literal("cancelled"),
 	),
 });
 

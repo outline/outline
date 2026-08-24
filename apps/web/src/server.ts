@@ -1,5 +1,9 @@
 import { generateRequestId, logOperation } from "@/shared/observability";
-import { bindWorkerEnv } from "@/shared/env/app.config";
+import {
+	bindWorkerEnv,
+	getProductionConfigIssues,
+	getResolvedConfig,
+} from "@/shared/env/app.config";
 import { consumeLastCapturedError, renderErrorPage } from "@/shared/utils";
 import { handleRestRequest } from "./lib/api/http/rest-app";
 
@@ -26,9 +30,13 @@ async function normalizeCatastrophicSsrResponse(
 	response: Response,
 	requestId: string,
 ): Promise<Response> {
-	if (response.status < 500) return response;
+	if (response.status < 500) {
+		return response;
+	}
 	const contentType = response.headers.get("content-type") ?? "";
-	if (!contentType.includes("application/json")) return response;
+	if (!contentType.includes("application/json")) {
+		return response;
+	}
 
 	const body = await response.clone().text();
 	if (
@@ -57,7 +65,9 @@ async function normalizeCatastrophicSsrResponse(
 
 const withRequestId = (request: Request): string => {
 	const existing = request.headers.get("X-Request-Id");
-	if (existing) return existing;
+	if (existing) {
+		return existing;
+	}
 	const rid = generateRequestId();
 	return rid;
 };
@@ -70,13 +80,44 @@ export default {
 
 		try {
 			const url = new URL(request.url);
+			if (url.pathname.startsWith("/api/")) {
+				const configIssues = getProductionConfigIssues(getResolvedConfig());
+				if (configIssues.length > 0) {
+					logOperation(
+						{ requestId, tenantId: null, actorId: null, ipAddress: null },
+						"config-preflight",
+						"failure",
+						performance.now() - start,
+						"service_unavailable",
+						configIssues.join("; "),
+					);
+					return new Response(
+						JSON.stringify({
+							success: false,
+							error: {
+								code: "service_unavailable",
+								message: "The service is not configured for production",
+							},
+						}),
+						{
+							status: 503,
+							headers: {
+								"Content-Type": "application/json",
+								"X-Request-Id": requestId,
+							},
+						},
+					);
+				}
+			}
 			const restResponse = await handleRestRequest(request);
 			if (restResponse) {
 				return restResponse;
 			}
 
 			if (url.pathname === "/api/v1/seed-ember" && request.method === "POST") {
-				const { handleSeedEmber } = await import("./lib/api/ecommerce/seed-ember");
+				const { handleSeedEmber } = await import(
+					"./lib/api/ecommerce/seed-ember"
+				);
 				const res = await handleSeedEmber(request, env);
 				res.headers.set("X-Request-Id", requestId);
 				return res;
@@ -219,7 +260,8 @@ export default {
 			}
 
 			if (
-				(url.pathname === "/api/v1/featured" || url.pathname === "/api/v1/products/featured") &&
+				(url.pathname === "/api/v1/featured" ||
+					url.pathname === "/api/v1/products/featured") &&
 				request.method === "GET"
 			) {
 				const { handleGetFeatured } = await import(
@@ -443,7 +485,9 @@ export default {
 			}
 
 			if (url.pathname === "/api/v1/seed-ember" && request.method === "POST") {
-				const { handleSeedEmber } = await import("./lib/api/ecommerce/seed-ember");
+				const { handleSeedEmber } = await import(
+					"./lib/api/ecommerce/seed-ember"
+				);
 				const res = await handleSeedEmber(request, env);
 				res.headers.set("X-Request-Id", requestId);
 				return res;

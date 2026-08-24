@@ -1,4 +1,4 @@
-import { Config, Context, Effect, Layer, type Redacted } from "effect";
+import { Config, Context, Effect, Layer, Redacted } from "effect";
 
 /**
  * Server-only environment variable accessor.
@@ -14,7 +14,9 @@ const readFromGlobalEnv = (name: string): string | undefined => {
 		.__env__;
 	if (globalEnv && typeof globalEnv === "object") {
 		const v = globalEnv[name];
-		if (typeof v === "string" && v !== "") return v;
+		if (typeof v === "string" && v !== "") {
+			return v;
+		}
 	}
 	const g = globalThis as Record<string, unknown>;
 	if (typeof g[name] === "string" && g[name] !== "") {
@@ -49,11 +51,7 @@ const serverEnv = (name: string): Config.Config<string> => {
 				: Config.fail(`Missing server env var: ${name}`);
 		}),
 	);
-	config = config.pipe(
-		Config.orElse(() => {
-			return Config.string(name);
-		}),
-	);
+	config = config.pipe(Config.orElse(() => Config.string(name)));
 	return config;
 };
 
@@ -72,7 +70,9 @@ const readFromGlobalEnvImported = (name: string): string | undefined => {
 		.__env__;
 	if (globalEnv && typeof globalEnv === "object") {
 		const v = globalEnv[name] ?? globalEnv[`VITE_${name}`];
-		if (typeof v === "string") return v;
+		if (typeof v === "string") {
+			return v;
+		}
 	}
 	return undefined;
 };
@@ -165,9 +165,7 @@ export const AppConfig = {
 		bucket: env("EMBER_BUCKET", "pet-store"),
 	},
 	upstash: {
-		redisUrl: serverEnv("UPSTASH_REDIS_REST_URL").pipe(
-			Config.withDefault(""),
-		),
+		redisUrl: serverEnv("UPSTASH_REDIS_REST_URL").pipe(Config.withDefault("")),
 		redisToken: serverEnv("UPSTASH_REDIS_REST_TOKEN").pipe(
 			Config.withDefault(""),
 		),
@@ -248,6 +246,66 @@ export type TResolvedConfig = {
 	};
 	readonly environment: string;
 };
+
+/**
+ * Lists configuration problems that would make the production API incomplete.
+ *
+ * @param config the resolved server configuration.
+ * @returns production readiness issues, or an empty list when ready.
+ */
+export function getProductionConfigIssues(
+	config: TResolvedConfig,
+): readonly string[] {
+	if (config.environment !== "production") {
+		return [];
+	}
+
+	const issues: string[] = [];
+	try {
+		const publicUrl = new URL(config.publicBaseUrl);
+		if (publicUrl.protocol !== "https:" || publicUrl.hostname === "localhost") {
+			issues.push("APP_PUBLIC_URL must be an absolute HTTPS URL");
+		}
+	} catch {
+		issues.push("APP_PUBLIC_URL must be an absolute HTTPS URL");
+	}
+
+	if (!config.database.dbUrl) {
+		issues.push("DATABASE_URL is required");
+	}
+	if (config.email.provider === "console") {
+		issues.push("EMAIL_PROVIDER=console is not permitted");
+	} else if (config.email.provider === "resend") {
+		if (!Redacted.value(config.email.apiKey)) {
+			issues.push("EMAIL_API_KEY is required for EMAIL_PROVIDER=resend");
+		}
+	} else if (config.email.provider === "kurir") {
+		if (!Redacted.value(config.kurir.apiKey)) {
+			issues.push("KURIR_API_KEY is required for EMAIL_PROVIDER=kurir");
+		}
+		if (!config.kurir.productId) {
+			issues.push("KURIR_PRODUCT_ID is required for EMAIL_PROVIDER=kurir");
+		}
+	} else {
+		issues.push("EMAIL_PROVIDER=ses is not supported");
+	}
+	if (!Redacted.value(config.ember.apiKey)) {
+		issues.push("EMBER_API_KEY is required");
+	}
+	if (!config.midtrans.serverKey) {
+		issues.push("MIDTRANS_SERVER_KEY is required");
+	}
+	if (!config.midtrans.isProduction) {
+		issues.push("MIDTRANS_IS_PRODUCTION must be true in production");
+	}
+	if (Boolean(config.upstash.redisUrl) !== Boolean(config.upstash.redisToken)) {
+		issues.push(
+			"UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be configured together",
+		);
+	}
+
+	return issues;
+}
 
 export class IAppConfig extends Context.Tag("IAppConfig")<
 	IAppConfig,

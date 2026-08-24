@@ -1,5 +1,6 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
+import type { TRoomId } from "@/domain/room/room.types";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import {
 	boardingCharges,
@@ -7,6 +8,7 @@ import {
 	boardingPets,
 	boardings,
 	branches,
+	rooms,
 } from "@/infra/db/drizzle/schema";
 import { DatabaseError } from "@/shared/errors/infrastructure.errors";
 import type {
@@ -76,7 +78,7 @@ const mapBoardingRow = (
 		: null,
 	notes: row.notes,
 	status: row.status as TBoardingStatus,
-	roomId: (row.roomId as import("../room/room.types").TRoomId) || null,
+	roomId: (row.roomId as TRoomId) || null,
 	dailyRate: row.dailyRate ? Number(row.dailyRate) : 0,
 	actualCheckout: row.actualCheckout ? new Date(row.actualCheckout) : null,
 	totalAmount: row.totalAmount ? Number(row.totalAmount) : 0,
@@ -92,8 +94,8 @@ const mapBoardingRow = (
 
 export const BoardingRepositoryDrizzle = Layer.effect(
 	IBoardingRepository,
-	Effect.map(IDrizzleClient, (db) => {
-		return IBoardingRepository.of({
+	Effect.map(IDrizzleClient, (db) =>
+		IBoardingRepository.of({
 			findById: (id: TBoardingId, tenantId: TTenantId) =>
 				withRetry(
 					Effect.tryPromise({
@@ -101,11 +103,16 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 							const result = await db.query.boardings.findFirst({
 								where: {
 									RAW: (boardings, { and, eq }) =>
-										and(eq(boardings.id, id), eq(boardings.businessId, tenantId)) ?? sql``,
+										and(
+											eq(boardings.id, id),
+											eq(boardings.businessId, tenantId),
+										) ?? sql``,
 								},
 							});
 
-							if (!result) return null;
+							if (!result) {
+								return null;
+							}
 
 							const petRows = await db
 								.select()
@@ -123,11 +130,16 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const results = await db.query.boardings.findMany({
-								where: { RAW: (boardings, { eq }) => eq(boardings.businessId, tenantId) },
+								where: {
+									RAW: (boardings, { eq }) =>
+										eq(boardings.businessId, tenantId),
+								},
 								orderBy: (boardings, { desc }) => [desc(boardings.createdAt)],
 							});
 
-							if (results.length === 0) return [];
+							if (results.length === 0) {
+								return [];
+							}
 
 							const boardingIds = results.map((r) => r.id);
 							const petRows = await db
@@ -164,6 +176,8 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 							// the same branch serialize through the row lock and
 							// can never both observe an under-capacity count.
 							await db.transaction(async (tx) => {
+								let authoritativeDailyRate =
+									boardingWithPets.dailyRate.toString();
 								const [branchResult] = await tx
 									.select({
 										id: branches.id,
@@ -171,7 +185,13 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 										capacity: branches.capacity,
 									})
 									.from(branches)
-									.where(eq(branches.id, boardingWithPets.branchId))
+									.where(
+										and(
+											eq(branches.id, boardingWithPets.branchId),
+											eq(branches.businessId, boardingWithPets.tenantId),
+											eq(branches.isActive, true),
+										),
+									)
 									.for("update")
 									.limit(1);
 
@@ -187,6 +207,7 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 									.from(boardings)
 									.where(
 										and(
+											eq(boardings.businessId, boardingWithPets.tenantId),
 											eq(boardings.branchId, boardingWithPets.branchId),
 											inArray(boardings.status, ["active", "draft"]),
 										),
@@ -195,6 +216,65 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 								const activeCount = activeCountRows[0]?.count ?? 0;
 								if (activeCount >= branchResult.capacity) {
 									throw new Error("Branch capacity exceeded");
+								}
+
+								if (boardingWithPets.roomId) {
+									const [roomResult] = await tx
+										.select({
+											id: rooms.id,
+											capacity: rooms.capacity,
+											dailyRate: rooms.dailyRate,
+										})
+										.from(rooms)
+										.where(
+											and(
+												eq(rooms.id, boardingWithPets.roomId),
+												eq(rooms.businessId, boardingWithPets.tenantId),
+												eq(rooms.branchId, boardingWithPets.branchId),
+												eq(rooms.isActive, true),
+											),
+										)
+										.for("update")
+										.limit(1);
+
+									if (!roomResult) {
+										throw new Error("Room not found");
+									}
+									authoritativeDailyRate = roomResult.dailyRate;
+
+									const checkInDate = toDateOnlyString(
+										boardingWithPets.checkInDate,
+									);
+									const estimatedCheckOutDate =
+										boardingWithPets.estimatedCheckOutDate
+											? toDateOnlyString(boardingWithPets.estimatedCheckOutDate)
+											: null;
+									const overlappingConditions = [
+										eq(boardings.roomId, boardingWithPets.roomId),
+										eq(boardings.businessId, boardingWithPets.tenantId),
+										eq(boardings.branchId, boardingWithPets.branchId),
+										inArray(boardings.status, ["active", "draft"]),
+										or(
+											isNull(boardings.estimatedCheckOutDate),
+											gt(boardings.estimatedCheckOutDate, checkInDate),
+										) ?? sql``,
+									];
+
+									if (estimatedCheckOutDate) {
+										overlappingConditions.push(
+											lt(boardings.checkInDate, estimatedCheckOutDate),
+										);
+									}
+
+									const overlappingCountRows = await tx
+										.select({ count: sql<number>`count(*)::int` })
+										.from(boardings)
+										.where(and(...overlappingConditions));
+									const overlappingCount = overlappingCountRows[0]?.count ?? 0;
+
+									if (overlappingCount >= roomResult.capacity) {
+										throw new Error("Room capacity exceeded");
+									}
 								}
 
 								await tx.insert(boardings).values({
@@ -217,6 +297,9 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 										boardingWithPets.consentAcceptedAt ?? new Date()
 									).toISOString(),
 									createdBy: boardingWithPets.createdBy,
+									ownerSignature: boardingWithPets.ownerSignature,
+									roomId: boardingWithPets.roomId,
+									dailyRate: authoritativeDailyRate,
 								});
 
 								if (boardingWithPets.pets.length > 0) {
@@ -356,13 +439,15 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 							const boarding = await db.query.boardings.findFirst({
 								where: {
 									RAW: (boardings, { and, eq }) =>
-									and(
-										eq(boardings.id, boardingId),
-										eq(boardings.businessId, tenantId),
-									) ?? sql``,
+										and(
+											eq(boardings.id, boardingId),
+											eq(boardings.businessId, tenantId),
+										) ?? sql``,
 								},
 							});
-							if (!boarding) return [];
+							if (!boarding) {
+								return [];
+							}
 
 							const rows = await db
 								.select()
@@ -392,10 +477,10 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 							const boarding = await db.query.boardings.findFirst({
 								where: {
 									RAW: (boardings, { and, eq }) =>
-									and(
-										eq(boardings.id, charge.boardingId),
-										eq(boardings.businessId, tenantId),
-									) ?? sql``,
+										and(
+											eq(boardings.id, charge.boardingId),
+											eq(boardings.businessId, tenantId),
+										) ?? sql``,
 								},
 							});
 							if (!boarding) {
@@ -423,13 +508,15 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 							const boarding = await db.query.boardings.findFirst({
 								where: {
 									RAW: (boardings, { and, eq }) =>
-									and(
-										eq(boardings.id, boardingId),
-										eq(boardings.businessId, tenantId),
-									) ?? sql``,
+										and(
+											eq(boardings.id, boardingId),
+											eq(boardings.businessId, tenantId),
+										) ?? sql``,
 								},
 							});
-							if (!boarding) return [];
+							if (!boarding) {
+								return [];
+							}
 
 							const rows = await db
 								.select()
@@ -459,10 +546,10 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 							const boarding = await db.query.boardings.findFirst({
 								where: {
 									RAW: (boardings, { and, eq }) =>
-									and(
-										eq(boardings.id, photo.boardingId),
-										eq(boardings.businessId, tenantId),
-									) ?? sql``,
+										and(
+											eq(boardings.id, photo.boardingId),
+											eq(boardings.businessId, tenantId),
+										) ?? sql``,
 								},
 							});
 							if (!boarding) {
@@ -482,6 +569,6 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
 				),
-		});
-	}),
+		}),
+	),
 );

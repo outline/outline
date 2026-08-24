@@ -31,7 +31,11 @@ export type {
 	TInviteStaffResult,
 	TUpdateStaffProfileInput,
 } from "./staff-invite.types";
-export type { TOnShiftDto, TShiftDto, TStaffAttendanceDto } from "./shift.types";
+export type {
+	TOnShiftDto,
+	TShiftDto,
+	TStaffAttendanceDto,
+} from "./shift.types";
 export type { TCreateReturnInput, TReturnDto } from "./return.types";
 export type { TBoardingDto, TBoardingPetDto } from "./boarding.types";
 export type { TCreateBoardingInput } from "./boarding-input.types";
@@ -85,6 +89,7 @@ export type {
 	TBillingSummaryDto,
 	TBillingUsageDto,
 	TChangePlanInput,
+	TChangePlanResult,
 } from "./billing.types";
 export type { TWhatsAppTemplateDto } from "./whatsapp.types";
 export type { TWhatsAppMessageDto } from "./whatsapp-message.types";

@@ -50,8 +50,11 @@ export interface TPublicBookingInput {
 	readonly customerPhone: string;
 	readonly petName: string;
 	readonly scheduledAt: string;
-	readonly branchId?: string;
+	readonly estimatedCheckOutAt: string;
+	readonly branchId: string;
+	readonly roomId: string;
 	readonly notes?: string;
+	readonly idempotencyKey: string;
 }
 
 export interface TPublicBookingDto {

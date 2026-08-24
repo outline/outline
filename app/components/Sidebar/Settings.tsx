@@ -9,7 +9,6 @@ import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
-import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
@@ -17,7 +16,6 @@ import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
-import Version from "./components/Version";
 function SettingsSidebar() {
   const { integrations } = useStores();
   const { t } = useTranslation();
@@ -33,7 +31,7 @@ function SettingsSidebar() {
     "group"
   );
   const returnToApp = useCallback(() => {
-    history.push("/home");
+    history.push("/dashboard");
   }, [history]);
   return (
     <Sidebar canCollapse={false}>
@@ -66,12 +64,6 @@ function SettingsSidebar() {
               </Header>
             </Section>
           ))}
-          {!isCloudHosted && (
-            <Section>
-              <Header title={t("Installation")} />
-              <Version />
-            </Section>
-          )}
         </Scrollable>
       </Flex>
       <HistoryNavigation />

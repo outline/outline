@@ -18,7 +18,7 @@ import { formatCurrency, formatDate } from "~/utils/format";
  *
  * Deliveries arrive in parts, so each line takes its own quantity rather than
  * the whole order being received at once. What is left outstanding drives the
- * form, and the mock refuses anything above it.
+ * form, and the API refuses anything above it.
  *
  * @returns the rendered purchase order detail.
  */

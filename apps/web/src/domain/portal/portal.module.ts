@@ -29,8 +29,10 @@ export const PortalModule = {
 
 	createBooking: (params: {
 		businessId: string;
-		branchId?: string | null;
+		branchId: string;
 		serviceId?: string | null;
+		roomId?: string | null;
+		idempotencyKey: string;
 		customerName: string;
 		customerPhone: string;
 		customerEmail?: string | null;
@@ -38,12 +40,16 @@ export const PortalModule = {
 		petSpecies?: string | null;
 		petBreed?: string | null;
 		scheduledAt: Date;
+		estimatedCheckOutAt?: Date | null;
 		notes?: string | null;
 	}): TPortalBooking => ({
 		id: generateId() as TPortalBookingId,
 		tenantId: params.businessId as TTenantId,
-		branchId: params.branchId ?? null,
+		branchId: params.branchId,
 		serviceId: params.serviceId ? (params.serviceId as TPortalServiceId) : null,
+		roomId: params.roomId ?? null,
+		boardingId: null,
+		idempotencyKey: params.idempotencyKey,
 		customerName: params.customerName,
 		customerPhone: params.customerPhone,
 		customerEmail: params.customerEmail ?? null,
@@ -51,6 +57,7 @@ export const PortalModule = {
 		petSpecies: params.petSpecies ?? null,
 		petBreed: params.petBreed ?? null,
 		scheduledAt: params.scheduledAt,
+		estimatedCheckOutAt: params.estimatedCheckOutAt ?? null,
 		notes: params.notes ?? null,
 		status: "pending",
 		createdAt: new Date(),

@@ -32,8 +32,8 @@ import type {
   Return,
   AuditEntry,
   Insight,
-} from "../../src/mocks/shop";
-import type { DocumentTemplate } from "~/types/shop";
+  DocumentTemplate,
+} from "~/types/shop";
 import type {
   TCustomerRecordDto,
   TInventorySnapshot,
@@ -77,7 +77,7 @@ export type InvoiceLine = {
   unitPrice: number;
   discount: number;
 };
-/** An invoice with its money worked out by the mock. */
+/** An invoice with calculated totals and payment state. */
 export type PricedInvoice = Invoice & {
   subtotal: number;
   tax: number;
@@ -87,7 +87,7 @@ export type PricedInvoice = Invoice & {
   status: "void" | "paid" | "partial" | "unpaid";
   isOverdue: boolean;
 };
-/** An advance with the balance worked out by the mock. */
+/** An advance with its calculated repayment balance. */
 export type PricedAdvance = Advance & {
   repaid: number;
   remaining: number;
@@ -182,6 +182,28 @@ function mapBranch(branch: TBranchDto): Branch {
   };
 }
 
+function mapAccountType(value: string): Account["type"] {
+  switch (value) {
+    case "asset":
+    case "liability":
+    case "equity":
+    case "income":
+    case "expense":
+      return value;
+    case "revenue":
+      return "income";
+    default:
+      return "expense";
+  }
+}
+
+function mapWhatsappCategory(value: string): WhatsappTemplate["category"] {
+  if (value === "marketing" || value === "receipt") {
+    return value;
+  }
+  return "reminder";
+}
+
 function mapCustomer(
   customer: TCustomerRecordDto,
   pets: readonly TPetDto[],
@@ -252,8 +274,7 @@ function mapInventoryMovement(
     id: movement.id,
     productId: movement.variantId,
     productName: productNames.get(movement.variantId) ?? "",
-    warehouseId:
-      movement.sourceWarehouseId ?? movement.targetWarehouseId ?? "",
+    warehouseId: movement.sourceWarehouseId ?? movement.targetWarehouseId ?? "",
     type: types.find((type) => type === movement.type) ?? "adjustment",
     quantity: movement.quantity,
     reference: movement.referenceId ?? movement.referenceType ?? "",
@@ -916,7 +937,7 @@ interface State {
     name: string;
     branch: string;
     capacity: number;
-    type: string;
+    type: Room["type"];
     dailyRate: number;
   }) => Promise<void>;
   updateRoom: (
@@ -924,7 +945,7 @@ interface State {
     changes: {
       name?: string;
       capacity?: number;
-      type?: string;
+      type?: Room["type"];
       dailyRate?: number;
     }
   ) => Promise<void>;
@@ -1111,13 +1132,13 @@ export const useShop = create<State>((set, get) => ({
           journalTotals.set(line.accountId, totals);
         }
       }
-      const trialBalanceRows = accounts.map((account) => {
+      const trialBalanceRows: TrialBalanceRow[] = accounts.map((account) => {
         const totals = journalTotals.get(account.id) ?? { debit: 0, credit: 0 };
         return {
           id: account.id,
           code: account.code,
           name: account.name,
-          type: account.type === "revenue" ? "income" : account.type,
+          type: mapAccountType(account.type),
           debit: totals.debit,
           credit: totals.credit,
           balance: totals.debit - totals.credit,
@@ -1323,7 +1344,7 @@ export const useShop = create<State>((set, get) => ({
           id: account.id,
           code: account.code,
           name: account.name,
-          type: account.type === "revenue" ? "income" : account.type,
+          type: mapAccountType(account.type),
         })),
         journal: journal.map((entry: TJournalEntryDto) => ({
           id: entry.id,
@@ -1372,9 +1393,16 @@ export const useShop = create<State>((set, get) => ({
             branchNames
           )
         ),
-        loyalty,
-        whatsappTemplates,
-        whatsappMessages,
+        loyalty: [...loyalty],
+        whatsappTemplates: whatsappTemplates.map((template) => ({
+          ...template,
+          category: mapWhatsappCategory(template.category),
+        })),
+        whatsappMessages: whatsappMessages.map((message) => ({
+          ...message,
+          customerName: message.to,
+          status: message.status === "pending" ? "sent" : message.status,
+        })),
         subscription: billing.subscription
           ? {
               plan: billing.subscription.plan as Subscription["plan"],
@@ -1388,8 +1416,21 @@ export const useShop = create<State>((set, get) => ({
               limits: billing.subscription.limits,
             }
           : undefined,
-        billingInvoices: billing.invoices,
-        usage: billing.usage,
+        billingInvoices: [...billing.invoices],
+        usage: {
+          staff: {
+            used: billing.usage.staff,
+            limit: billing.subscription?.limits.staff ?? 3,
+          },
+          branches: {
+            used: billing.usage.branches,
+            limit: billing.subscription?.limits.branches ?? 1,
+          },
+          boardings: {
+            used: billing.usage.activeBoardings,
+            limit: billing.subscription?.limits.boardingsPerMonth ?? 30,
+          },
+        },
         invoices: invoices.map((invoice) => mapInvoice(invoice, customerNames)),
         portalStats: {
           reviews: portalAdmin.stats.totalReviews,
@@ -1419,7 +1460,7 @@ export const useShop = create<State>((set, get) => ({
           body: review.content,
           createdAt: review.createdAt,
         })),
-        portalBookings: portalAdmin.bookings,
+        portalBookings: [...portalAdmin.bookings],
         advances: advances.map((advance) => ({
           id: advance.id,
           staffId: advance.staffId,
@@ -1454,8 +1495,9 @@ export const useShop = create<State>((set, get) => ({
             items: item.items.map((returnItem) => ({
               productId: returnItem.orderItemId,
               name:
-                order?.items.find((orderItem) => orderItem.id === returnItem.orderItemId)
-                  ?.productName ?? returnItem.orderItemId,
+                order?.items.find(
+                  (orderItem) => orderItem.id === returnItem.orderItemId
+                )?.productName ?? returnItem.orderItemId,
               quantity: returnItem.qty,
               isDamaged: returnItem.isDamaged,
             })),
@@ -1981,7 +2023,6 @@ export const useShop = create<State>((set, get) => ({
   },
   saveSupplier: async (supplier) => {
     const input = {
-      ...(supplier.id ? { id: supplier.id } : {}),
       name: supplier.name,
       contactPerson: supplier.contact ?? null,
       phone: supplier.phone ?? null,
@@ -1990,7 +2031,7 @@ export const useShop = create<State>((set, get) => ({
       notes: supplier.terms ?? null,
     };
     if (supplier.id) {
-      await petsoClient.admin.updateSupplier(input);
+      await petsoClient.admin.updateSupplier({ ...input, id: supplier.id });
     } else {
       await petsoClient.admin.createSupplier(input);
     }
@@ -2007,14 +2048,13 @@ export const useShop = create<State>((set, get) => ({
       get().branches.find((branch) => branch.name === warehouse.branch)?.id ??
       warehouse.branch;
     const input = {
-      ...(warehouse.id ? { id: warehouse.id } : {}),
       branchId,
       name: warehouse.name,
       code: null,
       address: null,
     };
     if (warehouse.id) {
-      await petsoClient.admin.updateWarehouse(input);
+      await petsoClient.admin.updateWarehouse({ ...input, id: warehouse.id });
     } else {
       await petsoClient.admin.createWarehouse(input);
     }
@@ -2072,7 +2112,6 @@ export const useShop = create<State>((set, get) => ({
   },
   saveBranch: async (branch) => {
     const input = {
-      ...(branch.id ? { id: branch.id } : {}),
       name: branch.name,
       address: branch.address ?? null,
       phone: branch.phone ?? null,
@@ -2088,7 +2127,7 @@ export const useShop = create<State>((set, get) => ({
       operatingHours: null,
     };
     if (branch.id) {
-      await petsoClient.branches.update(input);
+      await petsoClient.branches.update({ ...input, id: branch.id });
     } else {
       await petsoClient.branches.create(input);
     }
@@ -2228,7 +2267,11 @@ export const useShop = create<State>((set, get) => ({
     return response.sent;
   },
   changePlan: async (plan) => {
-    await petsoClient.admin.changePlan({ plan });
+    const result = await petsoClient.admin.changePlan({ plan });
+    if (result.redirectUrl) {
+      window.location.assign(result.redirectUrl);
+      return;
+    }
     await get().fetchAll();
   },
   redeemPoints: async (customerId, points) => {

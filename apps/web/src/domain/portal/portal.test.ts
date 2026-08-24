@@ -99,7 +99,9 @@ describe("PortalModule", () => {
 
 		it("should create a booking with pending status", () => {
 			const booking = PortalModule.createBooking({
+				idempotencyKey: "portal-module-booking-1",
 				businessId: tenantId,
+				branchId: "branch-1",
 				customerName: "Alice",
 				customerPhone: "08123456789",
 				petName: "Buddy",
@@ -116,26 +118,33 @@ describe("PortalModule", () => {
 
 		it("should handle optional fields as null", () => {
 			const booking = PortalModule.createBooking({
+				idempotencyKey: "portal-module-booking-2",
 				businessId: tenantId,
+				branchId: "branch-1",
 				customerName: "Bob",
 				customerPhone: "08111111111",
 				petName: "Kitty",
 				scheduledAt: new Date(),
 			});
 
-			expect(booking.branchId).toBeNull();
+			expect(booking.branchId).toBe("branch-1");
 			expect(booking.serviceId).toBeNull();
+			expect(booking.roomId).toBeNull();
+			expect(booking.boardingId).toBeNull();
 			expect(booking.customerEmail).toBeNull();
 			expect(booking.petSpecies).toBeNull();
 			expect(booking.petBreed).toBeNull();
+			expect(booking.estimatedCheckOutAt).toBeNull();
 			expect(booking.notes).toBeNull();
 		});
 
 		it("should include optional fields when provided", () => {
 			const booking = PortalModule.createBooking({
+				idempotencyKey: "portal-module-booking-3",
 				businessId: tenantId,
 				branchId: "branch-1",
 				serviceId: "service-1",
+				roomId: "room-1",
 				customerName: "Charlie",
 				customerPhone: "08222222222",
 				customerEmail: "charlie@test.com",
@@ -143,14 +152,19 @@ describe("PortalModule", () => {
 				petSpecies: "dog",
 				petBreed: "Labrador",
 				scheduledAt,
+				estimatedCheckOutAt: new Date("2026-07-17T10:00:00Z"),
 				notes: "Please give bath",
 			});
 
 			expect(booking.branchId).toBe("branch-1");
 			expect(booking.serviceId).toBe("service-1");
+			expect(booking.roomId).toBe("room-1");
 			expect(booking.customerEmail).toBe("charlie@test.com");
 			expect(booking.petSpecies).toBe("dog");
 			expect(booking.petBreed).toBe("Labrador");
+			expect(booking.estimatedCheckOutAt).toEqual(
+				new Date("2026-07-17T10:00:00Z"),
+			);
 			expect(booking.notes).toBe("Please give bath");
 		});
 	});

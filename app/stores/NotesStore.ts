@@ -1,7 +1,12 @@
 import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
-import type { JSONObject } from "@shared/types";
+import type {
+  JSONObject,
+  JSONValue,
+  ProsemirrorData,
+  ProsemirrorMark,
+} from "@shared/types";
 import {
   SubscriptionType,
   type DateFilter,
@@ -14,7 +19,12 @@ import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Note from "~/models/Note";
 import env from "~/env";
-import type { FetchOptions, PaginationParams, SearchResult } from "~/types";
+import type {
+  FetchOptions,
+  PaginationParams,
+  Properties,
+  SearchResult,
+} from "~/types";
 import { extname } from "~/utils/files";
 import { petsoClient } from "~/utils/petsoClient";
 import type { TNoteDto } from "@treonstudio/petso-lib";
@@ -75,10 +85,11 @@ export default class NotesStore extends Store<Note> {
     super(rootStore, Note);
   }
   private mapPetNote(note: TNoteDto): Note {
+    const content = parseNoteContent(note.content);
     return this.add({
       id: note.id,
       title: note.title,
-      data: note.content,
+      data: content,
       notebookId: note.collectionId,
       parentNoteId: note.parentNoteId ?? undefined,
       icon: note.icon,
@@ -89,8 +100,6 @@ export default class NotesStore extends Store<Note> {
       createdAt: note.createdAt,
       updatedAt: note.updatedAt,
       revision: note.revision,
-      createdBy: { id: note.createdBy },
-      updatedBy: { id: note.createdBy },
       url: `/doc/${note.id}`,
       urlId: note.id,
       tasks: { completed: 0, total: 0 },
@@ -131,6 +140,9 @@ export default class NotesStore extends Store<Note> {
     params: Properties<Note>,
     options?: JSONObject
   ): Promise<Note> {
+    if (!params.id) {
+      throw new Error("A note id is required to update a note");
+    }
     const updated = await petsoClient.admin.updateNote(params.id, {
       ...this.noteInput(params),
       ...(typeof options?.publish === "boolean"
@@ -432,7 +444,7 @@ export default class NotesStore extends Store<Note> {
     );
     const mapped = matches.map((candidate) => this.mapPetNote(candidate));
     const results: SearchResult[] = compact(
-      mapped.map((note) => ({ id: note.id, note }))
+      mapped.map((note) => ({ id: note.id, ranking: 1, note }))
     );
     return results;
   };
@@ -474,7 +486,6 @@ export default class NotesStore extends Store<Note> {
     noteId,
     notebookId,
     parentNoteId,
-    _index,
   }: {
     noteId: string;
     notebookId?: string | null;
@@ -672,4 +683,51 @@ export default class NotesStore extends Store<Note> {
       ? this.rootStore.notebooks.get(note.notebookId)
       : undefined;
   }
+}
+
+function parseNoteContent(value: Record<string, unknown>): ProsemirrorData {
+  const content = Array.isArray(value.content)
+    ? value.content.filter(isRecord).map(parseNoteContent)
+    : undefined;
+  const marks = Array.isArray(value.marks)
+    ? value.marks.filter(isProsemirrorMark)
+    : undefined;
+
+  return {
+    type: typeof value.type === "string" ? value.type : "doc",
+    ...(content ? { content } : {}),
+    ...(typeof value.text === "string" ? { text: value.text } : {}),
+    ...(isJSONObject(value.attrs) ? { attrs: value.attrs } : {}),
+    ...(marks ? { marks } : {}),
+  };
+}
+
+function isProsemirrorMark(value: unknown): value is ProsemirrorMark {
+  if (!isRecord(value) || typeof value.type !== "string") {
+    return false;
+  }
+  return value.attrs === undefined || isJSONObject(value.attrs);
+}
+
+function isJSONObject(value: unknown): value is JSONObject {
+  return isRecord(value) && Object.values(value).every(isJSONValue);
+}
+
+function isJSONValue(value: unknown): value is JSONValue {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+  if (Array.isArray(value)) {
+    return value.every(isJSONValue);
+  }
+  return isJSONObject(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

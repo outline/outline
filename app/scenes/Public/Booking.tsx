@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { petsoClient } from "~/utils/petsoClient";
 import { BusinessLayout } from "./BusinessLayout";
@@ -22,10 +22,11 @@ function Booking() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [petName, setPetName] = useState("");
-  const [roomType, setRoomType] = useState("");
-  const [branchId, setBranchId] = useState<string>();
+  const [roomId, setRoomId] = useState("");
   const [rooms, setRooms] = useState<
     readonly {
+      id: string;
+      branchId: string | null;
       roomType: string;
       name: string;
       dailyRate: number;
@@ -37,6 +38,11 @@ function Booking() {
     tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
     return tomorrow.toISOString().slice(0, 16);
   });
+  const [estimatedCheckOutAt, setEstimatedCheckOutAt] = useState(() => {
+    const checkout = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+    checkout.setMinutes(checkout.getMinutes() - checkout.getTimezoneOffset());
+    return checkout.toISOString().slice(0, 16);
+  });
   const [result, setResult] = useState<
     | {
         created: boolean;
@@ -47,31 +53,32 @@ function Booking() {
     | undefined
   >();
   const [isSaving, setIsSaving] = useState(false);
+  const idempotency = useRef<
+    | {
+        fingerprint: string;
+        key: string;
+      }
+    | undefined
+  >(undefined);
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      petsoClient.public.rooms(
-        businessSlug ?? "",
-        new Date(scheduledAt).toISOString(),
-      ),
-      petsoClient.public.branches(businessSlug ?? ""),
-    ])
-      .then(([loadedRooms, branches]) => {
+    void petsoClient.public
+      .rooms(businessSlug ?? "", new Date(scheduledAt).toISOString())
+      .then((loadedRooms) => {
         if (cancelled) {
           return;
         }
         setRooms(
           loadedRooms.map((room) => ({
+            id: room.id,
+            branchId: room.branchId,
             roomType: room.roomType,
             name: room.name,
             dailyRate: room.dailyRate,
             available: room.available,
-          })),
+          }))
         );
-        setRoomType(
-          loadedRooms.find((room) => room.available > 0)?.roomType ?? "",
-        );
-        setBranchId(branches[0]?.id);
+        setRoomId(loadedRooms.find((room) => room.available > 0)?.id ?? "");
       })
       .catch(() => {
         if (!cancelled) {
@@ -82,23 +89,46 @@ function Booking() {
       cancelled = true;
     };
   }, [businessSlug, scheduledAt]);
+  const selectedRoom = rooms.find((room) => room.id === roomId);
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!selectedRoom?.branchId) {
+      return;
+    }
     setIsSaving(true);
     try {
+      const payload = {
+        customerName,
+        customerPhone,
+        petName,
+        scheduledAt: new Date(scheduledAt).toISOString(),
+        estimatedCheckOutAt: new Date(estimatedCheckOutAt).toISOString(),
+        branchId: selectedRoom.branchId,
+        roomId,
+      };
+      const fingerprint = JSON.stringify(payload);
+      if (
+        !idempotency.current ||
+        idempotency.current.fingerprint !== fingerprint
+      ) {
+        idempotency.current = {
+          fingerprint,
+          key: window.crypto.randomUUID(),
+        };
+      }
       const response = await petsoClient.public.createBooking(
         businessSlug ?? "",
         {
-          customerName,
-          customerPhone,
-          petName,
-          scheduledAt: new Date(scheduledAt).toISOString(),
-          ...(branchId ? { branchId } : {}),
-          notes: roomType ? `Room type requested: ${roomType}` : undefined,
-        },
+          ...payload,
+          idempotencyKey: idempotency.current.key,
+        }
       );
       setResult({ created: response.created, code: response.code });
       if (response.created) {
+        idempotency.current = {
+          fingerprint,
+          key: window.crypto.randomUUID(),
+        };
         setCustomerName("");
         setCustomerPhone("");
         setPetName("");
@@ -155,6 +185,24 @@ function Booking() {
 
         <div>
           <label
+            htmlFor="estimated-checkout-at"
+            className="block text-sm font-medium text-gray-900"
+          >
+            Check-out date
+          </label>
+          <input
+            id="estimated-checkout-at"
+            type="datetime-local"
+            value={estimatedCheckOutAt}
+            min={scheduledAt}
+            onChange={(event) => setEstimatedCheckOutAt(event.target.value)}
+            className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label
             htmlFor="owner"
             className="block text-sm font-medium text-gray-900"
           >
@@ -204,15 +252,15 @@ function Booking() {
           <div className="mt-2 space-y-2">
             {rooms.map((option) => (
               <label
-                key={option.roomType || option.name}
+                key={option.id}
                 className="flex items-center gap-3 rounded-md border border-gray-200 p-3 text-sm"
               >
                 <input
                   type="radio"
-                  name="roomType"
-                  value={option.roomType}
-                  checked={roomType === option.roomType}
-                  onChange={() => setRoomType(option.roomType)}
+                  name="roomId"
+                  value={option.id}
+                  checked={roomId === option.id}
+                  onChange={() => setRoomId(option.id)}
                   disabled={option.available === 0}
                   className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                 />
@@ -234,7 +282,7 @@ function Booking() {
 
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving || !selectedRoom?.branchId}
           className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:opacity-50"
         >
           {isSaving ? "Sending…" : "Request booking"}

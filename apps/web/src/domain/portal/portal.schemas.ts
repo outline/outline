@@ -30,8 +30,9 @@ export type UpdatePortalConfigCommand = Schema.Schema.Type<
 
 export const CreatePortalBookingSchema = Schema.Struct({
 	slug: SlugSchema,
-	branchId: Schema.optional(Schema.String),
+	branchId: Schema.String,
 	serviceId: Schema.optional(Schema.String),
+	roomId: Schema.String,
 	customerName: Schema.String.pipe(Schema.minLength(1)),
 	customerPhone: Schema.String.pipe(Schema.minLength(10)),
 	customerEmail: Schema.optional(Schema.String),
@@ -39,8 +40,12 @@ export const CreatePortalBookingSchema = Schema.Struct({
 	petSpecies: Schema.optional(Schema.String),
 	petBreed: Schema.optional(Schema.String),
 	scheduledAt: Schema.Date,
+	estimatedCheckOutAt: Schema.Date,
 	notes: Schema.optional(Schema.String),
-	idempotencyKey: Schema.optional(Schema.String),
+	idempotencyKey: Schema.String.pipe(
+		Schema.minLength(8),
+		Schema.maxLength(200),
+	),
 });
 
 export type CreatePortalBookingCommand = Schema.Schema.Type<

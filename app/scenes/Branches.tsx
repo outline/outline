@@ -22,7 +22,7 @@ import { useShop } from "~/stores/shop";
  * under the branch, so the list stays readable rather than being a grid of
  * inputs.
  *
- * A room with a guest in it cannot be removed – the mock refuses and the page
+ * A room with a guest in it cannot be removed – the API refuses and the page
  * says so rather than silently doing nothing.
  *
  * @returns the rendered branches page.
@@ -88,20 +88,22 @@ function Branches() {
     });
   const resetForm = () => panels.close();
   const handleCreate = async (branch: string, values: FormValues) => {
+    const roomType = parseRoomType(values.type);
     await createRoom({
       name: values.name.trim(),
       branch,
       capacity: Number(values.capacity) || 1,
-      type: values.type,
+      type: roomType,
       dailyRate: Number(values.dailyRate) || 0,
     });
     resetForm();
   };
   const handleSave = async (id: string, values: FormValues) => {
+    const roomType = parseRoomType(values.type);
     await updateRoom(id, {
       name: values.name.trim() || undefined,
       capacity: Number(values.capacity) || 1,
-      type: values.type,
+      type: roomType,
       dailyRate: Number(values.dailyRate) || 0,
     });
     resetForm();
@@ -319,5 +321,12 @@ function Branches() {
       ) : null}
     </AppPage>
   );
+}
+
+function parseRoomType(value: string | undefined) {
+  if (value === "deluxe" || value === "suite") {
+    return value;
+  }
+  return "standard";
 }
 export default Branches;

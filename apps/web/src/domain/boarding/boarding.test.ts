@@ -82,6 +82,17 @@ describe("BoardingModule", () => {
 	});
 
 	describe("updateStatus", () => {
+		it("allows cancelling a non-completed boarding", async () => {
+			const boarding = { id: "123", status: "draft" } as unknown as Parameters<
+				typeof BoardingModule.updateStatus
+			>[0];
+			const result = await Effect.runPromise(
+				BoardingModule.updateStatus(boarding, "cancelled"),
+			);
+
+			expect(result.status).toBe("cancelled");
+		});
+
 		it("should allow valid transitions", () => {
 			const boarding = { id: "123", status: "draft" } as unknown as Parameters<
 				typeof BoardingModule.updateStatus

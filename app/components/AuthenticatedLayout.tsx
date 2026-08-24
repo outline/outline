@@ -24,9 +24,7 @@ import {
 } from "~/utils/routeHelpers";
 import { NoteContextProvider } from "./NoteContext";
 import Fade from "./Fade";
-import NotificationBadge from "./NotificationBadge";
 import { PortalContext } from "./Portal";
-import CommandBar from "./CommandBar";
 const SettingsSidebar = lazyWithRetry(
   () => import("~/components/Sidebar/Settings")
 );
@@ -101,8 +99,6 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
               <RegisterKeyDown trigger="t" handler={goToSearch} />
               <RegisterKeyDown trigger="/" handler={goToSearch} />
               {children}
-              <CommandBar />
-              <NotificationBadge />
             </Layout>
           </DndProvider>
         </PortalContext.Provider>

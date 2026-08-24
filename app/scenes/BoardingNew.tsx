@@ -21,7 +21,7 @@ function nights(checkIn: string, checkOut: string): number {
  * Front-desk intake for a stay.
  *
  * The room is chosen here, but whether it is actually free for those nights is
- * the mock's call – the same rule the public booking form goes through – so
+ * the API call – the same rule the public booking form goes through – so
  * there is only one place that decides availability.
  *
  * @returns the rendered intake form.

@@ -20,12 +20,17 @@ export const MidtransPaymentAdapterLive = Layer.effect(
 	IPaymentProvider,
 	Effect.gen(function* () {
 		const config = yield* IAppConfig;
+		const { publicBaseUrl } = config;
 		const { serverKey, isProduction } = config.midtrans;
 
 		const env = isProduction ? "production" : "sandbox";
 		const snapUrl = SNAP_BASE_URL[env];
 		const apiUrl = API_BASE_URL[env];
 		const authHeader = `Basic ${Buffer.from(`${serverKey}:`).toString("base64")}`;
+		const finishCallbackUrl = new URL(
+			"/settings/billing",
+			publicBaseUrl,
+		).toString();
 
 		return IPaymentProvider.of({
 			createTransaction: (params) =>
@@ -55,7 +60,7 @@ export const MidtransPaymentAdapterLive = Layer.effect(
 									quantity: item.quantity,
 								})),
 								callbacks: {
-									finish: `${typeof window !== "undefined" ? window.location.origin : ""}/settings/billing`,
+									finish: finishCallbackUrl,
 								},
 							}),
 						});

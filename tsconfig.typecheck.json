@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "app/index.tsx",
+    "app/**/*.d.ts",
+    "shared/**/*.d.ts",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
+}

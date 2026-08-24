@@ -1,16 +1,21 @@
 // @vitest-environment node
 import { sql } from "drizzle-orm";
 import { Context, Effect, Layer, Scope } from "effect";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
 	type DrizzleClient,
 	DrizzleClientLive,
 	IDrizzleClient,
 } from "@/infra/db/drizzle/client";
 import {
+	boardings,
 	branches,
 	businesses,
+	customers,
+	pets,
+	portalBookings,
 	portalServices,
+	rooms,
 } from "@/infra/db/drizzle/schema";
 import type { TBranchId, TTenantId } from "@/shared/types/common.types";
 import { generateId } from "@/shared/utils";
@@ -40,15 +45,19 @@ const run = <A, E>(effect: Effect.Effect<A, E, IPortalRepository>) =>
 // `Effect.provide` open-and-immediately-close one per call.
 const dbScope = hasDb ? Effect.runSync(Scope.make()) : undefined;
 
-const getDb = (): Promise<DrizzleClient> =>
-	Effect.runPromise(
+const getDb = (): Promise<DrizzleClient> => {
+	if (!dbScope) {
+		return Promise.reject(new Error("DATABASE_URL is required."));
+	}
+	return Effect.runPromise(
 		Scope.extend(
 			Effect.map(Layer.build(DrizzleClientLive), (context) =>
 				Context.get(context, IDrizzleClient),
 			),
-			dbScope!,
+			dbScope,
 		),
 	);
+};
 
 describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 	const tenantId = generateId<TTenantId>();
@@ -57,7 +66,9 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 	const prefix = `__smoke_portal_${Date.now()}`;
 
 	beforeAll(async () => {
-		if (!hasDb) return;
+		if (!hasDb) {
+			return;
+		}
 		const db = await getDb();
 		// FK: portal_config/portal_services/portal_bookings/portal_reviews.business_id → businesses.id (CASCADE)
 		// FK: portal_bookings.branch_id → branches.id (no cascade from business → branch)
@@ -74,7 +85,9 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 	}, 20000);
 
 	afterAll(async () => {
-		if (!hasDb) return;
+		if (!hasDb) {
+			return;
+		}
 		const db = await getDb();
 		// portal_* tables CASCADE on business_id, so deleting the business cleans
 		// them up — but branches do not cascade from business, so they go first.
@@ -111,7 +124,9 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 		);
 
 		expect(found).not.toBeNull();
-		if (!found) return;
+		if (!found) {
+			return;
+		}
 		expect(found.id).toBe(configId);
 		expect(found.tenantId).toBe(tenantId);
 		expect(found.slug).toBe(`${prefix}-slug`);
@@ -241,16 +256,20 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 		});
 
 		const bookingId = generateId<TPortalBookingId>();
+		const idempotencyKey = `integration-booking-${bookingId}`;
 		const scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-		await run(
+		const created = await run(
 			Effect.gen(function* () {
 				const repo = yield* IPortalRepository;
-				yield* repo.saveBooking({
+				return yield* repo.saveBooking({
 					id: bookingId,
 					tenantId,
 					branchId,
 					serviceId,
+					roomId: null,
+					boardingId: null,
+					idempotencyKey,
 					customerName: "Integration Customer",
 					customerPhone: "+6281200000001",
 					customerEmail: "ic@example.com",
@@ -258,12 +277,27 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 					petSpecies: "dog",
 					petBreed: "poodle",
 					scheduledAt,
+					estimatedCheckOutAt: null,
 					notes: "Integration booking",
 					status: "pending",
 					createdAt: new Date(),
 				});
 			}),
 		);
+		expect(created.id).toBe(bookingId);
+
+		const replayed = await run(
+			Effect.gen(function* () {
+				const repo = yield* IPortalRepository;
+				return yield* repo.saveBooking({
+					...created,
+					id: generateId<TPortalBookingId>(),
+					customerName: "Duplicate attempt",
+				});
+			}),
+		);
+		expect(replayed.id).toBe(bookingId);
+		expect(replayed.customerName).toBe("Integration Customer");
 
 		const list = await run(
 			Effect.gen(function* () {
@@ -273,8 +307,13 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 		);
 
 		const found = list.find((b) => b.id === bookingId);
+		expect(
+			list.filter((booking) => booking.idempotencyKey === idempotencyKey),
+		).toHaveLength(1);
 		expect(found).toBeDefined();
-		if (!found) return;
+		if (!found) {
+			return;
+		}
 		expect(found.customerName).toBe("Integration Customer");
 		expect(found.petName).toBe("Milo");
 		expect(found.status).toBe("pending");
@@ -308,4 +347,125 @@ describe.skipIf(!hasDb)("portal repository drizzle (integration)", () => {
 			sql`DELETE FROM portal_services WHERE id = ${serviceId}::uuid`,
 		);
 	}, 15000);
+});
+
+describe("portal repository drizzle confirmation", () => {
+	it("locks the branch and rejects confirmation when branch capacity is full", async () => {
+		const tenantId = generateId<TTenantId>();
+		const branchId = generateId<TBranchId>();
+		const bookingId = generateId<TPortalBookingId>();
+		const roomId = crypto.randomUUID();
+		const customerId = crypto.randomUUID();
+		let branchLocked = false;
+		let boardingInserted = false;
+
+		const select = (fields?: Record<string, object>) => {
+			let source: object | undefined;
+			const resolveRows = () => {
+				if (source === portalBookings) {
+					return [
+						{
+							id: bookingId,
+							businessId: tenantId,
+							branchId,
+							roomId,
+							boardingId: null,
+							customerName: "Capacity Test",
+							customerPhone: "+6281200000000",
+							customerEmail: null,
+							petName: "Milo",
+							petSpecies: "dog",
+							petBreed: null,
+							scheduledAt: "2026-09-10T00:00:00.000Z",
+							estimatedCheckOutAt: "2026-09-12T00:00:00.000Z",
+							notes: null,
+							status: "pending",
+						},
+					];
+				}
+				if (source === branches) {
+					return [{ id: branchId, businessId: tenantId, capacity: 1 }];
+				}
+				if (source === boardings && "count" in (fields ?? {})) {
+					return [{ count: 1 }];
+				}
+				if (source === rooms) {
+					return [
+						{
+							id: roomId,
+							businessId: tenantId,
+							branchId,
+							capacity: 10,
+							dailyRate: "150000",
+						},
+					];
+				}
+				if (source === pets) {
+					return [];
+				}
+				return [];
+			};
+			const query = {
+				from: vi.fn((table: object) => {
+					source = table;
+					return query;
+				}),
+				where: vi.fn(() => query),
+				for: vi.fn(() => {
+					if (source === branches) {
+						branchLocked = true;
+					}
+					return query;
+				}),
+				limit: vi.fn(async () => resolveRows()),
+				// biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are intentionally awaitable.
+				then: (
+					resolve: (rows: readonly object[]) => void,
+					reject: (error: Error) => void,
+				) => Promise.resolve(resolveRows()).then(resolve, reject),
+			};
+			return query;
+		};
+
+		const transaction = {
+			select,
+			insert: vi.fn((table: object) => ({
+				values: vi.fn(() => {
+					if (table === boardings) {
+						boardingInserted = true;
+					}
+					const chain = {
+						onConflictDoUpdate: vi.fn(() => chain),
+						returning: vi.fn(async () =>
+							table === customers ? [{ id: customerId }] : [],
+						),
+					};
+					return chain;
+				}),
+			})),
+			update: vi.fn(() => ({
+				set: vi.fn(() => ({ where: vi.fn(async () => undefined) })),
+			})),
+		};
+		const db = {
+			transaction: vi.fn(
+				(callback: (tx: typeof transaction) => Promise<void>) =>
+					callback(transaction),
+			),
+		} as never as DrizzleClient;
+		const layer = Layer.provide(
+			PortalRepositoryDrizzle,
+			Layer.succeed(IDrizzleClient, db),
+		);
+		const effect = Effect.gen(function* () {
+			const repo = yield* IPortalRepository;
+			yield* repo.confirmBooking(tenantId, bookingId);
+		}).pipe(Effect.provide(layer));
+
+		const exit = await Effect.runPromiseExit(effect);
+
+		expect(exit._tag).toBe("Failure");
+		expect(branchLocked).toBe(true);
+		expect(boardingInserted).toBe(false);
+	});
 });

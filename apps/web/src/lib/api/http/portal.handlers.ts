@@ -5,6 +5,7 @@ import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 
 interface PortalSession {
 	readonly business: { readonly id: string };
+	readonly user: { readonly id: string };
 }
 
 interface PortalHandlerDependencies {
@@ -28,6 +29,7 @@ interface PortalHandlerDependencies {
 		businessId: string,
 		bookingId: string,
 		status: "pending" | "confirmed" | "cancelled" | "completed",
+		actorUserId: string,
 	) => Promise<void>;
 }
 
@@ -65,7 +67,9 @@ export function createPortalHandlers(
 	return {
 		get: async (request, requestId) => {
 			const session = await getSession(request, dependencies.session);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			return jsonSuccess(
 				await dependencies.get(session.business.id),
 				requestId,
@@ -73,9 +77,13 @@ export function createPortalHandlers(
 		},
 		createService: async (request, requestId) => {
 			const session = await getSession(request, dependencies.session);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			const body = await readBody(request);
-			if (!body) return validationError(requestId);
+			if (!body) {
+				return validationError(requestId);
+			}
 			return jsonSuccess(
 				await dependencies.createService(session.business.id, body),
 				requestId,
@@ -84,10 +92,13 @@ export function createPortalHandlers(
 		},
 		updateServiceStatus: async (request, requestId, id) => {
 			const session = await getSession(request, dependencies.session);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			const body = await readBody(request);
-			if (typeof body?.isActive !== "boolean")
+			if (typeof body?.isActive !== "boolean") {
 				return validationError(requestId);
+			}
 			await dependencies.updateServiceStatus(
 				session.business.id,
 				id,
@@ -97,31 +108,42 @@ export function createPortalHandlers(
 		},
 		deleteService: async (request, requestId, id) => {
 			const session = await getSession(request, dependencies.session);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			await dependencies.deleteService(session.business.id, id);
 			return jsonSuccess({ deleted: true }, requestId);
 		},
 		updateConfig: async (request, requestId) => {
 			const session = await getSession(request, dependencies.session);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			const body = await readBody(request);
-			if (!body) return validationError(requestId);
+			if (!body) {
+				return validationError(requestId);
+			}
 			await dependencies.updateConfig(session.business.id, body);
 			return jsonSuccess({ updated: true }, requestId);
 		},
 		updateBookingStatus: async (request, requestId, bookingId) => {
 			const session = await getSession(request, dependencies.session);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			const body = await readBody(request);
-			if (!body) return validationError(requestId);
+			if (!body) {
+				return validationError(requestId);
+			}
 			try {
-				const value = Schema.decodeUnknownSync(
-					UpdatePortalBookingStatusSchema,
-				)({ ...body, bookingId });
+				const value = Schema.decodeUnknownSync(UpdatePortalBookingStatusSchema)(
+					{ ...body, bookingId },
+				);
 				await dependencies.updateBookingStatus(
 					session.business.id,
 					value.bookingId,
 					value.status,
+					session.user.id,
 				);
 				return jsonSuccess({ updated: true }, requestId);
 			} catch {

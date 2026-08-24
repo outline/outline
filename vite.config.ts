@@ -1,5 +1,6 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import { defineConfig } from "vite";
@@ -22,12 +23,15 @@ export default () =>
   defineConfig({
     root: "./",
     publicDir: "./public",
-    base: (CDN_URL ?? "") + "/static/",
+    base: CDN_URL ? `${CDN_URL}/` : "/",
     server: {
       port: 3001,
       host: true,
       allowedHosts: host ? [host] : undefined,
       cors: true,
+      proxy: {
+        "/api": "http://localhost:3000",
+      },
       fs:
         NODE_ENV === "development"
           ? {
@@ -38,6 +42,7 @@ export default () =>
     },
     plugins: [
       react(),
+      tailwindcss(),
       // https://vite-pwa-org.netlify.app/
       VitePWA({
         injectRegister: "inline",
@@ -47,7 +52,7 @@ export default () =>
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${CDN_URL ?? ""}/static/`,
+            "": CDN_URL ? `${CDN_URL}/` : "/",
           },
           skipWaiting: true,
           clientsClaim: true,
@@ -85,11 +90,11 @@ export default () =>
           ],
         },
         manifest: {
-          name: "Outline",
-          short_name: "Outline",
+          name: "Petso",
+          short_name: "Petso",
           theme_color: "#fff",
           background_color: "#fff",
-          start_url: "/",
+          start_url: "/dashboard",
           scope: ".",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
@@ -166,9 +171,7 @@ export default () =>
           }
           warn(warning);
         },
-        input: {
-          index: "./app/index.tsx",
-        },
+        input: "./index.html",
         output: {
           assetFileNames: "assets/[name].[hash][extname]",
           chunkFileNames: "assets/[name].[hash].js",

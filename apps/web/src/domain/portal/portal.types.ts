@@ -38,8 +38,11 @@ export type TPortalService = {
 export type TPortalBooking = {
 	readonly id: TPortalBookingId;
 	readonly tenantId: TTenantId;
-	readonly branchId: string | null;
+	readonly branchId: string;
 	readonly serviceId: TPortalServiceId | null;
+	readonly roomId: string | null;
+	readonly boardingId: string | null;
+	readonly idempotencyKey: string;
 	readonly customerName: string;
 	readonly customerPhone: string;
 	readonly customerEmail: string | null;
@@ -47,6 +50,7 @@ export type TPortalBooking = {
 	readonly petSpecies: string | null;
 	readonly petBreed: string | null;
 	readonly scheduledAt: Date;
+	readonly estimatedCheckOutAt: Date | null;
 	readonly notes: string | null;
 	readonly status: "pending" | "confirmed" | "cancelled" | "completed";
 	readonly createdAt: Date;

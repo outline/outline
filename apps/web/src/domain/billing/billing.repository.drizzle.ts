@@ -1,4 +1,4 @@
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, count, eq, gte, lt, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import {
@@ -6,9 +6,10 @@ import {
 	boardings,
 	branches,
 	orders,
-	products,
 	profiles,
+	products,
 	subscriptions,
+	userRoles,
 } from "@/infra/db/drizzle/schema";
 import { DatabaseError } from "@/shared/errors/infrastructure.errors";
 import type { TTenantId } from "@/shared/types/common.types";
@@ -42,7 +43,9 @@ export const BillingRepositoryDrizzle = Layer.effect(
 								},
 							});
 
-							if (!result) return null;
+							if (!result) {
+								return null;
+							}
 
 							// `subscriptions` has no dedicated `id` column in the live
 							// schema — `business_id` is the primary key, so it doubles
@@ -81,7 +84,9 @@ export const BillingRepositoryDrizzle = Layer.effect(
 								},
 							});
 
-							if (!result) return null;
+							if (!result) {
+								return null;
+							}
 
 							return {
 								id: result.id as TBillingEventId,
@@ -218,9 +223,14 @@ export const BillingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const now = new Date();
-							const _firstDayOfMonth = new Date(
+							const firstDayOfMonth = new Date(
 								now.getFullYear(),
 								now.getMonth(),
+								1,
+							);
+							const firstDayOfNextMonth = new Date(
+								now.getFullYear(),
+								now.getMonth() + 1,
 								1,
 							);
 
@@ -233,18 +243,41 @@ export const BillingRepositoryDrizzle = Layer.effect(
 									db
 										.select({ value: count() })
 										.from(branches)
-										.where(eq(branches.businessId, tenantId)),
+										.where(
+											and(
+												eq(branches.businessId, tenantId),
+												eq(branches.isActive, true),
+											),
+										),
 									db
-										.select({ value: count() })
-										.from(profiles)
-										.where(eq(profiles.businessId, tenantId)),
+										.select({
+											value: sql<number>`count(DISTINCT ${userRoles.userId})::int`,
+										})
+										.from(userRoles)
+										.innerJoin(
+											profiles,
+											and(
+												eq(profiles.businessId, userRoles.businessId),
+												eq(profiles.userId, userRoles.userId),
+											),
+										)
+										.where(
+											and(
+												eq(userRoles.businessId, tenantId),
+												eq(profiles.isActive, true),
+											),
+										),
 									db
 										.select({ value: count() })
 										.from(boardings)
 										.where(
 											and(
 												eq(boardings.businessId, tenantId),
-												inArray(boardings.status, ["active", "draft"]),
+												gte(boardings.createdAt, firstDayOfMonth.toISOString()),
+												lt(
+													boardings.createdAt,
+													firstDayOfNextMonth.toISOString(),
+												),
 											),
 										),
 									db
@@ -253,8 +286,8 @@ export const BillingRepositoryDrizzle = Layer.effect(
 										.where(
 											and(
 												eq(orders.businessId, tenantId),
-												// To be completely accurate for "this month", we should filter by date
-												// but for now we aggregate correctly
+												gte(orders.createdAt, firstDayOfMonth.toISOString()),
+												lt(orders.createdAt, firstDayOfNextMonth.toISOString()),
 											),
 										),
 								]);
@@ -262,7 +295,7 @@ export const BillingRepositoryDrizzle = Layer.effect(
 							return {
 								products: pCount[0]?.value || 0,
 								branches: bCount[0]?.value || 0,
-								staff: sCount[0]?.value || 0,
+								staff: Number(sCount[0]?.value || 0),
 								activeBoardings: boCount[0]?.value || 0,
 								transactionsMonth: ordersCount[0]?.value || 0,
 							};
@@ -280,8 +313,8 @@ export const BillingRepositoryDrizzle = Layer.effect(
 			): Effect.Effect<PaymentCallbackResult, DatabaseError> =>
 				withRetry(
 					Effect.tryPromise({
-						try: async () => {
-							return await db.transaction(async (tx) => {
+						try: async () =>
+							await db.transaction(async (tx) => {
 								const txEvents = await tx
 									.select()
 									.from(billingEvents)
@@ -318,8 +351,7 @@ export const BillingRepositoryDrizzle = Layer.effect(
 										// jsonb column — merge as plain objects, no JSON string
 										// round-trip.
 										metadata: {
-											...((event.metadata as Record<string, unknown> | null) ??
-												{}),
+											...(event.metadata as Record<string, unknown> | null),
 											paymentMethod: params.paymentMethod,
 										},
 									})
@@ -377,8 +409,7 @@ export const BillingRepositoryDrizzle = Layer.effect(
 									subscriptionId,
 									status: newStatus,
 								} satisfies PaymentCallbackResult;
-							});
-						},
+							}),
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
 				),

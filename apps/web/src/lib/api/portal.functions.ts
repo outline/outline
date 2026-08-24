@@ -22,7 +22,10 @@ import {
 	UpdatePortalBookingStatusSchema,
 	UpdatePortalConfigSchema,
 } from "@/domain/portal/portal.schemas";
-import type { TPortalServiceId } from "@/domain/portal/portal.types";
+import type {
+	TPortalService,
+	TPortalServiceId,
+} from "@/domain/portal/portal.types";
 import { requireDrizzleAuth } from "@/infra/auth/auth-middleware";
 import { requireCapability } from "@/infra/auth/security-context";
 import { runApp } from "@/infra/runtime/app.runtime";
@@ -35,7 +38,9 @@ export const getPortalConfig = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const { userId } = context;
 		const businessId = await getBusinessIdForUser(userId as TUserId);
-		if (!businessId) return null;
+		if (!businessId) {
+			return null;
+		}
 
 		const program = getPortalConfigProgram(businessId as TTenantId);
 		return await runApp(program);
@@ -46,7 +51,9 @@ export const getPortalServices = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const { userId } = context;
 		const businessId = await getBusinessIdForUser(userId as TUserId);
-		if (!businessId) return [];
+		if (!businessId) {
+			return [];
+		}
 
 		const program = getPortalServicesProgram(businessId as TTenantId);
 		return await runApp(program);
@@ -77,7 +84,9 @@ export const getPortalServicesBySlug = createServerFn({ method: "GET" })
 	.handler(async ({ data: slug }) => {
 		const config = await runApp(getPortalConfigBySlugProgram(slug));
 
-		if (!config) return [];
+		if (!config) {
+			return [];
+		}
 
 		const servicesProgram = getPortalServicesProgram(config.tenantId);
 		return await runApp(servicesProgram);
@@ -88,7 +97,9 @@ export const getPortalBranchesBySlug = createServerFn({ method: "GET" })
 	.handler(async ({ data: slug }) => {
 		const config = await runApp(getPortalConfigBySlugProgram(slug));
 
-		if (!config) return [];
+		if (!config) {
+			return [];
+		}
 
 		const branches = await runApp(getBranchesProgram(config.tenantId));
 		return branches.filter((b) => b.isActive);
@@ -99,16 +110,22 @@ export const createPortalBooking = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const config = await runApp(getPortalConfigBySlugProgram(data.slug));
 
-		if (!config) throw new Error("Portal tidak ditemukan.");
-		if (!config.isActive) throw new Error("Portal tidak aktif.");
-		if (!config.bookingEnabled)
+		if (!config) {
+			throw new Error("Portal tidak ditemukan.");
+		}
+		if (!config.isActive) {
+			throw new Error("Portal tidak aktif.");
+		}
+		if (!config.bookingEnabled) {
 			throw new Error("Pemesanan tidak diaktifkan untuk portal ini.");
+		}
 
-		const { idempotencyKey, ...rest } = data;
+		const { idempotencyKey } = data;
 		const requestPayload = {
 			slug: data.slug,
 			branchId: data.branchId ?? null,
 			serviceId: data.serviceId ?? null,
+			roomId: data.roomId,
 			customerName: data.customerName,
 			customerPhone: data.customerPhone,
 			customerEmail: data.customerEmail ?? null,
@@ -116,6 +133,7 @@ export const createPortalBooking = createServerFn({ method: "POST" })
 			petSpecies: data.petSpecies ?? null,
 			petBreed: data.petBreed ?? null,
 			scheduledAt: data.scheduledAt.toISOString(),
+			estimatedCheckOutAt: data.estimatedCheckOutAt.toISOString(),
 			notes: data.notes ?? null,
 		};
 
@@ -126,7 +144,7 @@ export const createPortalBooking = createServerFn({ method: "POST" })
 				requestPayload,
 			},
 			async () => {
-				const program = createPortalBookingProgram(config.tenantId, rest);
+				const program = createPortalBookingProgram(config.tenantId, data);
 				return await runApp(program);
 			},
 			idempotencyServiceFromAppLayer,
@@ -138,7 +156,9 @@ export const getPortalBookings = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const { userId } = context;
 		const businessId = await getBusinessIdForUser(userId as TUserId);
-		if (!businessId) return [];
+		if (!businessId) {
+			return [];
+		}
 
 		const program = getPortalBookingsProgram(businessId as TTenantId);
 		return await runApp(program);
@@ -148,10 +168,10 @@ export const updatePortalBookingStatus = createServerFn({ method: "POST" })
 	.middleware([requireDrizzleAuth])
 	.validator(Schema.decodeUnknownSync(UpdatePortalBookingStatusSchema))
 	.handler(async ({ data, context }) => {
-		const { tenantId } = context;
+		const { tenantId, userId } = context;
 		await runApp(requireCapability(context, "portal:write"));
 
-		const program = updatePortalBookingStatusProgram(tenantId, data);
+		const program = updatePortalBookingStatusProgram(tenantId, data, userId);
 		await runApp(program);
 
 		return { success: true };
@@ -162,13 +182,14 @@ export const getPortalStats = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const { userId } = context;
 		const businessId = await getBusinessIdForUser(userId as TUserId);
-		if (!businessId)
+		if (!businessId) {
 			return {
 				totalReviews: 0,
 				averageRating: 0,
 				totalServices: 0,
 				totalPets: 0,
 			};
+		}
 
 		const program = getPortalStatsProgram(businessId as TTenantId);
 		return await runApp(program);
@@ -181,10 +202,7 @@ export const createPortalService = createServerFn({ method: "POST" })
 		const { tenantId } = context;
 		await runApp(requireCapability(context, "portal:write"));
 
-		const serviceData: Omit<
-			import("@/domain/portal/portal.types").TPortalService,
-			"id"
-		> = {
+		const serviceData: Omit<TPortalService, "id"> = {
 			tenantId,
 			name: data.name,
 			description: data.description ?? null,
@@ -219,7 +237,9 @@ export const getPortalReviews = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const { userId } = context;
 		const businessId = await getBusinessIdForUser(userId as TUserId);
-		if (!businessId) return [];
+		if (!businessId) {
+			return [];
+		}
 
 		const program = getPortalReviewsProgram(businessId as TTenantId);
 		return await runApp(program);

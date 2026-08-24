@@ -1,11 +1,17 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import {
+	boardingPets,
+	boardings,
+	branches,
+	customers,
+	pets,
 	portalBookings,
 	portalConfig,
 	portalReviews,
 	portalServices,
+	rooms,
 } from "@/infra/db/drizzle/schema";
 import { DatabaseError } from "@/shared/errors/infrastructure.errors";
 import type { TTenantId } from "@/shared/types/common.types";
@@ -28,6 +34,18 @@ type TConfigRow = typeof portalConfig.$inferSelect;
 type TServiceRow = typeof portalServices.$inferSelect;
 type TBookingRow = typeof portalBookings.$inferSelect;
 type TReviewRow = typeof portalReviews.$inferSelect;
+
+const toDateOnlyString = (date: Date): string =>
+	date.toISOString().slice(0, 10);
+
+const toPetKind = (
+	species: string | null,
+): "cat" | "dog" | "rabbit" | "other" => {
+	if (species === "cat" || species === "dog" || species === "rabbit") {
+		return species;
+	}
+	return "other";
+};
 
 const mapConfigRow = (row: TConfigRow): TPortalConfig => ({
 	id: row.id as TPortalConfigId,
@@ -58,6 +76,9 @@ const mapBookingRow = (row: TBookingRow): TPortalBooking => ({
 	tenantId: row.businessId as TTenantId,
 	branchId: row.branchId,
 	serviceId: row.serviceId as TPortalServiceId | null,
+	roomId: row.roomId,
+	boardingId: row.boardingId,
+	idempotencyKey: row.idempotencyKey,
 	customerName: row.customerName,
 	customerPhone: row.customerPhone,
 	customerEmail: row.customerEmail,
@@ -65,6 +86,9 @@ const mapBookingRow = (row: TBookingRow): TPortalBooking => ({
 	petSpecies: row.petSpecies,
 	petBreed: row.petBreed,
 	scheduledAt: new Date(row.scheduledAt),
+	estimatedCheckOutAt: row.estimatedCheckOutAt
+		? new Date(row.estimatedCheckOutAt)
+		: null,
 	notes: row.notes,
 	status: row.status as TPortalBooking["status"],
 	createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
@@ -175,27 +199,56 @@ export const PortalRepositoryDrizzle = Layer.effect(
 			saveBooking: (booking: TPortalBooking) =>
 				withRetry(
 					Effect.tryPromise({
-						try: async () => {
-							await db.insert(portalBookings).values({
-								id: booking.id,
-								businessId: booking.tenantId,
-								// `portal_bookings.branch_id` is NOT NULL in the schema;
-								// the live adapter falls back to the tenant id
-								// when no branch is provided — mirror that here so the
-								// public booking form (no branch context) still inserts.
-								branchId: booking.branchId ?? booking.tenantId,
-								serviceId: booking.serviceId,
-								customerName: booking.customerName,
-								customerPhone: booking.customerPhone,
-								customerEmail: booking.customerEmail,
-								petName: booking.petName,
-								petSpecies: booking.petSpecies,
-								petBreed: booking.petBreed,
-								scheduledAt: booking.scheduledAt.toISOString(),
-								notes: booking.notes,
-								status: booking.status,
-							});
-						},
+						try: async () =>
+							db.transaction(async (tx) => {
+								const [inserted] = await tx
+									.insert(portalBookings)
+									.values({
+										id: booking.id,
+										businessId: booking.tenantId,
+										branchId: booking.branchId,
+										serviceId: booking.serviceId,
+										roomId: booking.roomId,
+										boardingId: booking.boardingId,
+										idempotencyKey: booking.idempotencyKey,
+										customerName: booking.customerName,
+										customerPhone: booking.customerPhone,
+										customerEmail: booking.customerEmail,
+										petName: booking.petName,
+										petSpecies: booking.petSpecies,
+										petBreed: booking.petBreed,
+										scheduledAt: booking.scheduledAt.toISOString(),
+										estimatedCheckOutAt:
+											booking.estimatedCheckOutAt?.toISOString() ?? null,
+										notes: booking.notes,
+										status: booking.status,
+									})
+									.onConflictDoNothing({
+										target: [
+											portalBookings.businessId,
+											portalBookings.idempotencyKey,
+										],
+									})
+									.returning();
+								if (inserted) {
+									return mapBookingRow(inserted);
+								}
+
+								const [existing] = await tx
+									.select()
+									.from(portalBookings)
+									.where(
+										and(
+											eq(portalBookings.businessId, booking.tenantId),
+											eq(portalBookings.idempotencyKey, booking.idempotencyKey),
+										),
+									)
+									.limit(1);
+								if (!existing) {
+									throw new Error("Same-key portal booking disappeared.");
+								}
+								return mapBookingRow(existing);
+							}),
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
 				),
@@ -226,7 +279,9 @@ export const PortalRepositoryDrizzle = Layer.effect(
 							return mapServiceRow(inserted);
 						},
 						catch: (e) => {
-							if (e instanceof DatabaseError) return e;
+							if (e instanceof DatabaseError) {
+								return e;
+							}
 							return new PortalError({ message: (e as Error).message });
 						},
 					}),
@@ -253,7 +308,9 @@ export const PortalRepositoryDrizzle = Layer.effect(
 							}
 						},
 						catch: (e) => {
-							if (e instanceof DatabaseError) return e;
+							if (e instanceof DatabaseError) {
+								return e;
+							}
 							return new PortalError({ message: (e as Error).message });
 						},
 					}),
@@ -284,7 +341,9 @@ export const PortalRepositoryDrizzle = Layer.effect(
 							}
 						},
 						catch: (e) => {
-							if (e instanceof DatabaseError || e instanceof PortalError) return e;
+							if (e instanceof DatabaseError || e instanceof PortalError) {
+								return e;
+							}
 							return new PortalError({ message: (e as Error).message });
 						},
 					}),
@@ -326,6 +385,214 @@ export const PortalRepositoryDrizzle = Layer.effect(
 					}),
 				),
 
+			confirmBooking: (
+				tenantId: TTenantId,
+				bookingId: string,
+				actorUserId = "00000000-0000-0000-0000-000000000000",
+			) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							await db.transaction(async (tx) => {
+								const [booking] = await tx
+									.select()
+									.from(portalBookings)
+									.where(
+										and(
+											eq(portalBookings.id, bookingId),
+											eq(portalBookings.businessId, tenantId),
+										),
+									)
+									.for("update")
+									.limit(1);
+
+								if (!booking) {
+									throw new PortalError({
+										message: "Booking tidak ditemukan.",
+									});
+								}
+								if (booking.status === "confirmed" && booking.boardingId) {
+									return;
+								}
+								if (booking.status !== "pending") {
+									throw new PortalError({
+										message: "Hanya booking pending yang dapat dikonfirmasi.",
+									});
+								}
+								if (!booking.roomId || !booking.estimatedCheckOutAt) {
+									throw new PortalError({
+										message:
+											"Booking belum memiliki kamar atau tanggal checkout.",
+									});
+								}
+
+								const checkIn = new Date(booking.scheduledAt);
+								const checkOut = new Date(booking.estimatedCheckOutAt);
+								if (checkOut <= checkIn) {
+									throw new PortalError({
+										message: "Tanggal checkout harus setelah tanggal check-in.",
+									});
+								}
+
+								const [branch] = await tx
+									.select()
+									.from(branches)
+									.where(
+										and(
+											eq(branches.id, booking.branchId),
+											eq(branches.businessId, tenantId),
+											eq(branches.isActive, true),
+										),
+									)
+									.for("update")
+									.limit(1);
+								if (!branch) {
+									throw new PortalError({
+										message: "Cabang tidak tersedia.",
+									});
+								}
+
+								const [branchOccupancy] = await tx
+									.select({ count: sql<number>`count(*)::int` })
+									.from(boardings)
+									.where(
+										and(
+											eq(boardings.businessId, tenantId),
+											eq(boardings.branchId, booking.branchId),
+											inArray(boardings.status, ["active", "draft"]),
+										),
+									);
+								if ((branchOccupancy?.count ?? 0) >= branch.capacity) {
+									throw new PortalError({
+										message: "Kapasitas cabang penuh.",
+									});
+								}
+
+								const [room] = await tx
+									.select()
+									.from(rooms)
+									.where(
+										and(
+											eq(rooms.id, booking.roomId),
+											eq(rooms.businessId, tenantId),
+											eq(rooms.isActive, true),
+										),
+									)
+									.for("update")
+									.limit(1);
+								if (!room || room.branchId !== booking.branchId) {
+									throw new PortalError({
+										message: "Kamar tidak tersedia pada cabang ini.",
+									});
+								}
+
+								const [occupancy] = await tx
+									.select({ count: sql<number>`count(*)::int` })
+									.from(boardings)
+									.where(
+										and(
+											eq(boardings.roomId, booking.roomId),
+											sql`${boardings.status} IN ('active', 'draft')`,
+											sql`${boardings.checkInDate} < ${toDateOnlyString(checkOut)}`,
+											sql`(${boardings.estimatedCheckOutDate} IS NULL OR ${boardings.estimatedCheckOutDate} > ${toDateOnlyString(checkIn)})`,
+										),
+									);
+								if ((occupancy?.count ?? 0) >= room.capacity) {
+									throw new PortalError({
+										message: "Kamar penuh untuk rentang tanggal tersebut.",
+									});
+								}
+
+								const [customer] = await tx
+									.insert(customers)
+									.values({
+										businessId: tenantId,
+										fullName: booking.customerName,
+										phone: booking.customerPhone,
+										email: booking.customerEmail,
+									})
+									.onConflictDoUpdate({
+										target: [customers.businessId, customers.phone],
+										set: {
+											fullName: booking.customerName,
+											email: booking.customerEmail,
+											updatedAt: new Date().toISOString(),
+										},
+									})
+									.returning({ id: customers.id });
+								if (!customer) {
+									throw new PortalError({
+										message: "Gagal menyimpan pelanggan.",
+									});
+								}
+
+								const [existingPet] = await tx
+									.select({ id: pets.id })
+									.from(pets)
+									.where(
+										and(
+											eq(pets.businessId, tenantId),
+											eq(pets.customerId, customer.id),
+											eq(pets.name, booking.petName),
+										),
+									)
+									.limit(1);
+								const petId = existingPet?.id ?? generateId();
+								if (!existingPet) {
+									await tx.insert(pets).values({
+										id: petId,
+										businessId: tenantId,
+										customerId: customer.id,
+										name: booking.petName,
+										species: toPetKind(booking.petSpecies),
+										breed: booking.petBreed,
+									});
+								}
+
+								const boardingId = generateId();
+								await tx.insert(boardings).values({
+									id: boardingId,
+									businessId: tenantId,
+									branchId: booking.branchId,
+									createdBy: actorUserId,
+									customerId: customer.id,
+									ownerName: booking.customerName,
+									ownerAddress: "-",
+									ownerPhone: booking.customerPhone,
+									checkInDate: toDateOnlyString(checkIn),
+									estimatedCheckOutDate: toDateOnlyString(checkOut),
+									roomId: room.id,
+									dailyRate: room.dailyRate,
+									status: "active",
+									notes: booking.notes,
+								});
+								await tx.insert(boardingPets).values({
+									boardingId,
+									petId,
+									name: booking.petName,
+									kind: toPetKind(booking.petSpecies),
+									breed: booking.petBreed ?? "unknown",
+									vaccinated: "no",
+								});
+								await tx
+									.update(portalBookings)
+									.set({
+										status: "confirmed",
+										boardingId,
+										updatedAt: new Date().toISOString(),
+									})
+									.where(eq(portalBookings.id, booking.id));
+							});
+						},
+						catch: (e) => {
+							if (e instanceof PortalError) {
+								return e;
+							}
+							return new DatabaseError({ cause: e });
+						},
+					}),
+				),
+
 			getReviews: (tenantId: TTenantId, options) =>
 				withRetry(
 					Effect.tryPromise({
@@ -339,7 +606,9 @@ export const PortalRepositoryDrizzle = Layer.effect(
 							return rows.map(mapReviewRow);
 						},
 						catch: (e) => {
-							if (e instanceof DatabaseError) return e;
+							if (e instanceof DatabaseError) {
+								return e;
+							}
 							return new PortalError({ message: (e as Error).message });
 						},
 					}),
@@ -389,7 +658,9 @@ export const PortalRepositoryDrizzle = Layer.effect(
 							return stats;
 						},
 						catch: (e) => {
-							if (e instanceof DatabaseError) return e;
+							if (e instanceof DatabaseError) {
+								return e;
+							}
 							return new PortalError({ message: (e as Error).message });
 						},
 					}),

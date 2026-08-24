@@ -1,4 +1,4 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { describe, expect, it, vi } from "vitest";
 import { DatabaseError } from "@/shared/errors/infrastructure.errors";
 import type { TTenantId } from "@/shared/types/common.types";
@@ -23,6 +23,7 @@ import type {
 	UpdatePortalBookingStatusCommand,
 	UpdatePortalConfigCommand,
 } from "./portal.schemas";
+import { CreatePortalBookingSchema } from "./portal.schemas";
 import type {
 	TPortalBooking,
 	TPortalConfig,
@@ -50,8 +51,11 @@ const baseConfig: TPortalConfig = {
 const baseBooking: TPortalBooking = {
 	id: generateId(),
 	tenantId,
-	branchId: null,
+	branchId: "branch-1",
 	serviceId: null,
+	roomId: null,
+	boardingId: null,
+	idempotencyKey: "booking-base-1",
 	customerName: "Alice",
 	customerPhone: "08123456789",
 	customerEmail: null,
@@ -59,6 +63,7 @@ const baseBooking: TPortalBooking = {
 	petSpecies: null,
 	petBreed: null,
 	scheduledAt: new Date("2026-07-15T10:00:00Z"),
+	estimatedCheckOutAt: null,
 	notes: null,
 	status: "pending",
 	createdAt: new Date(),
@@ -95,7 +100,7 @@ const makeMockRepo = (overrides?: Record<string, unknown>) => {
 		getConfig: vi.fn(),
 		getServices: vi.fn(),
 		updateConfig: vi.fn(() => Effect.void),
-		saveBooking: vi.fn(() => Effect.void),
+		saveBooking: vi.fn((booking: TPortalBooking) => Effect.succeed(booking)),
 		createService: vi.fn(),
 		deleteService: vi.fn(() => Effect.void),
 		getConfigBySlug: vi.fn(),
@@ -113,6 +118,28 @@ const provideRepo = (mock: ReturnType<typeof makeMockRepo>) =>
 	Layer.succeed(IPortalRepository, IPortalRepository.of(mock));
 
 describe("PortalPrograms", () => {
+	describe("CreatePortalBookingSchema", () => {
+		it("preserves the requested room and check-out date", () => {
+			const estimatedCheckOutAt = new Date("2026-07-17T10:00:00Z");
+			const parsed = Schema.decodeUnknownSync(CreatePortalBookingSchema)({
+				slug: "my-pet-shop",
+				branchId: "branch-1",
+				roomId: "room-1",
+				customerName: "Alice",
+				customerPhone: "08123456789",
+				petName: "Buddy",
+				idempotencyKey: "booking-schema-1",
+				scheduledAt: "2026-07-15T10:00:00.000Z",
+				estimatedCheckOutAt: estimatedCheckOutAt.toISOString(),
+			});
+
+			expect(Reflect.get(parsed, "roomId")).toBe("room-1");
+			expect(Reflect.get(parsed, "estimatedCheckOutAt")).toEqual(
+				estimatedCheckOutAt,
+			);
+		});
+	});
+
 	describe("getPortalConfigProgram", () => {
 		it("should return existing config", async () => {
 			const mock = makeMockRepo({
@@ -249,15 +276,21 @@ describe("PortalPrograms", () => {
 	describe("createPortalBookingProgram", () => {
 		const command: CreatePortalBookingCommand = {
 			slug: "test-slug",
+			branchId: "branch-1",
+			roomId: "room-1",
 			customerName: "Alice",
 			customerPhone: "08123456789",
 			petName: "Buddy",
 			scheduledAt: new Date("2026-07-15T10:00:00Z"),
+			estimatedCheckOutAt: new Date("2026-07-17T10:00:00Z"),
+			idempotencyKey: "booking-test-1",
 		};
 
 		it("should create a booking", async () => {
 			const mock = makeMockRepo({
-				saveBooking: vi.fn(() => Effect.void),
+				saveBooking: vi.fn((booking: TPortalBooking) =>
+					Effect.succeed(booking),
+				),
 			});
 
 			const result = await Effect.runPromise(
@@ -269,7 +302,27 @@ describe("PortalPrograms", () => {
 
 			expect(result.customerName).toBe("Alice");
 			expect(result.status).toBe("pending");
+			expect(result.idempotencyKey).toBe(command.idempotencyKey);
 			expect(mock.saveBooking).toHaveBeenCalledTimes(1);
+		});
+
+		it("returns the same-key booking replayed by the repository", async () => {
+			const existing = {
+				...baseBooking,
+				idempotencyKey: command.idempotencyKey,
+			};
+			const mock = makeMockRepo({
+				saveBooking: vi.fn(() => Effect.succeed(existing)),
+			});
+
+			const result = await Effect.runPromise(
+				Effect.provide(
+					createPortalBookingProgram(tenantId, command),
+					provideRepo(mock),
+				),
+			);
+
+			expect(result).toBe(existing);
 		});
 
 		it("should propagate DatabaseError", async () => {
@@ -312,9 +365,12 @@ describe("PortalPrograms", () => {
 			status: "confirmed",
 		};
 
-		it("should update booking status scoped to tenantId", async () => {
+		it("should confirm through the reservation workflow", async () => {
+			const confirmBooking = vi.fn(() => Effect.void);
+			const updateBookingStatus = vi.fn(() => Effect.void);
 			const mock = makeMockRepo({
-				updateBookingStatus: vi.fn(() => Effect.void),
+				confirmBooking,
+				updateBookingStatus,
 			});
 
 			await Effect.runPromise(
@@ -324,11 +380,12 @@ describe("PortalPrograms", () => {
 				),
 			);
 
-			expect(mock.updateBookingStatus).toHaveBeenCalledWith(
+			expect(confirmBooking).toHaveBeenCalledWith(
 				tenantId,
 				baseBooking.id,
-				"confirmed",
+				undefined,
 			);
+			expect(updateBookingStatus).not.toHaveBeenCalled();
 		});
 	});
 

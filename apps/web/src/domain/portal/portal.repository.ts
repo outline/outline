@@ -25,7 +25,7 @@ export class IPortalRepository extends Context.Tag("IPortalRepository")<
 		) => Effect.Effect<void, DatabaseError>;
 		readonly saveBooking: (
 			booking: TPortalBooking,
-		) => Effect.Effect<void, DatabaseError>;
+		) => Effect.Effect<TPortalBooking, DatabaseError>;
 		readonly createService: (
 			tenantId: TTenantId,
 			service: Omit<TPortalService, "id">,
@@ -50,6 +50,11 @@ export class IPortalRepository extends Context.Tag("IPortalRepository")<
 			bookingId: string,
 			status: TPortalBooking["status"],
 		) => Effect.Effect<void, DatabaseError>;
+		readonly confirmBooking: (
+			tenantId: TTenantId,
+			bookingId: string,
+			actorUserId?: string,
+		) => Effect.Effect<void, DatabaseError | PortalError>;
 		readonly getReviews: (
 			tenantId: TTenantId,
 			options?: { limit?: number },

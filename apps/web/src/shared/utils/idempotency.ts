@@ -1,12 +1,13 @@
 import { Effect } from "effect";
-import type { TIdempotencyRecord } from "@/shared/ports/idempotency.port";
+import type {
+	TIdempotencyRecord,
+	TIdempotencyReservation,
+} from "@/shared/ports/idempotency.port";
 import { hashToken } from "@/shared/utils/hash";
 
 export type { TIdempotencyRecord };
 
-/**
- * Idempotency-related tagged errors used by `runWithIdempotency`.
- */
+/** Raised when a request does not provide a valid idempotency key. */
 export class IdempotencyMissingKeyError extends Error {
 	override readonly name = "IdempotencyMissingKeyError";
 	constructor() {
@@ -14,12 +15,32 @@ export class IdempotencyMissingKeyError extends Error {
 	}
 }
 
+/** Raised when an idempotency key is reused with a different payload. */
 export class IdempotencyConflictError extends Error {
+	readonly status = 409;
+	readonly code = "idempotency_conflict";
 	override readonly name = "IdempotencyConflictError";
 	constructor() {
 		super(
 			"Idempotency-Key sudah digunakan dengan payload yang berbeda. Tolong gunakan key baru atau kirim ulang dengan payload asli.",
 		);
+	}
+}
+
+/** Raised when a matching idempotent request is already being processed. */
+export class IdempotencyRequestInProgressError extends Error {
+	readonly status = 409;
+	readonly code = "request_in_progress";
+	override readonly name = "IdempotencyRequestInProgressError";
+	constructor() {
+		super("Permintaan dengan Idempotency-Key ini masih diproses.");
+	}
+}
+
+class IdempotencyCompletionError extends Error {
+	override readonly name = "IdempotencyCompletionError";
+	constructor() {
+		super("Idempotency reservation could not be completed.");
 	}
 }
 
@@ -60,7 +81,9 @@ export const canonicalJson = (value: unknown): string => {
 		const out: Record<string, unknown> = {};
 		for (const key of Object.keys(obj).sort()) {
 			const v = obj[key];
-			if (v === undefined) continue;
+			if (v === undefined) {
+				continue;
+			}
 			out[key] = walk(v);
 		}
 		return out;
@@ -74,17 +97,25 @@ export const hashIdempotencyPayload = async (
 ): Promise<string> => hashToken(canonicalJson(payload));
 
 export type TIdempotencyService = {
-	readonly find: (
+	readonly reserve: (
 		tenantId: string,
 		idempotencyKey: string,
-	) => Effect.Effect<TIdempotencyRecord | null, never, never>;
-	readonly record: (
+		requestHash: string,
+	) => Effect.Effect<TIdempotencyReservation, never, never>;
+	readonly complete: (
 		tenantId: string,
 		idempotencyKey: string,
 		requestHash: string,
 		responseBody: string,
 		responseStatus: number,
-	) => Effect.Effect<void, never, never>;
+		reservationCreatedAt: string,
+	) => Effect.Effect<boolean, never, never>;
+	readonly release: (
+		tenantId: string,
+		idempotencyKey: string,
+		requestHash: string,
+		reservationCreatedAt: string,
+	) => Effect.Effect<boolean, never, never>;
 };
 
 export type TRunWithIdempotencyOptions = {
@@ -98,13 +129,14 @@ export type TRunWithIdempotencyOptions = {
  *
  * 1. If `idempotencyKey` is missing, the helper throws
  *    `IdempotencyMissingKeyError` (typed boundary).
- * 2. If the `(tenantId, idempotencyKey)` pair has a cached record with a
- *    matching `requestHash`, the cached response is replayed.
- * 3. If the cached record exists but `requestHash` differs, the helper
+ * 2. The `(tenantId, idempotencyKey)` pair is atomically reserved before the
+ *    handler runs.
+ * 3. If a completed record has a matching `requestHash`, its response is
+ *    replayed. A matching in-progress record is rejected immediately.
+ * 4. If the reserved or completed record has a different hash, the helper
  *    throws `IdempotencyConflictError` to signal a client bug.
- * 4. Otherwise, the handler runs, its return value is JSON-serialised,
- *    the record is upserted via `service`, and the live return value
- *    is propagated.
+ * 5. Otherwise, the handler runs and completion is durably persisted before
+ *    the live return value is propagated.
  *
  * `service` decouples persistence from this helper so callers may inject
  * either the live Drizzle adapter (default), a wrapped-via-`runApp`
@@ -114,7 +146,7 @@ export type TRunWithIdempotencyOptions = {
  * `tenantId` must be the server-resolved value (here: the tenant selected
  * via the public slug), **never** a client-supplied field.
  */
-export const runWithIdempotency = <A>(
+export const runWithIdempotency = async <A>(
 	options: TRunWithIdempotencyOptions,
 	handler: () => Promise<A>,
 	service: TIdempotencyService,
@@ -126,33 +158,57 @@ export const runWithIdempotency = <A>(
 		idempotencyKey.trim().length < 8 ||
 		idempotencyKey.length > 200
 	) {
-		return Promise.reject(new IdempotencyMissingKeyError());
+		throw new IdempotencyMissingKeyError();
 	}
 
-	const requestHashP = hashIdempotencyPayload(requestPayload);
-	const existingP = Effect.runPromise(service.find(tenantId, idempotencyKey));
-
-	return requestHashP.then((requestHash) =>
-		existingP.then((existing) => {
-			if (existing) {
-				if (existing.requestHash !== requestHash) {
-					throw new IdempotencyConflictError();
-				}
-				return JSON.parse(existing.responseBody) as A;
-			}
-
-			return handler().then((result) => {
-				const body = JSON.stringify(result);
-				Effect.runPromise(
-					service.record(tenantId, idempotencyKey, requestHash, body, 200),
-				).catch((error) => {
-					console.error(
-						"[runWithIdempotency] Failed to persist record:",
-						error,
-					);
-				});
-				return result;
-			});
-		}),
+	const requestHash = await hashIdempotencyPayload(requestPayload);
+	const reservation = await Effect.runPromise(
+		service.reserve(tenantId, idempotencyKey, requestHash),
 	);
+
+	if (reservation._tag === "Completed") {
+		if (reservation.record.requestHash !== requestHash) {
+			throw new IdempotencyConflictError();
+		}
+		return JSON.parse(reservation.record.responseBody) as A;
+	}
+	if (reservation._tag === "InProgress") {
+		if (reservation.requestHash !== requestHash) {
+			throw new IdempotencyConflictError();
+		}
+		throw new IdempotencyRequestInProgressError();
+	}
+
+	let result: A;
+	try {
+		result = await handler();
+	} catch (error) {
+		await Effect.runPromise(
+			service.release(
+				tenantId,
+				idempotencyKey,
+				requestHash,
+				reservation.reservationCreatedAt,
+			),
+		);
+		throw error;
+	}
+	const responseBody = JSON.stringify(result);
+	if (responseBody === undefined) {
+		throw new IdempotencyCompletionError();
+	}
+	const completed = await Effect.runPromise(
+		service.complete(
+			tenantId,
+			idempotencyKey,
+			requestHash,
+			responseBody,
+			200,
+			reservation.reservationCreatedAt,
+		),
+	);
+	if (!completed) {
+		throw new IdempotencyCompletionError();
+	}
+	return result;
 };

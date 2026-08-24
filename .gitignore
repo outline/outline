@@ -2,6 +2,7 @@ dist
 .astro
 build
 node_modules/*
+**/node_modules/*
 .env
 .env.local
 .env.production

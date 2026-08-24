@@ -16,7 +16,7 @@ import { formatDate } from "~/utils/format";
  * WhatsApp templates and what has been sent from them.
  *
  * Only approved templates can be sent, which is the rule the provider applies
- * – the mock refuses the rest rather than pretending they went out.
+ * – the API refuses the rest rather than pretending they went out.
  *
  * @returns the rendered WhatsApp page.
  */

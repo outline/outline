@@ -46,7 +46,7 @@ export const getPortalServicesProgram = (
 export const updatePortalConfigProgram = (
 	command: UpdatePortalConfigCommand,
 	tenantId: TTenantId,
-): Effect.Effect<void, DatabaseError, IPortalRepository> =>
+): Effect.Effect<void, DatabaseError | PortalError, IPortalRepository> =>
 	Effect.gen(function* () {
 		const repo = yield* IPortalRepository;
 		const existing = yield* repo.getConfig(tenantId);
@@ -65,8 +65,10 @@ export const createPortalBookingProgram = (
 		const repo = yield* IPortalRepository;
 		const booking = PortalModule.createBooking({
 			businessId: tenantId,
-			branchId: command.branchId ?? null,
+			branchId: command.branchId,
 			serviceId: command.serviceId ?? null,
+			roomId: command.roomId,
+			idempotencyKey: command.idempotencyKey,
 			customerName: command.customerName,
 			customerPhone: command.customerPhone,
 			customerEmail: command.customerEmail ?? null,
@@ -74,10 +76,10 @@ export const createPortalBookingProgram = (
 			petSpecies: command.petSpecies ?? null,
 			petBreed: command.petBreed ?? null,
 			scheduledAt: new Date(command.scheduledAt),
+			estimatedCheckOutAt: new Date(command.estimatedCheckOutAt),
 			notes: command.notes ?? null,
 		});
-		yield* repo.saveBooking(booking);
-		return booking;
+		return yield* repo.saveBooking(booking);
 	});
 
 export const getPortalBookingsProgram = (
@@ -91,9 +93,14 @@ export const getPortalBookingsProgram = (
 export const updatePortalBookingStatusProgram = (
 	tenantId: TTenantId,
 	command: UpdatePortalBookingStatusCommand,
-): Effect.Effect<void, DatabaseError, IPortalRepository> =>
+	actorUserId?: string,
+): Effect.Effect<void, DatabaseError | PortalError, IPortalRepository> =>
 	Effect.gen(function* () {
 		const repo = yield* IPortalRepository;
+		if (command.status === "confirmed") {
+			yield* repo.confirmBooking(tenantId, command.bookingId, actorUserId);
+			return;
+		}
 		yield* repo.updateBookingStatus(
 			tenantId,
 			command.bookingId,

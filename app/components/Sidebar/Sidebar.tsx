@@ -17,8 +17,6 @@ import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
-import NotificationIcon from "../Notifications/NotificationIcon";
-import NotificationsPopover from "../Notifications/NotificationsPopover";
 import { TooltipProvider } from "../TooltipContext";
 import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
@@ -264,16 +262,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   showHoverCard={false}
                 />
               }
-            >
-              <NotificationsPopover>
-                <SidebarButton
-                  position="bottom"
-                  image={<NotificationIcon />}
-                  aria-label={t("Notifications")}
-                  style={{ paddingInline: 4 }}
-                />
-              </NotificationsPopover>
-            </SidebarButton>
+            />
           </AccountMenu>
         )}
         <ResizeBorder

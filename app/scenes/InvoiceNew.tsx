@@ -16,7 +16,7 @@ import type { InvoiceLine } from "~/stores/shop";
 import { formatCurrency } from "~/utils/format";
 /** A date input wants `yyyy-mm-dd`, not an ISO timestamp. */
 const asDateValue = (date: Date) => date.toISOString().slice(0, 10);
-/** Tax applied to every invoice, matching the mock's default. */
+/** Tax applied to every invoice, matching the API default. */
 const TAX_RATE = 0.11;
 /**
  * Drafting an invoice.

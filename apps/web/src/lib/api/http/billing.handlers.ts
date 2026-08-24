@@ -3,13 +3,18 @@ import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 
 interface BillingSession {
 	readonly business: { readonly id: string };
+	readonly user: {
+		readonly id: string;
+		readonly name: string;
+		readonly email: string;
+	};
 }
 
 interface BillingHandlerDependencies {
 	readonly session: (token: string) => Promise<BillingSession | null>;
 	readonly get: (businessId: string) => Promise<unknown>;
 	readonly changePlan: (
-		businessId: string,
+		session: BillingSession,
 		input: Record<string, unknown>,
 	) => Promise<unknown>;
 }
@@ -29,9 +34,13 @@ export function createBillingHandlers(
 	return {
 		get: async (request, requestId) => {
 			const token = readSessionToken(request);
-			if (!token) return unauthorized(requestId);
+			if (!token) {
+				return unauthorized(requestId);
+			}
 			const session = await dependencies.session(token);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			return jsonSuccess(
 				await dependencies.get(session.business.id),
 				requestId,
@@ -39,9 +48,13 @@ export function createBillingHandlers(
 		},
 		changePlan: async (request, requestId) => {
 			const token = readSessionToken(request);
-			if (!token) return unauthorized(requestId);
+			if (!token) {
+				return unauthorized(requestId);
+			}
 			const session = await dependencies.session(token);
-			if (!session) return unauthorized(requestId);
+			if (!session) {
+				return unauthorized(requestId);
+			}
 			const body = await readBody(request);
 			if (!body) {
 				return jsonError(
@@ -50,7 +63,7 @@ export function createBillingHandlers(
 				);
 			}
 			return jsonSuccess(
-				await dependencies.changePlan(session.business.id, body),
+				await dependencies.changePlan(session, body),
 				requestId,
 			);
 		},

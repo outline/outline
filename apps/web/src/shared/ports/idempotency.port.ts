@@ -20,6 +20,20 @@ export type TIdempotencyRecord = {
 	readonly requestHash: string;
 };
 
+export type TIdempotencyReservation =
+	| {
+			readonly _tag: "Acquired";
+			readonly reservationCreatedAt: string;
+	  }
+	| {
+			readonly _tag: "InProgress";
+			readonly requestHash: string;
+	  }
+	| {
+			readonly _tag: "Completed";
+			readonly record: TIdempotencyRecord;
+	  };
+
 /**
  * Port: IIdempotency
  * Persists idempotency records keyed by `(tenantId, idempotencyKey)`.
@@ -29,27 +43,39 @@ export type TIdempotencyRecord = {
  * the same key + matching request hash replay the cached response.
  *
  * Storage contract:
- *  - `find` returns `null` for an unknown key (not `Effect.fail`).
- *  - `record` upserts; uniqueness is enforced by the DB composite index
- *    on `(tenant_id, idempotency_key)`.
+ *  - `reserve` atomically inserts an in-progress row or returns the row that
+ *    already owns the `(tenantId, idempotencyKey)` pair.
+ *  - `complete` updates only the matching in-progress reservation and returns
+ *    `false` instead of overwriting a completed or differently-owned row.
+ *  - `release` deletes only the matching in-progress reservation after a
+ *    handler failure, allowing a later retry to acquire the key.
  *
  * Cross-tenant scope is required because the keys live under a tenant's
  * data island; abusing the cache to enumerate another tenant's keys is
  * impossible by construction.
  */
 export interface IIdempotency {
-	readonly find: (
+	readonly reserve: (
 		tenantId: string,
 		idempotencyKey: string,
-	) => Effect.Effect<TIdempotencyRecord | null, TIdempotencyError>;
+		requestHash: string,
+	) => Effect.Effect<TIdempotencyReservation, TIdempotencyError>;
 
-	readonly record: (
+	readonly complete: (
 		tenantId: string,
 		idempotencyKey: string,
 		requestHash: string,
 		responseBody: string,
 		responseStatus: number,
-	) => Effect.Effect<void, TIdempotencyError>;
+		reservationCreatedAt: string,
+	) => Effect.Effect<boolean, TIdempotencyError>;
+
+	readonly release: (
+		tenantId: string,
+		idempotencyKey: string,
+		requestHash: string,
+		reservationCreatedAt: string,
+	) => Effect.Effect<boolean, TIdempotencyError>;
 }
 
 export const IIdempotency = Context.GenericTag<IIdempotency>("IIdempotency");

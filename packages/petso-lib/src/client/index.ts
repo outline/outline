@@ -68,6 +68,7 @@ import type {
 	TCreateAdvanceInput,
 	TBillingSummaryDto,
 	TChangePlanInput,
+	TChangePlanResult,
 	TWhatsAppTemplateDto,
 	TWhatsAppMessageDto,
 	TSendWhatsAppInput,
@@ -184,7 +185,7 @@ export class PetsoClient {
 			const message =
 				typeof apiError === "string"
 					? apiError
-					: apiError?.message ?? `HTTP ${response.status}`;
+					: (apiError?.message ?? `HTTP ${response.status}`);
 			const details =
 				json && "details" in json
 					? String(json.details)
@@ -298,7 +299,9 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
-		updateSupplier: (input: TSupplierInput & { readonly id: string }): Promise<TSupplierDto> =>
+		updateSupplier: (
+			input: TSupplierInput & { readonly id: string },
+		): Promise<TSupplierDto> =>
 			this.fetchApi<TSupplierDto>(`/api/v1/admin/suppliers/${input.id}`, {
 				method: "PATCH",
 				body: input,
@@ -313,7 +316,9 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
-		updateWarehouse: (input: TWarehouseInput & { readonly id: string }): Promise<TWarehouseDto> =>
+		updateWarehouse: (
+			input: TWarehouseInput & { readonly id: string },
+		): Promise<TWarehouseDto> =>
 			this.fetchApi<TWarehouseDto>(`/api/v1/admin/warehouses/${input.id}`, {
 				method: "PATCH",
 				body: input,
@@ -377,8 +382,8 @@ export class PetsoClient {
 			status: string,
 		): Promise<{ readonly updated: boolean }> =>
 			this.fetchApi<{ readonly updated: boolean }>(
-			`/api/v1/admin/purchase-orders/${id}/status`,
-			{ method: "PATCH", body: { status } },
+				`/api/v1/admin/purchase-orders/${id}/status`,
+				{ method: "PATCH", body: { status } },
 			),
 		receivePurchaseOrder: (
 			input: TReceivePurchaseOrderInput,
@@ -421,9 +426,7 @@ export class PetsoClient {
 				`/api/v1/admin/staff/${userId}`,
 				{ method: "DELETE", body: { branchId } },
 			),
-		inviteStaff: (
-			input: TInviteStaffInput,
-		): Promise<TInviteStaffResult> =>
+		inviteStaff: (input: TInviteStaffInput): Promise<TInviteStaffResult> =>
 			this.fetchApi<TInviteStaffResult>("/api/v1/admin/staff/invite", {
 				method: "POST",
 				body: input,
@@ -451,10 +454,10 @@ export class PetsoClient {
 		createNoteCollection: (
 			input: TCreateNoteCollectionInput,
 		): Promise<TNoteCollectionDto> =>
-			this.fetchApi<TNoteCollectionDto>(
-				"/api/v1/admin/note-collections",
-				{ method: "POST", body: input },
-			),
+			this.fetchApi<TNoteCollectionDto>("/api/v1/admin/note-collections", {
+				method: "POST",
+				body: input,
+			}),
 		updateNoteCollection: (
 			id: string,
 			input: TCreateNoteCollectionInput,
@@ -484,10 +487,7 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
-		updateNote: (
-			id: string,
-			input: TUpdateNoteInput,
-		): Promise<TNoteDto> =>
+		updateNote: (id: string, input: TUpdateNoteInput): Promise<TNoteDto> =>
 			this.fetchApi<TNoteDto>(`/api/v1/admin/notes/${id}`, {
 				method: "PATCH",
 				body: input,
@@ -509,16 +509,20 @@ export class PetsoClient {
 				"/api/v1/admin/notes/empty-trash",
 				{ method: "POST" },
 			),
-		clockIn: (
-			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
-		): Promise<TStaffAttendanceDto> =>
+		clockIn: (input: {
+			readonly staffId: string;
+			readonly date: string;
+			readonly notes?: string | null;
+		}): Promise<TStaffAttendanceDto> =>
 			this.fetchApi<TStaffAttendanceDto>("/api/v1/admin/shifts/clock-in", {
 				method: "POST",
 				body: input,
 			}),
-		clockOut: (
-			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
-		): Promise<TStaffAttendanceDto> =>
+		clockOut: (input: {
+			readonly staffId: string;
+			readonly date: string;
+			readonly notes?: string | null;
+		}): Promise<TStaffAttendanceDto> =>
 			this.fetchApi<TStaffAttendanceDto>("/api/v1/admin/shifts/clock-out", {
 				method: "POST",
 				body: input,
@@ -540,15 +544,13 @@ export class PetsoClient {
 			this.fetchApi<readonly TBoardingDto[]>("/api/v1/admin/boardings"),
 		updateBoardingStatus: (
 			id: string,
-			status: "draft" | "active" | "completed",
+			status: "draft" | "active" | "completed" | "cancelled",
 		): Promise<{ readonly updated: boolean }> =>
 			this.fetchApi<{ readonly updated: boolean }>(
 				`/api/v1/admin/boardings/${id}/status`,
 				{ method: "PATCH", body: { status } },
 			),
-		createBoarding: (
-			input: TCreateBoardingInput,
-		): Promise<TBoardingDto> =>
+		createBoarding: (input: TCreateBoardingInput): Promise<TBoardingDto> =>
 			this.fetchApi<TBoardingDto>("/api/v1/admin/boardings", {
 				method: "POST",
 				body: input,
@@ -566,20 +568,20 @@ export class PetsoClient {
 				{ method: "PATCH", body: { status } },
 			),
 		documentTemplates: (): Promise<readonly TDocumentTemplateDto[]> =>
-				this.fetchApi<readonly TDocumentTemplateDto[]>(
-					"/api/v1/admin/document-templates",
-				),
+			this.fetchApi<readonly TDocumentTemplateDto[]>(
+				"/api/v1/admin/document-templates",
+			),
 		saveDocumentTemplate: (
 			input: TSaveDocumentTemplateInput,
 		): Promise<TDocumentTemplateDto> =>
-			this.fetchApi<TDocumentTemplateDto>(
-				"/api/v1/admin/document-templates",
-				{ method: "POST", body: input },
-			),
+			this.fetchApi<TDocumentTemplateDto>("/api/v1/admin/document-templates", {
+				method: "POST",
+				body: input,
+			}),
 		topSellers: (): Promise<readonly TTopSellerDto[]> =>
-				this.fetchApi<readonly TTopSellerDto[]>(
-					"/api/v1/admin/dashboard/top-sellers",
-				),
+			this.fetchApi<readonly TTopSellerDto[]>(
+				"/api/v1/admin/dashboard/top-sellers",
+			),
 		portal: (): Promise<TPortalAdminDto> =>
 			this.fetchApi<TPortalAdminDto>("/api/v1/admin/portal"),
 		createPortalService: (
@@ -605,10 +607,13 @@ export class PetsoClient {
 		updatePortalSettings: (
 			input: Record<string, unknown>,
 		): Promise<{ readonly updated: boolean }> =>
-			this.fetchApi<{ readonly updated: boolean }>("/api/v1/admin/portal/config", {
-				method: "PATCH",
-				body: input,
-			}),
+			this.fetchApi<{ readonly updated: boolean }>(
+				"/api/v1/admin/portal/config",
+				{
+					method: "PATCH",
+					body: input,
+				},
+			),
 		updatePortalBookingStatus: (
 			id: string,
 			status: TPortalBookingDto["status"],
@@ -664,8 +669,8 @@ export class PetsoClient {
 			),
 		billingSummary: (): Promise<TBillingSummaryDto> =>
 			this.fetchApi<TBillingSummaryDto>("/api/v1/admin/billing"),
-		changePlan: (input: TChangePlanInput): Promise<{ readonly changed: boolean }> =>
-			this.fetchApi<{ readonly changed: boolean }>("/api/v1/admin/billing/plan", {
+		changePlan: (input: TChangePlanInput): Promise<TChangePlanResult> =>
+			this.fetchApi<TChangePlanResult>("/api/v1/admin/billing/plan", {
 				method: "POST",
 				body: input,
 			}),
@@ -677,17 +682,19 @@ export class PetsoClient {
 			this.fetchApi<readonly TWhatsAppMessageDto[]>(
 				"/api/v1/admin/whatsapp/messages",
 			),
-		sendWhatsApp: (
-			input: TSendWhatsAppInput,
-		): Promise<TSendWhatsAppResult> =>
+		sendWhatsApp: (input: TSendWhatsAppInput): Promise<TSendWhatsAppResult> =>
 			this.fetchApi<TSendWhatsAppResult>("/api/v1/admin/whatsapp/send", {
 				method: "POST",
 				body: input,
 			}),
 		accounts: (): Promise<readonly TAccountDto[]> =>
-			this.fetchApi<readonly TAccountDto[]>("/api/v1/admin/accounting/accounts"),
+			this.fetchApi<readonly TAccountDto[]>(
+				"/api/v1/admin/accounting/accounts",
+			),
 		journal: (): Promise<readonly TJournalEntryDto[]> =>
-			this.fetchApi<readonly TJournalEntryDto[]>("/api/v1/admin/accounting/journal"),
+			this.fetchApi<readonly TJournalEntryDto[]>(
+				"/api/v1/admin/accounting/journal",
+			),
 		cashFlow: (): Promise<TCashFlowReportDto> =>
 			this.fetchApi<TCashFlowReportDto>("/api/v1/admin/accounting/cash-flow"),
 		commissions: (): Promise<readonly TCommissionReportDto[]> =>
@@ -709,14 +716,20 @@ export class PetsoClient {
 				"/api/v1/admin/loyalty/config",
 				{ method: "PATCH", body: input },
 			),
-		redeemLoyaltyPoints: (
-			input: { readonly customerId: string; readonly points: number },
-		): Promise<{ readonly pointsRedeemed: number; readonly newTotal: number }> =>
-			this.fetchApi<{ readonly pointsRedeemed: number; readonly newTotal: number }>(
-				"/api/v1/admin/loyalty/redeem",
-				{ method: "POST", body: input },
-			),
-		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
+		redeemLoyaltyPoints: (input: {
+			readonly customerId: string;
+			readonly points: number;
+		}): Promise<{
+			readonly pointsRedeemed: number;
+			readonly newTotal: number;
+		}> =>
+			this.fetchApi<{
+				readonly pointsRedeemed: number;
+				readonly newTotal: number;
+			}>("/api/v1/admin/loyalty/redeem", { method: "POST", body: input }),
+		createCustomer: (
+			input: TCreateCustomerInput,
+		): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",
 				body: input,
@@ -724,10 +737,10 @@ export class PetsoClient {
 		updateCustomer: (
 			input: TUpdateCustomerInput,
 		): Promise<TCustomerRecordDto> =>
-			this.fetchApi<TCustomerRecordDto>(
-				`/api/v1/admin/customers/${input.id}`,
-				{ method: "PATCH", body: input },
-			),
+			this.fetchApi<TCustomerRecordDto>(`/api/v1/admin/customers/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
 		deleteCustomer: (id: string): Promise<{ readonly deleted: boolean }> =>
 			this.fetchApi<{ readonly deleted: boolean }>(
 				`/api/v1/admin/customers/${id}`,
@@ -744,26 +757,36 @@ export class PetsoClient {
 				body: input,
 			}),
 		deletePet: (id: string): Promise<{ readonly deleted: boolean }> =>
-			this.fetchApi<{ readonly deleted: boolean }>(
-				`/api/v1/admin/pets/${id}`,
-				{ method: "DELETE" },
-			),
+			this.fetchApi<{ readonly deleted: boolean }>(`/api/v1/admin/pets/${id}`, {
+				method: "DELETE",
+			}),
 	};
 
 	readonly products = {
 		list: (params?: TProductListParams): Promise<TProductListResult> => {
 			const searchParams = new URLSearchParams();
-			if (params?.search) searchParams.set("search", params.search);
-			if (params?.category) searchParams.set("category", params.category);
-			if (params?.isFeatured !== undefined)
+			if (params?.search) {
+				searchParams.set("search", params.search);
+			}
+			if (params?.category) {
+				searchParams.set("category", params.category);
+			}
+			if (params?.isFeatured !== undefined) {
 				searchParams.set("isFeatured", String(params.isFeatured));
-			if (params?.minPrice !== undefined)
+			}
+			if (params?.minPrice !== undefined) {
 				searchParams.set("minPrice", String(params.minPrice));
-			if (params?.maxPrice !== undefined)
+			}
+			if (params?.maxPrice !== undefined) {
 				searchParams.set("maxPrice", String(params.maxPrice));
-			if (params?.sort) searchParams.set("sort", params.sort);
+			}
+			if (params?.sort) {
+				searchParams.set("sort", params.sort);
+			}
 			searchParams.set("limit", String(params?.limit ?? 100));
-			if (params?.offset) searchParams.set("offset", String(params.offset));
+			if (params?.offset) {
+				searchParams.set("offset", String(params.offset));
+			}
 
 			return this.fetchApi<TProductListResult>(
 				`/api/v1/products?${searchParams.toString()}`,
@@ -772,7 +795,9 @@ export class PetsoClient {
 
 		get: (id: string): Promise<TProductDto | null> =>
 			this.fetchApi<TProductDto>(`/api/v1/products/${id}`).catch((err) => {
-				if (err instanceof PetsoClientError && err.status === 404) return null;
+				if (err instanceof PetsoClientError && err.status === 404) {
+					return null;
+				}
 				throw err;
 			}),
 
@@ -814,7 +839,9 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
-		update: (input: TBranchInput & { readonly id: string }): Promise<TBranchDto> =>
+		update: (
+			input: TBranchInput & { readonly id: string },
+		): Promise<TBranchDto> =>
 			this.fetchApi<TBranchDto>(`/api/v1/admin/branches/${input.id}`, {
 				method: "PATCH",
 				body: input,
@@ -834,12 +861,22 @@ export class PetsoClient {
 	readonly orders = {
 		list: (params?: TOrderListParams): Promise<TOrderListResult> => {
 			const searchParams = new URLSearchParams();
-			if (params?.search) searchParams.set("search", params.search);
-			if (params?.status) searchParams.set("status", params.status);
-			if (params?.fromDate) searchParams.set("fromDate", params.fromDate);
-			if (params?.toDate) searchParams.set("toDate", params.toDate);
+			if (params?.search) {
+				searchParams.set("search", params.search);
+			}
+			if (params?.status) {
+				searchParams.set("status", params.status);
+			}
+			if (params?.fromDate) {
+				searchParams.set("fromDate", params.fromDate);
+			}
+			if (params?.toDate) {
+				searchParams.set("toDate", params.toDate);
+			}
 			searchParams.set("limit", String(params?.limit ?? 50));
-			if (params?.offset) searchParams.set("offset", String(params.offset));
+			if (params?.offset) {
+				searchParams.set("offset", String(params.offset));
+			}
 
 			return this.fetchApi<TOrderListResult>(
 				`/api/v1/orders?${searchParams.toString()}`,
@@ -848,7 +885,9 @@ export class PetsoClient {
 
 		get: (id: string): Promise<TOrderDto | null> =>
 			this.fetchApi<TOrderDto>(`/api/v1/orders/${id}`).catch((err) => {
-				if (err instanceof PetsoClientError && err.status === 404) return null;
+				if (err instanceof PetsoClientError && err.status === 404) {
+					return null;
+				}
 				throw err;
 			}),
 
@@ -886,9 +925,13 @@ export class PetsoClient {
 			offset?: number;
 		}): Promise<{ customers: readonly TCustomerDto[]; total: number }> => {
 			const searchParams = new URLSearchParams();
-			if (params?.search) searchParams.set("search", params.search);
+			if (params?.search) {
+				searchParams.set("search", params.search);
+			}
 			searchParams.set("limit", String(params?.limit ?? 50));
-			if (params?.offset) searchParams.set("offset", String(params.offset));
+			if (params?.offset) {
+				searchParams.set("offset", String(params.offset));
+			}
 			return this.fetchApi<{
 				customers: readonly TCustomerDto[];
 				total: number;
@@ -897,7 +940,9 @@ export class PetsoClient {
 
 		get: (id: string): Promise<TCustomerDto | null> =>
 			this.fetchApi<TCustomerDto>(`/api/v1/customers/${id}`).catch((err) => {
-				if (err instanceof PetsoClientError && err.status === 404) return null;
+				if (err instanceof PetsoClientError && err.status === 404) {
+					return null;
+				}
 				throw err;
 			}),
 

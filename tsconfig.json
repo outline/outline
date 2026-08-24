@@ -29,6 +29,7 @@
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
     "target": "es2020",
+    "types": ["node", "vite/client", "vitest/globals"],
     "paths": {
       "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"],
@@ -41,7 +42,10 @@
         "./node_modules/@storybook/react-vite/dist/index.d.ts"
       ],
       "@storybook/react": ["./node_modules/@storybook/react/dist/index.d.ts"],
-      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"]
+      "@vitejs/plugin-react": [
+        "./node_modules/@vitejs/plugin-react/dist/index.d.ts"
+      ],
+      "@tailwindcss/vite": ["./node_modules/@tailwindcss/vite/dist/index.d.mts"]
     }
   },
   "exclude": ["node_modules", "build", "server/migrations"]

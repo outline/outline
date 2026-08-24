@@ -8,32 +8,48 @@ import type { TIdempotencyService } from "@/shared/utils/idempotency";
  * `runApp` so the application layer's full adapter graph is in scope.
  */
 export const idempotencyServiceFromAppLayer: TIdempotencyService = {
-	find: (tenantId, idempotencyKey) =>
+	reserve: (tenantId, idempotencyKey, requestHash) =>
 		Effect.promise(() =>
 			runApp(
 				Effect.gen(function* () {
 					const idem = yield* IIdempotency;
-					return yield* idem.find(tenantId, idempotencyKey);
+					return yield* idem.reserve(tenantId, idempotencyKey, requestHash);
 				}),
 			),
 		),
-	record: (
+	complete: (
 		tenantId,
 		idempotencyKey,
 		requestHash,
 		responseBody,
 		responseStatus,
+		reservationCreatedAt,
 	) =>
 		Effect.promise(() =>
 			runApp(
 				Effect.gen(function* () {
 					const idem = yield* IIdempotency;
-					yield* idem.record(
+					return yield* idem.complete(
 						tenantId,
 						idempotencyKey,
 						requestHash,
 						responseBody,
 						responseStatus,
+						reservationCreatedAt,
+					);
+				}),
+			),
+		),
+	release: (tenantId, idempotencyKey, requestHash, reservationCreatedAt) =>
+		Effect.promise(() =>
+			runApp(
+				Effect.gen(function* () {
+					const idem = yield* IIdempotency;
+					return yield* idem.release(
+						tenantId,
+						idempotencyKey,
+						requestHash,
+						reservationCreatedAt,
 					);
 				}),
 			),

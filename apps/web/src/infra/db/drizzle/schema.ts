@@ -2599,6 +2599,9 @@ export const portalBookings = pgTable(
 		businessId: uuid("business_id").notNull(),
 		branchId: uuid("branch_id").notNull(),
 		serviceId: uuid("service_id"),
+		roomId: uuid("room_id"),
+		boardingId: uuid("boarding_id"),
+		idempotencyKey: text("idempotency_key").notNull(),
 		customerName: text("customer_name").notNull(),
 		customerPhone: text("customer_phone").notNull(),
 		customerEmail: text("customer_email"),
@@ -2609,6 +2612,10 @@ export const portalBookings = pgTable(
 			withTimezone: true,
 			mode: "string",
 		}).notNull(),
+		estimatedCheckOutAt: timestamp("estimated_check_out_at", {
+			withTimezone: true,
+			mode: "string",
+		}),
 		durationMinutes: integer("duration_minutes").default(60),
 		status: text().default("pending"),
 		notes: text(),
@@ -2651,6 +2658,10 @@ export const portalBookings = pgTable(
 			"btree",
 			table.scheduledAt.asc().nullsLast().op("timestamptz_ops"),
 		),
+		index("idx_portal_bookings_room").using(
+			"btree",
+			table.roomId.asc().nullsLast().op("uuid_ops"),
+		),
 		index("idx_portal_bookings_status").using(
 			"btree",
 			table.status.asc().nullsLast().op("text_ops"),
@@ -2660,6 +2671,21 @@ export const portalBookings = pgTable(
 			foreignColumns: [branches.id],
 			name: "portal_bookings_branch_id_fkey",
 		}),
+		foreignKey({
+			columns: [table.roomId],
+			foreignColumns: [rooms.id],
+			name: "portal_bookings_room_id_fkey",
+		}).onDelete("restrict"),
+		foreignKey({
+			columns: [table.boardingId],
+			foreignColumns: [boardings.id],
+			name: "portal_bookings_boarding_id_fkey",
+		}).onDelete("set null"),
+		unique("portal_bookings_boarding_id_key").on(table.boardingId),
+		uniqueIndex("portal_bookings_business_id_idempotency_key").on(
+			table.businessId,
+			table.idempotencyKey,
+		),
 		foreignKey({
 			columns: [table.businessId],
 			foreignColumns: [businesses.id],

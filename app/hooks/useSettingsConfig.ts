@@ -1,60 +1,18 @@
-import {
-  EmailIcon,
-  ProfileIcon,
-  PadlockIcon,
-  CodeIcon,
-  UserIcon,
-  GroupIcon,
-  GlobeIcon,
-  ShieldIcon,
-  TeamIcon,
-  SparklesIcon,
-  SettingsIcon,
-  ExportIcon,
-  ImportIcon,
-  ShapesIcon,
-  PlusIcon,
-  InternetIcon,
-  SmileyIcon,
-  BrowserIcon,
-} from "outline-icons";
-import { useEffect } from "react";
+import { TeamIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
-import { Hook, PluginManager } from "~/utils/PluginManager";
 import { settingsPath } from "~/utils/routeHelpers";
+import { hasRequiredRole } from "~/utils/shopAccess";
+import { currentRole } from "~/utils/shopScope";
 import { useComputed } from "./useComputed";
-import useCurrentTeam from "./useCurrentTeam";
-import useCurrentUser from "./useCurrentUser";
-import usePolicy from "./usePolicy";
-import useStores from "./useStores";
-const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
-const Applications = lazy(() => import("~/scenes/Settings/Applications"));
-const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
-const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
+
 const Billing = lazy(() => import("~/scenes/Settings/Billing"));
 const Receipts = lazy(() => import("~/scenes/Settings/Receipts"));
 const Notes = lazy(() => import("~/scenes/Settings/Notes"));
 const Audit = lazy(() => import("~/scenes/Settings/Audit"));
-import { hasRequiredRole } from "~/utils/shopAccess";
-import { currentRole } from "~/utils/shopScope";
-const Details = lazy(() => import("~/scenes/Settings/Details"));
-const Export = lazy(() => import("~/scenes/Settings/Export"));
-const Features = lazy(() => import("~/scenes/Settings/Features"));
-const Groups = lazy(() => import("~/scenes/Settings/Groups"));
-const Import = lazy(() => import("~/scenes/Settings/Import"));
-const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
-const Users = lazy(() => import("~/scenes/Settings/Users"));
-const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
-const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
-const Profile = lazy(() => import("~/scenes/Settings/Profile"));
-const Security = lazy(() => import("~/scenes/Settings/Security"));
-const Shares = lazy(() => import("~/scenes/Settings/Shares"));
-const Templates = lazy(() => import("~/scenes/Settings/Templates"));
-const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
-const Embeds = lazy(() => import("~/scenes/Settings/Embeds"));
-export type ConfigItem = {
+
+/** Describes an entry rendered in the settings navigation. */
+export interface ConfigItem {
   name: string;
   path: string;
   icon: React.FC<{
@@ -68,66 +26,20 @@ export type ConfigItem = {
   enabled: boolean;
   group: string;
   pluginId?: string;
-};
+}
+
 const useSettingsConfig = () => {
-  const { integrations } = useStores();
-  const user = useCurrentUser();
-  const team = useCurrentTeam();
-  const can = usePolicy(team);
-  // The shop's own settings pages are a manager's business; the rest of this
-  // list is Outline's and keeps its own rules.
   const role = currentRole();
   const isManager = Boolean(role && hasRequiredRole(role, "manager"));
   const { t } = useTranslation();
-  useEffect(() => {
-    void integrations.fetchAll();
-  }, [integrations]);
   const config = useComputed(() => {
     const items: ConfigItem[] = [
-      // Account
-      {
-        name: t("Profile"),
-        path: settingsPath(),
-        component: Profile.Component,
-        preload: Profile.preload,
-        enabled: true,
-        group: t("Account"),
-        icon: ProfileIcon,
-      },
-      {
-        name: t("Preferences"),
-        path: settingsPath("preferences"),
-        component: Preferences.Component,
-        preload: Preferences.preload,
-        enabled: true,
-        group: t("Account"),
-        icon: SettingsIcon,
-      },
-      {
-        name: t("Notifications"),
-        path: settingsPath("notifications"),
-        component: Notifications.Component,
-        preload: Notifications.preload,
-        enabled: true,
-        group: t("Account"),
-        icon: EmailIcon,
-      },
-      {
-        name: t("API & Access"),
-        path: settingsPath("api-and-access"),
-        component: APIAndAccess.Component,
-        preload: APIAndAccess.preload,
-        enabled: true,
-        group: t("Account"),
-        icon: PadlockIcon,
-      },
-      // Workspace
       {
         name: t("Billing"),
         path: settingsPath("billing"),
         component: Billing.Component,
         preload: Billing.preload,
-        enabled: can.update && isManager,
+        enabled: isManager,
         group: t("Workspace"),
         icon: TeamIcon,
       },
@@ -136,7 +48,7 @@ const useSettingsConfig = () => {
         path: settingsPath("receipts"),
         component: Receipts.Component,
         preload: Receipts.preload,
-        enabled: can.update && isManager,
+        enabled: isManager,
         group: t("Workspace"),
         icon: TeamIcon,
       },
@@ -145,7 +57,7 @@ const useSettingsConfig = () => {
         path: settingsPath("documents"),
         component: Notes.Component,
         preload: Notes.preload,
-        enabled: can.update && isManager,
+        enabled: isManager,
         group: t("Workspace"),
         icon: TeamIcon,
       },
@@ -154,175 +66,16 @@ const useSettingsConfig = () => {
         path: settingsPath("activity"),
         component: Audit.Component,
         preload: Audit.preload,
-        enabled: can.update && isManager,
+        enabled: isManager,
         group: t("Workspace"),
         icon: TeamIcon,
-      },
-      {
-        name: t("Details"),
-        path: settingsPath("details"),
-        component: Details.Component,
-        preload: Details.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: TeamIcon,
-      },
-      {
-        name: t("Authentication"),
-        path: settingsPath("authentication"),
-        component: Authentication.Component,
-        preload: Authentication.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: PadlockIcon,
-      },
-      {
-        name: t("Security"),
-        path: settingsPath("security"),
-        component: Security.Component,
-        preload: Security.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: ShieldIcon,
-      },
-      {
-        name: t("AI"),
-        path: settingsPath("features"),
-        component: Features.Component,
-        preload: Features.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: SparklesIcon,
-      },
-      {
-        name: t("Users"),
-        path: settingsPath("users"),
-        component: Users.Component,
-        preload: Users.preload,
-        enabled: can.listUsers,
-        group: t("Workspace"),
-        icon: UserIcon,
-      },
-      {
-        name: t("Groups"),
-        path: settingsPath("groups"),
-        component: Groups.Component,
-        preload: Groups.preload,
-        enabled: can.listGroups,
-        group: t("Workspace"),
-        icon: GroupIcon,
-      },
-      {
-        name: t("Templates"),
-        path: settingsPath("templates"),
-        component: Templates.Component,
-        preload: Templates.preload,
-        enabled: can.readTemplate,
-        group: t("Workspace"),
-        icon: ShapesIcon,
-      },
-      {
-        name: t("Emojis"),
-        path: settingsPath("emojis"),
-        component: CustomEmojis.Component,
-        preload: CustomEmojis.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: SmileyIcon,
-      },
-      {
-        name: t("API Keys"),
-        path: settingsPath("api-keys"),
-        component: ApiKeys.Component,
-        preload: ApiKeys.preload,
-        enabled: can.listApiKeys,
-        group: t("Workspace"),
-        icon: CodeIcon,
-      },
-      {
-        name: t("Applications"),
-        path: settingsPath("applications"),
-        component: Applications.Component,
-        preload: Applications.preload,
-        enabled: can.listOAuthClients,
-        group: t("Workspace"),
-        icon: InternetIcon,
-      },
-      {
-        name: t("Shared Links"),
-        path: settingsPath("shares"),
-        component: Shares.Component,
-        preload: Shares.preload,
-        enabled: can.listShares,
-        group: t("Workspace"),
-        icon: GlobeIcon,
-      },
-      {
-        name: t("Import"),
-        path: settingsPath("import"),
-        component: Import.Component,
-        preload: Import.preload,
-        enabled: can.createImport,
-        group: t("Workspace"),
-        icon: ImportIcon,
-      },
-      {
-        name: t("Export"),
-        path: settingsPath("export"),
-        component: Export.Component,
-        preload: Export.preload,
-        enabled: can.createExport,
-        group: t("Workspace"),
-        icon: ExportIcon,
-      },
-      // Integrations
-      {
-        name: t("Embeds"),
-        path: integrationSettingsPath("embeds"),
-        component: Embeds.Component,
-        preload: Embeds.preload,
-        description: t(
-          "Configure which embed providers are available in the editor."
-        ),
-        enabled: can.update,
-        group: t("Integrations"),
-        icon: BrowserIcon,
-      },
-      {
-        name: `${t("Install")}…`,
-        path: settingsPath("integrations"),
-        component: Integrations.Component,
-        preload: Integrations.preload,
-        enabled: can.update,
-        group: t("Integrations"),
-        icon: PlusIcon,
       },
     ];
-    // Plugins
-    PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
-      const group = plugin.value.group ?? "Integrations";
-      const insertIndex = plugin.value.after
-        ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
-        : items.findIndex((i) => i.group === t(group));
-      items.splice(insertIndex, 0, {
-        name: t(plugin.name),
-        path:
-          group === "Integrations"
-            ? integrationSettingsPath(plugin.id)
-            : settingsPath(plugin.id),
-        group: t(group),
-        pluginId: plugin.id,
-        description: plugin.value.description,
-        component: plugin.value.component.Component,
-        preload: plugin.value.component.preload,
-        enabled: plugin.value.enabled
-          ? plugin.value.enabled(team, user)
-          : can.update,
-        icon: plugin.value.icon,
-      } as ConfigItem);
-    });
+
     return items;
-  }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
+  }, [isManager, t]);
+
   return config.filter((item) => item.enabled);
 };
+
 export default useSettingsConfig;
