@@ -50,17 +50,17 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
     const newDomains = allowedDomains.filter(
       (newDomain) => newDomain !== "" && !existingDomains.includes(newDomain)
     );
-    await Promise.all(
-      newDomains.map(async (newDomain) => {
-        newAllowedDomains.push(
-          await TeamDomain.createWithCtx(ctx, {
-            name: newDomain,
-            teamId: team.id,
-            createdById: user.id,
-          })
-        );
-      })
-    );
+    // Created one at a time so that the limit check on each create counts the
+    // domains added earlier in the same request.
+    for (const newDomain of newDomains) {
+      newAllowedDomains.push(
+        await TeamDomain.createWithCtx(ctx, {
+          name: newDomain,
+          teamId: team.id,
+          createdById: user.id,
+        })
+      );
+    }
 
     // Destroy the existing TeamDomains that were removed
     const deletedDomains = existingAllowedDomains.filter(
