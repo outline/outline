@@ -8,7 +8,13 @@ import {
   lowerFirst,
   orderBy,
 } from "es-toolkit/compat";
-import { observable, action, computed, runInAction } from "mobx";
+import {
+  action,
+  computed,
+  makeObservable,
+  observable,
+  runInAction,
+} from "mobx";
 import pluralize from "pluralize";
 import { Pagination } from "@shared/constants";
 import { type JSONObject } from "@shared/types";
@@ -102,6 +108,8 @@ export default abstract class Store<T extends Model> {
     if (!this.apiEndpoint) {
       this.apiEndpoint = pluralize(lowerFirst(model.modelName));
     }
+
+    makeObservable(this);
   }
 
   @action
@@ -372,7 +380,7 @@ export default abstract class Store<T extends Model> {
         ...options,
       });
 
-      return runInAction(`create#${this.modelName}`, () => {
+      return runInAction(() => {
         invariant(res?.data, "Data should be available");
         this.addPolicies(res.policies);
         return this.add(res.data);
@@ -396,7 +404,7 @@ export default abstract class Store<T extends Model> {
         ...options,
       });
 
-      return runInAction(`update#${this.modelName}`, () => {
+      return runInAction(() => {
         invariant(res?.data, "Data should be available");
         this.addPolicies(res.policies);
         return this.add(res.data);
@@ -463,7 +471,7 @@ export default abstract class Store<T extends Model> {
           id,
         })
         .then((res) =>
-          runInAction(`info#${this.modelName}`, () => {
+          runInAction(() => {
             invariant(res?.data, "Data should be available");
             this.addPolicies(res.policies);
             resolve(this.add(accessor(res)));
@@ -489,7 +497,8 @@ export default abstract class Store<T extends Model> {
     return promise;
   }
 
-  @action
+  // Not annotated: subclasses replace this field, and MobX makes an annotated
+  // field non-writable. The state changes below run in runInAction already.
   fetchPage = async (
     params?: FetchPageParams
   ): Promise<PaginatedResponse<T>> => {
@@ -505,7 +514,7 @@ export default abstract class Store<T extends Model> {
 
       let response: PaginatedResponse<T> = [];
 
-      runInAction(`list#${this.modelName}`, () => {
+      runInAction(() => {
         this.addPolicies(res.policies);
         response = res.data.map(this.add);
         this.isLoaded = true;

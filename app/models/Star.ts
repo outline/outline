@@ -9,6 +9,11 @@ import Relation from "./decorators/Relation";
 class Star extends Model {
   static modelName = "Star";
 
+  constructor(fields: Record<string, unknown>, store: StarsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The sort order of the star */
   @Field
   @observable

@@ -8,6 +8,11 @@ import User from "./User";
 class WebhookSubscription extends Model implements Searchable {
   static modelName = "WebhookSubscription";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   @Field
   @observable
   name: string;

@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, runInAction, computed } from "mobx";
+import { action, makeObservable, override, runInAction } from "mobx";
 import UserMembership from "~/models/UserMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -16,6 +16,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, UserMembership);
+    makeObservable(this);
   }
 
   /**
@@ -23,13 +24,12 @@ export default class UserMembershipsStore extends Store<UserMembership> {
    *
    * @param id the ID of the membership to remove.
    */
-  @action
+  @override
   remove(id: string, options?: { permanent?: boolean }): void {
     super.remove(id, options);
     this.rootStore.policies.removeForMembership(id);
   }
 
-  @action
   fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
     this.isFetching = true;
 
@@ -37,7 +37,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       const res = await client.post(`/userMemberships.list`, params);
       invariant(res?.data, "Data not available");
 
-      return runInAction(`UserMembershipsStore#fetchPage`, () => {
+      return runInAction(() => {
         res.data.documents.forEach(this.rootStore.documents.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
@@ -58,7 +58,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       const res = await client.post(`/documents.memberships`, params);
       invariant(res?.data, "Data not available");
 
-      return runInAction(`MembershipsStore#fetchDocmentMemberships`, () => {
+      return runInAction(() => {
         res.data.users.forEach(this.rootStore.users.add);
 
         const response = res.data.memberships.map(this.add);
@@ -72,7 +72,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     }
   };
 
-  @action
+  @override
   async create({ documentId, userId, permission }: Partial<UserMembership>) {
     const res = await client.post("/documents.add_user", {
       id: documentId,
@@ -80,7 +80,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       permission,
     });
 
-    return runInAction(`UserMembershipsStore#create`, () => {
+    return runInAction(() => {
       invariant(res?.data, "Membership data should be available");
       res.data.users.forEach(this.rootStore.users.add);
 
@@ -89,7 +89,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     });
   }
 
-  @action
+  @override
   async delete({ documentId, userId }: UserMembership) {
     await client.post("/documents.remove_user", {
       id: documentId,
@@ -98,7 +98,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     this.removeAll({ userId, documentId });
   }
 
-  @computed
+  @override
   get orderedData(): UserMembership[] {
     const memberships = Array.from(this.data.values());
 

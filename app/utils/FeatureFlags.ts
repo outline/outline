@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import Storage from "@shared/utils/Storage";
 
 /**
@@ -65,3 +65,5 @@ export class FeatureFlags {
 
   private static initalized = false;
 }
+
+makeObservable(FeatureFlags);

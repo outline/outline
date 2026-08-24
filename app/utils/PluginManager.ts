@@ -1,5 +1,5 @@
 import { isArray, sortBy } from "es-toolkit/compat";
-import { action, observable } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import type { IObservableArray } from "mobx";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
@@ -162,6 +162,8 @@ export class PluginManager {
   @observable
   private static loaded = false;
 }
+
+makeObservable(PluginManager);
 
 /**
  * Convenience hook to get the value for a specific plugin and type.

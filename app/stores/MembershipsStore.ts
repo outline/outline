@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, runInAction } from "mobx";
+import { action, makeObservable, override, runInAction } from "mobx";
 import type { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import type { PaginationParams } from "~/types";
@@ -16,6 +16,7 @@ export default class MembershipsStore extends Store<Membership> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Membership);
+    makeObservable(this);
   }
 
   /**
@@ -23,13 +24,12 @@ export default class MembershipsStore extends Store<Membership> {
    *
    * @param id the ID of the membership to remove.
    */
-  @action
+  @override
   remove(id: string, options?: { permanent?: boolean }): void {
     super.remove(id, options);
     this.rootStore.policies.removeForMembership(id);
   }
 
-  @action
   fetchPage = async (
     params: (PaginationParams & { id?: string }) | undefined
   ): Promise<PaginatedResponse<Membership>> => {
@@ -40,7 +40,7 @@ export default class MembershipsStore extends Store<Membership> {
       invariant(res?.data, "Data not available");
 
       let response: PaginatedResponse<Membership> = [];
-      runInAction(`MembershipsStore#fetchPage`, () => {
+      runInAction(() => {
         res.data.users.forEach(this.rootStore.users.add);
         response = res.data.memberships.map(this.add);
         this.isLoaded = true;
@@ -52,7 +52,7 @@ export default class MembershipsStore extends Store<Membership> {
     }
   };
 
-  @action
+  @override
   async create({
     collectionId,
     userId,
@@ -74,7 +74,7 @@ export default class MembershipsStore extends Store<Membership> {
     return memberships[0];
   }
 
-  @action
+  @override
   async delete({
     collectionId,
     userId,

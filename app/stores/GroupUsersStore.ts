@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { filter } from "es-toolkit/compat";
-import { action, runInAction } from "mobx";
+import { action, makeObservable, override, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
 import type { PaginationParams } from "~/types";
 import { GroupPermission } from "@shared/types";
@@ -17,9 +17,9 @@ export default class GroupUsersStore extends Store<GroupUser> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, GroupUser);
+    makeObservable(this);
   }
 
-  @action
   fetchPage = async (
     params: PaginationParams | undefined
   ): Promise<PaginatedResponse<GroupUser>> => {
@@ -30,7 +30,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
       invariant(res?.data, "Data not available");
 
       let response: PaginatedResponse<GroupUser> = [];
-      runInAction(`GroupUsersStore#fetchPage`, () => {
+      runInAction(() => {
         res.data.users.forEach(this.rootStore.users.add);
         response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
@@ -43,7 +43,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
     }
   };
 
-  @action
+  @override
   async create({
     groupId,
     userId,
@@ -60,7 +60,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
     });
     invariant(res?.data, "Group Membership data should be available");
 
-    return runInAction(`GroupUsersStore#create`, () => {
+    return runInAction(() => {
       res.data.users.forEach(this.rootStore.users.add);
       res.data.groups.forEach(this.rootStore.groups.add);
 
@@ -69,7 +69,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
     });
   }
 
-  @action
+  @override
   async delete({ groupId, userId }: { groupId: string; userId: string }) {
     const res = await client.post("/groups.remove_user", {
       id: groupId,
@@ -77,13 +77,13 @@ export default class GroupUsersStore extends Store<GroupUser> {
     });
     invariant(res?.data, "Group Membership data should be available");
     this.remove(`${userId}-${groupId}`);
-    runInAction(`GroupUsersStore#delete`, () => {
+    runInAction(() => {
       res.data.groups.forEach(this.rootStore.groups.add);
       this.isLoaded = true;
     });
   }
 
-  @action
+  @override
   async update({
     groupId,
     userId,
@@ -100,7 +100,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
     });
     invariant(res?.data, "Group Membership data should be available");
 
-    return runInAction(`GroupUsersStore#update`, () => {
+    return runInAction(() => {
       res.data.users.forEach(this.rootStore.users.add);
       res.data.groups.forEach(this.rootStore.groups.add);
 

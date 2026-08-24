@@ -14,6 +14,11 @@ import Relation from "./decorators/Relation";
 class Comment extends Model {
   static modelName = "Comment";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /**
    * The Prosemirror data representing the comment content
    */
@@ -65,8 +70,7 @@ class Comment extends Model {
    * comment mark to the document, and not otherwise persisted.
    */
   @observable
-  pendingAnchor?: CommentAnchor;
-
+  pendingAnchor?: CommentAnchor = undefined;
   /**
    * The date and time that this comment was resolved, if it has been resolved.
    */

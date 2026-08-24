@@ -11,6 +11,11 @@ import Relation from "../decorators/Relation";
 class OAuthClient extends ParanoidModel {
   static modelName = "OAuthClient";
 
+  constructor(fields: Record<string, unknown>, store: ParanoidModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The human-readable name of this app */
   @Field
   @observable
@@ -73,7 +78,7 @@ class OAuthClient extends ParanoidModel {
     });
     invariant(res.data, "Failed to rotate client secret");
 
-    runInAction("OAuthClient#rotateSecret", () => {
+    runInAction(() => {
       this.clientSecret = res.data.clientSecret;
     });
   }

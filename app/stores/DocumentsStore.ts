@@ -1,6 +1,13 @@
 import invariant from "invariant";
 import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
-import { observable, action, computed, runInAction } from "mobx";
+import {
+  action,
+  computed,
+  makeObservable,
+  observable,
+  override,
+  runInAction,
+} from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   AttachmentPreset,
@@ -51,7 +58,7 @@ export default class DocumentsStore extends Store<Document> {
   similar: Map<string, string[]> = new Map();
 
   @observable
-  movingDocumentId: string | null | undefined;
+  movingDocumentId: string | null | undefined = undefined;
 
   importFileTypes: string[] = [
     ".md",
@@ -83,6 +90,7 @@ export default class DocumentsStore extends Store<Document> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
+    makeObservable(this);
   }
 
   @computed
@@ -312,7 +320,7 @@ export default class DocumentsStore extends Store<Document> {
     const res = await client.post("/relationships.list", { documentId });
     invariant(res?.data, "Relationships not available");
 
-    runInAction("DocumentsStore#fetchRelationships", () => {
+    runInAction(() => {
       res.data.documents.forEach(this.add);
       this.addPolicies(res.policies);
 
@@ -357,7 +365,7 @@ export default class DocumentsStore extends Store<Document> {
     });
     invariant(res?.data, "Document list not available");
 
-    runInAction("DocumentsStore#fetchChildDocuments", () => {
+    runInAction(() => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
@@ -373,7 +381,7 @@ export default class DocumentsStore extends Store<Document> {
     try {
       const res = await client.post(`/documents.${request}`, options);
       invariant(res?.data, "Document list not available");
-      return runInAction("DocumentsStore#fetchNamedPage", () => {
+      return runInAction(() => {
         const documents = res.data.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
@@ -460,7 +468,7 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    runInAction("DocumentsStore#searchTitles", () => {
+    runInAction(() => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
@@ -491,7 +499,7 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    runInAction("DocumentsStore#search", () => {
+    runInAction(() => {
       res.data.forEach((result: SearchResult) => this.add(result.document));
       this.addPolicies(res.policies);
     });
@@ -638,7 +646,7 @@ export default class DocumentsStore extends Store<Document> {
     return this.add(res.data);
   };
 
-  @action
+  @override
   async delete(
     document: Document,
     options?: {
@@ -683,7 +691,7 @@ export default class DocumentsStore extends Store<Document> {
     const res = await client.post("/documents.archive", {
       id: document.id,
     });
-    runInAction("Document#archive", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       document.updateData(res.data);
       this.addPolicies(res.policies);
@@ -707,7 +715,7 @@ export default class DocumentsStore extends Store<Document> {
       revisionId: options.revisionId,
       collectionId: options.collectionId,
     });
-    runInAction("Document#restore", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       document.updateData(res.data);
       this.addPolicies(res.policies);
@@ -730,7 +738,7 @@ export default class DocumentsStore extends Store<Document> {
       ...options,
     });
 
-    runInAction("Document#unpublish", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       // unpublishing could sometimes detach the document from the collection.
       // so, get the collection id before data is updated.

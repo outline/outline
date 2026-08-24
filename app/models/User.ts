@@ -25,6 +25,11 @@ import type { Searchable } from "./interfaces/Searchable";
 class User extends ParanoidModel implements Searchable {
   static modelName = "User";
 
+  constructor(fields: Record<string, unknown>, store: ParanoidModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   @Field
   @observable
   avatarUrl: string;
@@ -51,8 +56,7 @@ class User extends ParanoidModel implements Searchable {
 
   @Field
   @observable
-  timezone?: string;
-
+  timezone?: string = undefined;
   @observable
   email: string;
 
@@ -82,7 +86,7 @@ class User extends ParanoidModel implements Searchable {
   isSuspended: boolean;
 
   @observable
-  invitedById: string | undefined;
+  invitedById: string | undefined = undefined;
 
   /** The user that invited this user, if they were invited. */
   @Relation(() => User)

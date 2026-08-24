@@ -1,5 +1,5 @@
 import { escapeRegExp } from "es-toolkit/compat";
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import type { Node } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -739,6 +739,11 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }}
     />
   );
+
+  constructor(options: Partial<FindAndReplaceOptions> = {}) {
+    super(options);
+    makeObservable(this);
+  }
 
   @observable
   private open = false;

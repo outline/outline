@@ -16,6 +16,11 @@ import { client } from "~/utils/ApiClient";
 class Revision extends ParanoidModel {
   static modelName = "Revision";
 
+  constructor(fields: Record<string, unknown>, store: ParanoidModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The document ID that the revision is related to */
   documentId: string;
 

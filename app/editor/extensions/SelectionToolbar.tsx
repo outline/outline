@@ -1,4 +1,4 @@
-import { action, observable } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import type { EditorState, Selection } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
@@ -40,6 +40,11 @@ export default class SelectionToolbarExtension extends Extension {
         }),
       }),
     ];
+  }
+
+  constructor(options: Partial<object> = {}) {
+    super(options);
+    makeObservable(this);
   }
 
   @observable
