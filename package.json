@@ -226,7 +226,7 @@
     "react-dom": "^17.0.2",
     "react-dropzone": "^11.7.1",
     "react-helmet-async": "^2.0.5",
-    "react-hook-form": "^7.76.0",
+    "react-hook-form": "^7.85.0",
     "react-i18next": "^12.3.1",
     "react-is": "^17.0.2",
     "react-merge-refs": "^2.1.1",
