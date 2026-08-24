@@ -62,6 +62,10 @@ function annotateNodes(
   sort: CollectionSort,
   parent: NavigationNode
 ): NavigationNode[] {
+  if (!nodes.length) {
+    return [];
+  }
+
   return sortNavigationNodes(nodes, sort, false).map((node) => {
     const annotated: NavigationNode = {
       ...node,
