@@ -53,6 +53,8 @@ export function populateEmojiData(data: EmojiMartData): void {
  * @returns the raw emoji dataset.
  */
 export function loadEmojiData(): Promise<EmojiMartData> {
+  // This is the one sanctioned place the dataset is pulled in on the client.
+  // oxlint-disable-next-line no-restricted-imports
   dataPromise ??= import("@emoji-mart/data").then(({ default: data }) => {
     populateEmojiData(data as EmojiMartData);
     return data as EmojiMartData;

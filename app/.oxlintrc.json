@@ -16,6 +16,18 @@
         "no-restricted-imports": [
           "error",
           {
+            "paths": [
+              {
+                "name": "@emoji-mart/data",
+                "message": "The emoji dataset is ~500KB; a static import pulls it into the initial bundle. Import the types only and load the data with loadEmojiIndex() from shared/utils/emoji, or loadEmojiData() from shared/editor/lib/emoji.",
+                "allowTypeImports": true
+              },
+              {
+                "name": "emoji-mart",
+                "message": "emoji-mart shares a chunk with the ~500KB emoji dataset. Load it with loadEmojiIndex() from shared/utils/emoji instead of importing it statically.",
+                "allowTypeImports": true
+              }
+            ],
             "patterns": [
               {
                 "group": ["mime-types"],

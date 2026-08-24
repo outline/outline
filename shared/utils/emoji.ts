@@ -190,6 +190,7 @@ export function loadEmojiIndex(): Promise<void> {
   loading ??= (async () => {
     const [data, emojiMart] = await Promise.all([
       loadEmojiData(),
+      // oxlint-disable-next-line no-restricted-imports
       import("emoji-mart"),
     ]);
     await emojiMart.init({ data });
