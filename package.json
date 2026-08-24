@@ -202,7 +202,7 @@
     "prosemirror-changeset": "2.4.1",
     "prosemirror-codemark": "^0.4.2",
     "prosemirror-commands": "^1.7.1",
-    "prosemirror-dropcursor": "^1.8.2",
+    "prosemirror-dropcursor": "^1.8.3",
     "prosemirror-gapcursor": "^1.4.1",
     "prosemirror-history": "^1.5.0",
     "prosemirror-inputrules": "^1.5.1",
