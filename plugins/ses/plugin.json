@@ -1,0 +1,5 @@
+{
+  "id": "ses",
+  "name": "Amazon SES",
+  "description": "Adds Amazon SES as an email provider."
+}

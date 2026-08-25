@@ -8,9 +8,21 @@ import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
+import {
+  type BaseEmailProvider,
+  type EmailTags,
+  sesTagHeaders,
+} from "./providers/BaseEmailProvider";
+import {
+  DefaultEmailProvider,
+  EmailProviderManager,
+} from "./providers/EmailProviderManager";
 import { baseStyles } from "./templates/components/EmailLayout";
 
-const useTestEmailService = env.isDevelopment && !env.SMTP_USERNAME;
+const useTestEmailService =
+  env.isDevelopment &&
+  !env.SMTP_USERNAME &&
+  env.EMAIL_PROVIDER === DefaultEmailProvider;
 
 type SendMailOptions = {
   /** The email address being sent to. */
@@ -39,13 +51,6 @@ type SendMailOptions = {
   tags?: EmailTags;
 };
 
-type EmailTags = {
-  /** The broad category of the email, e.g. "notification". */
-  category: string;
-  /** The specific template name, e.g. "InviteEmail". */
-  template: string;
-};
-
 /**
  * Mailer class to send emails.
  */
@@ -53,32 +58,6 @@ type EmailTags = {
   serviceName: "mailer",
 })
 export class Mailer {
-  transporter: Transporter | undefined;
-
-  constructor() {
-    if (env.SMTP_HOST || env.SMTP_SERVICE) {
-      this.transporter = nodemailer.createTransport(this.getOptions());
-    }
-    if (useTestEmailService) {
-      Logger.info(
-        "email",
-        "SMTP_USERNAME not provided, generating test account…"
-      );
-
-      void this.getTestTransportOptions().then((options) => {
-        if (!options) {
-          Logger.info(
-            "email",
-            "Couldn't generate a test account with ethereal.email at this time – emails will not be sent."
-          );
-          return;
-        }
-
-        this.transporter = nodemailer.createTransport(options);
-      });
-    }
-  }
-
   template = ({
     title,
     bodyContent,
@@ -144,7 +123,13 @@ export class Mailer {
    * @returns Message ID header from SMTP server
    */
   sendMail = async (data: SendMailOptions): Promise<void> => {
-    const transporter = this.transporter;
+    let transporter: Transporter | undefined;
+    try {
+      transporter = await this.getTransporter();
+    } catch (err) {
+      Logger.error("Error creating email transport", toError(err));
+      throw err; // Re-throw for queue to re-try
+    }
 
     if (env.isDevelopment) {
       Logger.debug(
@@ -210,7 +195,7 @@ export class Mailer {
             ],
       });
 
-      if (useTestEmailService) {
+      if (this.usingTestTransport) {
         Logger.info(
           "email",
           `Preview Url: ${nodemailer.getTestMessageUrl(info)}`
@@ -238,6 +223,11 @@ export class Mailer {
       return undefined;
     }
 
+    // Providers know which headers, if any, their service understands.
+    if (this.provider) {
+      return this.provider.tagHeaders(tags);
+    }
+
     // Mailgun: up to three tags via repeated X-Mailgun-Tag headers.
     // https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#tagging
     if (this.isMailgun) {
@@ -245,13 +235,8 @@ export class Mailer {
     }
 
     // SES: comma-separated name=value pairs via X-SES-MESSAGE-TAGS.
-    // https://docs.aws.amazon.com/ses/latest/dg/event-publishing-send-email.html
     if (this.isSES) {
-      return {
-        "X-SES-MESSAGE-TAGS": Object.entries(tags)
-          .map(([name, value]) => `${name}=${value}`)
-          .join(", "),
-      };
+      return sesTagHeaders(tags);
     }
 
     // Postmark: a single tag per message via X-PM-Tag.
@@ -264,25 +249,84 @@ export class Mailer {
   }
 
   /** The configured SMTP host and service name, for provider detection. */
-  private get provider(): string {
+  private get smtpProvider(): string {
     return `${env.SMTP_HOST ?? ""} ${env.SMTP_SERVICE ?? ""}`;
   }
 
   /** Whether the configured SMTP provider is Mailgun. */
   private get isMailgun(): boolean {
-    return /mailgun/i.test(this.provider);
+    return /mailgun/i.test(this.smtpProvider);
   }
 
   /** Whether the configured SMTP provider is Amazon SES. */
   private get isSES(): boolean {
     // Detected by the SES SMTP host (email-smtp.<region>.amazonaws.com) or a
     // well-known Nodemailer service key (SES, SES-US-EAST-1, etc.).
-    return /amazonaws|(?:^|\s)ses\b/i.test(this.provider);
+    return /amazonaws|(?:^|\s)ses\b/i.test(this.smtpProvider);
   }
 
   /** Whether the configured SMTP provider is Postmark. */
   private get isPostmark(): boolean {
-    return /postmark/i.test(this.provider);
+    return /postmark/i.test(this.smtpProvider);
+  }
+
+  private provider: BaseEmailProvider | undefined;
+
+  private transporterPromise: Promise<Transporter | undefined> | undefined;
+
+  private usingTestTransport = false;
+
+  /**
+   * Resolves the transporter, creating it on first use. Construction is
+   * deferred because resolving a provider loads plugins, and plugins that
+   * register email templates import this module.
+   *
+   * @returns the transporter, or undefined if email is not configured.
+   */
+  private getTransporter(): Promise<Transporter | undefined> {
+    this.transporterPromise ??= this.createTransporter().catch((err) => {
+      // A failed attempt must not be cached, or a single failure here would
+      // disable email for the lifetime of the process.
+      this.transporterPromise = undefined;
+      throw err;
+    });
+    return this.transporterPromise;
+  }
+
+  private async createTransporter(): Promise<Transporter | undefined> {
+    const provider = EmailProviderManager.getProvider();
+
+    if (provider) {
+      Logger.debug("email", `Using email provider: ${provider.name}`);
+      this.provider = provider;
+      return nodemailer.createTransport(provider);
+    }
+
+    // In development the test account takes precedence over any configured
+    // SMTP server, so that emails are captured rather than delivered.
+    if (useTestEmailService) {
+      Logger.info(
+        "email",
+        "SMTP_USERNAME not provided, generating test account…"
+      );
+
+      const options = await this.getTestTransportOptions();
+      if (options) {
+        this.usingTestTransport = true;
+        return nodemailer.createTransport(options);
+      }
+
+      Logger.info(
+        "email",
+        "Couldn't generate a test account with ethereal.email at this time."
+      );
+    }
+
+    if (env.SMTP_HOST || env.SMTP_SERVICE) {
+      return nodemailer.createTransport(this.getOptions());
+    }
+
+    return undefined;
   }
 
   private getOptions(): SMTPTransport.Options {

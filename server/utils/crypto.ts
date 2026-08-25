@@ -19,6 +19,23 @@ export function safeEqual(a?: string, b?: string) {
 }
 
 /**
+ * Normalize a PEM-encoded key read from an environment variable, accepting
+ * either the PEM itself – optionally with escaped newlines, as commonly
+ * happens when a key is copied into an env var – or a base64-encoded PEM on
+ * a single line.
+ *
+ * @param value The environment variable value
+ * @returns The PEM-encoded key
+ */
+export function decodePem(value: string): string {
+  if (value.includes("BEGIN")) {
+    return value.replace(/\\n/g, "\n");
+  }
+
+  return Buffer.from(value, "base64").toString("utf-8");
+}
+
+/**
  * Hash a string using SHA-256.
  *
  * @param input The input string to hash

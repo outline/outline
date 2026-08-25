@@ -10,6 +10,7 @@ import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import env from "@server/env";
+import { decodePem } from "@server/utils/crypto";
 import Logger from "@server/logging/Logger";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import BaseStorage from "./BaseStorage";
@@ -394,15 +395,7 @@ export default class S3Storage extends BaseStorage {
 
   private getCloudFrontPrivateKey(): string | undefined {
     const key = env.AWS_CLOUDFRONT_PRIVATE_KEY;
-    if (!key) {
-      return undefined;
-    }
-
-    if (key.includes("BEGIN")) {
-      return key;
-    }
-
-    return Buffer.from(key, "base64").toString("utf-8");
+    return key ? decodePem(key) : undefined;
   }
 
   private getS3PresignedUrl = async (
