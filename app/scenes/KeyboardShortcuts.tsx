@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useMemo, useState, useCallback, memo, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -391,17 +392,23 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
   );
   const [searchTerm, setSearchTerm] = useState(defaultQuery);
   const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
-  const handleChange = useCallback((event) => {
-    setSearchTerm(event.target.value);
-  }, []);
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(event.target.value);
+    },
+    []
+  );
 
-  const handleKeyDown = useCallback((event) => {
-    if (event.currentTarget.value && event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      setSearchTerm("");
-    }
-  }, []);
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.currentTarget.value && event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setSearchTerm("");
+      }
+    },
+    []
+  );
 
   return (
     <Flex column>

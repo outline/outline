@@ -15,6 +15,7 @@ import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import { toastNotice } from "~/editor/toastNotice";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -287,21 +288,27 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             </div>
           </EditorContainer>
         ) : (
-          <LazyLoadedEditor
-            key={props.extensions?.length || 0}
-            ref={mergeRefs([ref, localRef, handleRefChanged])}
-            uploadFile={handleUploadFile}
-            embeds={embeds}
-            userPreferences={preferences}
-            {...props}
-            onClickLink={handleClickLink}
-            onChange={handleChange}
-            onFileUploadStart={handleFileUploadStart}
-            onFileUploadStop={handleFileUploadStop}
-            onFileUploadProgress={handleFileUploadProgress}
-            placeholder={props.placeholder || ""}
-            defaultValue={props.defaultValue || ""}
-          />
+          // The boundary must live between the lazy editor and any ancestor
+          // with effects or refs. If the suspension reached an outer boundary
+          // React 18 would hide mounted ancestors and destroy their effects,
+          // re-running provider setup and ref callbacks in a loop.
+          <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
+            <LazyLoadedEditor
+              key={props.extensions?.length || 0}
+              ref={mergeRefs([ref, localRef, handleRefChanged])}
+              uploadFile={handleUploadFile}
+              embeds={embeds}
+              userPreferences={preferences}
+              {...props}
+              onClickLink={handleClickLink}
+              onChange={handleChange}
+              onFileUploadStart={handleFileUploadStart}
+              onFileUploadStop={handleFileUploadStop}
+              onFileUploadProgress={handleFileUploadProgress}
+              placeholder={props.placeholder || ""}
+              defaultValue={props.defaultValue || ""}
+            />
+          </React.Suspense>
         )}
         {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding

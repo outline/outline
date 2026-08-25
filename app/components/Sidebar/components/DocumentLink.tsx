@@ -2,6 +2,7 @@ import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import type { match } from "react-router";
 import { useHistory } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Icon from "@shared/components/Icon";
@@ -275,7 +276,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
 
   const isActiveCheck = React.useCallback(
     (
-      match,
+      match: match | null,
       location: Location<{
         sidebarContext?: SidebarContextType;
       }>

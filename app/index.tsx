@@ -7,7 +7,8 @@ import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import { configure as configureMobx } from "mobx";
 import { StrictMode } from "react";
-import { render } from "react-dom";
+import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
 import stores from "~/stores";
@@ -41,7 +42,14 @@ initI18n(env.DEFAULT_LANGUAGE);
 // React-mounted listener, such as kbar's Enter handler.
 initSplitViewNavigation(history);
 
-const element = window.document.getElementById("root");
+// The dev server can evaluate this module twice (plain and HMR-timestamped
+// URL). Unlike ReactDOM.render, createRoot must not be called twice on the
+// same container, so the root is stored on the element and reused.
+interface RootElement extends HTMLElement {
+  __reactRoot?: Root;
+}
+
+const element: RootElement | null = window.document.getElementById("root");
 
 if (env.SENTRY_DSN) {
   initSentry(history);
@@ -96,7 +104,8 @@ if (element) {
     </StrictMode>
   );
 
-  render(<App />, element);
+  element.__reactRoot ??= createRoot(element);
+  element.__reactRoot.render(<App />);
 }
 
 window.addEventListener("load", async () => {

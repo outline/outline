@@ -25,7 +25,7 @@ interface OwnProps {
   /** Whether to show a title heading. */
   showTitle?: boolean;
   /** The wrapping component to use. */
-  component?: React.ComponentType | string;
+  component?: React.ComponentType<React.PropsWithChildren> | string;
   /** Children rendered when no error is present. */
   children?: React.ReactNode;
 }

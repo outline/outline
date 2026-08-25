@@ -8,7 +8,7 @@ import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
 interface Props extends Omit<
-  React.ComponentProps<typeof RadixSwitch.Root>,
+  React.ComponentPropsWithoutRef<typeof RadixSwitch.Root>,
   "checked" | "onCheckedChange" | "onChange"
 > {
   /** Width of the switch. Defaults to 32. */
