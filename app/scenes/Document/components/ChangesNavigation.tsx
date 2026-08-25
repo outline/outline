@@ -13,7 +13,7 @@ import type Revision from "~/models/Revision";
 
 type Props = {
   revision: Revision;
-  editorRef: React.RefObject<Editor>;
+  editorRef: React.RefObject<Editor | null>;
 };
 
 export const ChangesNavigation = observer(function ChangesNavigation_({

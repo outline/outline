@@ -102,7 +102,7 @@ export default function FindAndReplace({
 }: Props) {
   const editor = useEditor();
   const [localOpen, setLocalOpen] = React.useState(open);
-  const selectionRef = React.useRef<string | undefined>();
+  const selectionRef = React.useRef<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();

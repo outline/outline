@@ -1,6 +1,13 @@
 import fractionalIndex from "fractional-index";
 import * as React from "react";
-import type { ConnectDragSource } from "react-dnd";
+import type {
+  ConnectDragPreview,
+  ConnectDragSource,
+  ConnectDropTarget,
+  DragSourceHookSpec,
+  DropTargetHookSpec,
+  FactoryOrInstance,
+} from "react-dnd";
 import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
@@ -35,11 +42,77 @@ export type DragObject = NavigationNode & {
   constrainToSidebar?: boolean;
 };
 
+/**
+ * Adapts a react-dnd connector to a ref callback. Connectors return the
+ * connected node so that calls can be chained, which React does not permit
+ * from a ref.
+ *
+ * @param connect The connector to adapt.
+ * @returns a ref callback.
+ */
+function useConnectorRef(
+  connect: ConnectDragSource | ConnectDropTarget
+): React.RefCallback<HTMLElement> {
+  return React.useCallback(
+    (node: HTMLElement | null) => void connect(node),
+    [connect]
+  );
+}
+
+/**
+ * Wrapper around react-dnd's `useDrag` that returns the connector as a ref
+ * callback.
+ *
+ * @param spec The drag source specification.
+ * @returns a tuple of the collected props, a ref callback and the drag preview
+ * connector.
+ */
+export function useDragRef<
+  DragObj = unknown,
+  DropResult = unknown,
+  CollectedProps = unknown,
+>(
+  spec: FactoryOrInstance<
+    DragSourceHookSpec<DragObj, DropResult, CollectedProps>
+  >
+): [CollectedProps, React.RefCallback<HTMLElement>, ConnectDragPreview] {
+  const [collected, connect, preview] = useDrag<
+    DragObj,
+    DropResult,
+    CollectedProps
+  >(spec);
+  return [collected, useConnectorRef(connect), preview];
+}
+
+/**
+ * Wrapper around react-dnd's `useDrop` that returns the connector as a ref
+ * callback.
+ *
+ * @param spec The drop target specification.
+ * @returns a tuple of the collected props and a ref callback.
+ */
+export function useDropRef<
+  DragObj = unknown,
+  DropResult = unknown,
+  CollectedProps = unknown,
+>(
+  spec: FactoryOrInstance<
+    DropTargetHookSpec<DragObj, DropResult, CollectedProps>
+  >
+): [CollectedProps, React.RefCallback<HTMLElement>] {
+  const [collected, connect] = useDrop<DragObj, DropResult, CollectedProps>(
+    spec
+  );
+  return [collected, useConnectorRef(connect)];
+}
+
 function useHover(
-  elementRef: React.RefObject<HTMLDivElement>,
+  elementRef: React.RefObject<HTMLDivElement | null>,
   callback: () => void
 ) {
-  const hoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
+  const hoverTimeoutRef = React.useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
 
   const startHover = React.useCallback(() => {
     if (!hoverTimeoutRef.current) {
@@ -75,11 +148,11 @@ function useHover(
  */
 export function useDragStar(
   star: Star
-): [{ isDragging: boolean }, ConnectDragSource] {
+): [{ isDragging: boolean }, React.RefCallback<HTMLElement>] {
   const id = star.id;
   const { label: title, icon } = useSidebarLabelAndIcon(star);
 
-  const [{ isDragging }, draggableRef, preview] = useDrag({
+  const [{ isDragging }, dragRef, preview] = useDragRef({
     type: "star",
     item: () => ({ id, title, icon }),
     collect: (monitor) => ({
@@ -91,7 +164,7 @@ export function useDragStar(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef];
+  return [{ isDragging }, dragRef];
 }
 
 /**
@@ -109,7 +182,7 @@ export function useDropToCreateStar(getIndex?: () => string) {
   const { documents, stars, collections, userMemberships, groupMemberships } =
     useStores();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverCursor: boolean; isDragging: boolean }
@@ -153,7 +226,7 @@ export function useDropToCreateStar(getIndex?: () => string) {
 export function useDropToReorderStar(getIndex?: () => string) {
   const { stars } = useStores();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverCursor: boolean; isDragging: boolean }
@@ -182,8 +255,8 @@ export function useDropToReorderStar(getIndex?: () => string) {
 export function useDragSidebarSection(
   section: SidebarSection,
   title: string
-): [{ isDragging: boolean }, ConnectDragSource] {
-  const [{ isDragging }, draggableRef, preview] = useDrag({
+): [{ isDragging: boolean }, React.RefCallback<HTMLElement>] {
+  const [{ isDragging }, dragRef, preview] = useDragRef({
     type: "sidebarSection",
     item: () => ({ id: section, title }),
     collect: (monitor) => ({
@@ -195,7 +268,7 @@ export function useDragSidebarSection(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef];
+  return [{ isDragging }, dragRef];
 }
 
 /**
@@ -209,7 +282,7 @@ export function useDropToReorderSidebarSection(
 ) {
   const user = useCurrentUser();
 
-  return useDrop<
+  return useDropRef<
     { id: SidebarSection; title: string },
     void,
     { isOverCursor: boolean; isDragging: boolean }
@@ -252,7 +325,7 @@ export function useDragDocument(
   const color = document?.color || node.color;
   const initial = document?.initial || node.title;
 
-  const [{ isDragging }, draggableRef, preview] = useDrag<
+  const [{ isDragging }, dragRef, preview] = useDragRef<
     DragObject,
     Promise<void>,
     { isDragging: boolean }
@@ -278,20 +351,20 @@ export function useDragDocument(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef] as const;
+  return [{ isDragging }, dragRef] as const;
 }
 
 export function useDropToChangeCollection(
   collection: Collection,
   expandNode: () => void,
-  parentRef: React.RefObject<HTMLDivElement>
+  parentRef: React.RefObject<HTMLDivElement | null>
 ) {
   const { t } = useTranslation();
   const { documents, collections, dialogs, policies } = useStores();
   const can = usePolicy(collection);
   const startHover = useHover(parentRef, expandNode);
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOver: boolean; canDrop: boolean }
@@ -369,7 +442,7 @@ export function useDropToChangeCollection(
 export function useDropToReparentDocument(
   node: NavigationNode | undefined,
   setExpanded: () => void,
-  parentRef: React.RefObject<HTMLDivElement>
+  parentRef: React.RefObject<HTMLDivElement | null>
 ) {
   const { t } = useTranslation();
   const { documents, collections, dialogs, policies } = useStores();
@@ -382,7 +455,7 @@ export function useDropToReparentDocument(
 
   const startHover = useHover(parentRef, setExpanded);
 
-  return useDrop<DragObject, Promise<void>, { isOverReparent: boolean }>({
+  return useDropRef<DragObject, Promise<void>, { isOverReparent: boolean }>({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
@@ -490,7 +563,7 @@ export function useDropToReorderDocument(
 
   const document = documents.get(node.id);
 
-  return useDrop<DragObject, Promise<void>, { isOverReorder: boolean }>({
+  return useDropRef<DragObject, Promise<void>, { isOverReorder: boolean }>({
     accept: "document",
     canDrop: (item: DragObject) => {
       if (item.id === node.id || (document && !document.isActive)) {
@@ -565,7 +638,7 @@ export function useDragMembership(
   const id = membership.id;
   const { label: title, icon } = useSidebarLabelAndIcon(membership);
 
-  const [{ isDragging }, draggableRef, preview] = useDrag({
+  const [{ isDragging }, dragRef, preview] = useDragRef({
     type:
       membership instanceof UserMembership
         ? "userMembership"
@@ -580,7 +653,7 @@ export function useDragMembership(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef] as const;
+  return [{ isDragging }, dragRef] as const;
 }
 
 /**
@@ -592,7 +665,7 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
   const { userMemberships } = useStores();
   const user = useCurrentUser();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverCursor: boolean; isDragging: boolean }
@@ -621,7 +694,7 @@ export function useDropToArchive() {
   const { documents, collections, policies } = useStores();
   const { t } = useTranslation();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverArchiveSection: boolean; isDragging: boolean }
@@ -658,7 +731,7 @@ export function useDropToUnpublish() {
   const { t } = useTranslation();
   const { policies, documents } = useStores();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOver: boolean; canDrop: boolean }

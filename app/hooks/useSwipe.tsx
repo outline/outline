@@ -14,10 +14,10 @@ export default function useSwipe({
   onSwipeUp,
   onSwipeDown,
 }: Props) {
-  const touchXStart = useRef<number>();
-  const touchXEnd = useRef<number>();
-  const touchYStart = useRef<number>();
-  const touchYEnd = useRef<number>();
+  const touchXStart = useRef<number | undefined>(undefined);
+  const touchXEnd = useRef<number | undefined>(undefined);
+  const touchYStart = useRef<number | undefined>(undefined);
+  const touchYEnd = useRef<number | undefined>(undefined);
 
   const resetTouchPoints = () => {
     touchXStart.current = undefined;

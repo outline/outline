@@ -8,7 +8,7 @@ import { useRef, useEffect } from "react";
  * @returns The previous value of the variable.
  */
 export default function usePrevious<T>(value: T, onlyTruthy = false): T | void {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     if (onlyTruthy && !value) {

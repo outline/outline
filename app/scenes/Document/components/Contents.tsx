@@ -172,7 +172,9 @@ function Contents() {
         {items.map(({ heading, label }) => (
           <ListItem
             key={heading.id}
-            ref={(el) => (itemRefs.current[heading.id] = el)}
+            ref={(el) => {
+              itemRefs.current[heading.id] = el;
+            }}
             level={heading.level - headingAdjustment}
             active={activeSlug === heading.id}
           >

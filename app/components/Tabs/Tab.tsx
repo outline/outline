@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import { m } from "framer-motion";
 import type { LocationDescriptor } from "history";
 import { isEqual } from "es-toolkit/compat";
@@ -94,7 +95,7 @@ const Active = styled(m.div)`
   background: ${s("textSecondary")};
 `;
 
-const transition = {
+const transition: Transition = {
   type: "spring",
   stiffness: 500,
   damping: 30,

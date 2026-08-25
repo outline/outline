@@ -90,7 +90,7 @@ function useSuggestionsMenuAria({
   // Stable ids for the WAI-ARIA editable-combobox-with-listbox pattern. The
   // editor keeps real DOM focus while the active option is exposed virtually
   // via aria-activedescendant (see effect below).
-  const instanceIdRef = React.useRef<number>();
+  const instanceIdRef = React.useRef<number | undefined>(undefined);
   if (instanceIdRef.current === undefined) {
     instanceIdRef.current = menuInstanceCounter++;
   }
@@ -217,7 +217,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const [submenu, setSubmenu] = React.useState<SubmenuState | null>(null);
   const itemRefs = React.useRef<Map<number, HTMLElement>>(new Map());
   const submenuContentRef = React.useRef<HTMLDivElement>(null);
-  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   // Stores the caret bounding rect, snapshotted when the menu opens
   const caretRectRef = React.useRef(new DOMRect());

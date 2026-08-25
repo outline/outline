@@ -1,5 +1,6 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { v4 as uuidv4 } from "uuid";
+import type { Transition } from "framer-motion";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
@@ -326,7 +327,7 @@ function CommentForm({
           transition: {
             duration: 0.2,
             ease: "easeOut",
-          },
+          } satisfies Transition,
         },
         exit: {
           opacity: 0,
@@ -334,7 +335,7 @@ function CommentForm({
           transition: {
             duration: 0.2,
             ease: "easeOut",
-          },
+          } satisfies Transition,
         },
       }
     : {};
