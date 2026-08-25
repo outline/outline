@@ -53,4 +53,27 @@ describe.runIf(hasStorage)("Storage", () => {
     expect(localStorage.getItem("key")).toBeNull();
     expect(sessionStorage.getItem("key")).toBeNull();
   });
+
+  it("clears only the keys written by this instance", () => {
+    const storage = new Storage("local");
+    const primary = storage.interface;
+    storage.interface = {
+      getItem: (key: string) => primary.getItem(key),
+      setItem: () => {
+        throw new Error("QuotaExceededError");
+      },
+      removeItem: (key: string) => primary.removeItem(key),
+      clear: () => primary.clear(),
+    } as unknown as typeof localStorage;
+
+    storage.set("toggle:1", { fold: false });
+    storage.interface = primary;
+    sessionStorage.setItem("unrelated", "keep");
+
+    storage.clear();
+    expect(storage.get("toggle:1")).toBeUndefined();
+    expect(sessionStorage.getItem("toggle:1")).toBeNull();
+    // Session storage is shared with unrelated features and is left alone.
+    expect(sessionStorage.getItem("unrelated")).toBe("keep");
+  });
 });

@@ -49,10 +49,7 @@ function Contents() {
         return;
       }
       // Navigate via history so the location state (active sidebar context) is
-      // retained rather than dropped by a native hash navigation. The nonce
-      // forces a re-scroll when the same heading is clicked again after the
-      // hash is already set — the editor otherwise skips scrolling when the
-      // target is unchanged.
+      // retained rather than dropped by a native hash navigation.
       event.preventDefault();
       setSelectedSlug(id);
       history.push(patchLocation(history.location, { hash: `#${id}` }));

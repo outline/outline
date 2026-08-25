@@ -9,7 +9,10 @@ export class Storage {
 
   // Used when a write to the primary interface fails at runtime, e.g. when
   // the local storage quota has been exceeded.
-  fallbackInterface: typeof sessionStorage | null = null;
+  private fallbackInterface: typeof sessionStorage | null = null;
+
+  /** Keys whose most recent write went to the fallback interface. */
+  private fallbackKeys = new Set<string>();
 
   /**
    * @param type whether to persist for the session only, or indefinitely.
@@ -35,8 +38,8 @@ export class Storage {
     if (type === "local") {
       try {
         if (typeof window !== "undefined") {
-          sessionStorage.setItem("test", "test");
-          sessionStorage.removeItem("test");
+          sessionStorage.setItem("storage:probe", "1");
+          sessionStorage.removeItem("storage:probe");
           this.fallbackInterface = sessionStorage;
         }
       } catch (_err) {
@@ -53,20 +56,22 @@ export class Storage {
    * @param value The value to set
    */
   public set<T>(key: string, value: T) {
+    if (value === undefined) {
+      this.remove(key);
+      return;
+    }
     try {
-      if (value === undefined) {
-        this.remove(key);
-      } else {
-        this.interface.setItem(key, JSON.stringify(value));
-        // Drop any fallback copy so that reads of this key stay consistent.
-        this.fallbackInterface?.removeItem(key);
-      }
+      this.interface.setItem(key, JSON.stringify(value));
+      // Drop any fallback copy so that reads of this key stay consistent.
+      this.fallbackInterface?.removeItem(key);
+      this.fallbackKeys.delete(key);
     } catch (_err) {
       // The primary interface can fail at runtime, e.g. when its quota has
       // been exceeded — write to session storage instead so the value at
       // least survives the browsing session.
       try {
         this.fallbackInterface?.setItem(key, JSON.stringify(value));
+        this.fallbackKeys.add(key);
       } catch (_err) {
         // Ignore errors
       }
@@ -105,6 +110,7 @@ export class Storage {
     try {
       this.interface.removeItem(key);
       this.fallbackInterface?.removeItem(key);
+      this.fallbackKeys.delete(key);
     } catch (_err) {
       // Ignore errors
     }
@@ -116,7 +122,13 @@ export class Storage {
   public clear() {
     try {
       this.interface.clear();
-      this.fallbackInterface?.clear();
+      // The fallback interface is shared with unrelated features, so only
+      // the keys mirrored by this instance are removed rather than all of
+      // the session storage.
+      for (const key of this.fallbackKeys) {
+        this.fallbackInterface?.removeItem(key);
+      }
+      this.fallbackKeys.clear();
     } catch (_err) {
       // Ignore errors
     }

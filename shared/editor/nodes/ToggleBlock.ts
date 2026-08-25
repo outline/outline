@@ -35,11 +35,11 @@ import type { CommandFactory } from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
-import type { NodeWithPos } from "../types";
 import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import type { NodeWithPos } from "../types";
 import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
@@ -234,8 +234,7 @@ export default class ToggleBlock extends Node {
               newState.doc,
               newFoldedIds,
               findBlockNodes(newState.doc, true).filter(
-                (b) =>
-                  b.node.type.name === "container_toggle" && b.node.attrs.id
+                (b) => b.node.type.name === this.name && b.node.attrs.id
               )
             ),
           };
@@ -627,7 +626,7 @@ export default class ToggleBlock extends Node {
     const toggleBlocks =
       blocks ??
       findBlockNodes(doc, true).filter(
-        (b) => b.node.type.name === "container_toggle" && b.node.attrs.id
+        (b) => b.node.type.name === this.name && b.node.attrs.id
       );
     return this.buildDecorationsFromBlocks(doc, toggleBlocks, foldedIds);
   }

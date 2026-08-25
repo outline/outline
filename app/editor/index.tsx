@@ -106,12 +106,6 @@ export type Props = {
   maxLength?: number;
   /** Heading id to scroll to when the editor has loaded */
   scrollTo?: string;
-  /**
-   * Monotonic value that changes on each navigation to the same `scrollTo`
-   * target, so repeated clicks re-trigger scrolling even when the hash is
-   * unchanged.
-   */
-  scrollToNonce?: number;
   /** Callback for handling uploaded images, should return the url of uploaded file */
   uploadFile?: (
     file: File | string,
@@ -315,11 +309,7 @@ export class Editor extends React.PureComponent<
       );
     }
 
-    if (
-      this.props.scrollTo &&
-      (this.props.scrollTo !== prevProps.scrollTo ||
-        this.props.scrollToNonce !== prevProps.scrollToNonce)
-    ) {
+    if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
       void this.scrollToAnchor(this.props.scrollTo);
     }
 
