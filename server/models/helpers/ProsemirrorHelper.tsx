@@ -870,6 +870,9 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         } catch (err) {
           Logger.error("Error destroying ProseMirror view", toError(err));
         }
+        // Unmounting schedules a final passive-effect flush; run it while the
+        // globals are still patched or React reads an undefined `window`.
+        await this.flushReactEffects();
         try {
           dom.window.close();
         } catch (_err) {
