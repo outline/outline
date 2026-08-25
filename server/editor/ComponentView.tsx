@@ -1,7 +1,9 @@
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { Decoration, EditorView, NodeView } from "prosemirror-view";
 import type { FunctionComponent } from "react";
-import ReactDOM from "react-dom";
+import { flushSync } from "react-dom";
+import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import {
   type ServerStyleSheet,
   StyleSheetManager,
@@ -39,6 +41,7 @@ export class ComponentView implements NodeView {
   private node: ProsemirrorNode;
   private decorations: readonly Decoration[];
   private className: string;
+  private root: Root;
 
   constructor(
     component: FunctionComponent<Omit<ComponentProps, "theme">>,
@@ -70,16 +73,17 @@ export class ComponentView implements NodeView {
     };
 
     const Component = component;
-    // flushSync guarantees the mount commits before the constructor returns.
-    // React 18 may otherwise defer the commit when sync work is already queued.
-    ReactDOM.flushSync(() => {
-      ReactDOM.render(
+    this.root = createRoot(this.dom);
+    // flushSync guarantees the mount commits before the constructor returns;
+    // a plain root.render() is asynchronous and the export path reads the DOM
+    // immediately after.
+    flushSync(() => {
+      this.root.render(
         <StyleSheetManager sheet={sheet.instance}>
           <ThemeProvider theme={light}>
             <Component {...props} />
           </ThemeProvider>
-        </StyleSheetManager>,
-        this.dom
+        </StyleSheetManager>
       );
     });
   }
@@ -100,7 +104,7 @@ export class ComponentView implements NodeView {
 
   /** Unmount the React tree, clearing any timers the component scheduled. */
   public destroy(): void {
-    ReactDOM.unmountComponentAtNode(this.dom);
+    this.root.unmount();
   }
 
   /**
