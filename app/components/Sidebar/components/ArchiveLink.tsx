@@ -1,6 +1,7 @@
 import { isUndefined } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { ArchiveIcon } from "outline-icons";
+import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";
@@ -43,11 +44,14 @@ function ArchiveLink() {
     }
   }, [disclosure, expanded]);
 
-  const handleDisclosureClick = useCallback((ev) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    setExpanded((e) => !e);
-  }, []);
+  const handleDisclosureClick = useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setExpanded((e) => !e);
+    },
+    []
+  );
 
   const handleClick = useCallback(() => {
     setExpanded(true);

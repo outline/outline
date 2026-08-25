@@ -22,6 +22,7 @@ export type Props = {
   onError: (error: string) => void;
   submitText?: string;
   borderRadius?: number;
+  children?: React.ReactNode;
 };
 
 const ImageUpload: React.FC<Props> = ({

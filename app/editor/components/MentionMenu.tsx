@@ -250,7 +250,9 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     [t, users, documentId, groups]
   );
 
-  const renderMenuItem = useCallback(
+  const renderMenuItem = useCallback<
+    SuggestionsMenuProps<MentionMenuItem>["renderMenuItem"]
+  >(
     (item, _index, options) => (
       <SuggestionsMenuItem
         {...options}

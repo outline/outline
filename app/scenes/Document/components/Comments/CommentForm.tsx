@@ -303,7 +303,7 @@ function CommentForm({
 
   // Focus the editor when it's a new comment just mounted
   const handleMounted = React.useCallback(
-    (ref) => {
+    (ref: SharedEditor | null) => {
       if (autoFocus && ref && !hasFocusedOnMount.current) {
         if (!draft) {
           ref.focusAtStart();

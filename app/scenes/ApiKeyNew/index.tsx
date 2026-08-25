@@ -50,13 +50,19 @@ function ApiKeyNew({ onSubmit }: Props) {
     []
   );
 
-  const handleNameChange = React.useCallback((event) => {
-    setName(event.target.value);
-  }, []);
+  const handleNameChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setName(event.target.value);
+    },
+    []
+  );
 
-  const handleScopeChange = React.useCallback((event) => {
-    setScope(event.target.value);
-  }, []);
+  const handleScopeChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setScope(event.target.value);
+    },
+    []
+  );
 
   const handleExpiryTypeChange = React.useCallback((value: string) => {
     const expiry = value as ExpiryType;

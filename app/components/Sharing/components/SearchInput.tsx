@@ -26,8 +26,8 @@ export const SearchInput = React.forwardRef(function SearchInput_(
   const isMobile = useMobile();
 
   const focusInput = React.useCallback(
-    (event) => {
-      if (event.target.closest("button")) {
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target instanceof Element && event.target.closest("button")) {
         return;
       }
       inputRef.current?.focus();
