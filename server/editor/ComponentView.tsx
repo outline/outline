@@ -26,9 +26,9 @@ type ComponentViewOptions = {
 /**
  * Server-side ProseMirror NodeView that renders a node's React `component` –
  * the same one used in the browser – into a headless jsdom document, so HTML
- * export matches the in-app rendering. Rendering is synchronous under React 17;
- * content-bearing nodes expose a `contentDOM` hole that ProseMirror fills,
- * while leaf nodes render entirely from React.
+ * export matches the in-app rendering. Rendering is forced synchronous with
+ * flushSync; content-bearing nodes expose a `contentDOM` hole that ProseMirror
+ * fills, while leaf nodes render entirely from React.
  */
 export class ComponentView implements NodeView {
   /** The DOM element the node is rendered into. */
@@ -70,14 +70,18 @@ export class ComponentView implements NodeView {
     };
 
     const Component = component;
-    ReactDOM.render(
-      <StyleSheetManager sheet={sheet.instance}>
-        <ThemeProvider theme={light}>
-          <Component {...props} />
-        </ThemeProvider>
-      </StyleSheetManager>,
-      this.dom
-    );
+    // flushSync guarantees the mount commits before the constructor returns.
+    // React 18 may otherwise defer the commit when sync work is already queued.
+    ReactDOM.flushSync(() => {
+      ReactDOM.render(
+        <StyleSheetManager sheet={sheet.instance}>
+          <ThemeProvider theme={light}>
+            <Component {...props} />
+          </ThemeProvider>
+        </StyleSheetManager>,
+        this.dom
+      );
+    });
   }
 
   /**
@@ -120,7 +124,7 @@ export class ComponentView implements NodeView {
 
   /**
    * Ref callback marking the element ProseMirror-managed content is mounted
-   * within. Refs fire synchronously under React 17, so `contentDOM` is attached
+   * within. The render is wrapped in flushSync, so `contentDOM` is attached
    * before the constructor returns.
    */
   private handleContentRef = (element: HTMLElement | null) => {
