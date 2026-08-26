@@ -95,7 +95,7 @@ async function consume(
     ctx.set("RateLimit-Reset", `${resetSeconds}`);
 
     Metrics.increment("rate_limit.exceeded", {
-      path: isPathScoped ? fullPath : "default",
+      path: isPathScoped ? "path" : "default",
     });
 
     throw RateLimitExceededError();
