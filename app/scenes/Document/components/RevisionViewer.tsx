@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { mergeRefs } from "react-merge-refs";
 import { colorPalette } from "@shared/constants";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -43,6 +44,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
   const { revisions } = useStores();
   const query = useQuery();
+  const localRef = React.useRef<TEditor | null>(null);
   const showChanges = props.showChanges ?? query.has("changes");
   const compareToParam = query.get("compareTo");
 
@@ -79,18 +81,20 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
    * Create editor extensions with the Diff extension configured to render
    * the calculated changes as decorations in the editor.
    */
-  const extensions = React.useMemo(() => {
+  const { extensions, hasChanges } = React.useMemo(() => {
     const changeset = ChangesetHelper.getChangeset(
       revision.data,
       comparisonData
     );
-    return [
-      CodeWordBreak,
-      ...withComments(richExtensions),
-      ...(showChanges && changeset?.changes
-        ? [new Diff({ changes: changeset?.changes })]
-        : []),
-    ];
+    const hasChanges = !!(showChanges && changeset?.changes);
+    return {
+      extensions: [
+        CodeWordBreak,
+        ...withComments(richExtensions),
+        ...(hasChanges ? [new Diff({ changes: changeset?.changes })] : []),
+      ],
+      hasChanges,
+    };
   }, [revision.data, comparisonData, showChanges]);
 
   // The editor builds its extensions once, on mount, so it has to be remounted
@@ -103,6 +107,16 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
     compareToRevisionId ?? revision.before?.id ?? "none",
     comparisonData ? "loaded" : "pending",
   ].join("-");
+
+  // Once the diff decorations are in place, move the viewport to the first
+  // change so that long documents don't leave it at the top, away from the
+  // highlighted difference. `nextChange` only scrolls when the first change
+  // is not already in view.
+  React.useEffect(() => {
+    if (hasChanges) {
+      localRef.current?.commands.nextChange();
+    }
+  }, [editorKey, hasChanges]);
 
   return (
     <Flex auto column>
@@ -121,7 +135,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
       />
       <Editor
         key={editorKey}
-        ref={ref}
+        ref={mergeRefs([localRef, ref])}
         defaultValue={revision.data}
         extensions={extensions}
         dir={revision.dir}
