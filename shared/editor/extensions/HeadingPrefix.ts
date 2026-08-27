@@ -186,6 +186,40 @@ export class HeadingPrefixHelper {
   }
 
   /**
+   * Adds the prefix labels to the headings of a rendered document, matching
+   * the numbering displayed in the editor. Headings inside tables are skipped.
+   *
+   * @param container the element that holds the rendered document.
+   * @param doc the document the container was rendered from.
+   * @param style the prefix style to format the labels with.
+   */
+  public static applyToDOM(
+    container: Element,
+    doc: ProsemirrorNode,
+    style: HeadingPrefixStyle
+  ): void {
+    if (style === HeadingPrefixStyle.None) {
+      return;
+    }
+
+    const headings = HeadingPrefixHelper.collectHeadings(doc);
+    const queue = HeadingPrefixHelper.labels(
+      headings.map((heading) => heading.level),
+      style
+    );
+
+    container.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
+      if (heading.closest("table")) {
+        return;
+      }
+      const label = queue.shift();
+      if (label !== undefined) {
+        heading.setAttribute("data-heading-prefix", label);
+      }
+    });
+  }
+
+  /**
    * Removes prefix elements from pasted HTML so that copied numbering does
    * not become part of the document content.
    *
