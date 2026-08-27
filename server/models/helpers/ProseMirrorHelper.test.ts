@@ -7,7 +7,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
-import { parser, schema } from "@server/editor";
+import { parser, schema, serializer } from "@server/editor";
 import env from "@server/env";
 import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
@@ -1054,6 +1054,69 @@ describe("ProsemirrorHelper", () => {
       expect(thirdItem.type.name).toBe("checkbox_item");
       expect(thirdItem.attrs.checked).toBe(true);
       expect(thirdItem.textContent).toBe("Third");
+    });
+
+    it("should convert an @ prefixed GitHub link to an issue mention", () => {
+      const markdown =
+        "Please review @[Fix parser](https://github.com/acme/infra/issues/2)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const paragraph = doc.content.child(0);
+      const mention = paragraph.content.child(1);
+
+      expect(mention.type.name).toBe("mention");
+      expect(mention.attrs.type).toBe(MentionType.Issue);
+      expect(mention.attrs.href).toBe("https://github.com/acme/infra/issues/2");
+      expect(mention.attrs.label).toBe("Fix parser");
+      expect(paragraph.content.child(0).text).toBe("Please review ");
+    });
+
+    it("should convert an @ prefixed GitHub pull request link", () => {
+      const markdown = "@[Add parser](https://github.com/acme/infra/pull/5)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const mention = doc.content.child(0).content.child(0);
+
+      expect(mention.attrs.type).toBe(MentionType.PullRequest);
+    });
+
+    it("should convert an @ prefixed link to an unclaimed host to a url mention", () => {
+      const markdown = "@[Example](https://example.com/page)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const mention = doc.content.child(0).content.child(0);
+
+      expect(mention.attrs.type).toBe(MentionType.URL);
+      expect(mention.attrs.href).toBe("https://example.com/page");
+    });
+
+    it("should keep a link without an @ prefix as a link", () => {
+      const markdown =
+        "Please review [Fix parser](https://github.com/acme/infra/issues/2)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const paragraph = doc.content.child(0);
+
+      expect(
+        paragraph.content
+          .child(1)
+          .marks.some((mark) => mark.type.name === "link")
+      ).toBe(true);
+    });
+
+    it("should round-trip an external mention through Markdown", () => {
+      const markdown = "@[Fix parser](https://github.com/acme/infra/issues/2)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const mention = doc.content.child(0).content.child(0);
+
+      expect(mention.type.name).toBe("mention");
+      expect(mention.attrs.type).toBe(MentionType.Issue);
+      // Markdown that leaves Outline carries the url, so it comes back in as a
+      // mention rather than a plain link.
+      expect(serializer.serialize(doc, { commonMark: true }).trim()).toBe(
+        "@[Fix parser](https://github.com/acme/infra/issues/2)"
+      );
     });
   });
 
