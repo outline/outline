@@ -164,8 +164,24 @@ export function createOIDCRouter(
 
             // Derive a providerId from the OIDC location if there is no existing provider.
             const oidcURL = new URL(endpoints.authorizationURL);
-            const providerId =
+            let providerId =
               authenticationProvider?.providerId ?? oidcURL.hostname;
+
+            // The provider can move to a different domain, in which case the
+            // stored identifier must follow the configured location.
+            if (authenticationProvider && providerId !== oidcURL.hostname) {
+              try {
+                await authenticationProvider.update({
+                  providerId: oidcURL.hostname,
+                });
+                providerId = oidcURL.hostname;
+              } catch (error) {
+                Logger.warn(
+                  "Could not update OIDC authentication provider identifier",
+                  { providerId, hostname: oidcURL.hostname, error }
+                );
+              }
+            }
 
             if (!domain) {
               throw OIDCMalformedUserInfoError();
