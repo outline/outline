@@ -172,6 +172,12 @@ export default class DragHandle extends Extension {
           };
 
           const onScroll = () => {
+            // While a drag is in progress the handle is intentionally hidden;
+            // don't let a scroll (trackpad / auto-scroll) reposition and
+            // re-show it mid-drag.
+            if (pluginKey.getState(view.state)) {
+              return;
+            }
             if (target?.element.isConnected) {
               show(target);
             } else {
@@ -281,11 +287,17 @@ export default class DragHandle extends Extension {
 }
 
 function createHandle(): HTMLElement {
-  const handle = document.createElement("div");
+  const handle = document.createElement("button");
+  handle.type = "button";
   handle.className = HANDLE_CLASS;
   handle.draggable = true;
   handle.contentEditable = "false";
   handle.setAttribute("aria-label", "Drag to reorder");
+  // Reset the native button chrome so only the icon background shows.
+  handle.style.appearance = "none";
+  handle.style.border = "0";
+  handle.style.padding = "0";
+  handle.style.backgroundColor = "transparent";
   handle.style.position = "fixed";
   handle.style.width = `${HANDLE_SIZE}px`;
   handle.style.height = `${HANDLE_SIZE}px`;
