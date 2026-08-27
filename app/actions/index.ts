@@ -56,7 +56,9 @@ export function createAction(
                 ? "button"
                 : context.isCommandBar
                   ? "commandbar"
-                  : "contextmenu",
+                  : context.isMCP
+                    ? "webmcp"
+                    : "contextmenu",
             });
           }
           return definition.perform(context);
