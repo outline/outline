@@ -5,10 +5,18 @@ type Props = {
   isActiveDrop: boolean;
   innerRef: React.Ref<HTMLDivElement>;
   position?: "top";
+  className?: string;
 };
 
-function DropCursor({ isActiveDrop, innerRef, position }: Props) {
-  return <Cursor isOver={isActiveDrop} ref={innerRef} position={position} />;
+function DropCursor({ isActiveDrop, innerRef, position, className }: Props) {
+  return (
+    <Cursor
+      isOver={isActiveDrop}
+      ref={innerRef}
+      position={position}
+      className={className}
+    />
+  );
 }
 
 // transparent hover zone with a thin visible band vertically centered

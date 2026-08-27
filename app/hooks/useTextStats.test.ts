@@ -27,4 +27,9 @@ describe("getTextStats", () => {
   it("rounds reading time up to a minute for short text", () => {
     expect(getTextStats("Hello world").readingTime).toBe(1);
   });
+
+  it("rounds reading time up to the next minute for long text", () => {
+    expect(getTextStats("word ".repeat(500)).readingTime).toBe(3);
+    expect(getTextStats("word ".repeat(400)).readingTime).toBe(2);
+  });
 });

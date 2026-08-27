@@ -252,6 +252,92 @@ describe("createFilterSchema operator allowlists", () => {
   });
 });
 
+describe("createFilterSchema value allowlists", () => {
+  const { FilterSchema: EnumSchema } = createFilterSchema({
+    role: { kind: "string", values: ["admin", "member"] },
+    title: "string",
+  } as const);
+
+  it("accepts an allowed value", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "eq",
+        value: "admin",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a value outside the allowlist", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "eq",
+        value: "superuser",
+      }).success
+    ).toBe(false);
+  });
+
+  it("validates every entry of an `in` array", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "in",
+        value: ["admin", "member"],
+      }).success
+    ).toBe(true);
+
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "in",
+        value: ["admin", "superuser"],
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects pattern matching against a value-constrained field", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "contains",
+        value: "adm",
+      }).success
+    ).toBe(false);
+  });
+
+  it("does not restrict fields without an allowlist", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "title",
+        operator: "eq",
+        value: "superuser",
+      }).success
+    ).toBe(true);
+  });
+
+  it("still allows null operators with no value", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "isNull",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a disallowed value nested inside a group", () => {
+    expect(
+      EnumSchema.safeParse({
+        operator: "AND",
+        filters: [
+          { field: "title", operator: "eq", value: "x" },
+          { field: "role", operator: "eq", value: "superuser" },
+        ],
+      }).success
+    ).toBe(false);
+  });
+});
+
 describe("createFilterSchema node limit", () => {
   const { maxNodes } = FilterValidation;
 

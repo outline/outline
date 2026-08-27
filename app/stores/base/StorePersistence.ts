@@ -49,12 +49,8 @@ export default class StorePersistence<T extends Model> {
    */
   public hydrate = async (): Promise<void> => {
     try {
-      const database = await this.open();
-      const records = await promisifyRequest<Record<string, unknown>[]>(
-        database
-          .transaction(OBJECT_STORE_NAME, "readonly")
-          .objectStore(OBJECT_STORE_NAME)
-          .getAll()
+      const records = await this.transaction("readonly", (objectStore) =>
+        promisifyRequest<Record<string, unknown>[]>(objectStore.getAll())
       );
 
       this.hydrating = true;
@@ -66,11 +62,11 @@ export default class StorePersistence<T extends Model> {
         this.store.add(this.store.model.fromPersisted<T>(record));
       }
     } catch (err) {
-      this.disabled = true;
-      Logger.warn("Failed to hydrate store from IndexedDB", {
-        database: this.name,
-        error: err,
-      });
+      // A closed connection is transient, a later write reopens the database.
+      if (!isConnectionClosedError(err)) {
+        this.disabled = true;
+      }
+      this.report("Failed to hydrate store from IndexedDB", err);
     } finally {
       this.hydrating = false;
     }
@@ -106,25 +102,20 @@ export default class StorePersistence<T extends Model> {
     this.dirty.clear();
 
     try {
-      const database = await this.open();
-      const transaction = database.transaction(OBJECT_STORE_NAME, "readwrite");
-      const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
-
-      for (const id of ids) {
-        const model = this.store.get(id);
-        if (model) {
-          objectStore.put(model.toPersisted());
-        } else {
-          objectStore.delete(id);
+      await this.transaction("readwrite", (objectStore) => {
+        for (const id of ids) {
+          const model = this.store.get(id);
+          if (model) {
+            objectStore.put(model.toPersisted());
+          } else {
+            objectStore.delete(id);
+          }
         }
-      }
 
-      await promisifyTransaction(transaction);
-    } catch (err) {
-      Logger.warn("Failed to write store to IndexedDB", {
-        database: this.name,
-        error: err,
+        return promisifyTransaction(objectStore.transaction);
       });
+    } catch (err) {
+      this.report("Failed to write store to IndexedDB", err);
     }
   };
 
@@ -135,21 +126,87 @@ export default class StorePersistence<T extends Model> {
    */
   public clear = async (): Promise<void> => {
     this.dirty.clear();
+    this.scheduleFlush.cancel();
 
     if (this.disabled) {
       return;
     }
 
+    // The database is deleted rather than emptied through a transaction, as a
+    // deletion cannot fail against a connection the browser has closed.
+    this.close();
+
     try {
-      const database = await this.open();
-      const transaction = database.transaction(OBJECT_STORE_NAME, "readwrite");
-      transaction.objectStore(OBJECT_STORE_NAME).clear();
-      await promisifyTransaction(transaction);
-    } catch (err) {
-      Logger.warn("Failed to clear persisted store in IndexedDB", {
-        database: this.name,
-        error: err,
+      await new Promise<void>((resolve, reject) => {
+        const request = window.indexedDB.deleteDatabase(this.name);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        // Another tab holds a connection, which it closes in response to the
+        // versionchange event, and the deletion completes without us.
+        request.onblocked = () => resolve();
       });
+    } catch (err) {
+      this.report("Failed to clear persisted store in IndexedDB", err);
+    }
+  };
+
+  /**
+   * Stops persisting the store's data and closes the connection to the
+   * database, discarding any writes that have not yet been made. Records that
+   * were already persisted are left untouched.
+   */
+  public disable = () => {
+    this.disabled = true;
+    this.dirty.clear();
+    this.scheduleFlush.cancel();
+    this.close();
+  };
+
+  /**
+   * Closes the connection to the database, if one is open. Safe to call at any
+   * time; a later read or write opens a fresh connection.
+   */
+  private close = () => {
+    this.connection?.close();
+    this.forget();
+  };
+
+  /**
+   * Runs an operation against the object store. The connection is opened once
+   * and reused, but it may be closed at any time by the browser or by another
+   * tab deleting the database, so a closed connection is reopened for a single
+   * retry.
+   *
+   * @param mode the mode the transaction should run in.
+   * @param run the operation to run against the object store.
+   * @returns a promise that resolves with the result of the operation.
+   */
+  private transaction = async <R>(
+    mode: IDBTransactionMode,
+    run: (objectStore: IDBObjectStore) => Promise<R>
+  ): Promise<R> => {
+    try {
+      return await run(await this.objectStore(mode));
+    } catch (err) {
+      if (!isConnectionClosedError(err)) {
+        throw err;
+      }
+      this.close();
+      return run(await this.objectStore(mode));
+    }
+  };
+
+  private objectStore = async (
+    mode: IDBTransactionMode
+  ): Promise<IDBObjectStore> => {
+    const database = await this.open();
+    try {
+      return database
+        .transaction(OBJECT_STORE_NAME, mode)
+        .objectStore(OBJECT_STORE_NAME);
+    } catch (err) {
+      this.forget();
+      throw err;
     }
   };
 
@@ -165,11 +222,62 @@ export default class StorePersistence<T extends Model> {
           }
           database.createObjectStore(OBJECT_STORE_NAME, { keyPath: "id" });
         };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const database = request.result;
+          this.connection = database;
+
+          // Another tab is deleting or upgrading the database – get out of the
+          // way, rather than blocking it, and reopen when next needed.
+          database.onversionchange = () => {
+            database.close();
+            this.forget(database);
+          };
+          database.onclose = () => this.forget(database);
+
+          resolve(database);
+        };
+        request.onerror = () => {
+          this.forget();
+          reject(request.error);
+        };
+        request.onblocked = () => {
+          this.forget();
+          reject(new Error(`Opening ${this.name} was blocked`));
+        };
       });
     }
     return this.database;
+  };
+
+  /**
+   * Discards the cached connection so that the next operation opens a new one,
+   * unless it has already been replaced.
+   */
+  private forget = (database?: IDBDatabase) => {
+    if (database && this.connection !== database) {
+      return;
+    }
+    this.connection = undefined;
+    this.database = undefined;
+  };
+
+  /**
+   * Logs an operation that failed against the database. The browser closes
+   * connections at times the page does not control, such as when the tab is
+   * frozen or discarded, so those failures are expected and are not reported.
+   *
+   * @param message a description of the operation that failed.
+   * @param err the error that was thrown.
+   */
+  private report = (message: string, err: unknown) => {
+    const extra = { database: this.name, error: err };
+
+    if (isConnectionClosedError(err)) {
+      Logger.debug("store", message, extra);
+      return;
+    }
+
+    Logger.warn(message, extra);
   };
 
   private scheduleFlush = debounce(() => void this.flush(), FLUSH_DELAY_MS);
@@ -180,11 +288,27 @@ export default class StorePersistence<T extends Model> {
 
   private database?: Promise<IDBDatabase>;
 
+  private connection?: IDBDatabase;
+
   private dirty = new Set<string>();
 
   private disabled = false;
 
   private hydrating = false;
+}
+
+/**
+ * Whether an error was caused by the connection to the database closing, in
+ * which case the operation did not run and can safely be retried.
+ *
+ * @param err the error to check.
+ * @returns true if the connection was closed.
+ */
+function isConnectionClosedError(err: unknown): boolean {
+  return (
+    err instanceof DOMException &&
+    (err.name === "InvalidStateError" || err.name === "AbortError")
+  );
 }
 
 /**
@@ -210,6 +334,10 @@ function promisifyTransaction(transaction: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () => reject(transaction.error);
+    transaction.onabort = () =>
+      reject(
+        transaction.error ??
+          new DOMException("The transaction was aborted", "AbortError")
+      );
   });
 }

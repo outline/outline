@@ -138,6 +138,18 @@ export default class RootStore {
   }
 
   /**
+   * Disable IndexedDB persistence for all stores, closing any open connections
+   * so that the databases can be deleted or upgraded.
+   */
+  public disablePersistence() {
+    Object.values(this).forEach((store) => {
+      if (store instanceof Store) {
+        store.disablePersistence();
+      }
+    });
+  }
+
+  /**
    * Get a store by model name.
    *
    * @param modelName

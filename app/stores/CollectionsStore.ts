@@ -1,9 +1,9 @@
 import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
-  CollectionStatusFilter,
   type FileOperationFormat,
   SubscriptionType,
 } from "@shared/types";
@@ -166,9 +166,7 @@ export default class CollectionsStore extends Store<Collection> {
   @action
   fetchNamedPage = async (
     request = "list",
-    options:
-      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
-      | undefined
+    options: (PaginationParams & { filters?: Filter[] }) | undefined
   ): Promise<Collection[]> => {
     this.isFetching = true;
 
@@ -190,7 +188,7 @@ export default class CollectionsStore extends Store<Collection> {
   fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
     this.fetchNamedPage("list", {
       ...options,
-      statusFilter: [CollectionStatusFilter.Archived],
+      filters: [{ field: "archivedAt", operator: "isNotNull" }],
     });
 
   get(id: string = ""): Collection | undefined {

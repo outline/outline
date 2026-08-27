@@ -46,11 +46,14 @@ import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   DocumentPermission,
+  DocumentPreference,
+  DocumentPreferences,
   ImportableIntegrationService,
   NavigationNode,
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
+import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
@@ -339,6 +342,11 @@ class Document extends ArchivableModel<
   @Default(false)
   @Column(DataType.BOOLEAN)
   fullWidth: boolean;
+
+  /** Display preferences for the document. */
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: DocumentPreferences | null;
 
   @Default(false)
   @Column(DataType.BOOLEAN)
@@ -690,6 +698,14 @@ class Document extends ArchivableModel<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;
+
+  @BelongsTo(() => User, "deletedById")
+  deletedBy: User | null;
+
+  /** The user that deleted this document, set automatically on delete. */
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  deletedById: string | null;
 
   @ForeignKey(() => Template)
   @Column(DataType.UUID)
@@ -1054,6 +1070,34 @@ class Document extends ArchivableModel<
   get isActive(): boolean {
     return !this.archivedAt && !this.deletedAt;
   }
+
+  /**
+   * Sets the value of the given display preference.
+   *
+   * @param preference The document preference to set
+   * @param value Sets the preference value
+   * @returns The current document preferences
+   */
+  public setPreference = <T extends keyof DocumentPreferences>(
+    preference: T,
+    value: DocumentPreferences[T]
+  ) => {
+    this.preferences = {
+      ...this.preferences,
+      [preference]: value,
+    };
+
+    return this.preferences;
+  };
+
+  /**
+   * Returns the value of the given display preference.
+   *
+   * @param preference The document preference to retrieve
+   * @returns The preference value if set, else the default value
+   */
+  public getPreference = <T extends DocumentPreference>(preference: T) =>
+    this.preferences?.[preference] ?? DocumentPreferenceDefaults[preference];
 
   /**
    * Convenience method that returns whether this document is a draft.
@@ -1445,7 +1489,7 @@ class Document extends ArchivableModel<
     }
 
     if (!deleted) {
-      await this.destroy({ transaction });
+      await this.destroy(ctx.context);
     }
 
     this.lastModifiedById = user.id;

@@ -14,6 +14,10 @@ export async function deleteAllDatabases() {
     return;
   }
 
+  // Close any connections this tab holds open, otherwise the deletions below
+  // are blocked until they are, and in-flight reads and writes are aborted.
+  stores.disablePersistence();
+
   const teamId = stores.auth.currentTeamId;
   if (teamId) {
     Object.values(stores).forEach((store) => {

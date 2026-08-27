@@ -4,7 +4,7 @@ import {
   undoDepth,
 } from "prosemirror-history";
 import type { EditorView } from "prosemirror-view";
-import { yUndoPluginKey } from "y-prosemirror";
+import { stopCapturingUndo } from "./multiplayer";
 
 /**
  * Closes the current history item so that subsequent changes start a new undo
@@ -19,6 +19,5 @@ export function closeHistory(view: EditorView): void {
     view.dispatch(pmCloseHistory(view.state.tr));
   }
 
-  const yUndoState = yUndoPluginKey.getState(view.state);
-  yUndoState?.undoManager?.stopCapturing();
+  stopCapturingUndo(view.state);
 }

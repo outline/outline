@@ -8,11 +8,14 @@ import type {
   ProsemirrorData,
 } from "@shared/types";
 import {
+  type DocumentPreference,
+  type DocumentPreferences,
   type ExportContentType,
   FileOperationFormat,
   NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
+import { DocumentPreferenceDefaults } from "@shared/constants";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
@@ -156,6 +159,13 @@ export default class Document extends ArchivableModel implements Searchable {
   fullWidth: boolean;
 
   /**
+   * Display preferences for the document.
+   */
+  @Field
+  @observable
+  preferences: DocumentPreferences | null;
+
+  /**
    * Whether team members can see who has viewed this document.
    */
   @observable
@@ -193,6 +203,14 @@ export default class Document extends ArchivableModel implements Searchable {
   @Relation(() => User)
   @observable
   updatedBy: User | undefined;
+
+  /**
+   * The user that deleted this document, only set while the document is in the
+   * trash.
+   */
+  @Relation(() => User)
+  @observable
+  deletedBy: User | undefined;
 
   @observable
   publishedAt: string | undefined;
@@ -475,6 +493,34 @@ export default class Document extends ArchivableModel implements Searchable {
     if (total !== this.tasks.total || completed !== this.tasks.completed) {
       this.tasks = { total, completed };
     }
+  }
+
+  /**
+   * Get the value for a specific display preference key, or the default if
+   * none is set.
+   *
+   * @param key The DocumentPreference key to retrieve
+   * @returns The value
+   */
+  getPreference<K extends DocumentPreference>(key: K): DocumentPreferences[K] {
+    return this.preferences?.[key] ?? DocumentPreferenceDefaults[key];
+  }
+
+  /**
+   * Set the value for a specific display preference key.
+   *
+   * @param key The DocumentPreference key to set
+   * @param value The value to set
+   */
+  @action
+  setPreference<K extends DocumentPreference>(
+    key: K,
+    value: NonNullable<DocumentPreferences[K]>
+  ) {
+    this.preferences = {
+      ...this.preferences,
+      [key]: value,
+    };
   }
 
   archive = () => this.store.archive(this);

@@ -32,7 +32,10 @@ class CodeWordDecorationsPlugin extends Plugin {
             return pluginState;
           }
 
-          if (isRemoteTransaction(tr) || this.hasCodeInlineChange(tr)) {
+          if (
+            isRemoteTransaction(tr, newState) ||
+            this.hasCodeInlineChange(tr)
+          ) {
             return {
               decorations: this.createDecorations(newState, finalConfig),
             };

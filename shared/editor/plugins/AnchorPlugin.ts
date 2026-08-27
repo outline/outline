@@ -19,7 +19,10 @@ export class AnchorPlugin extends Plugin {
             return pluginState;
           }
 
-          if (isRemoteTransaction(tr) || this.hasAnchorableChange(tr)) {
+          if (
+            isRemoteTransaction(tr, newState) ||
+            this.hasAnchorableChange(tr)
+          ) {
             return { decorations: this.createDecorations(newState) };
           }
 

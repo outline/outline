@@ -94,7 +94,7 @@ export const deleteRevision = createAction({
   dangerous: true,
   visible: ({ activeDocumentId }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
-  perform: async ({ t, event, location, activeDocumentId }) => {
+  perform: async ({ t, event, location, activeDocumentId, sidebarContext }) => {
     event?.preventDefault();
     if (!activeDocumentId) {
       return;
@@ -113,7 +113,7 @@ export const deleteRevision = createAction({
       const revision = stores.revisions.get(revisionId);
       await revision?.delete();
       toast.success(t("This version of the document was deleted"));
-      history.push(documentHistoryPath(document));
+      history.push(documentHistoryPath(document), { sidebarContext });
     }
   },
 });

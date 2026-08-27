@@ -17,6 +17,8 @@ export type Heading = {
   level: number;
   /* The unique id of the heading */
   id: string;
+  /* Whether the heading is nested inside a table */
+  inTable?: boolean;
 };
 
 export type CommentMark = {
@@ -493,8 +495,13 @@ export class ProsemirrorHelper {
   static getHeadings(doc: Node) {
     const headings: Heading[] = [];
     const previouslySeen: Record<string, number> = {};
+    let tableEnd = 0;
 
-    doc.descendants((node) => {
+    doc.descendants((node, pos) => {
+      if (node.type.name === "table") {
+        // A nested table must not shrink the range of its outer table.
+        tableEnd = Math.max(tableEnd, pos + node.nodeSize);
+      }
       if (node.type.name === "heading") {
         // calculate the optimal id
         const id = headingToSlug(node);
@@ -515,6 +522,7 @@ export class ProsemirrorHelper {
           title: ProsemirrorHelper.toPlainText(node),
           level: node.attrs.level,
           id: name,
+          inTable: pos < tableEnd,
         });
       }
     });

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
+import { createContext } from "@server/context";
 import {
   buildUser,
   buildGroup,
@@ -9,7 +10,6 @@ import {
   buildDocument,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
-import { createContext } from "@server/context";
 import Collection from "./Collection";
 import Document from "./Document";
 

@@ -20,6 +20,12 @@ type AcquireOptions = {
 /**
  * A distributed mutex lock backed by Redis, for coordinating exclusive access
  * to resources across processes.
+ *
+ * Use this when the resource is Redis or an external service, when the routine
+ * makes network calls, or when it runs long enough that holding a database
+ * connection would matter. When the routine is database work in a single
+ * transaction and the lock must be held until that transaction commits, use
+ * `LockHelper` instead.
  */
 export class MutexLock {
   /** Default expiry time for acquiring lock in milliseconds. */

@@ -209,8 +209,9 @@ export default class Heading extends Node<HeadingOptions> {
       // widget (contentEditable=false, ignoreSelection: true), so Prosemirror
       // does not update its model. Subsequent commands like Enter then operate
       // on the stale position. Move the model selection explicitly to keep it
-      // in sync with the visual caret.
-      "Mod-ArrowLeft": ((state, dispatch) => {
+      // in sync with the visual caret. Note this is Cmd rather than Mod, as
+      // Ctrl+Left moves by word on other platforms.
+      "Cmd-ArrowLeft": ((state, dispatch) => {
         const { $from, empty } = state.selection;
         if (!empty || $from.parent.type !== type) {
           return false;
