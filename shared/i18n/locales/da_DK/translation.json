@@ -1325,6 +1325,7 @@
   "Synced <2></2>": "Synkroniseret <2></2>",
   "Date created": "Oprettelsesdato",
   "Crop Image": "Beskær billede",
+  "Your browser cannot read HEIC images, please convert it to JPEG or PNG first": "Din browser kan ikke læse HEIC-billeder. Konvertér dem venligst først til JPEG eller PNG.",
   "Crop image": "Beskær billede",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Du kan importere en zip-fil, der tidligere er eksporteret fra JSON-indstillingen i en anden instans. I {{ appName }} skal du åbne <em>Eksport</em> i indstillingssidepanelet og klikke på <em>Eksportér data</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Træk og slip zip-filen fra JSON-eksportindstillingen i {{appName}}, eller klik for at uploade",
