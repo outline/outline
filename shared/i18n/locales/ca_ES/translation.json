@@ -1325,6 +1325,7 @@
   "Synced <2></2>": "Sincronitzat <2></2>",
   "Date created": "Data de creació",
   "Crop Image": "Retalla la imatge",
+  "Your browser cannot read HEIC images, please convert it to JPEG or PNG first": "El vostre navegador no pot llegir imatges HEIC; convertiu-les primer a JPEG o PNG",
   "Crop image": "Retalla la imatge",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Podeu importar un fitxer ZIP que s'ha exportat prèviament des de l'opció JSON en una altra instància. A {{ appName }}, obriu <em>Exporta</em> a la barra lateral de configuració i feu clic a <em>Exporta les dades</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Arrossegueu i deixeu anar el fitxer ZIP des de l'opció d'exportació JSON a {{appName}}, o feu clic per penjar",
