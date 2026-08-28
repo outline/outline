@@ -1,5 +1,8 @@
 import Compressor from "compressorjs";
 
+/**
+ * Helpers for inspecting and transforming images in the browser.
+ */
 export class ImageHelper {
   /**
    * Checks whether a file is a HEIC or HEIF image. The extension is also
