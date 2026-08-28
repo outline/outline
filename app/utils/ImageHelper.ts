@@ -43,36 +43,15 @@ export class ImageHelper {
   }
 
   /**
-   * Converts a HEIC or HEIF image to a JPEG that all browsers can display. The
-   * browser's own decoder is used when it supports the format, otherwise a
-   * decoder is lazily downloaded.
+   * Converts a HEIC or HEIF image to a JPEG that all browsers can display,
+   * using the browser's own decoder. Support is limited, so callers must
+   * handle an undefined result.
    *
    * @param file the HEIC or HEIF file to convert.
-   * @returns a promise resolving to the converted JPEG file.
-   * @throws Error if the image cannot be decoded.
+   * @returns a promise resolving to the converted JPEG file, or undefined if
+   * the browser cannot decode the format.
    */
-  public static async convertHeicToJpeg(file: File): Promise<File> {
-    const blob =
-      (await this.decodeHeicNatively(file)) ??
-      (await this.decodeHeicWithWasm(file));
-
-    const name = `${file.name.replace(/\.(heic|heif)$/i, "")}.jpg`;
-
-    return new File([blob], name, { type: "image/jpeg" });
-  }
-
-  private static jpegQuality = 0.92;
-
-  /**
-   * Decodes an image with the browser, which Safari is able to do for HEIC.
-   *
-   * @param file the file to decode.
-   * @returns a promise resolving to a JPEG blob, or undefined if the browser
-   * cannot decode the format.
-   */
-  private static async decodeHeicNatively(
-    file: File
-  ): Promise<Blob | undefined> {
+  public static async convertHeicToJpeg(file: File): Promise<File | undefined> {
     if (typeof createImageBitmap === "undefined") {
       return undefined;
     }
@@ -97,33 +76,17 @@ export class ImageHelper {
       }
       context.drawImage(bitmap, 0, 0);
 
-      return await new Promise<Blob | undefined>((resolve) => {
-        canvas.toBlob(
-          (result) => resolve(result ?? undefined),
-          "image/jpeg",
-          this.jpegQuality
-        );
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/jpeg", 0.92);
       });
+      if (!blob) {
+        return undefined;
+      }
+
+      const name = `${file.name.replace(/\.(heic|heif)$/i, "")}.jpg`;
+      return new File([blob], name, { type: "image/jpeg" });
     } finally {
       bitmap.close();
     }
-  }
-
-  /**
-   * Decodes a HEIC or HEIF image with a lazily downloaded WebAssembly decoder.
-   *
-   * @param file the file to decode.
-   * @returns a promise resolving to a JPEG blob.
-   * @throws Error if the image cannot be decoded.
-   */
-  private static async decodeHeicWithWasm(file: File): Promise<Blob> {
-    // The "csp" build is used because the default build evaluates a string as
-    // JavaScript, which the Content Security Policy does not permit.
-    const { heicTo } = await import("heic-to/csp");
-    return heicTo({
-      blob: file,
-      type: "image/jpeg",
-      quality: this.jpegQuality,
-    });
   }
 }

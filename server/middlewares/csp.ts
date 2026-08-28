@@ -70,9 +70,7 @@ export function allowStyleSrc(ctx: Context, sources: string[]) {
 export default function createCSPMiddleware(options?: CSPOptions) {
   // Construct scripts CSP based on options in use
   const defaultSrc: string[] = ["'self'"];
-  // Permits WebAssembly compilation, used to decode HEIC images in the
-  // browser. It does not permit JavaScript eval.
-  const scriptSrc: string[] = ["'wasm-unsafe-eval'"];
+  const scriptSrc: string[] = [];
   const styleSrc: string[] = ["'self'", "'unsafe-inline'"];
   const objectSrc: string[] = [env.URL, "'self'"];
 
@@ -142,9 +140,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
           mediaSrc: ["*", "data:", "blob:"],
           imgSrc: ["*", "data:", "blob:"],
           frameSrc: ["*", "data:"],
-          // "blob:" is needed by the HEIC decoder, which runs in a worker
-          // created from a blob URL.
-          workerSrc: ["'self'", "blob:"],
+          workerSrc: ["'self'"],
           objectSrc,
           // Do not use connect-src: because self + websockets does not work in
           // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591

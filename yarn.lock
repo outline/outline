@@ -12249,13 +12249,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"heic-to@npm:^1.5.2":
-  version: 1.5.2
-  resolution: "heic-to@npm:1.5.2"
-  checksum: 10c0/8824af04ea5602883350d3400a47377cfb6ed82911881561afc313de4d6d52b94e342808efb8a27b464328ddb7843cb71ca315aeb368266c26ae69cbae7dd708
-  languageName: node
-  linkType: hard
-
 "heimdalljs-logger@npm:^0.1.10, heimdalljs-logger@npm:^0.1.7":
   version: 0.1.10
   resolution: "heimdalljs-logger@npm:0.1.10"
@@ -15731,7 +15724,6 @@ __metadata:
     fuse.js: "npm:^7.5.0"
     fuzzy-search: "npm:^3.2.1"
     glob: "npm:^11.1.0"
-    heic-to: "npm:^1.5.2"
     hot-shots: "npm:^12.1.0"
     http-errors: "npm:2.0.1"
     https-proxy-agent: "npm:^7.0.6"

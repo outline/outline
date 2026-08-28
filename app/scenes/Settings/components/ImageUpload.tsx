@@ -78,14 +78,18 @@ const ImageUpload: React.FC<Props> = ({
       // the image is shown in the cropper.
       if (ImageHelper.isHeic(file)) {
         setIsConverting(true);
-        try {
-          file = await ImageHelper.convertHeicToJpeg(file);
-        } catch (err) {
-          onError(errToString(err));
+        const converted = await ImageHelper.convertHeicToJpeg(file);
+        setIsConverting(false);
+
+        if (!converted) {
+          onError(
+            t(
+              "Your browser cannot read HEIC images, please convert it to JPEG or PNG first"
+            )
+          );
           return;
-        } finally {
-          setIsConverting(false);
         }
+        file = converted;
       }
 
       setIsCropping(true);
