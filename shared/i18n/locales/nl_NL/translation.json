@@ -1325,6 +1325,7 @@
   "Synced <2></2>": "Gesynchroniseerd <2></2>",
   "Date created": "Aanmaakdatum",
   "Crop Image": "Afbeelding bijsnijden",
+  "Your browser cannot read HEIC images, please convert it to JPEG or PNG first": "Uw browser kan HEIC-afbeeldingen niet lezen. Converteer deze eerst naar JPEG of PNG.",
   "Crop image": "Afbeelding bijsnijden",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Je kunt een zipbestand importeren dat eerder is geëxporteerd vanuit de JSON-optie in een andere instantie. In {{ appName }}, open <em>Exporteren</em> in de zijbalk in Voorkeuren en klik op <em>Exporteer gegevens</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Sleep het zip-bestand vanuit de JSON exportoptie in {{appName}}, of klik om te uploaden",
