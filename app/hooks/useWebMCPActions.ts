@@ -2,6 +2,7 @@ import { snakeCase } from "es-toolkit";
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 import { TeamPreference } from "@shared/types";
+import { toError } from "@shared/utils/error";
 import { performAction, resolve } from "~/actions";
 import type {
   ActionContext,
@@ -73,23 +74,30 @@ export default function useWebMCPActions(
           description,
           inputSchema: action.mcp?.inputSchema,
           execute: async (args) => {
-            const result = await performAction(action, {
-              ...contextRef.current,
-              mcpArgs: args,
-            });
-            return {
-              content: [
-                {
-                  type: "text",
-                  text:
-                    typeof result === "string"
-                      ? result
-                      : result === undefined
-                        ? "Done"
-                        : JSON.stringify(result),
-                },
-              ],
-            };
+            try {
+              const result = await performAction(action, {
+                ...contextRef.current,
+                mcpArgs: args,
+              });
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text:
+                      typeof result === "string"
+                        ? result
+                        : result === undefined
+                          ? "Done"
+                          : JSON.stringify(result),
+                  },
+                ],
+              };
+            } catch (err) {
+              return {
+                isError: true,
+                content: [{ type: "text", text: toError(err).message }],
+              };
+            }
           },
         },
         controller.signal
