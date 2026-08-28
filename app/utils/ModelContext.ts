@@ -79,7 +79,15 @@ export function registerModelContextTool(
   );
 
   try {
-    void window.document.modelContext?.registerTool(tool, { signal });
+    const result = window.document.modelContext?.registerTool(tool, {
+      signal,
+    });
+    if (result instanceof Promise) {
+      result.catch(() => {
+        Logger.warn("Failed to register WebMCP tool", { name: tool.name });
+        registeredToolNames.delete(tool.name);
+      });
+    }
   } catch (_err) {
     Logger.warn("Failed to register WebMCP tool", { name: tool.name });
     registeredToolNames.delete(tool.name);

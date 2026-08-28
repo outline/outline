@@ -70,6 +70,24 @@ describe("ModelContext", () => {
       second.abort();
     });
 
+    it("should free the name when async registration rejects", async () => {
+      const registerTool = vi.fn().mockRejectedValue(new Error("rejected"));
+      window.document.modelContext = { registerTool };
+
+      const first = new AbortController();
+      expect(registerModelContextTool(makeTool("five"), first.signal)).toBe(
+        true
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const second = new AbortController();
+      expect(registerModelContextTool(makeTool("five"), second.signal)).toBe(
+        true
+      );
+
+      second.abort();
+    });
+
     it("should not register when the signal is already aborted", () => {
       const registerTool = vi.fn();
       window.document.modelContext = { registerTool };
