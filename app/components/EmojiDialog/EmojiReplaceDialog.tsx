@@ -7,7 +7,7 @@ import Text from "~/components/Text";
 import type Emoji from "~/models/Emoji";
 import useStores from "~/hooks/useStores";
 import { uploadFile } from "~/utils/files";
-import { compressImage } from "~/utils/compressImage";
+import { ImageHelper } from "~/utils/ImageHelper";
 import { useEmojiFileUpload, EmojiImageDropZone } from "./Components";
 
 interface Props {
@@ -38,7 +38,7 @@ export function EmojiReplaceDialog({ emoji, onSubmit }: Props) {
       const fileToUpload =
         file.type === "image/gif"
           ? file
-          : await compressImage(file, {
+          : await ImageHelper.compress(file, {
               maxHeight: 64,
               maxWidth: 64,
             });

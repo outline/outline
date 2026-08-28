@@ -146,6 +146,7 @@
     "fuse.js": "^7.5.0",
     "fuzzy-search": "^3.2.1",
     "glob": "^11.1.0",
+    "heic-to": "^1.5.2",
     "hot-shots": "^12.1.0",
     "http-errors": "2.0.1",
     "https-proxy-agent": "^7.0.6",
