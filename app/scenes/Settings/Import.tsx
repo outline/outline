@@ -23,6 +23,7 @@ import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
+import ImportOKFDialog from "./components/ImportOKFDialog";
 
 type Config = {
   /** The title of the import. */
@@ -55,6 +56,27 @@ function useImportsConfig() {
               dialogs.openModal({
                 title: t("Import data"),
                 content: <ImportMarkdownDialog />,
+              });
+            }}
+            neutral
+          >
+            {t("Import")}…
+          </Button>
+        ),
+      },
+      {
+        title: "OKF",
+        subtitle: t(
+          "Import a zip file of Markdown documents in the Open Knowledge Format"
+        ),
+        icon: <MarkdownIcon size={28} />,
+        action: (
+          <Button
+            type="submit"
+            onClick={() => {
+              dialogs.openModal({
+                title: t("Import data"),
+                content: <ImportOKFDialog />,
               });
             }}
             neutral

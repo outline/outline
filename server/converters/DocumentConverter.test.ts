@@ -409,8 +409,85 @@ Content after frontmatter`;
         expect(result.text).toContain("```");
         // Content should still be present
         expect(result.text).toContain("Content after frontmatter");
-        // H1 should be extracted as title
+        // Frontmatter title is authoritative, the heading stays in the body
+        expect(result.title).toEqual("Test Document");
+        expect(result.text).toContain("# My Title");
+      });
+
+      it("should extract title from frontmatter", async () => {
+        const md = `---
+type: Runbook
+title: Weekly Active Users
+tags: [metrics]
+---
+
+# A heading that is content
+
+Body content`;
+        const result = await DocumentConverter.convert(
+          md,
+          "weekly_active_users.md",
+          "text/markdown"
+        );
+
+        expect(result.title).toEqual("Weekly Active Users");
+        // The heading is content, not the title, so it stays in the body
+        expect(result.text).toContain("A heading that is content");
+        // Frontmatter is still preserved as a YAML codeblock
+        expect(result.text).toContain("```yaml");
+        expect(result.text).toContain("type: Runbook");
+      });
+
+      it("should extract a leading emoji in the frontmatter title as icon", async () => {
+        const md = `---
+title: 📈 Metrics
+---
+
+Body content`;
+        const result = await DocumentConverter.convert(
+          md,
+          "metrics.md",
+          "text/markdown"
+        );
+
+        expect(result.title).toEqual("Metrics");
+        expect(result.icon).toEqual("📈");
+      });
+
+      it("should fall back to H1 title when frontmatter has no title", async () => {
+        const md = `---
+type: Runbook
+---
+
+# My Title
+
+Body content`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
         expect(result.title).toEqual("My Title");
+      });
+
+      it("should prefer frontmatter title even when extractTitle is false", async () => {
+        const md = `---
+title: Frontmatter Title
+---
+
+# Heading Title
+
+Body content`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown",
+          { extractTitle: false }
+        );
+
+        expect(result.title).toEqual("Frontmatter Title");
+        expect(result.text).toContain("# Heading Title");
       });
 
       it("should handle markdown without frontmatter", async () => {
@@ -439,7 +516,7 @@ title: Only Frontmatter
         expect(result.text).toContain("```yaml");
         expect(result.text).toContain("title: Only Frontmatter");
         expect(result.text).toContain("```");
-        expect(result.title).toEqual("");
+        expect(result.title).toEqual("Only Frontmatter");
       });
 
       it("should not convert incomplete frontmatter", async () => {
