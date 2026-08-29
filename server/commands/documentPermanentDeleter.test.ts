@@ -215,4 +215,43 @@ describe("documentPermanentDeleter", () => {
       })
     ).toEqual(1);
   });
+
+  it("should not touch documents restored since they were read", async () => {
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: new Date(),
+    });
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
+    document.text = `![text](${attachment.redirectUrl})`;
+    await document.save();
+
+    // Restore in the database only, leaving the in-memory record as the caller
+    // read it. Stands in for a restore that a replica has not yet caught up to.
+    await Document.unscoped().update(
+      { deletedAt: null },
+      { where: { id: document.id }, paranoid: false }
+    );
+
+    const countDeletedDoc = await documentPermanentDeleter([document]);
+    expect(countDeletedDoc).toEqual(0);
+    expect(schedule).not.toHaveBeenCalled();
+    expect(
+      await Attachment.count({
+        where: {
+          teamId: document.teamId,
+        },
+      })
+    ).toEqual(1);
+    expect(
+      await Document.unscoped().count({
+        where: {
+          teamId: document.teamId,
+        },
+        paranoid: false,
+      })
+    ).toEqual(1);
+  });
 });

@@ -17,6 +17,29 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     );
   }
 
+  if (documents.length === 0) {
+    return 0;
+  }
+
+  // Re-check deletedAt on the primary to exclude documents that were restored
+  // between the caller's query and now. The caller may have read its candidates
+  // from a read replica, so this has to happen before anything irreversible:
+  // scheduling an attachment for deletion, or clearing parentDocumentId and
+  // detaching the children of a restored parent.
+  const stillDeleted = await Document.unscoped().findAll({
+    attributes: ["id"],
+    where: {
+      id: documents.map((document) => document.id),
+      deletedAt: { [Op.ne]: null },
+    },
+    paranoid: false,
+  });
+  const stillDeletedIds = new Set(stillDeleted.map((document) => document.id));
+  const deletedDocuments = documents.filter((document) =>
+    stillDeletedIds.has(document.id)
+  );
+  const deletedIds = deletedDocuments.map((document) => document.id);
+
   const query = `
     SELECT COUNT(id)
     FROM documents
@@ -25,7 +48,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     "id" != :documentId
   `;
 
-  for (const document of documents) {
+  for (const document of deletedDocuments) {
     // Find any attachments that are referenced in the text content
     const attachmentIdsInText = ProsemirrorHelper.parseAttachmentIds(
       DocumentHelper.toProsemirror(document)
@@ -76,21 +99,6 @@ export default async function documentPermanentDeleter(documents: Document[]) {
       })
     );
   }
-
-  const documentIds = documents.map((document) => document.id);
-
-  // Re-check deletedAt in the database to exclude documents that were restored
-  // between the caller's query and now. Otherwise the parentDocumentId clear
-  // below would detach children of a restored parent, breaking the hierarchy.
-  const stillDeleted = await Document.unscoped().findAll({
-    attributes: ["id"],
-    where: {
-      id: documentIds,
-      deletedAt: { [Op.ne]: null },
-    },
-    paranoid: false,
-  });
-  const deletedIds = stillDeleted.map((document) => document.id);
 
   for (const batch of chunk(deletedIds, 100)) {
     // Unscoped so that drafts and templates are detached too, otherwise the
