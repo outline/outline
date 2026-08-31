@@ -22,10 +22,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
   }
 
   // Re-check deletedAt on the primary to exclude documents that were restored
-  // between the caller's query and now. The caller may have read its candidates
-  // from a read replica, so this has to happen before anything irreversible:
-  // scheduling an attachment for deletion, or clearing parentDocumentId and
-  // detaching the children of a restored parent.
+  // between the caller's query and now.
   const stillDeleted = await Document.unscoped().findAll({
     attributes: ["id"],
     where: {
