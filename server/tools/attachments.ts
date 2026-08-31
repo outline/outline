@@ -147,7 +147,9 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               };
 
               const formArgs = Object.entries(form)
-                .map(([k, v]) => `--form-string '${k}=${v}'`)
+                .map(
+                  ([k, v]) => `--form-string ${quoteShellArgument(`${k}=${v}`)}`
+                )
                 .join(" ");
               const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
 
@@ -170,4 +172,8 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
       )
     );
   }
+}
+
+function quoteShellArgument(value: string) {
+  return `'${value.replaceAll("'", "'\\''")}'`;
 }
