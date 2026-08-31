@@ -175,5 +175,5 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
 }
 
 function quoteShellArgument(value: string) {
-  return `'${value.replaceAll("'", "'\\''")}'`;
+  return `'${value.replace(/'/g, "'\\''")}'`;
 }
