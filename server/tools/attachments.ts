@@ -147,7 +147,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               };
 
               const formArgs = Object.entries(form)
-                .map(([k, v]) => `-F '${k}=${v}'`)
+                .map(([k, v]) => `--form-string '${k}=${v}'`)
                 .join(" ");
               const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
 
