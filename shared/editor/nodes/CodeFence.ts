@@ -445,7 +445,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             const tallBlocks = findTallBlocks(state.doc);
             return build(state.doc, tallBlocks, new Set(tallBlocks));
           },
-          apply: (tr, prev, _oldState, newState) => {
+          apply: (tr, prev, oldState, newState) => {
             const meta = tr.getMeta(collapseKey);
 
             // Toggle collapsed state
@@ -479,7 +479,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               const isRemote = isRemoteTransaction(tr, newState);
               const previousBlockDecorations: Decoration[] = [];
               for (const pos of prev.tallBlocks) {
-                const node = _oldState.doc.nodeAt(pos);
+                const node = oldState.doc.nodeAt(pos);
                 if (!node || !isCode(node)) {
                   continue;
                 }
@@ -500,7 +500,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               const mappedTallBlocks = new Set<number>();
               const mappedCollapsedBlocks = new Set<number>();
               const previousBlocks = DecorationSet.create(
-                _oldState.doc,
+                oldState.doc,
                 previousBlockDecorations
               );
               for (const decoration of mapDecorations(
