@@ -318,7 +318,7 @@
     "@types/markdown-it-emoji": "^3.0.1",
     "@types/mime-types": "^3.0.1",
     "@types/natural-sort": "^0.0.24",
-    "@types/node": "20.19.39",
+    "@types/node": "20.19.43",
     "@types/node-fetch": "^2.6.13",
     "@types/nodemailer": "^6.4.23",
     "@types/passport-oauth2": "^1.8.0",
