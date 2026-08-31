@@ -7,6 +7,7 @@ import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import { getLangFor } from "@shared/utils/language";
 import { DocumentPreference } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
@@ -38,7 +39,6 @@ import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 import { first } from "es-toolkit/compat";
-import { getLangFor } from "~/utils/language";
 import useShare from "@shared/hooks/useShare";
 import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
 
