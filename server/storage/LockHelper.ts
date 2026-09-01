@@ -37,4 +37,33 @@ export class LockHelper {
       transaction,
     });
   }
+
+  /**
+   * Attempts to acquire a transaction advisory lock without waiting.
+   *
+   * @param sequelize the database connection.
+   * @param name the lock name.
+   * @param transaction the lock transaction.
+   * @returns true if the lock was acquired.
+   */
+  public static async tryAcquire(
+    sequelize: Sequelize,
+    name: string,
+    transaction?: Transaction | null
+  ): Promise<boolean> {
+    if (!transaction) {
+      return true;
+    }
+
+    const rows = await sequelize.query<{ locked: boolean }>(
+      "SELECT pg_try_advisory_xact_lock(hashtext(:name)) AS locked",
+      {
+        replacements: { name },
+        type: QueryTypes.SELECT,
+        transaction,
+      }
+    );
+
+    return rows[0]?.locked ?? false;
+  }
 }

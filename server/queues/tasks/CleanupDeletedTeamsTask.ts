@@ -27,9 +27,14 @@ export default class CleanupDeletedTeamsTask extends CronTask {
     });
 
     for (const team of teams) {
-      await new CleanupDeletedTeamTask().schedule({
-        teamId: team.id,
-      });
+      await new CleanupDeletedTeamTask().schedule(
+        {
+          teamId: team.id,
+        },
+        {
+          jobId: `cleanup-team:${team.id}`,
+        }
+      );
     }
   }
 

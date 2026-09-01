@@ -31,7 +31,12 @@ export default class CleanupDeletedDocumentsTask extends CronTask {
 
   public get options() {
     return {
-      attempts: 1,
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        // Wait until the active partition window has ended before retrying.
+        delay: 15 * Minute.ms,
+      },
       priority: TaskPriority.Background,
     };
   }
