@@ -1,4 +1,8 @@
-import { DocumentPermission, ExportContentType } from "@shared/types";
+import {
+  DocumentPermission,
+  ExportContentType,
+  TeamPreference,
+} from "@shared/types";
 import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -7,7 +11,9 @@ import {
   buildAttachment,
   buildCollection,
   buildDocument,
+  buildTeam,
   buildUser,
+  buildViewer,
 } from "@server/test/factories";
 import { getTestServer, readZipResponse } from "@server/test/support";
 
@@ -530,5 +536,51 @@ describe("#revisions.export", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should not allow viewer to export when disabled for team", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.ViewersCanExport, false);
+    await team.save();
+
+    const author = await buildUser({ teamId: team.id });
+    const viewer = await buildViewer({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: author.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: author }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", viewer, {
+      body: {
+        id: revision.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow viewer to export when enabled for team", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.ViewersCanExport, true);
+    await team.save();
+
+    const author = await buildUser({ teamId: team.id });
+    const viewer = await buildViewer({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: author.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: author }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", viewer, {
+      body: {
+        id: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
   });
 });
