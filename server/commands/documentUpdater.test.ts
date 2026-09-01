@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import * as Y from "yjs";
-import { TextEditMode } from "@shared/types";
+import { TextEditMode, type ProsemirrorData } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { Event } from "@server/models";
 import { parser } from "@server/editor";
@@ -1391,6 +1391,130 @@ describe("documentUpdater", () => {
 
       // Second paragraph with comment mark preserved exactly
       expect(blockquote.content![1]).toEqual(secondPara);
+    });
+
+    it("should preserve a blockquote containing a table when patching a later link", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+      const fillerParagraphs: ProsemirrorData[] = Array.from(
+        { length: 242 },
+        (_, index) => ({
+          type: "paragraph",
+          content: [{ type: "text", text: `Quoted paragraph ${index + 1}` }],
+        })
+      );
+
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Before quote" }],
+          },
+          {
+            type: "blockquote",
+            content: [
+              {
+                type: "heading",
+                attrs: { level: 1 },
+                content: [{ type: "text", text: "Quoted source" }],
+              },
+              {
+                type: "table",
+                content: [
+                  {
+                    type: "tr",
+                    content: [
+                      {
+                        type: "th",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Key" }],
+                          },
+                        ],
+                      },
+                      {
+                        type: "th",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Value" }],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    type: "tr",
+                    content: [
+                      {
+                        type: "td",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Alpha" }],
+                          },
+                        ],
+                      },
+                      {
+                        type: "td",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Keep this row" }],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ...fillerParagraphs,
+              {
+                type: "paragraph",
+                content: [
+                  { type: "text", text: "See " },
+                  {
+                    type: "text",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "https://example.com/reference" },
+                      },
+                    ],
+                    text: "Reference",
+                  },
+                  { type: "text", text: "." },
+                ],
+              },
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Tail sentinel." }],
+              },
+            ],
+          },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "After quote" }],
+          },
+        ],
+      };
+      await document.save();
+
+      const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+      const expected = structuredClone(beforeDoc);
+      expected.content[1].content[244].content[1].marks[0].attrs.href =
+        "https://example.com/reference#h-target";
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "> See [Reference](https://example.com/reference#h-target).",
+        TextEditMode.Patch,
+        "> See [Reference](https://example.com/reference)."
+      );
+
+      expect(result.content).toEqual(expected);
     });
 
     it("should always patch the first occurrence when findText appears multiple times", async () => {
