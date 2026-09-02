@@ -109,13 +109,16 @@ export default class ExportJSONTask extends ExportTask {
               return;
             }
 
-            const attachments = includeAttachments
+            const attachmentIds = includeAttachments
+              ? ProsemirrorHelper.parseAttachmentIds(
+                  DocumentHelper.toProsemirror(document)
+                )
+              : [];
+            const attachments = attachmentIds.length
               ? await Attachment.findAll({
                   where: {
                     teamId: document.teamId,
-                    id: ProsemirrorHelper.parseAttachmentIds(
-                      DocumentHelper.toProsemirror(document)
-                    ),
+                    id: attachmentIds,
                   },
                   transaction,
                 })
@@ -158,14 +161,17 @@ export default class ExportJSONTask extends ExportTask {
       }
     };
 
-    const collectionAttachments = includeAttachments
+    const collectionAttachmentIds = includeAttachments
+      ? ProsemirrorHelper.parseAttachmentIds(
+          DocumentHelper.toProsemirror(collection)
+        )
+      : [];
+    const collectionAttachments = collectionAttachmentIds.length
       ? await sequelizeReadOnly.transaction((transaction) =>
           Attachment.findAll({
             where: {
               teamId: collection.teamId,
-              id: ProsemirrorHelper.parseAttachmentIds(
-                DocumentHelper.toProsemirror(collection)
-              ),
+              id: collectionAttachmentIds,
             },
             transaction,
           })
