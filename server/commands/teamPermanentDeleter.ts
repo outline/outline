@@ -21,7 +21,8 @@ import {
 } from "@server/models";
 import type Model from "@server/models/base/Model";
 import { sequelize } from "@server/storage/database";
-import { LockHelper } from "@server/storage/LockHelper";
+import { MutexLock } from "@server/utils/MutexLock";
+import { Minute } from "@shared/utils/time";
 
 /**
  * Permanently deletes a team and all related data from the database. Note that this does not happen
@@ -37,11 +38,32 @@ async function teamPermanentDeleter(team: Team) {
     );
   }
 
+  const teamId = team.id;
+
+  // A non-blocking lock so that concurrent runs for the same team skip rather
+  // than repeat the batched deletes below.
+  const ran = await MutexLock.tryUsing(
+    `teamPermanentDeleter:${teamId}`,
+    5 * Minute.ms,
+    async () => {
+      await destroyTeamData(team);
+      return true;
+    }
+  );
+  if (!ran) {
+    Logger.info(
+      "commands",
+      `Team ${teamId} is already being destroyed, skipping`
+    );
+  }
+}
+
+async function destroyTeamData(team: Team) {
+  const teamId = team.id;
   Logger.info(
     "commands",
-    `Permanently destroying team ${team.name} (${team.id})`
+    `Permanently destroying team ${team.name} (${teamId})`
   );
-  const teamId = team.id;
 
   // Attachments are destroyed as individual instances (rather than a bulk
   // delete) so the BeforeDestroy hook runs and removes the associated file from
@@ -119,19 +141,6 @@ async function teamPermanentDeleter(team: Team) {
 
   // Destory team-relation models
   await sequelize.transaction(async (transaction) => {
-    const acquired = await LockHelper.tryAcquire(
-      sequelize,
-      `teamPermanentDeleter:${teamId}`,
-      transaction
-    );
-    if (!acquired) {
-      Logger.info(
-        "commands",
-        `Team ${teamId} is already being destroyed, skipping`
-      );
-      return;
-    }
-
     await AuthenticationProvider.destroy({
       where: {
         teamId,

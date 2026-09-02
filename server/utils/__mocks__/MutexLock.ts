@@ -13,6 +13,28 @@ export class MutexLock {
   });
 
   /**
+   * Runs the routine without a lock.
+   */
+  public static using = vi.fn(
+    (
+      _resource: string,
+      _timeout: number,
+      routine: (signal: never) => unknown
+    ) => routine(undefined as never)
+  );
+
+  /**
+   * Runs the routine without a lock.
+   */
+  public static tryUsing = vi.fn(
+    (
+      _resource: string,
+      _timeout: number,
+      routine: (signal: never) => unknown
+    ) => routine(undefined as never)
+  );
+
+  /**
    * Releases a mock lock.
    */
   public static release = vi.fn().mockResolvedValue(true);
