@@ -12,6 +12,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
+import { sequelizeReadOnly } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import ExportTask from "./ExportTask";
@@ -60,10 +61,35 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     pathMap: Map<string, string>;
   }) {
     Logger.debug("task", `Adding document to archive`, { documentId });
-    const document = await Document.findByPk(documentId);
-    if (!document) {
+    const result = await sequelizeReadOnly.transaction(async (transaction) => {
+      const document = await Document.findByPk(documentId, { transaction });
+      if (!document) {
+        return;
+      }
+
+      const attachmentIds = includeAttachments
+        ? ProsemirrorHelper.parseAttachmentIds(
+            DocumentHelper.toProsemirror(document)
+          )
+        : [];
+      const attachments = attachmentIds.length
+        ? await Attachment.findAll({
+            where: {
+              teamId: document.teamId,
+              id: attachmentIds,
+            },
+            transaction,
+          })
+        : [];
+
+      return { attachments, document };
+    });
+
+    if (!result) {
       return;
     }
+
+    const { attachments, document } = result;
 
     let text =
       format === FileOperationFormat.HTMLZip
@@ -78,20 +104,6 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       ? path.join(pathInZip, TextBundleHelper.textFileName)
       : pathInZip;
     const usedAssetNames = new Set<string>();
-
-    const attachmentIds = includeAttachments
-      ? ProsemirrorHelper.parseAttachmentIds(
-          DocumentHelper.toProsemirror(document)
-        )
-      : [];
-    const attachments = attachmentIds.length
-      ? await Attachment.findAll({
-          where: {
-            teamId: document.teamId,
-            id: attachmentIds,
-          },
-        })
-      : [];
 
     // Add any referenced attachments to the zip file and replace the
     // reference in the document with the path to the attachment in the zip
