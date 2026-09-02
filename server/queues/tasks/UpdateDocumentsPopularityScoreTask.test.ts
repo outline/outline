@@ -21,7 +21,7 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
 
   beforeEach(() => {
     task = new UpdateDocumentsPopularityScoreTask();
-    vi.spyOn(Date.prototype, "getHours").mockReturnValue(0);
+    vi.spyOn(Date.prototype, "getHours").mockReturnValue(6);
 
     // Ensure calculation query sees data created in tests by redirecting to main sequelize instance.
     // We only mock if the instances are different to avoid infinite recursion.
@@ -303,7 +303,7 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
     expect(Number(untouched?.popularityScore)).toBe(0);
 
     const onInterval = new Date();
-    onInterval.setHours(0, 0, 0, 0);
+    onInterval.setHours(6, 0, 0, 0);
 
     await task.perform({ ...props, scheduledAt: onInterval.getTime() });
 
