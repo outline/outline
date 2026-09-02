@@ -31,7 +31,7 @@ const ACTIVITY_WEIGHTS = {
 /**
  * Batch size for processing updates - kept small to minimize lock contention
  */
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 50;
 
 /**
  * Delay between batches in milliseconds to reduce sustained database pressure
@@ -50,6 +50,13 @@ const WORKING_TABLE_PREFIX = "popularity_score_working";
  */
 const SPREAD_HOURS = 1;
 
+/**
+ * Hour offset applied to the update interval so runs do not land on the same
+ * hour as the daily cron tasks, such as RollupDocumentInsightsTask, which are
+ * typically scheduled at midnight.
+ */
+const UPDATE_HOUR_OFFSET = 6;
+
 interface DocumentScore {
   documentId: string;
   score: number;
@@ -66,7 +73,11 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     // spread over several hours, so this is based on when the run was
     // scheduled rather than when this partition happens to execute.
     const scheduledHour = new Date(scheduledAt ?? Date.now()).getHours();
-    if (scheduledHour % env.POPULARITY_UPDATE_INTERVAL_HOURS !== 0) {
+    if (
+      (scheduledHour + UPDATE_HOUR_OFFSET) %
+        env.POPULARITY_UPDATE_INTERVAL_HOURS !==
+      0
+    ) {
       Logger.debug(
         "task",
         `Skipping popularity score update, will run at next ${env.POPULARITY_UPDATE_INTERVAL_HOURS}-hour interval (scheduled hour: ${scheduledHour})`
