@@ -2089,10 +2089,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^8.4.1":
-  version: 8.4.1
-  resolution: "@faker-js/faker@npm:8.4.1"
-  checksum: 10c0/4f2aecddcfdc2cc8b50b2d15d1e37302a7c7a5bbd184ae910a9d271bc11248533ca74dcdd4a9ccbe20410553e7af0f6a4d334c5b955635e09a32ddf4a64942d4
+"@faker-js/faker@npm:^10.5.0":
+  version: 10.5.0
+  resolution: "@faker-js/faker@npm:10.5.0"
+  checksum: 10c0/2de3c7b8f41592d52cefc3ab4c99536656249bca78d5ad184a3b7ac43ecc9d946056cef2c4d37060373ef06ad992d82530de08479fabe16fdbe77b911d842446
   languageName: node
   linkType: hard
 
@@ -5883,17 +5883,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/core@npm:^3.31.1":
-  version: 3.31.1
-  resolution: "@smithy/core@npm:3.31.1"
-  dependencies:
-    "@smithy/types": "npm:^4.16.1"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/b953c792dea2c13249b58c1799e4d6aaf21eb1a61e203b83e8e3a9156bebe14ca0585f0ca1ffdf65a193294dddff92a06fbe5c3fbd63ff0c174c88130b47a128
-  languageName: node
-  linkType: hard
-
-"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3":
+"@smithy/core@npm:^3.31.1, @smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3":
   version: 3.33.3
   resolution: "@smithy/core@npm:3.33.3"
   dependencies:
@@ -5947,16 +5937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/types@npm:^4.16.1":
-  version: 4.16.1
-  resolution: "@smithy/types@npm:4.16.1"
-  dependencies:
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/e024d9d148deca7bd21d032a9316db109bbe7cf256ffbb8d3981655b9f4f7695c08ec9b87f5a8cf1442e783ba26cb27e4f09603c5bfa3ba1e526c41b1b3e94d2
-  languageName: node
-  linkType: hard
-
-"@smithy/types@npm:^4.17.2":
+"@smithy/types@npm:^4.16.1, @smithy/types@npm:^4.17.2":
   version: 4.17.2
   resolution: "@smithy/types@npm:4.17.2"
   dependencies:
@@ -10167,9 +10148,9 @@ __metadata:
   linkType: hard
 
 "deepmerge-ts@npm:^8.0.1":
-  version: 8.0.1
-  resolution: "deepmerge-ts@npm:8.0.1"
-  checksum: 10c0/5d41e24ac88f652698179f1ddad02269ac7f91af216a359e528bf35d60fa660046d82001a500a1fa984fc895a8c505249f348a414215da88722fca90108ac083
+  version: 8.0.2
+  resolution: "deepmerge-ts@npm:8.0.2"
+  checksum: 10c0/2be1628a305b8621e4e1abec9ec397aba9745d3c50da714a12e1ac60dc3eb32ee4ea8e1be4c240baf18bbc26f6c6c3e75a4492cfa74cebef70321e5a4ad4f1c2
   languageName: node
   linkType: hard
 
@@ -11266,9 +11247,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.1":
-  version: 3.1.5
-  resolution: "fast-uri@npm:3.1.5"
-  checksum: 10c0/2bf60eb800dd610c65e17be436425dcb21c92aff3a87d442a8bccab0b7b071e88cf1a5d7d1ea946370b937e6fc0375c405c0296c10587e57de4f78be4646d1d0
+  version: 3.1.6
+  resolution: "fast-uri@npm:3.1.6"
+  checksum: 10c0/77fa4f966f7d2cf83c34af2d3eb88882872fe90634f27a6bd309551db65377d3ca55616467c7cb4dcc57e33523d149e2fec1952d51cc2f00bfce68a66c3711ea
   languageName: node
   linkType: hard
 
@@ -15539,7 +15520,7 @@ __metadata:
     "@dnd-kit/sortable": "npm:^7.0.2"
     "@dotenvx/dotenvx": "npm:^1.75.1"
     "@emoji-mart/data": "npm:^1.2.1"
-    "@faker-js/faker": "npm:^8.4.1"
+    "@faker-js/faker": "npm:^10.5.0"
     "@fast-csv/parse": "npm:^5.0.7"
     "@firecrawl/pdf-inspector": "npm:^1.11.2"
     "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
@@ -21321,7 +21302,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^7.5.13":
+"ws@npm:^7.5.13, ws@npm:^7.5.5":
   version: 7.5.13
   resolution: "ws@npm:7.5.13"
   peerDependencies:
@@ -21333,21 +21314,6 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/e223726bbda5768ed58ec9252d04eda7018ef380ea122bb94e595a4d7a02b5baeb423933936576fddb8fa51b642375f7ae814bf0f6f5d9a3ce290566578a8c5a
-  languageName: node
-  linkType: hard
-
-"ws@npm:^7.5.5":
-  version: 7.5.11
-  resolution: "ws@npm:7.5.11"
-  peerDependencies:
-    bufferutil: ^4.0.1
-    utf-8-validate: ^5.0.2
-  peerDependenciesMeta:
-    bufferutil:
-      optional: true
-    utf-8-validate:
-      optional: true
-  checksum: 10c0/7972670b676fb1ccba73b0899ca3c2e04e8c2075629c2614cced7f556536f96a672bbf4619fc5a06c8b8720bb839a47ca88c69c95dc14c9c61a99fbecba1c866
   languageName: node
   linkType: hard
 

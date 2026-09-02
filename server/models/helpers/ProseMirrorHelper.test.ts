@@ -157,7 +157,7 @@ describe("ProsemirrorHelper", () => {
       };
 
       await user.update({
-        name: faker.name.firstName(),
+        name: faker.person.firstName(),
       });
 
       const mentionedParagraph: DeepPartial<ProsemirrorData> = {
@@ -215,8 +215,8 @@ describe("ProsemirrorHelper", () => {
         modelId: secondUser.id,
       };
 
-      const firstNewName = faker.name.firstName();
-      const secondNewName = faker.name.firstName();
+      const firstNewName = faker.person.firstName();
+      const secondNewName = faker.person.firstName();
 
       await firstUser.update({
         name: firstNewName,
