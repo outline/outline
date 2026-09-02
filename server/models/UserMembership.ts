@@ -1,5 +1,6 @@
+import fractionalIndex from "fractional-index";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { Op, type SaveOptions, type FindOptions } from "sequelize";
+import { Op, Sequelize, type SaveOptions, type FindOptions } from "sequelize";
 import type { WhereOptions } from "sequelize";
 import {
   Column,
@@ -17,8 +18,7 @@ import {
   BeforeDestroy,
   BeforeUpdate,
 } from "sequelize-typescript";
-import type { DocumentPermission } from "@shared/types";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
 import type { APIContext } from "@server/types";
@@ -197,6 +197,81 @@ class UserMembership extends IdModel<
     );
 
     return rootMemberships.filter(Boolean) as UserMembership[];
+  }
+
+  /**
+   * Find or create the membership that orders a personal document in its
+   * owner's sidebar. Access is granted by the document's personalOwnerId, so
+   * this record carries sort position rather than permission – a missing one
+   * sorts the document last, it does not hide it.
+   *
+   * @param document The personal document to create the membership for.
+   * @param userId The owner of the personal space the document lives in.
+   * @param ctx The hook context the document was saved with.
+   * @returns A promise that resolves to the membership.
+   */
+  static async findOrCreateForPersonalDocument(
+    document: Document,
+    userId: string,
+    ctx: HookContext
+  ): Promise<UserMembership> {
+    const { transaction } = ctx;
+
+    const existing = await this.findOne({
+      where: {
+        documentId: document.id,
+        userId,
+        sourceId: null,
+      },
+      transaction,
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    // Scoped to the owner's personal documents so that a new one sorts after
+    // the last of those, rather than after the last document shared with them.
+    const last = await this.findOne({
+      where: {
+        userId,
+        index: {
+          [Op.ne]: null,
+        },
+      },
+      include: [
+        {
+          model: Document,
+          as: "document",
+          required: true,
+          attributes: [],
+          where: { personalOwnerId: userId },
+        },
+      ],
+      attributes: ["id", "index", "updatedAt"],
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        Sequelize.literal('"user_permission"."index" collate "C" DESC'),
+        ["updatedAt", "ASC"],
+      ],
+      transaction,
+    });
+
+    return this.create(
+      {
+        documentId: document.id,
+        userId,
+        index: fractionalIndex(last?.index ?? null, null),
+        permission: DocumentPermission.Admin,
+        // the record belongs to the owner's own sidebar, so they own it even
+        // when somebody else's action created it
+        createdById: userId,
+      },
+      // Only the context is carried over. The save options of the document
+      // that triggered this include its own `fields`, which would restrict
+      // which columns of this record are written.
+      { auth: ctx.auth, ip: ctx.ip, transaction }
+    );
   }
 
   // hooks

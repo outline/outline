@@ -23,10 +23,9 @@ import {
   getPublicShareUrlForCollection,
   getPublicShareUrlForDocument,
   pathToUrl,
+  resolveUserId,
   withTracing,
 } from "./util";
-
-const SELF_TOKENS = new Set(["self", "me", "current_user"]);
 
 /**
  * Extracts a resource identifier from a value that may be a URL or a plain ID.
@@ -184,9 +183,11 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           }
 
           case "user": {
-            const user = SELF_TOKENS.has(id.toLowerCase())
-              ? actor
-              : await User.findByPk(id, { rejectOnEmpty: true });
+            const userId = resolveUserId(id, actor.id) ?? id;
+            const user =
+              userId === actor.id
+                ? actor
+                : await User.findByPk(userId, { rejectOnEmpty: true });
 
             authorize(actor, "read", user);
 

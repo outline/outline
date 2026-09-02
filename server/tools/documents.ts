@@ -4,6 +4,7 @@ import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
+  authorizePersonalOwner,
 } from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
 import documentRestorer from "@server/commands/documentRestorer";
@@ -33,6 +34,8 @@ import {
   optionalString,
   pathToUrl,
   withTracing,
+  resolveUserId,
+  assertDocumentLocation,
 } from "./util";
 import { ValidationError } from "@server/errors";
 import { TextEditMode } from "@shared/types";
@@ -368,7 +371,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Create document",
         description:
-          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
+          'Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, parentDocumentId to nest it under an existing document, or personalOwnerId set to "me" to create a personal document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template\'s content is used unless text is also provided.',
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -398,6 +401,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
           parentDocumentId: optionalString().describe(
             "The parent document ID to nest this document under."
           ),
+          personalOwnerId: optionalString().describe(
+            'Pass "me" to create the document at the top level of your own personal space, outside any collection, visible only to you and the people you share it with. Cannot be combined with collectionId or parentDocumentId, which each place the document somewhere else. To create a personal document nested under another, pass only its parentDocumentId: a document nested under a personal document is personal too, and inherits who it is shared with.'
+          ),
           templateId: optionalString().describe(
             "The ID of a template to pre-fill the new document from. The template's title, content, icon, and color are used unless overridden by the corresponding parameters."
           ),
@@ -426,11 +432,21 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const { collectionId, parentDocumentId, templateId } = input;
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
+          const personalOwnerId = resolveUserId(input.personalOwnerId, user.id);
 
-          const { collection } = await authorizeDocumentCreate(ctx, {
-            collectionId,
-            parentDocumentId,
-          });
+          assertDocumentLocation({ ...input, personalOwnerId });
+          if (personalOwnerId && input.publish === false) {
+            throw ValidationError(
+              "publish is required when personalOwnerId is set"
+            );
+          }
+
+          const { collection, personalOwnerId: resolvedPersonalOwnerId } =
+            await authorizeDocumentCreate(ctx, {
+              collectionId,
+              parentDocumentId,
+              personalOwnerId,
+            });
 
           let template: Template | null | undefined;
           if (templateId) {
@@ -474,6 +490,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     color: input.color,
                     parentDocumentId,
                     publish: input.publish !== false,
+                    personalOwnerId: resolvedPersonalOwnerId,
                     collectionId: collection?.id,
                     template,
                     fullWidth: input.fullWidth,
@@ -524,6 +541,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
           parentDocumentId: optionalString().describe(
             "The ID of the document to nest this document under. The document will be moved to the parent's collection."
           ),
+          personalOwnerId: optionalString().describe(
+            'Pass "me" to move the document to the top level of your own personal space, outside any collection. Cannot be combined with collectionId or parentDocumentId, which each move it somewhere else. To move it under an existing personal document, pass only that document\'s parentDocumentId.'
+          ),
           index: z
             .number()
             .int()
@@ -552,8 +572,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
             authorize(user, "move", document);
 
             let collectionId = input.collectionId;
+            let personalOwnerId = resolveUserId(input.personalOwnerId, user.id);
 
-            if (input.parentDocumentId) {
+            if (personalOwnerId) {
+              assertDocumentLocation({ ...input, personalOwnerId });
+              authorizePersonalOwner(ctx, personalOwnerId);
+              collectionId = undefined;
+            } else if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
                 throw ValidationError("Cannot nest a document inside itself");
               }
@@ -565,7 +590,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
               });
 
               authorize(user, "update", parent);
-              collectionId = parent.collectionId!;
+              // A nested document inherits the location of its parent, so a
+              // document moved under a personal document becomes personal too.
+              collectionId = parent.collectionId ?? undefined;
+              personalOwnerId = parent.personalOwnerId ?? null;
 
               if (!parent.publishedAt) {
                 throw ValidationError("Cannot move document inside a draft");
@@ -587,6 +615,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
+              personalOwnerId,
               index: input.index,
             });
 
@@ -665,6 +694,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to true to publish a draft document, or false to convert a published document back to a draft."
             ),
+          personalOwnerId: optionalString().describe(
+            'When publishing a draft, pass "me" to publish it into your own personal space, outside any collection, visible only to you and the people you share it with. Cannot be combined with collectionId.'
+          ),
           fullWidth: z
             .boolean()
             .optional()
@@ -695,8 +727,25 @@ export function documentTools(server: McpServer, scopes: string[]) {
           } else {
             authorize(user, "update", document);
 
+            const personalOwnerId = resolveUserId(
+              input.personalOwnerId,
+              user.id
+            );
+
+            assertDocumentLocation({ ...input, personalOwnerId });
+            if (personalOwnerId && !input.publish) {
+              throw ValidationError(
+                "publish is required when personalOwnerId is set"
+              );
+            }
+
+            let destination;
+
             if (input.publish) {
-              await authorizeDocumentPublish(ctx, document, input.collectionId);
+              destination = await authorizeDocumentPublish(ctx, document, {
+                collectionId: input.collectionId,
+                personalOwnerId,
+              });
             }
 
             const { revisionCount } = document;
@@ -704,6 +753,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             updated = await documentUpdater(ctx, {
               document,
               ...input,
+              personalOwnerId: destination?.personalOwnerId,
             });
 
             // Every save increments revisionCount, so an unchanged count means

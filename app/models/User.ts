@@ -202,25 +202,25 @@ class User extends ParanoidModel implements Searchable {
   }
 
   /**
-   * Returns the direct memberships that this user has to documents. Documents that the
-   * user already has access to through a collection, archived, and trashed documents are not included.
+   * Returns the direct memberships that this user has to documents shared with
+   * them. Documents that the user already has access to through a collection,
+   * their own private documents, archived, and trashed documents are not included.
    *
    * @returns A list of user memberships
    */
   @computed
   get documentMemberships(): UserMembership[] {
-    const { userMemberships, documents, policies } = this.store.rootStore;
-    return userMemberships.orderedData
-      .filter(
-        (m) => m.userId === this.id && m.sourceId === null && m.documentId
-      )
-      .filter((m) => {
-        const document = documents.get(m.documentId!);
-        const policy = document?.collectionId
-          ? policies.get(document.collectionId)
-          : undefined;
-        return !policy?.abilities?.readDocument && !!document?.isActive;
-      });
+    const { documents, policies } = this.store.rootStore;
+    return this.directDocumentMemberships.filter((m) => {
+      const document = documents.get(m.documentId!);
+      if (!document?.isActive || document.isPersonalToMe) {
+        return false;
+      }
+      const policy = document.collectionId
+        ? policies.get(document.collectionId)
+        : undefined;
+      return !policy?.abilities?.readDocument;
+    });
   }
 
   @computed
@@ -310,6 +310,14 @@ class User extends ParanoidModel implements Searchable {
   getMembership(document: Document) {
     return this.store.rootStore.userMemberships.orderedData.find(
       (m) => m.documentId === document.id && m.userId === this.id
+    );
+  }
+
+  /** The memberships this user holds directly on a document, rather than through a parent. */
+  @computed
+  private get directDocumentMemberships(): UserMembership[] {
+    return this.store.rootStore.userMemberships.orderedData.filter(
+      (m) => m.userId === this.id && m.sourceId === null && m.documentId
     );
   }
 }

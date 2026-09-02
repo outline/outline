@@ -353,6 +353,8 @@ export enum SidebarSection {
   SharedWithMe = "shared",
   /** The collections section. */
   Collections = "collections",
+  /** The user's own personal documents section. */
+  Personal = "personal",
 }
 
 export enum UserPreference {
@@ -505,6 +507,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** Whether users can create private documents. */
+  PersonalDocs = "personalDocs",
 }
 
 export type TeamPreferences = {
@@ -522,11 +526,14 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.PersonalDocs]?: boolean;
 };
 
 export enum NavigationNodeType {
   Collection = "collection",
   Document = "document",
+  /** The root of the acting user's own personal documents. */
+  Personal = "personal",
   UserMembership = "userMembership",
   GroupMembership = "groupMembership",
 }

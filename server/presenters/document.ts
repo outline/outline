@@ -87,6 +87,7 @@ async function presentDocument(
     fullWidth: document.fullWidth,
     preferences: document.preferences,
     collectionId: undefined,
+    personalOwnerId: undefined,
     parentDocumentId: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: undefined,
@@ -109,6 +110,7 @@ async function presentDocument(
     res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
+    res.personalOwnerId = document.personalOwnerId;
     res.parentDocumentId = document.parentDocumentId;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
