@@ -1,3 +1,4 @@
+import type { WhereOptions } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import type { Team } from "@server/models";
@@ -18,6 +19,7 @@ import {
   SearchQuery,
   Share,
 } from "@server/models";
+import type Model from "@server/models/base/Model";
 import { sequelize } from "@server/storage/database";
 import { LockHelper } from "@server/storage/LockHelper";
 
@@ -108,6 +110,13 @@ async function teamPermanentDeleter(team: Team) {
     }
   );
 
+  // The largest tables are destroyed in batches outside of a transaction so
+  // that row locks are held briefly, rather than for the whole deletion.
+  // events must be first due to db constraints
+  await destroyInBatches(Event, { teamId });
+  await destroyInBatches(Collection, { teamId });
+  await destroyInBatches(Document.unscoped(), { teamId });
+
   // Destory team-relation models
   await sequelize.transaction(async (transaction) => {
     const acquired = await LockHelper.tryAcquire(
@@ -124,28 +133,6 @@ async function teamPermanentDeleter(team: Team) {
     }
 
     await AuthenticationProvider.destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
-    // events must be first due to db constraints
-    await Event.destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
-    await Collection.destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
-    await Document.unscoped().destroy({
       where: {
         teamId,
       },
@@ -215,6 +202,35 @@ async function teamPermanentDeleter(team: Team) {
       }
     );
   });
+}
+
+/**
+ * Permanently deletes every row of a model matching the where clause, in
+ * batches of ids so that each statement is short and locks few rows.
+ */
+async function destroyInBatches(
+  model: typeof Model,
+  where: WhereOptions
+): Promise<void> {
+  await model.findAllInBatches<Model>(
+    {
+      attributes: ["id"],
+      where,
+      batchLimit: 1000,
+      paranoid: false,
+    },
+    async (rows) => {
+      if (rows.length === 0) {
+        return;
+      }
+      await model.destroy({
+        where: {
+          id: rows.map((row) => row.id),
+        },
+        force: true,
+      });
+    }
+  );
 }
 
 export default traceFunction({
