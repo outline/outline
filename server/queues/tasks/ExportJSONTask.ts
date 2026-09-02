@@ -7,6 +7,7 @@ import { Attachment, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
+import { sequelizeReadOnly } from "@server/storage/database";
 import type { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
@@ -97,26 +98,40 @@ export default class ExportJSONTask extends ExportTask {
 
     const addDocumentTree = async (nodes: NavigationNode[]) => {
       for (const node of nodes) {
-        const document = await Document.findByPk(node.id, {
-          includeState: true,
-        });
+        const result = await sequelizeReadOnly.transaction(
+          async (transaction) => {
+            const document = await Document.findByPk(node.id, {
+              includeState: true,
+              transaction,
+            });
 
-        if (!document) {
+            if (!document) {
+              return;
+            }
+
+            const attachments = includeAttachments
+              ? await Attachment.findAll({
+                  where: {
+                    teamId: document.teamId,
+                    id: ProsemirrorHelper.parseAttachmentIds(
+                      DocumentHelper.toProsemirror(document)
+                    ),
+                  },
+                  transaction,
+                })
+              : [];
+
+            return { attachments, document };
+          }
+        );
+
+        if (!result) {
           continue;
         }
 
-        const documentAttachments = includeAttachments
-          ? await Attachment.findAll({
-              where: {
-                teamId: document.teamId,
-                id: ProsemirrorHelper.parseAttachmentIds(
-                  DocumentHelper.toProsemirror(document)
-                ),
-              },
-            })
-          : [];
+        const { attachments, document } = result;
 
-        addAttachments(documentAttachments);
+        addAttachments(attachments);
 
         output.documents[document.id] = {
           id: document.id,
@@ -144,14 +159,17 @@ export default class ExportJSONTask extends ExportTask {
     };
 
     const collectionAttachments = includeAttachments
-      ? await Attachment.findAll({
-          where: {
-            teamId: collection.teamId,
-            id: ProsemirrorHelper.parseAttachmentIds(
-              DocumentHelper.toProsemirror(collection)
-            ),
-          },
-        })
+      ? await sequelizeReadOnly.transaction((transaction) =>
+          Attachment.findAll({
+            where: {
+              teamId: collection.teamId,
+              id: ProsemirrorHelper.parseAttachmentIds(
+                DocumentHelper.toProsemirror(collection)
+              ),
+            },
+            transaction,
+          })
+        )
       : [];
 
     addAttachments(collectionAttachments);
