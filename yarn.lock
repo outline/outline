@@ -2089,10 +2089,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^8.4.1":
-  version: 8.4.1
-  resolution: "@faker-js/faker@npm:8.4.1"
-  checksum: 10c0/4f2aecddcfdc2cc8b50b2d15d1e37302a7c7a5bbd184ae910a9d271bc11248533ca74dcdd4a9ccbe20410553e7af0f6a4d334c5b955635e09a32ddf4a64942d4
+"@faker-js/faker@npm:^10.5.0":
+  version: 10.5.0
+  resolution: "@faker-js/faker@npm:10.5.0"
+  checksum: 10c0/2de3c7b8f41592d52cefc3ab4c99536656249bca78d5ad184a3b7ac43ecc9d946056cef2c4d37060373ef06ad992d82530de08479fabe16fdbe77b911d842446
   languageName: node
   linkType: hard
 
@@ -15539,7 +15539,7 @@ __metadata:
     "@dnd-kit/sortable": "npm:^7.0.2"
     "@dotenvx/dotenvx": "npm:^1.75.1"
     "@emoji-mart/data": "npm:^1.2.1"
-    "@faker-js/faker": "npm:^8.4.1"
+    "@faker-js/faker": "npm:^10.5.0"
     "@fast-csv/parse": "npm:^5.0.7"
     "@firecrawl/pdf-inspector": "npm:^1.11.2"
     "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
