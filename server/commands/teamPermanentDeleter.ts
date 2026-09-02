@@ -204,15 +204,23 @@ async function teamPermanentDeleter(team: Team) {
   });
 }
 
+interface BatchDestroyable {
+  findAllInBatches: typeof Model.findAllInBatches;
+  destroy(options: {
+    where: { id: string[] };
+    force: boolean;
+  }): Promise<number>;
+}
+
 /**
  * Permanently deletes every row of a model matching the where clause, in
  * batches of ids so that each statement is short and locks few rows.
  */
 async function destroyInBatches(
-  model: typeof Model,
+  model: BatchDestroyable,
   where: WhereOptions
 ): Promise<void> {
-  await model.findAllInBatches<Model>(
+  await model.findAllInBatches<Model & { id: string }>(
     {
       attributes: ["id"],
       where,
