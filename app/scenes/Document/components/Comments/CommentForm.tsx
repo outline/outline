@@ -382,6 +382,7 @@ function CommentForm({
           )}
           <React.Suspense fallback={<div style={{ height: 24 }} />}>
             <CommentEditor
+              id={documentId}
               key={`${forceRender}`}
               ref={mergeRefs([editorRef, handleMounted])}
               defaultValue={draft}

@@ -152,6 +152,32 @@ describe("Mention serialization", () => {
       ).toBe(`[Onboarding](/doc/${modelId})`);
     });
 
+    it("serializes a document mention with an anchor as a link carrying the heading", () => {
+      expect(
+        serializeMention(
+          {
+            type: MentionType.Document,
+            label: "Onboarding \u203a First week",
+            anchorId: "h-first-week",
+          },
+          { commonMark: true }
+        )
+      ).toBe(`[Onboarding \u203a First week](/doc/${modelId}#h-first-week)`);
+    });
+
+    it("serializes a section mention as a link carrying only its heading", () => {
+      expect(
+        serializeMention(
+          {
+            type: MentionType.Document,
+            label: "First week",
+            anchorId: "h-first-week",
+          },
+          { commonMark: true }
+        )
+      ).toBe(`[First week](/doc/${modelId}#h-first-week)`);
+    });
+
     it("serializes a collection mention as an internal link", () => {
       expect(
         serializeMention(
