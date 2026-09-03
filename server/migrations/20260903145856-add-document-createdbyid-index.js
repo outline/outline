@@ -1,34 +1,26 @@
 "use strict";
 
-const indexes = [
-  ["documents", "createdById"],
-  ["documents", "lastModifiedById"],
-  ["revisions", "userId"],
-  ["events", "userId"],
-  ["notifications", "actorId"],
-  ["notifications", "userId"],
-  ["attachments", "userId"],
-  ["comments", "createdById"],
-  ["comments", "resolvedById"],
-  ["shares", "userId"],
-  ["shares", "revokedById"],
-  ["reactions", "userId"],
-  ["relationships", "userId"],
-];
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    for (const [table, column] of indexes) {
-      await queryInterface.addIndex(table, [column], {
-        concurrently: true,
-      });
-    }
+    await queryInterface.addIndex("documents", ["createdById"], {
+      concurrently: true,
+    });
+    await queryInterface.addIndex("documents", ["lastModifiedById"], {
+      concurrently: true,
+    });
+    await queryInterface.addIndex("revisions", ["userId"], {
+      concurrently: true,
+    });
+    await queryInterface.addIndex("events", ["userId"], {
+      concurrently: true,
+    });
   },
 
   async down(queryInterface) {
-    for (const [table, column] of indexes.slice().reverse()) {
-      await queryInterface.removeIndex(table, [column]);
-    }
+    await queryInterface.removeIndex("events", ["userId"]);
+    await queryInterface.removeIndex("revisions", ["userId"]);
+    await queryInterface.removeIndex("documents", ["lastModifiedById"]);
+    await queryInterface.removeIndex("documents", ["createdById"]);
   },
 };
