@@ -1,5 +1,5 @@
 import { isEqual, pick } from "es-toolkit/compat";
-import { observable, action, toJS } from "mobx";
+import { action, makeObservable, observable, toJS } from "mobx";
 import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import type { PartialExcept } from "~/types";
@@ -30,10 +30,10 @@ export default abstract class Model {
   id: string;
 
   @observable
-  isSaving: boolean;
+  isSaving = false;
 
   @observable
-  isNew: boolean;
+  isNew = false;
 
   @observable
   createdAt: string;
@@ -43,10 +43,36 @@ export default abstract class Model {
 
   store: Store<Model>;
 
-  constructor(fields: Record<string, unknown>, store: Store<Model>) {
+  constructor(_fields: Record<string, unknown>, store: Store<Model>) {
     this.store = store;
+  }
+
+  /**
+   * Applies the initial data and makes the instance observable.
+   *
+   * Call this from the constructor of the most-derived class. MobX can only
+   * annotate fields that already exist on the instance, and a subclass's fields
+   * do not exist until its own constructor has run.
+   *
+   * @param fields the data to construct the model with.
+   */
+  protected initialize(fields: Record<string, unknown>) {
+    for (const field of getFieldsForModel(this)) {
+      if (field in this) {
+        continue;
+      }
+
+      Object.defineProperty(this, field, {
+        configurable: true,
+        enumerable: true,
+        value: undefined,
+        writable: true,
+      });
+    }
+
     this.updateData(fields);
     this.isNew = !this.id;
+    makeObservable(this);
     this.initialized = true;
   }
 
@@ -155,6 +181,7 @@ export default abstract class Model {
     }
 
     const previousAttributes = this.toAPI();
+    let addedKeys = false;
 
     for (const key in data) {
       try {
@@ -166,11 +193,20 @@ export default abstract class Model {
         if (isEqual(toJS(this[key]), data[key])) {
           continue;
         }
+        // A field declared without a default does not exist until it is first
+        // assigned, so MobX could not annotate it when the model was created.
+        addedKeys ||= !(key in this);
         // @ts-expect-error TODO
         this[key] = data[key];
       } catch (error) {
         Logger.warn(`Error setting ${key} on model`, { error });
       }
+    }
+
+    // Annotate any field that this payload introduced. Re-annotating a field
+    // that is already observable is a no-op.
+    if (addedKeys && this.initialized) {
+      makeObservable(this);
     }
 
     this.isNew = false;

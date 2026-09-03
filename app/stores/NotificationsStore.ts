@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { orderBy, sortBy } from "es-toolkit/compat";
-import { action, computed, runInAction } from "mobx";
+import { action, computed, makeObservable, override, runInAction } from "mobx";
 import Notification from "~/models/Notification";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -12,27 +12,31 @@ export default class NotificationsStore extends Store<Notification> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Notification);
+    makeObservable(this);
   }
 
-  @action
   fetchPage = async (
     options: ({ archived?: boolean } & PaginationParams) | undefined
   ): Promise<Notification[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post("/notifications.list", options);
       invariant(res?.data, "Document revisions not available");
 
       let models: Notification[] = [];
-      runInAction("NotificationsStore#fetchPage", () => {
+      runInAction(() => {
         models = res.data.notifications.map(this.add);
         this.isLoaded = true;
       });
 
       return models;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 
@@ -45,7 +49,7 @@ export default class NotificationsStore extends Store<Notification> {
       viewedAt: new Date().toISOString(),
     });
 
-    runInAction("NotificationsStore#markAllAsRead", () => {
+    runInAction(() => {
       const viewedAt = new Date();
       this.data.forEach((notification) => {
         notification.viewedAt = viewedAt;
@@ -62,7 +66,7 @@ export default class NotificationsStore extends Store<Notification> {
       archivedAt: new Date().toISOString(),
     });
 
-    runInAction("NotificationsStore#markAllAsArchived", () => {
+    runInAction(() => {
       this.clear();
     });
   };
@@ -78,7 +82,7 @@ export default class NotificationsStore extends Store<Notification> {
   /**
    * Returns the notifications in order of created date.
    */
-  @computed
+  @override
   get orderedData(): Notification[] {
     return sortBy(
       orderBy(Array.from(this.data.values()), "createdAt", "desc"),

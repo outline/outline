@@ -9,6 +9,11 @@ import Model from "../base/Model";
 class OAuthAuthentication extends Model {
   static modelName = "OAuthAuthentication";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** A list of scopes that this authentication has access to */
   @Field
   @observable

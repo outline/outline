@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
-import { computed, action, runInAction } from "mobx";
+import { action, computed, makeObservable, override, runInAction } from "mobx";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
@@ -16,6 +16,7 @@ import Store from "./base/Store";
 export default class CollectionsStore extends Store<Collection> {
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
+    makeObservable(this);
   }
 
   /**
@@ -35,7 +36,7 @@ export default class CollectionsStore extends Store<Collection> {
     return this.orderedData.filter((c) => c.isActive);
   }
 
-  @computed
+  @override
   get orderedData(): Collection[] {
     let collections = Array.from(this.data.values());
     collections = collections
@@ -129,7 +130,7 @@ export default class CollectionsStore extends Store<Collection> {
     const res = await client.post("/collections.archive", {
       id: collection.id,
     });
-    runInAction("Collection#archive", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       this.add(res.data);
       this.addPolicies(res.policies);
@@ -141,7 +142,7 @@ export default class CollectionsStore extends Store<Collection> {
     const res = await client.post("/collections.restore", {
       id: collection.id,
     });
-    runInAction("Collection#restore", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       this.add(res.data);
       this.addPolicies(res.policies);
@@ -173,7 +174,7 @@ export default class CollectionsStore extends Store<Collection> {
     try {
       const res = await client.post(`/collections.${request}`, options);
       invariant(res?.data, "Collection list not available");
-      return runInAction("CollectionsStore#fetchNamedPage", () => {
+      return runInAction(() => {
         const collections = res.data.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;

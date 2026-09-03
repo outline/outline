@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, runInAction } from "mobx";
+import { override, runInAction } from "mobx";
 import {
   type CollectionPermission,
   type DocumentPermission,
@@ -26,13 +26,12 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
    *
    * @param id the ID of the membership to remove.
    */
-  @action
+  @override
   remove(id: string, options?: { permanent?: boolean }): void {
     super.remove(id, options);
     this.rootStore.policies.removeForMembership(id);
   }
 
-  @action
   fetchPage = async ({
     collectionId,
     documentId,
@@ -42,7 +41,9 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     collectionId?: string;
     groupId?: string;
   }): Promise<PaginatedResponse<GroupMembership>> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = collectionId
@@ -59,7 +60,7 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
       invariant(res?.data, "Data not available");
 
       let response: PaginatedResponse<GroupMembership> = [];
-      runInAction(`GroupMembershipsStore#fetchPage`, () => {
+      runInAction(() => {
         res.data.groups?.forEach(this.rootStore.groups.add);
         res.data.documents?.forEach(this.rootStore.documents.add);
         response = res.data.groupMemberships.map(this.add);
@@ -69,11 +70,13 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 
-  @action
+  @override
   async create({
     collectionId,
     documentId,
@@ -102,7 +105,7 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     return cgm[0];
   }
 
-  @action
+  @override
   async delete({
     collectionId,
     documentId,

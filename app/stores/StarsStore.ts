@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, runInAction, computed } from "mobx";
+import { override, runInAction } from "mobx";
 import Star from "~/models/Star";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -11,15 +11,16 @@ export default class StarsStore extends Store<Star> {
     super(rootStore, Star);
   }
 
-  @action
   fetchPage = async (params?: PaginationParams): Promise<Star[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/stars.list`, params);
       invariant(res?.data, "Data not available");
 
-      return runInAction(`StarsStore#fetchPage`, () => {
+      return runInAction(() => {
         res.data.documents.forEach(this.rootStore.documents.add);
         const models = res.data.stars.map(this.add);
         this.addPolicies(res.policies);
@@ -27,11 +28,13 @@ export default class StarsStore extends Store<Star> {
         return models;
       });
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 
-  @computed
+  @override
   get orderedData(): Star[] {
     const stars = Array.from(this.data.values());
 

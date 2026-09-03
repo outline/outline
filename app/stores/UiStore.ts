@@ -1,6 +1,6 @@
 import { clamp } from "es-toolkit";
 import { t } from "i18next";
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
 import { light as defaultTheme } from "@shared/styles/theme";
@@ -49,40 +49,40 @@ type PersistedData = Pick<
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
   @observable
-  languagePromptDismissed: boolean | undefined;
+  languagePromptDismissed: boolean | undefined = undefined;
 
   // theme represents the users UI preference (defaults to system)
   @observable
-  theme: Theme;
+  theme: Theme = Theme.System;
 
   // themeOverride is set when a theme query parameter is detected, persists for the session
   @observable
-  themeOverride: Theme | undefined;
+  themeOverride: Theme | undefined = undefined;
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
-  systemTheme: SystemTheme;
+  systemTheme: SystemTheme = SystemTheme.Light;
 
   @observable
   activeModels = observable.map<string, Model>();
 
   @observable
-  observingUserId: string | undefined;
+  observingUserId: string | undefined = undefined;
 
   @observable
   progressBarVisible = false;
 
   @observable
-  tocVisible: boolean | undefined;
+  tocVisible: boolean | undefined = undefined;
 
   @observable
   mobileSidebarVisible = false;
 
   @observable
-  sidebarWidth: number;
+  sidebarWidth: number = defaultTheme.sidebarWidth;
 
   @observable
-  sidebarRightWidth: number;
+  sidebarRightWidth: number = defaultTheme.sidebarRightWidth;
 
   @observable
   sidebarCollapsed = false;
@@ -111,11 +111,10 @@ class UiStore {
   sidebarIsResizing = false;
 
   @observable
-  multiplayerStatus: ConnectionStatus;
+  multiplayerStatus: ConnectionStatus | undefined = undefined;
 
   @observable
-  multiplayerErrorCode?: number;
-
+  multiplayerErrorCode?: number = undefined;
   @observable
   debugSafeArea = false;
 
@@ -219,6 +218,8 @@ class UiStore {
         this.tocVisible = newData.tocVisible;
       }
     });
+
+    makeObservable(this);
   }
 
   /**

@@ -48,8 +48,7 @@ if (env.SENTRY_DSN) {
 }
 
 configureMobx({
-  // TODO: Enable these options and fix any resulting warnings
-  // enforceActions: env.isDevelopment ? "always" : "never",
+  enforceActions: env.isDevelopment ? "observed" : "never",
   computedRequiresReaction: true,
   isolateGlobalState: true,
 });

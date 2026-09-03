@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, runInAction, computed } from "mobx";
+import { action, computed, override, runInAction } from "mobx";
 import Pin from "~/models/Pin";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -52,16 +52,17 @@ export default class PinsStore extends Store<Pin> {
     }
   }
 
-  @action
   fetchPage = async (params?: FetchParams): Promise<Pin[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/pins.list`, params);
       invariant(res?.data, "Data not available");
 
       let models: Pin[] = [];
-      runInAction(`PinsStore#fetchPage`, () => {
+      runInAction(() => {
         res.data.documents.forEach(this.rootStore.documents.add);
         models = res.data.pins.map(this.add);
         this.addPolicies(res.policies);
@@ -70,7 +71,9 @@ export default class PinsStore extends Store<Pin> {
 
       return models;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 
@@ -82,7 +85,7 @@ export default class PinsStore extends Store<Pin> {
     return this.orderedData.filter((pin) => !pin.collectionId);
   }
 
-  @computed
+  @override
   get orderedData(): Pin[] {
     const pins = Array.from(this.data.values());
 

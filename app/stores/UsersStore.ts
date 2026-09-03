@@ -1,7 +1,7 @@
 import commandScore from "command-score";
 import invariant from "invariant";
 import { deburr, differenceWith, filter, orderBy } from "es-toolkit/compat";
-import { computed, action, runInAction } from "mobx";
+import { action, computed, makeObservable, override, runInAction } from "mobx";
 import type { UserRole } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
@@ -20,6 +20,7 @@ export default class UsersStore extends Store<User> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, User);
+    makeObservable(this);
   }
 
   @computed
@@ -64,7 +65,7 @@ export default class UsersStore extends Store<User> {
     return this.orderedData.filter((user) => !user.isDeleted);
   }
 
-  @computed
+  @override
   get orderedData(): User[] {
     return orderBy(
       Array.from(this.data.values()),
@@ -102,7 +103,7 @@ export default class UsersStore extends Store<User> {
     invariant(res?.data, "Data should be available");
 
     let response: User[] = [];
-    runInAction(`invite`, () => {
+    runInAction(() => {
       response = res.data.users.map(this.add);
     });
     return response;
@@ -209,7 +210,7 @@ export default class UsersStore extends Store<User> {
       role,
     });
     invariant(res?.data, "Data should be available");
-    runInAction(`UsersStore#${action}`, () => {
+    runInAction(() => {
       this.addPolicies(res.policies);
       this.add(res.data);
     });

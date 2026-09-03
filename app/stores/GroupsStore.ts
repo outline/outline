@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { filter } from "es-toolkit/compat";
-import { action, runInAction, computed } from "mobx";
+import { override, runInAction } from "mobx";
 import naturalSort from "@shared/utils/naturalSort";
 import Group from "~/models/Group";
 import type { PaginationParams } from "~/types";
@@ -15,21 +15,22 @@ export default class GroupsStore extends Store<Group> {
     super(rootStore, Group);
   }
 
-  @computed
+  @override
   get orderedData(): Group[] {
     return naturalSort(Array.from(this.data.values()), "name");
   }
 
-  @action
   fetchPage = async (params: FetchPageParams | undefined): Promise<Group[]> => {
-    this.isFetching = true;
+    runInAction(() => {
+      this.isFetching = true;
+    });
 
     try {
       const res = await client.post(`/groups.list`, params);
       invariant(res?.data, "Data not available");
 
       let models: Group[] = [];
-      runInAction(`GroupsStore#fetchPage`, () => {
+      runInAction(() => {
         this.addPolicies(res.policies);
         models = res.data.groups.map(this.add);
         res.data.groupMemberships.forEach(this.rootStore.groupUsers.add);
@@ -37,7 +38,9 @@ export default class GroupsStore extends Store<Group> {
       });
       return models;
     } finally {
-      this.isFetching = false;
+      runInAction(() => {
+        this.isFetching = false;
+      });
     }
   };
 

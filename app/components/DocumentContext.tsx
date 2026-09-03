@@ -1,4 +1,4 @@
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import type { PropsWithChildren } from "react";
 import { createContext, useContext, useMemo } from "react";
 import type { Node } from "prosemirror-model";
@@ -27,6 +27,10 @@ class DocumentContext {
   /** The headings in the document */
   @observable
   headings: Heading[] = [];
+
+  constructor() {
+    makeObservable(this);
+  }
 
   @computed
   get hasHeadings() {
@@ -77,7 +81,7 @@ class DocumentContext {
 
   /** The ProseMirror document currently held by the editor */
   @observable.ref
-  private editorDoc: Node | undefined;
+  private editorDoc: Node | undefined = undefined;
 
   private updateHeadings() {
     const currHeadings = this.editor?.getHeadings() ?? [];
