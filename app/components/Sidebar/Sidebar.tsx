@@ -166,7 +166,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   const handlePointerLeave = React.useCallback(
-    (ev) => {
+    (ev: React.PointerEvent) => {
       if (hasPointerMoved) {
         // clear any previous timeout
         if (hoverTimeoutRef.current) {

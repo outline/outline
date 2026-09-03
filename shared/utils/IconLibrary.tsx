@@ -185,6 +185,7 @@ type FAProps = {
   size?: number;
   className?: string;
   style?: React.CSSProperties;
+  children?: React.ReactNode;
 };
 
 export class IconLibrary {

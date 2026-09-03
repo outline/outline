@@ -13,7 +13,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Theme: React.FC = ({ children }: Props) => {
+const Theme: React.FC<Props> = ({ children }: Props) => {
   const { auth, ui } = useStores();
   const { i18n } = useTranslation();
   const theme = useBuildTheme(
