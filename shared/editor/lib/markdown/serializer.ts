@@ -482,10 +482,12 @@ export class MarkdownSerializerState {
     });
 
     // Ensure there is an empty newline above all tables
+    this.write();
     this.append("\n");
 
     // Render rows
     node.forEach((row, _, i) => {
+      this.write();
       row.forEach((cell, _, j) => {
         this.append(j === 0 ? "| " : " | ");
 
@@ -528,6 +530,7 @@ export class MarkdownSerializerState {
 
       // Header separator after first row
       if (i === 0) {
+        this.write();
         headerRow.forEach((cell, _, j) => {
           const width = columnWidths[j];
           if (cell.attrs.alignment === "center") {

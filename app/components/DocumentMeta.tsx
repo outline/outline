@@ -86,7 +86,9 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {revision.createdBy?.id === user.id
           ? t("You updated")
-          : t("{{ userName }} updated", { userName })}{" "}
+          : t("{{ userName }} updated", {
+              userName: revision.createdBy?.name ?? t("Unknown"),
+            })}{" "}
         <Time dateTime={revision.createdAt} addSuffix />
       </span>
     );

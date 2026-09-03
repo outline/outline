@@ -65,6 +65,15 @@ function isExternalMention(type: MentionType): boolean {
   );
 }
 
+/** The mention type that represents each kind of unfurled resource. */
+const MentionTypeForResource: Partial<Record<UnfurlResourceType, MentionType>> =
+  {
+    [UnfurlResourceType.Issue]: MentionType.Issue,
+    [UnfurlResourceType.PR]: MentionType.PullRequest,
+    [UnfurlResourceType.Project]: MentionType.Project,
+    [UnfurlResourceType.URL]: MentionType.URL,
+  };
+
 export default class Mention extends Node {
   get name() {
     return "mention";
@@ -394,12 +403,13 @@ export default class Mention extends Node {
       state.write(`[${label}](/collection/${mId})`);
     } else if (
       state.options.commonMark &&
-      isExternalMention(mType) &&
+      (isExternalMention(mType) || mType === MentionType.URL) &&
       node.attrs.href
     ) {
       // Markdown that leaves Outline cannot resolve a mention:// reference, so
-      // external mentions fall back to the URL they already carry.
-      state.write(`[${label}](${sanitizeUrl(node.attrs.href)})`);
+      // external mentions fall back to the URL they already carry. The "@"
+      // prefix allows them to be parsed back into a mention on the way in.
+      state.write(`@[${label}](${sanitizeUrl(node.attrs.href)})`);
     } else {
       // Keep the mention:// format for everything else, it round-trips back
       // into a live mention through Outline's own parser.
@@ -414,6 +424,7 @@ export default class Mention extends Node {
         id: tok.attrGet("id"),
         type: tok.attrGet("type"),
         modelId: tok.attrGet("modelId"),
+        href: tok.attrGet("href") ?? undefined,
         label: tok.content,
       }),
     };
@@ -455,6 +466,18 @@ export default class Mention extends Node {
 
       const overrides: Record<string, unknown> = label ? { label } : {};
       overrides.unfurl = unfurl;
+
+      // The resource an external link points at is only known once it has been
+      // unfurled, so narrow a generic URL mention to the type it turned out to
+      // be – an issue, pull request or project.
+      const unfurledType = MentionTypeForResource[unfurl.type];
+      if (
+        unfurledType &&
+        node.attrs.type === MentionType.URL &&
+        unfurledType !== node.attrs.type
+      ) {
+        overrides.type = unfurledType;
+      }
 
       const pos = getPos();
 

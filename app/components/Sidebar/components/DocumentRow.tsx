@@ -283,6 +283,7 @@ function DocumentRow({
     <ActionContextProvider
       value={{
         activeModels: document ? [document] : [],
+        sidebarContext,
       }}
     >
       <Relative ref={parentRef}>

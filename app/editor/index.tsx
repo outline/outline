@@ -9,7 +9,11 @@ import { gapCursor } from "prosemirror-gapcursor";
 import type { InputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
 import type { NodeSpec, MarkSpec } from "prosemirror-model";
-import { Schema, Node as ProsemirrorNode } from "prosemirror-model";
+import {
+  Schema,
+  Node as ProsemirrorNode,
+  DOMParser as ProsemirrorDOMParser,
+} from "prosemirror-model";
 import type { Plugin, Transaction } from "prosemirror-state";
 import { EditorState, Selection, TextSelection } from "prosemirror-state";
 import type { MarkdownParser } from "prosemirror-markdown";
@@ -36,6 +40,7 @@ import { inputRules } from "@shared/editor/lib/inputRules";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import textBetween from "@shared/editor/lib/textBetween";
+import { findNearestPos } from "@shared/editor/queries/findNearestPos";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
 import type {
@@ -52,6 +57,8 @@ import { HeadingPrefixStyle } from "@shared/types";
 import { headingPrefixPluginKey } from "@shared/editor/extensions/HeadingPrefix";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
+import { getDataTransferFiles } from "@shared/utils/files";
+import { AttachmentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
@@ -744,6 +751,57 @@ export class Editor extends React.PureComponent<
       files,
       this.props
     );
+
+  /**
+   * Insert the content of a drop event at the position nearest to where it
+   * occurred. Intended for drops that land outside of the editor itself.
+   *
+   * @param event The drop event.
+   */
+  public insertDroppedContent = (event: React.DragEvent<HTMLElement>) => {
+    const { view } = this;
+    if (!view.editable) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const pos = findNearestPos(view, {
+      left: event.clientX,
+      top: event.clientY,
+    });
+    const files = getDataTransferFiles(event);
+
+    // Without files, attempt to parse the payload as an HTML fragment.
+    if (files.length === 0) {
+      const text =
+        event.dataTransfer.getData("text/html") ||
+        event.dataTransfer.getData("text/plain");
+      if (!text) {
+        return;
+      }
+
+      const dom = new DOMParser().parseFromString(text, "text/html");
+      view.dispatch(
+        view.state.tr.insert(
+          pos,
+          ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
+        )
+      );
+      return;
+    }
+
+    // Insert all files as attachments if any of the files are not images.
+    const isAttachment = files.some(
+      (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
+    );
+
+    return insertFiles(view, event, pos, files, {
+      ...this.props,
+      isAttachment,
+    });
+  };
 
   /**
    * Returns true if the trimmed content of the editor is an empty string.

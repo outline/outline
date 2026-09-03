@@ -961,7 +961,7 @@ export function buildMention(overrides: {
     attrs: {
       id: overrides.id ?? randomUUID(),
       type: overrides.type ?? MentionType.User,
-      label: overrides.label ?? faker.name.fullName(),
+      label: overrides.label ?? faker.person.fullName(),
       modelId: overrides.modelId,
       actorId: overrides.actorId,
     },

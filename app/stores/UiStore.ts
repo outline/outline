@@ -16,6 +16,8 @@ import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
 
 const UI_STORE = "UI_STORE";
+// Used by the static page before the UI store is available.
+const THEME_STORAGE_KEY = "theme";
 
 export enum Theme {
   Light = "light",
@@ -174,6 +176,7 @@ class UiStore {
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
+    Storage.set(THEME_STORAGE_KEY, this.theme);
 
     // system theme listeners
     if (window.matchMedia) {
@@ -313,6 +316,7 @@ class UiStore {
       flushSync(() => {
         this.theme = theme;
         this.persist();
+        Storage.set(THEME_STORAGE_KEY, this.theme);
       });
     });
   };

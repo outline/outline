@@ -1364,7 +1364,8 @@ export const searchDocumentsForQueryActionFactory = (query: string) =>
     priority: -1,
     icon: <SearchIcon />,
     to: searchPath({ query }),
-    visible: ({ location }) => location.pathname !== searchPath(),
+    visible: ({ location, isMCP }) =>
+      !isMCP && location.pathname !== searchPath(),
   });
 
 export const moveDocumentToCollection = createAction({

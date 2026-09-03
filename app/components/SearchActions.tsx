@@ -92,6 +92,7 @@ function SearchActions() {
           keywords: searchQuery,
           analyticsName: "Open search result",
           section: SearchResultsSection,
+          visible: ({ isMCP }) => !isMCP,
           priority: toActionPriority(index, results.length),
           icon: <SearchResultIcon document={result.document} />,
           badge: result.document.isArchived ? (
