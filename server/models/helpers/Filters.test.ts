@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { CollectionPermission, StatusFilter } from "@shared/types";
+import { CollectionPermission, StatusFilter, UserRole } from "@shared/types";
 import { buildCollection, buildUser, buildTeam } from "@server/test/factories";
 import {
   authorizeFilterFields,
@@ -11,6 +11,7 @@ import {
   extractTopLevelEqValue,
   hasFieldInFilter,
   legacyParamsToFilter,
+  legacyUserParamsToFilter,
   mapFilterFields,
 } from "./Filters";
 
@@ -687,6 +688,93 @@ describe("Filters", () => {
           { field: "collectionId", operator: "eq", value: "c" },
           { field: "updatedAt", operator: "gte", value: "-P1D" },
           { field: "archivedAt", operator: "isNotNull" },
+        ],
+      });
+    });
+  });
+
+  describe("legacyUserParamsToFilter", () => {
+    it("returns undefined when no legacy params are set", () => {
+      expect(legacyUserParamsToFilter({ isAdmin: true })).toBeUndefined();
+    });
+
+    it("converts ids and emails to in leaves", () => {
+      expect(
+        legacyUserParamsToFilter({
+          ids: ["u1"],
+          emails: ["one@example.com"],
+          isAdmin: false,
+        })
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "id", operator: "in", value: ["u1"] },
+          { field: "email", operator: "in", value: ["one@example.com"] },
+        ],
+      });
+    });
+
+    it("converts role-style statuses to a role leaf", () => {
+      expect(
+        legacyUserParamsToFilter({ status: "viewers", isAdmin: false })
+      ).toEqual({ field: "role", operator: "eq", value: UserRole.Viewer });
+    });
+
+    it("gives an explicit role precedence over a role-style status", () => {
+      expect(
+        legacyUserParamsToFilter({
+          role: UserRole.Admin,
+          status: "viewers",
+          isAdmin: false,
+        })
+      ).toEqual({ field: "role", operator: "eq", value: UserRole.Admin });
+    });
+
+    it("converts the invited status to a lastActiveAt leaf", () => {
+      expect(
+        legacyUserParamsToFilter({ status: "invited", isAdmin: false })
+      ).toEqual({ field: "lastActiveAt", operator: "isNull" });
+    });
+
+    it("converts the active status to a pair of leaves", () => {
+      expect(
+        legacyUserParamsToFilter({ status: "active", isAdmin: false })
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "lastActiveAt", operator: "isNotNull" },
+          { field: "suspendedAt", operator: "isNull" },
+        ],
+      });
+    });
+
+    it("converts the suspended status for admins only", () => {
+      expect(
+        legacyUserParamsToFilter({ status: "suspended", isAdmin: true })
+      ).toEqual({ field: "suspendedAt", operator: "isNotNull" });
+      expect(
+        legacyUserParamsToFilter({ status: "suspended", isAdmin: false })
+      ).toBeUndefined();
+    });
+
+    it("applies no constraint for the all status", () => {
+      expect(
+        legacyUserParamsToFilter({ status: "all", isAdmin: true })
+      ).toBeUndefined();
+    });
+
+    it("ANDs a role with a status", () => {
+      expect(
+        legacyUserParamsToFilter({
+          role: UserRole.Member,
+          status: "invited",
+          isAdmin: true,
+        })
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "role", operator: "eq", value: UserRole.Member },
+          { field: "lastActiveAt", operator: "isNull" },
         ],
       });
     });

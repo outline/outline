@@ -71,6 +71,7 @@ export enum ExportContentType {
 export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
+  OKFZip = "okf",
   HTMLZip = "html",
   TextBundleZip = "textbundle",
   PDF = "pdf",
@@ -135,7 +136,10 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
+  /** ID of the share mounted at the root of a custom domain, if any. */
   ROOT_SHARE_ID?: string;
+  /** Whether the page is a publicly shared view. */
+  isShare?: boolean;
   analytics: {
     service: IntegrationService;
     settings: IntegrationSettings<IntegrationType.Analytics>;
@@ -343,6 +347,15 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                   }
                 | undefined;
 
+export enum SidebarSection {
+  /** The starred documents section. */
+  Starred = "starred",
+  /** The documents shared with the user directly or via groups. */
+  SharedWithMe = "shared",
+  /** The collections section. */
+  Collections = "collections",
+}
+
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
   RememberLastPath = "rememberLastPath",
@@ -364,7 +377,29 @@ export enum UserPreference {
   ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** The display order of the reorderable sections in the sidebar. */
+  SidebarSectionOrder = "sidebarSectionOrder",
 }
+
+export enum HeadingPrefixStyle {
+  /** Headings are displayed without a prefix. */
+  None = "none",
+  /** Numeric prefixes, for example: 1, 1.1, 1.1.1 */
+  Numeric = "numeric",
+  /** Alphanumeric prefixes, for example: 1, 1.a, 1.a.i */
+  Alphanumeric = "alphanumeric",
+  /** Outline-style prefixes, for example: I, I.A, I.A.1 */
+  Outline = "outline",
+}
+
+export enum DocumentPreference {
+  /** The style of prefix displayed before headings in the document. */
+  HeadingPrefix = "headingPrefix",
+}
+
+export type DocumentPreferences = {
+  [DocumentPreference.HeadingPrefix]?: HeadingPrefixStyle;
+};
 
 export enum NotificationBadgeType {
   /** Do not show a notification badge. */
@@ -386,6 +421,7 @@ export type UserPreferences = {
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.SidebarSectionOrder]?: SidebarSection[];
 };
 
 export type SourceMetadata = {

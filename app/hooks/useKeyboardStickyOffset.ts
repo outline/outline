@@ -13,12 +13,13 @@ import { getSafeAreaInsets } from "@shared/utils/browser";
  * translates the element upwards by that amount so it always rests on top of
  * the keyboard.
  *
- * The transform is re-applied after every render (so a parent re-render cannot
- * clobber it) and on visual viewport `resize`/`scroll` events. A short-lived
- * `requestAnimationFrame` loop tracks the keyboard's open/close animation so
- * the element glides with it rather than snapping into place once the
- * transition settles. Writes go directly to the node's style to avoid React
- * re-render latency during the animation.
+ * The measurement is repeated every frame while enabled. A keyboard changes
+ * height without warning – a predictive text strip or an accessory bar comes
+ * and goes, one keyboard type replaces another – and not every change is
+ * announced by a viewport event, so an element positioned once from an event
+ * can be left behind the keyboard. Writes go straight to the node's style, and
+ * only when the offset changes, so a frame that measures the same keyboard
+ * costs a handful of property reads.
  *
  * @param ref A ref to the fixed-position element to keep pinned.
  * @param enabled Whether the behavior should be active.
@@ -27,6 +28,13 @@ export default function useKeyboardStickyOffset(
   ref: React.RefObject<HTMLElement>,
   enabled: boolean
 ) {
+  const applied = React.useRef<number | null>(null);
+
+  // Reading the layout viewport height can force a layout, so it is measured
+  // when it changes rather than on every frame.
+  const safeAreaBottom = React.useRef(0);
+  const layoutHeight = React.useRef(0);
+
   const apply = React.useCallback(() => {
     const viewport = window.visualViewport;
     const node = ref.current;
@@ -41,55 +49,46 @@ export default function useKeyboardStickyOffset(
     // clears the home indicator.
     const keyboardInset = Math.max(
       0,
-      window.innerHeight - (viewport.offsetTop + viewport.height)
+      layoutHeight.current - (viewport.offsetTop + viewport.height)
     );
-    const offset = Math.round(
-      Math.max(keyboardInset, getSafeAreaInsets().bottom)
-    );
+    const offset = Math.round(Math.max(keyboardInset, safeAreaBottom.current));
 
-    node.style.transform = `translate3d(0, ${-offset}px, 0)`;
+    if (offset !== applied.current) {
+      applied.current = offset;
+      node.style.transform = `translate3d(0, ${-offset}px, 0)`;
+    }
   }, [ref, enabled]);
 
-  // Re-apply after every render, before paint, so the keyboard-aware transform
-  // survives parent re-renders and there is no flash on first mount.
-  React.useLayoutEffect(apply);
+  // Re-apply after every render, before paint, so the transform survives a
+  // parent re-render and there is no flash on first mount.
+  React.useLayoutEffect(() => {
+    safeAreaBottom.current = getSafeAreaInsets().bottom;
+    layoutHeight.current = window.innerHeight;
+    applied.current = null;
+    apply();
+  });
 
   React.useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!enabled || !viewport) {
+    if (!enabled || !window.visualViewport) {
       return;
     }
 
-    let frame = 0;
-    let trackUntil = 0;
+    const handleResize = () => {
+      layoutHeight.current = window.innerHeight;
+      safeAreaBottom.current = getSafeAreaInsets().bottom;
+    };
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
 
-    const tick = (now: number) => {
+    let frame = requestAnimationFrame(function tick() {
       apply();
-      frame = now < trackUntil ? requestAnimationFrame(tick) : 0;
-    };
-
-    const schedule = () => {
-      // Keep re-measuring for a short window so the element follows the
-      // keyboard animation rather than jumping once it settles.
-      trackUntil = performance.now() + 350;
-      if (!frame) {
-        frame = requestAnimationFrame(tick);
-      }
-    };
-
-    viewport.addEventListener("resize", schedule);
-    viewport.addEventListener("scroll", schedule);
-    window.addEventListener("focusin", schedule);
-    window.addEventListener("orientationchange", schedule);
+      frame = requestAnimationFrame(tick);
+    });
 
     return () => {
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-      viewport.removeEventListener("resize", schedule);
-      viewport.removeEventListener("scroll", schedule);
-      window.removeEventListener("focusin", schedule);
-      window.removeEventListener("orientationchange", schedule);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
     };
   }, [enabled, apply]);
 }

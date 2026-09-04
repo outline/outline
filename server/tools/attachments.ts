@@ -113,10 +113,10 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               const curlCommand = `curl -X PUT ${Object.entries(
                 presignedPut.headers
               )
-                .map(([k, v]) => `-H '${k}: ${v}'`)
-                .join(
-                  " "
-                )} --data-binary '@/path/to/file' '${presignedPut.url}'`;
+                .map(([k, v]) => `-H ${quoteShellArgument(`${k}: ${v}`)}`)
+                .join(" ")} --data-binary '@/path/to/file' ${quoteShellArgument(
+                presignedPut.url
+              )}`;
 
               return success({
                 mode: "put",
@@ -147,7 +147,9 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               };
 
               const formArgs = Object.entries(form)
-                .map(([k, v]) => `-F '${k}=${v}'`)
+                .map(
+                  ([k, v]) => `--form-string ${quoteShellArgument(`${k}=${v}`)}`
+                )
                 .join(" ");
               const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
 
@@ -170,4 +172,8 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
       )
     );
   }
+}
+
+function quoteShellArgument(value: string) {
+  return `'${value.replace(/'/g, "'\\''")}'`;
 }

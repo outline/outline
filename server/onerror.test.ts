@@ -127,6 +127,20 @@ describe("onerror", () => {
     expect(ctx.body).toContain("request_timeout");
   });
 
+  it("should convert an unreadable request stream into a client closed request", () => {
+    const error = new Error("stream is not readable") as ReportableError & {
+      type?: string;
+    };
+    error.status = 500;
+    error.type = "stream.not.readable";
+
+    app.context.onerror.call(ctx, error);
+
+    expect(requestErrorHandler).not.toHaveBeenCalled();
+    expect(ctx.status).toBe(499);
+    expect(ctx.body).toContain("client_closed_request");
+  });
+
   it("should set the response status code when the response is not writable", () => {
     ctx.writable = false;
 
@@ -134,6 +148,15 @@ describe("onerror", () => {
 
     expect(ctx.res.statusCode).toBe(500);
     expect(ctx.res.end).not.toHaveBeenCalled();
+  });
+
+  it("should not throw when the response is unavailable", () => {
+    ctx.writable = false;
+    Reflect.deleteProperty(ctx, "res");
+
+    expect(() =>
+      app.context.onerror.call(ctx, InternalError("Test internal error"))
+    ).not.toThrow();
   });
 
   it("should report errors explicitly marked with isReportable: true", () => {

@@ -21,6 +21,9 @@ export class EditorStyleHelper {
 
   static readonly headingPositionAnchor = "heading-position-anchor";
 
+  /** Section number prepended to headings in serialized clipboard HTML */
+  static readonly headingPrefix = "heading-prefix";
+
   // Comments
 
   static readonly comment = "comment-marker";

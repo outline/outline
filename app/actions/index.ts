@@ -56,7 +56,9 @@ export function createAction(
                 ? "button"
                 : context.isCommandBar
                   ? "commandbar"
-                  : "contextmenu",
+                  : context.isMCP
+                    ? "webmcp"
+                    : "contextmenu",
             });
           }
           return definition.perform(context);
@@ -166,6 +168,7 @@ export function actionToMenuItem(
       const title = resolve<string>(action.name, context);
       const visible = resolve<boolean>(action.visible, context) ?? true;
       const disabled = resolve<boolean>(action.disabled, context);
+      const shortcut = resolve<string[] | undefined>(action.shortcut, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
           ? resolve<React.ReactNode>(action.icon, context)
@@ -182,7 +185,7 @@ export function actionToMenuItem(
             tooltip: resolve<React.ReactChild>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
-            shortcut: action.shortcut,
+            shortcut,
             onClick: () => performAction(action, context),
           };
 
@@ -194,7 +197,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
-            shortcut: action.shortcut,
+            shortcut,
             to,
           };
         }
@@ -206,7 +209,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
-            shortcut: action.shortcut,
+            shortcut,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,
@@ -261,6 +264,7 @@ export function actionToKBar(
   }
 
   const name = resolve<string>(action.name, context);
+  const shortcut = resolve<string[] | undefined>(action.shortcut, context);
   const icon = resolve<React.ReactElement>(action.icon, context);
   const badge = resolve<React.ReactNode>(action.badge, context);
   const section = resolve<string>(action.section, context);
@@ -294,7 +298,7 @@ export function actionToKBar(
           name,
           section: sectionWithPriority,
           keywords: action.keywords,
-          shortcut: action.shortcut,
+          shortcut,
           subtitle,
           icon,
           badge,
@@ -320,7 +324,7 @@ export function actionToKBar(
           name,
           section: sectionWithPriority,
           keywords: action.keywords,
-          shortcut: action.shortcut,
+          shortcut,
           icon,
           badge,
           subtitle,
@@ -353,6 +357,10 @@ export async function performAction(
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {
+      // WebMCP callers surface errors to the agent instead of a toast.
+      if (context.isMCP) {
+        throw err;
+      }
       toast.error(err.message);
     });
   }

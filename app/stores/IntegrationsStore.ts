@@ -1,4 +1,4 @@
-import { computed } from "mobx";
+import { computed, override } from "mobx";
 import { IntegrationService, type IntegrationType } from "@shared/types";
 import naturalSort from "@shared/utils/naturalSort";
 import type RootStore from "~/stores/RootStore";
@@ -16,7 +16,7 @@ class IntegrationsStore extends Store<Integration> {
     );
   }
 
-  @computed
+  @override
   get orderedData(): Integration[] {
     return naturalSort(Array.from(this.data.values()), "name");
   }

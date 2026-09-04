@@ -150,6 +150,7 @@ router.post(
       includeViews: false,
     });
     authorize(user, "listRevisions", document);
+    authorize(user, "download", document);
 
     let contentType: string;
     let content: string;

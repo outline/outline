@@ -9,6 +9,7 @@ import type {
   Client,
   CollectionPermission,
   JSONValue,
+  MentionType,
   UnfurlResourceType,
   ProsemirrorData,
   UnfurlResponse,
@@ -76,6 +77,8 @@ export type AppState = {
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;
+  /** The identifiers this request is rate limited against. */
+  rateLimiterIdentifiers?: string[];
 };
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;
@@ -454,7 +457,10 @@ export type WebhookSubscriptionEvent = BaseEvent<WebhookSubscription> & {
 };
 
 export type NotificationEvent = BaseEvent<Notification> & {
-  name: "notifications.create" | "notifications.update";
+  name:
+    | "notifications.create"
+    | "notifications.update"
+    | "notifications.delete";
   modelId: string;
   teamId: string;
   userId: string;
@@ -617,6 +623,13 @@ export type UnfurlSignature = (
   url: string,
   actor?: User
 ) => Promise<Unfurl | UnfurlError | undefined>;
+
+/**
+ * Recognizes the URL of a resource belonging to the service and returns the
+ * type of mention that represents it, or undefined when the URL is not one the
+ * service can mention.
+ */
+export type MentionSignature = (url: URL) => MentionType | undefined;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
 

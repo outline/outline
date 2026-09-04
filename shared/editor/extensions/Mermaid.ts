@@ -384,7 +384,11 @@ export default function Mermaid({
             mermaidMeta && "editingId" in mermaidMeta
               ? mermaidMeta.editingId
               : pluginState.editingId,
-          decorationSet: mapDecorations(pluginState.decorationSet, transaction),
+          decorationSet: mapDecorations(
+            pluginState.decorationSet,
+            transaction,
+            state
+          ),
         };
 
         if (
@@ -427,7 +431,7 @@ export default function Mermaid({
           mermaidMeta ||
           themeToggled ||
           codeBlockChanged ||
-          isRemoteTransaction(transaction)
+          isRemoteTransaction(transaction, state)
         ) {
           return getNewState({
             doc: transaction.doc,
@@ -437,7 +441,7 @@ export default function Mermaid({
               codeBlockChanged &&
               transaction.docChanged &&
               !isPaste &&
-              !isRemoteTransaction(transaction),
+              !isRemoteTransaction(transaction, state),
           });
         }
 

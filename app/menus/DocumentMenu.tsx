@@ -10,8 +10,13 @@ import type Document from "~/models/Document";
 import type Template from "~/models/Template";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { toMenuItems, toMobileMenuItems } from "~/components/Menu/transformer";
 import Switch from "~/components/Switch";
-import { ActionContextProvider } from "~/hooks/useActionContext";
+import { actionToMenuItem } from "~/actions";
+import { changeHeadingPrefix } from "~/actions/definitions/documents";
+import useActionContext, {
+  ActionContextProvider,
+} from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
 import useMobile from "~/hooks/useMobile";
@@ -124,6 +129,7 @@ function DocumentMenu({
 
   const rootAction = useDocumentMenuAction({
     documentId: document.id,
+    isViewing: showDisplayOptions,
     onFindAndReplace,
     onRename,
     onSelectTemplate,
@@ -137,6 +143,7 @@ function DocumentMenu({
     return (
       <>
         <MenuSeparator />
+        {showDisplayOptions && <HeadingPrefixMenuItem />}
         <DisplayOptions>
           {can.updateInsights && (
             <Style>
@@ -210,6 +217,45 @@ function DocumentMenu({
     </ActionContextProvider>
   );
 }
+
+/**
+ * Renders the heading numbering submenu as part of the display options block.
+ * A separate component so the action context is read inside the provider.
+ */
+const HeadingPrefixMenuItem = observer(function HeadingPrefixMenuItem_() {
+  const context = useActionContext({ isMenu: true });
+  const isMobile = useMobile();
+  const item = actionToMenuItem(changeHeadingPrefix, context);
+
+  // On mobile the display options are appended to a drawer rather than to menu
+  // content, so there is no menu root for the submenu primitives to attach to.
+  // Flatten the submenu into an inline group of options instead, which also
+  // matches the toggles it sits alongside — picking one leaves the drawer open.
+  if (isMobile) {
+    if (item.type !== "submenu") {
+      return null;
+    }
+
+    return (
+      <>
+        {toMobileMenuItems(
+          [
+            {
+              type: "group",
+              title: item.title,
+              visible: item.visible,
+              items: item.items,
+            },
+          ],
+          noop,
+          noop
+        )}
+      </>
+    );
+  }
+
+  return <>{toMenuItems([item])}</>;
+});
 
 const ToggleMenuItem = styled(Switch)`
   * {

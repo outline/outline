@@ -13,7 +13,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
@@ -31,6 +30,7 @@ import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
+import { IndexeddbPersistence } from "~/utils/IndexeddbPersistence";
 import Logger from "~/utils/Logger";
 import { homePath } from "~/utils/routeHelpers";
 import { sleep } from "@shared/utils/timers";
@@ -82,6 +82,9 @@ function MultiplayerEditor(
   // an orphaned websocket connection.
   // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
   useLayoutEffect(() => {
+    // Tracks whether this effect has been cleaned up so async persistence
+    // callbacks below do not update state afterwards.
+    let isActive = true;
     const debug = env.ENVIRONMENT === "development";
     const name = `document.${documentId}`;
     const localProvider =
@@ -172,10 +175,23 @@ function MultiplayerEditor(
     };
 
     provider.on("awarenessChange", showCursorNames);
-    localProvider?.on("synced", () =>
-      // only set local storage to "synced" if it's loaded a non-empty doc
-      setLocalSynced(!!ydoc.get("default")._start)
-    );
+    localProvider?.whenSynced
+      .then(() => {
+        if (!isActive || !localProvider.synced) {
+          return;
+        }
+        if (debug) {
+          Logger.debug("collaboration", "local synced");
+        }
+        // only set local storage to "synced" if it's loaded a non-empty doc
+        setLocalSynced(!!ydoc.get("default")._start);
+      })
+      .catch(() => {
+        // IndexedDB exists but is unusable, e.g. Firefox private browsing.
+        if (isActive) {
+          setHasLocalPersistence(false);
+        }
+      });
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
       setRemoteSynced(true);
@@ -211,9 +227,6 @@ function MultiplayerEditor(
           message: ev.message,
         })
       );
-      localProvider?.on("synced", () =>
-        Logger.debug("collaboration", "local synced")
-      );
     }
 
     provider.on("status", (ev: ConnectionStatusEvent) => {
@@ -225,6 +238,7 @@ function MultiplayerEditor(
     setRemoteProvider(provider);
 
     return () => {
+      isActive = false;
       window.removeEventListener("click", finishObserving);
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
@@ -342,6 +356,7 @@ function MultiplayerEditor(
           defaultValue={props.defaultValue}
           extensions={props.extensions}
           scrollTo={props.scrollTo}
+          headingPrefix={props.headingPrefix}
           cacheOnly
           readOnly
           ref={ref}

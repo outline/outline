@@ -1,7 +1,7 @@
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import FileExtension from "../components/FileExtension";
 import { mapDecorations } from "./multiplayer";
 
@@ -11,11 +11,11 @@ const uploadPlaceholder = new Plugin({
     init() {
       return DecorationSet.empty;
     },
-    apply(this: Plugin, tr, set: DecorationSet) {
+    apply(this: Plugin, tr, set: DecorationSet, _oldState, newState) {
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
       const action = tr.getMeta(this);
-      set = mapDecorations(set, tr, !!action);
+      set = mapDecorations(set, tr, newState, !!action);
 
       if (action?.add) {
         if (action.add.replaceExisting) {
@@ -82,7 +82,9 @@ const uploadPlaceholder = new Plugin({
           subtitle.className = "subtitle";
           subtitle.innerText = "Uploading…";
 
-          ReactDOM.render(<FileExtension title={action.add.file.name} />, icon);
+          createRoot(icon).render(
+            <FileExtension title={action.add.file.name} />
+          );
 
           element.appendChild(icon);
           element.appendChild(title);

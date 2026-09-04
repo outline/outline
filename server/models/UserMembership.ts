@@ -20,6 +20,7 @@ import {
 import type { DocumentPermission } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -422,6 +423,15 @@ class UserMembership extends IdModel<
     model: UserMembership,
     { transaction }: APIContext["context"]
   ) {
+    // Both models guard the same invariant, so they share one lock name,
+    // otherwise the last user manager and the last group manager can be
+    // removed at the same time.
+    await LockHelper.acquire(
+      model.sequelize,
+      `collectionAdmins:${model.collectionId}`,
+      transaction
+    );
+
     const [userMemberships, groupMemberships] = await Promise.all([
       this.count({
         where: {

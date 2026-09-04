@@ -1,6 +1,7 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { PlusIcon, SmileyIcon } from "outline-icons";
+import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -79,10 +80,13 @@ function Emojis() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = useCallback((event) => {
-    const { value } = event.target;
-    setQuery(value);
-  }, []);
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      setQuery(value);
+    },
+    []
+  );
 
   useEffect(() => {
     if (error) {

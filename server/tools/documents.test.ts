@@ -251,6 +251,93 @@ describe("list_documents", () => {
     expect(ids).toContain(document.id);
   });
 
+  it("excludes archived documents from search by default", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Blackberry",
+    });
+    const archived = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Blackberry",
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: "Blackberry",
+    });
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      res?.result?.content
+    );
+    const ids = data.map((d) => d.document.id);
+
+    expect(ids).toContain(document.id);
+    expect(ids).not.toContain(archived.id);
+  });
+
+  it("includes archived documents in search when requested", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const archived = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Blackberry",
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: "Blackberry",
+      includeArchived: true,
+    });
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      res?.result?.content
+    );
+    const ids = data.map((d) => d.document.id);
+
+    expect(ids).toContain(archived.id);
+  });
+
+  it("includes archived documents in recent documents when requested", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const archived = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    const excluded = parseMcpListContent<{ document: { id: string } }>(
+      (await callMcpTool(server, accessToken, "list_documents"))?.result
+        ?.content
+    ).map((d) => d.document.id);
+    expect(excluded).not.toContain(archived.id);
+
+    const included = parseMcpListContent<{ document: { id: string } }>(
+      (
+        await callMcpTool(server, accessToken, "list_documents", {
+          includeArchived: true,
+        })
+      )?.result?.content
+    ).map((d) => d.document.id);
+    expect(included).toContain(archived.id);
+  });
+
   it("records the search query with an mcp source", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

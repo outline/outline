@@ -182,9 +182,7 @@ export default class ToggleBlock extends Node {
         },
 
         apply: (tr, pluginState, _oldState, newState) => {
-          // Remote updates only initialize fold state for blocks seen for the
-          // first time — previously seen blocks keep their current state.
-          if (isRemoteTransaction(tr)) {
+          if (isRemoteTransaction(tr, newState)) {
             return this.reconcileFoldState(pluginState, newState.doc);
           }
 

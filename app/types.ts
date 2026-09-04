@@ -108,6 +108,10 @@ export type ActionContext = {
   isMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
+  /** True when the action runs as a WebMCP tool invoked by an agent. */
+  isMCP?: boolean;
+  /** Arguments supplied by an agent when the action runs as a WebMCP tool. */
+  mcpArgs?: Record<string, unknown>;
   sidebarContext?: SidebarContextType;
 
   // Legacy (backward compatibility) - returns primary active model's ID
@@ -142,7 +146,7 @@ type BaseAction = {
   name: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   section: ((context: ActionContext) => string) | string;
   description?: ((context: ActionContext) => string) | string;
-  shortcut?: string[];
+  shortcut?: ((context: ActionContext) => string[] | undefined) | string[];
   keywords?: string;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
@@ -154,6 +158,11 @@ type BaseAction = {
   selected?: ((context: ActionContext) => boolean) | boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;
   disabled?: ((context: ActionContext) => boolean) | boolean;
+  /** Configuration for exposing the action as a WebMCP tool. */
+  mcp?: {
+    /** JSON Schema describing the tool arguments, passed as `mcpArgs`. */
+    inputSchema?: Record<string, unknown>;
+  };
 };
 
 export type Action = BaseAction & {

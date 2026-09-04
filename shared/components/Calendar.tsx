@@ -79,7 +79,7 @@ const Wrapper = styled.div`
     background: none;
     border-radius: 4px;
     color: ${s("textSecondary")};
-    cursor: pointer;
+    cursor: var(--pointer);
     transition: background 100ms ease;
 
     &:hover {
@@ -124,7 +124,7 @@ const Wrapper = styled.div`
     font-size: 13px;
     font-variant-numeric: tabular-nums;
     color: ${s("text")};
-    cursor: pointer;
+    cursor: var(--pointer);
     transition: background 100ms ease;
 
     &:hover:not([disabled]):not(.rdp-day_selected) {
