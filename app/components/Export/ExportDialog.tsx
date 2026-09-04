@@ -1,12 +1,10 @@
 import { observer } from "mobx-react";
-import { ArchiveIcon, CodeIcon } from "outline-icons";
+import { ArchiveIcon, CodeIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { FileOperationFormat, NotificationEventType } from "@shared/types";
 import type Collection from "~/models/Collection";
-import { AvatarSize } from "~/components/Avatar";
-import Initials from "~/components/Avatar/Initials";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import { FileFormatSelector } from "~/components/Export/FileFormatSelector";
@@ -78,11 +76,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
       title: "Open Knowledge Format",
       extension: ".okf.zip",
       value: FileOperationFormat.OKFZip,
-      icon: (
-        <InitialsIcon size={AvatarSize.Medium} content="OKF">
-          OKF
-        </InitialsIcon>
-      ),
+      icon: <GlobeIcon />,
     },
     {
       title: "HTML",
@@ -161,10 +155,6 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
     </ConfirmationDialog>
   );
 });
-
-const InitialsIcon = styled(Initials)`
-  border-radius: ${AvatarSize.Medium / 8}px;
-`;
 
 const HR = styled.hr`
   margin: 16px 0;
