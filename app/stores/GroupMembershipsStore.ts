@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { override, runInAction } from "mobx";
+import { override } from "mobx";
 import {
   type CollectionPermission,
   type DocumentPermission,
@@ -8,11 +8,7 @@ import GroupMembership from "~/models/GroupMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
-import Store, {
-  PAGINATION_SYMBOL,
-  type PaginatedResponse,
-  RPCAction,
-} from "./base/Store";
+import Store, { type PaginatedResponse, RPCAction } from "./base/Store";
 
 export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
@@ -41,39 +37,16 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     collectionId?: string;
     groupId?: string;
   }): Promise<PaginatedResponse<GroupMembership>> => {
-    runInAction(() => {
-      this.isFetching = true;
-    });
+    const [endpoint, body] = collectionId
+      ? ["/collections.group_memberships", { id: collectionId, ...params }]
+      : documentId
+        ? ["/documents.group_memberships", { id: documentId, ...params }]
+        : ["/groupMemberships.list", params];
 
-    try {
-      const res = collectionId
-        ? await client.post(`/collections.group_memberships`, {
-            id: collectionId,
-            ...params,
-          })
-        : documentId
-          ? await client.post(`/documents.group_memberships`, {
-              id: documentId,
-              ...params,
-            })
-          : await client.post(`/groupMemberships.list`, params);
-      invariant(res?.data, "Data not available");
-
-      let response: PaginatedResponse<GroupMembership> = [];
-      runInAction(() => {
-        res.data.groups?.forEach(this.rootStore.groups.add);
-        res.data.documents?.forEach(this.rootStore.documents.add);
-        response = res.data.groupMemberships.map(this.add);
-        this.isLoaded = true;
-      });
-
-      response[PAGINATION_SYMBOL] = res.pagination;
-      return response;
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
+    return this.fetchPaginated(endpoint, body, [
+      this.rootStore.groups,
+      this.rootStore.documents,
+    ]);
   };
 
   @override

@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
+import { compact, omitBy, orderBy } from "es-toolkit/compat";
 import {
   action,
   computed,
@@ -100,7 +100,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
+    return this.orderedData.filter((d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -124,15 +124,14 @@ export default class DocumentsStore extends Store<Document> {
 
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, (d) => d.createdBy?.id === userId),
+      this.all.filter((d) => d.createdBy?.id === userId),
       "updatedAt",
       "desc"
     );
   }
 
   inCollection(collectionId: string): Document[] {
-    return filter(
-      this.all,
+    return this.all.filter(
       (document) => document.collectionId === collectionId
     );
   }
@@ -151,12 +150,11 @@ export default class DocumentsStore extends Store<Document> {
           document.isArchived &&
           !document.isDeleted;
 
-    return filter(this.orderedData, filterCond);
+    return this.orderedData.filter(filterCond);
   }
 
   unarchivedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.orderedData,
+    return this.orderedData.filter(
       (document) =>
         document.collectionId === collectionId &&
         !document.isArchived &&
@@ -165,8 +163,7 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   publishedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.all,
+    return this.all.filter(
       (document) =>
         document.collectionId === collectionId && !!document.publishedAt
     );
@@ -256,16 +253,14 @@ export default class DocumentsStore extends Store<Document> {
     );
 
     if (options.userId) {
-      deleted = filter(
-        deleted,
+      deleted = deleted.filter(
         (document) => document.deletedBy?.id === options.userId
       );
     }
 
     if (options.dateFilter) {
       const cutoff = subtractDate(new Date(), options.dateFilter);
-      deleted = filter(
-        deleted,
+      deleted = deleted.filter(
         (document) =>
           !!document.deletedAt && new Date(document.deletedAt) >= cutoff
       );
@@ -285,14 +280,12 @@ export default class DocumentsStore extends Store<Document> {
       collectionId?: string;
     } = {}
   ): Document[] => {
-    let drafts = filter(
-      orderBy(this.all, "updatedAt", "desc"),
+    let drafts = orderBy(this.all, "updatedAt", "desc").filter(
       (doc) => !doc.publishedAt
     );
 
     if (options.dateFilter) {
-      drafts = filter(
-        drafts,
+      drafts = drafts.filter(
         (draft) =>
           new Date(draft.updatedAt) >=
           subtractDate(new Date(), options.dateFilter || "year")
@@ -300,9 +293,9 @@ export default class DocumentsStore extends Store<Document> {
     }
 
     if (options.collectionId) {
-      drafts = filter(drafts, {
-        collectionId: options.collectionId,
-      });
+      drafts = drafts.filter(
+        (draft) => draft.collectionId === options.collectionId
+      );
     }
 
     return drafts;
@@ -371,26 +364,11 @@ export default class DocumentsStore extends Store<Document> {
     });
   };
 
-  @action
   fetchNamedPage = async (
     request = "list",
     options: FetchPageParams | undefined
-  ): Promise<Document[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/documents.${request}`, options);
-      invariant(res?.data, "Document list not available");
-      return runInAction(() => {
-        const documents = res.data.map(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return documents;
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  ): Promise<Document[]> =>
+    this.fetchPaginated(`/documents.${request}`, options);
 
   @action
   fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>

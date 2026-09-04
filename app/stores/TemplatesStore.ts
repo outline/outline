@@ -1,4 +1,4 @@
-import { filter, orderBy } from "es-toolkit/compat";
+import { orderBy } from "es-toolkit/compat";
 import { action, computed, makeObservable, override } from "mobx";
 import { invariant } from "mobx-utils";
 import naturalSort from "@shared/utils/naturalSort";
@@ -30,7 +30,7 @@ export default class TemplatesStore extends Store<Template> {
 
   @computed
   get all(): Template[] {
-    return filter(this.orderedData, (d) => !d.deletedAt);
+    return this.orderedData.filter((d) => !d.deletedAt);
   }
 
   @action

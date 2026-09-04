@@ -10,10 +10,10 @@ import {
 import Collection from "~/models/Collection";
 import type { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
+import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
-import Store from "./base/Store";
 
-export default class CollectionsStore extends Store<Collection> {
+export default class CollectionsStore extends IndexedStore<Collection> {
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
     makeObservable(this);
@@ -38,19 +38,13 @@ export default class CollectionsStore extends Store<Collection> {
 
   @override
   get orderedData(): Collection[] {
-    let collections = Array.from(this.data.values());
-    collections = collections
-      .filter((collection) => !collection.deletedAt)
-      .filter((collection) => {
-        const can = this.rootStore.policies.abilities(collection.id);
-        return isEmpty(can) || can.readDocument;
-      });
-    return collections.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
+    return super.orderedData.filter((collection) => {
+      if (collection.deletedAt) {
+        return false;
       }
 
-      return a.index < b.index ? -1 : 1;
+      const can = this.rootStore.policies.abilities(collection.id);
+      return isEmpty(can) || can.readDocument;
     });
   }
 
@@ -164,26 +158,11 @@ export default class CollectionsStore extends Store<Collection> {
     return result;
   }
 
-  @action
   fetchNamedPage = async (
     request = "list",
     options: (PaginationParams & { filters?: Filter[] }) | undefined
-  ): Promise<Collection[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/collections.${request}`, options);
-      invariant(res?.data, "Collection list not available");
-      return runInAction(() => {
-        const collections = res.data.map(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return collections;
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  ): Promise<Collection[]> =>
+    this.fetchPaginated(`/collections.${request}`, options);
 
   @action
   fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
