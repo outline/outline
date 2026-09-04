@@ -1,16 +1,11 @@
 import invariant from "invariant";
-import { filter } from "es-toolkit/compat";
 import { action, makeObservable, override, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
 import type { PaginationParams } from "~/types";
 import { GroupPermission } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
-import Store, {
-  type PaginatedResponse,
-  PAGINATION_SYMBOL,
-  RPCAction,
-} from "./base/Store";
+import Store, { type PaginatedResponse, RPCAction } from "./base/Store";
 
 export default class GroupUsersStore extends Store<GroupUser> {
   actions = [RPCAction.Create, RPCAction.Update, RPCAction.Delete];
@@ -22,30 +17,11 @@ export default class GroupUsersStore extends Store<GroupUser> {
 
   fetchPage = async (
     params: PaginationParams | undefined
-  ): Promise<PaginatedResponse<GroupUser>> => {
-    runInAction(() => {
-      this.isFetching = true;
+  ): Promise<PaginatedResponse<GroupUser>> =>
+    this.fetchPaginated("/groups.memberships", params, {
+      key: "groupMemberships",
+      related: { users: this.rootStore.users },
     });
-
-    try {
-      const res = await client.post(`/groups.memberships`, params);
-      invariant(res?.data, "Data not available");
-
-      let response: PaginatedResponse<GroupUser> = [];
-      runInAction(() => {
-        res.data.users.forEach(this.rootStore.users.add);
-        response = res.data.groupMemberships.map(this.add);
-        this.isLoaded = true;
-      });
-
-      response[PAGINATION_SYMBOL] = res.pagination;
-      return response;
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
-  };
 
   @override
   async create({
@@ -123,7 +99,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
   };
 
   inGroup = (groupId: string) =>
-    filter(this.orderedData, (member) => member.groupId === groupId);
+    this.orderedData.filter((member) => member.groupId === groupId);
 
   /**
    * Returns the membership of a user in a group, if loaded.

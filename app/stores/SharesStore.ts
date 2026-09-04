@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { filter, find, isUndefined, orderBy } from "es-toolkit/compat";
+import { isUndefined, orderBy } from "es-toolkit/compat";
 import { action, computed, makeObservable, observable, override } from "mobx";
 import type { NavigationNode, PublicTeam } from "@shared/types";
 import type Document from "~/models/Document";
@@ -35,7 +35,7 @@ export default class SharesStore extends Store<Share> {
 
   @computed
   get published(): Share[] {
-    return filter(this.orderedData, (share) => share.published);
+    return this.orderedData.filter((share) => share.published);
   }
 
   @action
@@ -158,11 +158,11 @@ export default class SharesStore extends Store<Share> {
     return undefined;
   };
 
-  getByCollectionId = (collectionId: string): Share | null | undefined =>
-    find(this.orderedData, (share) => share.collectionId === collectionId);
+  getByCollectionId = (collectionId: string): Share | undefined =>
+    this.orderedData.find((share) => share.collectionId === collectionId);
 
-  getByDocumentId = (documentId: string): Share | null | undefined =>
-    find(this.orderedData, (share) => share.documentId === documentId);
+  getByDocumentId = (documentId: string): Share | undefined =>
+    this.orderedData.find((share) => share.documentId === documentId);
 
   get(id: string): Share | undefined {
     return id

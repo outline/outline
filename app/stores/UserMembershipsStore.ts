@@ -3,10 +3,11 @@ import { action, makeObservable, override, runInAction } from "mobx";
 import UserMembership from "~/models/UserMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
+import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
-import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
+import { type PaginatedResponse, RPCAction } from "./base/Store";
 
-export default class UserMembershipsStore extends Store<UserMembership> {
+export default class UserMembershipsStore extends IndexedStore<UserMembership> {
   actions = [
     RPCAction.List,
     RPCAction.Create,
@@ -30,51 +31,22 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     this.rootStore.policies.removeForMembership(id);
   }
 
-  fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
-    runInAction(() => {
-      this.isFetching = true;
+  fetchPage = async (
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<UserMembership>> =>
+    this.fetchPaginated("/userMemberships.list", params, {
+      key: "memberships",
+      related: { documents: this.rootStore.documents },
     });
-
-    try {
-      const res = await client.post(`/userMemberships.list`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(() => {
-        res.data.documents.forEach(this.rootStore.documents.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return res.data.memberships.map(this.add);
-      });
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
-  };
 
   @action
   fetchDocumentMemberships = async (
     params: (PaginationParams & { id: string }) | undefined
-  ): Promise<UserMembership[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/documents.memberships`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(() => {
-        res.data.users.forEach(this.rootStore.users.add);
-
-        const response = res.data.memberships.map(this.add);
-        this.isLoaded = true;
-
-        response[PAGINATION_SYMBOL] = res.pagination;
-        return response;
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  ): Promise<PaginatedResponse<UserMembership>> =>
+    this.fetchPaginated("/documents.memberships", params, {
+      key: "memberships",
+      related: { users: this.rootStore.users },
+    });
 
   @override
   async create({ documentId, userId, permission }: Partial<UserMembership>) {
@@ -100,19 +72,6 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       userId,
     });
     this.removeAll({ userId, documentId });
-  }
-
-  @override
-  get orderedData(): UserMembership[] {
-    const memberships = Array.from(this.data.values());
-
-    return memberships.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
-      }
-
-      return a.index < b.index ? -1 : 1;
-    });
   }
 
   /**

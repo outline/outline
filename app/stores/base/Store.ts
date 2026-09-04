@@ -60,6 +60,13 @@ export type PaginatedResponse<T> = T[] & {
 // oxlint-disable-next-line no-explicit-any
 export type FetchPageParams = PaginationParams & Record<string, any>;
 
+/**
+ * A store that related models found in an API response can be added to.
+ */
+interface RelatedStore {
+  add(item: PartialExcept<Model, "id">): unknown;
+}
+
 export default abstract class Store<T extends Model> {
   @observable
   data: Map<string, T> = new Map();
@@ -498,7 +505,7 @@ export default abstract class Store<T extends Model> {
   }
 
   // Not annotated: subclasses replace this field, and MobX makes an annotated
-  // field non-writable. The state changes below run in runInAction already.
+  // field non-writable. The state changes run in runInAction already.
   fetchPage = async (
     params?: FetchPageParams
   ): Promise<PaginatedResponse<T>> => {
@@ -506,29 +513,7 @@ export default abstract class Store<T extends Model> {
       throw new Error(`Cannot list ${this.modelName}`);
     }
 
-    runInAction(() => {
-      this.isFetching = true;
-    });
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.list`, params);
-      invariant(res?.data, "Data not available");
-
-      let response: PaginatedResponse<T> = [];
-
-      runInAction(() => {
-        this.addPolicies(res.policies);
-        response = res.data.map(this.add);
-        this.isLoaded = true;
-      });
-
-      response[PAGINATION_SYMBOL] = res.pagination;
-      return response;
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
+    return this.fetchPaginated(`/${this.apiEndpoint}.list`, params);
   };
 
   @action
@@ -588,4 +573,54 @@ export default abstract class Store<T extends Model> {
   filter = (predicate: ListPredicate<T>): T[] =>
     // @ts-expect-error not sure why T is incompatible
     filter(this.orderedData, predicate);
+
+  /**
+   * Fetch a page of items from the API and add them to the store, along with
+   * any related models in the response that belong to other stores.
+   *
+   * @param endpoint the API endpoint to request.
+   * @param params the request parameters.
+   * @param options.key the key in the response data that holds the items, the
+   * response data itself is used when omitted.
+   * @param options.related a map of response data keys to the stores that the
+   * models under those keys are added to.
+   * @returns the fetched items, with pagination information attached.
+   */
+  protected async fetchPaginated(
+    endpoint: string,
+    params?: FetchPageParams,
+    options: { key?: string; related?: Record<string, RelatedStore> } = {}
+  ): Promise<PaginatedResponse<T>> {
+    runInAction(() => {
+      this.isFetching = true;
+    });
+
+    try {
+      const res = await client.post(endpoint, params);
+      invariant(res?.data, "Data not available");
+
+      let response: PaginatedResponse<T> = [];
+
+      runInAction(() => {
+        this.addPolicies(res.policies);
+
+        Object.entries(options.related ?? {}).forEach(([key, store]) => {
+          res.data[key]?.forEach((item: PartialExcept<Model, "id">) =>
+            store.add(item)
+          );
+        });
+
+        const items = options.key ? res.data[options.key] : res.data;
+        response = items.map(this.add);
+        this.isLoaded = true;
+      });
+
+      response[PAGINATION_SYMBOL] = res.pagination;
+      return response;
+    } finally {
+      runInAction(() => {
+        this.isFetching = false;
+      });
+    }
+  }
 }

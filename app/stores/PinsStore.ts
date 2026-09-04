@@ -1,15 +1,16 @@
 import invariant from "invariant";
-import { action, computed, override, runInAction } from "mobx";
+import { action, computed } from "mobx";
 import Pin from "~/models/Pin";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
+import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
-import Store from "./base/Store";
+import type { PaginatedResponse } from "./base/Store";
 
 type FetchParams = PaginationParams & { collectionId?: string };
 
-export default class PinsStore extends Store<Pin> {
+export default class PinsStore extends IndexedStore<Pin> {
   constructor(rootStore: RootStore) {
     super(rootStore, Pin);
   }
@@ -52,30 +53,11 @@ export default class PinsStore extends Store<Pin> {
     }
   }
 
-  fetchPage = async (params?: FetchParams): Promise<Pin[]> => {
-    runInAction(() => {
-      this.isFetching = true;
+  fetchPage = async (params?: FetchParams): Promise<PaginatedResponse<Pin>> =>
+    this.fetchPaginated("/pins.list", params, {
+      key: "pins",
+      related: { documents: this.rootStore.documents },
     });
-
-    try {
-      const res = await client.post(`/pins.list`, params);
-      invariant(res?.data, "Data not available");
-
-      let models: Pin[] = [];
-      runInAction(() => {
-        res.data.documents.forEach(this.rootStore.documents.add);
-        models = res.data.pins.map(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-      });
-
-      return models;
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
-  };
 
   inCollection = (collectionId: string) =>
     this.orderedData.filter((pin) => pin.collectionId === collectionId);
@@ -83,18 +65,5 @@ export default class PinsStore extends Store<Pin> {
   @computed
   get home() {
     return this.orderedData.filter((pin) => !pin.collectionId);
-  }
-
-  @override
-  get orderedData(): Pin[] {
-    const pins = Array.from(this.data.values());
-
-    return pins.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
-      }
-
-      return a.index < b.index ? -1 : 1;
-    });
   }
 }

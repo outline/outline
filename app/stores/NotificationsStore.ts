@@ -1,11 +1,10 @@
-import invariant from "invariant";
 import { orderBy, sortBy } from "es-toolkit/compat";
 import { action, computed, makeObservable, override, runInAction } from "mobx";
 import Notification from "~/models/Notification";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
-import Store, { RPCAction } from "./base/Store";
+import Store, { type PaginatedResponse, RPCAction } from "./base/Store";
 
 export default class NotificationsStore extends Store<Notification> {
   actions = [RPCAction.List, RPCAction.Update];
@@ -17,28 +16,10 @@ export default class NotificationsStore extends Store<Notification> {
 
   fetchPage = async (
     options: ({ archived?: boolean } & PaginationParams) | undefined
-  ): Promise<Notification[]> => {
-    runInAction(() => {
-      this.isFetching = true;
+  ): Promise<PaginatedResponse<Notification>> =>
+    this.fetchPaginated("/notifications.list", options, {
+      key: "notifications",
     });
-
-    try {
-      const res = await client.post("/notifications.list", options);
-      invariant(res?.data, "Document revisions not available");
-
-      let models: Notification[] = [];
-      runInAction(() => {
-        models = res.data.notifications.map(this.add);
-        this.isLoaded = true;
-      });
-
-      return models;
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
-  };
 
   /**
    * Mark all notifications as read.

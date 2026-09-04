@@ -1,15 +1,11 @@
 import invariant from "invariant";
-import { action, makeObservable, override, runInAction } from "mobx";
+import { action, makeObservable, override } from "mobx";
 import type { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
-import Store, {
-  PAGINATION_SYMBOL,
-  type PaginatedResponse,
-  RPCAction,
-} from "./base/Store";
+import Store, { type PaginatedResponse, RPCAction } from "./base/Store";
 
 export default class MembershipsStore extends Store<Membership> {
   actions = [RPCAction.Create, RPCAction.Delete];
@@ -32,29 +28,11 @@ export default class MembershipsStore extends Store<Membership> {
 
   fetchPage = async (
     params: (PaginationParams & { id?: string }) | undefined
-  ): Promise<PaginatedResponse<Membership>> => {
-    runInAction(() => {
-      this.isFetching = true;
+  ): Promise<PaginatedResponse<Membership>> =>
+    this.fetchPaginated("/collections.memberships", params, {
+      key: "memberships",
+      related: { users: this.rootStore.users },
     });
-
-    try {
-      const res = await client.post(`/collections.memberships`, params);
-      invariant(res?.data, "Data not available");
-
-      let response: PaginatedResponse<Membership> = [];
-      runInAction(() => {
-        res.data.users.forEach(this.rootStore.users.add);
-        response = res.data.memberships.map(this.add);
-        this.isLoaded = true;
-      });
-      response[PAGINATION_SYMBOL] = res.pagination;
-      return response;
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
-  };
 
   @override
   async create({

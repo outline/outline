@@ -1,49 +1,19 @@
-import invariant from "invariant";
-import { override, runInAction } from "mobx";
 import Star from "~/models/Star";
 import type { PaginationParams } from "~/types";
-import { client } from "~/utils/ApiClient";
+import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
-import Store from "./base/Store";
+import type { PaginatedResponse } from "./base/Store";
 
-export default class StarsStore extends Store<Star> {
+export default class StarsStore extends IndexedStore<Star> {
   constructor(rootStore: RootStore) {
     super(rootStore, Star);
   }
 
-  fetchPage = async (params?: PaginationParams): Promise<Star[]> => {
-    runInAction(() => {
-      this.isFetching = true;
+  fetchPage = async (
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<Star>> =>
+    this.fetchPaginated("/stars.list", params, {
+      key: "stars",
+      related: { documents: this.rootStore.documents },
     });
-
-    try {
-      const res = await client.post(`/stars.list`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(() => {
-        res.data.documents.forEach(this.rootStore.documents.add);
-        const models = res.data.stars.map(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return models;
-      });
-    } finally {
-      runInAction(() => {
-        this.isFetching = false;
-      });
-    }
-  };
-
-  @override
-  get orderedData(): Star[] {
-    const stars = Array.from(this.data.values());
-
-    return stars.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
-      }
-
-      return a.index < b.index ? -1 : 1;
-    });
-  }
 }
