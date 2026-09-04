@@ -91,16 +91,23 @@ router.post(
     const { auth, transaction } = ctx.state;
     const { user } = auth;
 
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "update", document);
+    }
+
     // All user types can upload an avatar so no additional authorization is needed.
     if (preset === AttachmentPreset.Avatar) {
       assertIn(contentType, AttachmentValidation.avatarContentTypes);
     } else {
-      if (preset === AttachmentPreset.DocumentAttachment && documentId) {
-        const document = await Document.findByPk(documentId, {
-          userId: user.id,
-          transaction,
-        });
-        authorize(user, "update", document);
+      if (
+        preset === AttachmentPreset.Import ||
+        preset === AttachmentPreset.WorkspaceImport
+      ) {
+        authorize(user, "createImport", user.team);
       }
       if (preset === AttachmentPreset.Emoji) {
         assertIn(contentType, AttachmentValidation.emojiContentTypes);
