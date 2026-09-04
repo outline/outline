@@ -20,10 +20,7 @@ export default class GroupsStore extends Store<Group> {
   fetchPage = async (
     params: FetchPageParams | undefined
   ): Promise<PaginatedResponse<Group>> =>
-    this.fetchPaginated("/groups.list", params, {
-      key: "groups",
-      related: { groupMemberships: this.rootStore.groupUsers },
-    });
+    this.fetchPaginated("/groups.list", params, [this.rootStore.groupUsers]);
 
   /**
    * Returns groups that are in the given collection, optionally filtered by a query.

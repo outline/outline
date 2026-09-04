@@ -15,6 +15,8 @@ export default class UserMembershipsStore extends IndexedStore<UserMembership> {
     RPCAction.Update,
   ];
 
+  responseKey = "memberships";
+
   constructor(rootStore: RootStore) {
     super(rootStore, UserMembership);
     makeObservable(this);
@@ -34,19 +36,17 @@ export default class UserMembershipsStore extends IndexedStore<UserMembership> {
   fetchPage = async (
     params?: PaginationParams
   ): Promise<PaginatedResponse<UserMembership>> =>
-    this.fetchPaginated("/userMemberships.list", params, {
-      key: "memberships",
-      related: { documents: this.rootStore.documents },
-    });
+    this.fetchPaginated("/userMemberships.list", params, [
+      this.rootStore.documents,
+    ]);
 
   @action
   fetchDocumentMemberships = async (
     params: (PaginationParams & { id: string }) | undefined
   ): Promise<PaginatedResponse<UserMembership>> =>
-    this.fetchPaginated("/documents.memberships", params, {
-      key: "memberships",
-      related: { users: this.rootStore.users },
-    });
+    this.fetchPaginated("/documents.memberships", params, [
+      this.rootStore.users,
+    ]);
 
   @override
   async create({ documentId, userId, permission }: Partial<UserMembership>) {

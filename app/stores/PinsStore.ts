@@ -54,10 +54,7 @@ export default class PinsStore extends IndexedStore<Pin> {
   }
 
   fetchPage = async (params?: FetchParams): Promise<PaginatedResponse<Pin>> =>
-    this.fetchPaginated("/pins.list", params, {
-      key: "pins",
-      related: { documents: this.rootStore.documents },
-    });
+    this.fetchPaginated("/pins.list", params, [this.rootStore.documents]);
 
   inCollection = (collectionId: string) =>
     this.orderedData.filter((pin) => pin.collectionId === collectionId);

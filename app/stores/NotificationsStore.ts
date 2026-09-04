@@ -17,9 +17,7 @@ export default class NotificationsStore extends Store<Notification> {
   fetchPage = async (
     options: ({ archived?: boolean } & PaginationParams) | undefined
   ): Promise<PaginatedResponse<Notification>> =>
-    this.fetchPaginated("/notifications.list", options, {
-      key: "notifications",
-    });
+    this.fetchPaginated("/notifications.list", options);
 
   /**
    * Mark all notifications as read.

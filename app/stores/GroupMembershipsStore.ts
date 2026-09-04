@@ -43,13 +43,10 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
         ? ["/documents.group_memberships", { id: documentId, ...params }]
         : ["/groupMemberships.list", params];
 
-    return this.fetchPaginated(endpoint, body, {
-      key: "groupMemberships",
-      related: {
-        groups: this.rootStore.groups,
-        documents: this.rootStore.documents,
-      },
-    });
+    return this.fetchPaginated(endpoint, body, [
+      this.rootStore.groups,
+      this.rootStore.documents,
+    ]);
   };
 
   @override

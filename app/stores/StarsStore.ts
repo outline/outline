@@ -12,8 +12,5 @@ export default class StarsStore extends IndexedStore<Star> {
   fetchPage = async (
     params?: PaginationParams
   ): Promise<PaginatedResponse<Star>> =>
-    this.fetchPaginated("/stars.list", params, {
-      key: "stars",
-      related: { documents: this.rootStore.documents },
-    });
+    this.fetchPaginated("/stars.list", params, [this.rootStore.documents]);
 }

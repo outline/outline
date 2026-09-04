@@ -29,10 +29,9 @@ export default class MembershipsStore extends Store<Membership> {
   fetchPage = async (
     params: (PaginationParams & { id?: string }) | undefined
   ): Promise<PaginatedResponse<Membership>> =>
-    this.fetchPaginated("/collections.memberships", params, {
-      key: "memberships",
-      related: { users: this.rootStore.users },
-    });
+    this.fetchPaginated("/collections.memberships", params, [
+      this.rootStore.users,
+    ]);
 
   @override
   async create({

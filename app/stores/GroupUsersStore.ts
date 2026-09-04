@@ -10,6 +10,8 @@ import Store, { type PaginatedResponse, RPCAction } from "./base/Store";
 export default class GroupUsersStore extends Store<GroupUser> {
   actions = [RPCAction.Create, RPCAction.Update, RPCAction.Delete];
 
+  responseKey = "groupMemberships";
+
   constructor(rootStore: RootStore) {
     super(rootStore, GroupUser);
     makeObservable(this);
@@ -18,10 +20,7 @@ export default class GroupUsersStore extends Store<GroupUser> {
   fetchPage = async (
     params: PaginationParams | undefined
   ): Promise<PaginatedResponse<GroupUser>> =>
-    this.fetchPaginated("/groups.memberships", params, {
-      key: "groupMemberships",
-      related: { users: this.rootStore.users },
-    });
+    this.fetchPaginated("/groups.memberships", params, [this.rootStore.users]);
 
   @override
   async create({

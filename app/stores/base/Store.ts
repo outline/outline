@@ -64,6 +64,7 @@ export type FetchPageParams = PaginationParams & Record<string, any>;
  * A store that related models found in an API response can be added to.
  */
 interface RelatedStore {
+  responseKey: string;
   add(item: PartialExcept<Model, "id">): unknown;
 }
 
@@ -90,6 +91,12 @@ export default abstract class Store<T extends Model> {
   apiEndpoint: string;
 
   /**
+   * The key under which this store's models appear in API responses that
+   * return more than one kind of model, defaults to the API endpoint name.
+   */
+  responseKey: string;
+
+  /**
    * Whether the store's data should be persisted to IndexedDB, and restored
    * at boot, once persistence is enabled for the authenticated team.
    */
@@ -114,6 +121,10 @@ export default abstract class Store<T extends Model> {
 
     if (!this.apiEndpoint) {
       this.apiEndpoint = pluralize(lowerFirst(model.modelName));
+    }
+
+    if (!this.responseKey) {
+      this.responseKey = this.apiEndpoint;
     }
 
     makeObservable(this);
@@ -576,20 +587,19 @@ export default abstract class Store<T extends Model> {
 
   /**
    * Fetch a page of items from the API and add them to the store, along with
-   * any related models in the response that belong to other stores.
+   * any related models in the response that belong to other stores. Items are
+   * read from the response data directly when it is an array, otherwise from
+   * the key of each store.
    *
    * @param endpoint the API endpoint to request.
    * @param params the request parameters.
-   * @param options.key the key in the response data that holds the items, the
-   * response data itself is used when omitted.
-   * @param options.related a map of response data keys to the stores that the
-   * models under those keys are added to.
+   * @param related the stores that related models in the response are added to.
    * @returns the fetched items, with pagination information attached.
    */
   protected async fetchPaginated(
     endpoint: string,
     params?: FetchPageParams,
-    options: { key?: string; related?: Record<string, RelatedStore> } = {}
+    related: RelatedStore[] = []
   ): Promise<PaginatedResponse<T>> {
     runInAction(() => {
       this.isFetching = true;
@@ -604,13 +614,15 @@ export default abstract class Store<T extends Model> {
       runInAction(() => {
         this.addPolicies(res.policies);
 
-        Object.entries(options.related ?? {}).forEach(([key, store]) => {
-          res.data[key]?.forEach((item: PartialExcept<Model, "id">) =>
-            store.add(item)
+        related.forEach((store) => {
+          res.data[store.responseKey]?.forEach(
+            (item: PartialExcept<Model, "id">) => store.add(item)
           );
         });
 
-        const items = options.key ? res.data[options.key] : res.data;
+        const items = Array.isArray(res.data)
+          ? res.data
+          : res.data[this.responseKey];
         response = items.map(this.add);
         this.isLoaded = true;
       });
