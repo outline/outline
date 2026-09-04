@@ -560,25 +560,31 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
-  /* Long labels are truncated so a mention never wraps onto a second line. */
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+  /* External resource titles stay on one line, while internal mentions can
+     wrap to fit constrained containers such as table cells. */
+  &[data-type="issue"],
+  &[data-type="pull_request"],
+  &[data-type="project"],
+  &[data-type="url"] {
+    max-width: 100%;
     white-space: nowrap;
-  }
+    overflow: hidden;
 
-  /* Only the label truncates; icons and trailing identifiers stay whole. */
-  &::before,
-  svg,
-  img,
-  span ~ span {
-    flex-shrink: 0;
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+      white-space: nowrap;
+    }
+
+    /* Only the label truncates; icons and trailing identifiers stay whole. */
+    &::before,
+    svg,
+    img,
+    span ~ span {
+      flex-shrink: 0;
+    }
   }
 
   &:${hover} {
