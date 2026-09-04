@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -47,18 +47,21 @@ function ImportRootPicker({ onChange }: Props) {
     [policies, collectionTrees]
   );
 
-  const handleSelect = (node: NavigationNode | null) => {
-    setSelectedPath(node);
-    if (!node) {
-      onChange(null);
-      return;
-    }
-    onChange(
-      node.type === NavigationNodeType.Collection
-        ? { collectionId: node.id }
-        : { documentId: node.id }
-    );
-  };
+  const handleSelect = useCallback(
+    (node: NavigationNode | null) => {
+      setSelectedPath(node);
+      if (!node) {
+        onChange(null);
+        return;
+      }
+      onChange(
+        node.type === NavigationNodeType.Collection
+          ? { collectionId: node.id }
+          : { documentId: node.id }
+      );
+    },
+    [onChange]
+  );
 
   return (
     <Flex column gap={8}>

@@ -2,7 +2,7 @@ import fractionalIndex from "fractional-index";
 import { chunk, keyBy, truncate } from "es-toolkit/compat";
 import { Fragment, Node } from "prosemirror-model";
 import type { CreateOptions, CreationAttributes, Transaction } from "sequelize";
-import { UniqueConstraintError } from "sequelize";
+import { Op, UniqueConstraintError } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { randomElement } from "@shared/random";
 import type {
@@ -27,10 +27,19 @@ import { colorPalette } from "@shared/constants";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { errToString } from "@shared/utils/error";
 import { CollectionValidation } from "@shared/validations";
+import documentMover from "@server/commands/documentMover";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { Attachment, Collection, Document, Import, User } from "@server/models";
+import {
+  Attachment,
+  Collection,
+  Document,
+  GroupMembership,
+  Import,
+  User,
+  UserMembership,
+} from "@server/models";
 import type {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
@@ -366,11 +375,9 @@ export default abstract class ImportsProcessor<
     }
 
     // Documents created by this import that live in a pre-existing destination
-    // (the destination itself has no apiImportId, so it survives). Delete each
-    // top-level subtree via destroyWithCtx so the collection structure, search
-    // index, and clients stay in sync; children cascade within each subtree.
+    // (the destination itself has no apiImportId, so it survives).
     const created = await Document.unscoped().findAll({
-      attributes: ["id", "parentDocumentId"],
+      attributes: ["id", "collectionId", "parentDocumentId"],
       transaction,
       where: {
         teamId: importModel.teamId,
@@ -383,6 +390,60 @@ export default abstract class ImportsProcessor<
     }
 
     const importedIds = new Set(created.map((doc) => doc.id));
+    const importedById = new Map(
+      created.map((document) => [document.id, document])
+    );
+
+    // Lock every affected collection before inspecting descendants. This
+    // prevents a concurrent move or publish from changing the document tree
+    // while unrelated subtrees are moved away from documents being deleted.
+    const collectionIds = [
+      ...new Set(
+        created.flatMap((document) =>
+          document.collectionId ? [document.collectionId] : []
+        )
+      ),
+    ].sort();
+    for (const collectionId of collectionIds) {
+      await Collection.findByPk(collectionId, {
+        includeDocumentStructure: true,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
+        paranoid: false,
+        transaction,
+      });
+    }
+
+    // A document added below imported content after the import completed must
+    // survive deletion of the import. Move each such subtree to the nearest
+    // parent that was not created by this import before deleting imported rows.
+    const children = await Document.unscoped().findAll({
+      transaction,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
+      where: {
+        parentDocumentId: { [Op.in]: [...importedIds] },
+      },
+    });
+    const unrelatedChildren = children.filter(
+      (document) => document.apiImportId !== importModel.id
+    );
+
+    for (const document of unrelatedChildren) {
+      let parentDocumentId = document.parentDocumentId;
+      while (parentDocumentId && importedIds.has(parentDocumentId)) {
+        const importedParent = importedById.get(parentDocumentId);
+        if (!importedParent) {
+          break;
+        }
+        parentDocumentId = importedParent.parentDocumentId;
+      }
+
+      await documentMover(ctx, {
+        document,
+        collectionId: document.collectionId ?? null,
+        parentDocumentId,
+      });
+    }
+
     const topLevelIds = created
       .filter(
         (doc) => !doc.parentDocumentId || !importedIds.has(doc.parentDocumentId)
@@ -715,7 +776,7 @@ export default abstract class ImportsProcessor<
             };
 
             try {
-              await Document.findOrCreateWithCtx(
+              const [document, created] = await Document.findOrCreateWithCtx(
                 ctx,
                 {
                   where: {
@@ -729,6 +790,21 @@ export default abstract class ImportsProcessor<
                   data: { title: output.title, source: "import" },
                 }
               );
+
+              if (destination && created && parentDocumentId) {
+                await Promise.all([
+                  GroupMembership.copy(
+                    { documentId: parentDocumentId },
+                    document,
+                    { transaction }
+                  ),
+                  UserMembership.copy(
+                    { documentId: parentDocumentId },
+                    document,
+                    { transaction }
+                  ),
+                ]);
+              }
             } catch (err) {
               if (err instanceof UniqueConstraintError) {
                 Logger.error(
@@ -788,26 +864,47 @@ export default abstract class ImportsProcessor<
     transaction: Transaction
   ): Promise<ImportDestination | null> {
     if (importModel.documentId) {
-      const document = await Document.findByPk(importModel.documentId, {
-        includeViews: false,
-        transaction,
-      });
-      if (!document || document.archivedAt || !document.collectionId) {
-        throw new Error(
-          `Import destination document ${importModel.documentId} is no longer available`
-        );
+      // Lock the collection before the document to match documentMover's lock
+      // order. If the document moved between the initial read and the lock,
+      // retry against its current collection.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const document = await Document.unscoped().findOne({
+          where: { id: importModel.documentId },
+          transaction,
+        });
+        if (!document || document.archivedAt || !document.collectionId) {
+          break;
+        }
+
+        const collection = await Collection.findByPk(document.collectionId, {
+          includeDocumentStructure: true,
+          lock: transaction.LOCK.NO_KEY_UPDATE,
+          transaction,
+          rejectOnEmpty: true,
+        });
+        const lockedDocument = await Document.unscoped().findOne({
+          where: { id: importModel.documentId },
+          lock: transaction.LOCK.NO_KEY_UPDATE,
+          transaction,
+        });
+        if (
+          lockedDocument &&
+          !lockedDocument.archivedAt &&
+          lockedDocument.collectionId === collection.id
+        ) {
+          return { collection, document: lockedDocument };
+        }
       }
-      const collection = await Collection.findByPk(document.collectionId, {
-        includeDocumentStructure: true,
-        transaction,
-        rejectOnEmpty: true,
-      });
-      return { collection, document };
+
+      throw new Error(
+        `Import destination document ${importModel.documentId} is no longer available`
+      );
     }
 
     if (importModel.collectionId) {
       const collection = await Collection.findByPk(importModel.collectionId, {
         includeDocumentStructure: true,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         transaction,
         rejectOnEmpty: true,
       });
