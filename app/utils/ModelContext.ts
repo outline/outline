@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import Logger from "~/utils/Logger";
 
 /** A content block returned from a WebMCP tool execution. */
@@ -83,13 +84,25 @@ export function registerModelContextTool(
       signal,
     });
     if (result instanceof Promise) {
-      result.catch(() => {
-        Logger.warn("Failed to register WebMCP tool", { name: tool.name });
+      result.catch((err: unknown) => {
+        // An aborted signal rejects a pending registration; this is normal
+        // teardown, not a failure.
+        const error = toError(err);
+        if (signal.aborted || error.name === "AbortError") {
+          return;
+        }
+        Logger.warn("Failed to register WebMCP tool", {
+          name: tool.name,
+          error: error.message,
+        });
         registeredToolNames.delete(tool.name);
       });
     }
-  } catch (_err) {
-    Logger.warn("Failed to register WebMCP tool", { name: tool.name });
+  } catch (err) {
+    Logger.warn("Failed to register WebMCP tool", {
+      name: tool.name,
+      error: toError(err).message,
+    });
     registeredToolNames.delete(tool.name);
     return false;
   }
