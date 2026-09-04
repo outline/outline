@@ -30,6 +30,7 @@ import { HStack } from "~/components/primitives/HStack";
 
 type KeyboardShortcutsProps = {
   open: boolean;
+  inputRef: React.RefObject<HTMLInputElement>;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
@@ -37,6 +38,7 @@ type KeyboardShortcutsProps = {
 
 function useKeyboardShortcuts({
   open,
+  inputRef,
   handleOpen,
   handleCaseSensitive,
   handleRegex,
@@ -45,8 +47,8 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
-      !open &&
       ev.code === "KeyF" &&
+      (!open || ev.altKey || document.activeElement !== inputRef.current) &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
@@ -318,8 +320,23 @@ export default function FindAndReplace({
     [handleReplace]
   );
 
+  const handleEscape = React.useCallback(
+    (ev: KeyboardEvent) => {
+      if (!searchTerm) {
+        return;
+      }
+
+      ev.preventDefault();
+      debouncedFind.cancel();
+      setSearchTerm("");
+      editor.commands.clearSearch();
+    },
+    [debouncedFind, editor.commands, searchTerm]
+  );
+
   useKeyboardShortcuts({
     open: localOpen,
+    inputRef,
     handleOpen,
     handleCaseSensitive,
     handleRegex,
@@ -414,11 +431,9 @@ export default function FindAndReplace({
         width={0}
         minWidth={420}
         scrollable={false}
-        onPointerDownOutside={() => setLocalOpen(false)}
-        onFocusOutside={(event) => {
-          event.preventDefault();
-          inputRef.current?.focus();
-        }}
+        onEscapeKeyDown={handleEscape}
+        onPointerDownOutside={(ev) => ev.preventDefault()}
+        onFocusOutside={(ev) => ev.preventDefault()}
         style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>

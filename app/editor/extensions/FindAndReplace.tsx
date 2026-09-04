@@ -7,6 +7,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
+import { expandCodeBlockAt } from "@shared/editor/nodes/CodeFence";
 import { Action, toggleFoldPluginKey } from "@shared/editor/nodes/ToggleBlock";
 import { isToggleBlock } from "@shared/editor/queries/toggleBlock";
 import { ancestors } from "@shared/editor/utils";
@@ -43,7 +44,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
   keys(): Record<string, Command> {
     return {
       Escape: () => {
-        if (!this.searchTerm) {
+        if (!this.searchTerm || this.open) {
           return false;
         }
         this.handleEscape();
@@ -316,7 +317,8 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       return;
     }
 
-    this.editor.commands.expandCodeBlockAt(result.from);
+    const view = this.editor.view;
+    expandCodeBlockAt(result.from)(view.state, view.dispatch, view);
   }
 
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
@@ -584,7 +586,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
   };
 
   private handleDocumentKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== "Escape" || !this.searchTerm) {
+    if (event.key !== "Escape" || !this.searchTerm || this.open) {
       return;
     }
     if (event.defaultPrevented) {
