@@ -6,15 +6,15 @@ export interface LRUCacheOptions {
   max: number;
   /** Prefix under which entries are stored, used to namespace and version them. */
   namespace?: string;
-  /** Mirror entries to sessionStorage, requires a namespace. */
-  persistToSession?: boolean;
+  /** Mirror entries to the given web storage, requires a namespace. */
+  storage: "memory" | "localStorage" | "sessionStorage";
 }
 
 /**
  * A cache holding a bounded number of entries, evicting the least recently used
  * once full. Reading or writing an entry marks it as the most recently used.
  *
- * Entries are optionally mirrored to sessionStorage so that they survive a
+ * Entries are optionally mirrored to web storage so that they survive a
  * reload, in which case values must be JSON-serializable. Persisted values are
  * read back only when they are first accessed, so the cache holds no more in
  * memory than the session has used. Storage failures are ignored, leaving the
@@ -24,7 +24,7 @@ export class LRUCache<T> {
   public constructor(options: LRUCacheOptions) {
     this.max = options.max;
     this.namespace = options.namespace;
-    this.persistToSession = options.persistToSession;
+    this.storageType = options.storage;
   }
 
   /**
@@ -128,10 +128,10 @@ export class LRUCache<T> {
 
   private max: number;
   private namespace?: string;
-  private persistToSession?: boolean;
+  private storageType: "memory" | "localStorage" | "sessionStorage";
   // An entry is undefined while it is persisted but not yet read into memory.
   private data = new Map<string, T | undefined>();
-  private storage?: Storage;
+  private store?: Storage;
   private hydrated = false;
 
   /** The storage key holding the cached keys in least-to-most recent order. */
@@ -153,14 +153,16 @@ export class LRUCache<T> {
     }
     this.hydrated = true;
 
-    if (!this.persistToSession || !this.namespace) {
+    if (this.storageType === "memory" || !this.namespace) {
       return;
     }
 
-    this.storage = new Storage("session");
+    this.store = new Storage(
+      this.storageType === "localStorage" ? "local" : "session"
+    );
 
     // A corrupt or absent index reads as undefined, leaving the cache empty.
-    const keys: unknown = this.storage.get(this.keysKey);
+    const keys: unknown = this.store.get(this.keysKey);
     if (!Array.isArray(keys)) {
       return;
     }
@@ -177,7 +179,7 @@ export class LRUCache<T> {
    * longer stored, which happens when an earlier write exceeded the quota.
    */
   private load(key: string): T | undefined {
-    const value: T | undefined = this.storage?.get(this.valueKey(key));
+    const value: T | undefined = this.store?.get(this.valueKey(key));
     if (value === undefined) {
       this.data.delete(key);
       this.writeKeys();
@@ -189,14 +191,14 @@ export class LRUCache<T> {
   }
 
   private writeValue(key: string, value: T) {
-    this.storage?.set(this.valueKey(key), value);
+    this.store?.set(this.valueKey(key), value);
   }
 
   private removeValue(key: string) {
-    this.storage?.remove(this.valueKey(key));
+    this.store?.remove(this.valueKey(key));
   }
 
   private writeKeys() {
-    this.storage?.set(this.keysKey, [...this.data.keys()]);
+    this.store?.set(this.keysKey, [...this.data.keys()]);
   }
 }
