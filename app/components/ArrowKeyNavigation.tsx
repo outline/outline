@@ -2,7 +2,7 @@ import { RovingTabIndexProvider } from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 
-type Props = React.HTMLAttributes<HTMLDivElement> & {
+type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "children"> & {
   children: () => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
   items: unknown[];

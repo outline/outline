@@ -22,7 +22,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const NotificationsPopover: React.FC = ({ children }: Props) => {
+const NotificationsPopover: React.FC<Props> = ({ children }: Props) => {
   const { t } = useTranslation();
   const { notifications } = useStores();
   const shouldOpen = isTruthyQueryValue(useConsumeQueryParam("notifications"));

@@ -1,5 +1,5 @@
 import { orderBy } from "es-toolkit/compat";
-import { computed } from "mobx";
+import { override } from "mobx";
 import AuthenticationProvider from "~/models/AuthenticationProvider";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
@@ -11,7 +11,7 @@ export default class AuthenticationProvidersStore extends Store<AuthenticationPr
     super(rootStore, AuthenticationProvider);
   }
 
-  @computed
+  @override
   get orderedData(): AuthenticationProvider[] {
     return orderBy(Array.from(this.data.values()), ["desc", "asc"]);
   }

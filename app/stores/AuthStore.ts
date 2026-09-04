@@ -1,7 +1,14 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { isNil } from "es-toolkit/compat";
-import { observable, action, computed, autorun, runInAction } from "mobx";
+import {
+  action,
+  autorun,
+  computed,
+  makeObservable,
+  observable,
+  runInAction,
+} from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
 import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
@@ -42,20 +49,16 @@ export default class AuthStore extends Store<Team> {
 
   /* The ID of the user that is currently signed in. */
   @observable
-  public currentUserId?: string | null;
-
+  public currentUserId?: string | null = undefined;
   /* The ID of the team that is currently signed in. */
   @observable
-  public currentTeamId?: string | null;
-
+  public currentTeamId?: string | null = undefined;
   /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
-  public collaborationToken?: string | null;
-
+  public collaborationToken?: string | null = undefined;
   /* When set, the user will be redirected to this URL after logging out. */
   @observable
-  public logoutRedirectUri?: string;
-
+  public logoutRedirectUri?: string = undefined;
   /* A list of teams that the current user has access to. */
   @observable
   public availableTeams?: {
@@ -68,24 +71,23 @@ export default class AuthStore extends Store<Team> {
 
   /* The authentication provider the user signed in with. */
   @observable
-  public lastSignedIn?: string | null;
-
+  public lastSignedIn?: string | null = undefined;
   /* Whether the user is currently suspended. */
   @observable
   public isSuspended = false;
 
   /* The email address to contact if the user is suspended. */
   @observable
-  public suspendedContactEmail?: string | null;
-
+  public suspendedContactEmail?: string | null = undefined;
   /* The auth configuration for the current domain. */
   @observable
-  public config: Config | null | undefined;
+  public config: Config | null | undefined = undefined;
 
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
     super(rootStore, Team);
+    makeObservable(this);
 
     this.rootStore = rootStore;
 
@@ -210,7 +212,7 @@ export default class AuthStore extends Store<Team> {
       });
       invariant(res?.data, "Auth not available");
 
-      runInAction("AuthStore#refresh", () => {
+      runInAction(() => {
         const { data } = res;
         this.addPolicies(res.policies);
         this.add(data.team);
@@ -288,7 +290,7 @@ export default class AuthStore extends Store<Team> {
   @action
   deleteUser = async (data: { code: string }) => {
     await client.post(`/users.delete`, data);
-    runInAction("AuthStore#deleteUser", () => {
+    runInAction(() => {
       this.currentUserId = null;
       this.currentTeamId = null;
       this.collaborationToken = null;
@@ -302,7 +304,7 @@ export default class AuthStore extends Store<Team> {
   deleteTeam = async (data: { code: string }) => {
     await client.post(`/teams.delete`, data);
 
-    runInAction("AuthStore#deleteTeam", () => {
+    runInAction(() => {
       this.currentUserId = null;
       this.currentTeamId = null;
       this.availableTeams = this.availableTeams?.filter(

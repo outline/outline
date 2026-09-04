@@ -222,6 +222,13 @@ router.delete("/", async (ctx) => {
   ctx.body = { error: "Method not allowed. Use POST for MCP requests." };
 });
 
+// Clients probing for a transport we do not implement, such as the legacy
+// HTTP+SSE endpoints, must not fall through to the application shell
+router.all("*", async (ctx) => {
+  ctx.status = 404;
+  ctx.body = { error: "Not found. MCP requests must be sent to /mcp." };
+});
+
 app.use(requestTracer());
 app.use(bodyParser());
 app.use(router.routes());

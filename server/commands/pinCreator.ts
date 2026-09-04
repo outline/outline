@@ -1,8 +1,6 @@
 import fractionalIndex from "fractional-index";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
-import { PinValidation } from "@shared/validations";
-import { ValidationError } from "@server/errors";
 import type { User } from "@server/models";
 import { Pin } from "@server/models";
 import type { APIContext } from "@server/types";
@@ -35,22 +33,17 @@ export default async function pinCreator({
   ...rest
 }: Props): Promise<Pin> {
   let { index } = rest;
+  const { transaction } = ctx.context;
   const where: WhereOptions<Pin> = {
     teamId: user.teamId,
     ...(collectionId ? { collectionId } : { collectionId: { [Op.is]: null } }),
   };
 
-  const count = await Pin.count({ where });
-  if (count >= PinValidation.max) {
-    throw ValidationError(
-      `You cannot pin more than ${PinValidation.max} documents`
-    );
-  }
-
   if (!index) {
     const pins = await Pin.findAll({
       where,
       attributes: ["id", "index", "updatedAt"],
+      transaction,
       limit: 1,
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting

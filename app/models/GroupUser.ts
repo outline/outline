@@ -12,6 +12,11 @@ import { observable } from "mobx";
 class GroupUser extends Model {
   static modelName = "GroupUser";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The ID of the user. */
   userId: string;
 

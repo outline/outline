@@ -113,26 +113,6 @@ export function getDataTransferFiles(
 }
 
 /**
- * Get an array of DataTransferItems from a drag event
- *
- * @param event The react or native drag event
- * @returns An array of DataTransferItems
- */
-export function getDataTransferItems(
-  event: React.DragEvent<HTMLElement> | DragEvent
-): DataTransferItem[] {
-  const dt = event.dataTransfer;
-
-  if (dt) {
-    if ("items" in dt && dt.items.length) {
-      return dt.items ? Array.prototype.slice.call(dt.items) : [];
-    }
-  }
-
-  return [];
-}
-
-/**
  * Get an array of Files from an input event
  *
  * @param event The react or native input event

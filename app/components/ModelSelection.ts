@@ -1,4 +1,4 @@
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 
 /**
  * Holds the ephemeral multi-selection state for a single list of models.
@@ -9,6 +9,10 @@ import { action, computed, observable } from "mobx";
  */
 export class ModelSelection {
   private ids = observable.set<string>();
+
+  constructor() {
+    makeObservable(this);
+  }
 
   /** Ordered identifiers of the list, used to resolve shift-click ranges. */
   private order: string[] = [];

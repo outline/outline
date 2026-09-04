@@ -315,6 +315,27 @@ describe("createFilterSchema value allowlists", () => {
       }).success
     ).toBe(true);
   });
+
+  it("still allows null operators with no value", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "isNull",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a disallowed value nested inside a group", () => {
+    expect(
+      EnumSchema.safeParse({
+        operator: "AND",
+        filters: [
+          { field: "title", operator: "eq", value: "x" },
+          { field: "role", operator: "eq", value: "superuser" },
+        ],
+      }).success
+    ).toBe(false);
+  });
 });
 
 describe("createFilterSchema node limit", () => {

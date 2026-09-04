@@ -42,7 +42,7 @@ import {
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
 import { isCode, isMermaid } from "../lib/isCode";
-import { isRemoteTransaction } from "../lib/multiplayer";
+import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { escapeRawTableCell } from "../lib/markdown/tableCell";
@@ -63,6 +63,8 @@ const COLLAPSE_HEIGHT_RATIO = 0.5;
 
 /** Approximate rendered line height of a code block, in pixels. */
 const CODE_LINE_HEIGHT = 20;
+
+const collapseKey = new PluginKey<CollapseState>("collapse-code-block");
 
 /**
  * Reduce a language attribute or fence info string to a single safe token, so
@@ -85,6 +87,34 @@ interface CollapseState {
   collapsedBlocks: Set<number>;
   /** Node decorations that add the `collapsed` CSS class. */
   decorations: DecorationSet;
+}
+
+/**
+ * Expand the collapsed code block that contains a document position.
+ *
+ * @param pos - the document position inside the code block.
+ * @returns a command that expands the code block when it is collapsed.
+ */
+export function expandCodeBlockAt(pos: number): Command {
+  return (state, dispatch) => {
+    const $pos = state.doc.resolve(pos);
+    const codeBlock = findParentNodeClosestToPos($pos, isCode);
+    if (!codeBlock) {
+      return false;
+    }
+
+    const collapseState = collapseKey.getState(state);
+    if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
+      return false;
+    }
+
+    dispatch?.(
+      state.tr
+        .setMeta(collapseKey, { expand: codeBlock.pos })
+        .setMeta("addToHistory", false)
+    );
+    return true;
+  };
 }
 
 /**
@@ -181,11 +211,6 @@ type CodeFenceOptions = {
 };
 
 export default class CodeFence extends Node<CodeFenceOptions> {
-  /** Plugin key for the collapse state, shared with the command. */
-  private static readonly collapseKey = new PluginKey<CollapseState>(
-    "collapse-code-block"
-  );
-
   get showLineNumbers(): boolean {
     return this.options.userPreferences?.codeBlockLineNumbers ?? true;
   }
@@ -273,29 +298,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           ...attrs,
         });
       },
-      expandCodeBlockAt:
-        (pos: number): Command =>
-        (state, dispatch) => {
-          const $pos = state.doc.resolve(pos);
-          const codeBlock = findParentNodeClosestToPos($pos, isCode);
-          if (!codeBlock) {
-            return false;
-          }
-
-          const collapseState = CodeFence.collapseKey.getState(state);
-          if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
-            return false;
-          }
-
-          if (dispatch) {
-            dispatch(
-              state.tr
-                .setMeta(CodeFence.collapseKey, { expand: codeBlock.pos })
-                .setMeta("addToHistory", false)
-            );
-          }
-          return true;
-        },
+      expandCodeBlockAt: (pos: number) => expandCodeBlockAt(pos),
       toggleCodeBlockCollapse: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
         if (!codeBlock) {
@@ -305,7 +308,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         if (dispatch) {
           dispatch(
             state.tr
-              .setMeta(CodeFence.collapseKey, {
+              .setMeta(collapseKey, {
                 toggle: codeBlock.pos,
               })
               .setMeta("addToHistory", false)
@@ -429,7 +432,6 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
   /** Plugins for collapsible code block behavior. */
   private collapsePlugins(): Plugin[] {
-    const collapseKey = CodeFence.collapseKey;
     const build = (
       doc: ProsemirrorNode,
       tall: Set<number>,
@@ -445,7 +447,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             const tallBlocks = findTallBlocks(state.doc);
             return build(state.doc, tallBlocks, new Set(tallBlocks));
           },
-          apply: (tr, prev, _oldState, newState) => {
+          apply: (tr, prev, oldState, newState) => {
             const meta = tr.getMeta(collapseKey);
 
             // Toggle collapsed state
@@ -477,14 +479,52 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
               const isRemote = isRemoteTransaction(tr, newState);
+              const previousBlockDecorations: Decoration[] = [];
+              for (const pos of prev.tallBlocks) {
+                const node = oldState.doc.nodeAt(pos);
+                if (!node || !isCode(node)) {
+                  continue;
+                }
 
-              const inverse = tr.mapping.invert();
+                previousBlockDecorations.push(
+                  Decoration.node(
+                    pos,
+                    pos + node.nodeSize,
+                    {},
+                    {
+                      collapsed: prev.collapsedBlocks.has(pos),
+                      trackedCodeBlock: true,
+                    }
+                  )
+                );
+              }
+
+              const mappedTallBlocks = new Set<number>();
+              const mappedCollapsedBlocks = new Set<number>();
+              const previousBlocks = DecorationSet.create(
+                oldState.doc,
+                previousBlockDecorations
+              );
+              for (const decoration of mapDecorations(
+                previousBlocks,
+                tr,
+                newState
+              ).find()) {
+                if (!decoration.spec.trackedCodeBlock) {
+                  continue;
+                }
+
+                mappedTallBlocks.add(decoration.from);
+                if (decoration.spec.collapsed) {
+                  mappedCollapsedBlocks.add(decoration.from);
+                }
+              }
+
               for (const pos of tallBlocks) {
-                const oldPos = inverse.map(pos);
-                if (isRemote && !prev.tallBlocks.has(oldPos)) {
+                if (isRemote && !mappedTallBlocks.has(pos)) {
                   // Newly tall blocks start collapsed on load
                   collapsedBlocks.add(pos);
-                } else if (prev.collapsedBlocks.has(oldPos)) {
+                } else if (mappedCollapsedBlocks.has(pos)) {
                   // Preserve previous collapsed state
                   collapsedBlocks.add(pos);
                 }

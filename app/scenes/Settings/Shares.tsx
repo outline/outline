@@ -1,6 +1,7 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { GlobeIcon, WarningIcon } from "outline-icons";
+import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory, useLocation } from "react-router-dom";
@@ -72,10 +73,13 @@ function Shares() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = useCallback((event) => {
-    const { value } = event.target;
-    setQuery(value);
-  }, []);
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      setQuery(value);
+    },
+    []
+  );
 
   useEffect(() => {
     if (error) {

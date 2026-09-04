@@ -1,21 +1,22 @@
 import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
-import { computed, action, runInAction } from "mobx";
+import { action, computed, makeObservable, override, runInAction } from "mobx";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
-  CollectionStatusFilter,
   type FileOperationFormat,
   SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
 import type { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
+import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
-import Store from "./base/Store";
 
-export default class CollectionsStore extends Store<Collection> {
+export default class CollectionsStore extends IndexedStore<Collection> {
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
+    makeObservable(this);
   }
 
   /**
@@ -35,21 +36,15 @@ export default class CollectionsStore extends Store<Collection> {
     return this.orderedData.filter((c) => c.isActive);
   }
 
-  @computed
+  @override
   get orderedData(): Collection[] {
-    let collections = Array.from(this.data.values());
-    collections = collections
-      .filter((collection) => !collection.deletedAt)
-      .filter((collection) => {
-        const can = this.rootStore.policies.abilities(collection.id);
-        return isEmpty(can) || can.readDocument;
-      });
-    return collections.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
+    return super.orderedData.filter((collection) => {
+      if (collection.deletedAt) {
+        return false;
       }
 
-      return a.index < b.index ? -1 : 1;
+      const can = this.rootStore.policies.abilities(collection.id);
+      return isEmpty(can) || can.readDocument;
     });
   }
 
@@ -129,7 +124,7 @@ export default class CollectionsStore extends Store<Collection> {
     const res = await client.post("/collections.archive", {
       id: collection.id,
     });
-    runInAction("Collection#archive", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       this.add(res.data);
       this.addPolicies(res.policies);
@@ -141,7 +136,7 @@ export default class CollectionsStore extends Store<Collection> {
     const res = await client.post("/collections.restore", {
       id: collection.id,
     });
-    runInAction("Collection#restore", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       this.add(res.data);
       this.addPolicies(res.policies);
@@ -163,34 +158,17 @@ export default class CollectionsStore extends Store<Collection> {
     return result;
   }
 
-  @action
   fetchNamedPage = async (
     request = "list",
-    options:
-      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
-      | undefined
-  ): Promise<Collection[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/collections.${request}`, options);
-      invariant(res?.data, "Collection list not available");
-      return runInAction("CollectionsStore#fetchNamedPage", () => {
-        const collections = res.data.map(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return collections;
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+    options: (PaginationParams & { filters?: Filter[] }) | undefined
+  ): Promise<Collection[]> =>
+    this.fetchPaginated(`/collections.${request}`, options);
 
   @action
   fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
     this.fetchNamedPage("list", {
       ...options,
-      statusFilter: [CollectionStatusFilter.Archived],
+      filters: [{ field: "archivedAt", operator: "isNotNull" }],
     });
 
   get(id: string = ""): Collection | undefined {

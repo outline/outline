@@ -2,7 +2,7 @@ import { LRUCache } from "./LRUCache";
 
 describe("LRUCache", () => {
   it("stores and retrieves values", () => {
-    const cache = new LRUCache<number>({ max: 3 });
+    const cache = new LRUCache<number>({ max: 3, storage: "memory" });
     cache.set("a", 1);
 
     expect(cache.get("a")).toBe(1);
@@ -11,7 +11,7 @@ describe("LRUCache", () => {
   });
 
   it("evicts the least recently used entry when over max", () => {
-    const cache = new LRUCache<number>({ max: 2 });
+    const cache = new LRUCache<number>({ max: 2, storage: "memory" });
     cache.set("a", 1);
     cache.set("b", 2);
     cache.set("c", 3);
@@ -23,7 +23,7 @@ describe("LRUCache", () => {
   });
 
   it("marks an entry as recently used when read", () => {
-    const cache = new LRUCache<number>({ max: 2 });
+    const cache = new LRUCache<number>({ max: 2, storage: "memory" });
     cache.set("a", 1);
     cache.set("b", 2);
     cache.get("a");
@@ -34,7 +34,7 @@ describe("LRUCache", () => {
   });
 
   it("overwrites without growing", () => {
-    const cache = new LRUCache<number>({ max: 2 });
+    const cache = new LRUCache<number>({ max: 2, storage: "memory" });
     cache.set("a", 1);
     cache.set("a", 2);
 
@@ -43,7 +43,7 @@ describe("LRUCache", () => {
   });
 
   it("deletes and clears entries", () => {
-    const cache = new LRUCache<number>({ max: 3 });
+    const cache = new LRUCache<number>({ max: 3, storage: "memory" });
     cache.set("a", 1);
     cache.set("b", 2);
 
@@ -64,7 +64,7 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 1,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
       cache.set("b", "two");
@@ -77,13 +77,14 @@ describe("LRUCache", () => {
   describe.runIf(hasStorage)("with persistence", () => {
     beforeEach(() => {
       sessionStorage.clear();
+      localStorage.clear();
     });
 
     it("restores entries from storage", () => {
       const cache = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
       cache.set("b", "two");
@@ -91,7 +92,25 @@ describe("LRUCache", () => {
       const restored = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
+      });
+      expect(restored.get("a")).toBe("one");
+      expect(restored.get("b")).toBe("two");
+    });
+
+    it("restores entries from local storage", () => {
+      const cache = new LRUCache<string>({
+        max: 3,
+        namespace: "test-local",
+        storage: "localStorage",
+      });
+      cache.set("a", "one");
+      cache.set("b", "two");
+
+      const restored = new LRUCache<string>({
+        max: 3,
+        namespace: "test-local",
+        storage: "localStorage",
       });
       expect(restored.get("a")).toBe("one");
       expect(restored.get("b")).toBe("two");
@@ -101,7 +120,7 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
       cache.set("b", "two");
@@ -109,7 +128,7 @@ describe("LRUCache", () => {
       const restored = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       // Hydrating reads the index alone, so a value replaced afterwards is
       // still the one returned on first access.
@@ -126,7 +145,7 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
       sessionStorage.removeItem("test:a");
@@ -134,7 +153,7 @@ describe("LRUCache", () => {
       const restored = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       expect(restored.get("a")).toBeUndefined();
       expect(restored.size).toBe(0);
@@ -144,14 +163,14 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
 
       const other = new LRUCache<string>({
         max: 3,
         namespace: "other",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       expect(other.get("a")).toBeUndefined();
     });
@@ -160,7 +179,7 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 1,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
       cache.set("b", "two");
@@ -170,7 +189,7 @@ describe("LRUCache", () => {
       const restored = new LRUCache<string>({
         max: 1,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       expect(restored.get("a")).toBeUndefined();
       expect(restored.get("b")).toBe("two");
@@ -180,7 +199,7 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       cache.set("a", "one");
       cache.clear();
@@ -188,7 +207,7 @@ describe("LRUCache", () => {
       const restored = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       expect(restored.size).toBe(0);
     });
@@ -199,7 +218,7 @@ describe("LRUCache", () => {
       const cache = new LRUCache<string>({
         max: 3,
         namespace: "test",
-        persistToSession: true,
+        storage: "sessionStorage",
       });
       expect(cache.size).toBe(0);
 

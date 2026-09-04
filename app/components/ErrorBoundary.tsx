@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { TFunction } from "i18next";
@@ -25,7 +25,7 @@ interface OwnProps {
   /** Whether to show a title heading. */
   showTitle?: boolean;
   /** The wrapping component to use. */
-  component?: React.ComponentType | string;
+  component?: React.ComponentType<React.PropsWithChildren> | string;
   /** Children rendered when no error is present. */
   children?: React.ReactNode;
 }
@@ -40,13 +40,18 @@ const ERROR_TRACKING_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 @observer
 class ErrorBoundaryClass extends React.Component<Props> {
   @observable
-  error: Error | null | undefined;
+  error: Error | null | undefined = undefined;
 
   @observable
   showDetails = false;
 
   @observable
   isRepeatedError = false;
+
+  constructor(props: Props) {
+    super(props);
+    makeObservable(this);
+  }
 
   componentDidMount() {
     this.checkForPreviousErrors();

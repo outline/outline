@@ -1,5 +1,5 @@
-import { filter, orderBy } from "es-toolkit/compat";
-import { action, computed } from "mobx";
+import { orderBy } from "es-toolkit/compat";
+import { action, computed, makeObservable, override } from "mobx";
 import { invariant } from "mobx-utils";
 import naturalSort from "@shared/utils/naturalSort";
 import Template from "~/models/Template";
@@ -10,6 +10,7 @@ import Store from "./base/Store";
 export default class TemplatesStore extends Store<Template> {
   constructor(rootStore: RootStore) {
     super(rootStore, Template);
+    makeObservable(this);
   }
 
   /**
@@ -29,7 +30,7 @@ export default class TemplatesStore extends Store<Template> {
 
   @computed
   get all(): Template[] {
-    return filter(this.orderedData, (d) => !d.deletedAt);
+    return this.orderedData.filter((d) => !d.deletedAt);
   }
 
   @action
@@ -84,7 +85,7 @@ export default class TemplatesStore extends Store<Template> {
     return this.rootStore.ui.getActiveModels(Template)?.[0];
   }
 
-  @computed
+  @override
   get orderedData(): Template[] {
     return orderBy(Array.from(this.data.values()), "createdAt", "desc");
   }

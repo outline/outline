@@ -3,8 +3,10 @@ import { subDays } from "date-fns";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
+import { sequelizeReadOnly } from "@server/storage/database";
 import type { RetentionPreference } from "@shared/types";
 import { TeamPreference } from "@shared/types";
+import { Minute } from "@shared/utils/time";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import type { PartitionInfo } from "./base/BaseTask";
 
@@ -36,21 +38,21 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
 
     const team = Document.retentionPeriodFilter(preference, retentionDays);
 
-    const documents = await Document.scope([
-      "withDrafts",
-      "withoutState",
-    ]).findAll({
-      where: {
-        destroyedAt: {
-          [Op.lt]: subDays(new Date(), retentionDays),
+    const documents = await sequelizeReadOnly.transaction((transaction) =>
+      Document.scope(["withDrafts", "withoutState"]).findAll({
+        where: {
+          destroyedAt: {
+            [Op.lt]: subDays(new Date(), retentionDays),
+          },
+          [Op.and]: [team.where],
+          ...this.getPartitionWhereClause("id", partition),
         },
-        [Op.and]: [team.where],
-        ...this.getPartitionWhereClause("id", partition),
-      },
-      replacements: team.replacements,
-      paranoid: false,
-      limit,
-    });
+        replacements: team.replacements,
+        paranoid: false,
+        limit,
+        transaction,
+      })
+    );
 
     if (documents.length > 0) {
       const countDeletedDocument = await documentPermanentDeleter(documents);
@@ -60,7 +62,12 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
 
   public get options() {
     return {
-      attempts: 1,
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        // Wait until the active partition window has ended before retrying.
+        delay: 15 * Minute.ms,
+      },
       priority: TaskPriority.Background,
     };
   }

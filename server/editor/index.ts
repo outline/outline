@@ -13,6 +13,7 @@ import {
 import CodeBlock from "@shared/editor/nodes/CodeBlock";
 import CodeFence from "@shared/editor/nodes/CodeFence";
 import Mention from "@shared/editor/nodes/Mention";
+import mentionRules from "./rules/mentions";
 
 populateEmojiData(data as EmojiMartData);
 
@@ -43,7 +44,7 @@ for (const extension of extensionManager.extensions) {
 
 export const parser = extensionManager.parser({
   schema,
-  plugins: extensionManager.rulePlugins,
+  plugins: [...extensionManager.rulePlugins, mentionRules],
 });
 
 export const serializer = extensionManager.serializer();
@@ -80,5 +81,5 @@ for (const extension of commentExtensionManager.extensions) {
 
 export const commentParser = commentExtensionManager.parser({
   schema: commentSchema,
-  plugins: commentExtensionManager.rulePlugins,
+  plugins: [...commentExtensionManager.rulePlugins, mentionRules],
 });
