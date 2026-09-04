@@ -150,6 +150,15 @@ describe("onerror", () => {
     expect(ctx.res.end).not.toHaveBeenCalled();
   });
 
+  it("should not throw when the response is unavailable", () => {
+    ctx.writable = false;
+    Reflect.deleteProperty(ctx, "res");
+
+    expect(() =>
+      app.context.onerror.call(ctx, InternalError("Test internal error"))
+    ).not.toThrow();
+  });
+
   it("should report errors explicitly marked with isReportable: true", () => {
     const error = new Error("Custom error") as ReportableError;
     error.status = 400;

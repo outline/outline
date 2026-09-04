@@ -81,7 +81,7 @@ export default function onerror(app: Koa) {
 
       // Nothing was written, so the status code is still Koa's placeholder 404 –
       // correct it so that logging and tracing report the real outcome.
-      if (!this.headerSent && typeof err.status === "number") {
+      if (!this.headerSent && this.res && typeof err.status === "number") {
         this.res.statusCode = err.status;
       }
 
