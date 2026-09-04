@@ -85,7 +85,7 @@ export class UploadPlugin extends Plugin {
             return true;
           },
           drop(view, event: DragEvent): boolean {
-            if (!view.editable || !options.uploadFile) {
+            if (!view.editable || !options.uploadFile || view.dragging) {
               return false;
             }
 
