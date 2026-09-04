@@ -274,6 +274,7 @@ export class Editor extends React.PureComponent<
    */
   public componentDidMount() {
     this.init();
+    this.handleEditorInit();
     window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
@@ -985,6 +986,8 @@ export class Editor extends React.PureComponent<
   };
 
   private handleEditorDestroy = () => {
+    this.isInitialized = false;
+
     if (!this.props.onDestroy) {
       return;
     }
