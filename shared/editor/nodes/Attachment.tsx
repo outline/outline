@@ -16,6 +16,7 @@ import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { resolvePDFDimensions } from "../lib/pdf";
 import { isPDFAttachment } from "../queries/isPDFAttachment";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
@@ -99,7 +100,7 @@ export default class Attachment extends Node {
 
   handleChangeSize =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    ({ width, height }: { width: number; height?: number }) => {
+    ({ width }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
       }
@@ -109,12 +110,10 @@ export default class Attachment extends Node {
 
       const pos = getPos();
       const $pos = doc.resolve(pos);
+      const dimensions = resolvePDFDimensions(width);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
-      commands["resizeAttachment"]({
-        width,
-        height: height || node.attrs.height,
-      });
+      commands["resizeAttachment"](dimensions);
     };
 
   component = (props: ComponentProps) => {
