@@ -117,8 +117,8 @@ class MermaidRenderer {
       return;
     }
 
-    // Mermaid renders into a temporary element it appends to the body, which
-    // is positioned offscreen by a global style targeting this id prefix.
+    // Mermaid renders into a temporary element it appends to the body with
+    // this id prefixed by "d", which a global style positions offscreen.
     const tempId =
       "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
 
