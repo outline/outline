@@ -102,6 +102,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
     showChanges ? "changes" : "no-changes",
     compareToRevisionId ?? revision.before?.id ?? "none",
     comparisonData ? "loaded" : "pending",
+    revision.data ? "loaded" : "pending",
   ].join("-");
 
   return (
