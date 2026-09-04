@@ -24,6 +24,8 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { uploadFile } from "~/utils/files";
+import type { ImportDestination } from "./ImportRootPicker";
+import ImportRootPicker from "./ImportRootPicker";
 
 type Props = {
   children: React.JSX.Element;
@@ -42,6 +44,9 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [permission, setPermission] = useState<CollectionPermission | null>(
     CollectionPermission.ReadWrite
+  );
+  const [destination, setDestination] = useState<ImportDestination | null>(
+    null
   );
 
   const handleFiles = (files: File[]) => {
@@ -70,7 +75,10 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
         { service },
         {
           attachmentId: attachment.id,
-          permission: permission ?? undefined,
+          // Permission only applies to created collections; when importing
+          // into an existing destination it's omitted and rejected by the API.
+          permission: destination ? undefined : (permission ?? undefined),
+          ...destination,
         }
       );
 
@@ -124,20 +132,25 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
           )}
         </Dropzone>
       </Text>
-      <div>
-        <InputSelectPermission
-          value={permission}
-          onChange={(value: CollectionPermission | typeof EmptySelectValue) => {
-            setPermission(value === EmptySelectValue ? null : value);
-          }}
-        />
-        <Text as="span" type="secondary">
-          {t(
-            "Set the default permission level for collections created from the import"
-          )}
-          .
-        </Text>
-      </div>
+      <ImportRootPicker onChange={setDestination} />
+      {!destination && (
+        <div>
+          <InputSelectPermission
+            value={permission}
+            onChange={(
+              value: CollectionPermission | typeof EmptySelectValue
+            ) => {
+              setPermission(value === EmptySelectValue ? null : value);
+            }}
+          />
+          <Text as="span" type="secondary">
+            {t(
+              "Set the default permission level for collections created from the import"
+            )}
+            .
+          </Text>
+        </div>
+      )}
       <Flex justify="flex-end">
         <Button disabled={!file || isImporting} onClick={handleStartImport}>
           {isImporting

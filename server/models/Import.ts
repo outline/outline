@@ -21,6 +21,8 @@ import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import { UnprocessableEntityError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
+import Collection from "./Collection";
+import Document from "./Document";
 import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
@@ -96,6 +98,22 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
+
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection | null;
+
+  @AllowNull
+  @ForeignKey(() => Collection)
+  @Column(DataType.UUID)
+  collectionId: string | null;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document | null;
+
+  @AllowNull
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId: string | null;
 
   /**
    * Serializes imports per team — blocks creation while another import is

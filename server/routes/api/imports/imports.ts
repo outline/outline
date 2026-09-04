@@ -5,11 +5,12 @@ import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
 import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Attachment, Integration } from "@server/models";
+import { Attachment, Collection, Document, Integration } from "@server/models";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
@@ -19,6 +20,60 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/**
+ * Resolves and authorizes the optional import destination. When a collection
+ * is chosen the user must be able to create documents in it; when a document
+ * is chosen it must be a publishable, non-template, non-archived document in
+ * the user's team that the user can add children to.
+ *
+ * @param ctx The API context for the create request.
+ * @returns The resolved destination ids (both null when no destination set).
+ * @throws ValidationError when the chosen document is not a valid destination.
+ */
+async function resolveImportDestination(
+  ctx: APIContext<T.ImportsCreateReq>
+): Promise<{ collectionId: string | null; documentId: string | null }> {
+  const { user } = ctx.state.auth;
+  const { transaction } = ctx.state;
+  const { collectionId, documentId } = ctx.input.body;
+
+  if (collectionId) {
+    const collection = await Collection.findByPk(collectionId, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "createDocument", collection);
+    return { collectionId, documentId: null };
+  }
+
+  if (documentId) {
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "createChildDocument", document);
+
+    if (document.template) {
+      throw ValidationError("Cannot import into a template");
+    }
+    if (document.archivedAt) {
+      throw ValidationError("Cannot import into an archived document");
+    }
+    if (!document.publishedAt) {
+      throw ValidationError("Cannot import into an unpublished document");
+    }
+    if (document.teamId !== user.teamId) {
+      throw ValidationError("Document does not belong to your team");
+    }
+
+    return { collectionId: null, documentId };
+  }
+
+  return { collectionId: null, documentId: null };
+}
 
 router.post(
   "imports.create",
@@ -31,6 +86,8 @@ router.post(
     const { user } = ctx.state.auth;
 
     authorize(user, "createImport", user.team);
+
+    const { collectionId, documentId } = await resolveImportDestination(ctx);
 
     if ("attachmentId" in body) {
       const attachment = await Attachment.findByPk(body.attachmentId, {
@@ -52,6 +109,8 @@ router.post(
         ],
         scratch: { storageKey: attachment.key },
         integrationId: null,
+        collectionId,
+        documentId,
         createdById: user.id,
         teamId: user.teamId,
       });
@@ -79,6 +138,8 @@ router.post(
       state: ImportState.Created,
       input: body.input,
       integrationId: body.integrationId,
+      collectionId,
+      documentId,
       createdById: user.id,
       teamId: user.teamId,
     });

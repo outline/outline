@@ -1,8 +1,15 @@
-import { ImportState, IntegrationService } from "@shared/types";
+import {
+  CollectionPermission,
+  ImportState,
+  IntegrationService,
+} from "@shared/types";
 import type { Import } from "@server/models";
 import {
   buildAdmin,
   buildAttachment,
+  buildCollection,
+  buildDocument,
+  buildDraftDocument,
   buildImport,
   buildUser,
 } from "@server/test/factories";
@@ -60,6 +67,166 @@ describe("#imports.create", () => {
     const res = await server.post("/api/imports.create", user);
 
     expect(res.status).toEqual(403);
+  });
+
+  describe("destination", () => {
+    it("persists collectionId when importing into an existing collection", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.JSON,
+          attachmentId: attachment.id,
+          collectionId: collection.id,
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.collectionId).toEqual(collection.id);
+      expect(body.data.documentId).toBeNull();
+    });
+
+    it("persists documentId when importing into an existing document", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      const document = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.JSON,
+          attachmentId: attachment.id,
+          documentId: document.id,
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.documentId).toEqual(document.id);
+      expect(body.data.collectionId).toBeNull();
+    });
+
+    it("rejects when both collectionId and documentId are set", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      const document = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.JSON,
+          attachmentId: attachment.id,
+          collectionId: collection.id,
+          documentId: document.id,
+        },
+      });
+
+      expect(res.status).toEqual(400);
+    });
+
+    it("rejects permission together with a destination", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.JSON,
+          attachmentId: attachment.id,
+          collectionId: collection.id,
+          permission: CollectionPermission.Read,
+        },
+      });
+
+      expect(res.status).toEqual(400);
+    });
+
+    it("rejects a collection the user cannot create documents in", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      // A private collection (no ReadWrite permission) the admin has no
+      // membership in — createDocument is denied.
+      const other = await buildUser({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        userId: other.id,
+        permission: null,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.JSON,
+          attachmentId: attachment.id,
+          collectionId: collection.id,
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+
+    it("rejects a draft document destination", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const draft = await buildDraftDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.JSON,
+          attachmentId: attachment.id,
+          documentId: draft.id,
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
   });
 });
 

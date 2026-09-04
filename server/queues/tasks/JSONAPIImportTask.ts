@@ -44,7 +44,7 @@ const ATTACHMENT_NODE_TYPES = ["attachment", "image", "video"];
 interface DiscoveredDocument {
   externalId: string;
   parentExternalId?: string;
-  collectionExternalId: string;
+  rootExternalId: string;
   export: DocumentJSONExport;
   children: DiscoveredDocument[];
 }
@@ -418,7 +418,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
     ): DiscoveredDocument => ({
       externalId: doc.id,
       parentExternalId: parentExternalId ?? doc.parentDocumentId ?? undefined,
-      collectionExternalId: externalId,
+      rootExternalId: externalId,
       export: doc,
       children: [],
     });
@@ -524,7 +524,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
     return {
       externalId: doc.externalId,
       parentExternalId: doc.parentExternalId,
-      collectionExternalId: doc.collectionExternalId,
+      rootExternalId: doc.rootExternalId,
       title: exported.title,
       urlId: exported.urlId,
       icon: exported.icon ?? exported.emoji,

@@ -1395,6 +1395,8 @@
   "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload": "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload",
   "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.": "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.",
   "Drag and drop a zip file of the OKF bundle, or click to upload": "Drag and drop a zip file of the OKF bundle, or click to upload",
+  "Documents will be imported into <em>{{ location }}</em>": "Documents will be imported into <em>{{ location }}</em>",
+  "New collections will be created for the imported content": "New collections will be created for the imported content",
   "Configure": "Configure",
   "Never used": "Never used",
   "Are you sure you want to revoke access?": "Are you sure you want to revoke access?",

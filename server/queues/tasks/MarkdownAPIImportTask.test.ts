@@ -1,3 +1,18 @@
+import { randomUUID } from "node:crypto";
+import type { ProsemirrorDoc } from "@shared/types";
+import { Collection, Document, ImportTask } from "@server/models";
+import {
+  ImportState,
+  ImportTaskPhase,
+  ImportTaskState,
+  IntegrationService,
+} from "@shared/types";
+import {
+  buildAdmin,
+  buildCollection,
+  buildImport,
+} from "@server/test/factories";
+import MarkdownImportsProcessor from "../processors/MarkdownImportsProcessor";
 import {
   rewriteAttachmentPaths,
   rewriteInternalLinks,
@@ -142,5 +157,81 @@ describe("rewriteInternalLinks", () => {
       { "Collection/other.md": "doc-5" }
     );
     expect(out).toBe('see [other](<<doc-5>> "The other one")');
+  });
+});
+
+describe("MarkdownImportsProcessor destination", () => {
+  const emptyDoc: ProsemirrorDoc = {
+    type: "doc",
+    content: [{ type: "paragraph" }],
+  };
+
+  it("collapses a synthetic root node so loose files land under the destination collection", async () => {
+    const admin = await buildAdmin();
+    const destination = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const rootId = randomUUID();
+    const docAId = randomUUID();
+    const docBId = randomUUID();
+
+    const importModel = await buildImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      service: IntegrationService.Markdown,
+      integrationId: null,
+      collectionId: destination.id,
+      // The synthetic "Documents" fallback root node holding loose files.
+      input: [{ externalId: rootId, synthetic: true }],
+      scratch: { storageKey: "fixture-key" },
+      state: ImportState.Processed,
+    });
+
+    await ImportTask.create<ImportTask<IntegrationService.Markdown>>({
+      state: ImportTaskState.Completed,
+      phase: ImportTaskPhase.Page,
+      importId: importModel.id,
+      input: [
+        { externalId: rootId },
+        { externalId: docAId, rootExternalId: rootId },
+        { externalId: docBId, rootExternalId: rootId },
+      ],
+      output: [
+        { externalId: rootId, title: "Documents", content: emptyDoc },
+        { externalId: docAId, title: "Loose A", content: emptyDoc },
+        { externalId: docBId, title: "Loose B", content: emptyDoc },
+      ],
+    } as Parameters<typeof ImportTask.create>[0]);
+
+    await new MarkdownImportsProcessor().perform({
+      name: "imports.processed",
+      modelId: importModel.id,
+      teamId: admin.teamId,
+      actorId: admin.id,
+      ip: "127.0.0.1",
+      changes: { attributes: {}, previous: {} },
+    });
+
+    // No collections created — the synthetic root materializes nothing.
+    const collections = await Collection.findAll({
+      where: { apiImportId: importModel.id },
+    });
+    expect(collections.length).toBe(0);
+
+    const documents = await Document.findAll({
+      where: { apiImportId: importModel.id },
+    });
+    expect(documents.length).toBe(2);
+    for (const document of documents) {
+      expect(document.collectionId).toBe(destination.id);
+      // Loose files parent directly to the destination collection root.
+      expect(document.parentDocumentId).toBeNull();
+    }
+    expect(documents.map((d) => d.title).sort()).toEqual([
+      "Loose A",
+      "Loose B",
+    ]);
   });
 });
