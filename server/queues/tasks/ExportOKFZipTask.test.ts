@@ -37,10 +37,9 @@ describe("ExportOKFZipTask", () => {
 
     try {
       const contents = await readZipContents(filePath);
-      expect(Object.keys(contents).sort()).toEqual([
-        `${collection.name}/Test1.md`,
-        "index.md",
-      ]);
+      expect(Object.keys(contents).sort()).toEqual(
+        [`${collection.name}/Test1.md`, "index.md"].sort()
+      );
 
       const [frontmatter, body] = splitFrontmatter(
         contents[`${collection.name}/Test1.md`]
@@ -55,13 +54,15 @@ describe("ExportOKFZipTask", () => {
           at: document.updatedAt.toISOString(),
         },
       });
-      expect(frontmatter.resource).toContain(document.path);
+      expect(frontmatter.resource).toBe(`${team.url}${document.path}`);
+      expect(body.startsWith("\n")).toBe(true);
       expect(body).toContain("First line of body");
 
       const [indexFrontmatter, indexBody] = splitFrontmatter(
         contents["index.md"]
       );
       expect(indexFrontmatter).toEqual({ okf_version: "0.2" });
+      expect(indexBody.startsWith("\n# Collections\n")).toBe(true);
       expect(indexBody).toContain(
         `* [${collection.name}](${encodeURI(collection.name)}/) - About the collection`
       );
@@ -94,10 +95,9 @@ describe("ExportOKFZipTask", () => {
 
     try {
       const contents = await readZipContents(filePath);
-      expect(Object.keys(contents).sort()).toEqual([
-        `${collection.name}/index (1).md`,
-        "index.md",
-      ]);
+      expect(Object.keys(contents).sort()).toEqual(
+        [`${collection.name}/index (1).md`, "index.md"].sort()
+      );
     } finally {
       await fs.remove(filePath);
     }

@@ -1,5 +1,4 @@
 import yaml from "js-yaml";
-import env from "@server/env";
 import type Document from "@server/models/Document";
 
 interface Frontmatter {
@@ -53,9 +52,12 @@ export default class OKFHelper {
    * Builds the frontmatter block that precedes a document's markdown body.
    *
    * @param document The document being exported.
-   * @returns The YAML frontmatter, including delimiters and a trailing newline.
+   * @param origin The origin of the team's URL, used to build the canonical
+   * URL of the document.
+   * @returns The YAML frontmatter, including delimiters and a trailing blank
+   * line that separates it from the body.
    */
-  public static frontmatter(document: Document): string {
+  public static frontmatter(document: Document, origin: string): string {
     const description = this.singleLine(document.getSummary());
     const actor = document.updatedBy ?? document.createdBy;
 
@@ -63,7 +65,7 @@ export default class OKFHelper {
       type: this.conceptType,
       title: document.titleWithDefault,
       ...(description ? { description } : {}),
-      resource: `${env.URL}${document.path}`,
+      resource: `${origin}${document.path}`,
       status: this.status(document),
       generated: {
         by: `human:${actor.email ?? actor.id}`,
@@ -89,7 +91,7 @@ export default class OKFHelper {
       return description ? `* ${link} - ${description}` : `* ${link}`;
     });
 
-    return `${this.serialize({ okf_version: this.version })}\n# ${heading}\n\n${lines.join("\n")}\n`;
+    return `${this.serialize({ okf_version: this.version })}# ${heading}\n\n${lines.join("\n")}\n`;
   }
 
   private static status(document: Document): "draft" | "stable" | "deprecated" {
@@ -107,6 +109,6 @@ export default class OKFHelper {
   }
 
   private static serialize(data: object): string {
-    return `---\n${yaml.dump(data, { lineWidth: -1, noRefs: true })}---\n`;
+    return `---\n${yaml.dump(data, { lineWidth: -1, noRefs: true })}---\n\n`;
   }
 }

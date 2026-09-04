@@ -8,6 +8,7 @@ import Logger from "@server/logging/Logger";
 import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
+import Team from "@server/models/Team";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import OKFHelper from "@server/models/helpers/OKFHelper";
@@ -53,6 +54,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format,
     includeAttachments,
     pathMap,
+    origin,
   }: {
     zip: ZipFile;
     pathInZip: string;
@@ -60,6 +62,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat;
     includeAttachments: boolean;
     pathMap: Map<string, string>;
+    origin?: string;
   }) {
     Logger.debug("task", `Adding document to archive`, { documentId });
     const result = await sequelizeReadOnly.transaction(async (transaction) => {
@@ -214,8 +217,8 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
 
     // OKF frontmatter carries the document's canonical URL, so it is added
     // only after internal links have been rewritten to relative paths.
-    if (format === FileOperationFormat.OKFZip) {
-      text = OKFHelper.frontmatter(document) + text;
+    if (format === FileOperationFormat.OKFZip && origin) {
+      text = OKFHelper.frontmatter(document, origin) + text;
     }
 
     // Finally, add the document to the zip file
@@ -245,12 +248,14 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     includeAttachments = true
   ) {
     const { pathMap, roots } = this.createPathMap(collections, format);
+    const origin = await this.originForFormat(format, collections[0]?.teamId);
     return await ZipHelper.toTmpFile(async (zip) => {
       await this.addDocumentsToArchive({
         zip,
         pathMap,
         format,
         includeAttachments,
+        origin,
       });
 
       if (format === FileOperationFormat.OKFZip) {
@@ -297,12 +302,14 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       format
     );
 
+    const origin = await this.originForFormat(format, document.teamId);
     return await ZipHelper.toTmpFile(async (zip) => {
       await this.addDocumentsToArchive({
         zip,
         pathMap,
         format,
         includeAttachments,
+        origin,
       });
 
       if (format === FileOperationFormat.OKFZip) {
@@ -323,23 +330,46 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
   }
 
   /**
+   * Resolves the origin used for canonical document URLs, which only the OKF
+   * format writes into its output.
+   *
+   * @param format The format to export in
+   * @param teamId The team that owns the exported documents
+   * @returns The team's URL origin, or undefined when the format has no use for it.
+   */
+  private async originForFormat(
+    format: FileOperationFormat,
+    teamId?: string
+  ): Promise<string | undefined> {
+    if (format !== FileOperationFormat.OKFZip || !teamId) {
+      return undefined;
+    }
+
+    const team = await Team.findByPk(teamId, { rejectOnEmpty: true });
+    return team.url;
+  }
+
+  /**
    * Processes each unique document in the path map and adds it to the zip.
    *
    * @param zip The yazl ZipFile to add files to
    * @param pathMap Map of document urls to their path in the zip
    * @param format The format to export in
    * @param includeAttachments Whether to include attachments in the export
+   * @param origin The origin for canonical document URLs, when the format needs one
    */
   private async addDocumentsToArchive({
     zip,
     pathMap,
     format,
     includeAttachments,
+    origin,
   }: {
     zip: ZipFile;
     pathMap: Map<string, string>;
     format: FileOperationFormat;
     includeAttachments: boolean;
+    origin?: string;
   }) {
     const processedPaths = new Set<string>();
 
@@ -360,6 +390,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         includeAttachments,
         format,
         pathMap,
+        origin,
       });
     }
 
