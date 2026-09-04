@@ -28,11 +28,12 @@ export type MermaidState = {
   editingId?: string;
 };
 
-// The `v3` namespace discards entries cached before the foreignObject fix, so
-// previously mis-sized diagrams are re-rendered instead of served from cache.
+// The `v4` namespace discards entries cached before the switch to SVG text
+// labels, so previously mis-sized diagrams are re-rendered instead of served
+// from cache.
 const cache = new LRUCache<string>({
   max: 20,
-  namespace: "mermaid:v3",
+  namespace: "mermaid:v4",
   storage: "sessionStorage",
 });
 
@@ -70,20 +71,38 @@ function fontAwesomeToIconify(pack: IconPack, prefix: string): IconifyIconSet {
   return { prefix, icons };
 }
 
+/**
+ * Determines whether a diagram should be rendered with HTML labels.
+ *
+ * HTML labels are measured through `foreignObject` elements, which some
+ * browsers size incorrectly in Mermaid's hidden render container, producing
+ * diagrams with nodes spread thousands of pixels apart. SVG text labels are
+ * measured reliably, so they are used everywhere except mindmaps, which
+ * Mermaid cannot lay out correctly without HTML labels.
+ *
+ * @param text the diagram source.
+ * @returns true if HTML labels should be used.
+ */
+function shouldUseHtmlLabels(text: string): boolean {
+  try {
+    return mermaid.detectType(text) === "mindmap";
+  } catch (_err) {
+    return false;
+  }
+}
+
 class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
   readonly elementId: string;
-  readonly editor: Editor;
 
-  constructor(editor: Editor) {
+  constructor() {
     this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
     this.element.classList.add("mermaid-diagram-wrapper");
-    this.editor = editor;
   }
 
   render = async (block: { node: Node; pos: number }, isDark: boolean) => {
@@ -98,28 +117,10 @@ class MermaidRenderer {
       return;
     }
 
-    // Create a temporary element for rendering. We use opacity:0 instead of
-    // visibility:hidden because browsers skip layout of <foreignObject> content
-    // inside visibility:hidden SVGs, causing mermaid's layout engine to measure
-    // zero-size nodes and produce inflated viewBox dimensions for diagram types
-    // that use foreignObject-based text (classDiagram, erDiagram,
-    // requirementDiagram). opacity:0 keeps the element in the render tree and
-    // fully laid out without being visible to the user. We previously used
-    // offscreen positioning (left:-9999px) which broke getBBox() in Chromium
-    // (mermaid-js/mermaid#6146); opacity:0 avoids both problems.
-    const renderElement = document.createElement("div");
+    // Mermaid renders into a temporary element it appends to the body, which
+    // is positioned offscreen by a global style targeting this id prefix.
     const tempId =
       "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
-    renderElement.id = tempId;
-    renderElement.style.position = "fixed";
-    renderElement.style.opacity = "0";
-    renderElement.style.pointerEvents = "none";
-    renderElement.style.top = "0";
-    renderElement.style.left = "0";
-    const width = this.editor.view?.dom.clientWidth ?? window.innerWidth;
-    renderElement.style.width = `${width}px`;
-    renderElement.style.zIndex = "-1";
-    document.body.appendChild(renderElement);
 
     try {
       if (!mermaid) {
@@ -168,6 +169,7 @@ class MermaidRenderer {
         fontFamily: getComputedStyle(this.element).fontFamily || "inherit",
         theme: isDark ? "dark" : "default",
         darkMode: isDark,
+        htmlLabels: shouldUseHtmlLabels(text),
       });
 
       const { svg, bindFunctions } = await mermaid.render(tempId, text);
@@ -211,8 +213,6 @@ class MermaidRenderer {
         element.innerText = errToString(error);
         element.classList.add("parse-error");
       }
-    } finally {
-      renderElement.remove();
     }
   };
 }
@@ -252,12 +252,10 @@ function findBestOverlapDecoration(
 function getNewState({
   doc,
   pluginState,
-  editor,
   autoEditEmpty = false,
 }: {
   doc: Node;
   pluginState: MermaidState;
-  editor: Editor;
   autoEditEmpty?: boolean;
 }): MermaidState {
   const decorations: Decoration[] = [];
@@ -298,7 +296,7 @@ function getNewState({
 
     const isNewBlock = !bestDecoration;
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer();
     usedRenderers.add(renderer);
 
     // Auto-enter edit mode for newly created empty mermaid diagrams
@@ -364,7 +362,6 @@ export default function Mermaid({
         return getNewState({
           doc,
           pluginState,
-          editor,
         });
       },
       apply: (
@@ -436,7 +433,6 @@ export default function Mermaid({
           return getNewState({
             doc: transaction.doc,
             pluginState: nextPluginState,
-            editor,
             autoEditEmpty:
               codeBlockChanged &&
               transaction.docChanged &&
