@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { mergeRefs } from "react-merge-refs";
 import { colorPalette } from "@shared/constants";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -17,6 +18,7 @@ import useStores from "~/hooks/useStores";
 import { type Editor as TEditor } from "~/editor";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
+import { useDocumentContext } from "~/components/DocumentContext";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -42,6 +44,7 @@ type Props = Omit<EditorProps, "extensions"> & {
 function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
   const { revisions } = useStores();
+  const { setEditor } = useDocumentContext();
   const query = useQuery();
   const showChanges = props.showChanges ?? query.has("changes");
   const compareToParam = query.get("compareTo");
@@ -121,7 +124,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
       />
       <Editor
         key={editorKey}
-        ref={ref}
+        ref={mergeRefs([ref, setEditor])}
         defaultValue={revision.data}
         extensions={extensions}
         dir={revision.dir}
