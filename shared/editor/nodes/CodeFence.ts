@@ -64,6 +64,8 @@ const COLLAPSE_HEIGHT_RATIO = 0.5;
 /** Approximate rendered line height of a code block, in pixels. */
 const CODE_LINE_HEIGHT = 20;
 
+const collapseKey = new PluginKey<CollapseState>("collapse-code-block");
+
 /**
  * Reduce a language attribute or fence info string to a single safe token, so
  * it cannot break the fence line when written back to markdown.
@@ -85,6 +87,34 @@ interface CollapseState {
   collapsedBlocks: Set<number>;
   /** Node decorations that add the `collapsed` CSS class. */
   decorations: DecorationSet;
+}
+
+/**
+ * Expand the collapsed code block that contains a document position.
+ *
+ * @param pos - the document position inside the code block.
+ * @returns a command that expands the code block when it is collapsed.
+ */
+export function expandCodeBlockAt(pos: number): Command {
+  return (state, dispatch) => {
+    const $pos = state.doc.resolve(pos);
+    const codeBlock = findParentNodeClosestToPos($pos, isCode);
+    if (!codeBlock) {
+      return false;
+    }
+
+    const collapseState = collapseKey.getState(state);
+    if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
+      return false;
+    }
+
+    dispatch?.(
+      state.tr
+        .setMeta(collapseKey, { expand: codeBlock.pos })
+        .setMeta("addToHistory", false)
+    );
+    return true;
+  };
 }
 
 /**
@@ -181,11 +211,6 @@ type CodeFenceOptions = {
 };
 
 export default class CodeFence extends Node<CodeFenceOptions> {
-  /** Plugin key for the collapse state, shared with the command. */
-  private static readonly collapseKey = new PluginKey<CollapseState>(
-    "collapse-code-block"
-  );
-
   get showLineNumbers(): boolean {
     return this.options.userPreferences?.codeBlockLineNumbers ?? true;
   }
@@ -273,29 +298,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           ...attrs,
         });
       },
-      expandCodeBlockAt:
-        (pos: number): Command =>
-        (state, dispatch) => {
-          const $pos = state.doc.resolve(pos);
-          const codeBlock = findParentNodeClosestToPos($pos, isCode);
-          if (!codeBlock) {
-            return false;
-          }
-
-          const collapseState = CodeFence.collapseKey.getState(state);
-          if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
-            return false;
-          }
-
-          if (dispatch) {
-            dispatch(
-              state.tr
-                .setMeta(CodeFence.collapseKey, { expand: codeBlock.pos })
-                .setMeta("addToHistory", false)
-            );
-          }
-          return true;
-        },
+      expandCodeBlockAt: (pos: number) => expandCodeBlockAt(pos),
       toggleCodeBlockCollapse: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
         if (!codeBlock) {
@@ -305,7 +308,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         if (dispatch) {
           dispatch(
             state.tr
-              .setMeta(CodeFence.collapseKey, {
+              .setMeta(collapseKey, {
                 toggle: codeBlock.pos,
               })
               .setMeta("addToHistory", false)
@@ -429,7 +432,6 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
   /** Plugins for collapsible code block behavior. */
   private collapsePlugins(): Plugin[] {
-    const collapseKey = CodeFence.collapseKey;
     const build = (
       doc: ProsemirrorNode,
       tall: Set<number>,
