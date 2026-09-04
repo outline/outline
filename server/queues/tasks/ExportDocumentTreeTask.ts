@@ -10,6 +10,7 @@ import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
+import OKFHelper from "@server/models/helpers/OKFHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import { sequelizeReadOnly } from "@server/storage/database";
@@ -211,6 +212,12 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       );
     }
 
+    // OKF frontmatter carries the document's canonical URL, so it is added
+    // only after internal links have been rewritten to relative paths.
+    if (format === FileOperationFormat.OKFZip) {
+      text = OKFHelper.frontmatter(document) + text;
+    }
+
     // Finally, add the document to the zip file
     zip.addBuffer(Buffer.from(text), textPathInZip, {
       mtime: document.updatedAt,
@@ -237,15 +244,31 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat,
     includeAttachments = true
   ) {
-    const pathMap = this.createPathMap(collections, format);
-    return await ZipHelper.toTmpFile((zip) =>
-      this.addDocumentsToArchive({
+    const { pathMap, roots } = this.createPathMap(collections, format);
+    return await ZipHelper.toTmpFile(async (zip) => {
+      await this.addDocumentsToArchive({
         zip,
         pathMap,
         format,
         includeAttachments,
-      })
-    );
+      });
+
+      if (format === FileOperationFormat.OKFZip) {
+        zip.addBuffer(
+          Buffer.from(
+            OKFHelper.rootIndex(
+              "Collections",
+              roots.map(({ root, collection }) => ({
+                title: collection.name,
+                path: `${root}/`,
+                description: collection.description,
+              }))
+            )
+          ),
+          OKFHelper.indexFileName
+        );
+      }
+    });
   }
 
   protected async addDocumentToArchive({
@@ -262,28 +285,41 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     const pathMap = new Map<string, string>();
 
     const rootFolderName = serializeFilename(document.titleWithDefault);
+    const rootPath = `${rootFolderName}.${ExportDocumentTreeTask.extensionForFormat(format)}`;
 
     // entry for root document
-    pathMap.set(
-      document.path,
-      `${rootFolderName}.${ExportDocumentTreeTask.extensionForFormat(format)}`
-    );
+    pathMap.set(document.path, rootPath);
 
     this.addDocumentTreeToPathMap(
       pathMap,
       documentStructure,
-      serializeFilename(document.titleWithDefault),
+      rootFolderName,
       format
     );
 
-    return await ZipHelper.toTmpFile((zip) =>
-      this.addDocumentsToArchive({
+    return await ZipHelper.toTmpFile(async (zip) => {
+      await this.addDocumentsToArchive({
         zip,
         pathMap,
         format,
         includeAttachments,
-      })
-    );
+      });
+
+      if (format === FileOperationFormat.OKFZip) {
+        zip.addBuffer(
+          Buffer.from(
+            OKFHelper.rootIndex("Documents", [
+              {
+                title: document.titleWithDefault,
+                path: rootPath,
+                description: document.getSummary(),
+              },
+            ])
+          ),
+          OKFHelper.indexFileName
+        );
+      }
+    });
   }
 
   /**
@@ -335,25 +371,26 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    *
    * @param collections The collections to generate the path map for.
    * @param format The format of the exported documents.
+   * @returns The path map and the root directory chosen for each collection.
    */
   private createPathMap(
     collections: Collection[],
     format: FileOperationFormat
   ) {
-    const map = new Map<string, string>();
-    const usedRoots = new Set<string>();
+    const pathMap = new Map<string, string>();
+    const roots: { root: string; collection: Collection }[] = [];
 
     for (const collection of collections) {
       if (collection.documentStructure) {
         let root = serializeFilename(collection.name);
         let i = 0;
-        while (usedRoots.has(root)) {
+        while (roots.some((entry) => entry.root === root)) {
           root = `${serializeFilename(collection.name)} (${++i})`;
         }
-        usedRoots.add(root);
+        roots.push({ root, collection });
 
         this.addDocumentTreeToPathMap(
-          map,
+          pathMap,
           collection.documentStructure,
           root,
           format
@@ -361,7 +398,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       }
     }
 
-    return map;
+    return { pathMap, roots };
   }
 
   private addDocumentTreeToPathMap(
@@ -375,10 +412,15 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       const extension = ExportDocumentTreeTask.extensionForFormat(format);
 
       // Ensure the document is given a unique path in zip, even if it has
-      // the same title as another document in the same collection.
+      // the same title as another document in the same collection. OKF also
+      // reserves some file names, which a document may not take.
       let i = 0;
       let filePath = path.join(root, `${title}.${extension}`);
-      while (Array.from(map.values()).includes(filePath)) {
+      while (
+        Array.from(map.values()).includes(filePath) ||
+        (format === FileOperationFormat.OKFZip &&
+          OKFHelper.isReservedFileName(path.basename(filePath)))
+      ) {
         filePath = path.join(root, `${title} (${++i}).${extension}`);
       }
 
