@@ -84,15 +84,16 @@ export function registerModelContextTool(
       signal,
     });
     if (result instanceof Promise) {
-      result.catch((err: DOMException) => {
+      result.catch((err: unknown) => {
         // An aborted signal rejects a pending registration; this is normal
         // teardown, not a failure.
-        if (signal.aborted || err?.name === "AbortError") {
+        const error = toError(err);
+        if (signal.aborted || error.name === "AbortError") {
           return;
         }
         Logger.warn("Failed to register WebMCP tool", {
           name: tool.name,
-          error: err?.message,
+          error: error.message,
         });
         registeredToolNames.delete(tool.name);
       });
