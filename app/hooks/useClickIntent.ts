@@ -10,7 +10,7 @@ export default function useClickIntent(
   onClickIntent?: React.MouseEventHandler<HTMLElement>,
   delay = 100
 ) {
-  const timer = React.useRef<number>();
+  const timer = React.useRef<number | undefined>(undefined);
 
   const handleMouseEnter = React.useCallback(() => {
     if (timer.current) {

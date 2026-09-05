@@ -44,7 +44,7 @@ import { SearchHighlightChip } from "./SearchHighlightChip";
 import ShareButton from "./ShareButton";
 
 type Props = {
-  editorRef: React.RefObject<Editor>;
+  editorRef: React.RefObject<Editor | null>;
   document: Document;
   revision: Revision | undefined;
   isDraft: boolean;

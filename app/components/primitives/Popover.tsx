@@ -40,8 +40,10 @@ const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   ContentProps
 >((props, forwardedRef) => {
-  const ref = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content>>();
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const ref = React.useRef<
+    React.ElementRef<typeof PopoverPrimitive.Content> | undefined
+  >(undefined);
+  const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
   const container = usePortalContext();
   const {
     width,

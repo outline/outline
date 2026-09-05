@@ -4,7 +4,7 @@ import { createContext, useContext } from "react";
  * Context to provide a reference to the scrollable container
  */
 const ScrollContext = createContext<
-  React.RefObject<HTMLDivElement> | undefined
+  React.RefObject<HTMLDivElement | null> | undefined
 >(undefined);
 
 /**

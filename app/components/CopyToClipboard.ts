@@ -3,9 +3,14 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import env from "~/env";
 
+type ChildProps = {
+  onClick?: React.MouseEventHandler<HTMLElement>;
+  ref?: React.Ref<HTMLElement>;
+};
+
 type Props = {
   text: string;
-  children?: React.ReactElement;
+  children?: React.ReactElement<ChildProps>;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   onCopy?: () => void;
 };
@@ -45,10 +50,7 @@ function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
 
   return React.cloneElement(elem, {
     ...rest,
-    ref:
-      "ref" in elem
-        ? mergeRefs([elem.ref as React.MutableRefObject<HTMLElement>, ref])
-        : ref,
+    ref: elem.props.ref ? mergeRefs([elem.props.ref, ref]) : ref,
     onClick,
   });
 }

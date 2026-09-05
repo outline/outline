@@ -15,7 +15,7 @@ export default function useEventListener<T extends EventListener>(
   element: Window | VisualViewport | Node | null = window,
   options: AddEventListenerOptions = {}
 ) {
-  const savedHandler = useRef<T>();
+  const savedHandler = useRef<T | undefined>(undefined);
   const { capture, passive, once } = options;
 
   useEffect(() => {

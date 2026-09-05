@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import type { DropTargetMonitor } from "react-dnd";
-import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
@@ -11,7 +10,11 @@ import type Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
-import type { DragObject } from "../hooks/useDragAndDrop";
+import {
+  type DragObject,
+  useDragRef,
+  useDropRef,
+} from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import SidebarDisclosureContext, {
@@ -48,7 +51,7 @@ function DraggableCollectionLink({
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
-  ] = useDrop({
+  ] = useDropRef({
     accept: "collection",
     drop: (item: DragObject) => {
       void collections.move(
@@ -67,7 +70,7 @@ function DraggableCollectionLink({
   });
 
   // Drag to reorder collection
-  const [{ isDragging }, dragToReorderCollection, preview] = useDrag({
+  const [{ isDragging }, dragToReorderCollection, preview] = useDragRef({
     type: "collection",
     item: () => ({
       id: collection.id,

@@ -81,7 +81,7 @@ function Authorize() {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const timeoutRef = useRef<number>();
+  const timeoutRef = useRef<number | undefined>(undefined);
   const {
     client_id: clientId,
     redirect_uri: redirectUri,
