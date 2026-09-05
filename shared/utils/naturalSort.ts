@@ -40,9 +40,10 @@ function naturalSortBy<T extends object>(
       })
     : sorter;
 
-  return items.sort((a: T, b: T) =>
-    sort(getSortByField(a, key), getSortByField(b, key))
-  );
+  // Sort a copy, `items` may be an observable array which cannot be sorted in place.
+  return items
+    .slice()
+    .sort((a: T, b: T) => sort(getSortByField(a, key), getSortByField(b, key)));
 }
 
 export default naturalSortBy;
