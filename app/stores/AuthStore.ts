@@ -67,7 +67,7 @@ export default class AuthStore extends Store<Team> {
     avatarUrl: string;
     url: string;
     isSignedIn: boolean;
-  }[];
+  }[] = undefined;
 
   /* The authentication provider the user signed in with. */
   @observable

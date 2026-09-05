@@ -9,7 +9,9 @@
     "patches/**",
     "*.d.ts"
   ],
+  "jsPlugins": ["./.oxlint/mobx.mjs"],
   "rules": {
+    "mobx/observable-needs-initializer": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
