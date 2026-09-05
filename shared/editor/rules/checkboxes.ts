@@ -22,6 +22,18 @@ function isListItem(token: Token): boolean {
   return !!token && token.type === "list_item_open";
 }
 
+function isListOpen(token: Token): boolean {
+  return (
+    token.type === "bullet_list_open" || token.type === "ordered_list_open"
+  );
+}
+
+function isListClose(token: Token): boolean {
+  return (
+    token.type === "bullet_list_close" || token.type === "ordered_list_close"
+  );
+}
+
 function looksLikeChecklist(tokens: Token[], index: number) {
   return (
     isInline(tokens[index]) &&
@@ -61,13 +73,20 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
         const value = matchesChecklist[1];
         const checked = value.toLowerCase() === "x";
 
-        // convert surrounding list tokens
-        if (tokens[i - 3].type === "bullet_list_open") {
-          tokens[i - 3].type = "checkbox_list_open";
+        // convert the enclosing list tokens, which may not be adjacent when
+        // the checkbox item is preceded by plain items or contains nested lists.
+        const listLevel = tokens[i - 2].level - 1;
+        for (let k = i - 3; k >= 0; k--) {
+          if (tokens[k].level === listLevel && isListOpen(tokens[k])) {
+            tokens[k].type = "checkbox_list_open";
+            break;
+          }
         }
-
-        if (tokens[i + 3].type === "bullet_list_close") {
-          tokens[i + 3].type = "checkbox_list_close";
+        for (let k = i + 1; k < tokens.length; k++) {
+          if (tokens[k].level === listLevel && isListClose(tokens[k])) {
+            tokens[k].type = "checkbox_list_close";
+            break;
+          }
         }
 
         // remove [ ] [x] from list item label – must use the content from the
