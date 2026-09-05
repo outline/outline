@@ -67,7 +67,8 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, views, shares, comments, documents, revisions } = useStores();
+  const { ui, views, shares, comments, documents, revisions, collections } =
+    useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { setDocument } = useDocumentContext();
@@ -170,6 +171,21 @@ function DataLoader({ match, children }: Props) {
     }
     void fetchViews();
   }, [document?.id, document?.isDeleted, revisionId, views, isJustCreated]);
+
+  // The collection tree provides the child documents list, so load it here
+  // rather than relying on the sidebar having rendered the collection.
+  const collectionId = document?.collectionId;
+  React.useEffect(() => {
+    if (!collectionId) {
+      return;
+    }
+    void collections
+      .fetch(collectionId)
+      .then((collection) => collection.fetchDocuments())
+      .catch((err) =>
+        Logger.error("Failed to fetch collection documents", toError(err))
+      );
+  }, [collections, collectionId]);
 
   const onCreateLink = React.useCallback(
     async (params: Properties<Document>, nested?: boolean) => {
