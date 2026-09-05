@@ -77,6 +77,10 @@ import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 import { toastNotice } from "./toastNotice";
 
+type DraggingWithNode = NonNullable<EditorView["dragging"]> & {
+  node?: Selection;
+};
+
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
@@ -765,6 +769,8 @@ export class Editor extends React.PureComponent<
       return;
     }
 
+    const dragging = view.dragging as DraggingWithNode | null;
+
     event.preventDefault();
     event.stopPropagation();
 
@@ -784,9 +790,13 @@ export class Editor extends React.PureComponent<
       }
 
       const dom = new DOMParser().parseFromString(text, "text/html");
+      const transaction = view.state.tr;
+      if (dragging?.move) {
+        (dragging.node ?? transaction.selection).replace(transaction);
+      }
       view.dispatch(
-        view.state.tr.insert(
-          pos,
+        transaction.insert(
+          transaction.mapping.map(pos),
           ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
         )
       );
