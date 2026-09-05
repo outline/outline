@@ -545,6 +545,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
+  color: ${props.theme.text};
   border-radius: 8px;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -560,25 +561,35 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
-  /* Long labels are truncated so a mention never wraps onto a second line. */
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
-    white-space: nowrap;
-  }
-
-  /* Only the label truncates; icons and trailing identifiers stay whole. */
+  /* Keep icons at their intended size when the mention wraps. */
   &::before,
   svg,
-  img,
-  span ~ span {
+  img {
     flex-shrink: 0;
+  }
+
+  /* External resource titles stay on one line, while internal mentions can
+     wrap to fit constrained containers such as table cells. */
+  &[data-type="issue"],
+  &[data-type="pull_request"],
+  &[data-type="project"],
+  &[data-type="url"] {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+      white-space: nowrap;
+    }
+
+    /* Only the label truncates; trailing identifiers stay whole. */
+    span ~ span {
+      flex-shrink: 0;
+    }
   }
 
   &:${hover} {
