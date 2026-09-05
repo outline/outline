@@ -560,6 +560,13 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
+  /* Keep icons at their intended size when the mention wraps. */
+  &::before,
+  svg,
+  img {
+    flex-shrink: 0;
+  }
+
   /* External resource titles stay on one line, while internal mentions can
      wrap to fit constrained containers such as table cells. */
   &[data-type="issue"],
@@ -578,10 +585,7 @@ width: 100%;
       white-space: nowrap;
     }
 
-    /* Only the label truncates; icons and trailing identifiers stay whole. */
-    &::before,
-    svg,
-    img,
+    /* Only the label truncates; trailing identifiers stay whole. */
     span ~ span {
       flex-shrink: 0;
     }
