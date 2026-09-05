@@ -365,7 +365,6 @@ function DocumentScene({
             <SharedHeader document={document} />
           ) : (
             <Header
-              editorRef={editorRef}
               document={document}
               revision={revision}
               isDraft={document.isDraft}

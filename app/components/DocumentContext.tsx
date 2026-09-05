@@ -14,7 +14,12 @@ class DocumentContext {
   document?: Document;
 
   /** The editor instance for this document */
-  editor?: Editor;
+  @observable.ref
+  editor: Editor | undefined = undefined;
+
+  /** The total number of changes in the currently viewed revision diff */
+  @observable
+  totalChanges: number = 0;
 
   /** The ID of the currently focused comment, or null if no comment is focused */
   @observable
@@ -65,6 +70,11 @@ class DocumentContext {
   @action
   setEditorInitialized = (initialized: boolean) => {
     this.isEditorInitialized = initialized;
+  };
+
+  @action
+  setTotalChanges = (totalChanges: number) => {
+    this.totalChanges = totalChanges;
   };
 
   @action
