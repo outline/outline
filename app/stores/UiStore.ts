@@ -410,6 +410,7 @@ class UiStore {
       this.secondaryRightSidebar = panel;
     } else {
       this.rightSidebar = panel;
+      this.persist();
     }
   };
 
