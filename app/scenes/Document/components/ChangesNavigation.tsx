@@ -13,7 +13,7 @@ import useQuery from "~/hooks/useQuery";
 export const ChangesNavigation = observer(function ChangesNavigation_() {
   const { t } = useTranslation();
   const query = useQuery();
-  const showChanges = query.get("changes");
+  const showChanges = query.has("changes");
   const { editor, totalChanges } = useDocumentContext();
 
   if (!showChanges) {
