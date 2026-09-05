@@ -563,7 +563,6 @@ width: 100%;
 
   /* Keep icons at their intended size when the mention wraps. */
   &::before,
-  .mention-icon,
   svg,
   img {
     flex-shrink: 0;
