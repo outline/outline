@@ -28,6 +28,7 @@ export default function IsUrlList({
           }
           for (const url of value) {
             if (
+              typeof url !== "string" ||
               !isURL(url, {
                 require_tld: false,
                 allow_underscores: true,

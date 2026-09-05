@@ -44,6 +44,21 @@ describe("#apiKeys.create", () => {
     expect(body.data.lastActiveAt).toBeNull();
   });
 
+  it("should allow the wildcard scope", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/apiKeys.create", user, {
+      body: {
+        name: "My API Key",
+        scope: ["*"],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.scope).toEqual(["*"]);
+  });
+
   it("should reject malformed scopes", async () => {
     const user = await buildUser();
 

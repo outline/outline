@@ -5,7 +5,7 @@ import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { Scope } from "@shared/types";
 import { ApiKeyValidation } from "@shared/validations";
 
-const globalScopes = new Set<string>(Object.values(Scope));
+const globalScopes = new Set<string>([...Object.values(Scope), "*"]);
 
 /**
  * Normalizes a user-supplied scope into its canonical form by prefixing bare
