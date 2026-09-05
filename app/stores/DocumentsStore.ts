@@ -237,10 +237,11 @@ export default class DocumentsStore extends Store<Document> {
 
   /**
    * Documents that are in the trash, optionally narrowed to those deleted by a
-   * particular user and/or within a particular time frame.
+   * particular user and/or within a particular time frame. Documents pending
+   * permanent deletion have left the trash and are never included.
    *
    * @param options the filters to apply.
-   * @returns the matching deleted documents, most recently deleted first.
+   * @returns the matching deleted documents, longest deleted first.
    */
   deleted = (
     options: {
@@ -248,8 +249,8 @@ export default class DocumentsStore extends Store<Document> {
       userId?: string;
     } = {}
   ): Document[] => {
-    let deleted = orderBy(this.orderedData, "deletedAt", "desc").filter(
-      (d) => d.deletedAt
+    let deleted = orderBy(this.orderedData, "deletedAt", "asc").filter(
+      (d) => d.deletedAt && !d.destroyedAt
     );
 
     if (options.userId) {

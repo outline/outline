@@ -30,7 +30,6 @@ import documentCreator, {
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
-import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
@@ -550,6 +549,9 @@ router.post(
       teamId: user.teamId,
       deletedAt: {
         [Op.ne]: null,
+      },
+      destroyedAt: {
+        [Op.is]: null,
       },
       [Op.and]: [
         {
@@ -1671,15 +1673,15 @@ router.post(
       });
       authorize(user, "permanentDelete", document);
 
-      await documentPermanentDeleter([document]);
-      await Event.createFromContext(ctx, {
-        name: "documents.permanent_delete",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await document.updateWithCtx(
+        ctx,
+        {
+          destroyedAt: new Date(),
         },
-      });
+        {
+          name: "permanent_delete",
+        }
+      );
     } else {
       const document = await Document.findByPk(id, {
         userId: user.id,
@@ -2260,6 +2262,9 @@ router.post(
       where: {
         deletedAt: {
           [Op.ne]: null,
+        },
+        destroyedAt: {
+          [Op.is]: null,
         },
         [Op.or]: [
           {

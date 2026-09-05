@@ -1,10 +1,18 @@
 import { randomUUID } from "node:crypto";
+import type { MockInstance } from "vitest";
+import { vi } from "vitest";
+import {
+  RetentionPeriodPresets,
+  TeamPreferenceDefaults,
+} from "@shared/constants";
+import { TeamPreference } from "@shared/types";
 import { Team } from "@server/models";
 import {
   buildTeam,
   buildCollection,
   buildAttachment,
 } from "@server/test/factories";
+import { setCloudHosted, setSelfHosted } from "@server/test/support";
 
 describe("Team", () => {
   describe("findByDomain", () => {
@@ -142,6 +150,92 @@ describe("Team", () => {
 
       const result = await team.publicAvatarUrl();
       expect(result).toEqual(attachment.canonicalUrl);
+    });
+  });
+
+  describe("retentionPeriods", () => {
+    it("should include every configurable period", () => {
+      for (const days of RetentionPeriodPresets.filter(
+        (preset) => preset > 0
+      )) {
+        expect(Team.retentionPeriods).toContain(days);
+      }
+    });
+
+    it("should exclude infinite retention", () => {
+      expect(Team.retentionPeriods).not.toContain(0);
+    });
+
+    it("should return periods in ascending order", () => {
+      const periods = Team.retentionPeriods;
+      expect([...periods].sort((a, b) => a - b)).toEqual([...periods]);
+    });
+  });
+
+  describe("getDefaultRetentionPeriod", () => {
+    it("should return the configured default", () => {
+      expect(
+        Team.getDefaultRetentionPeriod(TeamPreference.TrashRetentionDays)
+      ).toEqual(TeamPreferenceDefaults[TeamPreference.TrashRetentionDays]);
+    });
+  });
+
+  describe("getRetentionPeriodsInUse", () => {
+    let findOne: MockInstance;
+
+    afterEach(() => {
+      findOne?.mockRestore();
+    });
+
+    it("should return every period when cloud hosted", async () => {
+      setCloudHosted();
+      findOne = vi.spyOn(Team, "findOne");
+
+      expect(
+        await Team.getRetentionPeriodsInUse(TeamPreference.TrashRetentionDays)
+      ).toEqual(Team.retentionPeriods);
+      expect(findOne).not.toHaveBeenCalled();
+    });
+
+    it("should return only the period the team is configured with", async () => {
+      setSelfHosted();
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.TrashRetentionDays, 365);
+      findOne = vi.spyOn(Team, "findOne").mockResolvedValue(team);
+
+      expect(
+        await Team.getRetentionPeriodsInUse(TeamPreference.TrashRetentionDays)
+      ).toEqual([365]);
+    });
+
+    it("should return the default period when the team has no preference", async () => {
+      setSelfHosted();
+      const team = await buildTeam();
+      findOne = vi.spyOn(Team, "findOne").mockResolvedValue(team);
+
+      expect(
+        await Team.getRetentionPeriodsInUse(TeamPreference.TrashRetentionDays)
+      ).toEqual([TeamPreferenceDefaults[TeamPreference.TrashRetentionDays]]);
+    });
+
+    it("should return no periods for infinite retention", async () => {
+      setSelfHosted();
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.TrashRetentionDays, 0);
+      findOne = vi.spyOn(Team, "findOne").mockResolvedValue(team);
+
+      expect(
+        await Team.getRetentionPeriodsInUse(TeamPreference.TrashRetentionDays)
+      ).toEqual([]);
+    });
+
+    it("should return no periods when there is no team", async () => {
+      setSelfHosted();
+      findOne = vi.spyOn(Team, "findOne").mockResolvedValue(null);
+
+      expect(
+        await Team.getRetentionPeriodsInUse(TeamPreference.TrashRetentionDays)
+      ).toEqual([]);
     });
   });
 });

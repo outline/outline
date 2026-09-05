@@ -27,23 +27,23 @@ function Days(props: { dateTime: string }) {
 export default function Notices({ document }: Props) {
   const { t } = useTranslation();
 
-  function permanentlyDeletedDescription() {
-    if (!document.permanentlyDeletedAt) {
+  function destroyedDescription() {
+    if (!document.willDestroyAt) {
       return;
     }
 
-    // if the permanently deleted date is in the past, show the current date
-    // to avoid showing a negative number of days. The cleanup task will
-    // permanently delete the document at the next run.
-    const permanentlyDeletedAt =
-      new Date(document.permanentlyDeletedAt) < new Date()
+    // if the destroy date is in the past, show the current date to avoid
+    // showing a negative number of days. The cleanup task will destroy the
+    // document at the next run.
+    const destroyAt =
+      new Date(document.willDestroyAt) < new Date()
         ? new Date().toISOString()
-        : document.permanentlyDeletedAt;
+        : document.willDestroyAt;
 
     return (
       <Trans>
         This document will be permanently deleted in{" "}
-        <Days dateTime={permanentlyDeletedAt} /> unless restored.
+        <Days dateTime={destroyAt} /> unless restored.
       </Trans>
     );
   }
@@ -60,10 +60,7 @@ export default function Notices({ document }: Props) {
         </Notice>
       )}
       {document.deletedAt && (
-        <Notice
-          icon={<TrashIcon />}
-          description={permanentlyDeletedDescription()}
-        >
+        <Notice icon={<TrashIcon />} description={destroyedDescription()}>
           {t("Deleted by {{userName}}", {
             userName: document.deletedBy?.name ?? t("Unknown"),
           })}

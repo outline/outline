@@ -168,16 +168,13 @@ export default class ToggleBlock extends Node {
 
       state: {
         init: (_config, state) => {
-          const { foldedIds, knownIds, blocks } =
-            this.collectFoldState(state.doc);
+          const { foldedIds, knownIds, blocks } = this.collectFoldState(
+            state.doc
+          );
           return {
             foldedIds,
             knownIds,
-            decorations: this.createDecorations(
-              state.doc,
-              foldedIds,
-              blocks
-            ),
+            decorations: this.createDecorations(state.doc, foldedIds, blocks),
           };
         },
 
@@ -605,7 +602,11 @@ export default class ToggleBlock extends Node {
     return {
       foldedIds,
       knownIds,
-      decorations: this.buildDecorationsFromBlocks(doc, toggleBlocks, foldedIds),
+      decorations: this.buildDecorationsFromBlocks(
+        doc,
+        toggleBlocks,
+        foldedIds
+      ),
     };
   }
 

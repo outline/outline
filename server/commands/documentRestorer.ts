@@ -1,5 +1,5 @@
 import { traceFunction } from "@server/logging/tracing";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import { Collection, Revision } from "@server/models";
 import type { Document } from "@server/models";
 import { authorize } from "@server/policies";
@@ -23,6 +23,7 @@ type Props = {
  * @param ctx - the API context, providing the acting user and transaction.
  * @param props - the document and restore options.
  * @returns the restored document.
+ * @throws NotFoundError if the document is pending permanent deletion.
  * @throws ValidationError if the destination collection is not active.
  * @throws NotFoundError if the given revision does not exist.
  */
@@ -32,6 +33,12 @@ async function documentRestorer(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
+
+  // Documents that have left the trash are pending permanent deletion, they are
+  // treated as if they no longer exist.
+  if (document.isDestroyed) {
+    throw NotFoundError();
+  }
 
   const sourceCollectionId = document.collectionId;
   const destCollectionId = collectionId ?? sourceCollectionId;
