@@ -43,6 +43,7 @@ export const ChangesNavigation = observer(function ChangesNavigation_() {
             <NavigationButton
               icon={<CaretUpIcon />}
               onClick={() => editor?.commands.prevChange()}
+              disabled={!diffExtension}
               aria-label={t("Previous change")}
             />
           </Tooltip>
@@ -50,6 +51,7 @@ export const ChangesNavigation = observer(function ChangesNavigation_() {
             <NavigationButton
               icon={<CaretDownIcon />}
               onClick={() => editor?.commands.nextChange()}
+              disabled={!diffExtension}
               aria-label={t("Next change")}
             />
           </Tooltip>
