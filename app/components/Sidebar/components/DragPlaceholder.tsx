@@ -16,26 +16,18 @@ const layerStyles: React.CSSProperties = {
   height: "100%",
 };
 
-function getItemStyles(
-  initialOffset: XYCoord | null,
-  currentOffset: XYCoord | null,
-  sidebarWidth: number,
-  constrainToSidebar: boolean
-) {
-  if (!initialOffset || !currentOffset) {
+// Keep the ghost beside the pointer so it never covers the drop cursor.
+const POINTER_OFFSET_X = 12;
+const POINTER_OFFSET_Y = 14;
+
+function getItemStyles(pointerOffset: XYCoord | null, sidebarWidth: number) {
+  if (!pointerOffset) {
     return {
       display: "none",
     };
   }
-  const { y } = currentOffset;
-  // Sidebar drags keep the ghost tethered near its origin, but drags from
-  // outside the sidebar should follow the cursor freely.
-  const x = constrainToSidebar
-    ? Math.max(
-        initialOffset.x,
-        Math.min(initialOffset.x + sidebarWidth / 4, currentOffset.x)
-      )
-    : currentOffset.x;
+  const x = pointerOffset.x + POINTER_OFFSET_X;
+  const y = pointerOffset.y - POINTER_OFFSET_Y;
 
   const transform = `translate(${x}px, ${y}px)`;
   return {
@@ -49,35 +41,25 @@ const DragPlaceholder = () => {
   const { t } = useTranslation();
   const { ui } = useStores();
 
-  const { isDragging, item, initialOffset, currentOffset } = useDragLayer(
-    (monitor) => ({
-      item: monitor.getItem(),
-      itemType: monitor.getItemType(),
-      initialOffset: monitor.getInitialSourceClientOffset(),
-      currentOffset: monitor.getSourceClientOffset(),
-      isDragging: monitor.isDragging(),
-    })
-  );
+  const { isDragging, item, pointerOffset } = useDragLayer((monitor) => ({
+    item: monitor.getItem(),
+    itemType: monitor.getItemType(),
+    pointerOffset: monitor.getClientOffset(),
+    isDragging: monitor.isDragging(),
+  }));
 
-  if (!isDragging || !currentOffset) {
+  if (!isDragging || !pointerOffset) {
     return null;
   }
 
   return (
     <div style={layerStyles}>
-      <div
-        style={getItemStyles(
-          initialOffset,
-          currentOffset,
-          ui.sidebarWidth,
-          item.constrainToSidebar !== false
-        )}
-      >
+      <div style={getItemStyles(pointerOffset, ui.sidebarWidth)}>
         <GhostLink
           icon={item.icon}
           label={item.title || t("Untitled")}
           isDraft={item.isDraft}
-          depth={item.depth}
+          depth={0}
           active
         />
       </div>
