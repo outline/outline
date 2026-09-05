@@ -170,6 +170,8 @@ export default abstract class ImportsProcessor<
    * @returns Promise that resolves when mapping and persistence is completed.
    */
   private async onProcessed(importModel: Import<T>, transaction: Transaction) {
+    const ctx = createContext({ user: importModel.createdBy, transaction });
+
     try {
       const { collections } = await this.createCollectionsAndDocuments({
         importModel,
@@ -190,12 +192,18 @@ export default abstract class ImportsProcessor<
           },
           async (documents) => {
             for (const document of documents) {
-              await collection.addDocumentToStructure(document, undefined, {
-                save: false,
-                silent: true,
-                transaction,
-                insertOrder: "append",
-              });
+              await collection.addDocumentToStructure(
+                ctx,
+                document,
+                undefined,
+                {
+                  save: false,
+                  silent: true,
+                  insertOrder: "append",
+                  // The collection was created by this import, so it has no drafts to reposition.
+                  shiftDrafts: false,
+                }
+              );
             }
           }
         );
@@ -205,12 +213,7 @@ export default abstract class ImportsProcessor<
 
       importModel.state = ImportState.Completed;
       importModel.error = null; // unset any error from previous attempts.
-      await importModel.saveWithCtx(
-        createContext({
-          user: importModel.createdBy,
-          transaction,
-        })
-      );
+      await importModel.saveWithCtx(ctx);
     } catch (err) {
       if (err instanceof UniqueConstraintError) {
         Logger.error(

@@ -80,6 +80,28 @@ import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
+type RemoveDocumentOptions = {
+  /** Whether to persist the collection after the change, defaults to true. */
+  save?: boolean;
+};
+
+type AddDocumentOptions = RemoveDocumentOptions & {
+  /** Whether to skip updating the collection's timestamps. */
+  silent?: boolean;
+  /** A pre-built navigation node to insert, retaining any existing children. */
+  documentJson?: NavigationNode;
+  /** Whether to include archived documents when building the navigation node. */
+  includeArchived?: boolean;
+  /** Where to insert when no explicit index is given, defaults to "append". */
+  insertOrder?: "prepend" | "append";
+  /**
+   * Whether to reposition sibling drafts to account for the insertion, defaults to true. Only
+   * safe to disable when the collection cannot contain drafts, such as when building the
+   * structure of a newly imported collection.
+   */
+  shiftDrafts?: boolean;
+};
+
 type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
@@ -878,7 +900,7 @@ class Collection extends ParanoidModel<
   deleteDocument = async (ctx: APIContext, document: Document) => {
     const { transaction } = ctx.context;
 
-    await this.removeDocumentInStructure(document, { transaction });
+    await this.removeDocumentInStructure(ctx, document);
 
     // IDs come back breadth-first so reversing them destroys the deepest
     // descendants first.
@@ -905,10 +927,9 @@ class Collection extends ParanoidModel<
   };
 
   removeDocumentInStructure = async (
+    ctx: APIContext,
     document: Document,
-    options?: FindOptions & {
-      save?: boolean;
-    }
+    options?: RemoveDocumentOptions
   ) => {
     if (!this.documentStructure) {
       return;
@@ -953,13 +974,17 @@ class Collection extends ParanoidModel<
       document.id
     );
 
+    if (result) {
+      await this.shiftDraftIndexes(ctx, document, result[1], -1);
+    }
+
     // Sequelize doesn't seem to set the value with splice on JSONB field
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
 
     if (options?.save !== false) {
       await this.save({
-        ...options,
+        transaction: ctx.state.transaction,
         fields: ["documentStructure"],
       });
     }
@@ -1033,15 +1058,10 @@ class Collection extends ParanoidModel<
   };
 
   addDocumentToStructure = async (
+    ctx: APIContext,
     document: Document,
     index?: number,
-    options: FindOptions & {
-      save?: boolean;
-      silent?: boolean;
-      documentJson?: NavigationNode;
-      includeArchived?: boolean;
-      insertOrder?: "prepend" | "append";
-    } = {}
+    options: AddDocumentOptions = {}
   ) => {
     if (!this.documentStructure) {
       this.documentStructure = [];
@@ -1053,7 +1073,10 @@ class Collection extends ParanoidModel<
 
     // If moving existing document with children, use existing structure
     const documentJson = {
-      ...(await document.toNavigationNode(options)),
+      ...(await document.toNavigationNode({
+        transaction: ctx.state.transaction,
+        includeArchived: options.includeArchived,
+      })),
       ...options.documentJson,
     };
 
@@ -1071,6 +1094,9 @@ class Collection extends ParanoidModel<
       insertionIndex = this.documentStructure.length;
     }
 
+    // The position amongst its siblings that the document ended up at
+    let siblingIndex = insertionIndex;
+
     if (!document.parentDocumentId) {
       // Note: Index is supported on DB level but it's being ignored
       // by the API presentation until we build product support for it.
@@ -1080,13 +1106,13 @@ class Collection extends ParanoidModel<
       const placeDocument = (documentList: NavigationNode[]) =>
         documentList.map((childDocument) => {
           if (document.parentDocumentId === childDocument.id) {
-            const childInsertionIndex =
+            siblingIndex =
               index !== undefined
                 ? index
                 : options.insertOrder === "prepend"
                   ? 0
                   : childDocument.children.length;
-            childDocument.children.splice(childInsertionIndex, 0, documentJson);
+            childDocument.children.splice(siblingIndex, 0, documentJson);
           } else {
             childDocument.children = placeDocument(childDocument.children);
           }
@@ -1097,13 +1123,18 @@ class Collection extends ParanoidModel<
       this.documentStructure = placeDocument(this.documentStructure);
     }
 
+    if (options.shiftDrafts !== false) {
+      await this.shiftDraftIndexes(ctx, document, siblingIndex, 1);
+    }
+
     // Sequelize doesn't seem to set the value with splice on JSONB field
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
 
     if (options?.save !== false) {
       await this.save({
-        ...options,
+        transaction: ctx.state.transaction,
+        silent: options.silent,
         fields: ["documentStructure"],
       });
     }
@@ -1149,6 +1180,45 @@ class Collection extends ParanoidModel<
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
   });
+
+  // private
+
+  /**
+   * Shifts the stored position of sibling drafts to account for a document being inserted into,
+   * or removed from, the document structure. Drafts are not part of the structure, so without
+   * this their remembered position would drift as documents around them are added or removed.
+   *
+   * Saves are silent so that a draft is not resurfaced to the top of the drafts list, but still
+   * emit an update event so that the author's client stays in sync.
+   *
+   * @param ctx the API context.
+   * @param document the document that was inserted or removed.
+   * @param index the position within the siblings that it was inserted at or removed from.
+   * @param by the amount to shift by, 1 when inserting and -1 when removing.
+   */
+  private shiftDraftIndexes = async (
+    ctx: APIContext,
+    document: Document,
+    index: number,
+    by: number
+  ) => {
+    const drafts = await Document.unscoped().findAll({
+      where: {
+        id: { [Op.ne]: document.id },
+        collectionId: this.id,
+        parentDocumentId: document.parentDocumentId ?? null,
+        publishedAt: { [Op.is]: null },
+        index: { [Op.gte]: index },
+      },
+      transaction: ctx.state.transaction,
+    });
+
+    for (const draft of drafts) {
+      draft.index = (draft.index ?? 0) + by;
+
+      await draft.saveWithCtx(ctx, { silent: true, fields: ["index"] });
+    }
+  };
 }
 
 export default Collection;

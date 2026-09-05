@@ -95,10 +95,10 @@ describe("documentDuplicator", () => {
       title: "doc 1.3",
     });
 
-    await collection.addDocumentToStructure(original);
-    await collection.addDocumentToStructure(child1);
-    await collection.addDocumentToStructure(child2);
-    await collection.addDocumentToStructure(child3);
+    await collection.addDocumentToStructure(createContext({}), original);
+    await collection.addDocumentToStructure(createContext({}), child1);
+    await collection.addDocumentToStructure(createContext({}), child2);
+    await collection.addDocumentToStructure(createContext({}), child3);
 
     await withAPIContext(user, (ctx) =>
       documentDuplicator(ctx, {
