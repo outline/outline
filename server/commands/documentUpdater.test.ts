@@ -453,6 +453,90 @@ describe("documentUpdater", () => {
       });
     });
 
+    it("should patch findText spanning an empty paragraph with a blank-line separator", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "First paragraph" }],
+            },
+            { type: "paragraph" },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Second paragraph" }],
+            },
+          ],
+        },
+      });
+
+      // Internal markdown serializes the empty paragraph as a `\` line.
+      // Clients (MCP retrieval + LLM round-trip) use a standard blank line.
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "Replaced both",
+        TextEditMode.Patch,
+        "First paragraph\n\nSecond paragraph"
+      );
+      const content = result.content!.content!;
+
+      expect(content).toHaveLength(1);
+      expect(content[0]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "Replaced both" }],
+      });
+    });
+
+    it("should patch findText retrieved via toMarkdown that spans an empty paragraph", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "First paragraph" }],
+            },
+            { type: "paragraph" },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Second paragraph" }],
+            },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Keep this" }],
+            },
+          ],
+        },
+      });
+
+      const markdown = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      const findText = markdown.split("Keep this")[0].trim();
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "Replaced both",
+        TextEditMode.Patch,
+        findText
+      );
+      const content = result.content!.content!;
+
+      expect(content[0]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "Replaced both" }],
+      });
+      expect(content[content.length - 1]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "Keep this" }],
+      });
+    });
+
     it("should throw when findText is not found in document", async () => {
       const user = await buildUser();
       const document = await buildDocument({
