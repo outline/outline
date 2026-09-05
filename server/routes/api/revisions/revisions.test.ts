@@ -3,6 +3,7 @@ import {
   ExportContentType,
   TeamPreference,
 } from "@shared/types";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -42,6 +43,25 @@ describe("#revisions.info", () => {
     // The single revision endpoint includes the full document content.
     expect(body.data.data).toBeDefined();
     expect(body.data.text).toBeDefined();
+  });
+
+  it("should return the latest revision by documentId with a stable id", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/revisions.info", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(RevisionHelper.latestId(document.id));
+    expect(body.data.documentId).toEqual(document.id);
+    expect(body.data.title).toEqual(document.title);
+    expect(body.data.data).toBeDefined();
   });
 
   it("should require authorization", async () => {
