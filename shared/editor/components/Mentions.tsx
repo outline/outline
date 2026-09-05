@@ -72,7 +72,7 @@ export const MentionUser = observer(function MentionUser_(
         "ProseMirror-selectednode": isSelected,
       })}
     >
-      <EmailIcon size={18} />
+      <EmailIcon className="mention-icon" size={18} />
       <span>{user?.name || node.attrs.label}</span>
     </span>
   );
@@ -93,7 +93,7 @@ export const MentionGroup = observer(function MentionGroup_(
         "ProseMirror-selectednode": isSelected,
       })}
     >
-      <EmailIcon size={18} />
+      <EmailIcon className="mention-icon" size={18} />
       <span>{group?.name || node.attrs.label}</span>
     </span>
   );
@@ -127,13 +127,14 @@ export const MentionDocument = observer(function MentionDocument_(
     >
       {doc?.icon ? (
         <Icon
+          className="mention-icon"
           value={doc.icon}
           initial={doc.initial}
           color={doc.color}
           size={18}
         />
       ) : (
-        <DocumentIcon size={18} />
+        <DocumentIcon className="mention-icon" size={18} />
       )}
       <span>{doc?.title || node.attrs.label}</span>
     </Link>
@@ -165,13 +166,14 @@ export const MentionCollection = observer(function MentionCollection_(
     >
       {collection?.icon ? (
         <Icon
+          className="mention-icon"
           value={collection.icon}
           initial={collection.initial}
           color={collection.color}
           size={18}
         />
       ) : (
-        <CollectionIcon size={18} />
+        <CollectionIcon className="mention-icon" size={18} />
       )}
       <span>{collection?.title || node.attrs.label}</span>
     </Link>

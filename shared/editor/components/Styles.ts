@@ -545,6 +545,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
+  color: ${props.theme.text};
   border-radius: 8px;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -562,6 +563,7 @@ width: 100%;
 
   /* Keep icons at their intended size when the mention wraps. */
   &::before,
+  .mention-icon,
   svg,
   img {
     flex-shrink: 0;
