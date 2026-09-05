@@ -1,7 +1,20 @@
 import { z } from "zod";
 import { ApiKey } from "@server/models";
 import { BaseSchema } from "@server/routes/api/schema";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { Scope } from "@shared/types";
 import { ApiKeyValidation } from "@shared/validations";
+
+const globalScopes = new Set<string>([...Object.values(Scope), "*"]);
+
+/**
+ * Normalizes a user-supplied scope into its canonical form by prefixing bare
+ * route scopes with `/api/`.
+ */
+const normalizeScope = (scope: string) =>
+  scope.startsWith("/api/") || scope.includes(":") || globalScopes.has(scope)
+    ? scope
+    : `/api/${scope.replace(/^\//, "")}`;
 
 export const APIKeysCreateSchema = BaseSchema.extend({
   body: z.object({
@@ -14,7 +27,17 @@ export const APIKeysCreateSchema = BaseSchema.extend({
     /** API Key expiry date */
     expiresAt: z.coerce.date().optional(),
     /** A list of scopes that this API key has access to */
-    scope: z.array(z.string()).optional(),
+    scope: z
+      .array(
+        z
+          .string()
+          .trim()
+          .transform(normalizeScope)
+          .refine((scope) => AuthenticationHelper.isValidScope(scope), {
+            error: "Scope must be a valid API scope",
+          })
+      )
+      .optional(),
   }),
 });
 
