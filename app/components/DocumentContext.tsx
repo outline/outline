@@ -28,6 +28,14 @@ class DocumentContext {
   @observable
   headings: Heading[] = [];
 
+  /**
+   * The total number of changes highlighted in the revision viewer. Written
+   * after the revision editor is (re)built, because the header's changes
+   * navigation cannot observe the editor instance through a ref alone.
+   */
+  @observable
+  totalChanges: number = 0;
+
   constructor() {
     makeObservable(this);
   }
@@ -70,6 +78,16 @@ class DocumentContext {
   @action
   setFocusedCommentId = (commentId: string | null) => {
     this.focusedCommentId = commentId;
+  };
+
+  /**
+   * Set the total number of changes highlighted in the revision viewer.
+   *
+   * @param total - The number of changes, or 0 when none are highlighted.
+   */
+  @action
+  setTotalChanges = (total: number) => {
+    this.totalChanges = total;
   };
 
   @action

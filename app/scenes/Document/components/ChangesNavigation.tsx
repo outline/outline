@@ -6,6 +6,7 @@ import { CaretDownIcon, CaretUpIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Button from "~/components/Button";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Tooltip from "~/components/Tooltip";
 import { type Editor } from "~/editor";
 import useQuery from "~/hooks/useQuery";
@@ -22,6 +23,7 @@ export const ChangesNavigation = observer(function ChangesNavigation_({
   const { t } = useTranslation();
   const query = useQuery();
   const showChanges = query.get("changes");
+  const { totalChanges } = useDocumentContext();
 
   if (!showChanges) {
     return null;
@@ -31,7 +33,6 @@ export const ChangesNavigation = observer(function ChangesNavigation_({
     (ext) => ext instanceof Diff
   ) as Diff | undefined;
   const currentChangeIndex = diffExtension?.getCurrentChangeIndex() ?? -1;
-  const totalChanges = diffExtension?.getTotalChangesCount() ?? 0;
 
   return (
     <>
