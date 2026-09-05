@@ -17,9 +17,13 @@ class DocumentContext {
    * The editor instance for this document. Observable so that components
    * reading it re-render when the (lazily loaded) editor finally mounts —
    * a plain ref cannot notify them.
+   *
+   * The initializer is required: without an own property at the time
+   * `makeObservable` runs, mobx silently skips the annotation (assuming a
+   * subclass constructor will apply it later) and the field stays plain.
    */
   @observable.ref
-  editor?: Editor;
+  editor: Editor | undefined = undefined;
 
   /** The ID of the currently focused comment, or null if no comment is focused */
   @observable
