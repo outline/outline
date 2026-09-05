@@ -5,6 +5,7 @@ import type { Primitive } from "utility-types";
 import env from "../../env";
 import { IntegrationService } from "../../types";
 import type { IntegrationSettings, IntegrationType } from "../../types";
+import { getInstallationUrl } from "../../utils/integrations";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
 import Berrycast from "./Berrycast";
@@ -93,7 +94,7 @@ export class EmbedDescriptor {
   /** Whether this embed has been disabled by the team admin */
   disabled?: boolean;
 
-  constructor(options: Omit<EmbedDescriptor, "matcher">) {
+  constructor(options: Omit<EmbedDescriptor, "matcher" | "installationUrl">) {
     this.id = options.id;
     this.icon = options.icon;
     this.name = options.name;
@@ -112,10 +113,17 @@ export class EmbedDescriptor {
     this.component = options.component;
   }
 
+  /**
+   * The url of the custom installation configured for this embed, if any.
+   *
+   * @returns the installation url, or undefined when none is configured.
+   */
+  get installationUrl(): string | undefined {
+    return getInstallationUrl(this.settings);
+  }
+
   matcher(url: string): false | RegExpMatchArray {
-    const settingsDomainRegex = this.settings?.url
-      ? urlRegex(this.settings?.url)
-      : undefined;
+    const settingsDomainRegex = urlRegex(this.installationUrl);
 
     const regexes = settingsDomainRegex
       ? [settingsDomainRegex, ...(this.regexMatch ?? [])]

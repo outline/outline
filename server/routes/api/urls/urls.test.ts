@@ -1,6 +1,10 @@
 import type { Mock } from "vitest";
 import { randomString } from "@shared/random";
-import { UnfurlResourceType } from "@shared/types";
+import {
+  IntegrationService,
+  IntegrationType,
+  UnfurlResourceType,
+} from "@shared/types";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
@@ -8,6 +12,7 @@ import { View } from "@server/models";
 import {
   buildCollection,
   buildDocument,
+  buildIntegration,
   buildShare,
   buildTeam,
   buildUser,
@@ -556,6 +561,28 @@ describe("#urls.checkEmbed", () => {
     });
 
     expect(res.status).toEqual(400);
+  });
+
+  it("should return embeddable for a configured embed integration", async () => {
+    await buildIntegration({
+      teamId: user.teamId,
+      type: IntegrationType.Embed,
+      service: IntegrationService.Diagrams,
+      settings: { diagrams: { url: "https://drawio.example.com/" } },
+    });
+
+    const res = await server.post("/api/urls.checkEmbed", user, {
+      body: {
+        url: "https://drawio.example.com/?lightbox=1#R123",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.embeddable).toEqual(true);
+    // No reason is returned when the installation is trusted without a request
+    // to the instance itself.
+    expect(body.reason).toBeUndefined();
   });
 
   it("should return a result for valid URLs", async () => {

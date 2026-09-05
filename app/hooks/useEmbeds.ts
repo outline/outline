@@ -44,9 +44,9 @@ export default function useEmbeds(loadIfMissing = false) {
         const integration: Integration<IntegrationType.Embed> | undefined =
           find(integrations.orderedData, (i) => i.service === e.name);
 
-        if (integration?.settings) {
-          e.settings = integration.settings;
-        }
+        // Descriptors are shared module state, so always assign to clear any
+        // settings left behind by a disconnected integration.
+        e.settings = integration?.settings;
 
         e.disabled = disabledEmbeds.includes(e.id);
 
