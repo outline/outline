@@ -23,13 +23,16 @@ export const ChangesNavigation = observer(function ChangesNavigation_({
   const { t } = useTranslation();
   const query = useQuery();
   const showChanges = query.get("changes");
-  const { totalChanges } = useDocumentContext();
+  // The editor mounts from a lazy chunk, and a ref update alone cannot
+  // re-render this component — read the instance through the document
+  // context so its arrival and any change of the current index are tracked.
+  const { editor, totalChanges } = useDocumentContext();
 
   if (!showChanges) {
     return null;
   }
 
-  const diffExtension = editorRef.current?.extensions.extensions.find(
+  const diffExtension = editor?.extensions.extensions.find(
     (ext) => ext instanceof Diff
   ) as Diff | undefined;
   const currentChangeIndex = diffExtension?.getCurrentChangeIndex() ?? -1;

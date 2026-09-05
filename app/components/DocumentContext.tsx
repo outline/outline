@@ -13,7 +13,12 @@ class DocumentContext {
   /** The current document */
   document?: Document;
 
-  /** The editor instance for this document */
+  /**
+   * The editor instance for this document. Observable so that components
+   * reading it re-render when the (lazily loaded) editor finally mounts —
+   * a plain ref cannot notify them.
+   */
+  @observable.ref
   editor?: Editor;
 
   /** The ID of the currently focused comment, or null if no comment is focused */
