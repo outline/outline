@@ -42,7 +42,6 @@ import {
   AfterUpdate,
   IsFloat,
 } from "sequelize-typescript";
-import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   DocumentPermission,
@@ -386,8 +385,8 @@ class Document extends ArchivableModel<
   text: string;
 
   /** The likely language of the content, in ISO 639-1 format. */
+  @Length({ max: 2, msg: "language must be an ISO 639-1 code" })
   @Column(DataType.STRING(2))
-  @MaxLength(2)
   language: string;
 
   /**

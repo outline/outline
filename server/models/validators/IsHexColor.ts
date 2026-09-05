@@ -1,4 +1,4 @@
-import { isHexColor } from "class-validator";
+import isHexColor from "validator/lib/isHexColor";
 import { addAttributeOptions } from "sequelize-typescript";
 
 /**

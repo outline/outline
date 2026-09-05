@@ -44,6 +44,21 @@ describe("#apiKeys.create", () => {
     expect(body.data.lastActiveAt).toBeNull();
   });
 
+  it("should reject malformed scopes", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/apiKeys.create", user, {
+      body: {
+        name: "My API Key",
+        scope: ["documents:read,documents:write"],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toContain("Scope must be a valid API scope");
+  });
+
   it("should allow creating an api key with scopes", async () => {
     const user = await buildUser();
 
