@@ -36,6 +36,7 @@ import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
+import { indentForDepth } from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
 
@@ -49,6 +50,19 @@ type Props = {
   depth: number;
   index: number;
   parentId?: string;
+  /**
+   * Positions directly after each ancestor whose subtree ends with this node,
+   * nearest first. They let a drop at the end of an expanded subtree land
+   * beside an ancestor instead of inside it.
+   */
+  ancestorDropTargets?: DropTarget[];
+};
+
+/** A position in the document tree that a dragged document can be dropped at. */
+type DropTarget = {
+  parentDocumentId: string | undefined;
+  index: number;
+  depth: number;
 };
 
 // Approximate rendered row height; used to reserve space for unmounted rows so
@@ -117,6 +131,20 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
     [draftNavNode, collection, node.children]
   );
 
+  // The last child shares its bottom edge with this node's subtree, so a drop
+  // there may also target the position after this node or its ancestors.
+  const lastChildDropTargets = React.useMemo<DropTarget[]>(
+    () => [
+      {
+        parentDocumentId: props.parentId,
+        index: props.index + 1,
+        depth: props.depth,
+      },
+      ...(props.ancestorDropTargets ?? []),
+    ],
+    [props.parentId, props.index, props.depth, props.ancestorDropTargets]
+  );
+
   // Visibility gate: only mount the heavy inner content when scrolled near the
   // viewport, but keep it mounted while a drag is in progress so the dragged
   // source (or a drop target the user is heading toward) isn't yanked.
@@ -179,6 +207,11 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
             depth={props.depth + 1}
             index={childIndex}
             parentId={node.id}
+            ancestorDropTargets={
+              childIndex === nodeChildren.length - 1
+                ? lastChildDropTargets
+                : undefined
+            }
           />
         ))}
       </Folder>
@@ -200,6 +233,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   index,
   parentId,
   hasChildren,
+  ancestorDropTargets,
 }: InnerProps) {
   const { documents } = useStores();
   const { t } = useTranslation();
@@ -325,42 +359,33 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   // Fall back so document-only access (e.g. "Manage" on a parent) can reorder.
   const moveCollectionId = collection?.id ?? document?.collectionId;
 
-  const [{ isOverReorder: isOverReorderAbove }, dropToReorderAbove] =
-    useDropToReorderDocument(node, collection, (item) => {
-      if (!moveCollectionId) {
-        return;
-      }
-      return {
-        documentId: item.id,
-        collectionId: moveCollectionId,
-        parentDocumentId: parentId,
-        index,
-      };
-    });
-
-  const [{ isOverReorder }, dropToReorder] = useDropToReorderDocument(
-    node,
-    collection,
-    (item) => {
-      if (!moveCollectionId) {
-        return;
-      }
-      if (expansion.isExpanded(node.id)) {
-        return {
-          documentId: item.id,
-          collectionId: moveCollectionId,
-          parentDocumentId: node.id,
-          index: 0,
-        };
-      }
-      return {
-        documentId: item.id,
-        collectionId: moveCollectionId,
-        parentDocumentId: parentId,
-        index: index + 1,
-      };
-    }
+  const targetAbove = React.useMemo<DropTarget>(
+    () => ({ parentDocumentId: parentId, index, depth }),
+    [parentId, index, depth]
   );
+
+  // Below an expanded node the only position is its first child. Otherwise the
+  // position after the node comes first, then any ancestor positions that end
+  // here, so the pointer's horizontal position picks the depth. The node being
+  // dragged skips the position after itself, which would be a no-op.
+  const targetsBelow = React.useMemo<DropTarget[]>(() => {
+    if (expanded && hasChildren) {
+      return [{ parentDocumentId: node.id, index: 0, depth: depth + 1 }];
+    }
+    const afterSelf = isDragging
+      ? []
+      : [{ parentDocumentId: parentId, index: index + 1, depth }];
+    return [...afterSelf, ...(ancestorDropTargets ?? [])];
+  }, [
+    expanded,
+    hasChildren,
+    isDragging,
+    node.id,
+    parentId,
+    index,
+    depth,
+    ancestorDropTargets,
+  ]);
 
   const title = document?.title || node.title || t("Untitled");
 
@@ -422,16 +447,33 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   // the tree for every row.
   const cursorBefore =
     canReorderHere && index === 0 ? (
-      <DropCursor
-        isActiveDrop={isOverReorderAbove}
-        innerRef={dropToReorderAbove}
+      <ReorderDropCursor
+        node={node}
+        collection={collection}
+        collectionId={moveCollectionId}
+        target={targetAbove}
         position="top"
       />
     ) : undefined;
 
-  const cursorAfter = canReorderHere ? (
-    <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-  ) : undefined;
+  // Later cursors render on top, so each outer level's narrower hit area wins
+  // when the pointer is left of the previous level's indent.
+  const cursorAfter = canReorderHere
+    ? targetsBelow.map((target, level) => (
+        <ReorderDropCursor
+          key={level}
+          node={node}
+          collection={collection}
+          collectionId={moveCollectionId}
+          target={target}
+          hitWidth={
+            level > 0
+              ? indentForDepth(targetsBelow[level - 1].depth)
+              : undefined
+          }
+        />
+      ))
+    : undefined;
 
   return (
     <DocumentRow
@@ -467,6 +509,50 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       contextAction={contextMenuAction}
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}
+    />
+  );
+});
+
+type ReorderDropCursorProps = {
+  node: NavigationNode;
+  collection?: Collection;
+  collectionId?: string | null;
+  target: DropTarget;
+  position?: "top";
+  hitWidth?: number;
+};
+
+const ReorderDropCursor = observer(function ReorderDropCursor({
+  node,
+  collection,
+  collectionId,
+  target,
+  position,
+  hitWidth,
+}: ReorderDropCursorProps) {
+  const [{ isOverReorder }, dropToReorder] = useDropToReorderDocument(
+    node,
+    collection,
+    (item) => {
+      if (!collectionId) {
+        return;
+      }
+      return {
+        documentId: item.id,
+        collectionId,
+        parentDocumentId: target.parentDocumentId,
+        index: target.index,
+      };
+    }
+  );
+
+  return (
+    <DropCursor
+      isActiveDrop={isOverReorder}
+      innerRef={dropToReorder}
+      position={position}
+      indent={indentForDepth(target.depth)}
+      hitWidth={hitWidth}
     />
   );
 });

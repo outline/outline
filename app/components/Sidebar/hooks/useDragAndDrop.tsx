@@ -27,12 +27,6 @@ import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 export type DragObject = NavigationNode & {
   depth: number;
   collectionId: string;
-  /**
-   * Whether the drag ghost should stay tethered to the sidebar. Defaults to
-   * tethered when unset — the placeholder only lets the ghost follow the
-   * cursor when this is explicitly `false` (e.g. drags from a document list).
-   */
-  constrainToSidebar?: boolean;
 };
 
 function useHover(
@@ -237,16 +231,12 @@ export function useDropToReorderSidebarSection(
  * @param depth The depth of the node in the sidebar.
  * @param document The related Document model.
  * @param isEditing Whether the sidebar item is currently being edited.
- * @param constrainToSidebar Whether the drag ghost should stay tethered to the
- * sidebar. Defaults to true; pass false when dragging from outside the sidebar
- * (e.g. a document list) so the ghost follows the cursor.
  */
 export function useDragDocument(
   node: NavigationNode,
   depth: number,
   document?: Document,
-  isEditing?: boolean,
-  constrainToSidebar = true
+  isEditing?: boolean
 ) {
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
@@ -266,7 +256,6 @@ export function useDragDocument(
           <Icon initial={initial} value={icon} color={color} />
         ) : undefined,
         collectionId: document?.collectionId || "",
-        constrainToSidebar,
       }) as DragObject,
     canDrag: () => !!document?.isActive && !isEditing,
     collect: (monitor) => ({
@@ -493,10 +482,24 @@ export function useDropToReorderDocument(
   return useDrop<DragObject, Promise<void>, { isOverReorder: boolean }>({
     accept: "document",
     canDrop: (item: DragObject) => {
-      if (item.id === node.id || (document && !document.isActive)) {
+      if (
+        (document && !document.isActive) ||
+        !policies.abilities(item.id).move
+      ) {
         return false;
       }
-      return !!policies.abilities(item.id).move;
+      if (item.id !== node.id) {
+        return true;
+      }
+      // A document can only be dropped on its own cursor when that moves it to
+      // a different parent, e.g. out of the end of an expanded subtree.
+      const params = getMoveParams(item);
+      return (
+        !!params &&
+        params.parentDocumentId !== item.id &&
+        (params.parentDocumentId ?? null) !==
+          (document?.parentDocumentId ?? null)
+      );
     },
     drop: async (item) => {
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
