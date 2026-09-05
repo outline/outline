@@ -21,7 +21,6 @@ import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
-import { type Editor } from "~/editor";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
@@ -44,7 +43,6 @@ import { SearchHighlightChip } from "./SearchHighlightChip";
 import ShareButton from "./ShareButton";
 
 type Props = {
-  editorRef: React.RefObject<Editor>;
   document: Document;
   revision: Revision | undefined;
   isDraft: boolean;
@@ -62,7 +60,6 @@ type Props = {
 };
 
 function DocumentHeader({
-  editorRef,
   document,
   revision,
   isEditing,
@@ -263,7 +260,7 @@ function DocumentHeader({
           {revision && (
             <>
               <Action>
-                <ChangesNavigation revision={revision} editorRef={editorRef} />
+                <ChangesNavigation />
               </Action>
               <Action>
                 <Tooltip content={t("Restore version")} placement="bottom">

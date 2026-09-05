@@ -44,7 +44,7 @@ type Props = Omit<EditorProps, "extensions"> & {
 function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
   const { revisions } = useStores();
-  const { setEditor } = useDocumentContext();
+  const { setEditor, setTotalChanges } = useDocumentContext();
   const query = useQuery();
   const showChanges = props.showChanges ?? query.has("changes");
   const compareToParam = query.get("compareTo");
@@ -80,21 +80,35 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
 
   /**
    * Create editor extensions with the Diff extension configured to render
-   * the calculated changes as decorations in the editor.
+   * the calculated changes as decorations in the editor. The change count is
+   * derived from the same changeset so the indicator can render before the
+   * editor and its Diff extension have finished mounting.
    */
-  const extensions = React.useMemo(() => {
+  const { extensions, totalChanges } = React.useMemo(() => {
     const changeset = ChangesetHelper.getChangeset(
       revision.data,
       comparisonData
     );
-    return [
-      CodeWordBreak,
-      ...withComments(richExtensions),
-      ...(showChanges && changeset?.changes
-        ? [new Diff({ changes: changeset?.changes })]
-        : []),
-    ];
+    return {
+      extensions: [
+        CodeWordBreak,
+        ...withComments(richExtensions),
+        ...(showChanges && changeset?.changes
+          ? [new Diff({ changes: changeset?.changes })]
+          : []),
+      ],
+      totalChanges: showChanges
+        ? Diff.countChanges(changeset?.changes ?? null)
+        : 0,
+    };
   }, [revision.data, comparisonData, showChanges]);
+
+  // Publish the change count so the header indicator can render immediately,
+  // without waiting for the lazily-loaded editor to mount.
+  React.useEffect(() => {
+    setTotalChanges(totalChanges);
+    return () => setTotalChanges(0);
+  }, [totalChanges, setTotalChanges]);
 
   // The editor builds its extensions once, on mount, so it has to be remounted
   // whenever the diff configuration changes. Revisions are listed without their
