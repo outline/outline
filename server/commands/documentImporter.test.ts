@@ -350,7 +350,9 @@ describe("documentImporter", () => {
     expect(response.text).toContain("tags: [test, markdown]");
     expect(response.text).toContain("```");
     expect(response.text).toContain("This is content after frontmatter");
-    expect(response.title).toEqual("Heading 1");
+    // Frontmatter title is authoritative, the heading stays in the body
+    expect(response.title).toEqual("Test Document");
+    expect(response.text).toContain("# Heading 1");
   });
 
   it("should fallback to extension if mimetype unknown", async () => {
