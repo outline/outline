@@ -625,6 +625,9 @@ router.post(
     const { user } = ctx.state.auth;
     const collection = await Collection.findByPk(id, {
       userId: user.id,
+      // required so that edits to the description are synced to any active
+      // collaborative editing session.
+      includeState: description !== undefined || data !== undefined,
       transaction,
     });
     authorize(user, "update", collection);

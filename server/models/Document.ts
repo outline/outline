@@ -81,6 +81,10 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { APIContext } from "@server/types";
+import {
+  MultiplayerEntityType,
+  toMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { EventOverrideOptions, HookContext } from "./base/Model";
@@ -460,15 +464,6 @@ class Document extends ArchivableModel<
     );
   }
 
-  /**
-   * Returns the key used to store the collaborators of a document in Redis.
-   * @param documentId The ID of the document.
-   * @returns Redis key for collaborators
-   */
-  static getCollaboratorKey(documentId: string) {
-    return `collaborators:${documentId}`;
-  }
-
   static getPath({ title, urlId }: { title: string; urlId: string }) {
     if (!title.length) {
       return `/doc/untitled-${urlId}`;
@@ -627,18 +622,11 @@ class Document extends ArchivableModel<
 
   @AfterUpdate
   static notifyCollaborationServer(model: Document, ctx: HookContext) {
-    if (model.changed("state") && ctx.auth?.user?.id) {
-      const actorId = ctx.auth.user.id;
-      const notify = async () => {
-        await APIUpdateExtension.notifyUpdate(model.id, actorId);
-      };
-
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+    if (model.changed("state")) {
+      APIUpdateExtension.notifyUpdateAfterCommit(
+        toMultiplayerName(MultiplayerEntityType.Document, model.id),
+        ctx
+      );
     }
   }
 
