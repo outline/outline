@@ -45,6 +45,7 @@ export default class RevisionsStore extends Store<Revision> {
    */
   fetchLatest = async (documentId: string) => {
     const res = await client.post(`/revisions.info`, { documentId });
+    this.addPolicies(res.policies);
     return this.add(res.data);
   };
 }
