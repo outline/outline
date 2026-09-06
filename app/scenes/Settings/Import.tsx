@@ -1,6 +1,6 @@
 import { orderBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { NewDocumentIcon } from "outline-icons";
+import { GlobeIcon, NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Pagination } from "@shared/constants";
@@ -69,7 +69,7 @@ function useImportsConfig() {
         subtitle: t(
           "Import a zip file of Markdown documents in the Open Knowledge Format"
         ),
-        icon: <MarkdownIcon size={28} />,
+        icon: <GlobeIcon size={28} />,
         action: (
           <Button
             type="submit"
