@@ -98,7 +98,8 @@ router.post(
 
 router.get(
   "files.get",
-  auth({ optional: true }),
+  // Signed requests are authorized by their signature alone.
+  auth({ optional: true, skip: (ctx) => !!ctx.query.sig }),
   validate(T.FilesGetSchema),
   async (ctx: APIContext<T.FilesGetReq>) => {
     const actor = ctx.state.auth.user;
