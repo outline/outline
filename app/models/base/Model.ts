@@ -15,8 +15,9 @@ import { getRelationsForModelClass } from "../decorators/Relation";
 const storedAnnotationsDescription = "mobx-stored-annotations";
 
 /**
- * Returns the keys of every decorated member on a model, collected across its
- * prototype chain.
+ * Returns the keys of every decorated member on a model, including those
+ * inherited from base classes. The nearest record on the prototype chain
+ * already includes the parents' annotations, so the search stops there.
  *
  * With `useDefineForClassFields: false` a field declared without an initializer
  * never exists on the instance, so MobX cannot annotate it. This helper, and

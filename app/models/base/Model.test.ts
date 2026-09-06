@@ -45,6 +45,17 @@ describe("Model observability", () => {
     expect(seen).toEqual([undefined, false, true]);
   });
 
+  it("annotates fields inherited from base classes and omitted from the payload", () => {
+    const doc = stores.documents.add({
+      id: "aaaaaaaa-6666-6666-6666-666666666666",
+      title: "partial",
+    });
+
+    expect(isObservableProp(doc, "createdAt")).toBe(true); // Model
+    expect(isObservableProp(doc, "deletedAt")).toBe(true); // ParanoidModel
+    expect(isObservableProp(doc, "archivedAt")).toBe(true); // ArchivableModel
+  });
+
   it("annotates observable fields that are not serializable fields", () => {
     // Revision content is observable but not a @Field, and list responses
     // omit it entirely.
