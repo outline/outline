@@ -185,18 +185,27 @@ function History() {
     ? revisions.get(latestRevisionEvent.id)
     : undefined;
 
+  // Revision content arrives via a separate fetch, and models only annotate a
+  // field once it is first written, so reads of not-yet-loaded content are not
+  // tracked by `observer` — bump a local version when it lands so the
+  // `isDocUpdated` check below re-evaluates.
+  const [, bumpContentLoaded] = React.useReducer((v: number) => v + 1, 0);
+
   React.useEffect(() => {
     if (latestRevision && !latestRevision.data) {
-      void revisions.fetch(latestRevision.id);
+      revisions.fetch(latestRevision.id).then(
+        () => bumpContentLoaded(),
+        () => {}
+      );
     }
   }, [revisions, latestRevision]);
 
   // Whether the current document has unsaved changes beyond its latest
   // revision, in which case a "Current version" entry is shown. Computed in the
-  // render body (rather than the memo below) so the observer re-evaluates it
-  // once the lazily-loaded revision content arrives. The content-aware check is
-  // deferred until the content has loaded to avoid showing an entry that would
-  // then vanish.
+  // render body (rather than the memo below) so it re-evaluates once the
+  // lazily-loaded revision content arrives (the version bump above). The
+  // content-aware check is deferred until the content has loaded to avoid
+  // showing an entry that would then vanish.
   const isDocUpdated =
     !!latestRevision &&
     !!document &&

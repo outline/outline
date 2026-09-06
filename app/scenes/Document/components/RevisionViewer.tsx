@@ -72,11 +72,47 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const beforeRevisionId = compareToRevisionId
     ? undefined
     : revision.before?.id;
+
+  // Revision content is fetched separately and arrives after this component
+  // has mounted. Outline models only annotate a field once it is first
+  // written, so reads of not-yet-loaded content are not tracked by `observer`
+  // and its arrival alone will not re-render this component. Bump a local
+  // version once the fetch resolves so the editor, and its diff
+  // configuration, refresh when the content lands.
+  const [, bumpContentLoaded] = React.useReducer((v: number) => v + 1, 0);
+
   React.useEffect(() => {
-    if (showChanges && beforeRevisionId) {
-      void revisions.fetch(beforeRevisionId);
+    if (revision.data) {
+      return;
     }
+    revisions.fetch(revision.id).then(
+      () => bumpContentLoaded(),
+      () => {}
+    );
+  }, [revision.id, revision.data, revisions]);
+
+  React.useEffect(() => {
+    if (!showChanges || !beforeRevisionId) {
+      return;
+    }
+    revisions.fetch(beforeRevisionId).then(
+      () => bumpContentLoaded(),
+      () => {}
+    );
   }, [showChanges, beforeRevisionId, revisions]);
+
+  React.useEffect(() => {
+    if (!compareToRevisionId || comparisonData) {
+      return;
+    }
+    // The `compareTo` revision is fetched by the document DataLoader, but its
+    // content may still arrive after this component has rendered — same as
+    // above, bump the version once it has so the Diff extension can be built.
+    revisions.fetch(compareToRevisionId).then(
+      () => bumpContentLoaded(),
+      () => {}
+    );
+  }, [compareToRevisionId, comparisonData, revisions]);
 
   /**
    * Create editor extensions with the Diff extension configured to render
