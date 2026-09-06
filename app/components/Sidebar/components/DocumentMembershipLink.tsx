@@ -264,6 +264,14 @@ function DocumentMembershipLink({ membership, depth = 0 }: Props) {
       parentRef={parentRef}
       dropToReparentRef={dropToReparent}
       isActiveDropTarget={isOverReparent}
+      cursorAfter={
+        reorderProps.isDragging ? (
+          <DropCursor
+            isActiveDrop={reorderProps.isOverCursor}
+            innerRef={dropToReorderRef}
+          />
+        ) : undefined
+      }
       menu={menu}
       menuOpen={menuOpen}
       canCreateChild={can.createChildDocument}
@@ -291,12 +299,6 @@ function DocumentMembershipLink({ membership, depth = 0 }: Props) {
           </Folder>
         </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>
-      {reorderProps.isDragging && (
-        <DropCursor
-          isActiveDrop={reorderProps.isOverCursor}
-          innerRef={dropToReorderRef}
-        />
-      )}
     </DocumentRow>
   );
 }
