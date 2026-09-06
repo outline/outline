@@ -206,8 +206,8 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
           );
         })}
       {members.map((item) => {
-        // The owner cannot be removed from their own personal document, so
-        // their row offers neither remove nor leave.
+        // The owner's access comes from the document itself and cannot be
+        // changed or removed, so their row is read-only.
         const isPersonalOwner = item.id === document.personalOwnerId;
         return (
           <DocumentMemberListItem
@@ -218,7 +218,7 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
               isPersonalOwner ? undefined : () => handleRemoveUser(item)
             }
             onUpdate={
-              can.manageUsers
+              can.manageUsers && !isPersonalOwner
                 ? (permission) => handleUpdateUser(item, permission)
                 : undefined
             }
