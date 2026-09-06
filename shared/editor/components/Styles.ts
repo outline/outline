@@ -2755,15 +2755,20 @@ li > .${EditorStyleHelper.toggleBlock} {
     &:dir(ltr) {
       --rotate-by: -90deg;
     }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
-      display: none;
-    }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
-      display: unset;
+    /* Folded content is always included when printing */
+    @media not print {
+      > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
+        display: none;
+      }
+      > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
+        display: unset;
+      }
+      > .${EditorStyleHelper.toggleBlockButton} svg {
+        transform: rotate(var(--rotate-by));
+      }
     }
     > .${EditorStyleHelper.toggleBlockButton} {
       svg {
-        transform: rotate(var(--rotate-by));
         pointer-events: none;
       }
       opacity: 1;
