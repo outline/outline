@@ -8,6 +8,44 @@ import { getFieldsForModel, getFieldsForModelClass } from "../decorators/Field";
 import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
 
+/**
+ * MobX records decorator annotations on the prototype under a symbol with this
+ * description.
+ */
+const storedAnnotationsDescription = "mobx-stored-annotations";
+
+/**
+ * Returns the keys of every decorated member on a model, collected across its
+ * prototype chain.
+ *
+ * With `useDefineForClassFields: false` a field declared without an initializer
+ * never exists on the instance, so MobX cannot annotate it. This helper, and
+ * the pre-definition in `initialize`, can be removed if that compiler option
+ * is enabled.
+ *
+ * @param target the model to inspect.
+ * @returns the keys annotated with a MobX decorator.
+ */
+function getAnnotatedKeysForModel(target: Model): (string | symbol)[] {
+  let prototype = Object.getPrototypeOf(target);
+
+  while (prototype && prototype !== Object.prototype) {
+    const symbol = Object.getOwnPropertySymbols(prototype).find(
+      (candidate) => candidate.description === storedAnnotationsDescription
+    );
+    if (symbol) {
+      const annotations: Record<string | symbol, unknown> = Reflect.get(
+        prototype,
+        symbol
+      );
+      return Reflect.ownKeys(annotations);
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  return [];
+}
+
 export default abstract class Model {
   static modelName: string;
 
@@ -57,7 +95,11 @@ export default abstract class Model {
    * @param fields the data to construct the model with.
    */
   protected initialize(fields: Record<string, unknown>) {
-    for (const field of getFieldsForModel(this)) {
+    const declared = [
+      ...getFieldsForModel(this),
+      ...getAnnotatedKeysForModel(this),
+    ];
+    for (const field of declared) {
       if (field in this) {
         continue;
       }

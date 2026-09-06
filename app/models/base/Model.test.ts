@@ -45,6 +45,38 @@ describe("Model observability", () => {
     expect(seen).toEqual([undefined, false, true]);
   });
 
+  it("annotates observable fields that are not serializable fields", () => {
+    // Revision content is observable but not a @Field, and list responses
+    // omit it entirely.
+    const revision = stores.revisions.add({
+      id: "bbbbbbbb-1111-1111-1111-111111111111",
+      documentId: "aaaaaaaa-1111-1111-1111-111111111111",
+      title: "partial",
+    });
+
+    expect(isObservableProp(revision, "data")).toBe(true);
+  });
+
+  it("tracks reads of an omitted field made before it is populated", () => {
+    const revision = stores.revisions.add({
+      id: "bbbbbbbb-2222-2222-2222-222222222222",
+      documentId: "aaaaaaaa-1111-1111-1111-111111111111",
+      title: "partial",
+    });
+    const seen: Array<string | undefined> = [];
+    const dispose = autorun(() => seen.push(revision.data?.type));
+
+    stores.revisions.add({
+      id: "bbbbbbbb-2222-2222-2222-222222222222",
+      documentId: "aaaaaaaa-1111-1111-1111-111111111111",
+      title: "partial",
+      data: { type: "doc", content: [] },
+    });
+
+    dispose();
+    expect(seen).toEqual([undefined, "doc"]);
+  });
+
   it("reacts to changes", () => {
     const doc = stores.documents.add({
       id: "aaaaaaaa-2222-2222-2222-222222222222",
