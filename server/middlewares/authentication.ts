@@ -17,19 +17,28 @@ import {
   UserSuspendedError,
 } from "../errors";
 
-type AuthenticationOptions = {
+type BaseAuthenticationOptions = {
   /** Role required to access the route. */
   role?: UserRole;
   /** Type of authentication required to access the route. */
   type?: AuthenticationType | AuthenticationType[];
-  /** Authentication is parsed, but optional. */
-  optional?: boolean;
-  /**
-   * Returns true when the request is authorized by other means, in which case
-   * any credentials on the request are ignored rather than parsed.
-   */
-  skip?: (ctx: AppContext) => boolean;
 };
+
+type AuthenticationOptions =
+  | (BaseAuthenticationOptions & {
+      /** Authentication is required. */
+      optional?: false;
+      skip?: never;
+    })
+  | (BaseAuthenticationOptions & {
+      /** Authentication is parsed, but optional. */
+      optional: true;
+      /**
+       * Returns true when the request is authorized by other means, in which
+       * case any credentials on the request are ignored rather than parsed.
+       */
+      skip?: (ctx: AppContext) => boolean;
+    });
 
 type AuthTransport = "cookie" | "header" | "body" | "query";
 
