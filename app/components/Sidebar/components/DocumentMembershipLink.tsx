@@ -290,6 +290,9 @@ function DocumentMembershipLink({ membership, depth = 0 }: Props) {
                 collection={collection}
                 membership={membership}
                 activeDocument={documents.active}
+                // Loads the document and its policies on hover, without which
+                // rows that were never opened cannot be dragged or dropped on.
+                prefetchDocument={documents.prefetchDocument}
                 isDraft={childNode.isDraft}
                 depth={childDepth}
                 index={index}
