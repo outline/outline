@@ -52,6 +52,14 @@ export enum Action {
   UNFOLD,
 }
 
+interface FoldAction {
+  type: Action;
+  /** Position of the target block; omitted to target every toggle block. */
+  at?: number;
+  /** Whether toggle blocks nested inside the target are included. */
+  nested?: boolean;
+}
+
 interface ToggleFoldState {
   foldedIds: Set<string>;
   knownIds: Set<string>;
@@ -201,7 +209,7 @@ export default class ToggleBlock extends Node {
           const newKnownIds = new Set(pluginState.knownIds);
 
           const fold = action.type === Action.FOLD;
-          for (const { node } of this.resolveTargets(newState.doc, action.at)) {
+          for (const { node } of this.resolveTargets(newState.doc, action)) {
             if (fold) {
               newFoldedIds.add(node.attrs.id);
             } else {
@@ -254,7 +262,7 @@ export default class ToggleBlock extends Node {
 
         if (eventTr) {
           const event = eventTr.getMeta(toggleEventPluginKey);
-          const targets = this.resolveTargets(newState.doc, event.at);
+          const targets = this.resolveTargets(newState.doc, event);
 
           if (event.type === Action.FOLD) {
             tr = this.moveSelectionOutOfBody(newState, targets);
@@ -464,25 +472,42 @@ export default class ToggleBlock extends Node {
 
   /**
    * Resolve the toggle blocks an action applies to: the block at the given
-   * position, or every toggle block in the document when no position is given.
+   * position, that block and every toggle block nested inside it when
+   * `nested` is set, or every toggle block in the document when no position
+   * is given.
    *
    * @param doc The document to look in.
-   * @param at The position of a single toggle block, or undefined for all.
-   * @return The matching toggle blocks with their positions.
+   * @param action The fold action describing the target position and scope.
+   * @return The matching toggle blocks with their positions, in document order.
    */
   private resolveTargets(
     doc: ProsemirrorNode,
-    at: number | undefined
+    action: FoldAction
   ): NodeWithPos[] {
-    const blocks =
-      at === undefined
-        ? findBlockNodes(doc, true)
-        : [{ node: doc.nodeAt(at), pos: at }];
+    const isToggle = (b: {
+      node: ProsemirrorNode | null;
+      pos: number;
+    }): b is NodeWithPos =>
+      b.node !== null && b.node.type.name === this.name && !!b.node.attrs.id;
 
-    return blocks.filter(
-      (b): b is NodeWithPos =>
-        b.node !== null && b.node.type.name === this.name && !!b.node.attrs.id
-    );
+    if (action.at === undefined) {
+      return findBlockNodes(doc, true).filter(isToggle);
+    }
+
+    const at = action.at;
+    const root = { node: doc.nodeAt(at), pos: at };
+    if (!isToggle(root)) {
+      return [];
+    }
+
+    if (!action.nested) {
+      return [root];
+    }
+
+    const descendants = findBlockNodes(root.node, true)
+      .map((b) => ({ node: b.node, pos: at + 1 + b.pos }))
+      .filter(isToggle);
+    return [root, ...descendants];
   }
 
   /**

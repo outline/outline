@@ -1,6 +1,7 @@
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorView, NodeView, DecorationSource } from "prosemirror-view";
 import type { Decoration } from "prosemirror-view";
+import { isModKey } from "../../utils/keyboard";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import {
   Action,
@@ -64,7 +65,7 @@ export class ToggleBlockView implements NodeView {
       return;
     }
 
-    this.handleToggle(event.altKey);
+    this.handleToggle(event);
   };
 
   private handleToggleHeadClick = (event: MouseEvent) => {
@@ -93,14 +94,15 @@ export class ToggleBlockView implements NodeView {
     }
 
     event.preventDefault();
-    this.handleToggle(event.altKey);
+    this.handleToggle(event);
   };
 
   /**
-   * Fold or unfold this block, or every toggle block in the document when
-   * `all` is true.
+   * Fold or unfold this block. With Alt held the block and every toggle block
+   * nested inside it are toggled; with the Mod key held every toggle block in
+   * the document is toggled.
    */
-  private handleToggle = (all = false) => {
+  private handleToggle = (event: MouseEvent) => {
     const pos = this.getPos();
     if (pos === undefined) {
       return;
@@ -112,12 +114,14 @@ export class ToggleBlockView implements NodeView {
 
     const type = isFolded ? Action.UNFOLD : Action.FOLD;
     // Omitting the position applies the action to every toggle block.
-    const at = all ? undefined : pos;
+    const action = isModKey(event)
+      ? { type }
+      : { type, at: pos, nested: event.altKey };
 
     this.view.dispatch(
       this.view.state.tr
-        .setMeta(toggleFoldPluginKey, { type, at })
-        .setMeta(toggleEventPluginKey, { type, at })
+        .setMeta(toggleFoldPluginKey, action)
+        .setMeta(toggleEventPluginKey, action)
     );
   };
 
