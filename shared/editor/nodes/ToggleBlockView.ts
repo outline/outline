@@ -64,7 +64,7 @@ export class ToggleBlockView implements NodeView {
       return;
     }
 
-    this.handleToggle();
+    this.handleToggle(event.altKey);
   };
 
   private handleToggleHeadClick = (event: MouseEvent) => {
@@ -93,10 +93,14 @@ export class ToggleBlockView implements NodeView {
     }
 
     event.preventDefault();
-    this.handleToggle();
+    this.handleToggle(event.altKey);
   };
 
-  private handleToggle = () => {
+  /**
+   * Fold or unfold this block, or every toggle block in the document when
+   * `all` is true.
+   */
+  private handleToggle = (all = false) => {
     const pos = this.getPos();
     if (pos === undefined) {
       return;
@@ -106,16 +110,14 @@ export class ToggleBlockView implements NodeView {
       EditorStyleHelper.toggleBlockFolded
     );
 
+    const type = isFolded ? Action.UNFOLD : Action.FOLD;
+    // Omitting the position applies the action to every toggle block.
+    const at = all ? undefined : pos;
+
     this.view.dispatch(
       this.view.state.tr
-        .setMeta(toggleFoldPluginKey, {
-          type: isFolded ? Action.UNFOLD : Action.FOLD,
-          at: pos,
-        })
-        .setMeta(toggleEventPluginKey, {
-          type: isFolded ? Action.UNFOLD : Action.FOLD,
-          at: pos,
-        })
+        .setMeta(toggleFoldPluginKey, { type, at })
+        .setMeta(toggleEventPluginKey, { type, at })
     );
   };
 
