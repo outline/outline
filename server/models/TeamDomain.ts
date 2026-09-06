@@ -1,5 +1,9 @@
 import emailProviders from "email-providers";
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
   Column,
   DataType,
@@ -14,6 +18,7 @@ import {
 import { TeamValidation } from "@shared/validations";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -62,13 +67,24 @@ class TeamDomain extends IdModel<
   }
 
   @BeforeCreate
-  static async checkLimit(model: TeamDomain) {
+  static async checkLimit(model: TeamDomain, options: SaveOptions) {
     if (!env.isCloudHosted) {
       return;
     }
 
+    const { transaction } = options;
+
+    // Serialize concurrent creation for the team, otherwise every request can
+    // read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `teamDomains:${model.teamId}`,
+      transaction
+    );
+
     const count = await this.count({
       where: { teamId: model.teamId },
+      transaction,
     });
     if (count >= TeamValidation.maxDomains) {
       throw ValidationError(

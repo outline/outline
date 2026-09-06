@@ -38,10 +38,18 @@ const useHover = ({ ref, duration }: Props): boolean => {
   });
 
   React.useEffect(() => {
-    if (ref.current) {
-      ref.current.onmouseenter = onMouseEnter;
-      ref.current.onmouseleave = onMouseLeave;
+    const element = ref.current;
+    if (!element) {
+      return;
     }
+
+    element.addEventListener("mouseenter", onMouseEnter);
+    element.addEventListener("mouseleave", onMouseLeave);
+
+    return () => {
+      element.removeEventListener("mouseenter", onMouseEnter);
+      element.removeEventListener("mouseleave", onMouseLeave);
+    };
   }, [ref, onMouseEnter, onMouseLeave]);
 
   return hovered;

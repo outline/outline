@@ -65,6 +65,21 @@ export const borderRadius = (radius: number, exponent = 2) => `
 `;
 
 /**
+ * Mixin for a hairline border, drawn at half a pixel on displays with the
+ * resolution to render one, and a whole pixel elsewhere.
+ *
+ * @param color the color of the border.
+ * @returns string of CSS
+ */
+export const hairline = (color: string) => `
+  border: 1px solid ${color};
+
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+    border-width: 0.5px;
+  }
+`;
+
+/**
  * Mixin on any component with relative positioning to add additional hidden clickable/hoverable area
  *
  * @param pixels

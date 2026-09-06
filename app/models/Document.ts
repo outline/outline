@@ -1,7 +1,15 @@
 import { addDays, differenceInDays, differenceInSeconds } from "date-fns";
 import i18n, { t } from "i18next";
 import { capitalize, floor } from "es-toolkit/compat";
-import { action, autorun, comparer, computed, observable, set } from "mobx";
+import {
+  action,
+  autorun,
+  comparer,
+  computed,
+  observable,
+  override,
+  set,
+} from "mobx";
 import type {
   JSONObject,
   NavigationNode,
@@ -42,6 +50,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   constructor(fields: Record<string, unknown>, store: DocumentsStore) {
     super(fields, store);
+    this.initialize(fields);
 
     this.embedsDisabled = Storage.get(`embedsDisabled-${this.id}`) ?? false;
 
@@ -53,14 +62,14 @@ export default class Document extends ArchivableModel implements Searchable {
     });
   }
 
-  @observable
+  // Declared on Model; redeclared here only to give it a default.
   isSaving = false;
 
   @observable
-  embedsDisabled: boolean;
+  embedsDisabled = false;
 
   @observable
-  lastViewedAt: string | undefined;
+  lastViewedAt: string | undefined = undefined;
 
   store: DocumentsStore;
 
@@ -119,8 +128,7 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @Field
   @observable
-  collectionId?: string | null;
-
+  collectionId?: string | null = undefined;
   /**
    * The id of the user whose personal space this document lives in, if any.
    * Mutually exclusive with collectionId.
@@ -149,15 +157,13 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @Field
   @observable
-  icon?: string | null;
-
+  icon?: string | null = undefined;
   /**
    * The color to use for the document icon.
    */
   @Field
   @observable
-  color?: string | null;
-
+  color?: string | null = undefined;
   /**
    * Whether the document layout is displayed full page width.
    */
@@ -183,15 +189,14 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @Field
   @observable
-  templateId: string | undefined;
+  templateId: string | undefined = undefined;
 
   /**
    * The id of the parent document that this is a child of, if any.
    */
   @Field
   @observable
-  parentDocumentId: string | undefined;
-
+  parentDocumentId?: string = undefined;
   /**
    * Parent document that this is a child of, if any.
    */
@@ -202,17 +207,23 @@ export default class Document extends ArchivableModel implements Searchable {
    * The ids of users that have edited this document.
    */
   @observable
-  collaboratorIds: string[] | undefined;
+  collaboratorIds: string[] | undefined = undefined;
 
   @Relation(() => User)
   createdBy: User | undefined;
 
   @Relation(() => User)
-  @observable
   updatedBy: User | undefined;
 
+  /**
+   * The user that deleted this document, only set while the document is in the
+   * trash.
+   */
+  @Relation(() => User)
+  deletedBy: User | undefined;
+
   @observable
-  publishedAt: string | undefined;
+  publishedAt: string | undefined = undefined;
 
   @observable
   popularityScore: number;
@@ -246,8 +257,7 @@ export default class Document extends ArchivableModel implements Searchable {
    * Only populated when viewing through a share link.
    */
   @observable
-  backlinkIds?: string[];
-
+  backlinkIds?: string[] = undefined;
   /**
    * Returns the notifications associated with this document.
    */
@@ -398,7 +408,7 @@ export default class Document extends ArchivableModel implements Searchable {
     return !!this.archivedAt;
   }
 
-  @computed
+  @override
   get isDeleted(): boolean {
     return !!this.deletedAt;
   }

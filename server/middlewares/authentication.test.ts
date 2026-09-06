@@ -441,4 +441,58 @@ describe("Authentication middleware", () => {
 
     expect(errToString(error)).toEqual("Invalid token");
   });
+  describe("with skip", () => {
+    it("should ignore credentials when skip returns true", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const apiKey = await buildApiKey({
+        userId: user.id,
+        scope: ["/api/documents.info"],
+      });
+      const next = vi.fn();
+      const authMiddleware = auth({
+        optional: true,
+        skip: (ctx) => !!ctx.query.sig,
+      });
+      await authMiddleware(
+        {
+          // @ts-expect-error mock request
+          request: {
+            get: vi.fn(() => `Bearer ${apiKey.value}`),
+          },
+          query: { sig: "signature" },
+          originalUrl: "/api/files.get?sig=signature",
+          state,
+          cache: {},
+        },
+        next
+      );
+      expect(next).toHaveBeenCalled();
+      expect(state.auth).toEqual({});
+    });
+
+    it("should authenticate when skip returns false", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const next = vi.fn();
+      const authMiddleware = auth({
+        optional: true,
+        skip: (ctx) => !!ctx.query.sig,
+      });
+      await authMiddleware(
+        {
+          // @ts-expect-error mock request
+          request: {
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+          },
+          query: {},
+          state,
+          cache: {},
+        },
+        next
+      );
+      expect(next).toHaveBeenCalled();
+      expect(state.auth.user.id).toEqual(user.id);
+    });
+  });
 });

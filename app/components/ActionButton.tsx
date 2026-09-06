@@ -55,7 +55,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     const button = (
       <button
         {...rest}
-        aria-label={label}
+        aria-label={typeof label === "string" ? label : undefined}
         disabled={disabled || executing}
         ref={ref}
         onClick={

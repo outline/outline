@@ -317,10 +317,13 @@ const DocumentLink = styled(Link)<{
     opacity: 0;
   }
 
+  // data-state is set by the context menu trigger, so the treatment stays
+  // active while the menu is open
   &:${hover},
   &:active,
   &:focus,
-  &:focus-within {
+  &:focus-within,
+  &[data-state="open"] {
     transform: ${(props) => (props.$isDragging ? "scale(1.1)" : "scale(1.08)")}
       rotate(-2deg);
     box-shadow: ${(props) =>

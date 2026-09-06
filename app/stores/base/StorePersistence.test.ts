@@ -243,6 +243,27 @@ describe("StorePersistence", () => {
 
     expect(target.policies.orderedData).toHaveLength(0);
   });
+
+  it("clear leaves no database behind for a closed connection to fail against", async () => {
+    const teamId = "team-11";
+    const source = new RootStore();
+    const persistence = new StorePersistence(source.policies, teamId);
+    const databaseName = StorePersistence.databaseName(
+      source.policies.apiEndpoint,
+      teamId
+    );
+
+    source.policies.add({ id: "doc-1", abilities: { read: true } });
+    persistence.persist("doc-1");
+    await persistence.flush();
+
+    await persistence.clear();
+
+    const databases = await indexedDB.databases();
+    expect(databases.map((database) => database.name)).not.toContain(
+      databaseName
+    );
+  });
 });
 
 /** Writes raw records into a database, bypassing the store. */

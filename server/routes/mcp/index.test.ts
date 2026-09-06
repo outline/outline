@@ -81,6 +81,26 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(405);
     });
 
+    it.each(["/mcp/sse", "/mcp/message", "/mcp/manifest.json"])(
+      "should return 404 for %s without rendering the app shell",
+      async (path) => {
+        const res = await server.get(path);
+        const body = await res.text();
+        expect(res.status).toEqual(404);
+        expect(body).not.toContain("<title>");
+      }
+    );
+
+    it("should return 404 for POST to a path below the endpoint", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/sse", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(404);
+    });
+
     it("should handle initialize and return capabilities", async () => {
       const { accessToken } = await buildOAuthUser();
       const { body } = mcpRequest("initialize", {

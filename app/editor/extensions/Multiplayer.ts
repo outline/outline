@@ -14,7 +14,7 @@ import {
 } from "y-prosemirror";
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
-import type { MultiplayerState } from "@shared/editor/lib/multiplayer";
+import type { MultiplayerOperations } from "@shared/editor/lib/multiplayer";
 import {
   isRemoteTransaction,
   multiplayerPluginKey,
@@ -124,6 +124,18 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
     // mapping, this avoids stored mappings for clients that never made a change
     doc.on("afterTransaction", assignUser);
 
+    const multiplayer: MultiplayerOperations = {
+      isRemoteTransaction: (tr) => {
+        const meta = tr.getMeta(ySyncPluginKey);
+
+        // This logic seems to be flipped? But it's correct.
+        return !!meta?.isChangeOrigin;
+      },
+      stopCapturing: (state) => {
+        yUndoPluginKey.getState(state)?.undoManager?.stopCapturing();
+      },
+    };
+
     return [
       ySyncPlugin(type),
       yCursorPlugin(provider.awareness, {
@@ -133,22 +145,9 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
       yUndoPlugin(),
       // Facade plugin that exposes the collaboration operations to shared
       // code without a static dependency on the collaboration libraries.
-      new Plugin<MultiplayerState>({
+      new Plugin({
         key: multiplayerPluginKey,
-        state: {
-          init: (): MultiplayerState => ({
-            isRemoteTransaction: (tr) => {
-              const meta = tr.getMeta(ySyncPluginKey);
-
-              // This logic seems to be flipped? But it's correct.
-              return !!meta?.isChangeOrigin;
-            },
-            stopCapturing: (state) => {
-              yUndoPluginKey.getState(state)?.undoManager?.stopCapturing();
-            },
-          }),
-          apply: (_tr, value) => value,
-        },
+        multiplayer,
         props: {
           handleScrollToSelection: (view) =>
             isRemoteTransaction(view.state.tr, view.state),

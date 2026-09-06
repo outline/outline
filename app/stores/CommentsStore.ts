@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { compact, differenceBy, keyBy, orderBy, uniq } from "es-toolkit/compat";
-import { action, computed } from "mobx";
+import { action, makeObservable, override } from "mobx";
 import Comment from "~/models/Comment";
 import { type CommentSortOption, CommentSortType } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -10,6 +10,7 @@ import Store from "./base/Store";
 export default class CommentsStore extends Store<Comment> {
   constructor(rootStore: RootStore) {
     super(rootStore, Comment);
+    makeObservable(this);
   }
 
   /**
@@ -146,7 +147,7 @@ export default class CommentsStore extends Store<Comment> {
     return this.data.get(res.data.id) as Comment;
   };
 
-  @computed
+  @override
   get orderedData(): Comment[] {
     return orderBy(Array.from(this.data.values()), "createdAt", "asc");
   }

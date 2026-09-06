@@ -246,11 +246,12 @@ class AttributeEncoder implements TokenEncoder<string | number> {
 
   // See: https://github.com/ProseMirror/prosemirror-changeset/blob/23f67c002e5489e454a0473479e407decb238afe/src/diff.ts#L26
   public encodeNodeEnd({ type }: Node): number {
-    let cache: Record<string, number> =
+    const cache: Record<string, number> =
       type.schema.cached.changeSetIDs ||
       (type.schema.cached.changeSetIDs = Object.create(null));
+    // The cache has a null prototype, so a miss reads as undefined.
     let id = cache[type.name];
-    if (id === null) {
+    if (id === undefined) {
       cache[type.name] = id =
         Object.keys(type.schema.nodes).indexOf(type.name) + 1;
     }

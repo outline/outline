@@ -5,7 +5,7 @@ import { errToString } from "@shared/utils/error";
 import { s, ellipsis } from "@shared/styles";
 import EventBoundary from "@shared/components/EventBoundary";
 
-type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
+type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** A callback when the title is submitted. */
   onSubmit: (title: string) => Promise<void> | void;
   /** A callback when the editing status changes. */

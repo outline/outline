@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import type { Command } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -381,6 +381,11 @@ export default class Diff extends Extension<DiffOptions> {
     });
 
     return DecorationSet.create(doc, decorations);
+  }
+
+  constructor(options: Partial<DiffOptions> = {}) {
+    super(options);
+    makeObservable(this);
   }
 
   @observable

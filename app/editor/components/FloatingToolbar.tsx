@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
@@ -6,7 +7,7 @@ import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { depths, hairline, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
@@ -246,6 +247,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
 ) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
+  const raisedClickAt = React.useRef(0);
 
   let position = usePosition({
     menuRef,
@@ -268,12 +270,47 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   });
 
   const isMobile = useMobile();
-  const isMobileToolbarVisible = isMobile && !!props.active && position.visible;
+  const isMobileToolbarVisible = isMobile && !!props.active && !!props.children;
 
   // Keep the mobile toolbar glued to the top of the on-screen keyboard. The
   // hook tracks the visual viewport directly — see its implementation for the
   // iOS specifics.
   useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
+
+  // Tapping the bar must not move focus out of the editor, that would dismiss
+  // the on-screen keyboard and take the bar down with it. Mousedown is the
+  // event that assigns focus, and a tap dispatches it only after pointerup.
+  const handleMouseDown = (event: React.MouseEvent) => {
+    if (
+      event.target instanceof Element &&
+      !event.target.closest("input, textarea, [contenteditable='true']")
+    ) {
+      event.preventDefault();
+    }
+  };
+
+  // Canceling that mousedown cancels the tap's click with it, so the click is
+  // raised here instead, from the pointerup that comes before both.
+  const handlePointerUp = (event: React.PointerEvent) => {
+    if (event.pointerType === "mouse") {
+      return;
+    }
+
+    const button =
+      event.target instanceof Element ? event.target.closest("button") : null;
+    if (button) {
+      raisedClickAt.current = event.timeStamp;
+      button.click();
+    }
+  };
+
+  // A browser that delivers the tap's click anyway must not act twice.
+  const handleClickCapture = (event: React.MouseEvent) => {
+    if (event.isTrusted && event.timeStamp - raisedClickAt.current < 500) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
 
   if (isMobile) {
     if (isMobileToolbarVisible) {
@@ -281,10 +318,13 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
         <ReactPortal>
-          <MobileWrapper ref={menuRef}>
-            {props.children && (
-              <MobileBackground>{props.children}</MobileBackground>
-            )}
+          <MobileWrapper
+            ref={menuRef}
+            onMouseDown={handleMouseDown}
+            onPointerUp={handlePointerUp}
+            onClickCapture={handleClickCapture}
+          >
+            <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
         </ReactPortal>
       );
@@ -351,6 +391,7 @@ const MobileWrapper = styled.div`
   right: 0;
   width: 100vw;
   box-sizing: border-box;
+  padding: 0 16px 4px;
   z-index: ${depths.editorToolbar};
   will-change: transform;
 
@@ -359,19 +400,27 @@ const MobileWrapper = styled.div`
   }
 `;
 
+// A rounded bar floating clear of the edges of the screen, with the buttons
+// inside clipped to its corners as they scroll.
 const MobileBackground = styled.div`
-  padding: 10px 6px;
-  height: 60px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px;
+  min-height: 48px;
+  overflow: hidden;
   background-color: ${s("menuBackground")};
-  border-top: 1px solid ${s("divider")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 24px;
+  ${(props) => hairline(props.theme.divider)}
 
-  &:after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background-color: ${s("menuBackground")};
+  // The frosted glass of the iOS accessory bars.
+  @supports (backdrop-filter: blur(20px)) or
+    (-webkit-backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px) saturate(180%);
+    background-color: ${(props) =>
+      transparentize(0.2, props.theme.menuBackground)};
   }
 `;
 

@@ -1,4 +1,4 @@
-import { computed } from "mobx";
+import { override } from "mobx";
 import Emoji from "~/models/Emoji";
 import naturalSort from "@shared/utils/naturalSort";
 import type RootStore from "./RootStore";
@@ -17,7 +17,7 @@ export default class EmojisStore extends Store<Emoji> {
     super(rootStore, Emoji);
   }
 
-  @computed
+  @override
   get orderedData(): Emoji[] {
     return naturalSort(Array.from(this.data.values()), "name");
   }

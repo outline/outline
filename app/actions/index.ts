@@ -56,7 +56,9 @@ export function createAction(
                 ? "button"
                 : context.isCommandBar
                   ? "commandbar"
-                  : "contextmenu",
+                  : context.isMCP
+                    ? "webmcp"
+                    : "contextmenu",
             });
           }
           return definition.perform(context);
@@ -355,6 +357,10 @@ export async function performAction(
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {
+      // WebMCP callers surface errors to the agent instead of a toast.
+      if (context.isMCP) {
+        throw err;
+      }
       toast.error(err.message);
     });
   }

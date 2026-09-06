@@ -42,7 +42,6 @@ import {
   AfterUpdate,
   IsFloat,
 } from "sequelize-typescript";
-import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   DocumentPermission,
@@ -386,8 +385,8 @@ class Document extends ArchivableModel<
   text: string;
 
   /** The likely language of the content, in ISO 639-1 format. */
+  @Length({ max: 2, msg: "language must be an ISO 639-1 code" })
   @Column(DataType.STRING(2))
-  @MaxLength(2)
   language: string;
 
   /**
@@ -745,6 +744,14 @@ class Document extends ArchivableModel<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;
+
+  @BelongsTo(() => User, "deletedById")
+  deletedBy: User | null;
+
+  /** The user that deleted this document, set automatically on delete. */
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  deletedById: string | null;
 
   @ForeignKey(() => Template)
   @Column(DataType.UUID)
@@ -1535,13 +1542,13 @@ class Document extends ArchivableModel<
       });
 
       if (!this.archivedAt || (this.archivedAt && collection?.archivedAt)) {
-        await collection?.deleteDocument(this, user, { transaction });
+        await collection?.deleteDocument(ctx, this);
         deleted = true;
       }
     }
 
     if (!deleted) {
-      await this.destroy({ transaction });
+      await this.destroy(ctx.context);
     }
 
     this.lastModifiedById = user.id;

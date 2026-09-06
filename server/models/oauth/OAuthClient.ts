@@ -1,10 +1,3 @@
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsUrl,
-} from "class-validator";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -27,6 +20,7 @@ import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Encrypted from "@server/models/decorators/Encrypted";
 import { hash } from "@server/utils/crypto";
 import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import IsUrlList from "@server/models/validators/IsUrlList";
 import Length from "@server/models/validators/Length";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 import type { FindOptions } from "sequelize";
@@ -103,19 +97,7 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.BOOLEAN)
   published: boolean;
 
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  @ArrayMinSize(1)
-  @ArrayMaxSize(10)
-  @IsUrl(
-    {
-      require_tld: false,
-      allow_underscores: true,
-    },
-    {
-      each: true,
-    }
-  )
+  @IsUrlList({ min: 1, max: OAuthClientValidation.maxRedirectUris })
   @Column(DataType.ARRAY(DataType.STRING))
   redirectUris: string[];
 

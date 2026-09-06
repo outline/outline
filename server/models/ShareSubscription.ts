@@ -13,6 +13,7 @@ import {
 import { subHours } from "date-fns";
 import { Hour } from "@shared/utils/time";
 import { ValidationError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import Document from "./Document";
 import Share from "./Share";
 import IdModel from "./base/IdModel";
@@ -95,6 +96,14 @@ class ShareSubscription extends IdModel<
     if (!model.ipAddress) {
       return;
     }
+
+    // Serialize concurrent creation from the address, otherwise every request
+    // can read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `shareSubscriptions:${model.ipAddress}`,
+      options.transaction
+    );
 
     const results = await this.findAll({
       attributes: ["emailFingerprint"],

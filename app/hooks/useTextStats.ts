@@ -13,7 +13,7 @@ export function getTextStats(text: string) {
     words,
     characters: text.length,
     paragraphs: countParagraphs(text),
-    readingTime: words ? Math.max(1, Math.floor(words / 200)) : 0,
+    readingTime: Math.ceil(words / 200),
   };
 }
 

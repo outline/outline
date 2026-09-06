@@ -31,6 +31,29 @@ describe("collection tools", () => {
     expect(match!.url).toMatch(/^https?:\/\//);
   });
 
+  it("list_collections filters by name ignoring case", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      name: "Product Design",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const other = await buildCollection({
+      name: "Something else",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_collections", {
+      query: "duct des",
+    });
+    const data = parseMcpListContent<{ id: string }>(res?.result?.content);
+
+    const ids = data.map((c) => c.id);
+    expect(ids).toContain(collection.id);
+    expect(ids).not.toContain(other.id);
+  });
+
   it("list_collections does not return collections from another team", async () => {
     const { accessToken } = await buildOAuthUser();
     const otherUser = await buildUser();

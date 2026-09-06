@@ -9,6 +9,11 @@ import Field from "./decorators/Field";
 class Team extends Model {
   static modelName = "Team";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   @Field
   @observable
   name: string;
@@ -59,7 +64,7 @@ class Team extends Model {
 
   @Field
   @observable
-  subdomain: string | null | undefined;
+  subdomain: string | null | undefined = undefined;
 
   @Field
   @observable
@@ -74,14 +79,14 @@ class Team extends Model {
   preferences: TeamPreferences | null;
 
   @observable
-  domain: string | null | undefined;
+  domain: string | null | undefined = undefined;
 
   @observable
   url: string;
 
   @Field
   @observable
-  allowedDomains: string[] | null | undefined;
+  allowedDomains: string[] | null | undefined = undefined;
 
   @computed
   get signinMethods(): string {

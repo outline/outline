@@ -1,6 +1,6 @@
 import invariant from "invariant";
-import { filter, find, isUndefined, orderBy } from "es-toolkit/compat";
-import { action, computed, observable } from "mobx";
+import { isUndefined, orderBy } from "es-toolkit/compat";
+import { action, computed, makeObservable, observable, override } from "mobx";
 import type { NavigationNode, PublicTeam } from "@shared/types";
 import type Document from "~/models/Document";
 import Share from "~/models/Share";
@@ -25,16 +25,17 @@ export default class SharesStore extends Store<Share> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Share);
+    makeObservable(this);
   }
 
-  @computed
+  @override
   get orderedData(): Share[] {
     return orderBy(Array.from(this.data.values()), "createdAt", "asc");
   }
 
   @computed
   get published(): Share[] {
-    return filter(this.orderedData, (share) => share.published);
+    return this.orderedData.filter((share) => share.published);
   }
 
   @action
@@ -45,7 +46,7 @@ export default class SharesStore extends Store<Share> {
     this.remove(share.id);
   };
 
-  @action
+  @override
   async create(
     params:
       | (PartialExcept<Share, "collectionId"> & { type: "collection" })
@@ -63,7 +64,7 @@ export default class SharesStore extends Store<Share> {
     return super.create(params);
   }
 
-  @action
+  @override
   async fetch(id: string) {
     const share = this.get(id);
     const cache = this.sharedCache.get(id);
@@ -157,11 +158,11 @@ export default class SharesStore extends Store<Share> {
     return undefined;
   };
 
-  getByCollectionId = (collectionId: string): Share | null | undefined =>
-    find(this.orderedData, (share) => share.collectionId === collectionId);
+  getByCollectionId = (collectionId: string): Share | undefined =>
+    this.orderedData.find((share) => share.collectionId === collectionId);
 
-  getByDocumentId = (documentId: string): Share | null | undefined =>
-    find(this.orderedData, (share) => share.documentId === documentId);
+  getByDocumentId = (documentId: string): Share | undefined =>
+    this.orderedData.find((share) => share.documentId === documentId);
 
   get(id: string): Share | undefined {
     return id

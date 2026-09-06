@@ -28,7 +28,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
     useSidebarDisclosureState();
 
   const handleDisclosureClick = React.useCallback(
-    (ev) => {
+    (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
       setExpanded((e) => {
         const willExpand = !e;

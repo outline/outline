@@ -17,6 +17,17 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 
 /**
+ * Returns the inline-start offset in pixels of a sidebar row's content at the
+ * given nesting depth.
+ *
+ * @param depth The nesting depth of the row, 0-based.
+ * @returns the offset in pixels.
+ */
+export function indentForDepth(depth: number): number {
+  return depth * 16 + 12;
+}
+
+/**
  * Props for the SidebarLink component.
  * Extends NavLink props with additional sidebar-specific functionality.
  */
@@ -104,7 +115,7 @@ function SidebarLink(
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingInlineStart: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
+      paddingInlineStart: `${indentForDepth(depth || 0) - (icon ? 20 : 0)}px`,
       paddingInlineEnd: unreadBadge ? "32px" : undefined,
     }),
     [depth, icon, unreadBadge]

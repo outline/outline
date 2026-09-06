@@ -3,7 +3,7 @@ import Model from "./Model";
 
 export default abstract class ParanoidModel extends Model {
   @observable
-  deletedAt: string | undefined;
+  deletedAt: string | undefined = undefined;
 
   @computed
   get isDeleted(): boolean {

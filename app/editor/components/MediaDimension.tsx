@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
+import { resolvePDFDimensions } from "@shared/editor/lib/pdf";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
@@ -29,9 +30,13 @@ export function MediaDimension() {
 
   // This component will be rendered for specific media nodes like image, video or pdfs (NodeSelection types).
   const node = (selection as NodeSelection).node;
-  const nodeType = node.type.name,
-    width = node.attrs.width as number,
-    height = node.attrs.height as number;
+  const nodeType = node.type.name;
+  const nodeWidth = node.attrs.width as number | null | undefined;
+  const nodeHeight = node.attrs.height as number | null | undefined;
+  const { width, height } =
+    nodeType === "attachment"
+      ? resolvePDFDimensions(nodeWidth, nodeHeight)
+      : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
 
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
     width: width ? String(width) : "",
@@ -222,9 +227,14 @@ export function MediaDimension() {
         isDraggingRef.current = isDragging;
       }
 
+      const dimensions =
+        nodeType === "attachment"
+          ? resolvePDFDimensions(newWidth)
+          : { width: newWidth, height: newHeight };
+
       setLocalDimension({
-        width: newWidth ? String(newWidth) : "",
-        height: newHeight ? String(newHeight) : "",
+        width: dimensions.width ? String(dimensions.width) : "",
+        height: dimensions.height ? String(dimensions.height) : "",
         changed: "none",
       });
     };
@@ -233,7 +243,7 @@ export function MediaDimension() {
     return () => {
       window.removeEventListener("media-drag-resize", handleDragResize);
     };
-  }, []);
+  }, [nodeType]);
 
   // hacky debounce for checking error.
   useEffect(() => {

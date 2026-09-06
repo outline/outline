@@ -59,7 +59,9 @@ const EmojiMenu = (props: Props) => {
     [search, emojis.orderedData]
   );
 
-  const renderMenuItem = useCallback(
+  const renderMenuItem = useCallback<
+    SuggestionsMenuProps<Emoji>["renderMenuItem"]
+  >(
     (item, _index, options) => (
       <EmojiMenuItem {...options} title={item.description} emoji={item.emoji} />
     ),

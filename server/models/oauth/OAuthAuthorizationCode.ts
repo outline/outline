@@ -1,4 +1,3 @@
-import { Matches } from "class-validator";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -8,12 +7,12 @@ import {
   Table,
   Length,
 } from "sequelize-typescript";
-import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
 import User from "@server/models/User";
 import IdModel from "@server/models/base/IdModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
+import IsScope from "@server/models/validators/IsScope";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 
@@ -56,10 +55,7 @@ class OAuthAuthorizationCode extends IdModel<
   grantId: string | null;
 
   /** A list of scopes that this authorization code has access to */
-  @Matches(AuthenticationHelper.scopeGrammarRegex, {
-    each: true,
-    message: "Scope must be a valid API scope",
-  })
+  @IsScope
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];
 

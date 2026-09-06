@@ -20,6 +20,12 @@ type AcquireOptions = {
 /**
  * A distributed mutex lock backed by Redis, for coordinating exclusive access
  * to resources across processes.
+ *
+ * Use this when the resource is Redis or an external service, when the routine
+ * makes network calls, or when it runs long enough that holding a database
+ * connection would matter. When the routine is database work in a single
+ * transaction and the lock must be held until that transaction commits, use
+ * `LockHelper` instead.
  */
 export class MutexLock {
   /** Default expiry time for acquiring lock in milliseconds. */
@@ -101,6 +107,37 @@ export class MutexLock {
     routine: (signal: RedlockAbortSignal) => Promise<T>
   ): Promise<T> {
     return this.lock.using([resource], timeout, routine);
+  }
+
+  /**
+   * Execute a routine in the context of an auto-extending lock, without
+   * waiting when the lock is already held elsewhere. Use this for long
+   * routines that must never run concurrently but can be skipped.
+   *
+   * @param resource The resource to lock.
+   * @param timeout The initial lock duration in milliseconds (auto-extended while running).
+   * @param routine The async routine to execute while holding the lock.
+   * @returns A promise that resolves with the routine's return value, or
+   * undefined if the lock was held elsewhere and the routine did not run.
+   */
+  public static async tryUsing<T>(
+    resource: string,
+    timeout: number,
+    routine: (signal: RedlockAbortSignal) => Promise<T>
+  ): Promise<T | undefined> {
+    try {
+      return await this.lock.using(
+        [resource],
+        timeout,
+        { retryCount: 0 },
+        routine
+      );
+    } catch (err) {
+      if (err instanceof ExecutionError || err instanceof ResourceLockedError) {
+        return undefined;
+      }
+      throw err;
+    }
   }
 
   /**

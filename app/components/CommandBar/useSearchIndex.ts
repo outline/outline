@@ -10,6 +10,7 @@ import {
 
 const plainTextCache = new LRUCache<{ updatedAt: string; text: string }>({
   max: 100,
+  storage: "memory",
 });
 
 /**

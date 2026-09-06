@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
+import { patchLocation } from "~/utils/history";
 import useQuery from "./useQuery";
 
 /**
@@ -20,13 +21,13 @@ export default function useConsumeQueryParam(name: string): string | null {
     if (value && !consumedRef.current) {
       consumedRef.current = true;
 
-      const params = new URLSearchParams(window.location.search);
+      const location = history.location;
+      const params = new URLSearchParams(location.search);
       params.delete(name);
       const search = params.toString();
-      history.replace({
-        pathname: window.location.pathname,
-        search: search ? `?${search}` : "",
-      });
+      history.replace(
+        patchLocation(location, { search: search ? `?${search}` : "" })
+      );
     }
   }, [value, name, history]);
 

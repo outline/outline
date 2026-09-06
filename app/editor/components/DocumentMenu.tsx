@@ -93,7 +93,9 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
       ]
     : [];
 
-  const renderMenuItem = useCallback(
+  const renderMenuItem = useCallback<
+    SuggestionsMenuProps<MentionMenuItem>["renderMenuItem"]
+  >(
     (item, _index, options) => (
       <SuggestionsMenuItem
         {...options}

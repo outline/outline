@@ -66,7 +66,11 @@ export default class ExtensionManager {
     return Object.fromEntries(
       this.extensions
         .filter((extension) =>
-          extension.widget({ rtl: false, readOnly: false })
+          extension.widget({
+            rtl: false,
+            readOnly: false,
+            isEditorFocused: false,
+          })
         )
         .map((node: Node) => [
           node.name,

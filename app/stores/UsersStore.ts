@@ -1,7 +1,7 @@
 import commandScore from "command-score";
 import invariant from "invariant";
-import { deburr, differenceWith, filter, orderBy } from "es-toolkit/compat";
-import { computed, action, runInAction } from "mobx";
+import { deburr, differenceWith, orderBy } from "es-toolkit/compat";
+import { action, computed, makeObservable, override, runInAction } from "mobx";
 import type { UserRole } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
@@ -20,6 +20,7 @@ export default class UsersStore extends Store<User> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, User);
+    makeObservable(this);
   }
 
   @computed
@@ -64,7 +65,7 @@ export default class UsersStore extends Store<User> {
     return this.orderedData.filter((user) => !user.isDeleted);
   }
 
-  @computed
+  @override
   get orderedData(): User[] {
     return orderBy(
       Array.from(this.data.values()),
@@ -102,7 +103,7 @@ export default class UsersStore extends Store<User> {
     invariant(res?.data, "Data should be available");
 
     let response: User[] = [];
-    runInAction(`invite`, () => {
+    runInAction(() => {
       response = res.data.users.map(this.add);
     });
     return response;
@@ -154,50 +155,44 @@ export default class UsersStore extends Store<User> {
    * @returns A list of users that are not in the given collection.
    */
   notInCollection = (collectionId: string, query = "") => {
-    const groupUsers = filter(
-      this.rootStore.memberships.orderedData,
+    const groupUsers = this.rootStore.memberships.orderedData.filter(
       (member) => member.collectionId === collectionId
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
-    const users = filter(
-      this.activeOrInvited,
+    const users = this.activeOrInvited.filter(
       (user) => !userIds.includes(user.id)
     );
     return queriedUsers(users, query);
   };
 
   inCollection = (collectionId: string, query?: string) => {
-    const groupUsers = filter(
-      this.rootStore.memberships.orderedData,
+    const groupUsers = this.rootStore.memberships.orderedData.filter(
       (member) => member.collectionId === collectionId
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
-    const users = filter(this.activeOrInvited, (user) =>
+    const users = this.activeOrInvited.filter((user) =>
       userIds.includes(user.id)
     );
     return queriedUsers(users, query);
   };
 
   notInGroup = (groupId: string, query = "") => {
-    const groupUsers = filter(
-      this.rootStore.groupUsers.orderedData,
+    const groupUsers = this.rootStore.groupUsers.orderedData.filter(
       (member) => member.groupId === groupId
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
-    const users = filter(
-      this.activeOrInvited,
+    const users = this.activeOrInvited.filter(
       (user) => !userIds.includes(user.id)
     );
     return queriedUsers(users, query);
   };
 
   inGroup = (groupId: string, query?: string) => {
-    const groupUsers = filter(
-      this.rootStore.groupUsers.orderedData,
+    const groupUsers = this.rootStore.groupUsers.orderedData.filter(
       (member) => member.groupId === groupId
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
-    const users = filter(this.activeOrInvited, (user) =>
+    const users = this.activeOrInvited.filter((user) =>
       userIds.includes(user.id)
     );
     return queriedUsers(users, query);
@@ -209,7 +204,7 @@ export default class UsersStore extends Store<User> {
       role,
     });
     invariant(res?.data, "Data should be available");
-    runInAction(`UsersStore#${action}`, () => {
+    runInAction(() => {
       this.addPolicies(res.policies);
       this.add(res.data);
     });
@@ -220,12 +215,12 @@ export function queriedUsers(users: User[], query?: string) {
   const normalizedQuery = deburr((query || "").toLocaleLowerCase());
 
   return normalizedQuery
-    ? filter(
-        users,
-        (user) =>
-          deburr(user.name.toLocaleLowerCase()).includes(normalizedQuery) ||
-          user.email?.includes(normalizedQuery)
-      )
+    ? users
+        .filter(
+          (user) =>
+            deburr(user.name.toLocaleLowerCase()).includes(normalizedQuery) ||
+            user.email?.includes(normalizedQuery)
+        )
         .map((user) => ({
           user,
           score: commandScore(user.name, normalizedQuery),

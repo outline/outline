@@ -1,4 +1,9 @@
-import { DocumentPermission, ExportContentType } from "@shared/types";
+import {
+  DocumentPermission,
+  ExportContentType,
+  TeamPreference,
+} from "@shared/types";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -7,7 +12,9 @@ import {
   buildAttachment,
   buildCollection,
   buildDocument,
+  buildTeam,
   buildUser,
+  buildViewer,
 } from "@server/test/factories";
 import { getTestServer, readZipResponse } from "@server/test/support";
 
@@ -36,6 +43,25 @@ describe("#revisions.info", () => {
     // The single revision endpoint includes the full document content.
     expect(body.data.data).toBeDefined();
     expect(body.data.text).toBeDefined();
+  });
+
+  it("should return the latest revision by documentId with a stable id", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/revisions.info", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(RevisionHelper.latestId(document.id));
+    expect(body.data.documentId).toEqual(document.id);
+    expect(body.data.title).toEqual(document.title);
+    expect(body.data.data).toBeDefined();
   });
 
   it("should require authorization", async () => {
@@ -530,5 +556,51 @@ describe("#revisions.export", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should not allow viewer to export when disabled for team", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.ViewersCanExport, false);
+    await team.save();
+
+    const author = await buildUser({ teamId: team.id });
+    const viewer = await buildViewer({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: author.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: author }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", viewer, {
+      body: {
+        id: revision.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow viewer to export when enabled for team", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.ViewersCanExport, true);
+    await team.save();
+
+    const author = await buildUser({ teamId: team.id });
+    const viewer = await buildViewer({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: author.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: author }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", viewer, {
+      body: {
+        id: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
   });
 });

@@ -4,11 +4,11 @@ import type { DecorationSet } from "prosemirror-view";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
 /**
- * State of the facade plugin mounted by the multiplayer extension. It exposes
- * the collaboration operations to shared code without a static dependency on
- * the collaboration libraries.
+ * Collaboration operations exposed by the facade plugin mounted by the
+ * multiplayer extension. They allow shared code to use the collaboration
+ * libraries without a static dependency on them.
  */
-export interface MultiplayerState {
+export interface MultiplayerOperations {
   /** Returns true if the transaction originated from a remote client. */
   isRemoteTransaction: (tr: Transaction) => boolean;
   /** Stops the collaborative undo manager from capturing further changes. */
@@ -16,11 +16,30 @@ export interface MultiplayerState {
 }
 
 /**
+ * Spec of the facade plugin mounted by the multiplayer extension.
+ */
+interface MultiplayerPluginSpec {
+  multiplayer?: MultiplayerOperations;
+  [key: string]: unknown;
+}
+
+/**
  * Key of the facade plugin mounted by the multiplayer extension.
  */
-export const multiplayerPluginKey = new PluginKey<MultiplayerState>(
-  "multiplayer-facade"
-);
+export const multiplayerPluginKey = new PluginKey("multiplayer-facade");
+
+/**
+ * Get the collaboration operations, if the multiplayer extension is mounted in
+ * the editor.
+ *
+ * @param state The editor state
+ * @returns the operations, or undefined when not collaborating
+ */
+function getOperations(state: EditorState): MultiplayerOperations | undefined {
+  const spec: MultiplayerPluginSpec | undefined =
+    multiplayerPluginKey.get(state)?.spec;
+  return spec?.multiplayer;
+}
 
 /**
  * Checks if a transaction is a remote transaction
@@ -33,7 +52,7 @@ export function isRemoteTransaction(
   tr: Transaction,
   state: EditorState
 ): boolean {
-  return multiplayerPluginKey.getState(state)?.isRemoteTransaction(tr) ?? false;
+  return getOperations(state)?.isRemoteTransaction(tr) ?? false;
 }
 
 /**
@@ -43,7 +62,7 @@ export function isRemoteTransaction(
  * @param state The editor state
  */
 export function stopCapturingUndo(state: EditorState): void {
-  multiplayerPluginKey.getState(state)?.stopCapturing(state);
+  getOperations(state)?.stopCapturing(state);
 }
 
 /**

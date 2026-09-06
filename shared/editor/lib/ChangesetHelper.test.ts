@@ -235,6 +235,63 @@ describe("ChangesetHelper.getChangeset", () => {
     expect(changes[0].inserted).toHaveLength(1);
   });
 
+  describe("node boundary tokens", () => {
+    it("reports the change to a node's closing token when its type changes", () => {
+      // Converting a paragraph to a heading rewrites both of the node's
+      // boundary tokens. The closing tokens of the two node types must not
+      // compare as equal, or only the opening one is reported.
+      const changes = changesFor(
+        {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 1 },
+              content: [{ type: "text", text: "Alpha" }],
+            },
+          ],
+        },
+        para("Alpha")
+      );
+
+      expect(changes).toHaveLength(2);
+      // The paragraph opens at 0 and closes at 6, either side of "Alpha".
+      expect([changes[0].fromA, changes[0].toA]).toEqual([0, 1]);
+      expect([changes[1].fromA, changes[1].toA]).toEqual([6, 7]);
+    });
+
+    it("places an inserted wrapper's closing token outside the node it wraps", () => {
+      // Wrapping the paragraph in a blockquote inserts the quote's closing
+      // token after the paragraph, at the end of the old document. Matching it
+      // to the paragraph's own closing token instead would report the
+      // insertion at 6, inside the paragraph.
+      const changes = changesFor(
+        {
+          type: "doc",
+          content: [
+            {
+              type: "blockquote",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Alpha" }],
+                },
+              ],
+            },
+          ],
+        },
+        para("Alpha")
+      );
+
+      expect(changes).toHaveLength(2);
+      expect([changes[0].fromA, changes[0].toA]).toEqual([0, 0]);
+      expect([changes[1].fromA, changes[1].toA]).toEqual([7, 7]);
+      // In the new document the change is the blockquote's closing token at
+      // 8, not the paragraph's at 7.
+      expect([changes[1].fromB, changes[1].toB]).toEqual([8, 9]);
+    });
+  });
+
   describe("complexity guard", () => {
     const texts = Array.from(
       { length: 500 },

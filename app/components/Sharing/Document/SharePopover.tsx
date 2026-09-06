@@ -253,7 +253,7 @@ function SharePopover({
   );
 
   const handleQuery = React.useCallback(
-    (event) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       showPicker();
       setQuery(event.target.value);
     },

@@ -1,4 +1,4 @@
-import { observable, action } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import type { AwarenessChangeEvent } from "~/types";
 import type RootStore from "./RootStore";
 
@@ -16,6 +16,7 @@ export default class PresenceStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+    makeObservable(this);
   }
 
   /**

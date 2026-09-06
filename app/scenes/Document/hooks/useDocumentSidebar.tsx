@@ -119,13 +119,17 @@ export default function useDocumentSidebar() {
         ? documents.get(slugMatch.params.documentSlug)
         : undefined;
       if (document) {
-        paneHistory.push(documentPath(document));
+        paneHistory.push({
+          pathname: documentPath(document),
+          state: location.state,
+        });
       }
     }
   }, [
     panel,
     isHistoryRoute,
     location.pathname,
+    location.state,
     documents,
     paneHistory,
     ui,

@@ -9,6 +9,11 @@ import Relation from "~/models/decorators/Relation";
 class Integration<T = unknown> extends Model {
   static modelName = "Integration";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   type: IntegrationType;
 
   service: IntegrationService;

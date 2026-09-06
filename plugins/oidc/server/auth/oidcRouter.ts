@@ -6,6 +6,7 @@ import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
+import { getSupportedLanguage } from "@shared/utils/language";
 import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
@@ -112,6 +113,7 @@ export function createOIDCRouter(
                 return decoded as {
                   email?: string;
                   email_verified?: boolean | string;
+                  locale?: string;
                   preferred_username?: string;
                   sub?: string;
                 };
@@ -122,6 +124,7 @@ export function createOIDCRouter(
             })();
 
             const email = profile.email ?? token.email ?? null;
+            const language = getSupportedLanguage(profile.locale, token.locale);
 
             if (!email) {
               throw AuthenticationError(
@@ -164,8 +167,24 @@ export function createOIDCRouter(
 
             // Derive a providerId from the OIDC location if there is no existing provider.
             const oidcURL = new URL(endpoints.authorizationURL);
-            const providerId =
+            let providerId =
               authenticationProvider?.providerId ?? oidcURL.hostname;
+
+            // The provider can move to a different domain, in which case the
+            // stored identifier must follow the configured location.
+            if (authenticationProvider && providerId !== oidcURL.hostname) {
+              try {
+                await authenticationProvider.update({
+                  providerId: oidcURL.hostname,
+                });
+                providerId = oidcURL.hostname;
+              } catch (error) {
+                Logger.warn(
+                  "Could not update OIDC authentication provider identifier",
+                  { providerId, hostname: oidcURL.hostname, error }
+                );
+              }
+            }
 
             if (!domain) {
               throw OIDCMalformedUserInfoError();
@@ -225,6 +244,7 @@ export function createOIDCRouter(
                 email,
                 emailVerified,
                 avatarUrl,
+                language,
               },
               authenticationProvider: {
                 name: config.id,

@@ -132,7 +132,7 @@ const ListItem = (
         as={NavLink}
         to={to}
       >
-        {content}
+        {(match) => content(!!match)}
       </Wrapper>
     );
   }

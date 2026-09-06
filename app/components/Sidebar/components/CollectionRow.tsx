@@ -227,7 +227,9 @@ function CollectionRow({
   );
 
   return (
-    <ActionContextProvider value={{ activeModels: [collection] }}>
+    <ActionContextProvider
+      value={{ activeModels: [collection], sidebarContext }}
+    >
       <Relative ref={mergedRef}>
         <DropToImport collectionId={collection.id}>
           {sidebarLinkElement}

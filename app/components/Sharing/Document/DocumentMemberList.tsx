@@ -8,6 +8,7 @@ import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
 import { DocumentPermission } from "@shared/types";
 import type Document from "~/models/Document";
+import type User from "~/models/User";
 import type UserMembership from "~/models/UserMembership";
 import { GroupAvatar } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
@@ -41,7 +42,7 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
   const theme = useTheme();
 
   const handleRemoveUser = React.useCallback(
-    async (item) => {
+    async (item: User) => {
       try {
         await userMemberships.delete({
           documentId: document.id,
@@ -65,7 +66,7 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
   );
 
   const handleUpdateUser = React.useCallback(
-    async (userToUpdate, permission) => {
+    async (userToUpdate: User, permission: DocumentPermission) => {
       try {
         await userMemberships.create({
           documentId: document.id,

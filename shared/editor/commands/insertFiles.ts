@@ -48,7 +48,7 @@ const insertFiles = async function (
   event:
     | Event
     | React.ChangeEvent<HTMLInputElement>
-    | React.DragEvent<HTMLDivElement>,
+    | React.DragEvent<HTMLElement>,
   pos: number,
   files: File[],
   options: Options

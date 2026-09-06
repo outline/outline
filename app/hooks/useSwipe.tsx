@@ -1,6 +1,9 @@
 import { isNumber } from "es-toolkit/compat";
 import { useRef } from "react";
 
+/** Minimum distance in pixels that a touch must travel to count as a swipe. */
+const MinSwipeDistance = 40;
+
 type Props = {
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
@@ -46,6 +49,12 @@ export default function useSwipe({
       touchYEnd.current = e.changedTouches[0].screenY;
       const dx = touchXEnd.current - touchXStart.current;
       const dy = touchYEnd.current - touchYStart.current;
+
+      // Ignore small movements so that a tap, or the start of a gesture, is not
+      // mistaken for a swipe.
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < MinSwipeDistance) {
+        return;
+      }
 
       const swipeRight = dx > 0 && Math.abs(dy) < Math.abs(dx);
       if (swipeRight) {

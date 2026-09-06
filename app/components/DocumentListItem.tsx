@@ -135,7 +135,6 @@ function DocumentListItem(
     document.asNavigationNode,
     0,
     document,
-    false,
     false
   );
 

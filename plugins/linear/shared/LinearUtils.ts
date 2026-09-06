@@ -1,5 +1,6 @@
 import queryString from "query-string";
 import env from "@shared/env";
+import { MentionType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export const LinearOAuthNonceCookie = "linearOAuthNonce";
@@ -24,6 +25,27 @@ export class LinearUtils {
     } catch {
       return undefined;
     }
+  }
+
+  /**
+   * Determines the type of mention a Linear URL represents.
+   *
+   * @param url the URL to evaluate.
+   * @returns the mention type, or undefined if this is not a Linear URL for a
+   * resource that can be mentioned.
+   */
+  public static mentionType(url: URL): MentionType | undefined {
+    if (url.hostname !== "linear.app") {
+      return undefined;
+    }
+
+    const type = url.pathname.split("/")[2];
+
+    return type === "issue"
+      ? MentionType.Issue
+      : type === "project"
+        ? MentionType.Project
+        : undefined;
   }
 
   static successUrl() {

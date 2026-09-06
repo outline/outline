@@ -36,7 +36,10 @@ const useTemplatesAction = () => {
             <NewDocumentIcon />
           ),
           keywords: "create",
-          visible: ({ currentTeamId, activeCollectionId, stores }) => {
+          visible: ({ currentTeamId, activeCollectionId, stores, isMCP }) => {
+            if (isMCP) {
+              return false;
+            }
             if (activeCollectionId) {
               return (
                 stores.policies.abilities(activeCollectionId).createDocument &&

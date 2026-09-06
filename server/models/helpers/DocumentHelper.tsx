@@ -11,7 +11,7 @@ import headingToSlug from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
-import { IconType, TextEditMode } from "@shared/types";
+import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -348,6 +348,15 @@ export class DocumentHelper {
     options?: HTMLOptions
   ) {
     const node = DocumentHelper.toProsemirror(model);
+    // Heading numbering is a preference of the document, which a revision
+    // inherits from the document it belongs to.
+    const document =
+      model instanceof Document
+        ? model
+        : model instanceof Revision
+          ? await model.$get("document")
+          : null;
+
     let output = await ProsemirrorHelper.toHTML(node, {
       title:
         options?.includeTitle !== false
@@ -362,6 +371,7 @@ export class DocumentHelper {
       baseUrl: options?.baseUrl,
       changes: options?.changes,
       cspNonce: options?.cspNonce,
+      headingPrefix: document?.getPreference(DocumentPreference.HeadingPrefix),
     });
 
     addTags({
@@ -371,9 +381,7 @@ export class DocumentHelper {
 
     if (options?.signedUrls) {
       const teamId =
-        model instanceof Collection || model instanceof Document
-          ? model.teamId
-          : (await model.$get("document"))?.teamId;
+        model instanceof Collection ? model.teamId : document?.teamId;
 
       if (!teamId) {
         return output;

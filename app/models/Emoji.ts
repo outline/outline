@@ -7,6 +7,11 @@ import Relation from "./decorators/Relation";
 class Emoji extends Model {
   static modelName = "Emoji";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The name of the emoji */
   @Field
   @observable
@@ -24,7 +29,6 @@ class Emoji extends Model {
 
   /** The user who created this emoji */
   @Relation(() => User)
-  @observable
   createdBy?: User;
 
   /** The ID of the user who created this emoji */

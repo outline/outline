@@ -8,6 +8,11 @@ import Relation from "./decorators/Relation";
 class Membership extends Model {
   static modelName = "Membership";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   userId: string;
 
   @Relation(() => User, { onDelete: "cascade" })

@@ -1,22 +1,17 @@
 import { difference } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
-import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
-import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { getDataTransferFiles } from "@shared/utils/files";
-import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
-import { toastNotice } from "~/editor/toastNotice";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
@@ -135,61 +130,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [localRef]);
 
   const handleDrop = React.useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const files = getDataTransferFiles(event);
-
-      const view = localRef?.current?.view;
-      if (!view) {
-        return;
-      }
-
-      // Find a valid position at the end of the document to insert our content
-      const pos = TextSelection.near(
-        view.state.doc.resolve(view.state.doc.nodeSize - 2)
-      ).from;
-
-      // If there are no files in the drop event attempt to parse the html
-      // as a fragment and insert it at the end of the document
-      if (files.length === 0) {
-        const text =
-          event.dataTransfer.getData("text/html") ||
-          event.dataTransfer.getData("text/plain");
-
-        const dom = new DOMParser().parseFromString(text, "text/html");
-
-        view.dispatch(
-          view.state.tr.insert(
-            pos,
-            ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
-          )
-        );
-
-        return;
-      }
-
-      // Insert all files as attachments if any of the files are not images.
-      const isAttachment = files.some(
-        (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
-      );
-
-      return insertFiles(view, event, pos, files, {
-        uploadFile: handleUploadFile,
-        onFileUploadStart: handleFileUploadStart,
-        onFileUploadStop: handleFileUploadStop,
-        onFileUploadProgress: handleFileUploadProgress,
-        onNotice: toastNotice,
-        isAttachment,
-      });
-    },
-    [
-      localRef,
-      handleFileUploadStart,
-      handleFileUploadStop,
-      handleFileUploadProgress,
-      handleUploadFile,
-    ]
+    (event: React.DragEvent<HTMLDivElement>) =>
+      localRef.current?.insertDroppedContent(event),
+    []
   );
 
   // see: https://stackoverflow.com/a/50233827/192065
@@ -287,21 +230,27 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             </div>
           </EditorContainer>
         ) : (
-          <LazyLoadedEditor
-            key={props.extensions?.length || 0}
-            ref={mergeRefs([ref, localRef, handleRefChanged])}
-            uploadFile={handleUploadFile}
-            embeds={embeds}
-            userPreferences={preferences}
-            {...props}
-            onClickLink={handleClickLink}
-            onChange={handleChange}
-            onFileUploadStart={handleFileUploadStart}
-            onFileUploadStop={handleFileUploadStop}
-            onFileUploadProgress={handleFileUploadProgress}
-            placeholder={props.placeholder || ""}
-            defaultValue={props.defaultValue || ""}
-          />
+          // The boundary must live between the lazy editor and any ancestor
+          // with effects or refs. If the suspension reached an outer boundary
+          // React 18 would hide mounted ancestors and destroy their effects,
+          // re-running provider setup and ref callbacks in a loop.
+          <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
+            <LazyLoadedEditor
+              key={props.extensions?.length || 0}
+              ref={mergeRefs([ref, localRef, handleRefChanged])}
+              uploadFile={handleUploadFile}
+              embeds={embeds}
+              userPreferences={preferences}
+              {...props}
+              onClickLink={handleClickLink}
+              onChange={handleChange}
+              onFileUploadStart={handleFileUploadStart}
+              onFileUploadStop={handleFileUploadStop}
+              onFileUploadProgress={handleFileUploadProgress}
+              placeholder={props.placeholder || ""}
+              defaultValue={props.defaultValue || ""}
+            />
+          </React.Suspense>
         )}
         {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding

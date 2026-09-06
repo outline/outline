@@ -21,7 +21,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const AccountMenu: React.FC = ({ children }: Props) => {
+const AccountMenu: React.FC<Props> = ({ children }: Props) => {
   const { t } = useTranslation();
 
   const actions = React.useMemo(

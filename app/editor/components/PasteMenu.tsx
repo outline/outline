@@ -33,8 +33,10 @@ interface EmbedCheckState {
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const items = useItems({ pastedText, embeds });
 
-  const renderMenuItem = useCallback(
-    (item, _index, options) => <SuggestionsMenuItem {...options} {...item} />,
+  const renderMenuItem = useCallback<SuggestionsMenuProps["renderMenuItem"]>(
+    (item, _index, options) => (
+      <SuggestionsMenuItem {...options} {...item} title={item.title} />
+    ),
     []
   );
 
