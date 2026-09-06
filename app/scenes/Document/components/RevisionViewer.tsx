@@ -107,8 +107,10 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   // without waiting for the lazily-loaded editor to mount.
   React.useEffect(() => {
     setTotalChanges(totalChanges);
-    return () => setTotalChanges(0);
   }, [totalChanges, setTotalChanges]);
+
+  // Reset the count on unmount so it does not linger on the live document.
+  React.useEffect(() => () => setTotalChanges(0), [setTotalChanges]);
 
   // The editor builds its extensions once, on mount, so it has to be remounted
   // whenever the diff configuration changes. Revisions are listed without their
