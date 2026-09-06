@@ -87,7 +87,7 @@ class UserMembership extends NavigableModel {
       userId: this.userId,
     });
     const index = memberships.indexOf(this);
-    return memberships[index + 1];
+    return memberships[index - 1];
   }
 }
 
