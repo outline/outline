@@ -205,22 +205,31 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
             />
           );
         })}
-      {members.map((item) => (
-        <DocumentMemberListItem
-          key={item.id}
-          user={item}
-          membership={item.getMembership(document)}
-          onRemove={() => handleRemoveUser(item)}
-          onUpdate={
-            can.manageUsers
-              ? (permission) => handleUpdateUser(item, permission)
-              : undefined
-          }
-          onLeave={
-            item.id === user.id ? () => handleRemoveUser(item) : undefined
-          }
-        />
-      ))}
+      {members.map((item) => {
+        // The owner cannot be removed from their own personal document, so
+        // their row offers neither remove nor leave.
+        const isPersonalOwner = item.id === document.personalOwnerId;
+        return (
+          <DocumentMemberListItem
+            key={item.id}
+            user={item}
+            membership={item.getMembership(document)}
+            onRemove={
+              isPersonalOwner ? undefined : () => handleRemoveUser(item)
+            }
+            onUpdate={
+              can.manageUsers
+                ? (permission) => handleUpdateUser(item, permission)
+                : undefined
+            }
+            onLeave={
+              item.id === user.id && !isPersonalOwner
+                ? () => handleRemoveUser(item)
+                : undefined
+            }
+          />
+        );
+      })}
     </>
   );
 }
