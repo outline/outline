@@ -1,3 +1,4 @@
+import { runInAction } from "mobx";
 import { type JSONObject } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type RootStore from "~/stores/RootStore";
@@ -18,30 +19,16 @@ export default class RevisionsStore extends Store<Revision> {
    * @returns A promise that resolves to the fetched revision.
    */
   async fetch(id: string, options: JSONObject = {}): Promise<Revision> {
-    const documentId = RevisionHelper.documentIdFromLatestId(id);
-    if (documentId) {
-      return this.fetchLatest(documentId);
-    }
-
     const item = this.get(id);
     const force = Boolean(options.force) || (!!item && !item.data);
-    return super.fetch(id, { ...options, force });
-  }
 
-  /**
-   * Loads the full content of a revision ahead of time when the user is
-   * likely to view it. Does nothing if the content is already loaded.
-   *
-   * @param id - The ID of the revision to prefetch.
-   * @returns A promise that resolves to the revision, or nothing if it was already loaded.
-   */
-  prefetch = async (id: string): Promise<Revision | void> => {
-    if (this.get(id)?.data) {
-      return;
+    const documentId = RevisionHelper.documentIdFromLatestId(id);
+    if (documentId) {
+      return item && !force ? item : this.fetchLatest(documentId);
     }
 
-    return this.fetch(id);
-  };
+    return super.fetch(id, { ...options, force });
+  }
 
   /**
    * Retrieves all revisions for a given document ID
@@ -58,9 +45,26 @@ export default class RevisionsStore extends Store<Revision> {
    * @param documentId - the id of the document to fetch the latest revision for.
    * @returns A promise that resolves to the latest revision for the given document.
    */
-  fetchLatest = async (documentId: string) => {
-    const res = await client.post(`/revisions.info`, { documentId });
-    this.addPolicies(res.policies);
-    return this.add(res.data);
+  fetchLatest = async (documentId: string): Promise<Revision> => {
+    const id = RevisionHelper.latestId(documentId);
+    const inflight = this.requests.get(id);
+    if (inflight) {
+      return inflight;
+    }
+
+    const promise = client
+      .post(`/revisions.info`, { documentId })
+      .then((res) =>
+        runInAction(() => {
+          this.addPolicies(res.policies);
+          return this.add(res.data);
+        })
+      )
+      .finally(() => {
+        this.requests.delete(id);
+      });
+
+    this.requests.set(id, promise);
+    return promise;
   };
 }

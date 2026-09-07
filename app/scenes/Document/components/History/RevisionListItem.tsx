@@ -61,7 +61,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const contextMenuAction = useMenuAction(actions);
 
   const handleClickIntent = useCallback(() => {
-    void revisions.prefetch(item.id);
+    void revisions.fetch(item.id);
   }, [revisions, item.id]);
   const { handleMouseEnter, handleMouseLeave } =
     useClickIntent(handleClickIntent);
