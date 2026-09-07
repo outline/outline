@@ -153,9 +153,11 @@ export default class Link extends Mark<LinkOptions> {
         return undefined;
       }
 
+      // SVG anchors, such as those inside Mermaid diagrams, are handled by
+      // their own extension and have a non-string href.
       const target =
         event.target instanceof Element ? event.target.closest("a") : null;
-      if (!target) {
+      if (!(target instanceof HTMLAnchorElement)) {
         return undefined;
       }
 
@@ -167,20 +169,6 @@ export default class Link extends Mark<LinkOptions> {
       }
 
       return target;
-    };
-
-    /**
-     * Returns true if the event targets the image of the currently selected
-     * image node, which handles its own clicks.
-     */
-    const isSelectedImage = (view: EditorView, event: MouseEvent) => {
-      const selectedDOMNode = view.nodeDOM(view.state.selection.from);
-      return (
-        selectedDOMNode instanceof HTMLSpanElement &&
-        selectedDOMNode.classList.contains("component-image") &&
-        event.target instanceof HTMLImageElement &&
-        selectedDOMNode.contains(event.target)
-      );
     };
 
     const handleClick = (view: EditorView, pos: number) => {
@@ -228,7 +216,9 @@ export default class Link extends Mark<LinkOptions> {
               return false;
             }
 
-            if (isSelectedImage(view, event)) {
+            // A linked image is selected by ProseMirror and handled by its
+            // node view while editing.
+            if (event.target instanceof HTMLImageElement) {
               return false;
             }
 
@@ -258,11 +248,14 @@ export default class Link extends Mark<LinkOptions> {
               return false;
             }
 
-            if (view.editable && view.hasFocus()) {
-              if (isSelectedImage(view, event)) {
-                return false;
-              }
+            // A linked image opens the lightbox rather than navigating while
+            // editing, the node view handles the click.
+            if (view.editable && event.target instanceof HTMLImageElement) {
+              event.preventDefault();
+              return false;
+            }
 
+            if (view.editable && view.hasFocus()) {
               // Links are not followed while editing.
               event.stopPropagation();
               event.preventDefault();
