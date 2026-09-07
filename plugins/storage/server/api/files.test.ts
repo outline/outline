@@ -632,3 +632,138 @@ describe("#files.get", () => {
     expect(res.headers.get("Content-Type")).toEqual("application/zip");
   });
 });
+
+describe("#files.get byte ranges", () => {
+  const fileName = "avatar.jpg";
+
+  const buildFile = async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType: "image/jpeg",
+        acl: "public-read",
+      },
+      fileName
+    );
+
+    const source = path.resolve(__dirname, "..", "test", "fixtures", fileName);
+    const destination = path.join(
+      env.FILE_STORAGE_LOCAL_ROOT_DIR,
+      attachment.key
+    );
+
+    ensureDirSync(path.dirname(destination));
+    copyFileSync(source, destination);
+
+    return { key: attachment.key, content: await readFile(source) };
+  };
+
+  it("should serve the whole file when no range is requested", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`);
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Accept-Ranges")).toEqual("bytes");
+    expect(res.headers.get("Content-Length")).toEqual(String(content.length));
+  });
+
+  it("should serve the requested range", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: "bytes=0-1" },
+    });
+
+    expect(res.status).toEqual(206);
+    expect(res.headers.get("Content-Length")).toEqual("2");
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes 0-1/${content.length}`
+    );
+    expect(Buffer.from(await res.arrayBuffer())).toEqual(
+      content.subarray(0, 2)
+    );
+  });
+
+  it("should serve a single byte range", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: "bytes=0-0" },
+    });
+
+    expect(res.status).toEqual(206);
+    expect(res.headers.get("Content-Length")).toEqual("1");
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes 0-0/${content.length}`
+    );
+    expect(Buffer.from(await res.arrayBuffer())).toEqual(
+      content.subarray(0, 1)
+    );
+  });
+
+  it("should serve an open ended range", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: "bytes=10-" },
+    });
+
+    expect(res.status).toEqual(206);
+    expect(res.headers.get("Content-Length")).toEqual(
+      String(content.length - 10)
+    );
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes 10-${content.length - 1}/${content.length}`
+    );
+  });
+
+  it("should serve a suffix range", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: "bytes=-100" },
+    });
+
+    expect(res.status).toEqual(206);
+    expect(res.headers.get("Content-Length")).toEqual("100");
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes ${content.length - 100}-${content.length - 1}/${content.length}`
+    );
+    expect(Buffer.from(await res.arrayBuffer())).toEqual(
+      content.subarray(-100)
+    );
+  });
+
+  it("should clamp a range that runs past the end of the file", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: `bytes=0-${content.length + 1000}` },
+    });
+
+    expect(res.status).toEqual(206);
+    expect(res.headers.get("Content-Length")).toEqual(String(content.length));
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes 0-${content.length - 1}/${content.length}`
+    );
+  });
+
+  it("should fail with status 416 when the range starts past the end of the file", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: `bytes=${content.length}-` },
+    });
+
+    expect(res.status).toEqual(416);
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes */${content.length}`
+    );
+  });
+
+  it("should serve the whole file when multiple ranges are requested", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: "bytes=0-1, 10-20" },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Length")).toEqual(String(content.length));
+  });
+});

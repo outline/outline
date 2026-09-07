@@ -27,6 +27,9 @@ import * as T from "./schema";
 
 const router = new Router();
 
+/** Returned when the requested range lies entirely outside of the file. */
+const unsatisfiable = Symbol("unsatisfiable");
+
 router.post(
   "files.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
@@ -158,7 +161,13 @@ router.get(
     // Handle byte range requests
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
     const stats = await (FileStorage as LocalStorage).stat(key);
-    const range = getByteRange(ctx, stats.size);
+    const range = getByteRange(ctx.headers.range, stats.size);
+
+    if (range === unsatisfiable) {
+      ctx.status = 416;
+      ctx.set("Content-Range", `bytes */${stats.size}`);
+      return;
+    }
 
     if (range) {
       ctx.status = 206;
@@ -175,22 +184,58 @@ router.get(
   }
 );
 
+/**
+ * Parses a single byte range from a Range header, resolved against the size of
+ * the file being requested.
+ *
+ * @param header The value of the Range header, if any.
+ * @param size The size of the file in bytes.
+ * @returns The range to serve, `unsatisfiable` if it lies outside of the file,
+ * or undefined if the entire file should be served.
+ */
 function getByteRange(
-  ctx: APIContext<T.FilesGetReq>,
+  header: string | undefined,
   size: number
-): { start: number; end: number } | undefined {
-  const { range } = ctx.headers;
-  if (!range) {
+): { start: number; end: number } | typeof unsatisfiable | undefined {
+  if (!header) {
     return;
   }
 
-  const match = range.match(/bytes=(\d+)-(\d+)?/);
+  // Only a single range is supported, requests for multiple ranges are served
+  // in full instead.
+  const match = header.trim().match(/^bytes=(\d*)-(\d*)$/);
   if (!match) {
     return;
   }
 
-  const start = parseInt(match[1], 10);
-  const end = parseInt(match[2], 10) || size - 1;
+  const [, first, last] = match;
+
+  if (size === 0) {
+    return unsatisfiable;
+  }
+
+  // A range with no start requests the final N bytes of the file.
+  if (first === "") {
+    const suffixLength = parseInt(last, 10);
+    if (isNaN(suffixLength)) {
+      return;
+    }
+    if (suffixLength === 0) {
+      return unsatisfiable;
+    }
+    return { start: Math.max(size - suffixLength, 0), end: size - 1 };
+  }
+
+  const start = parseInt(first, 10);
+  if (start >= size) {
+    return unsatisfiable;
+  }
+
+  // A range with no end, or one that runs past the file, ends at the last byte.
+  const end = last === "" ? size - 1 : Math.min(parseInt(last, 10), size - 1);
+  if (end < start) {
+    return unsatisfiable;
+  }
 
   return { start, end };
 }
