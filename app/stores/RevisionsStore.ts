@@ -29,6 +29,21 @@ export default class RevisionsStore extends Store<Revision> {
   }
 
   /**
+   * Loads the full content of a revision ahead of time when the user is
+   * likely to view it. Does nothing if the content is already loaded.
+   *
+   * @param id - The ID of the revision to prefetch.
+   * @returns A promise that resolves to the revision, or nothing if it was already loaded.
+   */
+  prefetch = async (id: string): Promise<Revision | void> => {
+    if (this.get(id)?.data) {
+      return;
+    }
+
+    return this.fetch(id);
+  };
+
+  /**
    * Retrieves all revisions for a given document ID
    *
    * @param documentId - The ID of the document to retrieve revisions for
