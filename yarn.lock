@@ -6848,12 +6848,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ioredis-mock@npm:^8.2.7":
-  version: 8.2.7
-  resolution: "@types/ioredis-mock@npm:8.2.7"
+"@types/ioredis-mock@npm:^8.2.8":
+  version: 8.2.8
+  resolution: "@types/ioredis-mock@npm:8.2.8"
   peerDependencies:
-    ioredis: ">=5"
-  checksum: 10c0/cb3b30815d099f4e4652290618a8dc84aadf101027f3b996b0045bad363e9355b05076477fbec31495faac7aae9463a30a6ae8d1a366702010dbf6acca6af1ae
+    ioredis: ^5
+  checksum: 10c0/af7a6546b2f43f4c8af4ef1deb453d1e436d901bd9e25d23b0e100b6170712ae38e72ca022fd12fa3616b4abe8ceee5a5b483db8774a99b3403ee3d2097fb9c6
   languageName: node
   linkType: hard
 
@@ -15581,7 +15581,7 @@ __metadata:
     "@types/glob": "npm:^8.0.1"
     "@types/google.analytics": "npm:^0.0.46"
     "@types/invariant": "npm:^2.2.37"
-    "@types/ioredis-mock": "npm:^8.2.7"
+    "@types/ioredis-mock": "npm:^8.2.8"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/jsdom": "npm:^28.0.1"
     "@types/jsonwebtoken": "npm:^8.5.9"
