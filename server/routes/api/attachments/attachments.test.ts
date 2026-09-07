@@ -226,21 +226,50 @@ describe("#attachments.create", () => {
       }
     });
 
-    it.each([AttachmentPreset.Import, AttachmentPreset.WorkspaceImport])(
-      "should not allow upload using %s preset",
-      async (preset) => {
-        const user = await buildUser();
-        const res = await server.post("/api/attachments.create", user, {
-          body: {
-            name: "test.zip",
-            contentType: "application/zip",
-            size: 10000,
-            preset,
-          },
-        });
-        expect(res.status).toEqual(403);
-      }
-    );
+    it("should not allow upload using workspaceImport preset", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.zip",
+          contentType: "application/zip",
+          size: 10000,
+          preset: AttachmentPreset.WorkspaceImport,
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should create expiring attachment using import preset", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.zip",
+          contentType: "application/zip",
+          size: 10000,
+          preset: AttachmentPreset.Import,
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeTruthy();
+    });
+
+    it("should not allow viewer to upload using import preset", async () => {
+      const user = await buildViewer();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.zip",
+          contentType: "application/zip",
+          size: 10000,
+          preset: AttachmentPreset.Import,
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
 
     it("should not allow attachment creation for other documents", async () => {
       const user = await buildUser();
