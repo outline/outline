@@ -103,11 +103,11 @@ router.post(
     if (preset === AttachmentPreset.Avatar) {
       assertIn(contentType, AttachmentValidation.avatarContentTypes);
     } else {
-      if (
-        preset === AttachmentPreset.Import ||
-        preset === AttachmentPreset.WorkspaceImport
-      ) {
+      if (preset === AttachmentPreset.WorkspaceImport) {
         authorize(user, "createImport", user.team);
+      }
+      if (preset === AttachmentPreset.Import) {
+        authorize(user, "createDocument", user.team);
       }
       if (preset === AttachmentPreset.Emoji) {
         assertIn(contentType, AttachmentValidation.emojiContentTypes);
