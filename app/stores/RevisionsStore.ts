@@ -52,19 +52,22 @@ export default class RevisionsStore extends Store<Revision> {
       return inflight;
     }
 
-    const promise = client
-      .post(`/revisions.info`, { documentId })
-      .then((res) =>
-        runInAction(() => {
-          this.addPolicies(res.policies);
-          return this.add(res.data);
-        })
-      )
-      .finally(() => {
-        this.requests.delete(id);
-      });
-
+    const promise = this.requestLatest(documentId);
     this.requests.set(id, promise);
-    return promise;
+
+    try {
+      return await promise;
+    } finally {
+      this.requests.delete(id);
+    }
   };
+
+  private async requestLatest(documentId: string): Promise<Revision> {
+    const res = await client.post(`/revisions.info`, { documentId });
+
+    return runInAction(() => {
+      this.addPolicies(res.policies);
+      return this.add(res.data);
+    });
+  }
 }
