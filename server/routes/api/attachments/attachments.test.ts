@@ -258,7 +258,7 @@ describe("#attachments.create", () => {
       expect(attachment.expiresAt).toBeTruthy();
     });
 
-    it("should not allow viewer to upload using import preset", async () => {
+    it("should allow viewer to upload using import preset", async () => {
       const user = await buildViewer();
       const res = await server.post("/api/attachments.create", user, {
         body: {
@@ -268,7 +268,13 @@ describe("#attachments.create", () => {
           preset: AttachmentPreset.Import,
         },
       });
-      expect(res.status).toEqual(403);
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeTruthy();
     });
 
     it("should not allow attachment creation for other documents", async () => {
