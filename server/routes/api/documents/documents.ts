@@ -792,7 +792,10 @@ router.post(
     const { id, startDate, endDate } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const document = await Document.findByPk(id, { userId: user.id });
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      includeContent: false,
+    });
     authorize(user, "listViews", document);
 
     if (!document.insightsEnabled) {
@@ -829,6 +832,7 @@ router.post(
     const actor = ctx.state.auth.user;
     const document = await Document.findByPk(id, {
       userId: actor.id,
+      includeContent: false,
     });
     authorize(actor, "read", document);
 
@@ -911,7 +915,10 @@ router.post(
   async (ctx: APIContext<T.DocumentsChildrenReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const document = await Document.findByPk(id, { userId: user.id });
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      includeContent: false,
+    });
 
     authorize(user, "read", document);
 
