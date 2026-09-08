@@ -137,8 +137,8 @@ function DataLoader({ match, children }: Props) {
   );
 
   React.useEffect(() => {
+    setError(null);
     if (revisionId) {
-      setError(null);
       void fetchRevisionById(revisionId, setError);
     }
   }, [fetchRevisionById, revisionId]);
