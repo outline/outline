@@ -139,14 +139,15 @@ export default class AuthStore extends Store<Team> {
       // Tabs write independently so a write can arrive after this tab has
       // already moved past it. Applying it would revert this tab's session and
       // the tabs would then keep signing each other in and out indefinitely.
+      // A write without a timestamp cannot be ordered, so it is ignored too.
       if (
-        newData.updatedAt !== undefined &&
+        newData.updatedAt === undefined ||
         newData.updatedAt <= this.persistedAt
       ) {
         return;
       }
 
-      this.persistedAt = newData.updatedAt ?? this.persistedAt;
+      this.persistedAt = newData.updatedAt;
       this.hasPersistedUser = !isNil(newData.user);
 
       // If we're not signed in then hydrate from the received data, otherwise if

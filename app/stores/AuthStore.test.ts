@@ -133,13 +133,13 @@ describe("AuthStore", () => {
       expect(tab.auth.authenticated).toBe(false);
     });
 
-    it("applies writes without a timestamp", () => {
+    it("ignores writes without a timestamp", () => {
       const tab = createTab();
       const { updatedAt, ...data } = signedIn(0);
 
       tab.receive(JSON.stringify(data));
 
-      expect(tab.auth.authenticated).toBe(true);
+      expect(tab.auth.authenticated).toBe(false);
     });
 
     it("converges when writes from two tabs cross", () => {
