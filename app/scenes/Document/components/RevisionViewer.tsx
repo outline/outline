@@ -118,6 +118,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   // extension — usually only arrives on a later render; without this neither
   // the highlights nor the change count would ever appear.
   const editorKey = [
+    revision.id,
     showChanges ? "changes" : "no-changes",
     compareToRevisionId ?? revision.before?.id ?? "none",
     comparisonData ? "loaded" : "pending",
