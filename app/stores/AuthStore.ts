@@ -28,7 +28,10 @@ import Store from "./base/Store";
 type PersistedData = Pick<
   AuthStore,
   "user" | "team" | "collaborationToken" | "availableTeams" | "policies"
->;
+> & {
+  /** When the data was written, used to order writes from different tabs. */
+  updatedAt?: number;
+};
 
 type Provider = {
   id: string;
@@ -93,6 +96,8 @@ export default class AuthStore extends Store<Team> {
 
     // attempt to load the previous state of this store from localstorage
     const data: PersistedData = Storage.get(this.name) || {};
+    this.persistedAt = data.updatedAt ?? 0;
+    this.hasPersistedUser = !isNil(data.user);
 
     this.rehydrate(data);
 
@@ -106,33 +111,56 @@ export default class AuthStore extends Store<Team> {
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
-      Storage.set(this.name, this.asJson);
+      const json = this.asJson;
+
+      // Writing a signed out state over storage that holds no session gains
+      // nothing and would sign out every other open tab.
+      if (isNil(json.user) && !this.hasPersistedUser) {
+        return;
+      }
+
+      this.persist(json);
     });
 
     // listen to the localstorage value changing in other tabs to react to
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
-      if (event.key === this.name && event.newValue) {
-        const newData: PersistedData | null = JSON.parse(event.newValue);
+      if (event.key !== this.name || !event.newValue) {
+        return;
+      }
 
-        // data may be null if key is deleted in localStorage
-        if (!newData) {
-          return;
-        }
+      const newData: PersistedData | null = JSON.parse(event.newValue);
 
-        // If we're not signed in then hydrate from the received data, otherwise if
-        // we are signed in and the received data contains no user then sign out
-        if (this.authenticated) {
-          if (isNil(newData.user)) {
-            void this.logout({
-              savePath: false,
-              clearCache: false,
-              revokeToken: false,
-            });
-          }
-        } else {
-          this.rehydrate(newData);
+      // data may be null if key is deleted in localStorage
+      if (!newData) {
+        return;
+      }
+
+      // Tabs write independently so a write can arrive after this tab has
+      // already moved past it. Applying it would revert this tab's session and
+      // the tabs would then keep signing each other in and out indefinitely.
+      if (
+        newData.updatedAt !== undefined &&
+        newData.updatedAt <= this.persistedAt
+      ) {
+        return;
+      }
+
+      this.persistedAt = newData.updatedAt ?? this.persistedAt;
+      this.hasPersistedUser = !isNil(newData.user);
+
+      // If we're not signed in then hydrate from the received data, otherwise if
+      // we are signed in and the received data contains no user then sign out
+      if (this.authenticated) {
+        if (isNil(newData.user)) {
+          void this.logout({
+            savePath: false,
+            clearCache: false,
+            revokeToken: false,
+          });
         }
+      } else {
+        this.rehydrate(newData);
       }
     });
   }
@@ -400,4 +428,20 @@ export default class AuthStore extends Store<Team> {
       void Desktop.bridge?.onLogout?.();
     }
   };
+
+  /**
+   * Writes the given state to storage, stamped so that it supersedes every
+   * write this tab has seen so far.
+   */
+  private persist(data: PersistedData) {
+    this.persistedAt = Math.max(Date.now(), this.persistedAt + 1);
+    this.hasPersistedUser = !isNil(data.user);
+    Storage.set(this.name, { ...data, updatedAt: this.persistedAt });
+  }
+
+  /** The timestamp of the last state written to, or accepted from, storage. */
+  private persistedAt = 0;
+
+  /** Whether the state in storage includes a signed in user. */
+  private hasPersistedUser = false;
 }
