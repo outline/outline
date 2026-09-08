@@ -71,6 +71,12 @@
   },
   "overrides": [
     {
+      "files": ["**/*.{ts,tsx}"],
+      "rules": {
+        "no-redeclare": "off"
+      }
+    },
+    {
       "files": ["**/*.{js,jsx,ts,tsx}"],
       "rules": {
         "eqeqeq": "error",
