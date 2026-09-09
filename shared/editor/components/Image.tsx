@@ -230,6 +230,7 @@ const Image = (props: Props) => {
           >
             <img
               className={EditorStyleHelper.imageHandle}
+              draggable={false}
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
