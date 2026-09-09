@@ -1,4 +1,4 @@
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
@@ -18,10 +18,9 @@ const ErrorExpiredLink = () => {
       <Heading>{t("Expired Link")}</Heading>
       <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
-          <Trans>
-            This Link has expired or has been deactivated. Please contact a
-            document admin to restore access.
-          </Trans>
+          {t(
+            "This Link has expired or has been deactivated. Please contact a document admin to restore access."
+          )}
         </Empty>
         <HStack>
           <Button action={navigateToHome} neutral hideIcon>

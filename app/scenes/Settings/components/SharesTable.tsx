@@ -124,16 +124,16 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           header: t("Expires"),
           accessor: (share) => share.expiresAt,
           component: (share) =>
-            share.expiresAt && new Date(share.expiresAt) <= new Date() ? (
+            share.isExpired ? (
               <Text type="danger">
-                {t("Expired")} <Time dateTime={share.expiresAt} addSuffix />
+                {t("Expired")} <Time dateTime={share.expiresAt!} addSuffix />
               </Text>
             ) : share.expiresAt ? (
               <Text type="tertiary">
                 {dateToExpiry(share.expiresAt, t, userLocale)}
               </Text>
             ) : (
-              <Text type="tertiary">{t("Never")}</Text>
+              <Text type="tertiary">{t("No expiry")}</Text>
             ),
           width: "2fr",
         },
