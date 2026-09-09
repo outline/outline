@@ -184,7 +184,7 @@
     "mobx-utils": "^6.1.1",
     "natural-sort": "^1.0.0",
     "node-fetch": "2.7.0",
-    "nodemailer": "^9.0.5",
+    "nodemailer": "^9.1.1",
     "octokit": "^5.0.5",
     "outline-icons": "^4.6.0",
     "oy-vey": "^0.12.1",
