@@ -22,7 +22,7 @@ const uploadPlaceholder = new Plugin({
           const $pos = tr.doc.resolve(action.add.pos);
           const nodeAfter = $pos.nodeAfter;
           if (!nodeAfter) {
-            return;
+            return set;
           }
 
           const deco = Decoration.node(

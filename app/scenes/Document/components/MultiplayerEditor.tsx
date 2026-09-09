@@ -290,11 +290,15 @@ function MultiplayerEditor(
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
+  // Read through a ref so the callback runs once per sync, not per identity.
+  const onSyncedRef = useRef(onSynced);
+  onSyncedRef.current = onSynced;
+
   useEffect(() => {
     if ((!hasLocalPersistence || isLocalSynced) && isRemoteSynced) {
-      void onSynced?.();
+      void onSyncedRef.current?.();
     }
-  }, [onSynced, hasLocalPersistence, isLocalSynced, isRemoteSynced]);
+  }, [hasLocalPersistence, isLocalSynced, isRemoteSynced]);
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.

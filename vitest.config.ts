@@ -113,7 +113,7 @@ export default defineConfig({
             jsdom: { url: "http://localhost" },
           },
           include: ["shared/**/*.test.{ts,tsx}"],
-          setupFiles: ["./__mocks__/window.js"],
+          setupFiles: ["./__mocks__/window.js", "./shared/test/setupJsdom.ts"],
         },
       },
     ],

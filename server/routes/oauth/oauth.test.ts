@@ -174,6 +174,23 @@ describe("#oauth.register", () => {
     expect(res.status).toEqual(201);
   });
 
+  it("should reject duplicate redirect_uris", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "Test Client",
+        redirect_uris: [
+          "https://example.com/callback",
+          "https://example.com/callback",
+        ],
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
   it("should reject too many redirect_uris and report the received count", async () => {
     const count = OAuthClientValidation.maxRedirectUris + 1;
     const res = await server.post("/oauth/register", {

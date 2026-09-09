@@ -319,7 +319,12 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
             label: t("Table"),
           },
           {
-            shortcut: <KeyboardShortcut keys={["```"]} />,
+            shortcut: (
+              <KeyboardShortcut
+                keys={["```", "space"]}
+                combination="sequence"
+              />
+            ),
             label: t("Code block"),
           },
           {

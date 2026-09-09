@@ -66,6 +66,7 @@ router.post(
     if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        includeContent: false,
       });
       authorize(user, "read", document);
       where = { ...where, documentId };

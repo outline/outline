@@ -343,7 +343,6 @@ function DocumentScene({
       <MeasuredContainer
         as={Background}
         name="container"
-        key={revision ? revision.id : document.id}
         column
         auto
         onDragOver={handleDragOver}
@@ -365,7 +364,6 @@ function DocumentScene({
             <SharedHeader document={document} />
           ) : (
             <Header
-              editorRef={editorRef}
               document={document}
               revision={revision}
               isDraft={document.isDraft}

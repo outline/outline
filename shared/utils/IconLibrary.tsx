@@ -607,6 +607,7 @@ export class IconLibrary {
 
 const FontAwesomeWrapper = styled.span<{ size: number }>`
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: ${(props) => props.size}px;

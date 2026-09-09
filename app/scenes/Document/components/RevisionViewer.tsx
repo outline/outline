@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { mergeRefs } from "react-merge-refs";
 import { colorPalette } from "@shared/constants";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -17,6 +18,7 @@ import useStores from "~/hooks/useStores";
 import { type Editor as TEditor } from "~/editor";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
+import { useDocumentContext } from "~/components/DocumentContext";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -42,6 +44,7 @@ type Props = Omit<EditorProps, "extensions"> & {
 function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
   const { revisions } = useStores();
+  const { setEditor, setTotalChanges } = useDocumentContext();
   const query = useQuery();
   const showChanges = props.showChanges ?? query.has("changes");
   const compareToParam = query.get("compareTo");
@@ -77,21 +80,37 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
 
   /**
    * Create editor extensions with the Diff extension configured to render
-   * the calculated changes as decorations in the editor.
+   * the calculated changes as decorations in the editor. The change count is
+   * derived from the same changeset so the indicator can render before the
+   * editor and its Diff extension have finished mounting.
    */
-  const extensions = React.useMemo(() => {
+  const { extensions, totalChanges } = React.useMemo(() => {
     const changeset = ChangesetHelper.getChangeset(
       revision.data,
       comparisonData
     );
-    return [
-      CodeWordBreak,
-      ...withComments(richExtensions),
-      ...(showChanges && changeset?.changes
-        ? [new Diff({ changes: changeset?.changes })]
-        : []),
-    ];
+    return {
+      extensions: [
+        CodeWordBreak,
+        ...withComments(richExtensions),
+        ...(showChanges && changeset?.changes
+          ? [new Diff({ changes: changeset?.changes })]
+          : []),
+      ],
+      totalChanges: showChanges
+        ? Diff.countChanges(changeset?.changes ?? null)
+        : 0,
+    };
   }, [revision.data, comparisonData, showChanges]);
+
+  // Publish the change count so the header indicator can render immediately,
+  // without waiting for the lazily-loaded editor to mount.
+  React.useEffect(() => {
+    setTotalChanges(totalChanges);
+  }, [totalChanges, setTotalChanges]);
+
+  // Reset the count on unmount so it does not linger on the live document.
+  React.useEffect(() => () => setTotalChanges(0), [setTotalChanges]);
 
   // The editor builds its extensions once, on mount, so it has to be remounted
   // whenever the diff configuration changes. Revisions are listed without their
@@ -99,9 +118,11 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   // extension — usually only arrives on a later render; without this neither
   // the highlights nor the change count would ever appear.
   const editorKey = [
+    revision.id,
     showChanges ? "changes" : "no-changes",
     compareToRevisionId ?? revision.before?.id ?? "none",
     comparisonData ? "loaded" : "pending",
+    revision.data ? "loaded" : "pending",
   ].join("-");
 
   return (
@@ -121,7 +142,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
       />
       <Editor
         key={editorKey}
-        ref={ref}
+        ref={mergeRefs([ref, setEditor])}
         defaultValue={revision.data}
         extensions={extensions}
         dir={revision.dir}

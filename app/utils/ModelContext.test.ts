@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import Logger from "~/utils/Logger";
 import {
   isModelContextSupported,
   registerModelContextTool,
@@ -86,6 +87,26 @@ describe("ModelContext", () => {
       );
 
       second.abort();
+    });
+
+    it("should not warn when a pending registration is aborted", async () => {
+      const warn = vi.spyOn(Logger, "warn").mockImplementation(() => {});
+      const registerTool = vi
+        .fn()
+        .mockRejectedValue(
+          new DOMException("signal is aborted without reason", "AbortError")
+        );
+      window.document.modelContext = { registerTool };
+
+      const controller = new AbortController();
+      expect(registerModelContextTool(makeTool("six"), controller.signal)).toBe(
+        true
+      );
+      controller.abort();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
     });
 
     it("should not register when the signal is already aborted", () => {

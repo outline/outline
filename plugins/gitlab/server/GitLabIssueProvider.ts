@@ -218,7 +218,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
           integration.changed("issueSources", true);
           await integration.save({ transaction });
         } else if (payload.user_id) {
-          await integration.destroy();
+          await integration.destroy({ transaction });
         }
       }
     });

@@ -1,4 +1,4 @@
-import { filter, find, orderBy, reduce } from "es-toolkit/compat";
+import { orderBy } from "es-toolkit/compat";
 import View from "~/models/View";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
@@ -12,7 +12,7 @@ export default class ViewsStore extends Store<View> {
 
   inDocument(documentId: string): View[] {
     return orderBy(
-      filter(this.orderedData, (view) => view.documentId === documentId),
+      this.orderedData.filter((view) => view.documentId === documentId),
       "lastViewedAt",
       "desc"
     );
@@ -20,12 +20,11 @@ export default class ViewsStore extends Store<View> {
 
   countForDocument(documentId: string): number {
     const views = this.inDocument(documentId);
-    return reduce(views, (memo, view) => memo + view.count, 0);
+    return views.reduce((memo, view) => memo + view.count, 0);
   }
 
   touch(documentId: string, userId: string) {
-    const view = find(
-      this.orderedData,
+    const view = this.orderedData.find(
       (view) => view.documentId === documentId && view.userId === userId
     );
     if (!view) {

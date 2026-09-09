@@ -11,7 +11,7 @@ import { getLangFor } from "@shared/utils/language";
 import { DocumentPreference } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
-import type Document from "~/models/Document";
+import Document from "~/models/Document";
 import type Template from "~/models/Template";
 import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -289,7 +289,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
           onDestroy={handleDestroy}
           onChange={updateDocState}
           headingPrefix={
-            "preferences" in document
+            document instanceof Document
               ? document.getPreference(DocumentPreference.HeadingPrefix)
               : undefined
           }

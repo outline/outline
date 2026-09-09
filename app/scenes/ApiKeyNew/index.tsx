@@ -83,7 +83,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         await apiKeys.create({
           name,
           expiresAt: expiresAt?.toISOString(),
-          scope: scope ? scope.split(" ") : undefined,
+          scope: scope ? scope.split(/[\s,]+/).filter(Boolean) : undefined,
         });
         toast.success(
           t(

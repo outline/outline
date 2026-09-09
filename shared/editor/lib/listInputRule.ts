@@ -30,6 +30,35 @@ export function listWrappingInputRule(
       return null;
     }
 
+    const { $from } = state.selection;
+    const itemType = state.schema.nodes.list_item;
+    const parent = $from.node(-1);
+    if (itemType && parent.type === itemType && $from.index(-1) === 0) {
+      // Wrapping a list item's first block creates an empty parent item whose
+      // marker overlaps the nested list marker. Convert or exit the current
+      // list instead.
+      const tr = state.tr.delete(start, end);
+      const after = state.apply(tr);
+      let handled = false;
+      let selection = after.selection;
+      toggleList(nodeType, itemType)(after, (toggleTr) => {
+        toggleTr.steps.forEach((step) => tr.step(step));
+        selection = toggleTr.selection;
+        handled = true;
+      });
+
+      if (!handled) {
+        return null;
+      }
+
+      tr.setSelection(
+        TextSelection.near(
+          tr.doc.resolve(Math.min(selection.from, tr.doc.content.size))
+        )
+      );
+      return tr;
+    }
+
     // Otherwise, execute the original wrappingInputRule handler
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (rule as any).handler(state, match, start, end);

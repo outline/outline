@@ -209,7 +209,11 @@ router.post(
 
     let comments, total;
     if (documentId) {
-      const document = await Document.findByPk(documentId, { userId: user.id });
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+        // The body is only needed to resolve anchor text for each comment.
+        includeContent: !!includeAnchorText,
+      });
       authorize(user, "read", document);
       [comments, total] = await Promise.all([
         Comment.findAll(params),

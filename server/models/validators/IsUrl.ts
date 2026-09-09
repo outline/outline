@@ -1,4 +1,4 @@
-import { isURL } from "class-validator";
+import isURL from "validator/lib/isURL";
 import { addAttributeOptions } from "sequelize-typescript";
 import env from "@server/env";
 

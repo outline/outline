@@ -274,6 +274,7 @@ export class Editor extends React.PureComponent<
    */
   public componentDidMount() {
     this.init();
+    this.handleEditorInit();
     window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
@@ -985,6 +986,8 @@ export class Editor extends React.PureComponent<
   };
 
   private handleEditorDestroy = () => {
+    this.isInitialized = false;
+
     if (!this.props.onDestroy) {
       return;
     }
@@ -1135,8 +1138,8 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.focusedCommentId}
-        ~ span.component-image
-        div.image-wrapper {
+      ~ span.component-image
+      div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1153,8 +1156,8 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.hoveredCommentId}
-        ~ span.component-image
-        div.image-wrapper {
+      ~ span.component-image
+      div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1167,9 +1170,11 @@ const EditorContainer = styled(Styles)<{
         background: ${props.theme.textHighlight};
 
         &.ProseMirror-selectednode {
-          outline-color: ${props.readOnly
-            ? "transparent"
-            : darken(0.2, props.theme.textHighlight)};
+          outline-color: ${
+            props.readOnly
+              ? "transparent"
+              : darken(0.2, props.theme.textHighlight)
+          };
         }
       }
     `}

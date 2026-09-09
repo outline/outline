@@ -69,8 +69,11 @@ class User extends ParanoidModel implements Searchable {
   /**
    * The last time the user was active. For the currently signed-in user, this
    * always returns the current date so they always appear as recently active.
+   *
+   * This accessor is not computed because `now` must use the caller's reactive
+   * context. This lets observed UI reads subscribe to clock updates and lets
+   * untracked model updates read the current time without a subscription.
    */
-  @computed
   get lastActiveAt(): string {
     if (this.store.rootStore.auth?.currentUserId === this.id) {
       return new Date(now(60000)).toISOString();

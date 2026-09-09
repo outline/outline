@@ -23,6 +23,25 @@ const buildCode = async () => {
 };
 
 describe("OAuthAuthorizationCode", () => {
+  describe("scope", () => {
+    it("should reject malformed scopes", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({ teamId: user.teamId });
+
+      await expect(
+        OAuthAuthorizationCode.create({
+          authorizationCodeHash: hash(crypto.randomBytes(32).toString("hex")),
+          scope: ["documents:read,documents:write"],
+          redirectUri: client.redirectUris[0],
+          oauthClientId: client.id,
+          userId: user.id,
+          expiresAt: new Date(Date.now() + 10000),
+          grantId: crypto.randomUUID(),
+        })
+      ).rejects.toThrow("Scope must be a valid API scope");
+    });
+  });
+
   describe("consume", () => {
     it("should consume the code once", async () => {
       const code = await buildCode();
