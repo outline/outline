@@ -71,9 +71,15 @@ if (env.isProduction) {
         // Hashed static assets get 1 year expiry plus immutable flag
         maxAge: Day.ms * 365,
         immutable: true,
-        setHeaders: (res) => {
+        setHeaders: (res, filePath) => {
           res.setHeader("Service-Worker-Allowed", "/");
           res.setHeader("Access-Control-Allow-Origin", "*");
+
+          // The service worker is not hashed and must always be revalidated
+          // so that browsers detect and install new versions.
+          if (path.basename(filePath) === "sw.js") {
+            res.setHeader("Cache-Control", "no-cache");
+          }
         },
       });
     } catch (err) {
