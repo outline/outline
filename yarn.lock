@@ -7119,15 +7119,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/nodemailer@npm:^6.4.23":
-  version: 6.4.24
-  resolution: "@types/nodemailer@npm:6.4.24"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/7e500ee7f34b3e7ea88e7363a1dc9d93ca70d762db42e729604805e9ce576d25bd2f3c92342506625e09a3a9fd9788502457356e94d054c17c553ab3575091db
-  languageName: node
-  linkType: hard
-
 "@types/oauth@npm:*":
   version: 0.9.6
   resolution: "@types/oauth@npm:0.9.6"
@@ -7794,14 +7785,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zone-eu/mailsplit@npm:5.4.15":
-  version: 5.4.15
-  resolution: "@zone-eu/mailsplit@npm:5.4.15"
+"@zone-eu/mailsplit@npm:5.4.16":
+  version: 5.4.16
+  resolution: "@zone-eu/mailsplit@npm:5.4.16"
   dependencies:
     libbase64: "npm:1.3.0"
-    libmime: "npm:5.4.2"
+    libmime: "npm:5.4.3"
     libqp: "npm:2.1.1"
-  checksum: 10c0/de5e82d8a7994cb01b2aef160ad2bf6eaad4508e1fef2cb7836a18acb448ca764dcb51fdd865ba7be15f57d7f39470f554270a529983a9cb59cd418175127ab9
+  checksum: 10c0/cce6b192897b819986a07b3b82a974ad8b4694261ba88cd5119444cb6e86686df7de1a3b89b35d6610051b19297b203f7e70d6e6ea1e46264fb6c111d9458e5c
   languageName: node
   linkType: hard
 
@@ -10536,10 +10527,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"encoding-japanese@npm:2.2.0":
-  version: 2.2.0
-  resolution: "encoding-japanese@npm:2.2.0"
-  checksum: 10c0/9d1f10dde16f59da8a8a1a04499dffa3e9926b0dbd7dfab8054570527b7e6de30c47e828851f42d2727af31586ec8049a84eeae593ad8b22eea10921fd269798
+"encoding-japanese@npm:2.3.0":
+  version: 2.3.0
+  resolution: "encoding-japanese@npm:2.3.0"
+  checksum: 10c0/5c58dfbbb9bd5fa74bbd3cafb0a210848f5044320a4e50b43bd023d5e6b4aaac78a61ea7064ae4a0cffe6162d84f746f4643c2f42c9dac08e1391cd74d2b6745
   languageName: node
   linkType: hard
 
@@ -12277,16 +12268,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"html-to-text@npm:10.0.0":
-  version: 10.0.0
-  resolution: "html-to-text@npm:10.0.0"
+"html-to-text@npm:10.0.1":
+  version: 10.0.1
+  resolution: "html-to-text@npm:10.0.1"
   dependencies:
     "@selderee/plugin-htmlparser2": "npm:~0.12.0"
-    deepmerge-ts: "npm:^7.1.5"
+    deepmerge-ts: "npm:^8.0.1"
     dom-serializer: "npm:^2.0.0"
     htmlparser2: "npm:^10.1.0"
     selderee: "npm:~0.12.0"
-  checksum: 10c0/fde3b3695ff1bf8ba71b5fb388734de941cf8ccd4c0e816add07104496e21b8f9f937058b35c69554e510af72a5fb582e8966daa165a350464faf97d0aa9e066
+  checksum: 10c0/e43826e0bed6baa7e168b342ccaca1376ad5fd7ae487c8fee8dd8c5a770269cd7270b40ed847e940e2487bf90a3e67036a52b7f8f8225090cd21fc86f610e830
   languageName: node
   linkType: hard
 
@@ -13385,18 +13376,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.1.0, js-yaml@npm:^4.3.1":
-  version: 4.3.1
-  resolution: "js-yaml@npm:4.3.1"
-  dependencies:
-    argparse: "npm:^2.0.1"
-  bin:
-    js-yaml: bin/js-yaml.js
-  checksum: 10c0/13c500ca322e0c3f8c81686e6ecda96d2ea37b45247a420c17c7db36932d6965cc27391abc2d1a104501600e7f0d947a5f8b7be6db619c4fefa87901b3512807
-  languageName: node
-  linkType: hard
-
-"js-yaml@npm:^4.3.2":
+"js-yaml@npm:^4.1.0, js-yaml@npm:^4.3.1, js-yaml@npm:^4.3.2":
   version: 4.3.2
   resolution: "js-yaml@npm:4.3.2"
   dependencies:
@@ -13917,15 +13897,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libmime@npm:5.4.2":
-  version: 5.4.2
-  resolution: "libmime@npm:5.4.2"
+"libmime@npm:5.4.3":
+  version: 5.4.3
+  resolution: "libmime@npm:5.4.3"
   dependencies:
-    encoding-japanese: "npm:2.2.0"
+    encoding-japanese: "npm:2.3.0"
     iconv-lite: "npm:0.7.3"
     libbase64: "npm:1.3.0"
     libqp: "npm:2.1.1"
-  checksum: 10c0/207d6f148be620243d1670db8a746d33686d79e8863a692b35f9351f221cce0b25ff8b18d95d054f8e7743a165d84ac3fec5998e0410c1e6a8ed003ce788b484
+  checksum: 10c0/e94e77b6404de0c57156217507db488eb48acab276777b8ebdd1badeb9a88ba749590dab412cc36acb6927bdf1757523bf70d1283f02295b5ab81abd76dfea9d
   languageName: node
   linkType: hard
 
@@ -14386,21 +14366,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mailparser@npm:^3.9.15":
-  version: 3.9.15
-  resolution: "mailparser@npm:3.9.15"
+"mailparser@npm:^3.9.20":
+  version: 3.9.22
+  resolution: "mailparser@npm:3.9.22"
   dependencies:
-    "@zone-eu/mailsplit": "npm:5.4.15"
-    encoding-japanese: "npm:2.2.0"
+    "@zone-eu/mailsplit": "npm:5.4.16"
+    encoding-japanese: "npm:2.3.0"
     he: "npm:1.2.0"
-    html-to-text: "npm:10.0.0"
+    html-to-text: "npm:10.0.1"
     iconv-lite: "npm:0.7.3"
-    libmime: "npm:5.4.2"
+    libmime: "npm:5.4.3"
     linkify-it: "npm:5.0.2"
-    nodemailer: "npm:9.0.5"
+    nodemailer: "npm:10.0.0"
     punycode.js: "npm:2.3.1"
     tlds: "npm:1.261.0"
-  checksum: 10c0/073681539404815d1fb3bd1b018fb7069f51f0e4cf1e0de1a0807ba4580429fb64e4b7e6413414f17942ed12330a51c31053b787c21fc9a2ff5c3b6225604d77
+  checksum: 10c0/a006d9e7ee4aa47bbc0a88b06c07d172b1409bc8cce7031f1b35cf6a0a46abe0e2643e6a603363b63b20b0ee46ec1e2d0571082da6c25da35c7d860182fa0977
   languageName: node
   linkType: hard
 
@@ -15170,17 +15150,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:9.0.5":
-  version: 9.0.5
-  resolution: "nodemailer@npm:9.0.5"
-  checksum: 10c0/60f7a21497c98c0d275cd12c488af581ef6aee65db575026319ac249dcac210bdab20edf77fe3158176ed3910f70d8c46d89abcd74f57a7170302727e6d05ee3
-  languageName: node
-  linkType: hard
-
-"nodemailer@npm:^9.1.1":
-  version: 9.1.1
-  resolution: "nodemailer@npm:9.1.1"
-  checksum: 10c0/b213a2a906697a735f6eb21103629b7a77aeac297b6d843efd4588157999bf6d19381853ac1224e472f5a34aec2e2412444151a2c6ec6e8c52150afa3055039c
+"nodemailer@npm:10.0.0, nodemailer@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "nodemailer@npm:10.0.0"
+  checksum: 10c0/917fb3a5c75e2a86917212c3e9083713a1e9c77abbddd7ab52c94deadd5fbd3ee4fe12ce5d87c7a7bc31dc5b8a29a09532872cf08c9bc489b0b0a3f0aa12aa8b
   languageName: node
   linkType: hard
 
@@ -15600,7 +15573,6 @@ __metadata:
     "@types/natural-sort": "npm:^0.0.24"
     "@types/node": "npm:20.19.43"
     "@types/node-fetch": "npm:^2.6.13"
-    "@types/nodemailer": "npm:^6.4.23"
     "@types/pako": "npm:^2.0.4"
     "@types/passport-oauth2": "npm:^1.8.0"
     "@types/pluralize": "npm:^0.0.33"
@@ -15697,7 +15669,7 @@ __metadata:
     koa-sslify: "npm:5.0.1"
     koa-useragent: "npm:^4.1.0"
     lint-staged: "npm:^16.4.0"
-    mailparser: "npm:^3.9.15"
+    mailparser: "npm:^3.9.20"
     mammoth: "npm:^1.11.0"
     markdown-it: "npm:^14.3.0"
     markdown-it-container: "npm:^3.0.0"
@@ -15710,7 +15682,7 @@ __metadata:
     msw: "npm:^2.14.2"
     natural-sort: "npm:^1.0.0"
     node-fetch: "npm:2.7.0"
-    nodemailer: "npm:^9.1.1"
+    nodemailer: "npm:^10.0.0"
     nodemon: "npm:^3.1.14"
     octokit: "npm:^5.0.5"
     outline-icons: "npm:^4.6.0"
