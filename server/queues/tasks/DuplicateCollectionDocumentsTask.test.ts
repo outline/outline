@@ -5,7 +5,6 @@ import {
   buildDraftDocument,
   buildUser,
 } from "@server/test/factories";
-import { getDocumentText } from "@server/test/support";
 import DuplicateCollectionDocumentsTask from "./DuplicateCollectionDocumentsTask";
 
 describe("DuplicateCollectionDocumentsTask", () => {
@@ -98,12 +97,11 @@ describe("DuplicateCollectionDocumentsTask", () => {
       (d) => d.sourceMetadata?.originalDocumentId === second.id
     );
 
-    const text = await getDocumentText(duplicatedFirst!.id);
-    expect(text).toContain(`(${duplicatedSecond?.path})`);
-    expect(text).toContain(
+    expect(duplicatedFirst?.text).toContain(`(${duplicatedSecond?.path})`);
+    expect(duplicatedFirst?.text).toContain(
       `(https://wiki.example.com${duplicatedSecond?.path})`
     );
-    expect(text).not.toContain(second.urlId);
+    expect(duplicatedFirst?.text).not.toContain(second.urlId);
   });
 
   it("should not duplicate drafts", async () => {

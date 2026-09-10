@@ -8,7 +8,7 @@ import {
   buildDocument,
   buildUser,
 } from "@server/test/factories";
-import { getDocumentText, withAPIContext } from "@server/test/support";
+import { withAPIContext } from "@server/test/support";
 import { generateUrlId } from "@server/utils/url";
 import documentDuplicator from "./documentDuplicator";
 
@@ -29,7 +29,7 @@ describe("documentDuplicator", () => {
 
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual(original.title);
-    expect(await getDocumentText(response[0].id)).toEqual(original.text);
+    expect(response[0].text).toEqual(original.text);
     expect(response[0].icon).toEqual(original.icon);
     expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
@@ -53,7 +53,7 @@ describe("documentDuplicator", () => {
 
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual("New title");
-    expect(await getDocumentText(response[0].id)).toEqual(original.text);
+    expect(response[0].text).toEqual(original.text);
     expect(response[0].icon).toEqual(original.icon);
     expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
@@ -137,7 +137,7 @@ describe("documentDuplicator", () => {
 
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual(original.title);
-    expect(await getDocumentText(response[0].id)).toEqual(original.text);
+    expect(response[0].text).toEqual(original.text);
     expect(response[0].icon).toEqual(original.icon);
     expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeNull();
@@ -251,18 +251,10 @@ describe("documentDuplicator", () => {
       (doc) => doc.sourceMetadata?.originalDocumentId === child2.id
     );
 
-    expect(await getDocumentText(duplicatedChild1!.id)).toContain(
-      duplicatedChild2!.path
-    );
-    expect(await getDocumentText(duplicatedChild1!.id)).toContain(
-      duplicatedParent!.path
-    );
-    expect(await getDocumentText(duplicatedChild1!.id)).not.toContain(
-      child2.urlId
-    );
-    expect(await getDocumentText(duplicatedChild1!.id)).not.toContain(
-      original.id
-    );
+    expect(duplicatedChild1!.text).toContain(duplicatedChild2!.path);
+    expect(duplicatedChild1!.text).toContain(duplicatedParent!.path);
+    expect(duplicatedChild1!.text).not.toContain(child2.urlId);
+    expect(duplicatedChild1!.text).not.toContain(original.id);
   });
 
   it("should remap mentions of documents in the duplicated tree", async () => {
@@ -359,8 +351,8 @@ describe("documentDuplicator", () => {
       })
     );
 
-    expect(await getDocumentText(response[0].id)).toContain(other.path);
-    expect(await getDocumentText(response[0].id)).toContain(
+    expect(response[0].text).toContain(other.path);
+    expect(response[0].text).toContain(
       `https://example.com/doc/${other.urlId}`
     );
   });
@@ -393,16 +385,10 @@ describe("documentDuplicator", () => {
       })
     );
 
-    expect(await getDocumentText(response[0].id)).toContain(
-      `(${response[0].path})`
-    );
-    expect(await getDocumentText(response[0].id)).toContain(
-      `(${env.URL}${response[0].path})`
-    );
-    expect(await getDocumentText(response[0].id)).toContain(
-      `<${env.URL}${response[0].path}>`
-    );
-    expect(await getDocumentText(response[0].id)).not.toContain(original.urlId);
+    expect(response[0].text).toContain(`(${response[0].path})`);
+    expect(response[0].text).toContain(`(${env.URL}${response[0].path})`);
+    expect(response[0].text).toContain(`<${env.URL}${response[0].path}>`);
+    expect(response[0].text).not.toContain(original.urlId);
   });
 
   it("should copy fullWidth property when duplicating document", async () => {

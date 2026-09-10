@@ -7,7 +7,7 @@ import { parser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { getDocumentText, withAPIContext } from "@server/test/support";
+import { withAPIContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
 describe("documentUpdater", () => {
@@ -130,7 +130,7 @@ describe("documentUpdater", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toEqual("Changed");
+      expect(document.text).toEqual("Changed");
       expect(document.content).toEqual({
         type: "doc",
         content: [
@@ -164,7 +164,7 @@ describe("documentUpdater", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toEqual("InitialAppended");
+      expect(document.text).toEqual("InitialAppended");
       expect(document.content).toMatchObject({
         type: "doc",
         content: [
@@ -279,7 +279,7 @@ describe("documentUpdater", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toEqual("Initial\n\nAppended");
+      expect(document.text).toEqual("Initial\n\nAppended");
       expect(document.content).toMatchObject({
         type: "doc",
         content: [
@@ -312,7 +312,7 @@ describe("documentUpdater", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toEqual("PrependedExisting");
+      expect(document.text).toEqual("PrependedExisting");
       expect(document.content).toMatchObject({
         type: "doc",
         content: [
@@ -375,9 +375,7 @@ describe("documentUpdater", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toEqual(
-        "Prepended\n\nExisting"
-      );
+      expect(document.text).toEqual("Prepended\n\nExisting");
       expect(document.content).toMatchObject({
         type: "doc",
         content: [

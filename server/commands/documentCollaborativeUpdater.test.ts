@@ -1,7 +1,6 @@
 import { Node } from "prosemirror-model";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import { schema } from "@server/editor";
-import { Document } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import documentCollaborativeUpdater from "./documentCollaborativeUpdater";
 
@@ -75,21 +74,17 @@ describe("documentCollaborativeUpdater", () => {
       clientVersion: "2.0.0",
     });
 
-    // Read the raw row, scopes omit the text column when content is present.
-    const updated = await Document.unscoped().findOne({
-      where: { id: document.id },
-      rejectOnEmpty: true,
-    });
+    await document.reload();
 
-    expect(updated.title).toEqual("Original title");
-    expect(updated.text).toEqual("Original markdown");
-    expect(updated.editorVersion).toEqual("2.0.0");
-    expect(updated.lastModifiedById).toEqual(collaborator.id);
-    expect(updated.collaboratorIds).toEqual(
+    expect(document.title).toEqual("Original title");
+    expect(document.text).toEqual("Original markdown");
+    expect(document.editorVersion).toEqual("2.0.0");
+    expect(document.lastModifiedById).toEqual(collaborator.id);
+    expect(document.collaboratorIds).toEqual(
       expect.arrayContaining([user.id, collaborator.id])
     );
-    expect(updated.revisionCount).toEqual(revisionCount + 1);
-    expect(updated.content?.content?.[0]?.content?.[0]?.text).toEqual(
+    expect(document.revisionCount).toEqual(revisionCount + 1);
+    expect(document.content?.content?.[0]?.content?.[0]?.text).toEqual(
       "Updated"
     );
   });

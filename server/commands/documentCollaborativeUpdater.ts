@@ -31,8 +31,6 @@ export default async function documentCollaborativeUpdater({
   isLastConnection,
   clientVersion,
 }: Props) {
-  // Serializing the collaborative state is CPU bound and independent of the
-  // database, so it runs before the row lock is taken to keep the lock short.
   const state = Y.encodeStateAsUpdate(ydoc);
 
   // Round-trip through the schema so the stored JSON is canonical. The raw
@@ -55,20 +53,32 @@ export default async function documentCollaborativeUpdater({
       transaction,
     });
 
-    const document = await Document.unscoped()
-      .scope("withoutState")
-      .findOne({
-        where: {
-          id: documentId,
-        },
-        transaction,
-        lock: {
-          of: Document,
-          level: transaction.LOCK.UPDATE,
-        },
-        rejectOnEmpty: true,
-        paranoid: false,
-      });
+    // Only the columns read below are selected, the deprecated markdown text
+    // and collaborative state can each be megabytes and are not needed here.
+    const document = await Document.unscoped().findOne({
+      attributes: [
+        "id",
+        "title",
+        "content",
+        "collaboratorIds",
+        "collectionId",
+        "deletedAt",
+        "editorVersion",
+        "lastModifiedById",
+        "revisionCount",
+        "teamId",
+      ],
+      where: {
+        id: documentId,
+      },
+      transaction,
+      lock: {
+        of: Document,
+        level: transaction.LOCK.UPDATE,
+      },
+      rejectOnEmpty: true,
+      paranoid: false,
+    });
 
     const isUnchanged = isEqual(document.content, content);
     const isDeleted = !!document.deletedAt;

@@ -9,7 +9,7 @@ import { afterEach, beforeEach, vi } from "vitest";
 import sharedEnv from "@shared/env";
 import { createContext } from "@server/context";
 import env from "@server/env";
-import { Document, type User } from "@server/models";
+import type { User } from "@server/models";
 import onerror from "@server/onerror";
 import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import webService from "@server/services/web";
@@ -18,21 +18,6 @@ import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import TestServer from "./TestServer";
-
-/**
- * Reads the stored markdown text of a document directly, as scopes omit the
- * column whenever content is present.
- *
- * @param id the document ID.
- * @returns the stored text, or null when the document does not exist.
- */
-export async function getDocumentText(id: string): Promise<string | null> {
-  const document = await Document.unscoped().findOne({
-    attributes: ["text"],
-    where: { id },
-  });
-  return document?.text ?? null;
-}
 
 export function getTestServer() {
   const app = webService();

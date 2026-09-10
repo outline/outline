@@ -6,7 +6,7 @@ import {
   buildFileOperation,
   buildTemplate,
 } from "@server/test/factories";
-import { getDocumentText, withAPIContext } from "@server/test/support";
+import { withAPIContext } from "@server/test/support";
 import documentCreator from "./documentCreator";
 
 describe("documentCreator", () => {
@@ -33,12 +33,8 @@ describe("documentCreator", () => {
       );
 
       expect(document.content).toEqual(testContent);
-      expect(await getDocumentText(document.id)).toContain(
-        "This is rich content"
-      );
-      expect(await getDocumentText(document.id)).not.toContain(
-        "This is plain text"
-      );
+      expect(document.text).toContain("This is rich content");
+      expect(document.text).not.toContain("This is plain text");
     });
 
     it("should use text when content is not provided", async () => {
@@ -58,9 +54,7 @@ describe("documentCreator", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toContain(
-        "This is plain text"
-      );
+      expect(document.text).toContain("This is plain text");
     });
 
     it("should create empty document when neither content nor text is provided", async () => {
@@ -77,7 +71,7 @@ describe("documentCreator", () => {
         })
       );
 
-      expect(await getDocumentText(document.id)).toBe("");
+      expect(document.text).toBe("");
       expect(document.title).toBe("Empty Document");
     });
   });
@@ -99,9 +93,7 @@ describe("documentCreator", () => {
       );
 
       expect(document.title).toBe("Test Document");
-      expect(await getDocumentText(document.id)).toContain(
-        "This is a test document"
-      );
+      expect(document.text).toContain("This is a test document");
       expect(document.collectionId).toBe(collection.id);
       expect(document.createdById).toBe(user.id);
       expect(document.lastModifiedById).toBe(user.id);
@@ -349,15 +341,9 @@ describe("documentCreator", () => {
       );
 
       // The custom emoji should be preserved in the text without escaping
-      expect(await getDocumentText(document.id)).toContain(
-        `:${customEmojiId}:`
-      );
-      expect(await getDocumentText(document.id)).not.toContain(
-        `\\:${customEmojiId}:`
-      );
-      expect(await getDocumentText(document.id)).not.toContain(
-        `\\:${customEmojiId}\\:`
-      );
+      expect(document.text).toContain(`:${customEmojiId}:`);
+      expect(document.text).not.toContain(`\\:${customEmojiId}:`);
+      expect(document.text).not.toContain(`\\:${customEmojiId}\\:`);
 
       // The JSON content should include an emoji node with the UUID
       expect(document.content).toBeDefined();
