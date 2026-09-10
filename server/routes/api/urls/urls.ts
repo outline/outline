@@ -15,7 +15,16 @@ import {
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import { Document, Share, Team, User, Group, GroupUser } from "@server/models";
+import {
+  Document,
+  Share,
+  Team,
+  User,
+  Group,
+  GroupUser,
+  Integration,
+} from "@server/models";
+import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
 import { authorize, can } from "@server/policies";
 import { loadPublicShare } from "@server/commands/shareLoader";
 import presentUnfurl from "@server/presenters/unfurl";
@@ -244,6 +253,17 @@ router.post(
   validate(T.UrlsCheckEmbedSchema),
   async (ctx: APIContext<T.UrlsCheckEmbedReq>) => {
     const { url } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    // An installation configured by an admin is trusted in the same way as the
+    // built-in embed providers, and may not be reachable from the server.
+    const integrations = await Integration.findEmbedIntegrationsForTeam(
+      user.teamId
+    );
+    if (IntegrationHelper.isConfiguredEmbedUrl(url, integrations)) {
+      ctx.body = { embeddable: true };
+      return;
+    }
 
     const result = await CacheHelper.getDataOrSet<EmbedCheckResult>(
       RedisPrefixHelper.getEmbedCheckKey(url),
