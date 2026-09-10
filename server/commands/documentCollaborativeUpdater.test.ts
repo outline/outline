@@ -47,7 +47,7 @@ describe("documentCollaborativeUpdater", () => {
     expect(text?.marks).toEqual([{ type: "strong" }]);
   });
 
-  it("updates only the collaborative columns", async () => {
+  it("updates collaborative fields and leaves other columns untouched", async () => {
     const user = await buildUser();
     const collaborator = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
