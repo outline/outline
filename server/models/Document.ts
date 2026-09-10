@@ -1214,6 +1214,46 @@ class Document extends ArchivableModel<
     return rows.map((row) => row.id);
   };
 
+  /**
+   * Calculate all parent document ids for this document by recursively
+   * following parentDocumentId references in one query.
+   *
+   * @param options the query options.
+   * @returns a promise that resolves to parent document ids, nearest first.
+   */
+  findAllParentDocumentIds = async (
+    options?: FindOptions<Document>
+  ): Promise<string[]> => {
+    if (!this.parentDocumentId) {
+      return [];
+    }
+
+    const paranoid = options?.paranoid ?? true;
+    const rows = await this.sequelize!.query<{ id: string }>(
+      `
+      WITH RECURSIVE parents AS (
+        SELECT documents.id, documents."parentDocumentId", 1 AS depth
+        FROM documents
+        WHERE documents.id = :parentDocumentId
+          ${paranoid ? 'AND documents."deletedAt" IS NULL' : ""}
+        UNION ALL
+        SELECT documents.id, documents."parentDocumentId", parents.depth + 1
+        FROM documents
+        INNER JOIN parents ON documents.id = parents."parentDocumentId"
+        ${paranoid ? 'WHERE documents."deletedAt" IS NULL' : ""}
+      )
+      SELECT id FROM parents ORDER BY depth
+      `,
+      {
+        replacements: { parentDocumentId: this.parentDocumentId },
+        transaction: options?.transaction,
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    return rows.map((row) => row.id);
+  };
+
   publish = async (
     ctx: APIContext,
     {
