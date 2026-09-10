@@ -123,6 +123,7 @@ class Integration<T = unknown> extends ParanoidModel<
           gitlab: settings?.gitlab,
           linear: settings?.linear,
           diagrams: settings?.diagrams,
+          kroki: settings?.kroki,
         };
       }
       case IntegrationType.Analytics: {
