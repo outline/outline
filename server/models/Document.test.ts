@@ -15,6 +15,7 @@ import {
   buildGuestUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import UserMembership from "./UserMembership";
@@ -257,6 +258,63 @@ describe("#findAllChildDocumentIds", () => {
     expect(
       await document.findAllChildDocumentIds(undefined, { paranoid: false })
     ).toEqual([child.id]);
+  });
+});
+
+describe("#findAllParentDocumentIds", () => {
+  test("should return empty array if there is no parent", async () => {
+    const document = await buildDocument();
+
+    expect(await document.findAllParentDocumentIds()).toEqual([]);
+  });
+
+  test("should return nested parent document ids in one query", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const grandchild = await buildDocument({
+      parentDocumentId: child.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+
+    const query = sequelize.query.bind(sequelize);
+    const spy = vi.spyOn(sequelize, "query").mockImplementation(query);
+    try {
+      const results = await grandchild.findAllParentDocumentIds();
+
+      expect(results).toEqual([child.id, parent.id]);
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  test("should stop at soft-deleted parents unless paranoid is false", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const grandchild = await buildDocument({
+      parentDocumentId: child.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    await child.destroy();
+
+    expect(await grandchild.findAllParentDocumentIds()).toEqual([]);
+    expect(
+      await grandchild.findAllParentDocumentIds({ paranoid: false })
+    ).toEqual([child.id, parent.id]);
   });
 });
 
