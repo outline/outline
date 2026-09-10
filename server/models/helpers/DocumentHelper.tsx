@@ -1,3 +1,4 @@
+import { escapeRegExp } from "es-toolkit/compat";
 import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
@@ -676,13 +677,13 @@ export class DocumentHelper {
       const { markdown, blockMap } =
         serializer.serializeWithPositions(existingDoc);
 
-      const matchIndex = markdown.indexOf(findText);
-      if (matchIndex === -1) {
+      const range = DocumentHelper.findMarkdownRange(markdown, findText);
+      if (!range) {
         throw ValidationError(
           "The specified text was not found in the document"
         );
       }
-      const matchEnd = matchIndex + findText.length;
+      const { matchIndex, matchEnd } = range;
 
       // Find which top-level blocks overlap the matched range
       const affected = blockMap.filter(
@@ -812,6 +813,38 @@ export class DocumentHelper {
     }
 
     return document;
+  }
+
+  /**
+   * Locate `findText` in serialized markdown. Exact match first; if that
+   * fails, treat a blank line and an empty-paragraph encoding (`\` on its
+   * own line) as equivalent block separators so client round-trips match.
+   */
+  private static findMarkdownRange(
+    markdown: string,
+    findText: string
+  ): { matchIndex: number; matchEnd: number } | null {
+    const exact = markdown.indexOf(findText);
+    if (exact !== -1) {
+      return { matchIndex: exact, matchEnd: exact + findText.length };
+    }
+
+    // Split on blank lines and `\`-escaped empty paragraphs, then allow
+    // either representation (and extra blank lines) between the chunks.
+    const chunks = findText.split(/\n(?:\\?\n)+/);
+    if (chunks.length === 1) {
+      return null;
+    }
+
+    const pattern = chunks
+      .map((chunk) => escapeRegExp(chunk))
+      .join("\\n(?:\\\\?\\n)+");
+    const match = new RegExp(pattern).exec(markdown);
+    if (!match) {
+      return null;
+    }
+
+    return { matchIndex: match.index, matchEnd: match.index + match[0].length };
   }
 
   /**
