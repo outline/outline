@@ -363,6 +363,7 @@ export default abstract class APIImportTask<
       ...ProsemirrorHelper.getImages(docNode),
       ...ProsemirrorHelper.getVideos(docNode),
       ...ProsemirrorHelper.getAttachments(docNode),
+      ...ProsemirrorHelper.getExternalFileLinks(docNode),
     ];
 
     if (!nodes.length) {
@@ -374,11 +375,20 @@ export default abstract class APIImportTask<
     // perf: dedup url.
     const attachmentsData = uniqBy(
       nodes.map((node) => {
+        const linkMark = node.marks.find((m) => m.type.name === "link");
         const url = String(
-          node.type.name === "attachment" ? node.attrs.href : node.attrs.src
+          node.type.name === "attachment"
+            ? node.attrs.href
+            : linkMark
+              ? linkMark.attrs.href
+              : node.attrs.src
         );
         const name = String(
-          node.type.name === "image" ? node.attrs.alt : node.attrs.title
+          node.type.name === "image"
+            ? node.attrs.alt
+            : linkMark
+              ? node.text
+              : node.attrs.title
         ).trim();
 
         return { url, name: name.length !== 0 ? name : node.type.name };
@@ -489,11 +499,30 @@ export default abstract class APIImportTask<
       const nodes: Node[] = [];
 
       fragment.forEach((node) => {
-        nodes.push(
-          attachmentTypes.includes(node.type.name)
-            ? transformAttachmentNode(node)
-            : node.copy(transformFragment(node.content))
-        );
+        if (attachmentTypes.includes(node.type.name)) {
+          nodes.push(transformAttachmentNode(node));
+        } else {
+          // Check for a text node whose link mark href needs rewriting.
+          const linkMark = node.marks.find((m) => m.type.name === "link");
+          const attachmentModel = linkMark
+            ? urlToAttachment[linkMark.attrs.href as string]
+            : undefined;
+          if (attachmentModel) {
+            const json = node.toJSON() as ProsemirrorData;
+            const markJson = (json.marks ?? []).find(
+              (m) => m.type === "link"
+            );
+            if (markJson) {
+              markJson.attrs = {
+                ...markJson.attrs,
+                href: attachmentModel.redirectUrl,
+              };
+            }
+            nodes.push(Node.fromJSON(schema, json));
+          } else {
+            nodes.push(node.copy(transformFragment(node.content)));
+          }
+        }
       });
 
       return Fragment.fromArray(nodes);
