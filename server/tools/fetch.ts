@@ -16,6 +16,8 @@ import { presentCollection } from "./collections";
 import { presentDocument } from "./documents";
 import { presentTemplate } from "./templates";
 import {
+  DEFAULT_FETCH_LIMIT,
+  MAX_FETCH_LIMIT,
   error,
   success,
   getActorFromContext,
@@ -23,6 +25,7 @@ import {
   getPublicShareUrlForCollection,
   getPublicShareUrlForDocument,
   pathToUrl,
+  sliceMarkdown,
   withTracing,
 } from "./util";
 
@@ -114,140 +117,192 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           .describe(
             'The unique identifier or URL. For users, "current_user" returns the authenticated user.'
           ),
+        offset: z.coerce
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe(
+            "The character offset to start reading document or template content from. Defaults to 0. Use together with limit to read long content in chunks."
+          ),
+        limit: z.coerce
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_FETCH_LIMIT)
+          .optional()
+          .describe(
+            "The maximum number of characters of document or template content to return. Defaults to 16000. When content is longer, the response is truncated and the returned metadata indicates how to continue."
+          ),
       },
     },
-    withTracing("fetch", async ({ resource, id: rawId }, extra) => {
-      try {
-        const actor = getActorFromContext(extra);
-        const id = extractId(rawId);
+    withTracing(
+      "fetch",
+      async ({ resource, id: rawId, offset, limit }, extra) => {
+        try {
+          const actor = getActorFromContext(extra);
+          const id = extractId(rawId);
+          const effectiveOffset = offset ?? 0;
+          const effectiveLimit = limit ?? DEFAULT_FETCH_LIMIT;
 
-        switch (resource) {
-          case "document": {
-            const document = await Document.findByPk(id, {
-              userId: actor.id,
-              rejectOnEmpty: true,
-            });
+          switch (resource) {
+            case "document": {
+              const document = await Document.findByPk(id, {
+                userId: actor.id,
+                rejectOnEmpty: true,
+              });
 
-            authorize(actor, "read", document);
+              authorize(actor, "read", document);
 
-            const [{ text, ...attributes }, breadcrumb, shareUrl] =
-              await Promise.all([
-                presentDocument(document, {
-                  includeData: false,
-                  includeText: true,
-                  includeUpdatedAt: true,
-                  includeCommentCount: true,
-                }),
-                getDocumentBreadcrumb(document, actor),
-                getPublicShareUrlForDocument(actor.team, document.id),
-              ]);
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify({
-                    document: pathToUrl(actor.team, attributes),
-                    ...(breadcrumb !== undefined && { breadcrumb }),
-                    ...(shareUrl !== undefined && { shareUrl }),
+              const [{ text, ...attributes }, breadcrumb, shareUrl] =
+                await Promise.all([
+                  presentDocument(document, {
+                    includeData: false,
+                    includeText: true,
+                    includeUpdatedAt: true,
+                    includeCommentCount: true,
                   }),
-                },
-                {
-                  type: "text" as const,
-                  text: typeof text === "string" ? text : "",
-                },
-              ],
-            } satisfies CallToolResult;
-          }
-
-          case "collection": {
-            const collection = await Collection.findByPk(id, {
-              userId: actor.id,
-              includeDocumentStructure: true,
-              rejectOnEmpty: true,
-            });
-
-            authorize(actor, "read", collection);
-
-            const [presented, shareUrl] = await Promise.all([
-              presentCollection(collection),
-              getPublicShareUrlForCollection(actor.team, collection.id),
-            ]);
-            return success([
-              {
-                ...pathToUrl(actor.team, presented),
-                ...(shareUrl !== undefined && { shareUrl }),
-              },
-              (collection.documentStructure ?? []).map((node) =>
-                presentNavigationNode(actor.team, node)
-              ),
-            ]);
-          }
-
-          case "user": {
-            const user = SELF_TOKENS.has(id.toLowerCase())
-              ? actor
-              : await User.findByPk(id, { rejectOnEmpty: true });
-
-            authorize(actor, "read", user);
-
-            return success(
-              presentUser(user, {
-                includeEmail: !!can(actor, "readEmail", user),
-                includeDetails: !!can(actor, "readDetails", user),
-              })
-            );
-          }
-
-          case "attachment": {
-            const attachment = await Attachment.findByPk(id, {
-              rejectOnEmpty: true,
-            });
-
-            // Private attachments are accessible to any member of the workspace they
-            // belong to. This is intentional and not a permission bypass – attachments
-            // are owned by the workspace (team), not by individual documents or users.
-            if (attachment.teamId !== actor?.teamId) {
-              throw AuthorizationError();
+                  getDocumentBreadcrumb(document, actor),
+                  getPublicShareUrlForDocument(actor.team, document.id),
+                ]);
+              const fullText = typeof text === "string" ? text : "";
+              const slicedText = sliceMarkdown(
+                fullText,
+                effectiveOffset,
+                effectiveLimit
+              );
+              const textLength = fullText.length;
+              const truncated =
+                effectiveOffset + slicedText.length < textLength;
+              return {
+                content: [
+                  {
+                    type: "text" as const,
+                    text: JSON.stringify({
+                      document: pathToUrl(actor.team, attributes),
+                      ...(breadcrumb !== undefined && { breadcrumb }),
+                      ...(shareUrl !== undefined && { shareUrl }),
+                      textLength,
+                      truncated,
+                      ...(truncated && {
+                        nextOffset: effectiveOffset + slicedText.length,
+                      }),
+                    }),
+                  },
+                  {
+                    type: "text" as const,
+                    text: slicedText,
+                  },
+                ],
+              } satisfies CallToolResult;
             }
 
-            return success({
-              id: attachment.id,
-              name: attachment.name,
-              contentType: attachment.contentType,
-              size: attachment.size,
-              signedUrl: await attachment.signedUrl,
-            });
-          }
+            case "collection": {
+              const collection = await Collection.findByPk(id, {
+                userId: actor.id,
+                includeDocumentStructure: true,
+                rejectOnEmpty: true,
+              });
 
-          case "template": {
-            const template = await Template.findByPk(id, {
-              userId: actor.id,
-              rejectOnEmpty: true,
-            });
+              authorize(actor, "read", collection);
 
-            authorize(actor, "read", template);
-
-            const { text, ...attributes } = await presentTemplate(template);
-            return {
-              content: [
+              const [presented, shareUrl] = await Promise.all([
+                presentCollection(collection),
+                getPublicShareUrlForCollection(actor.team, collection.id),
+              ]);
+              return success([
                 {
-                  type: "text" as const,
-                  text: JSON.stringify(pathToUrl(actor.team, attributes)),
+                  ...pathToUrl(actor.team, presented),
+                  ...(shareUrl !== undefined && { shareUrl }),
                 },
-                {
-                  type: "text" as const,
-                  text,
-                },
-              ],
-            } satisfies CallToolResult;
-          }
+                (collection.documentStructure ?? []).map((node) =>
+                  presentNavigationNode(actor.team, node)
+                ),
+              ]);
+            }
 
-          default:
-            return error(`Unknown resource: ${resource}`);
+            case "user": {
+              const user = SELF_TOKENS.has(id.toLowerCase())
+                ? actor
+                : await User.findByPk(id, { rejectOnEmpty: true });
+
+              authorize(actor, "read", user);
+
+              return success(
+                presentUser(user, {
+                  includeEmail: !!can(actor, "readEmail", user),
+                  includeDetails: !!can(actor, "readDetails", user),
+                })
+              );
+            }
+
+            case "attachment": {
+              const attachment = await Attachment.findByPk(id, {
+                rejectOnEmpty: true,
+              });
+
+              // Private attachments are accessible to any member of the workspace they
+              // belong to. This is intentional and not a permission bypass – attachments
+              // are owned by the workspace (team), not by individual documents or users.
+              if (attachment.teamId !== actor?.teamId) {
+                throw AuthorizationError();
+              }
+
+              return success({
+                id: attachment.id,
+                name: attachment.name,
+                contentType: attachment.contentType,
+                size: attachment.size,
+                signedUrl: await attachment.signedUrl,
+              });
+            }
+
+            case "template": {
+              const template = await Template.findByPk(id, {
+                userId: actor.id,
+                rejectOnEmpty: true,
+              });
+
+              authorize(actor, "read", template);
+
+              const { text, ...attributes } = await presentTemplate(template);
+              const fullText = text;
+              const slicedText = sliceMarkdown(
+                fullText,
+                effectiveOffset,
+                effectiveLimit
+              );
+              const textLength = fullText.length;
+              const truncated =
+                effectiveOffset + slicedText.length < textLength;
+              return {
+                content: [
+                  {
+                    type: "text" as const,
+                    text: JSON.stringify({
+                      ...pathToUrl(actor.team, attributes),
+                      textLength,
+                      truncated,
+                      ...(truncated && {
+                        nextOffset: effectiveOffset + slicedText.length,
+                      }),
+                    }),
+                  },
+                  {
+                    type: "text" as const,
+                    text: slicedText,
+                  },
+                ],
+              } satisfies CallToolResult;
+            }
+
+            default:
+              return error(`Unknown resource: ${resource}`);
+          }
+        } catch (message) {
+          return error(message);
         }
-      } catch (message) {
-        return error(message);
       }
-    })
+    )
   );
 }
