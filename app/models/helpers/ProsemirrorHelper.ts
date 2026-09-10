@@ -4,6 +4,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
+import { decodeURIComponentSafe } from "~/utils/urls";
 
 interface HasData {
   data: ProsemirrorData;
@@ -44,5 +45,21 @@ export class ProsemirrorHelper {
       Node.fromJSON(schema, document.data)
     );
     return text;
+  };
+
+  /**
+   * Returns the title of the heading that an anchor id points at in the document.
+   *
+   * @param document the document the anchor points into.
+   * @param anchorId the anchor id from a link to a heading in that document.
+   * @returns the heading title, or undefined if the document has no such heading.
+   */
+  static getHeadingTitle = (document: HasData, anchorId: string) => {
+    const doc = Node.fromJSON(schema, document.data);
+    const id = decodeURIComponentSafe(anchorId);
+
+    return SharedProsemirrorHelper.getHeadings(doc).find(
+      (heading) => heading.id === id
+    )?.title;
   };
 }

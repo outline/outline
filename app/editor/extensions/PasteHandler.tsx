@@ -11,6 +11,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import { documentMentionAttrs } from "@shared/editor/lib/mention";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { isInCode } from "@shared/editor/queries/isInCode";
@@ -21,6 +22,7 @@ import { determineIconType } from "@shared/utils/icon";
 import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import stores from "~/stores";
 import { PasteMenu } from "../components/PasteMenu";
 
@@ -138,10 +140,23 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (document) {
-                          if (state.schema.nodes.mention) {
-                            const { hash } = new URL(trimmedText);
-                            const trimmedHash = hash.substring(1);
+                          const { hash } = new URL(trimmedText);
+                          const pastedAnchorId = hash.substring(1) || undefined;
+                          const heading =
+                            pastedAnchorId && document.data
+                              ? ProsemirrorHelper.getHeadingTitle(
+                                  document,
+                                  pastedAnchorId
+                                )
+                              : undefined;
+                          const { label, anchorId } = documentMentionAttrs({
+                            title: document.titleWithDefault,
+                            heading,
+                            anchorId: pastedAnchorId,
+                            sameDocument: document.id === this.editor.props.id,
+                          });
 
+                          if (state.schema.nodes.mention) {
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
@@ -149,23 +164,18 @@ export default class PasteHandler extends Extension {
                                 state.schema.nodes.mention.create({
                                   type: MentionType.Document,
                                   modelId: document.id,
-                                  label: document.titleWithDefault,
+                                  label,
                                   id: uuidv4(),
-                                  anchorId: trimmedHash.length
-                                    ? trimmedHash
-                                    : undefined,
+                                  anchorId,
                                 })
                               )
                             );
                           } else {
-                            const { hash } = new URL(trimmedText);
                             const hasEmoji =
                               determineIconType(document.icon) ===
                               IconType.Emoji;
 
-                            const title = `${hasEmoji ? document.icon + " " : ""}${
-                              document.titleWithDefault
-                            }`;
+                            const title = `${hasEmoji ? document.icon + " " : ""}${label}`;
 
                             this.insertLink(`${document.path}${hash}`, title);
                           }
