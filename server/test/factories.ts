@@ -56,6 +56,7 @@ import { SearchQuerySource } from "@server/models/SearchQuery";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { hash } from "@server/utils/crypto";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
+import { createContext } from "@server/context";
 
 export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
   if (!overrides.userId) {
@@ -427,7 +428,7 @@ export async function buildDocument(
         })
       : undefined;
 
-    await collection?.addDocumentToStructure(document, 0);
+    await collection?.addDocumentToStructure(createContext({}), document, 0);
   }
 
   return document;
@@ -661,7 +662,7 @@ export async function buildDocumentWithAttachment(
     title: "Test",
     text: `![image](${attachment.redirectUrl})`,
   });
-  await collection.addDocumentToStructure(document);
+  await collection.addDocumentToStructure(createContext({}), document);
 
   const fileOperation = await buildFileOperation({ teamId, userId });
 

@@ -61,9 +61,8 @@ async function documentRestorer(
 
   if (sourceCollectionId && sourceCollectionId !== destCollection.id) {
     authorize(user, "updateDocument", srcCollection);
-    await srcCollection?.removeDocumentInStructure(document, {
+    await srcCollection?.removeDocumentInStructure(ctx, document, {
       save: true,
-      transaction,
     });
   }
 

@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import { adjustIndexForMove } from "@shared/utils/collections";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
 import type { APIContext } from "@server/types";
@@ -34,6 +35,8 @@ async function documentMover(
   const { transaction } = ctx.state;
 
   const collectionChanged = collectionId !== document.collectionId;
+  const isSameParent =
+    document.parentDocumentId === parentDocumentId && !collectionChanged;
   const previousCollectionId = document.collectionId;
   const result: Result = {
     collections: [],
@@ -62,10 +65,13 @@ async function documentMover(
 
   if (document.publishedAt) {
     // Remove the document from the current collection
-    const response = await collection?.removeDocumentInStructure(document, {
-      transaction,
-      save: collectionChanged,
-    });
+    const response = await collection?.removeDocumentInStructure(
+      ctx,
+      document,
+      {
+        save: collectionChanged,
+      }
+    );
 
     let documentJson = response?.[0];
     const fromIndex = response?.[1] || 0;
@@ -74,17 +80,10 @@ async function documentMover(
       documentJson = await document.toNavigationNode({ transaction });
     }
 
-    // if we're reordering from within the same parent
-    // the original and destination collection are the same,
-    // so when the initial item is removed above, the list will reduce by 1.
-    // We need to compensate for this when reordering
     const toIndex =
-      index !== undefined &&
-      document.parentDocumentId === parentDocumentId &&
-      document.collectionId === collectionId &&
-      fromIndex < index
-        ? index - 1
-        : index;
+      index === undefined
+        ? undefined
+        : adjustIndexForMove(index, fromIndex, isSameParent);
 
     // Update the properties on the document record, this must be done after
     // the toIndex is calculated above
@@ -92,19 +91,30 @@ async function documentMover(
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+    // Moving out of all collections converts the document to a draft, remember the position it
+    // held so that it can be restored if published again.
+    document.index = collectionId ? null : fromIndex;
 
     if (newCollection) {
       // Add the document and it's tree to the new collection
-      await newCollection.addDocumentToStructure(document, toIndex, {
+      await newCollection.addDocumentToStructure(ctx, document, toIndex, {
         documentJson,
-        transaction,
       });
     }
   } else {
+    // Drafts are not in the document structure, so their position is stored on the document
+    // itself. The index arrives relative to a list that the draft is rendered within.
+    const toIndex =
+      index === undefined
+        ? undefined
+        : adjustIndexForMove(index, document.index ?? 0, isSameParent);
+
     document.collectionId = collectionId;
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+    // Without an explicit index the draft falls back to the top of its new parent.
+    document.index = toIndex ?? null;
   }
 
   if (collection && document.publishedAt) {

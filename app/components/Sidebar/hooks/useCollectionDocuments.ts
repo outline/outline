@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit";
 import { useMemo } from "react";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type Collection from "~/models/Collection";
@@ -21,18 +22,20 @@ export default function useCollectionDocuments(
   const draftNavNode = insertDraftDocument
     ? activeDocument?.asNavigationNode
     : undefined;
+  const draftIndex = insertDraftDocument ? activeDocument?.index : undefined;
 
   return useMemo(() => {
     if (!collection?.sortedDocuments) {
       return undefined;
     }
 
-    return draftNavNode
-      ? sortNavigationNodes(
-          [draftNavNode, ...collection.sortedDocuments],
-          collection.sort,
-          false
-        )
-      : collection.sortedDocuments;
-  }, [draftNavNode, collection?.sortedDocuments, collection?.sort]);
+    if (!draftNavNode) {
+      return collection.sortedDocuments;
+    }
+
+    const nodes = [...collection.sortedDocuments];
+    nodes.splice(clamp(draftIndex ?? 0, 0, nodes.length), 0, draftNavNode);
+
+    return sortNavigationNodes(nodes, collection.sort, false);
+  }, [draftNavNode, draftIndex, collection?.sortedDocuments, collection?.sort]);
 }

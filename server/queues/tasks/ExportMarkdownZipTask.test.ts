@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import { vi } from "vitest";
 import FileStorage from "@server/storage/files";
 import ZipHelper from "@server/utils/ZipHelper";
+import { createContext } from "@server/context";
 import {
   buildCollection,
   buildDocument,
@@ -40,7 +41,7 @@ describe("ExportMarkdownZipTask", () => {
       }),
     ]);
     for (const document of documents) {
-      await collection.addDocumentToStructure(document);
+      await collection.addDocumentToStructure(createContext({}), document);
     }
     const fileOperation = await buildFileOperation({
       teamId: team.id,

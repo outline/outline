@@ -14,6 +14,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { buildZip } from "@server/test/support";
+import { createContext } from "@server/context";
 import ExportTextBundleZipTask from "./ExportTextBundleZipTask";
 
 /** A 1x1 transparent PNG, used as attachment contents in the round trip. */
@@ -40,7 +41,7 @@ describe("ExportTextBundleZipTask", () => {
       collectionId: collection.id,
       title: "Parent",
     });
-    await collection.addDocumentToStructure(parent);
+    await collection.addDocumentToStructure(createContext({}), parent);
     const child = await buildDocument({
       teamId: team.id,
       userId: user.id,
@@ -48,7 +49,7 @@ describe("ExportTextBundleZipTask", () => {
       parentDocumentId: parent.id,
       title: "Child",
     });
-    await collection.addDocumentToStructure(child);
+    await collection.addDocumentToStructure(createContext({}), child);
 
     const fileOperation = await buildFileOperation({
       teamId: team.id,
@@ -143,7 +144,7 @@ describe("ExportTextBundleZipTask", () => {
       collectionId: collection.id,
       title: "Target",
     });
-    await collection.addDocumentToStructure(target);
+    await collection.addDocumentToStructure(createContext({}), target);
     const source = await buildDocument({
       teamId: team.id,
       userId: user.id,
@@ -151,7 +152,7 @@ describe("ExportTextBundleZipTask", () => {
       title: "Source",
       text: `See [Target](${target.url})`,
     });
-    await collection.addDocumentToStructure(source);
+    await collection.addDocumentToStructure(createContext({}), source);
 
     const fileOperation = await buildFileOperation({
       teamId: team.id,
@@ -193,7 +194,7 @@ describe("ExportTextBundleZipTask", () => {
       icon: "🚀",
       text: `![image](${attachment.redirectUrl})`,
     });
-    await collection.addDocumentToStructure(document);
+    await collection.addDocumentToStructure(createContext({}), document);
     const fileOperation = await buildFileOperation({
       teamId: team.id,
       userId: user.id,
