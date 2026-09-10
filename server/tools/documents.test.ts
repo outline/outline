@@ -16,7 +16,7 @@ import {
   UserMembership,
 } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
-import { getTestServer } from "@server/test/support";
+import { getDocumentText, getTestServer } from "@server/test/support";
 import {
   buildOAuthUser,
   callMcpTool,
@@ -437,8 +437,10 @@ describe("create_document", () => {
 
     const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
     expect(document.collectionId).toEqual(collection.id);
-    expect(document.text).toContain("Hello **HTML**");
-    expect(document.text).toContain("/api/attachments.redirect?id=");
+    expect(await getDocumentText(document.id)).toContain("Hello **HTML**");
+    expect(await getDocumentText(document.id)).toContain(
+      "/api/attachments.redirect?id="
+    );
   });
 
   it("creates nested under parent document", async () => {
@@ -493,7 +495,9 @@ describe("create_document", () => {
 
     const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
     expect(document.templateId).toEqual(template.id);
-    expect(document.text).toContain("Content from the template");
+    expect(await getDocumentText(document.id)).toContain(
+      "Content from the template"
+    );
   });
 
   it("defaults the title to the template title", async () => {
@@ -628,7 +632,7 @@ describe("update_document", () => {
     expect(res?.result?.content?.length).toEqual(1);
 
     await document.reload();
-    expect(document.text).toContain("Updated content");
+    expect(await getDocumentText(document.id)).toContain("Updated content");
   });
 
   it("returns the resulting content when patching", async () => {
@@ -677,8 +681,7 @@ describe("update_document", () => {
       "The update resulted in no changes to the document"
     );
 
-    const reloaded = await Document.unscoped().findByPk(document.id);
-    expect(reloaded?.text).toEqual("original text");
+    expect(await getDocumentText(document.id)).toEqual("original text");
   });
 
   it("errors when provided fields are identical to the current document", async () => {

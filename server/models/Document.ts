@@ -98,6 +98,21 @@ const stateIfContentEmpty: ProjectionAlias = [
   "state",
 ];
 
+// The deprecated markdown text is only read as a fallback when content is null,
+// and can be as large as the content itself, so it is loaded under the same condition.
+const textIfContentEmpty: ProjectionAlias = [
+  Sequelize.literal(
+    `CASE WHEN document.content IS NULL THEN document.text ELSE NULL END`
+  ),
+  "text",
+];
+
+// Attributes shared by scopes that do not need the large content columns.
+const attributesWithoutState = {
+  exclude: ["state", "text"],
+  include: [stateIfContentEmpty, textIfContentEmpty],
+};
+
 type AdditionalFindOptions = {
   /** The user ID to load associated permissions for. */
   userId?: string;
@@ -148,17 +163,11 @@ interface QueryGeneratorWithWhere {
     },
     template: false,
   },
-  attributes: {
-    exclude: ["state"],
-    include: [stateIfContentEmpty],
-  },
+  attributes: attributesWithoutState,
 }))
 @Scopes(() => ({
   withoutState: {
-    attributes: {
-      exclude: ["state"],
-      include: [stateIfContentEmpty],
-    },
+    attributes: attributesWithoutState,
   },
   withoutContent: {
     attributes: {

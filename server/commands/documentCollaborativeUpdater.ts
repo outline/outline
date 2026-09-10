@@ -55,32 +55,20 @@ export default async function documentCollaborativeUpdater({
       transaction,
     });
 
-    // Only the columns read below are selected, the deprecated markdown text
-    // and collaborative state can each be megabytes and are not needed here.
-    const document = await Document.unscoped().findOne({
-      attributes: [
-        "id",
-        "title",
-        "content",
-        "collaboratorIds",
-        "collectionId",
-        "deletedAt",
-        "editorVersion",
-        "lastModifiedById",
-        "revisionCount",
-        "teamId",
-      ],
-      where: {
-        id: documentId,
-      },
-      transaction,
-      lock: {
-        of: Document,
-        level: transaction.LOCK.UPDATE,
-      },
-      rejectOnEmpty: true,
-      paranoid: false,
-    });
+    const document = await Document.unscoped()
+      .scope("withoutState")
+      .findOne({
+        where: {
+          id: documentId,
+        },
+        transaction,
+        lock: {
+          of: Document,
+          level: transaction.LOCK.UPDATE,
+        },
+        rejectOnEmpty: true,
+        paranoid: false,
+      });
 
     const isUnchanged = isEqual(document.content, content);
     const isDeleted = !!document.deletedAt;

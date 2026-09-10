@@ -597,6 +597,24 @@ describe("#findByPk", () => {
     expect(response?.content).toBeTruthy();
     expect(response?.state).toBeNull();
   });
+
+  it("should load text as a fallback when content is empty", async () => {
+    const document = await buildDocument({ text: "# Heading" });
+    await Document.unscoped().update(
+      { content: null },
+      { where: { id: document.id }, hooks: false, silent: true }
+    );
+
+    const response = await Document.findByPk(document.id);
+    expect(response?.text).toEqual("# Heading");
+  });
+
+  it("should not load text when content is available", async () => {
+    const document = await buildDocument({ text: "# Heading" });
+    const response = await Document.findByPk(document.id);
+    expect(response?.content).toBeTruthy();
+    expect(response?.text).toBeNull();
+  });
 });
 
 describe("findByIds", () => {
