@@ -10,6 +10,7 @@ import type { Command, EditorState, Transaction } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import toggleWrap from "../commands/toggleWrap";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import noticesRule from "../rules/notices";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
@@ -125,19 +126,23 @@ export default class Notice extends Node {
   ): boolean => {
     const { tr, selection } = state;
     const { $from } = selection;
-    const node = $from.node(-1);
+    const notice = findParentNodeClosestToPos(
+      $from,
+      (node) => node.type === state.schema.nodes.container_notice
+    );
 
-    if (node?.type.name === this.name) {
-      if (dispatch) {
-        const transaction = tr.setNodeMarkup($from.before(-1), undefined, {
-          ...node.attrs,
-          style,
-        });
-        dispatch(transaction);
-      }
-      return true;
+    if (!notice) {
+      return false;
     }
-    return false;
+
+    if (dispatch) {
+      const transaction = tr.setNodeMarkup(notice.pos, undefined, {
+        ...notice.node.attrs,
+        style,
+      });
+      dispatch(transaction);
+    }
+    return true;
   };
 
   component = (props: ComponentProps) => {
