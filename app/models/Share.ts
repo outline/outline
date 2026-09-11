@@ -8,6 +8,7 @@ import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 import type { Searchable } from "./interfaces/Searchable";
+import { isPast } from "date-fns";
 
 class Share extends Model implements Searchable {
   static modelName = "Share";
@@ -26,6 +27,10 @@ class Share extends Model implements Searchable {
   @Field
   @observable
   includeChildDocuments: boolean;
+
+  @Field
+  @observable
+  expiresAt: string | null;
 
   /** The document ID that is shared. */
   @Field
@@ -103,6 +108,12 @@ class Share extends Model implements Searchable {
   /** The user that shared the document. */
   @Relation(() => User, { onDelete: "null" })
   createdBy: User;
+
+  /** Whether the share has an expiry in the past. */
+  @computed
+  get isExpired() {
+    return this.expiresAt ? isPast(new Date(this.expiresAt)) : false;
+  }
 
   @computed
   get sourcePathWithFallback(): string {
