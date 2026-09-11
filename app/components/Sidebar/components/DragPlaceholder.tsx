@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { XYCoord } from "react-dnd";
 import { useDragLayer } from "react-dnd";
+import { NativeTypes } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import useStores from "~/hooks/useStores";
@@ -15,6 +16,10 @@ const layerStyles: React.CSSProperties = {
   width: "100%",
   height: "100%",
 };
+
+// Browser-native drags (files, text, or ProseMirror nodes leaving the editor)
+// are tracked by react-dnd too, but they are not sidebar items.
+const nativeItemTypes = new Set<string | symbol>(Object.values(NativeTypes));
 
 // Keep the ghost beside the pointer so it never covers the drop cursor.
 const POINTER_OFFSET_X = 12;
@@ -41,14 +46,21 @@ const DragPlaceholder = () => {
   const { t } = useTranslation();
   const { ui } = useStores();
 
-  const { isDragging, item, pointerOffset } = useDragLayer((monitor) => ({
-    item: monitor.getItem(),
-    itemType: monitor.getItemType(),
-    pointerOffset: monitor.getClientOffset(),
-    isDragging: monitor.isDragging(),
-  }));
+  const { isDragging, item, itemType, pointerOffset } = useDragLayer(
+    (monitor) => ({
+      item: monitor.getItem(),
+      itemType: monitor.getItemType(),
+      pointerOffset: monitor.getClientOffset(),
+      isDragging: monitor.isDragging(),
+    })
+  );
 
-  if (!isDragging || !pointerOffset) {
+  if (
+    !isDragging ||
+    !pointerOffset ||
+    !itemType ||
+    nativeItemTypes.has(itemType)
+  ) {
     return null;
   }
 

@@ -42,7 +42,7 @@ export default class Notice extends Node {
         "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
       group: "block",
       defining: true,
-      draggable: true,
+      draggable: false,
       parseDOM: [
         {
           tag: `div.${EditorStyleHelper.notice}`,
