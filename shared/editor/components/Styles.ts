@@ -285,7 +285,7 @@ const codeBlockStyle = (props: Props) => css`
 
 const diffStyle = (props: Props) => css`
   .${EditorStyleHelper.diffNodeInsertion},
-    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
   .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -311,19 +311,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeInsertion}.math-node,
-    ul.${EditorStyleHelper.diffNodeInsertion},
-    li.${EditorStyleHelper.diffNodeInsertion} {
+  .${EditorStyleHelper.diffNodeInsertion}.math-node,
+  ul.${EditorStyleHelper.diffNodeInsertion},
+  li.${EditorStyleHelper.diffNodeInsertion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeInsertion},
-    th.${EditorStyleHelper.diffNodeInsertion} {
+  th.${EditorStyleHelper.diffNodeInsertion} {
     border-color: ${props.theme.textDiffInsertedBackground};
   }
 
   .${EditorStyleHelper.diffNodeDeletion},
-    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
   .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
@@ -353,19 +353,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeDeletion}.math-node,
-    ul.${EditorStyleHelper.diffNodeDeletion},
-    li.${EditorStyleHelper.diffNodeDeletion} {
+  .${EditorStyleHelper.diffNodeDeletion}.math-node,
+  ul.${EditorStyleHelper.diffNodeDeletion},
+  li.${EditorStyleHelper.diffNodeDeletion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeDeletion},
-    th.${EditorStyleHelper.diffNodeDeletion} {
+  th.${EditorStyleHelper.diffNodeDeletion} {
     border-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .${EditorStyleHelper.diffNodeModification},
-    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification}:not([class^="component-"]),
   .${EditorStyleHelper.diffModification} > * {
     color: ${props.theme.text};
     background-color: ${transparentize(0.7, "#FFA500")};
@@ -392,14 +392,14 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeModification}[class*="component-"],
-    .${EditorStyleHelper.diffNodeModification}.math-node,
-    ul.${EditorStyleHelper.diffNodeModification},
-    li.${EditorStyleHelper.diffNodeModification} {
+  .${EditorStyleHelper.diffNodeModification}.math-node,
+  ul.${EditorStyleHelper.diffNodeModification},
+  li.${EditorStyleHelper.diffNodeModification} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeModification},
-    th.${EditorStyleHelper.diffNodeModification} {
+  th.${EditorStyleHelper.diffNodeModification} {
     border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;
@@ -1030,6 +1030,69 @@ img.ProseMirror-separator {
 
 .component-image {
   display: block;
+}
+
+/* Inline image layout inside table cells */
+td .component-image,
+th .component-image {
+  display: inline-block;
+  vertical-align: text-bottom;
+  line-height: 0;
+  max-width: calc(100% - 4px);
+  margin: 0 2px;
+}
+
+td .component-image:has(.image-full-width),
+th .component-image:has(.image-full-width) {
+  max-width: 100%;
+  margin: 0;
+}
+
+td .component-image .image,
+th .component-image .image {
+  display: inline-block;
+  float: none;
+  margin: 0;
+  clear: none;
+  text-align: left;
+  vertical-align: text-bottom;
+}
+
+td .component-image .image.image-left-50,
+th .component-image .image.image-left-50,
+td .component-image .image.image-right-50,
+th .component-image .image.image-right-50,
+td .component-image .image.image-full-width,
+th .component-image .image.image-full-width {
+  float: none;
+  margin: 0;
+  clear: none;
+  transform: none;
+}
+
+td .component-image .image .image-wrapper,
+th .component-image .image .image-wrapper {
+  margin-left: 0;
+  margin-right: 0;
+  vertical-align: text-bottom;
+}
+
+td .component-image .image .image-wrapper:not(.ProseMirror-selectednode),
+th .component-image .image .image-wrapper:not(.ProseMirror-selectednode) {
+  overflow: hidden;
+}
+
+td .component-image .image .image-wrapper,
+th .component-image .image .image-wrapper,
+td .component-image .image .image-wrapper img,
+th .component-image .image .image-wrapper img {
+  width: var(--image-width, auto);
+  max-width: 100%;
+}
+
+td .component-image .caption,
+th .component-image .caption {
+  display: none !important;
 }
 
 .component-image:has(.image-icon) {

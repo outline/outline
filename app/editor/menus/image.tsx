@@ -19,6 +19,7 @@ import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { t } from "i18next";
+import { isInTable } from "prosemirror-tables";
 
 /**
  * Returns menu items for the image selection toolbar.
@@ -72,13 +73,16 @@ export default function imageMenuItems(
     !!selectedNode.attrs.width &&
     selectedNode.attrs.width < InlineIconMaxWidth;
 
+  // Inside table cells images are inline atoms, block alignment controls do not apply.
+  const isTable = isInTable(state);
+
   return [
     {
       name: "alignLeft",
       tooltip: t("Align left"),
       icon: <AlignImageLeftIcon />,
       active: isLeftAligned,
-      visible: !isEmptyDiagram(state) && !isInlineIcon,
+      visible: !isEmptyDiagram(state) && !isInlineIcon && !isTable,
     },
     {
       name: "alignCenter",
@@ -89,25 +93,25 @@ export default function imageMenuItems(
         !isLeftAligned(state) &&
         !isRightAligned(state) &&
         !isFullWidthAligned(state),
-      visible: !isEmptyDiagram(state) && !isInlineIcon,
+      visible: !isEmptyDiagram(state) && !isInlineIcon && !isTable,
     },
     {
       name: "alignRight",
       tooltip: t("Align right"),
       icon: <AlignImageRightIcon />,
       active: isRightAligned,
-      visible: !isEmptyDiagram(state) && !isInlineIcon,
+      visible: !isEmptyDiagram(state) && !isInlineIcon && !isTable,
     },
     {
       name: "alignFullWidth",
       tooltip: t("Full width"),
       icon: <AlignFullWidthIcon />,
       active: isFullWidthAligned,
-      visible: !isEmptyDiagram(state) && !isInlineIcon,
+      visible: !isEmptyDiagram(state) && !isInlineIcon && !isTable,
     },
     {
       name: "separator",
-      visible: !isInlineIcon,
+      visible: !isInlineIcon && !isTable,
     },
     {
       name: "dimensions",

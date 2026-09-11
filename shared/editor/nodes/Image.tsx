@@ -479,23 +479,29 @@ export default class Image extends SimpleImage {
       );
     }
 
+    // Do not render caption inside table cells to preserve inline flow.
+    const inTable = isInsideTableCell(props.view, props.getPos);
+
     return (
       <ImageComponent
         {...props}
+        inTable={inTable}
         onClick={this.handleClick(props)}
         onDownload={this.handleDownload(props)}
         onZoomIn={this.handleZoomIn(props)}
         onChangeSize={this.handleChangeSize(props)}
       >
-        <Caption
-          width={props.node.attrs.width}
-          onBlur={this.handleCaptionBlur(props)}
-          onKeyDown={this.handleCaptionKeyDown(props)}
-          isSelected={props.isSelected}
-          placeholder={t("Write a caption")}
-        >
-          {props.node.attrs.alt}
-        </Caption>
+        {!inTable ? (
+          <Caption
+            width={props.node.attrs.width}
+            onBlur={this.handleCaptionBlur(props)}
+            onKeyDown={this.handleCaptionKeyDown(props)}
+            isSelected={props.isSelected}
+            placeholder={t("Write a caption")}
+          >
+            {props.node.attrs.alt}
+          </Caption>
+        ) : undefined}
       </ImageComponent>
     );
   };
@@ -703,4 +709,26 @@ export default class Image extends SimpleImage {
       }),
     ];
   }
+}
+
+function isInsideTableCell(
+  view: ComponentProps["view"],
+  getPos: ComponentProps["getPos"]
+): boolean {
+  try {
+    const pos = getPos();
+    if (typeof pos !== "number") {
+      return false;
+    }
+    const $pos = view.state.doc.resolve(pos);
+    for (let d = $pos.depth; d > 0; d--) {
+      const role = $pos.node(d).type.spec.tableRole;
+      if (role === "cell" || role === "header_cell") {
+        return true;
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
 }

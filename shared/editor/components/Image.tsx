@@ -30,6 +30,8 @@ type Props = ComponentProps & {
   onChangeSize?: (props: { width: number; height?: number }) => void;
   /** The editor view */
   view: EditorView;
+  /** Whether the image is located inside a table cell */
+  inTable?: boolean;
   children?: React.ReactElement;
 };
 
@@ -84,7 +86,8 @@ export function imageClassName(options: ImageClassNameOptions): string {
 }
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable, onChangeSize, onClick } = props;
+  const { isSelected, node, isEditable, onChangeSize, onClick, inTable } =
+    props;
   const { src, layoutClass } = node.attrs;
   const { t } = useTranslation();
   const [loaded, setLoaded] = React.useState(false);
@@ -270,40 +273,43 @@ const Image = (props: Props) => {
             )}`}
           />
         )}
-        {isEditable && !isFullWidth && isResizable && (
-          <>
-            <ResizeLeft
-              onPointerDown={handlePointerDown("left")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeRight
-              onPointerDown={handlePointerDown("right")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeTopLeft
-              onPointerDown={handlePointerDown("topLeft")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeTopRight
-              onPointerDown={handlePointerDown("topRight")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeBottomLeft
-              onPointerDown={handlePointerDown("bottomLeft")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-            <ResizeBottomRight
-              onPointerDown={handlePointerDown("bottomRight")}
-              onDoubleClick={handleDoubleClick}
-              $dragging={!!dragging}
-            />
-          </>
-        )}
+        {isEditable &&
+          !isFullWidth &&
+          isResizable &&
+          (!inTable || isSelected || dragging) && (
+            <>
+              <ResizeLeft
+                onPointerDown={handlePointerDown("left")}
+                onDoubleClick={handleDoubleClick}
+                $dragging={!!dragging}
+              />
+              <ResizeRight
+                onPointerDown={handlePointerDown("right")}
+                onDoubleClick={handleDoubleClick}
+                $dragging={!!dragging}
+              />
+              <ResizeTopLeft
+                onPointerDown={handlePointerDown("topLeft")}
+                onDoubleClick={handleDoubleClick}
+                $dragging={!!dragging}
+              />
+              <ResizeTopRight
+                onPointerDown={handlePointerDown("topRight")}
+                onDoubleClick={handleDoubleClick}
+                $dragging={!!dragging}
+              />
+              <ResizeBottomLeft
+                onPointerDown={handlePointerDown("bottomLeft")}
+                onDoubleClick={handleDoubleClick}
+                $dragging={!!dragging}
+              />
+              <ResizeBottomRight
+                onPointerDown={handlePointerDown("bottomRight")}
+                onDoubleClick={handleDoubleClick}
+                $dragging={!!dragging}
+              />
+            </>
+          )}
       </ImageWrapper>
       {isInlineIcon
         ? null
