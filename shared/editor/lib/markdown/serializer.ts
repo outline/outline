@@ -233,8 +233,11 @@ export class MarkdownSerializerState {
 
   // :: (string, ?bool)
   // Add the given text to the document. When escape is not `false`,
-  // it will be escaped.
   text(text, escape) {
+    text = text.replace(/\uFEFF/g, "");
+    if (!text) {
+      return;
+    }
     const lines = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
       const startOfLine = this.atBlank() || this.closed;
@@ -503,6 +506,7 @@ export class MarkdownSerializerState {
         cellState.inList = this.inList;
         cellState.inTightList = this.inTightList;
 
+        let isFirstCellNode = true;
         cell.forEach((cellNode) => {
           if (
             !(
@@ -511,8 +515,12 @@ export class MarkdownSerializerState {
               cellNode.type.name === "paragraph"
             )
           ) {
+            if (!isFirstCellNode) {
+              cellState.ensureNewLine();
+            }
             cellState.closed = false;
             cellState.render(cellNode, row, j);
+            isFirstCellNode = false;
           }
         });
 

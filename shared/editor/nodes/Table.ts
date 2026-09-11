@@ -20,6 +20,7 @@ import {
   addColumnAfter,
   addRowAndMoveSelection,
   setColumnAttr,
+  setCellAlignment,
   setRowAttr,
   createTable,
   exportTable,
@@ -91,6 +92,7 @@ export default class Table extends Node {
     return {
       createTable,
       setColumnAttr,
+      setCellAlignment,
       setRowAttr,
       setTableAttr,
       sortTable,
