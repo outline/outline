@@ -185,7 +185,7 @@ export class StateStore {
     context.cookies.set(OAUTH_CSRF_COOKIE, csrfNonce, {
       httpOnly: true,
       sameSite: "lax",
-      secure: context.request.secure,
+      secure: env.URL.startsWith("https://"),
       expires: addMinutes(new Date(), 10),
       domain: getCookieDomain(context.hostname, env.isCloudHosted),
     });
@@ -203,7 +203,7 @@ export class StateStore {
     context.cookies.set(OAUTH_CSRF_COOKIE, "", {
       httpOnly: true,
       sameSite: "lax",
-      secure: context.request.secure,
+      secure: env.URL.startsWith("https://"),
       expires: subMinutes(new Date(), 1),
       domain: getCookieDomain(context.hostname, env.isCloudHosted),
     });
