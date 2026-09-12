@@ -380,6 +380,7 @@
     "zod": "^4.5.4",
     "@types/markdown-it": "14.1.2",
     "ip-address@npm:10.1.0": "^10.2.0",
+    "fflate": "^0.8.3",
     "minimatch@npm:9.0.1": "9.0.9",
     "lodash@npm:4.17.21": "^4.18.1",
     "ws@npm:~8.17.1": "^8.21.0",
