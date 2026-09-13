@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import Spinner from "@shared/components/Spinner";
-import { ImportState } from "@shared/types";
+import { ImportState, IntegrationService } from "@shared/types";
 import type Import from "~/models/Import";
 import { Action } from "~/components/Actions";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -137,7 +137,10 @@ export const ImportListItem = observer(({ importModel }: Props) => {
           &nbsp;
           <Time dateTime={importModel.createdAt} addSuffix shorten />
           &nbsp;•&nbsp;
-          {capitalize(importModel.service)}
+          {importModel.service === IntegrationService.OKF ||
+          importModel.service === IntegrationService.JSON
+            ? importModel.service.toUpperCase()
+            : capitalize(importModel.service)}
           {showProgress && (
             <>
               &nbsp;•&nbsp;
