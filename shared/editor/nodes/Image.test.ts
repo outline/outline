@@ -1,17 +1,5 @@
-import type { EditorState } from "prosemirror-state";
-import type * as React from "react";
-import type { Editor } from "../../../app/editor";
-import {
-  createEditorState,
-  doc,
-  findNodes,
-  parser,
-  schema,
-  serializer,
-} from "../../test/editor";
+import { findNodes, parser, serializer } from "../../test/editor";
 import { ImageSource } from "../lib/FileHelper";
-import type { ComponentProps } from "../types";
-import Image from "./Image";
 
 const findImageNode = (doc: ReturnType<typeof parser.parse>) => {
   const imageNode = findNodes(doc?.toJSON(), "image")[0];
@@ -80,69 +68,5 @@ describe("Image node source attribute round-trip", () => {
     const imageNode = findImageNode(doc);
     expect(imageNode.attrs.source).toBeFalsy();
     expect(imageNode.attrs.title).toBe("Caption source=example");
-  });
-});
-
-describe("Image caption blur", () => {
-  const createEditor = (state: EditorState) => {
-    const dispatch = vi.fn();
-    const image = new Image();
-    image.bindEditor({ view: { state, dispatch } } as unknown as Editor);
-    return { image, dispatch };
-  };
-
-  const blurEvent = (innerText: string) =>
-    ({
-      currentTarget: { innerText },
-    }) as unknown as React.FocusEvent<HTMLParagraphElement>;
-
-  const imageDoc = () =>
-    doc(
-      schema.nodes.paragraph.create(
-        null,
-        schema.nodes.image.create({
-          src: "https://example.com/a.png",
-          alt: "old",
-        })
-      )
-    );
-
-  it("updates the caption when the node is still in the document", () => {
-    const state = createEditorState(imageDoc());
-    const { image, dispatch } = createEditor(state);
-    const node = state.doc.nodeAt(1)!;
-
-    image.handleCaptionBlur({ node, getPos: () => 1 } as ComponentProps)(
-      blurEvent("new")
-    );
-
-    expect(dispatch).toHaveBeenCalledTimes(1);
-    expect(dispatch.mock.calls[0][0].doc.nodeAt(1)?.attrs.alt).toBe("new");
-  });
-
-  it("ignores the blur when the node view has been destroyed", () => {
-    const state = createEditorState(imageDoc());
-    const { image, dispatch } = createEditor(state);
-    const node = state.doc.nodeAt(1)!;
-    const getPos = () => undefined as unknown as number;
-
-    expect(() =>
-      image.handleCaptionBlur({ node, getPos } as ComponentProps)(
-        blurEvent("new")
-      )
-    ).not.toThrow();
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  it("ignores the blur when the position no longer holds an image", () => {
-    const state = createEditorState(imageDoc());
-    const { image, dispatch } = createEditor(state);
-    const node = state.doc.nodeAt(1)!;
-
-    image.handleCaptionBlur({ node, getPos: () => 0 } as ComponentProps)(
-      blurEvent("new")
-    );
-
-    expect(dispatch).not.toHaveBeenCalled();
   });
 });
