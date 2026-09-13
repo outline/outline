@@ -20,7 +20,9 @@ export default async function loadDocument({
     includeState,
   });
 
-  if (!document) {
+  // Documents that have left the trash are pending permanent deletion, they are
+  // treated as if they no longer exist.
+  if (!document || document.isDestroyed) {
     throw NotFoundError();
   }
 

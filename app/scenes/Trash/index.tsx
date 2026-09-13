@@ -60,7 +60,12 @@ function Trash() {
         value: DURATION_BY_DATE_FILTER[dateFilter],
       });
     }
-    return filters.length ? { filters } : {};
+    return {
+      // Oldest deletions first, so those closest to permanent deletion lead.
+      direction: "ASC",
+      sort: "deletedAt",
+      ...(filters.length ? { filters } : {}),
+    };
   }, [userId, dateFilter]);
 
   const getEmptyMessage = () => {
@@ -98,6 +103,7 @@ function Trash() {
         fetch={documents.fetchDeleted}
         options={options}
         empty={<Empty>{getEmptyMessage()}</Empty>}
+        showLastViewed={false}
         showCollection
         showTemplate
       />

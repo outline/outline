@@ -1,5 +1,6 @@
 import type {
   DocumentPreferences,
+  RetentionPeriodPreset,
   TeamPreferences,
   UserPreferences,
 } from "./types";
@@ -13,6 +14,21 @@ import {
   CommentingAccess,
   NotificationBadgeType,
 } from "./types";
+
+/** Allowed retention period values in days. 0 means infinite (never delete). */
+export const RetentionPeriodPresets = [0, 7, 14, 30, 90, 180, 365] as const;
+
+/**
+ * Whether the given value is a retention period that can be configured.
+ *
+ * @param value the value to check.
+ * @returns true if the value is a supported retention period.
+ */
+export function isRetentionPeriodPreset(
+  value: unknown
+): value is RetentionPeriodPreset {
+  return RetentionPeriodPresets.some((days) => days === value);
+}
 
 export const MAX_AVATAR_DISPLAY = 6;
 
@@ -94,6 +110,8 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
+  [TeamPreference.TrashRetentionDays]: 30,
+  [TeamPreference.DataRetentionDays]: 30,
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],

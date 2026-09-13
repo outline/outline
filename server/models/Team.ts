@@ -25,8 +25,15 @@ import {
   IsNumeric,
 } from "sequelize-typescript";
 import { isEmail } from "validator";
-import { TeamPreferenceDefaults } from "@shared/constants";
-import type { TeamPreferences } from "@shared/types";
+import {
+  RetentionPeriodPresets,
+  TeamPreferenceDefaults,
+} from "@shared/constants";
+import type {
+  RetentionPeriodPreset,
+  RetentionPreference,
+  TeamPreferences,
+} from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
 import {
   getBaseDomain,
@@ -613,6 +620,57 @@ class Team extends ParanoidModel<
       },
       order: [["updatedAt", "DESC"]],
     });
+  }
+
+  /**
+   * Every retention period, in days, that a team can be configured with.
+   * Periods of zero (infinite retention) are omitted as they never require
+   * processing.
+   */
+  static get retentionPeriods(): readonly number[] {
+    return [...RetentionPeriodPresets]
+      .filter((days) => days > 0)
+      .sort((a, b) => a - b);
+  }
+
+  /**
+   * The retention period applied to teams that have not set an explicit
+   * preference. Falls back to infinite retention, so a missing default can
+   * never cause data to be deleted sooner than intended.
+   *
+   * @param preference the retention preference to read.
+   * @returns the default retention period in days.
+   */
+  static getDefaultRetentionPeriod(
+    preference: RetentionPreference
+  ): RetentionPeriodPreset {
+    return TeamPreferenceDefaults[preference] ?? 0;
+  }
+
+  /**
+   * The retention periods, in days, that must be processed for the given
+   * preference.
+   *
+   * @param preference the retention preference to read.
+   * @returns a sorted list of retention periods in days.
+   */
+  static async getRetentionPeriodsInUse(
+    preference: RetentionPreference
+  ): Promise<readonly number[]> {
+    if (env.isCloudHosted) {
+      return this.retentionPeriods;
+    }
+
+    const team = await this.findOne({
+      attributes: ["id", "preferences"],
+      order: [["createdAt", "DESC"]],
+    });
+    if (!team) {
+      return [];
+    }
+
+    const days = Number(team.getPreference(preference));
+    return Number.isInteger(days) && days > 0 ? [days] : [];
   }
 }
 

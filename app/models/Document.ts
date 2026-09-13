@@ -22,6 +22,7 @@ import {
   FileOperationFormat,
   NavigationNodeType,
   NotificationEventType,
+  TeamPreference,
 } from "@shared/types";
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import Storage from "@shared/utils/Storage";
@@ -217,6 +218,9 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @observable
   publishedAt: string | undefined = undefined;
+
+  @observable
+  destroyedAt: string | undefined;
 
   @observable
   popularityScore: number;
@@ -415,13 +419,45 @@ export default class Document extends ArchivableModel implements Searchable {
     return this.title === "";
   }
 
+  /**
+   * The point at which this document leaves the trash and can no longer be
+   * restored, based on the workspace trash retention period. Undefined when the
+   * document is not deleted, or when the workspace retains trash indefinitely.
+   */
   @computed
-  get permanentlyDeletedAt(): string | undefined {
+  get willDestroyAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
     }
 
-    return addDays(new Date(this.deletedAt), 30).toString();
+    const team = this.store.rootStore.auth.team;
+    if (!team) {
+      return undefined;
+    }
+
+    const retentionDays = team.getPreference(TeamPreference.TrashRetentionDays);
+    if (!retentionDays) {
+      return undefined;
+    }
+
+    return addDays(new Date(this.deletedAt), retentionDays).toISOString();
+  }
+
+  /**
+   * The number of whole days remaining before this document leaves the trash.
+   * Never negative – a document past its retention period is reported as zero
+   * days, as the cleanup task will remove it on its next run.
+   */
+  @computed
+  get destroysInDays(): number | undefined {
+    if (!this.willDestroyAt) {
+      return undefined;
+    }
+
+    return Math.max(
+      0,
+      differenceInDays(new Date(this.willDestroyAt), new Date())
+    );
   }
 
   @computed
