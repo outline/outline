@@ -53,6 +53,7 @@ export const iconNames = [
   "sun",
   "shapes",
   "sport",
+  "starred",
   "smiley",
   "target",
   "team",

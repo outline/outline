@@ -154,6 +154,7 @@ import {
   PromoteIcon,
   QuestionMarkIcon,
   SportIcon,
+  StarredIcon,
   SunIcon,
   ShapesIcon,
   TargetIcon,
@@ -427,6 +428,10 @@ export class IconLibrary {
     sport: {
       component: SportIcon,
       keywords: "sport outdoor racket game",
+    },
+    starred: {
+      component: StarredIcon,
+      keywords: "star favorite bookmark tip highlight",
     },
     smiley: {
       component: SmileyIcon,
