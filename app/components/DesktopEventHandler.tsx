@@ -42,7 +42,7 @@ export default function DesktopEventHandler() {
       });
     });
 
-    Desktop.bridge?.onDownloadComplete(showDownloadToast);
+    Desktop.bridge?.onDownloadComplete?.(showDownloadToast);
 
     Desktop.bridge?.focus(() => {
       window.document.body.classList.remove("backgrounded");

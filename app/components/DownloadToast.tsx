@@ -41,12 +41,12 @@ function DownloadToastActions({
 
   const handleOpen = useCallback(() => {
     toast.dismiss(toastId);
-    void Desktop.bridge?.openDownload(file.filePath);
+    void Desktop.bridge?.openDownload?.(file.filePath);
   }, [file.filePath, toastId]);
 
   const handleShowInFolder = useCallback(() => {
     toast.dismiss(toastId);
-    void Desktop.bridge?.showDownloadInFolder(file.filePath);
+    void Desktop.bridge?.showDownloadInFolder?.(file.filePath);
   }, [file.filePath, toastId]);
 
   // The name given to the file manager differs by operating system.
