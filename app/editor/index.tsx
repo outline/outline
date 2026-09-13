@@ -61,8 +61,10 @@ import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
+import { IconPickerContext } from "@shared/editor/components/IconPickerContext";
 import { PortalContext } from "~/components/Portal";
 import type { Properties } from "~/types";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
@@ -76,6 +78,9 @@ import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 import { toastNotice } from "./toastNotice";
+
+// Injected into node views, which live in shared code and cannot import it.
+const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -1061,60 +1066,62 @@ export class Editor extends React.PureComponent<
     return (
       <PortalContext.Provider value={this.wrapperRef.current}>
         <EditorContext.Provider value={this}>
-          <Flex
-            ref={this.wrapperRef}
-            onKeyDown={onKeyDown}
-            style={style}
-            className={className}
-            align="flex-start"
-            justify="center"
-            column
-          >
-            <EditorContainer
-              $rtl={isRTL}
-              grow={grow}
-              readOnly={readOnly}
-              readOnlyWriteCheckboxes={canUpdate}
-              focusedCommentId={this.props.focusedCommentId}
-              hoveredCommentId={this.state.hoveredCommentId ?? undefined}
-              userId={this.props.userId}
-              editorStyle={this.props.editorStyle}
-              commenting={!!this.props.onClickCommentMark}
-              ref={this.elementRef}
-              lang={this.props.lang ?? ""}
-            />
+          <IconPickerContext.Provider value={IconPicker}>
+            <Flex
+              ref={this.wrapperRef}
+              onKeyDown={onKeyDown}
+              style={style}
+              className={className}
+              align="flex-start"
+              justify="center"
+              column
+            >
+              <EditorContainer
+                $rtl={isRTL}
+                grow={grow}
+                readOnly={readOnly}
+                readOnlyWriteCheckboxes={canUpdate}
+                focusedCommentId={this.props.focusedCommentId}
+                hoveredCommentId={this.state.hoveredCommentId ?? undefined}
+                userId={this.props.userId}
+                editorStyle={this.props.editorStyle}
+                commenting={!!this.props.onClickCommentMark}
+                ref={this.elementRef}
+                lang={this.props.lang ?? ""}
+              />
 
-            {this.widgets &&
-              !this.props.cacheOnly &&
-              Object.values(this.widgets).map((Widget, index) => (
-                <Widget
-                  key={String(index)}
-                  rtl={isRTL}
-                  readOnly={readOnly}
-                  selection={this.view.state.selection}
-                  storedMarks={this.view.state.storedMarks}
-                  isEditorFocused={this.state.isEditorFocused}
-                />
-              ))}
-            <Observer>
-              {() => (
-                <>
-                  {[...this.nodeRenderers, ...this.decorationRenderers].map(
-                    (view) => view.content
-                  )}
-                </>
-              )}
-            </Observer>
-          </Flex>
-          {!isNull(this.state.activeLightboxImage) && (
-            <Lightbox
-              readOnly={readOnly}
-              images={this.getLightboxImages()}
-              activeImage={this.state.activeLightboxImage}
-              onUpdate={this.updateActiveLightboxImage}
-              onClose={this.view.focus.bind(this.view)}
-            />
-          )}
+              {this.widgets &&
+                !this.props.cacheOnly &&
+                Object.values(this.widgets).map((Widget, index) => (
+                  <Widget
+                    key={String(index)}
+                    rtl={isRTL}
+                    readOnly={readOnly}
+                    selection={this.view.state.selection}
+                    storedMarks={this.view.state.storedMarks}
+                    isEditorFocused={this.state.isEditorFocused}
+                  />
+                ))}
+              <Observer>
+                {() => (
+                  <>
+                    {[...this.nodeRenderers, ...this.decorationRenderers].map(
+                      (view) => view.content
+                    )}
+                  </>
+                )}
+              </Observer>
+            </Flex>
+            {!isNull(this.state.activeLightboxImage) && (
+              <Lightbox
+                readOnly={readOnly}
+                images={this.getLightboxImages()}
+                activeImage={this.state.activeLightboxImage}
+                onUpdate={this.updateActiveLightboxImage}
+                onClose={this.view.focus.bind(this.view)}
+              />
+            )}
+          </IconPickerContext.Provider>
         </EditorContext.Provider>
       </PortalContext.Provider>
     );

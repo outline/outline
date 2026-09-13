@@ -33,8 +33,8 @@ const menuHeight = 36;
 const margin = 8;
 
 /**
- * Resolves the DOM element of the block (code or notice) the current selection
- * is anchored to, which the toolbar tracks.
+ * Resolves the DOM element of the code block the current selection is anchored
+ * to, which the toolbar tracks.
  */
 function getBlockElement(view: EditorView): HTMLElement | null {
   const { selection } = view.state;
@@ -42,10 +42,7 @@ function getBlockElement(view: EditorView): HTMLElement | null {
     selection instanceof NodeSelection && isCode(selection.node);
   const block = isCodeNodeSelection
     ? { pos: selection.from }
-    : (findParentNode(isCode)(selection) ??
-      findParentNode((node) => node.type.name === "container_notice")(
-        selection
-      ));
+    : findParentNode(isCode)(selection);
   if (!block) {
     return null;
   }
@@ -69,10 +66,9 @@ function sameRect(a: TrackRect | null, b: TrackRect | null) {
 }
 
 /**
- * Renders a block toolbar (code, notice) as a sticky element that pins to the
- * top of the viewport while the block is scrolled through, rather than a
- * floating toolbar positioned once over the selection and left behind on
- * scroll. A track element is absolutely positioned over the block; the toolbar
+ * Renders a block toolbar as a sticky element that pins to the top of the
+ * viewport while the block is scrolled through, rather than a floating toolbar
+ * positioned once over the selection and left behind on scroll. A track element is absolutely positioned over the block; the toolbar
  * is a `position: sticky` child constrained to that track, so the browser keeps
  * it visible without any scroll listener and releases it when the block leaves
  * the viewport.

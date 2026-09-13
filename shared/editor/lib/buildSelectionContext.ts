@@ -3,7 +3,6 @@ import { NodeSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import { isInCode } from "../queries/isInCode";
 import { isInList } from "../queries/isInList";
-import { isInNotice } from "../queries/isInNotice";
 import { getColumnIndex, getRowIndex, isTableSelected } from "../queries/table";
 import { isMobile as isMobileDevice, isTouchDevice } from "../../utils/browser";
 import type { SelectionContext } from "../types";
@@ -36,7 +35,6 @@ export function buildSelectionContext(
     isInCode: isInCode(state),
     isInCodeBlock: isInCode(state, { onlyBlock: true }),
     isInList: isInList(state),
-    isInNotice: isInNotice(state),
     isTableCell: selection instanceof CellSelection,
     isTableSelected: isTableSelected(state),
     selectedNodeType:

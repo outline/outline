@@ -10,7 +10,6 @@ import {
   getMarkRangeNodeSelection,
 } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
-import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { MenuType, type MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useEventListener from "~/hooks/useEventListener";
@@ -95,7 +94,6 @@ export function SelectionToolbar(props: Props) {
     selection instanceof NodeSelection && selection.node.type.name === "embed";
 
   const isCodeSelection = isInCode(state, { onlyBlock: true });
-  const isNoticeSelection = isInNotice(state);
 
   React.useLayoutEffect(() => {
     if (!isActive) {
@@ -115,8 +113,6 @@ export function SelectionToolbar(props: Props) {
       setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
       setActiveToolbar(Toolbar.Menu);
-    } else if (isNoticeSelection && selection.empty) {
-      setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
@@ -130,7 +126,6 @@ export function SelectionToolbar(props: Props) {
     linkMark,
     isEmbedSelection,
     isCodeSelection,
-    isNoticeSelection,
   ]);
 
   // Focus is re-armed when the link editor closes rather than whenever the

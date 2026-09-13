@@ -265,6 +265,19 @@ describe("DocumentHelper", () => {
       expect(result).toMatch(/class="content"[\s\S]*Heads up/);
     });
 
+    it("should render a notice with a custom icon and color", async () => {
+      const document = await buildDocument({
+        text: ":::info icon=starred color=#FF5C80\nHeads up\n:::",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toMatch(/class="icon"[^>]*>\s*<svg[^>]*fill="#FF5C80"/);
+      expect(result).toContain("border-left-color: #FF5C80");
+    });
+
     it("should render an embed through its React component as an iframe", async () => {
       const document = await buildDocument({
         content: {

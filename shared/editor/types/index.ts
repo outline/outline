@@ -144,8 +144,6 @@ export interface SelectionContext {
   isInCodeBlock: boolean;
   /** Whether the selection is inside a list. */
   isInList: boolean;
-  /** Whether the selection is inside a notice/callout block. */
-  isInNotice: boolean;
   /** Whether the selection is a table cell selection. */
   isTableCell: boolean;
   /** Whether the entire table is selected. */
@@ -182,10 +180,10 @@ export interface SelectionToolbarMenuDescriptor {
   align?: "center" | "start" | "end";
   /**
    * Whether the toolbar is anchored to a block rather than a transient text
-   * selection. Block toolbars (code, notice) stay visible while the caret sits
-   * in the block, so on desktop they are rendered as a sticky element that pins
-   * to the top of the viewport as the block scrolls, instead of a floating
-   * toolbar positioned once and left behind on scroll.
+   * selection. Block toolbars stay visible while the caret sits in the block,
+   * so on desktop they are rendered as a sticky element that pins to the top of
+   * the viewport as the block scrolls, instead of a floating toolbar positioned
+   * once and left behind on scroll.
    */
   sticky?: boolean;
   /**

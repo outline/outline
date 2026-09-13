@@ -4,7 +4,6 @@ import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
-import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
@@ -17,7 +16,6 @@ import getCodeMenuItems from "../menus/code";
 
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
-import getNoticeMenuItems from "../menus/notice";
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
@@ -105,13 +103,6 @@ export default class SelectionToolbarExtension extends Extension {
           getReadOnlyMenuItems(ctx, this.editor.props.canComment ?? false),
       },
       {
-        priority: 20,
-        align: "end",
-        sticky: true,
-        matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
-        getItems: (ctx) => getNoticeMenuItems(ctx),
-      },
-      {
         priority: 0,
         matches: () => true,
         getItems: (ctx) => getFormattingMenuItems(ctx),
@@ -135,10 +126,6 @@ export default class SelectionToolbarExtension extends Extension {
       isNodeActive(schema.nodes.code_block)(state) ||
       isNodeActive(schema.nodes.code_fence)(state)
     ) {
-      return selection;
-    }
-
-    if (isInNotice(state) && selection.from > 0) {
       return selection;
     }
 

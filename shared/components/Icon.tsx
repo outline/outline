@@ -1,8 +1,7 @@
-import { observer } from "mobx-react";
 import { getLuminance } from "polished";
-import styled from "styled-components";
+import * as React from "react";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import useStores from "../hooks/useStores";
 import { IconType } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
 import { colorPalette } from "../constants";
@@ -76,39 +75,36 @@ const Icon = ({
   return null;
 };
 
-const SVGIcon = observer(
-  ({
-    value: icon,
-    color: inputColor,
-    initial,
-    size,
-    className,
-    forceColor,
-  }: Props) => {
-    const { ui } = useStores();
-    let color = inputColor ?? colorPalette[0];
+const SVGIcon = ({
+  value: icon,
+  color: inputColor,
+  initial,
+  size,
+  className,
+  forceColor,
+}: Props) => {
+  const theme = useTheme();
+  let color = inputColor ?? colorPalette[0];
 
-    // If the chosen icon color is very dark then we invert it in dark mode
-    if (!forceColor) {
-      if (ui.resolvedTheme === "dark" && color !== "currentColor") {
-        color = getLuminance(color) > 0.09 ? color : "currentColor";
-      }
-
-      // If the chosen icon color is very light then we invert it in light mode
-      if (ui.resolvedTheme === "light" && color !== "currentColor") {
-        color = getLuminance(color) < 0.9 ? color : "currentColor";
-      }
-    }
-
-    const Component = IconLibrary.getComponent(icon);
-
-    return (
-      <Component color={color} size={size} className={className}>
-        {initial?.charAt(0).toUpperCase()}
-      </Component>
-    );
+  if (!forceColor && color !== "currentColor") {
+    // If the chosen icon color is very dark then we invert it in dark mode, and
+    // if it is very light we invert it in light mode.
+    color = theme?.isDark
+      ? getLuminance(color) > 0.09
+        ? color
+        : "currentColor"
+      : getLuminance(color) < 0.9
+        ? color
+        : "currentColor";
   }
-);
+
+  // createElement rather than JSX, as the component is resolved at render time.
+  return React.createElement(
+    IconLibrary.getComponent(icon),
+    { color, size, className },
+    initial?.charAt(0).toUpperCase()
+  );
+};
 
 export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
   align-items: center;
