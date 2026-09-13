@@ -195,7 +195,9 @@ function Input(
   props: Props,
   ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
 ) {
-  const internalRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>();
+  const internalRef = React.useRef<
+    HTMLInputElement | HTMLTextAreaElement | undefined
+  >(undefined);
   const [focused, setFocused] = React.useState(false);
   const [charCount, setCharCount] = React.useState(() => {
     if (typeof props.value === "string") {

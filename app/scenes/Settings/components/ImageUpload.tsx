@@ -2,7 +2,7 @@ import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useState, useRef } from "react";
-import AvatarEditor from "react-avatar-editor";
+import AvatarEditor, { type AvatarEditorRef } from "react-avatar-editor";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -141,7 +141,7 @@ const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
     const { t } = useTranslation();
     const [zoom, setZoom] = useState(1);
     const [isUploading, setIsUploading] = useState(false);
-    const avatarEditorRef = useRef<AvatarEditor>(null);
+    const avatarEditorRef = useRef<AvatarEditorRef>(null);
 
     const handleUpload = React.useCallback(() => {
       setIsUploading(true);

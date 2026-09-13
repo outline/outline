@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import { m, AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
@@ -6,7 +7,7 @@ import { depths } from "@shared/styles";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop } from "~/styles";
 
-const transition = {
+const transition: Transition = {
   type: "spring",
   stiffness: 500,
   damping: 30,

@@ -2,7 +2,6 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import type { ConnectDropTarget } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
@@ -78,7 +77,7 @@ export type CollectionRowProps = {
   /** Ref forwarded to the outer Relative; for drag hover timers. */
   parentRef?: React.Ref<HTMLDivElement>;
   /** Drop target connector for "change collection" / reorder. */
-  dropRef?: ConnectDropTarget;
+  dropRef?: React.Ref<HTMLDivElement>;
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 

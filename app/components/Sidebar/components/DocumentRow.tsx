@@ -2,7 +2,6 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import type { ConnectDragSource } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
 import styled from "styled-components";
@@ -67,7 +66,7 @@ export type DocumentRowProps = {
   onCollapse?: () => void;
 
   /** Drag source ref from the container's drag hook. */
-  dragRef?: ConnectDragSource;
+  dragRef?: React.RefCallback<HTMLElement>;
   /** Whether the row is being dragged. */
   isDragging?: boolean;
   /** Whether the row's document is being moved. */

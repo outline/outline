@@ -182,7 +182,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
-            tooltip: resolve<React.ReactChild>(action.tooltip, context),
+            tooltip: resolve<React.ReactNode>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             shortcut,

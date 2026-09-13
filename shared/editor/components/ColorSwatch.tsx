@@ -40,7 +40,7 @@ export function ColorSwatch({ color, luminance, onNotice }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const timeout = useRef<ReturnType<typeof setTimeout>>();
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const scheduleOpen = useCallback((value: boolean, delay: number) => {
     clearTimeout(timeout.current);

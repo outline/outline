@@ -22,7 +22,7 @@ const emojiShortcodeRegex = /:([a-zA-Z0-9_-]+):/g;
  * @returns a React element with text and inline emojis.
  */
 export function EmojiText({ children, emojiSize = "1em" }: Props) {
-  const parts: (string | JSX.Element)[] = [];
+  const parts: (string | React.JSX.Element)[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;

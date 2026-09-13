@@ -14,7 +14,7 @@ export const Form = ({
   const tokenRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    (event: React.SubmitEvent<HTMLFormElement>) => {
       if (tokenRef.current) {
         tokenRef.current.value = getCSRFToken();
       }

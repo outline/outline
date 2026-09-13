@@ -19,10 +19,13 @@ type Dimension = {
 export function MediaDimension() {
   const ref = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
-  const boundsRef = useRef<{
-    width: { min: number; max: number };
-    height: { min: number; max: number };
-  }>();
+  const boundsRef = useRef<
+    | {
+        width: { min: number; max: number };
+        height: { min: number; max: number };
+      }
+    | undefined
+  >(undefined);
   const { t } = useTranslation();
   const { view, commands } = useEditor();
   const { state } = view;

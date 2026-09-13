@@ -5,7 +5,7 @@ import usePrevious from "~/hooks/usePrevious";
 import { useScrollContext } from "./ScrollContext";
 
 type Props = {
-  children: JSX.Element;
+  children: React.JSX.Element;
 };
 
 export default function ScrollToTop({ children }: Props) {

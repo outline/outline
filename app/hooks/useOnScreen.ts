@@ -24,7 +24,7 @@ function parseRootMargin(
  * @returns boolean if the node is visible
  */
 export default function useOnScreen(
-  ref: React.RefObject<HTMLElement>,
+  ref: React.RefObject<HTMLElement | null>,
   options?: IntersectionObserverInit
 ) {
   const root = options?.root;

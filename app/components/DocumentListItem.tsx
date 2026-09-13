@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +31,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 type Props = {
   document: Document;
@@ -55,7 +52,7 @@ function replaceResultMarks(tag: string) {
 
 function DocumentListItem(
   props: Props,
-  ref: React.RefObject<HTMLAnchorElement>
+  ref: React.RefObject<HTMLAnchorElement | null>
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -66,14 +63,13 @@ function DocumentListItem(
   const selection = useModelSelection();
   const iconRef = React.useRef<HTMLDivElement>(null);
 
-  let itemRef: React.Ref<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
   if (ref) {
     itemRef = ref;
   }
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
-  useFocusEffect(focused, itemRef);
 
   const {
     document,

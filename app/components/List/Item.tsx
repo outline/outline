@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import type { LocationDescriptor } from "history";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
@@ -9,6 +5,7 @@ import styled, { useTheme } from "styled-components";
 import { s, hover, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** An icon or image to display to the left of the list item */
@@ -49,12 +46,12 @@ const ListItem = (
     enableEllipsis,
     ...rest
   }: Props,
-  ref: React.RefObject<HTMLAnchorElement>
+  ref: React.RefObject<HTMLAnchorElement | null>
 ) => {
   const theme = useTheme();
   const compact = !subtitle;
 
-  let itemRef: React.RefObject<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
   if (ref) {
     itemRef = ref;
@@ -64,7 +61,6 @@ const ListItem = (
     itemRef,
     keyboardNavigation || to ? false : true
   );
-  useFocusEffect(focused, itemRef);
 
   const handleFocus = React.useCallback(() => {
     if (itemRef.current) {

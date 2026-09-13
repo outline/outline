@@ -59,7 +59,13 @@ const MenuTrigger = React.forwardRef<
       : ContextMenuPrimitive.Trigger;
 
   return (
-    <Trigger ref={ref} {...rest} asChild>
+    // The trigger element type depends on the variant, so the forwarded ref is
+    // a union that neither primitive accepts on its own.
+    <Trigger
+      ref={ref as React.Ref<HTMLButtonElement & HTMLSpanElement>}
+      {...rest}
+      asChild
+    >
       {children}
     </Trigger>
   );
@@ -258,7 +264,7 @@ function MenuItemShortcut({ shortcut }: { shortcut?: string[] }) {
 
 type MenuButtonProps = BaseItemProps & {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  tooltip?: React.ReactChild;
+  tooltip?: React.ReactNode;
   selected?: boolean;
   dangerous?: boolean;
 } & Omit<

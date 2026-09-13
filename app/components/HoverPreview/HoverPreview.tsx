@@ -44,7 +44,9 @@ const HoverPreviewDesktop = observer(
   ({ element, unfurlId, dataLoading, onClose }: Props) => {
     const { unfurls } = useStores();
     const [isVisible, setVisible] = React.useState(false);
-    const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
+    const timerClose = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+      undefined
+    );
     const cardRef = React.useRef<HTMLDivElement | null>(null);
     const { cardLeft, cardTop, pointerLeft, pointerTop, pointerDir } =
       useHoverPosition({
@@ -248,7 +250,7 @@ function useHoverPosition({
   element,
   isVisible,
 }: {
-  cardRef: React.RefObject<HTMLDivElement>;
+  cardRef: React.RefObject<HTMLDivElement | null>;
   element: HTMLElement | null;
   isVisible: boolean;
 }) {
