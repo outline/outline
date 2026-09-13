@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import { showDownloadToast } from "~/components/DownloadToast";
 import { useDesktopTitlebar } from "~/hooks/useDesktopTitlebar";
 import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
@@ -40,6 +41,8 @@ export default function DesktopEventHandler() {
         },
       });
     });
+
+    Desktop.bridge?.onDownloadComplete(showDownloadToast);
 
     Desktop.bridge?.focus(() => {
       window.document.body.classList.remove("backgrounded");
