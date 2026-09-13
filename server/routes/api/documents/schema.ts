@@ -12,7 +12,12 @@ import {
 } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
+import {
+  zodIconType,
+  zodIdType,
+  zodShareIdType,
+  zodSingleDocumentLocation,
+} from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
 const documentFilterFields = {
@@ -230,6 +235,12 @@ export const DocumentsDraftsSchema = BaseSchema.extend({
 
 export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsSchema>;
 
+export const DocumentsPersonalSchema = BaseSchema.extend({
+  body: z.object({}),
+});
+
+export type DocumentsPersonalReq = z.infer<typeof DocumentsPersonalSchema>;
+
 export const DocumentsInfoSchema = BaseSchema.extend({
   body: z.object({
     id: zodIdType().optional(),
@@ -412,6 +423,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
+    /** The personal space to publish the doc into, instead of a collection */
+    personalOwnerId: z.uuid().nullish(),
+
     /** Doc template Id */
     templateId: z.uuid().nullish(),
 
@@ -435,7 +449,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
-  }),
+  }).check(zodSingleDocumentLocation),
 })
   .refine(
     (req) =>
@@ -464,6 +478,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
       message: "findText is required when using patch editMode",
     }
   )
+  .refine((req) => !(req.body.personalOwnerId && !req.body.publish), {
+    message: "publish is required when personalOwnerId is set",
+  })
   .transform((req) => {
     // Transform deprecated append to editMode for backwards compatibility
     if (req.body.append && !req.body.editMode) {
@@ -483,9 +500,12 @@ export const DocumentsMoveSchema = BaseSchema.extend({
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.uuid().nullish(),
 
+    /** The personal space to move the doc into, outside any collection */
+    personalOwnerId: z.uuid().nullish(),
+
     /** Helps evaluate the new index in collection structure upon move */
     index: z.number().gte(0).optional(),
-  }),
+  }).check(zodSingleDocumentLocation),
 }).refine((req) => !(req.body.parentDocumentId === req.body.id), {
   message: "infinite loop detected, cannot nest a document inside itself",
 });
@@ -551,66 +571,81 @@ export const DocumentsImportSchema = BaseSchema.extend({
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
 
 export const DocumentsCreateSchema = BaseSchema.extend({
-  body: z.object({
-    /** Id of the document to be created */
-    id: zodIdType().optional(),
+  body: z
+    .object({
+      /** Id of the document to be created */
+      id: zodIdType().optional(),
 
-    /** Document title */
-    title: z.string().optional(),
+      /** Document title */
+      title: z.string().optional(),
 
-    /** Document text */
-    text: z.string().max(DocumentValidation.maxLength).optional(),
+      /** Document text */
+      text: z.string().max(DocumentValidation.maxLength).optional(),
 
-    /** Icon displayed alongside doc title */
-    icon: zodIconType().optional(),
+      /** Icon displayed alongside doc title */
+      icon: zodIconType().optional(),
 
-    /** Icon color */
-    color: z
-      .string()
-      .regex(ValidateColor.regex, { message: ValidateColor.message })
-      .nullish(),
+      /** Icon color */
+      color: z
+        .string()
+        .regex(ValidateColor.regex, { message: ValidateColor.message })
+        .nullish(),
 
-    /** Boolean to denote if the doc should be published */
-    publish: z.boolean().optional(),
+      /** Boolean to denote if the doc should be published */
+      publish: z.boolean().optional(),
 
-    /** Collection to create document within  */
-    collectionId: z.uuid().nullish(),
+      /** The personal space to create the doc in, instead of a collection */
+      personalOwnerId: z.uuid().nullish(),
 
-    /** Index to create the document at within the collection */
-    index: z.number().optional(),
+      /** Collection to create document within  */
+      collectionId: z.uuid().nullish(),
 
-    /** Parent document to create within */
-    parentDocumentId: z.uuid().nullish(),
+      /** Index to create the document at within the collection */
+      index: z.number().optional(),
 
-    /** A template to create the document from */
-    templateId: z.uuid().optional(),
+      /** Parent document to create within */
+      parentDocumentId: z.uuid().nullish(),
 
-    /** Optionally set the created date in the past */
-    createdAt: z.coerce
-      .date()
-      .optional()
-      .refine((data) => !data || data < new Date(), {
-        error: "createdAt must be in the past",
-      }),
+      /** A template to create the document from */
+      templateId: z.uuid().optional(),
 
-    /** Boolean to denote if the document should occupy full width */
-    fullWidth: z.boolean().optional(),
+      /** Optionally set the created date in the past */
+      createdAt: z.coerce
+        .date()
+        .optional()
+        .refine((data) => !data || data < new Date(), {
+          error: "createdAt must be in the past",
+        }),
 
-    /** Display preferences for the document */
-    preferences: z
-      .object({
-        /** The style of prefix displayed before headings in the document */
-        headingPrefix: z.enum(HeadingPrefixStyle).optional(),
-      })
-      .nullish(),
-  }),
-}).refine(
-  (req) =>
-    !(req.body.publish && !req.body.parentDocumentId && !req.body.collectionId),
-  {
-    message: "collectionId or parentDocumentId is required to publish",
-  }
-);
+      /** Boolean to denote if the document should occupy full width */
+      fullWidth: z.boolean().optional(),
+
+      /** Display preferences for the document */
+      preferences: z
+        .object({
+          /** The style of prefix displayed before headings in the document */
+          headingPrefix: z.enum(HeadingPrefixStyle).optional(),
+        })
+        .nullish(),
+    })
+    .check(zodSingleDocumentLocation),
+})
+  .refine(
+    (req) =>
+      !(
+        req.body.publish &&
+        !req.body.parentDocumentId &&
+        !req.body.collectionId &&
+        !req.body.personalOwnerId
+      ),
+    {
+      message:
+        "collectionId, parentDocumentId or personalOwnerId is required to publish",
+    }
+  )
+  .refine((req) => !(req.body.personalOwnerId && !req.body.publish), {
+    message: "publish is required when personalOwnerId is set",
+  });
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 

@@ -77,6 +77,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         [TeamPreference.MCP]: z.boolean(),
         /** List of disabled embed provider titles. */
         [TeamPreference.DisabledEmbeds]: z.array(z.string()),
+        /** Whether users can create private documents. */
+        [TeamPreference.PersonalDocs]: z.boolean(),
       })
       .partial()
       .optional(),

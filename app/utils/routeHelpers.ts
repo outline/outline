@@ -215,6 +215,7 @@ export function newDocumentPath(
   collectionId?: string | null,
   params: {
     templateId?: string;
+    personal?: boolean;
   } = {}
 ): string {
   const search = queryString.stringify(params);

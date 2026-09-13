@@ -1,5 +1,10 @@
 import { observer } from "mobx-react";
-import { MoreIcon, QuestionMarkIcon, UserIcon } from "outline-icons";
+import {
+  MoreIcon,
+  PadlockIcon,
+  QuestionMarkIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
@@ -168,22 +173,34 @@ export const AccessControlList = observer(
                   invitedInSession={invitedInSession}
                 />
               )}
-              <ListItem
-                image={
-                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                    <MoreIcon color={theme.accentText} size={16} />
-                  </Squircle>
-                }
-                title={t("Other people")}
-                subtitle={t("Other workspace members may have access")}
-                actions={
-                  <AccessTooltip
-                    content={t(
-                      "This document may be shared with more workspace members through a parent document or collection you do not have access to"
-                    )}
-                  />
-                }
-              />
+              {document.isPersonalToMe ? (
+                <ListItem
+                  image={
+                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                      <PadlockIcon color={theme.accentText} size={16} />
+                    </Squircle>
+                  }
+                  title={t("Personal")}
+                  subtitle={t("Only people you invite have access")}
+                />
+              ) : (
+                <ListItem
+                  image={
+                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                      <MoreIcon color={theme.accentText} size={16} />
+                    </Squircle>
+                  }
+                  title={t("Other people")}
+                  subtitle={t("Other workspace members may have access")}
+                  actions={
+                    <AccessTooltip
+                      content={t(
+                        "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                      )}
+                    />
+                  }
+                />
+              )}
             </>
           )}
         </ScrollableContainer>

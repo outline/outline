@@ -1,6 +1,10 @@
+import { DocumentPermission } from "@shared/types";
+import { UserMembership } from "@server/models";
 import {
   buildCollection,
   buildDocument,
+  buildDraftDocument,
+  buildPersonalDocument,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -145,5 +149,133 @@ describe("#userMemberships.update", () => {
     expect(body.data.documentId).toEqual(document.id);
     expect(body.data.userId).toEqual(member.id);
     expect(body.data.index).toEqual("V");
+  });
+});
+
+describe("#userMemberships.list - personal documents", () => {
+  const buildSharedAndPersonalDocuments = async () => {
+    const user = await buildUser();
+
+    // a personal document created by the user
+    const createRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: user.id,
+        publish: true,
+      },
+    });
+    const createBody = await createRes.json();
+
+    // a document shared with the user by somebody else
+    const other = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: other.teamId,
+      createdById: other.id,
+      permission: null,
+    });
+    const shared = await buildDocument({
+      collectionId: collection.id,
+      createdById: other.id,
+      teamId: other.teamId,
+    });
+    await server.post("/api/documents.add_user", other, {
+      body: {
+        id: shared.id,
+        userId: user.id,
+      },
+    });
+
+    return { user, personalDocumentId: createBody.data.id, shared };
+  };
+
+  it("should omit the user's own personal documents from the shared list", async () => {
+    const { user, shared } = await buildSharedAndPersonalDocuments();
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(shared.id);
+  });
+
+  it("should return a personal document belonging to another user that was shared", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildPersonalDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+    });
+
+    await server.post("/api/documents.add_user", owner, {
+      body: {
+        id: document.id,
+        userId: user.id,
+      },
+    });
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(document.id);
+  });
+});
+
+describe("userMemberships - unfiled drafts", () => {
+  it("should return a draft without a collection shared by another user", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const draft = await buildDraftDocument({
+      teamId: other.teamId,
+      userId: other.id,
+      collectionId: null,
+    });
+
+    const addRes = await server.post("/api/documents.add_user", other, {
+      body: {
+        id: draft.id,
+        userId: user.id,
+      },
+    });
+    expect(addRes.status).toEqual(200);
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(draft.id);
+  });
+
+  it("should return the user's own unfiled draft, which is not personal", async () => {
+    const user = await buildUser();
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: draft.id,
+      permission: DocumentPermission.Admin,
+      index: "a",
+      createdById: user.id,
+    });
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(draft.id);
   });
 });

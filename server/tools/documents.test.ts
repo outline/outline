@@ -4,6 +4,8 @@ import {
   buildViewer,
   buildCollection,
   buildDocument,
+  buildDraftDocument,
+  buildPersonalDocument,
   buildTemplate,
   buildOAuthAuthentication,
   buildGroup,
@@ -988,5 +990,190 @@ describe("restore_document", () => {
     });
 
     expect(res?.result?.isError).toBe(true);
+  });
+});
+
+describe("create_document - personal", () => {
+  it("creates a personal document owned by the caller", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Personal notes",
+      text: "Hello world",
+      personalOwnerId: "me",
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).not.toBe(true);
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+    expect(document.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+  });
+
+  it("rejects personalOwnerId combined with collectionId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Personal notes",
+      personalOwnerId: "me",
+      collectionId: collection.id,
+    });
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("rejects a personal space belonging to another user", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const other = await buildUser({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Personal notes",
+      personalOwnerId: other.id,
+    });
+    expect(res?.result?.isError).toBe(true);
+  });
+});
+
+describe("move_document - personal", () => {
+  it("moves a published document into the caller's personal space", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      personalOwnerId: "me",
+    });
+    expect(res?.result?.isError).not.toBe(true);
+
+    await document.reload();
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+    expect(document.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.sourceId).toBeNull();
+  });
+
+  it("makes a document moved under a personal document personal too", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      parentDocumentId: parent.id,
+    });
+    expect(res?.result?.isError).not.toBe(true);
+
+    await document.reload();
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+    expect(document.publishedAt).toBeTruthy();
+  });
+});
+
+describe("update_document - personal", () => {
+  it("publishes a draft into the caller's personal space", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: draft.id,
+      publish: true,
+      personalOwnerId: "me",
+    });
+    expect(res?.result?.isError).not.toBe(true);
+
+    await draft.reload();
+    expect(draft.collectionId).toBeNull();
+    expect(draft.personalOwnerId).toEqual(user.id);
+    expect(draft.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: draft.id, userId: user.id },
+    });
+    expect(membership).not.toBeNull();
+  });
+
+  it("rejects personalOwnerId without publish", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: "Updated",
+      personalOwnerId: "me",
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded!.personalOwnerId).toBeNull();
+    expect(reloaded!.publishedAt).toBeNull();
+  });
+
+  it("rejects personalOwnerId on an already published document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      publish: true,
+      personalOwnerId: "me",
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+    expect(document.personalOwnerId).toBeNull();
   });
 });

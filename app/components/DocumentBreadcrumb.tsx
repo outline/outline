@@ -1,6 +1,12 @@
 import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
-import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
+import {
+  ArchiveIcon,
+  GoToIcon,
+  PadlockIcon,
+  TrashIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -23,27 +29,32 @@ import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 
 /**
- * Returns the breadcrumb parts leading up to a document, separating the
- * (possibly deleted) collection label from ancestor document titles. The
- * document itself is not included.
+ * Returns the breadcrumb parts leading up to a document, separating the label
+ * of the place it lives from ancestor document titles. The document itself is
+ * not included.
  *
  * @param document - the document to compute the breadcrumb for.
  * @param t - translation function for fallback titles.
- * @returns the collection label and ancestor titles.
+ * @returns the root label and ancestor titles.
  */
 export function documentBreadcrumbParts(
   document: Document,
   t: TFunction
-): { collection: string | undefined; ancestors: string[] } {
-  let collectionLabel: string | undefined;
+): { root: string | undefined; ancestors: string[] } {
+  let rootLabel: string | undefined;
   if (document.isCollectionDeleted) {
-    collectionLabel = t("Deleted Collection");
+    rootLabel = t("Deleted Collection");
   } else if (document.collection?.name) {
-    collectionLabel = document.collection.name;
+    rootLabel = document.collection.name;
+  } else if (document.isPersonalToMe) {
+    rootLabel = t("Personal");
+  } else if (document.isPersonal) {
+    // Somebody else's personal space is only reachable by being invited to it.
+    rootLabel = t("Shared with me");
   }
 
   return {
-    collection: collectionLabel,
+    root: rootLabel,
     ancestors: document.pathTo
       .slice(0, -1)
       .map((node) => node.title || t("Untitled")),
@@ -52,8 +63,8 @@ export function documentBreadcrumbParts(
 
 /**
  * Returns the breadcrumb path leading up to a document as a plain text
- * string. Includes the collection name (or "Deleted Collection" fallback)
- * and any ancestor document titles, slash-separated.
+ * string. Includes the collection name, or the section the document belongs to
+ * when it lives outside one, and any ancestor document titles, slash-separated.
  *
  * @param document - the document to compute the breadcrumb for.
  * @param t - translation function for fallback titles.
@@ -65,10 +76,7 @@ export function documentBreadcrumbText(
   t: TFunction
 ): string | undefined {
   const parts = documentBreadcrumbParts(document, t);
-  const segments = [
-    ...(parts.collection ? [parts.collection] : []),
-    ...parts.ancestors,
-  ];
+  const segments = [...(parts.root ? [parts.root] : []), ...parts.ancestors];
   return segments.length ? segments.join(" / ") : undefined;
 }
 
@@ -148,6 +156,26 @@ function DocumentBreadcrumb(
         visible: document.isCollectionDeleted,
         to: "",
       }),
+      // Personal documents sit outside any collection, so the section they
+      // belong to takes the collection's place. Which section that is depends
+      // on the viewer: your own space, or one you have been invited into.
+      createInternalLinkAction({
+        name: t("Personal"),
+        section: ActiveDocumentSection,
+        icon: <PadlockIcon />,
+        visible: document.isPersonalToMe && !document.isCollectionDeleted,
+        to: "",
+      }),
+      createInternalLinkAction({
+        name: t("Shared with me"),
+        section: ActiveDocumentSection,
+        icon: <UserIcon />,
+        visible:
+          document.isPersonal &&
+          !document.isPersonalToMe &&
+          !document.isCollectionDeleted,
+        to: "",
+      }),
     ];
 
     const ancestorActions = path.map((node) => {
@@ -196,12 +224,12 @@ function DocumentBreadcrumb(
       return <></>;
     }
 
-    const { collection: collectionLabel, ancestors: ancestorLabels } =
+    const { root: rootLabel, ancestors: ancestorLabels } =
       documentBreadcrumbParts(document, t);
 
     // Depth is measured back from the document's parent, so keep the trailing
     // ancestors nearest to the document and collapse anything beyond into an
-    // ellipsis. The collection is always shown.
+    // ellipsis. The root is always shown.
     const tail =
       depth === undefined ? ancestorLabels : ancestorLabels.slice(-depth);
     const omitted = ancestorLabels.slice(
@@ -210,7 +238,7 @@ function DocumentBreadcrumb(
     );
 
     const segments: React.ReactNode[] = [
-      ...(collectionLabel ? [collectionLabel] : []),
+      ...(rootLabel ? [rootLabel] : []),
       ...(omitted.length
         ? [
             <Tooltip key="ellipsis" content={omitted.join(" / ")}>

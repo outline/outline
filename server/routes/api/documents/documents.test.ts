@@ -9,6 +9,7 @@ import {
   ExportContentType,
   HeadingPrefixStyle,
   StatusFilter,
+  TeamPreference,
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
@@ -36,6 +37,7 @@ import {
   buildUser,
   buildDocument,
   buildDraftDocument,
+  buildPersonalDocument,
   buildViewer,
   buildTeam,
   buildGroup,
@@ -6183,7 +6185,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(400);
     expect(body.message).toBe(
-      "collectionId or parentDocumentId is required to publish"
+      "collectionId, parentDocumentId or personalOwnerId is required to publish"
     );
   });
 
@@ -6439,7 +6441,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(400);
 
     expect(body.message).toBe(
-      "collectionId is required to publish a draft without collection"
+      "collectionId or personalOwnerId is required to publish a draft without a location"
     );
   });
 
@@ -8718,7 +8720,7 @@ describe("#documents.documents", () => {
     expect(body.data.children.length).toBe(0);
   });
 
-  it("should return undefined if document is not part of a collection", async () => {
+  it("should build the tree from the document when not part of a collection", async () => {
     const user = await buildUser();
     const doc = await buildDocument({
       userId: user.id,
@@ -8734,7 +8736,8 @@ describe("#documents.documents", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data).toBeUndefined();
+    expect(body.data.id).toEqual(doc.id);
+    expect(body.data.children).toHaveLength(0);
   });
 
   it("should require authentication", async () => {
@@ -8783,5 +8786,901 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#documents.create - personal", () => {
+  it("should create a personal document owned by the caller", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: user.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Personal notes");
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.personalOwnerId).toEqual(user.id);
+    expect(body.data.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: body.data.id, userId: user.id },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+  });
+
+  it("should append new personal documents to the bottom of the list", async () => {
+    const user = await buildUser();
+    const first = await server.post("/api/documents.create", user, {
+      body: { title: "First", personalOwnerId: user.id, publish: true },
+    });
+    const second = await server.post("/api/documents.create", user, {
+      body: { title: "Second", personalOwnerId: user.id, publish: true },
+    });
+
+    const firstBody = await first.json();
+    const secondBody = await second.json();
+
+    const memberships = await UserMembership.findAll({
+      where: {
+        userId: user.id,
+        documentId: [firstBody.data.id, secondBody.data.id],
+      },
+    });
+    const byDocument = new Map(memberships.map((m) => [m.documentId, m]));
+
+    expect(
+      byDocument.get(firstBody.data.id)!.index! <
+        byDocument.get(secondBody.data.id)!.index!
+    ).toBe(true);
+  });
+
+  it("should sort a new personal document after existing personal documents only", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+
+    // a document shared with the user sorts in the other sidebar section, and
+    // must not push the first personal document below it
+    const shared = await buildDocument({
+      teamId: other.teamId,
+      userId: other.id,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: shared.id,
+      permission: DocumentPermission.Read,
+      index: "z",
+      createdById: other.id,
+    });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: { title: "Personal", personalOwnerId: user.id, publish: true },
+    });
+    const body = await res.json();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: body.data.id, userId: user.id },
+    });
+    expect(membership!.index! < "z").toBe(true);
+  });
+
+  it("should not allow personalOwnerId with a collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: user.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject personalOwnerId combined with collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal",
+        personalOwnerId: user.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "personalOwnerId: cannot be combined with collectionId or parentDocumentId, pass parentDocumentId alone to nest under an existing personal document"
+    );
+  });
+
+  it("should reject personalOwnerId combined with parentDocumentId", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: parent.id,
+        personalOwnerId: user.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject a self token, which is an MCP convenience only", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: { title: "Personal", personalOwnerId: "me", publish: true },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require publish when personalOwnerId is set", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: user.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow creating in another user's personal space", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: other.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow viewers to create personal documents", async () => {
+    const user = await buildViewer();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: user.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating personal documents when the preference is disabled", async () => {
+    const team = await buildTeam();
+    await team.update({
+      preferences: { [TeamPreference.PersonalDocs]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal notes",
+        personalOwnerId: user.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.update - personal", () => {
+  it("should publish an unfiled draft into the personal space", async () => {
+    const user = await buildUser();
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: draft.id,
+        publish: true,
+        personalOwnerId: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.personalOwnerId).toEqual(user.id);
+    expect(body.data.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: draft.id, userId: user.id },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+  });
+
+  it("should detach a draft from its collection when publishing personally", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: draft.id,
+        publish: true,
+        personalOwnerId: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.personalOwnerId).toEqual(user.id);
+  });
+
+  it("should reject personalOwnerId on an already published document", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        publish: true,
+        personalOwnerId: user.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+    expect(document.personalOwnerId).toBeNull();
+  });
+
+  it("should not publish personally when the preference is disabled", async () => {
+    const team = await buildTeam();
+    await team.update({
+      preferences: { [TeamPreference.PersonalDocs]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const draft = await buildDraftDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: draft.id,
+        publish: true,
+        personalOwnerId: user.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.remove_user - personal", () => {
+  it("should prevent removing the owner from their own personal document", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.remove_user", user, {
+      body: { id: document.id, userId: user.id },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow removing an invited user from a personal document", async () => {
+    const user = await buildUser();
+    const invited = await buildUser({ teamId: user.teamId });
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/documents.add_user", user, {
+      body: { id: document.id, userId: invited.id },
+    });
+
+    const res = await server.post("/api/documents.remove_user", user, {
+      body: { id: document.id, userId: invited.id },
+    });
+    expect(res.status).toEqual(200);
+  });
+});
+
+describe("#documents.personal", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.personal", { body: {} });
+    expect(res.status).toEqual(401);
+  });
+
+  it("should return only the user's own top-level personal documents", async () => {
+    const user = await buildUser();
+    const root = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    // a nested one, which shows inside its parent's tree instead
+    await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: root.id,
+    });
+    // and a document in a collection
+    await buildDocument({ teamId: user.teamId, userId: user.id });
+
+    const res = await server.post("/api/documents.personal", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].id).toEqual(root.id);
+  });
+
+  it("should not return another user's personal documents", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    await buildPersonalDocument({ teamId: other.teamId, userId: other.id });
+
+    const res = await server.post("/api/documents.personal", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(0);
+  });
+
+  it("should list a personal document that has no membership", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await UserMembership.destroy({ where: { documentId: document.id } });
+
+    const res = await server.post("/api/documents.personal", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].id).toEqual(document.id);
+  });
+});
+
+describe("#documents.documents - personal", () => {
+  it("should return the children of a personal document", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const child = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: parent.id,
+    });
+    const grandchild = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: child.id,
+    });
+
+    const res = await server.post("/api/documents.documents", user, {
+      body: { id: parent.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(parent.id);
+    expect(body.data.children).toHaveLength(1);
+    expect(body.data.children[0].id).toEqual(child.id);
+    expect(body.data.children[0].children).toHaveLength(1);
+    expect(body.data.children[0].children[0].id).toEqual(grandchild.id);
+  });
+
+  it("should make a document nested under a personal document personal too", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    // personalOwnerId is not passed, nesting alone decides where it lives
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Child",
+        parentDocumentId: parent.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+
+    const child = await Document.findByPk(body.data.id, {
+      rejectOnEmpty: true,
+    });
+    expect(child.personalOwnerId).toEqual(user.id);
+  });
+});
+
+describe("#documents.move - personal", () => {
+  it("should move a published document and its children into the personal space", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: parent.id, personalOwnerId: user.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await parent.reload();
+    await child.reload();
+    expect(parent.collectionId).toBeNull();
+    expect(parent.personalOwnerId).toEqual(user.id);
+    expect(child.collectionId).toBeNull();
+    expect(child.personalOwnerId).toEqual(user.id);
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: parent.id, userId: user.id, sourceId: null },
+    });
+    expect(membership).not.toBeNull();
+  });
+
+  it("should make a document moved under a personal document personal too", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, parentDocumentId: parent.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    await child.reload();
+    expect(document.publishedAt).not.toBeNull();
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+    expect(child.parentDocumentId).toEqual(document.id);
+    expect(child.collectionId).toBeNull();
+    expect(child.personalOwnerId).toEqual(user.id);
+  });
+
+  it("should keep a personal document personal when nesting it under another", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, parentDocumentId: parent.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.publishedAt).not.toBeNull();
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+  });
+
+  it("should clear the personal owner when moving back into a collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const child = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: parent.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: parent.id, collectionId: collection.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await parent.reload();
+    await child.reload();
+    expect(parent.collectionId).toEqual(collection.id);
+    expect(parent.personalOwnerId).toBeNull();
+    expect(child.collectionId).toEqual(collection.id);
+    expect(child.personalOwnerId).toBeNull();
+  });
+
+  it("should remove the owner's sidebar membership when moving back into a collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id, sourceId: null },
+    });
+    expect(membership).not.toBeNull();
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: collection.id },
+    });
+    expect(res.status).toEqual(200);
+
+    const remaining = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id },
+    });
+    expect(remaining).toBeNull();
+  });
+
+  it("should not allow personalOwnerId with a collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: document.id,
+        personalOwnerId: user.id,
+        collectionId: collection.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow moving into another user's personal space", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, personalOwnerId: other.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow moving to personal when the preference is disabled", async () => {
+    const team = await buildTeam();
+    await team.update({
+      preferences: { [TeamPreference.PersonalDocs]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ teamId: team.id, userId: user.id });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, personalOwnerId: user.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.unpublish - personal", () => {
+  it("should unpublish a personal document with an archived child", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const child = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: document.id,
+    });
+    await withAPIContext(user, (ctx) => child.archiveWithCtx(ctx));
+
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeNull();
+    expect(body.data.personalOwnerId).toBeNull();
+
+    // The archived child keeps its personal home so that it stays reachable
+    // and can be restored in place.
+    await child.reload({ paranoid: false });
+    expect(child.archivedAt).not.toBeNull();
+    expect(child.personalOwnerId).toEqual(user.id);
+  });
+});
+
+describe("#documents.restore - personal", () => {
+  it("should restore an archived personal document in place", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/documents.archive", user, {
+      body: { id: document.id },
+    });
+    const res = await server.post("/api/documents.restore", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.personalOwnerId).toEqual(user.id);
+    expect(body.data.archivedAt).toBeNull();
+  });
+
+  it("should restore a deleted personal document in place", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/documents.delete", user, {
+      body: { id: document.id },
+    });
+    const res = await server.post("/api/documents.restore", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.personalOwnerId).toEqual(user.id);
+    expect(body.data.deletedAt).toBeNull();
+  });
+});
+
+describe("#documents.archived - personal", () => {
+  it("should return the user's own archived personal documents", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/documents.archive", user, {
+      body: { id: document.id },
+    });
+
+    const res = await server.post("/api/documents.archived", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+});
+
+describe("personal documents when the preference is disabled", () => {
+  const buildFrozen = async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildPersonalDocument({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    // the setting is turned off after the document already exists
+    await team.update({
+      preferences: { [TeamPreference.PersonalDocs]: false },
+    });
+
+    return { team, user, document };
+  };
+
+  it("should still allow reading by direct link", async () => {
+    const { user, document } = await buildFrozen();
+
+    const res = await server.post("/api/documents.info", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+
+    const policy = body.policies.find(
+      (p: { id: string }) => p.id === document.id
+    );
+    // `read` serializes as the matching membership ids rather than a boolean
+    expect(policy.abilities.read).toBeTruthy();
+    expect(policy.abilities.update).toBe(false);
+  });
+
+  it("should not allow editing", async () => {
+    const { user, document } = await buildFrozen();
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, text: "Changed" },
+    });
+    expect(res.status).toEqual(403);
+
+    await document.reload();
+    expect(document.text).not.toEqual("Changed");
+  });
+
+  it("should not allow nesting a new document under it", async () => {
+    const { user, document } = await buildFrozen();
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Child",
+        parentDocumentId: document.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow inviting more people to it", async () => {
+    const { team, user, document } = await buildFrozen();
+    const invited = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/documents.add_user", user, {
+      body: { id: document.id, userId: invited.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow the owner to file it into a collection", async () => {
+    const { team, user, document } = await buildFrozen();
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: collection.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+    expect(document.personalOwnerId).toBeNull();
+  });
+
+  it("should be editable again once filed into a collection", async () => {
+    const { team, user, document } = await buildFrozen();
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: collection.id },
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, text: "Changed" },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow the owner to archive and delete it", async () => {
+    const { user, document } = await buildFrozen();
+
+    const archiveRes = await server.post("/api/documents.archive", user, {
+      body: { id: document.id },
+    });
+    expect(archiveRes.status).toEqual(200);
+
+    const deleteRes = await server.post("/api/documents.delete", user, {
+      body: { id: document.id },
+    });
+    expect(deleteRes.status).toEqual(200);
+  });
+
+  it("should not freeze documents in collections", async () => {
+    const { team, user } = await buildFrozen();
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, text: "Changed" },
+    });
+    expect(res.status).toEqual(200);
   });
 });
