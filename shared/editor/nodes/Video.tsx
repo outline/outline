@@ -159,8 +159,15 @@ export default class Video extends Node {
       const { view } = this.editor;
       const { tr } = view.state;
 
-      // update meta on object
+      // The blur may fire while the node view is being torn down, at which
+      // point the position no longer refers to this video in the document.
       const pos = getPos();
+      const current =
+        pos === undefined ? undefined : view.state.doc.nodeAt(pos);
+      if (current?.type !== node.type) {
+        return;
+      }
+
       const transaction = tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
         title: caption,
