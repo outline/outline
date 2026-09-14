@@ -7,6 +7,7 @@ import { Share } from "@server/models";
 import { ValidateURL } from "@server/validation";
 import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
+import { isFuture } from "date-fns";
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
@@ -36,9 +37,7 @@ export const SharesListSchema = BaseSchema.extend({
     sort: z
       .string()
       .refine((val) => Object.keys(Share.getAttributes()).includes(val), {
-        message: `must be one of ${Object.keys(Share.getAttributes()).join(
-          ", "
-        )}`,
+        message: `must be one of ${Object.keys(Share.getAttributes()).join(", ")}`,
       })
       .prefault("updatedAt"),
     direction: z
@@ -53,6 +52,12 @@ export type SharesListReq = z.infer<typeof SharesListSchema>;
 export const SharesUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.uuid(),
+    expiresAt: z.coerce
+      .date()
+      .nullish()
+      .refine((value) => !value || isFuture(value), {
+        error: "must be in the future",
+      }),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
@@ -84,6 +89,12 @@ export const SharesCreateSchema = BaseSchema.extend({
     .object({
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
+      expiresAt: z.coerce
+        .date()
+        .optional()
+        .refine((value) => !value || isFuture(value), {
+          error: "must be in the future",
+        }),
       published: z.boolean().prefault(false),
       allowIndexing: z.boolean().optional(),
       allowSubscriptions: z.boolean().optional(),

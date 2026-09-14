@@ -26,7 +26,11 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { Theme } from "~/stores/UiStore";
 import { client } from "~/utils/ApiClient";
-import { AuthorizationError, OfflineError } from "~/utils/errors";
+import {
+  AuthorizationError,
+  OfflineError,
+  ResourceExpiredError,
+} from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Loading from "../Document/components/Loading";
@@ -37,6 +41,7 @@ import DelayedMount from "~/components/DelayedMount";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { ShareContext } from "@shared/hooks/useShare";
 import ClickablePadding from "~/components/ClickablePadding";
+import ErrorExpiredLink from "../Errors/ErrorExpiredLink";
 
 const Login = lazyWithRetry(() => import("../Login"));
 
@@ -232,6 +237,11 @@ function SharedScene() {
         </Suspense>
       );
     }
+
+    if (error instanceof ResourceExpiredError) {
+      return <ErrorExpiredLink />;
+    }
+
     return <Error404 />;
   }
 

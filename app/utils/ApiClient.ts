@@ -19,6 +19,7 @@ import {
   PaymentRequiredError,
   RateLimitExceededError,
   RequestError,
+  ResourceExpiredError,
   ServiceUnavailableError,
   UnprocessableEntityError,
   UpdateRequiredError,
@@ -223,11 +224,9 @@ class ApiClient {
     let response;
 
     try {
-      response = await (
-        options?.retry === false
-          ? fetchWithFreshCsrfToken
-          : retry(fetchWithFreshCsrfToken)
-      )(urlToFetch, {
+      response = await (options?.retry === false
+        ? fetchWithFreshCsrfToken
+        : retry(fetchWithFreshCsrfToken))(urlToFetch, {
         method,
         body,
         headers,
@@ -362,6 +361,10 @@ class ApiClient {
 
     if (status === 404) {
       return new NotFoundError(message);
+    }
+
+    if (status === 410) {
+      throw new ResourceExpiredError(message);
     }
 
     if (status === 503) {
