@@ -9,7 +9,6 @@ import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
 import type Model from "~/models/base/Model";
 import Collection from "~/models/Collection";
-import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import type { SplitViewPane } from "~/utils/splitView";
 import { isTruthyQueryValue } from "~/utils/urls";
 import { startViewTransition } from "~/utils/viewTransition";
@@ -110,11 +109,6 @@ class UiStore {
   @observable
   sidebarIsResizing = false;
 
-  @observable
-  multiplayerStatus: ConnectionStatus | undefined = undefined;
-
-  @observable
-  multiplayerErrorCode?: number = undefined;
   @observable
   debugSafeArea = false;
 
@@ -357,15 +351,6 @@ class UiStore {
         this.addActiveModel(collection);
       }
     }
-  };
-
-  @action
-  setMultiplayerStatus = (
-    status: ConnectionStatus,
-    errorCode?: number
-  ): void => {
-    this.multiplayerStatus = status;
-    this.multiplayerErrorCode = errorCode;
   };
 
   @action
