@@ -230,6 +230,36 @@ describe("teamProvisioner", () => {
       expect(providers.length).toEqual(2);
     });
 
+    it("should return existing team when a verified domain is allowed but the email domain is not", async () => {
+      const allowedDomain = faker.internet.domainName();
+      const otherDomain = faker.internet.domainName();
+      const existing = await buildTeam();
+      const user = await buildUser({
+        teamId: existing.id,
+      });
+      await TeamDomain.create({
+        teamId: existing.id,
+        name: allowedDomain,
+        createdById: user.id,
+      });
+      const result = await teamProvisioner(ctx, {
+        name: "Updated name",
+        subdomain: faker.internet.domainWord(),
+        // The email domain is not allowed, but a verified directory domain
+        // (eg an Entra UPN) is.
+        domain: otherDomain,
+        verifiedDomains: [allowedDomain],
+        teamId: existing.id,
+        authenticationProvider: {
+          name: "google",
+          providerId: allowedDomain,
+        },
+      });
+      const { team, isNewTeam } = result;
+      expect(team.id).toEqual(existing.id);
+      expect(isNewTeam).toEqual(false);
+    });
+
     it("should error when NOT within allowed domains", async () => {
       const existing = await buildTeam();
       const user = await buildUser({
