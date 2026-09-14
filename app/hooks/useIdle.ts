@@ -28,7 +28,7 @@ export default function useIdle(
 ) {
   const isMounted = useIsMounted();
   const [isIdle, setIsIdle] = useState(false);
-  const timeout = useRef<ReturnType<typeof setTimeout>>();
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const onActivity = useCallback(() => {
     if (timeout.current) {

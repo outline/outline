@@ -4,7 +4,7 @@ import type Document from "~/models/Document";
 const MARK_AS_VIEWED_AFTER = 3 * 1000;
 type Props = {
   document: Document;
-  children?: JSX.Element;
+  children?: React.JSX.Element;
 };
 
 function MarkAsViewed(props: Props) {

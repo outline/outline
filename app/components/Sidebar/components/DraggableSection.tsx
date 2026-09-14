@@ -1,6 +1,11 @@
 import { observer } from "mobx-react";
-import { createContext, useEffect, useState, type ReactNode } from "react";
-import type { ConnectDragSource } from "react-dnd";
+import {
+  createContext,
+  useEffect,
+  useState,
+  type ReactNode,
+  type RefCallback,
+} from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { SidebarSection, UserPreference } from "@shared/types";
@@ -16,7 +21,8 @@ import Section from "./Section";
  * Carries the drag connector for a sidebar section so the section header can
  * register itself as the drag handle.
  */
-export const SectionDragContext = createContext<ConnectDragSource | null>(null);
+export const SectionDragContext =
+  createContext<RefCallback<HTMLElement> | null>(null);
 
 /**
  * Normalizes a persisted sidebar section order — unknown values and

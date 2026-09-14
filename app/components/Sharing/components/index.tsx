@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s, hover } from "@shared/styles";
@@ -92,7 +93,7 @@ export const presence = {
       type: "spring",
       duration: 0.2,
       bounce: 0,
-    },
+    } satisfies Transition,
   },
   exit: {
     opacity: 0,
