@@ -7,6 +7,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
+import { TeamPreference } from "@shared/types";
 
 const server = getTestServer();
 
@@ -89,6 +90,49 @@ describe("#team.update", () => {
       },
     });
     expect(res.status).toEqual(400);
+  });
+
+  it("should update retention preferences", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          [TeamPreference.TrashRetentionDays]: 90,
+          [TeamPreference.DataRetentionDays]: 7,
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences[TeamPreference.TrashRetentionDays]).toEqual(
+      90
+    );
+    expect(body.data.preferences[TeamPreference.DataRetentionDays]).toEqual(7);
+  });
+
+  it("should reject an unsupported retention period", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          [TeamPreference.TrashRetentionDays]: 45,
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow a member to update retention preferences", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/team.update", user, {
+      body: {
+        preferences: {
+          [TeamPreference.TrashRetentionDays]: 7,
+        },
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should add avatar", async () => {
