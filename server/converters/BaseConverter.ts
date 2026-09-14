@@ -16,15 +16,39 @@ export abstract class BaseConverter {
   }
 
   /**
+   * Parse YAML frontmatter at the start of the content, if present.
+   *
+   * @param content The markdown content that may contain frontmatter.
+   * @returns The parsed frontmatter as an object, or undefined when no valid
+   *   frontmatter is present.
+   */
+  protected static parseFrontmatter(
+    content: string
+  ): Record<string, unknown> | undefined {
+    const match = content.match(this.frontmatterRegex);
+    if (!match) {
+      return undefined;
+    }
+
+    try {
+      const data: unknown = yaml.load(match[1]);
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        return data as Record<string, unknown>;
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Parse and convert frontmatter to a YAML codeblock.
    *
    * @param content The markdown content that may contain frontmatter.
    * @returns The markdown content with frontmatter converted to a YAML codeblock.
    */
   protected static processFrontmatter(content: string): string {
-    // Frontmatter must start at the beginning of the document
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---(?:\n|$)/;
-    const match = content.match(frontmatterRegex);
+    const match = content.match(this.frontmatterRegex);
 
     if (!match) {
       return content;
@@ -47,4 +71,7 @@ export abstract class BaseConverter {
 
     return yamlCodeblock + remainingContent;
   }
+
+  // Frontmatter must start at the beginning of the document
+  private static readonly frontmatterRegex = /^---\n([\s\S]*?)\n---(?:\n|$)/;
 }
