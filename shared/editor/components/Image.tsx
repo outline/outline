@@ -30,7 +30,7 @@ type Props = ComponentProps & {
   onChangeSize?: (props: { width: number; height?: number }) => void;
   /** The editor view */
   view: EditorView;
-  children?: React.ReactElement;
+  children?: React.ReactElement<{ style?: React.CSSProperties }>;
 };
 
 /** Images rendered smaller than this width are displayed as inline icons. */
