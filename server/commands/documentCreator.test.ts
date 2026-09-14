@@ -172,7 +172,9 @@ describe("documentCreator", () => {
             publish: true,
           })
         )
-      ).rejects.toThrow("Collection ID is required to publish");
+      ).rejects.toThrow(
+        "A collection, parent document or personal owner is required to publish"
+      );
     });
   });
 

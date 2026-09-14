@@ -27,6 +27,8 @@ import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 export type DragObject = NavigationNode & {
   depth: number;
   collectionId: string;
+  /** The membership the drag originated from, when dragging a membership row. */
+  membershipId?: string;
 };
 
 function useHover(
@@ -372,7 +374,7 @@ export function useDropToReparentDocument(
   const startHover = useHover(parentRef, setExpanded);
 
   return useDrop<DragObject, Promise<void>, { isOverReparent: boolean }>({
-    accept: "document",
+    accept: ["document", "userMembership", "groupMembership"],
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
         return;
@@ -566,14 +568,33 @@ export function useDragMembership(
   membership: UserMembership | GroupMembership
 ) {
   const id = membership.id;
+  const { documents } = useStores();
   const { label: title, icon } = useSidebarLabelAndIcon(membership);
+  const document = membership.documentId
+    ? documents.get(membership.documentId)
+    : undefined;
 
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type:
       membership instanceof UserMembership
         ? "userMembership"
         : "groupMembership",
-    item: () => ({ id, title, icon }),
+    // The item is shaped as the underlying document so that document drop
+    // targets, such as reparenting, can accept membership rows.
+    item: () =>
+      ({
+        ...(document?.asNavigationNode ?? {
+          id: membership.documentId ?? id,
+          title,
+          url: document?.url ?? "",
+          children: [],
+        }),
+        membershipId: id,
+        depth: 0,
+        title,
+        icon: icon ?? undefined,
+        collectionId: document?.collectionId || "",
+      }) as DragObject,
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -602,7 +623,7 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
   >({
     accept: "userMembership",
     drop: async (item) => {
-      const userMembership = userMemberships.get(item.id);
+      const userMembership = userMemberships.get(item.membershipId ?? item.id);
       void userMembership?.save({
         index:
           getIndex?.() ??

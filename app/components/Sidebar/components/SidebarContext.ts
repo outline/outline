@@ -5,6 +5,7 @@ import type User from "~/models/User";
 export type SidebarContextType =
   | "collections"
   | "shared"
+  | "personal"
   | "archive"
   | `group-${string}`
   | `starred-${string}`
@@ -43,6 +44,8 @@ export const determineSidebarContext = ({
 
   if (document.collection) {
     return document.collection.isArchived ? "archive" : "collections";
+  } else if (document.isPersonalToMe) {
+    return "personal";
   } else if (
     user.documentMemberships.find((m) => m.documentId === document.id)
   ) {

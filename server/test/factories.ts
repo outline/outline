@@ -373,6 +373,26 @@ export async function buildDraftDocument(
   return buildDocument({ ...overrides, publishedAt: null });
 }
 
+/**
+ * Builds a published document that lives in a user's personal space rather
+ * than in a collection. The membership that orders it in the sidebar follows
+ * from the model hook, as it does in the application.
+ *
+ * @param overrides document attributes to override, personalOwnerId defaults
+ * to the creating user.
+ * @returns the created document.
+ */
+export async function buildPersonalDocument(
+  overrides: Omit<Partial<Document>, "collectionId"> & { userId?: string } = {}
+) {
+  return buildDocument({
+    ...overrides,
+    collectionId: null,
+    publishedAt: overrides.publishedAt ?? new Date(),
+    personalOwnerId: overrides.personalOwnerId ?? overrides.userId,
+  });
+}
+
 export async function buildDocument(
   // Omission first, addition later?
   // This is actually a workaround to allow
@@ -409,7 +429,10 @@ export async function buildDocument(
       title: faker.lorem.words(4),
       content: overrides.content ?? parser.parse(text)?.toJSON(),
       text,
-      publishedAt: isNull(overrides.collectionId) ? null : new Date(),
+      publishedAt:
+        isNull(overrides.collectionId) && !overrides.personalOwnerId
+          ? null
+          : new Date(),
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
       editorVersion: "12.0.0",

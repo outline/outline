@@ -28,6 +28,7 @@ import {
   CommentIcon,
   CopyIcon,
   PadlockIcon,
+  PlusIcon,
   GlobeIcon,
   LogoutIcon,
   CaseSensitiveIcon,
@@ -242,6 +243,28 @@ export const createDraftDocument = createInternalLinkAction({
     pathname: newDocumentPath(),
     state: { sidebarContext },
   }),
+});
+
+export const createPersonalDocument = createInternalLinkAction({
+  name: ({ t }) => t("New doc"),
+  analyticsName: "New personal document",
+  section: DocumentSection,
+  icon: <PlusIcon />,
+  keywords: "create personal private",
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId &&
+    stores.policies.abilities(currentTeamId).createPersonalDocument,
+  to: () => {
+    const [pathname, search] = newDocumentPath(null, {
+      personal: true,
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext: "personal" },
+    };
+  },
 });
 
 /**
@@ -1489,7 +1512,12 @@ export const restoreDocument = createAction({
         ? context.stores.collections.get(document.collectionId)
         : undefined;
       const can = context.stores.policies.abilities(document.id);
-      return !!collection?.isActive && !!(can.restore || can.unarchive);
+      // Documents outside any collection, such as private documents, are
+      // restored in place.
+      return (
+        (!document.collectionId || !!collection?.isActive) &&
+        !!(can.restore || can.unarchive)
+      );
     }),
   perform: (context) =>
     performBatchOnActiveModels(
@@ -1523,7 +1551,11 @@ export const restoreDocumentToCollection = createActionWithChildren({
       ? stores.collections.get(document.collectionId)
       : undefined;
 
-    return !collection?.isActive && !!(can.restore || can.unarchive);
+    return (
+      !!document.collectionId &&
+      !collection?.isActive &&
+      !!(can.restore || can.unarchive)
+    );
   },
   children: ({ t, activeDocumentId, stores }) => {
     const { collections, documents, policies } = stores;
@@ -1876,8 +1908,12 @@ export const leaveDocument = createAction({
     const membership = stores.userMemberships.orderedData.find(
       (m) => m.documentId === activeDocumentId && m.userId === currentUserId
     );
+    if (!membership || !activeDocumentId) {
+      return false;
+    }
 
-    return !!membership;
+    // The owner cannot leave their own personal document.
+    return !stores.documents.get(activeDocumentId)?.isPersonalToMe;
   },
   perform: async ({ t, location, currentUserId, activeDocumentId, stores }) => {
     if (!activeDocumentId) {

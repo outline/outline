@@ -10,6 +10,8 @@ type Props = {
   collectionId: string | null;
   /** ID of parent under which the document is moved */
   parentDocumentId?: string | null;
+  /** The personal space the document is moved into, outside any collection */
+  personalOwnerId?: string | null;
   /** Position of moved document within document structure */
   index?: number;
 };
@@ -26,6 +28,7 @@ async function documentMover(
     document,
     collectionId,
     parentDocumentId = null,
+    personalOwnerId = null,
     // convert undefined to null so parentId comparison treats them as equal
     index,
   }: Props
@@ -34,6 +37,8 @@ async function documentMover(
   const { transaction } = ctx.state;
 
   const collectionChanged = collectionId !== document.collectionId;
+  const personalOwnerChanged =
+    personalOwnerId !== (document.personalOwnerId ?? null);
   const previousCollectionId = document.collectionId;
   const result: Result = {
     collections: [],
@@ -113,12 +118,17 @@ async function documentMover(
 
   // If the collection has changed then we also need to update the properties
   // on all of the documents children to reflect the new collectionId
-  if (collectionChanged) {
+  if (collectionChanged || personalOwnerChanged) {
     // Efficiently find the ID's of all the documents that are children of
     // the moved document and update in one query
     const childDocumentIds = await document.findAllChildDocumentIds();
 
-    if (collectionId) {
+    if (personalOwnerId) {
+      // The document stays published and keeps its tree, it simply lives in a
+      // person's own space instead of a collection. The subtree and the
+      // owner's sidebar record follow from the model hook on save.
+      document.personalOwnerId = personalOwnerId;
+    } else if (collectionId) {
       // Reload the collection to get relationship data
       newCollection = await Collection.findByPk(collectionId, {
         userId: user.id,
@@ -132,6 +142,7 @@ async function documentMover(
       await Document.update(
         {
           collectionId: newCollection.id,
+          personalOwnerId: null,
         },
         {
           transaction,
@@ -141,8 +152,10 @@ async function documentMover(
         }
       );
     } else {
-      // document will be moved to drafts
+      // document will be moved to drafts, which live in neither a collection
+      // nor a personal space
       document.publishedAt = null;
+      document.personalOwnerId = null;
 
       // point children's parent to moved document's parent
       await Document.update(
