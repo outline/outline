@@ -1,4 +1,5 @@
 import * as Y from "yjs";
+import Logger from "~/utils/Logger";
 
 /**
  * Persists a Y.Doc to IndexedDB so documents can be loaded instantly from the
@@ -119,7 +120,15 @@ export class IndexeddbPersistence {
       return;
     }
 
-    this.updatesStore(this.db).add(update);
+    try {
+      this.updatesStore(this.db).add(update);
+    } catch (err) {
+      // A throw here would break every later Y.Doc transaction, so stop
+      // persisting instead – the connection was closed underneath us.
+      this.db = null;
+      Logger.warn("Local document persistence stopped", { error: err });
+      return;
+    }
 
     if (++this.dbsize >= this.preferredTrimSize) {
       if (this.storeTimeoutId !== undefined) {

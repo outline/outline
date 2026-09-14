@@ -20,6 +20,7 @@ import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
@@ -33,6 +34,7 @@ import type { AwarenessChangeEvent } from "~/types";
 import { IndexeddbPersistence } from "~/utils/IndexeddbPersistence";
 import Logger from "~/utils/Logger";
 import { homePath } from "~/utils/routeHelpers";
+import { Second } from "@shared/utils/time";
 import { sleep } from "@shared/utils/timers";
 
 type Props = EditorProps & {
@@ -47,6 +49,9 @@ export type ConnectionStatus =
   | void;
 
 type ConnectionStatusEvent = { status: ConnectionStatus };
+
+/** How long a local change may await the server echo before it is unsynced. */
+const unsyncedGracePeriod = 2 * Second.ms;
 
 type MessageEvent = {
   message: string;
@@ -65,6 +70,7 @@ function MultiplayerEditor(
   const currentUser = useCurrentUser();
   const retryCount = useRef(0);
   const { presence, auth, ui } = useStores();
+  const documentContext = useDocumentContext();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
   const [remoteProvider, setRemoteProvider] = useState<HocuspocusProvider>();
@@ -175,6 +181,53 @@ function MultiplayerEditor(
     };
 
     provider.on("awarenessChange", showCursorNames);
+
+    // Whether there are local edits the server has not confirmed. While the
+    // provider is synced its own count is reliable, as the server echoes every
+    // update back. Otherwise remember whether an edit was made since the last
+    // confirmed sync.
+    let localPersistence = !!localProvider;
+    let editedSinceSync = false;
+    let unsyncedTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const updateSyncState = () => {
+      if (provider.synced && !provider.hasUnsyncedChanges) {
+        editedSinceSync = false;
+      }
+      const hasUnsyncedChanges = provider.synced
+        ? provider.hasUnsyncedChanges
+        : editedSinceSync;
+
+      // A connected server echoes each update within milliseconds, so only
+      // report changes as unsynced once they have been pending for a while.
+      if (hasUnsyncedChanges && provider.synced) {
+        unsyncedTimeout ??= setTimeout(() => {
+          unsyncedTimeout = undefined;
+          documentContext.setMultiplayerSyncState(true, localPersistence);
+        }, unsyncedGracePeriod);
+        return;
+      }
+      clearTimeout(unsyncedTimeout);
+      unsyncedTimeout = undefined;
+      documentContext.setMultiplayerSyncState(
+        hasUnsyncedChanges,
+        localPersistence
+      );
+    };
+
+    const handleDocUpdate = (_update: Uint8Array, origin: unknown) => {
+      if (origin !== provider && origin !== localProvider) {
+        editedSinceSync = true;
+      }
+      updateSyncState();
+    };
+
+    ydoc.on("update", handleDocUpdate);
+    // Incoming messages are applied after this event fires.
+    provider.on("message", () => queueMicrotask(updateSyncState));
+    provider.on("synced", updateSyncState);
+    updateSyncState();
+
     localProvider?.whenSynced
       .then(() => {
         if (!isActive || !localProvider.synced) {
@@ -189,7 +242,9 @@ function MultiplayerEditor(
       .catch(() => {
         // IndexedDB exists but is unusable, e.g. Firefox private browsing.
         if (isActive) {
+          localPersistence = false;
           setHasLocalPersistence(false);
+          updateSyncState();
         }
       });
     provider.on("synced", () => {
@@ -205,7 +260,7 @@ function MultiplayerEditor(
           provider.shouldConnect = false;
         }
 
-        ui.setMultiplayerStatus("disconnected", ev.event.code);
+        documentContext.setMultiplayerStatus("disconnected", ev.event.code);
 
         if (ev.event.code === EditorUpdateError.code) {
           setEditorVersionBehind(true);
@@ -230,8 +285,8 @@ function MultiplayerEditor(
     }
 
     provider.on("status", (ev: ConnectionStatusEvent) => {
-      if (ui.multiplayerStatus !== ev.status) {
-        ui.setMultiplayerStatus(ev.status, undefined);
+      if (documentContext.multiplayerStatus !== ev.status) {
+        documentContext.setMultiplayerStatus(ev.status, undefined);
       }
     });
 
@@ -242,10 +297,13 @@ function MultiplayerEditor(
       window.removeEventListener("click", finishObserving);
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
+      ydoc.off("update", handleDocUpdate);
+      clearTimeout(unsyncedTimeout);
       provider?.destroy();
       void localProvider?.destroy();
       setRemoteProvider(undefined);
-      ui.setMultiplayerStatus(undefined, undefined);
+      documentContext.setMultiplayerStatus(undefined, undefined);
+      documentContext.setMultiplayerSyncState(false, true);
     };
     // `token` is intentionally omitted, it is only read when establishing the
     // connection and a refreshed token must not tear down the provider.
@@ -255,6 +313,7 @@ function MultiplayerEditor(
     t,
     documentId,
     ui,
+    documentContext,
     presence,
     ydoc,
     currentUser.id,
