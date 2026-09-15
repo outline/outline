@@ -26,6 +26,9 @@ import CodeFence from "./CodeFence";
 import Doc from "./Doc";
 import Embed from "./Embed";
 import Emoji from "./Emoji";
+import Footnote from "./Footnote";
+import FootnoteReference from "./FootnoteReference";
+import Footnotes from "./Footnotes";
 import HardBreak from "./HardBreak";
 import Heading from "./Heading";
 import HorizontalRule from "./HorizontalRule";
@@ -125,6 +128,9 @@ export const richExtensions: Nodes = [
   TemplatePlaceholder,
   Math,
   MathBlock,
+  FootnoteReference,
+  Footnote,
+  Footnotes,
   Mention,
   ToggleBlock,
   // Container type nodes should be last so that key handlers are registered for content inside

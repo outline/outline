@@ -64,6 +64,17 @@ export class EditorStyleHelper {
 
   static readonly diffCurrentChange = "current-diff";
 
+  // Footnotes
+
+  /** Superscript footnote reference */
+  static readonly footnoteReference = "footnote-ref";
+
+  /** List of footnotes at the end of the document */
+  static readonly footnotes = "footnotes";
+
+  /** Footnote list item */
+  static readonly footnote = "footnote";
+
   // Toggle blocks
 
   /** Toggle block wrapper */

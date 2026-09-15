@@ -19,6 +19,7 @@ import {
   AttachmentIcon,
   CalendarIcon,
   MathIcon,
+  NotepadIcon,
   DoneIcon,
   EmbedIcon,
   CollapseIcon,
@@ -167,6 +168,12 @@ export default function blockMenuItems(
       title: t("Math block (LaTeX)"),
       icon: <MathIcon />,
       keywords: "katex formula equation",
+    },
+    {
+      name: "footnote_reference",
+      title: t("Footnote"),
+      icon: <NotepadIcon />,
+      keywords: "footnote reference citation note",
     },
     {
       name: "hr",

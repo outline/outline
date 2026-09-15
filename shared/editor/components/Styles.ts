@@ -1197,6 +1197,22 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   top: -0.1em;
 }
 
+.${EditorStyleHelper.footnoteReference} a {
+  text-decoration: none;
+}
+
+ol.${EditorStyleHelper.footnotes} {
+  margin: 2em 0 0;
+  padding: 1em 0 0 1.5em;
+  border-top: 1px solid ${props.theme.divider};
+  font-size: 0.9em;
+  color: ${props.theme.textSecondary};
+
+  > li::before {
+    display: none;
+  }
+}
+
 .heading-anchor {
   display: none;
   position: absolute;
