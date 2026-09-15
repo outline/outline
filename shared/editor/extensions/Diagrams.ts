@@ -273,7 +273,7 @@ export default class Diagrams extends Extension {
     const uiTheme = this.editor.props.theme.isDark ? "dark" : "atlas";
     return (
       sanitizeUrl(
-        integration?.settings?.diagrams?.url ?? "https://embed.diagrams.net/"
+        integration?.installationUrl ?? "https://embed.diagrams.net/"
       ) + `?embed=1&ui=${uiTheme}&spin=1&modified=unsavedChanges&proto=json`
     );
   }
