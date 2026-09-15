@@ -1,12 +1,14 @@
 import type { Node } from "prosemirror-model";
+import { CellSelection } from "prosemirror-tables";
 import {
+  createEditorState,
   createEditorStateWithSelection,
   doc,
   table,
   tr,
   td,
 } from "@shared/test/editor";
-import { sortTable } from "./table";
+import { setCellAlignment, sortTable } from "./table";
 
 /**
  * Builds a table document from a 2D array of cell strings (rows of columns),
@@ -99,5 +101,50 @@ describe("sortTable", () => {
       ["20", "192.168.20.2"],
       ["20", "192.168.20.10"],
     ]);
+  });
+});
+
+describe("setCellAlignment", () => {
+  it("aligns the current cell without changing its paragraphs", () => {
+    const testDoc = doc([table([tr([td("First"), td("Second")])])]);
+    let state = createEditorStateWithSelection(testDoc, 4);
+
+    setCellAlignment({ alignment: "center" })(state, (tr) => {
+      state = state.apply(tr);
+    });
+
+    const cells = state.doc.firstChild?.firstChild;
+    expect(cells?.child(0).attrs.alignment).toBe("center");
+    expect(cells?.child(1).attrs.alignment).toBeNull();
+    expect(cells?.child(0).firstChild?.attrs.textAlign ?? null).toBeNull();
+  });
+
+  it("aligns every selected cell when the first is already aligned", () => {
+    const testDoc = doc([
+      table([tr([td("First", { alignment: "right" }), td("Second")])]),
+    ]);
+    let state = createEditorState(testDoc);
+    const positions: number[] = [];
+    state.doc.descendants((node, pos) => {
+      if (node.type.spec.tableRole === "cell") {
+        positions.push(pos);
+      }
+    });
+    state = state.apply(
+      state.tr.setSelection(
+        new CellSelection(
+          state.doc.resolve(positions[0]),
+          state.doc.resolve(positions[1])
+        )
+      )
+    );
+
+    setCellAlignment({ alignment: "right" })(state, (tr) => {
+      state = state.apply(tr);
+    });
+
+    const cells = state.doc.firstChild?.firstChild;
+    expect(cells?.child(0).attrs.alignment).toBe("right");
+    expect(cells?.child(1).attrs.alignment).toBe("right");
   });
 });

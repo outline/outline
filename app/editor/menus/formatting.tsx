@@ -21,6 +21,9 @@ import {
   TableSplitCellsIcon,
   PaletteIcon,
   CollapseIcon,
+  AlignLeftIcon,
+  AlignCenterIcon,
+  AlignRightIcon,
 } from "outline-icons";
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
@@ -48,7 +51,11 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { CellSelection } from "prosemirror-tables";
+import {
+  isInTable,
+  selectionCell,
+  type CellSelection,
+} from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
@@ -90,6 +97,9 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     : false;
 
   const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
+  const currentCellAlignment = isInTable(state)
+    ? (selectionCell(state).nodeAfter?.attrs.alignment ?? null)
+    : null;
   const canFormat = !isInCodeBlock;
 
   // The block controls come first, so they are the ones on screen with a bare
@@ -365,6 +375,43 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
           },
         ];
       },
+    },
+    {
+      group: MenuItemGroup.inline,
+      tooltip: t("Align"),
+      icon:
+        currentCellAlignment === "center" ? (
+          <AlignCenterIcon />
+        ) : currentCellAlignment === "right" ? (
+          <AlignRightIcon />
+        ) : (
+          <AlignLeftIcon />
+        ),
+      visible: !isInCode && isInTable(state),
+      children: [
+        {
+          name: "setCellAlignment",
+          label: t("Align left"),
+          icon: <AlignLeftIcon />,
+          attrs: { alignment: "left" },
+          active: () =>
+            currentCellAlignment === null || currentCellAlignment === "left",
+        },
+        {
+          name: "setCellAlignment",
+          label: t("Align center"),
+          icon: <AlignCenterIcon />,
+          attrs: { alignment: "center" },
+          active: () => currentCellAlignment === "center",
+        },
+        {
+          name: "setCellAlignment",
+          label: t("Align right"),
+          icon: <AlignRightIcon />,
+          attrs: { alignment: "right" },
+          active: () => currentCellAlignment === "right",
+        },
+      ],
     },
     {
       group: MenuItemGroup.inline,

@@ -1,4 +1,5 @@
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import { stripSpacersFromNode } from "@shared/editor/extensions/InlineAtomSpacer";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -41,7 +42,7 @@ export class ProsemirrorHelper {
    */
   static toPlainText = (document: HasData) => {
     const text = SharedProsemirrorHelper.toPlainText(
-      Node.fromJSON(schema, document.data)
+      stripSpacersFromNode(Node.fromJSON(schema, document.data))
     );
     return text;
   };

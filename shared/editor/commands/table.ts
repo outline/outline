@@ -7,6 +7,7 @@ import {
   CellSelection,
   addRow,
   isInTable,
+  selectionCell,
   selectedRect,
   tableNodeTypes,
   toggleHeader,
@@ -821,6 +822,51 @@ export function setRowAttr({
 
       dispatch(tr);
     }
+    return true;
+  };
+}
+
+/**
+ * Sets alignment on the current table cell or every selected table cell.
+ *
+ * @param alignment - the alignment to apply.
+ * @returns a prosemirror command.
+ */
+export function setCellAlignment({
+  alignment,
+}: {
+  alignment: "left" | "center" | "right";
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    let tr = state.tr;
+    let changed = false;
+    const setAlignment = (cell: Node | null, pos: number) => {
+      if (!cell || cell.attrs.alignment === alignment) {
+        return;
+      }
+      tr = tr.setNodeMarkup(pos, undefined, {
+        ...cell.attrs,
+        alignment,
+      });
+      changed = true;
+    };
+
+    if (state.selection instanceof CellSelection) {
+      state.selection.forEachCell(setAlignment);
+    } else {
+      const $cell = selectionCell(state);
+      setAlignment($cell.nodeAfter, $cell.pos);
+    }
+
+    if (!changed) {
+      return false;
+    }
+
+    dispatch?.(tr);
     return true;
   };
 }
