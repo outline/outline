@@ -708,6 +708,27 @@ export class Environment {
   public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
 
   /**
+   * Default ACL applied to non-avatar attachments. This preserves AWS_S3_ACL
+   * when unset.
+   */
+  @IsIn(["private", "public-read"])
+  public FILE_STORAGE_DEFAULT_ACL =
+    this.toOptionalString(environment.FILE_STORAGE_DEFAULT_ACL) ??
+    this.AWS_S3_ACL;
+
+  /**
+   * The canned ACL sent with S3 upload requests. Set to an empty value for
+   * S3-compatible providers that do not support ACLs, such as Cloudflare R2.
+   * Defaults to AWS_S3_ACL to preserve existing behavior.
+   */
+  public AWS_S3_CANNED_ACL = Object.prototype.hasOwnProperty.call(
+    environment,
+    "AWS_S3_CANNED_ACL"
+  )
+    ? environment.AWS_S3_CANNED_ACL
+    : this.AWS_S3_ACL;
+
+  /**
    * Which HTTP method to use for presigned uploads to S3-compatible storage.
    * "post" uses multipart form upload (traditional S3 presigned POST).
    * "put" uses a single PUT request with a presigned URL (required for
@@ -729,6 +750,21 @@ export class Environment {
   public FILE_STORAGE_LOCAL_ROOT_DIR =
     this.toOptionalString(environment.FILE_STORAGE_LOCAL_ROOT_DIR) ??
     "/var/lib/outline/data";
+
+  /**
+   * Optional public base URL for serving files, for example a CDN or custom
+   * domain in front of the storage bucket. Signed uploads and downloads
+   * continue to use the S3-compatible endpoint.
+   */
+  @IsOptional()
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
+    require_tld: false,
+  })
+  public FILE_STORAGE_PUBLIC_URL = this.toOptionalString(
+    environment.FILE_STORAGE_PUBLIC_URL
+  );
 
   /**
    * Set max allowed upload size for file attachments.
