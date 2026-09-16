@@ -203,7 +203,9 @@ export default abstract class ImportsProcessor<
         await collection.save({ silent: true, transaction });
       }
 
+      const storageKey = importModel.scratch?.storageKey;
       importModel.state = ImportState.Completed;
+      importModel.scratch = null;
       importModel.error = null; // unset any error from previous attempts.
       await importModel.saveWithCtx(
         createContext({
@@ -211,6 +213,17 @@ export default abstract class ImportsProcessor<
           transaction,
         })
       );
+
+      if (storageKey) {
+        const attachment = await Attachment.findOne({
+          where: {
+            key: storageKey,
+            teamId: importModel.teamId,
+          },
+          transaction,
+        });
+        await attachment?.destroy({ transaction });
+      }
     } catch (err) {
       if (err instanceof UniqueConstraintError) {
         Logger.error(

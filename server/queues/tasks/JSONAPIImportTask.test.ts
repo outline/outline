@@ -7,6 +7,7 @@ import {
   Attachment,
   Collection,
   Document,
+  Import,
   ImportTask,
   User,
 } from "@server/models";
@@ -19,6 +20,7 @@ import {
 } from "@shared/types";
 import {
   buildAdmin,
+  buildAttachment,
   buildDocument,
   buildImport,
   buildTeam,
@@ -228,6 +230,7 @@ async function runImport(opts: {
   teamId: string;
   createdById: string;
   zipPath: string;
+  storageKey?: string;
 }): Promise<{ importId: string }> {
   vi.spyOn(FileStorage, "getFileHandle").mockResolvedValue({
     path: opts.zipPath,
@@ -242,7 +245,7 @@ async function runImport(opts: {
     input: [
       { externalId: randomUUID(), permission: CollectionPermission.Read },
     ],
-    scratch: { storageKey: "fixture-key" },
+    scratch: { storageKey: opts.storageKey ?? "fixture-key" },
   });
 
   // Seed the bootstrap row that JSONImportsProcessor would have created.
@@ -329,6 +332,28 @@ describe("JSONAPIImportTask", () => {
     expect(collections.length).toBe(1);
     expect(documents.length).toBe(2);
     expect(attachments.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("deletes the source archive after the import completes", async () => {
+    const admin = await buildAdmin();
+    const sourceAttachment = await buildAttachment({
+      teamId: admin.teamId,
+      userId: admin.id,
+      key: `uploads/${admin.id}/${randomUUID()}/import.zip`,
+    });
+
+    const { importId } = await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+      storageKey: sourceAttachment.key,
+    });
+
+    const importModel = await Import.findByPk(importId, {
+      rejectOnEmpty: true,
+    });
+    expect(importModel.scratch).toBeNull();
+    expect(await Attachment.findByPk(sourceAttachment.id)).toBeNull();
   });
 
   it("rewrites internal document links to the new urlIds", async () => {
