@@ -14,6 +14,7 @@ import {
 import FileStorage from "@server/storage/files";
 import {
   CollectionPermission,
+  ImportState,
   ImportTaskPhase,
   ImportTaskState,
   IntegrationService,
@@ -354,6 +355,35 @@ describe("JSONAPIImportTask", () => {
     });
     expect(importModel.scratch).toBeNull();
     expect(await Attachment.findByPk(sourceAttachment.id)).toBeNull();
+  });
+
+  it("completes the import when source archive cleanup fails", async () => {
+    const admin = await buildAdmin();
+    const sourceAttachment = await buildAttachment({
+      teamId: admin.teamId,
+      userId: admin.id,
+      key: `uploads/${admin.id}/${randomUUID()}/import.zip`,
+    });
+    const destroy = vi
+      .spyOn(Attachment.prototype, "destroy")
+      .mockRejectedValueOnce(new Error("Storage unavailable"));
+
+    try {
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        storageKey: sourceAttachment.key,
+      });
+
+      const importModel = await Import.findByPk(importId, {
+        rejectOnEmpty: true,
+      });
+      expect(importModel.state).toBe(ImportState.Completed);
+      expect(await Attachment.findByPk(sourceAttachment.id)).not.toBeNull();
+    } finally {
+      destroy.mockRestore();
+    }
   });
 
   it("rewrites internal document links to the new urlIds", async () => {
