@@ -60,7 +60,7 @@ export default abstract class ImportsProcessor<
    * @param event The import event
    */
   public async perform(event: ImportEvent) {
-    let sourceAttachment: Attachment | null;
+    let sourceAttachment: Attachment | null = null;
 
     try {
       sourceAttachment = await sequelize.transaction(async (transaction) => {
