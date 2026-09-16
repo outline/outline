@@ -259,8 +259,6 @@ export default abstract class APIImportTask<
     await sequelize.transaction(async (transaction) => {
       const associatedImport = importTask.import;
       associatedImport.state = ImportState.Processed;
-      // Release any cross-phase scratch state — the import is done with it.
-      associatedImport.scratch = null;
       await associatedImport.saveWithCtx(
         createContext({
           user: associatedImport.createdBy,
