@@ -6,12 +6,13 @@ import {
   buildViewer,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { addMonths } from "date-fns";
 
 const server = getTestServer();
 
 describe("#apiKeys.create", () => {
   it("should allow creating an api key with expiry", async () => {
-    const now = new Date();
+    const now = addMonths(new Date(), 1);
     const user = await buildUser();
 
     const res = await server.post("/api/apiKeys.create", user, {

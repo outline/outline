@@ -68,3 +68,8 @@ export class RequestError extends ExtendableError {
 export class UpdateRequiredError extends ExtendableError {
   name = "UpdateRequiredError";
 }
+
+/** Error thrown when the link is expired or has been deactivated. */
+export class ResourceExpiredError extends ExtendableError {
+  name = "ResourceExpiredError";
+}

@@ -15,11 +15,14 @@ import { UserLabel } from "~/components/UserLabel";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useShareMenuActions } from "~/hooks/useShareMenuActions";
+import useUserLocale from "~/hooks/useUserLocale";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import useStores from "~/hooks/useStores";
 import ShareSelectionToolbar from "./ShareSelectionToolbar";
+import Text from "~/components/Text";
+import { dateToExpiry } from "~/utils/date";
 
 const ROW_HEIGHT = 50;
 
@@ -50,6 +53,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
   const { policies } = useStores();
+  const userLocale = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
   const isRowSelectable = useCallback(
@@ -114,6 +118,25 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             ) : null,
           width: "2fr",
         },
+        {
+          type: "data",
+          id: "expiresAt",
+          header: t("Expires"),
+          accessor: (share) => share.expiresAt,
+          component: (share) =>
+            share.isExpired ? (
+              <Text type="danger">
+                {t("Expired")} <Time dateTime={share.expiresAt!} addSuffix />
+              </Text>
+            ) : share.expiresAt ? (
+              <Text type="tertiary">
+                {dateToExpiry(share.expiresAt, t, userLocale)}
+              </Text>
+            ) : (
+              <Text type="tertiary">{t("No expiry")}</Text>
+            ),
+          width: "2fr",
+        },
         hasDomain
           ? {
               type: "data",
@@ -142,7 +165,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, hasDomain, canManage, formatNumber]
+    [t, hasDomain, canManage, formatNumber, userLocale]
   );
 
   return (
