@@ -2,14 +2,12 @@
 // https://github.com/markdown-it/markdown-it-mark/blob/master/index.js
 
 import type MarkdownIt from "markdown-it";
-import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
-import type { Delimiter } from "markdown-it/lib/rules_inline/state_inline.mjs";
 
 export default function (options: { delim: string; mark: string }) {
   const delimCharCode = options.delim.charCodeAt(0);
 
   return function emphasisPlugin(md: MarkdownIt) {
-    function tokenize(state: StateInline, silent: boolean) {
+    function tokenize(state: MarkdownIt.StateInline, silent: boolean) {
       let i, token;
 
       const start = state.pos,
@@ -61,7 +59,10 @@ export default function (options: { delim: string; mark: string }) {
 
     // Walk through delimiter list and replace text tokens with tags
     //
-    function postProcess(state: StateInline, delimiters: Delimiter[]) {
+    function postProcess(
+      state: MarkdownIt.StateInline,
+      delimiters: MarkdownIt.StateInline.Delimiter[]
+    ) {
       let i = 0,
         j,
         startDelim,

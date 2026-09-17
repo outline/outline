@@ -1086,6 +1086,8 @@
   "Continue with Email": "Continue with Email",
   "Continue with {{ authProviderName }}": "Continue with {{ authProviderName }}",
   "Back to home": "Back to home",
+  "Open in Gmail": "เปิดใน Gmail",
+  "Open in Outlook": "เปิดใน Outlook",
   "The workspace could not be found": "The workspace could not be found",
   "To continue, enter your workspace’s subdomain.": "To continue, enter your workspace’s subdomain.",
   "subdomain": "subdomain",

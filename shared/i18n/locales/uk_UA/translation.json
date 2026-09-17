@@ -1086,6 +1086,8 @@
   "Continue with Email": "Продовжити з електронною поштою",
   "Continue with {{ authProviderName }}": "Продовжити з {{ authProviderName }}",
   "Back to home": "Повернутися на головну",
+  "Open in Gmail": "Open in Gmail",
+  "Open in Outlook": "Open in Outlook",
   "The workspace could not be found": "Робоче середовище не знайдено",
   "To continue, enter your workspace’s subdomain.": "Щоб продовжити, введіть піддомен вашого робочого середовища.",
   "subdomain": "піддомен",

@@ -39,6 +39,7 @@ import AuthenticationProvider from "./components/AuthenticationProvider";
 import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
+import { EmailInboxButtons } from "./components/EmailInboxButtons";
 import { Notices } from "./components/Notices";
 import { PasskeyAuthenticationProvider } from "./components/PasskeyAuthenticationProvider";
 import { SigningIn } from "./components/SigningIn";
@@ -313,6 +314,7 @@ function Login({ children, onBack }: Props) {
                 />
               </Note>
               <br />
+              <EmailInboxButtons email={emailLinkSentTo} />
             </>
           )}
           <ButtonLarge onClick={handleReset} fullwidth neutral>

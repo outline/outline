@@ -1,10 +1,17 @@
 import { differenceInDays } from "date-fns";
 import { TrashIcon, ArchiveIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
+import styled from "styled-components";
 import type Document from "~/models/Document";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Notice from "~/components/Notice";
 import Time from "~/components/Time";
+
+/**
+ * A notice shown above the document title, for example when the document is
+ * archived or deleted.
+ */
+export const DocumentNotice = styled(Notice)``;
 
 type Props = {
   document: Document;
@@ -51,16 +58,16 @@ export default function Notices({ document }: Props) {
   return (
     <ErrorBoundary>
       {document.archivedAt && !document.deletedAt && (
-        <Notice icon={<ArchiveIcon />}>
+        <DocumentNotice icon={<ArchiveIcon />}>
           {t("Archived by {{userName}}", {
             userName: document.updatedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.updatedAt} addSuffix />
-        </Notice>
+        </DocumentNotice>
       )}
       {document.deletedAt && (
-        <Notice
+        <DocumentNotice
           icon={<TrashIcon />}
           description={permanentlyDeletedDescription()}
         >
@@ -69,7 +76,7 @@ export default function Notices({ document }: Props) {
           })}
           &nbsp;
           <Time dateTime={document.deletedAt} addSuffix />
-        </Notice>
+        </DocumentNotice>
       )}
     </ErrorBoundary>
   );

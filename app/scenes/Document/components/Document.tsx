@@ -27,6 +27,7 @@ import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import useEventListener from "~/hooks/useEventListener";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
@@ -37,7 +38,7 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import Notices from "./Notices";
+import Notices, { DocumentNotice } from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 import SharedHeader from "./SharedHeader";
@@ -85,6 +86,7 @@ function DocumentScene({
 }: Props) {
   const { auth, ui, dialogs } = useStores();
   const documentContext = useDocumentContext();
+  const isMobile = useMobile();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation<LocationState>();
@@ -307,8 +309,11 @@ function DocumentScene({
     tocPosition ??
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
+  // Hide on mobile at render time so the stored preference is kept intact.
   const showContents =
-    tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+    tocPos &&
+    !isMobile &&
+    (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
   const tocOffset =
     tocPos === TOCPosition.Left
       ? EditorStyleHelper.tocWidth / -2
@@ -570,6 +575,11 @@ type EditorContainerProps = {
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
   padding: 0 32px;
+
+  // A notice above the editor already provides the space from the header
+  &:has(> ${DocumentNotice}) {
+    --document-title-margin-top: 0;
+  }
 
   ${breakpoint("tablet")`
     padding: 0 44px;

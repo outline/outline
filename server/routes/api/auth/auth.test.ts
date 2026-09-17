@@ -7,6 +7,7 @@ import {
   buildUser,
   buildTeam,
   buildUserPasskey,
+  buildSubdomain,
 } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
@@ -130,7 +131,7 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     await buildTeam({
       guestSignin: false,
       subdomain,
@@ -176,7 +177,7 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     await buildTeam({
       guestSignin: true,
       subdomain,
@@ -200,7 +201,7 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     await buildTeam({
       guestSignin: false,
       subdomain,
@@ -223,7 +224,7 @@ describe("#auth.config", () => {
   });
 
   it("should not return passkeys provider when passkeysEnabled but no passkeys exist", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     await buildTeam({
       guestSignin: false,
       passkeysEnabled: true,
@@ -247,7 +248,7 @@ describe("#auth.config", () => {
   });
 
   it("should return passkeys provider when passkeysEnabled and passkeys exist", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     const team = await buildTeam({
       guestSignin: false,
       passkeysEnabled: true,

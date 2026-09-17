@@ -1086,6 +1086,8 @@
   "Continue with Email": "Kontynuuj przy użyciu e-maila",
   "Continue with {{ authProviderName }}": "Kontynuuj za pomocą {{ authProviderName }}",
   "Back to home": "Wróć do strony głównej",
+  "Open in Gmail": "Open in Gmail",
+  "Open in Outlook": "Open in Outlook",
   "The workspace could not be found": "Nie można odnaleźć projektu",
   "To continue, enter your workspace’s subdomain.": "Aby kontynuować, wpisz subdomenę swojego obszaru roboczego.",
   "subdomain": "subdomena",

@@ -616,12 +616,12 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   }, [status.image]);
 
   // Hide the inline image in the editor while the lightbox zoom transition is
-  // active, otherwise a duplicate is visible behind the fading overlay.
+  // active, otherwise a duplicate is visible behind the fading overlay. It stays
+  // hidden until unmount so the lightbox copy is the only one visible in any
+  // frame painted between the close animation ending and the teardown.
   useHideElement(
     activeImage.getElement(),
-    status.lightbox !== null &&
-      status.lightbox !== LightboxStatus.READY_TO_OPEN &&
-      status.lightbox !== LightboxStatus.CLOSED
+    status.lightbox !== null && status.lightbox !== LightboxStatus.READY_TO_OPEN
   );
 
   const prev = () => {
@@ -1132,7 +1132,7 @@ const StyledOverlay = styled(Dialog.Overlay)<{
         : props.animation.fadeOut
           ? css`
               animation: ${props.animation.fadeOut.apply()}
-                ${props.animation.fadeOut.duration}ms;
+                ${props.animation.fadeOut.duration}ms forwards;
             `
           : ""}
 `;
@@ -1167,12 +1167,12 @@ const StyledImg = styled.img<{
       : props.animation?.zoomOut
         ? css`
             animation: ${props.animation.zoomOut.apply()}
-              ${props.animation.zoomOut.duration}ms;
+              ${props.animation.zoomOut.duration}ms forwards;
           `
         : props.animation?.fadeOut
           ? css`
               animation: ${props.animation.fadeOut.apply()}
-                ${props.animation.fadeOut.duration}ms;
+                ${props.animation.fadeOut.duration}ms forwards;
             `
           : ""}
 `;
@@ -1220,7 +1220,7 @@ const Actions = styled(HStack)<{
         : props.animation.fadeOut
           ? css`
               animation: ${props.animation.fadeOut.apply()}
-                ${props.animation.fadeOut.duration}ms;
+                ${props.animation.fadeOut.duration}ms forwards;
             `
           : ""}
 `;
@@ -1248,7 +1248,7 @@ const CloseAction = styled.div<{ animation: Animation | null }>`
         : props.animation.fadeOut
           ? css`
               animation: ${props.animation.fadeOut.apply()}
-                ${props.animation.fadeOut.duration}ms;
+                ${props.animation.fadeOut.duration}ms forwards;
             `
           : ""}
 `;
@@ -1282,7 +1282,7 @@ const Nav = styled.div<{
         : props.animation.fadeOut
           ? css`
               animation: ${props.animation.fadeOut.apply()}
-                ${props.animation.fadeOut.duration}ms;
+                ${props.animation.fadeOut.duration}ms forwards;
             `
           : ""}
 `;
@@ -1303,7 +1303,7 @@ const StyledError = styled(ImageError)<{
         : props.animation.fadeOut
           ? css`
               animation: ${props.animation.fadeOut.apply()}
-                ${props.animation.fadeOut.duration}ms;
+                ${props.animation.fadeOut.duration}ms forwards;
             `
           : ""}
 `;
@@ -1324,7 +1324,7 @@ const CommentsSidebar = styled.div<{
     props.animation?.fadeOut
       ? css`
           animation: ${props.animation.fadeOut.apply()}
-            ${props.animation.fadeOut.duration}ms;
+            ${props.animation.fadeOut.duration}ms forwards;
         `
       : ""}
 `;

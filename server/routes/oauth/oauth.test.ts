@@ -1,4 +1,3 @@
-import { faker } from "@faker-js/faker";
 import sharedEnv from "@shared/env";
 import { TeamPreference } from "@shared/types";
 import { OAuthClientValidation } from "@shared/validations";
@@ -9,6 +8,7 @@ import {
   buildOAuthClient,
   buildTeam,
   buildUser,
+  buildSubdomain,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -19,7 +19,7 @@ describe("#oauth.register", () => {
   let subdomain: string;
 
   beforeEach(async () => {
-    subdomain = faker.internet.domainWord();
+    subdomain = buildSubdomain();
     team = await buildTeam({ subdomain });
   });
 
@@ -272,7 +272,7 @@ describe("#oauth.register management (RFC 7592)", () => {
   let subdomain: string;
 
   beforeEach(async () => {
-    subdomain = faker.internet.domainWord();
+    subdomain = buildSubdomain();
     await buildTeam({ subdomain });
   });
 
@@ -555,7 +555,7 @@ describe("GET /.well-known/oauth-protected-resource", () => {
 
   it("should return 404 when MCP is disabled", async () => {
     const team = await buildTeam({
-      subdomain: faker.internet.domainWord(),
+      subdomain: buildSubdomain(),
       preferences: { [TeamPreference.MCP]: false },
     });
 

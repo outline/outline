@@ -42,6 +42,7 @@ import {
   buildAdmin,
   buildTemplate,
   buildAttachment,
+  buildSubdomain,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -606,7 +607,7 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("shareId: Invalid input");
+    expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
   });
 });
 
@@ -3173,7 +3174,7 @@ describe("#documents.search", () => {
   });
 
   it("should return results using shareId", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     const team = await buildTeam({ subdomain });
     const findableDocument = await buildDocument({
       title: "search term",
@@ -3974,7 +3975,7 @@ describe("#documents.search", () => {
     });
 
     it("should scope results to a documentId filter combined with shareId", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const team = await buildTeam({ subdomain });
       const parent = await buildDocument({
         title: "search term",
@@ -4021,7 +4022,7 @@ describe("#documents.search", () => {
     });
 
     it("should scope results to the legacy documentId param combined with shareId", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const team = await buildTeam({ subdomain });
       const parent = await buildDocument({
         title: "search term",
