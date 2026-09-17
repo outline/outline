@@ -45,6 +45,7 @@ import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
+import { isRemoteTransaction } from "../lib/multiplayer";
 
 export enum Action {
   INIT,
@@ -71,6 +72,8 @@ export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
 
 /** Plugin key for toggle block fold/unfold events. */
 export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
+
+const toggleIdPluginKey = new PluginKey<boolean>("toggleBlockIds");
 
 /** Build the localStorage key used to persist a toggle block's fold state. */
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
@@ -117,10 +120,25 @@ export default class ToggleBlock extends Node {
 
   get plugins() {
     // Assign IDs and auto-fold empty
-    const plugin = new Plugin({
-      appendTransaction: (transactions, _oldState, newState) => {
-        // Inline edits cannot add toggle blocks or empty their bodies
-        if (!transactions.some((tr) => this.isStructuralChange(tr))) {
+    const plugin = new Plugin<boolean>({
+      key: toggleIdPluginKey,
+      state: {
+        // Whether any document change has been applied since load
+        init: () => false,
+        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
+      },
+      appendTransaction: (transactions, oldState, newState) => {
+        if (!transactions.some((tr) => tr.docChanged)) {
+          return null;
+        }
+
+        // Blocks loaded without ids are repaired on the first edit. After
+        // that only structural edits can add toggle blocks or empty bodies.
+        const isFirstChange = !toggleIdPluginKey.getState(oldState);
+        if (
+          !isFirstChange &&
+          !transactions.some((tr) => this.isStructuralChange(tr, newState))
+        ) {
           return null;
         }
 
@@ -198,7 +216,7 @@ export default class ToggleBlock extends Node {
             // Inline edits only shift positions, so mapping is enough. Any
             // other change may add, remove, or split toggle blocks and
             // their heads, so the decorations are rebuilt from the document.
-            if (!this.isStructuralChange(tr)) {
+            if (!this.isStructuralChange(tr, newState)) {
               return {
                 ...pluginState,
                 decorations: pluginState.decorations.map(tr.mapping, tr.doc),
@@ -476,15 +494,19 @@ export default class ToggleBlock extends Node {
 
   /**
    * Check whether a transaction may change the set of toggle blocks, their
-   * ids, or the bounds of their heads. Inline edits such as typing do not.
+   * ids, or the bounds of their heads. Local inline edits such as typing do
+   * not. Remote transactions always do, as their steps do not reflect the
+   * shape of the collaborative change.
    *
    * @param tr The transaction to inspect.
+   * @param state The editor state after the transaction.
    * @return true if the toggle block decorations must be rebuilt.
    */
-  private isStructuralChange(tr: Transaction): boolean {
+  private isStructuralChange(tr: Transaction, state: EditorState): boolean {
     return (
       tr.docChanged &&
-      !isInlineTransaction(tr, (node) => node.type.name === this.name)
+      (isRemoteTransaction(tr, state) ||
+        !isInlineTransaction(tr, (node) => node.type.name === this.name))
     );
   }
 

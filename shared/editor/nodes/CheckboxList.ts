@@ -4,7 +4,7 @@ import type {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { v4 as generateUuid } from "uuid";
 import toggleList from "../commands/toggleList";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -42,13 +42,26 @@ export default class CheckboxList extends Node {
     const userIdentifier = this.editor.props.userId;
 
     // Plugin to auto-assign IDs to checkbox lists
-    const assignIdsPlugin = new Plugin({
-      appendTransaction: (txs, _oldSt, newSt) => {
-        // Inline edits cannot add checkbox lists
+    const assignIdsPluginKey = new PluginKey<boolean>("checkboxListIds");
+    const assignIdsPlugin = new Plugin<boolean>({
+      key: assignIdsPluginKey,
+      state: {
+        // Whether any document change has been applied since load
+        init: () => false,
+        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
+      },
+      appendTransaction: (txs, oldSt, newSt) => {
+        if (!txs.some((t) => t.docChanged)) {
+          return null;
+        }
+
+        // Lists loaded without ids are repaired on the first edit. After that
+        // only structural edits can introduce a list without an id.
+        const isFirstChange = !assignIdsPluginKey.getState(oldSt);
         const hasStructuralChange = txs.some(
           (t) => t.docChanged && !isInlineTransaction(t)
         );
-        if (!hasStructuralChange) {
+        if (!isFirstChange && !hasStructuralChange) {
           return null;
         }
 
