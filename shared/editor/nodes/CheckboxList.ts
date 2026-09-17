@@ -59,7 +59,9 @@ export default class CheckboxList extends Node {
         // only structural edits can introduce a list without an id.
         const isFirstChange = !assignIdsPluginKey.getState(oldSt);
         const hasStructuralChange = txs.some(
-          (t) => t.docChanged && !isInlineTransaction(t)
+          (t) =>
+            t.docChanged &&
+            !isInlineTransaction(t, (node) => node.type.name === this.name)
         );
         if (!isFirstChange && !hasStructuralChange) {
           return null;

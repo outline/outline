@@ -8,6 +8,7 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { TableMap } from "prosemirror-tables";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellAttrs,
@@ -19,6 +20,8 @@ import Node from "./Node";
 import { presetColors, rgbaToHex } from "@shared/utils/color";
 import { parseToRgb, transparentize } from "polished";
 import type { RgbaColor } from "polished/lib/types/color";
+
+const isTableNode = (node: ProsemirrorNode) => !!node.type.spec.tableRole;
 
 export default class TableCell extends Node {
   /** The default opacity of the table cell background */
@@ -151,9 +154,13 @@ export default class TableCell extends Node {
               return pluginState;
             }
 
-            // Inline edits cannot change the table layout, so mapping the
-            // existing decorations is enough.
-            if (isInlineTransaction(tr, (node) => !!node.type.spec.tableRole)) {
+            // Local inline edits cannot change the table layout, so mapping
+            // the existing decorations is enough. Remote transactions do not
+            // reflect the shape of the change, so they always rebuild.
+            if (
+              !isRemoteTransaction(tr, newState) &&
+              isInlineTransaction(tr, isTableNode)
+            ) {
               return pluginState.map(tr.mapping, tr.doc);
             }
 
