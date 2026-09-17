@@ -673,6 +673,16 @@ describe("#shares.info", () => {
     expect(body.message).toEqual("documentId: Must be a valid UUID or slug");
   });
 
+  it("should fail with status 400 bad request when id is invalid", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.info", user, {
+      body: {
+        id: "foo",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should not find share by documentId in private collection", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
@@ -1423,6 +1433,18 @@ describe("#shares.sitemap", () => {
 });
 
 describe("#shares.subscribe", () => {
+  it("should fail with status 400 bad request when shareId is invalid", async () => {
+    const share = await buildShare();
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: "foo",
+        documentId: share.documentId!,
+        email: "subscriber@example.com",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should create a subscription for a published share", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {
