@@ -1397,6 +1397,31 @@ describe("#shares.revoke", () => {
   });
 });
 
+describe("#shares.sitemap", () => {
+  it("should fail with status 400 bad request when id is empty", async () => {
+    const res = await server.get("/api/shares.sitemap?id=");
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail with status 400 bad request when id is invalid", async () => {
+    const res = await server.get("/api/shares.sitemap?id=foo");
+    expect(res.status).toEqual(400);
+  });
+
+  it("should return a sitemap for an indexable share", async () => {
+    const share = await buildShare({ allowIndexing: true });
+    const res = await server.get(`/api/shares.sitemap?id=${share.id}`);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/xml");
+  });
+
+  it("should return 404 when share does not allow indexing", async () => {
+    const share = await buildShare({ allowIndexing: false });
+    const res = await server.get(`/api/shares.sitemap?id=${share.id}`);
+    expect(res.status).toEqual(404);
+  });
+});
+
 describe("#shares.subscribe", () => {
   it("should create a subscription for a published share", async () => {
     const share = await buildShare();
