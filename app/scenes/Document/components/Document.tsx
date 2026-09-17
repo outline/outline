@@ -36,7 +36,7 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import Notices from "./Notices";
+import Notices, { DocumentNotice } from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 import SharedHeader from "./SharedHeader";
@@ -545,6 +545,11 @@ type EditorContainerProps = {
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
   padding: 0 32px;
+
+  // A notice above the editor already provides the space from the header
+  &:has(> ${DocumentNotice}) {
+    --document-title-margin-top: 0;
+  }
 
   ${breakpoint("tablet")`
     padding: 0 44px;

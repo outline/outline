@@ -292,7 +292,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 8vh;
+  margin-top: var(--document-title-margin-top, 8vh);
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;
@@ -327,7 +327,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
-    margin-top: 6vh;
+    margin-top: var(--document-title-margin-top, 6vh);
     margin-left: 0;
 
     &:hover {
