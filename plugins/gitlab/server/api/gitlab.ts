@@ -321,6 +321,7 @@ router.post(
           ],
         });
         if (integration) {
+          ctx.state.webhookTeamId = integration.teamId;
           return integration.authentication.clientSecret ?? undefined;
         }
       }
@@ -342,6 +343,7 @@ router.post(
     await new GitLabWebhookTask().schedule({
       payload: body,
       headers,
+      teamId: ctx.state.webhookTeamId ?? null,
     });
 
     ctx.status = 202;

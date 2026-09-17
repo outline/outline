@@ -74,6 +74,8 @@ export type AppState = {
   auth: Authentication | Record<string, never>;
   transaction: Transaction;
   pagination: Pagination;
+  /** The team authorized to receive an inbound webhook. */
+  webhookTeamId?: string;
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;
