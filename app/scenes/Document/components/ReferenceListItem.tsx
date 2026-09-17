@@ -244,7 +244,7 @@ function ReferenceListItem({
 
   // Multi-select is only offered for documents the user can update.
   const can = usePolicy(document.id);
-  const selectable = !!selection && showContextMenu && !!can.update;
+  const selectable = !!selection && !!can.update;
   const isSelected = selection?.isSelected(document.id) ?? false;
   const isSelecting =
     selectable && ((selection?.isActive ?? false) || isSelected);
