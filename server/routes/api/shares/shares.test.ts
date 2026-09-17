@@ -677,10 +677,12 @@ describe("#shares.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/shares.info", user, {
       body: {
-        id: "foo",
+        id: "Foo!",
       },
     });
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or share slug");
   });
 
   it("should not find share by documentId in private collection", async () => {
@@ -1410,12 +1412,16 @@ describe("#shares.revoke", () => {
 describe("#shares.sitemap", () => {
   it("should fail with status 400 bad request when id is empty", async () => {
     const res = await server.get("/api/shares.sitemap?id=");
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or share slug");
   });
 
   it("should fail with status 400 bad request when id is invalid", async () => {
-    const res = await server.get("/api/shares.sitemap?id=foo");
+    const res = await server.get("/api/shares.sitemap?id=Foo!");
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or share slug");
   });
 
   it("should return a sitemap for an indexable share", async () => {
@@ -1437,12 +1443,14 @@ describe("#shares.subscribe", () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {
       body: {
-        shareId: "foo",
+        shareId: "Foo!",
         documentId: share.documentId!,
         email: "subscriber@example.com",
       },
     });
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
   });
 
   it("should create a subscription for a published share", async () => {
