@@ -8,6 +8,7 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { TableMap } from "prosemirror-tables";
+import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellAttrs,
   isValidCellAlignment,
@@ -146,9 +147,14 @@ export default class TableCell extends Node {
         state: {
           init: (_, state) => createCellDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Only recompute if document changed
             if (!tr.docChanged) {
               return pluginState;
+            }
+
+            // Inline edits cannot change the table layout, so mapping the
+            // existing decorations is enough.
+            if (isInlineTransaction(tr, (node) => !!node.type.spec.tableRole)) {
+              return pluginState.map(tr.mapping, tr.doc);
             }
 
             return createCellDecorations(newState);

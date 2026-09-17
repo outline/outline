@@ -13,6 +13,7 @@ import {
   isValidCellMarks,
   setCellAttrs,
 } from "../lib/table";
+import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellsInColumn,
   getCellsInRow,
@@ -403,9 +404,14 @@ export default class TableHeader extends Node {
         state: {
           init: (_, state) => createHeaderDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Only recompute if document changed
             if (!tr.docChanged) {
               return pluginState;
+            }
+
+            // Inline edits cannot change the table layout, so mapping the
+            // existing decorations is enough.
+            if (isInlineTransaction(tr, (node) => !!node.type.spec.tableRole)) {
+              return pluginState.map(tr.mapping, tr.doc);
             }
 
             return createHeaderDecorations(newState);
