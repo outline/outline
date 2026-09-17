@@ -607,7 +607,7 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("shareId: Invalid input");
+    expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
   });
 });
 
