@@ -1086,6 +1086,8 @@
   "Continue with Email": "Verdergaan met e-mailadres",
   "Continue with {{ authProviderName }}": "Ga verder met {{ authProviderName }}",
   "Back to home": "Terug naar home",
+  "Open in Gmail": "Openen in Gmail",
+  "Open in Outlook": "Openen in Outlook",
   "The workspace could not be found": "De werkruimte kon niet worden gevonden",
   "To continue, enter your workspace’s subdomain.": "Voer het subdomein van je werkruimte in om door te gaan.",
   "subdomain": "subdomein",
