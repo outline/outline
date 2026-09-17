@@ -1086,6 +1086,8 @@
   "Continue with Email": "Fortsæt med e-mail",
   "Continue with {{ authProviderName }}": "Fortsæt med {{ authProviderName }}",
   "Back to home": "Tilbage til forsiden",
+  "Open in Gmail": "Åbn i Gmail",
+  "Open in Outlook": "Åbn i Outlook",
   "The workspace could not be found": "Arbejdsområdet blev ikke fundet",
   "To continue, enter your workspace’s subdomain.": "Indtast dit arbejdsområdes underdomæne for at fortsætte.",
   "subdomain": "underdomæne",

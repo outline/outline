@@ -1086,6 +1086,8 @@
   "Continue with Email": "Fortsätt med e-post",
   "Continue with {{ authProviderName }}": "Fortsätt med {{ authProviderName }}",
   "Back to home": "Tillbaka till startsidan",
+  "Open in Gmail": "Open in Gmail",
+  "Open in Outlook": "Open in Outlook",
   "The workspace could not be found": "Arbetsytan kunde inte hittas",
   "To continue, enter your workspace’s subdomain.": "För att fortsätta, ange arbetsytans underdomän.",
   "subdomain": "subdomän",

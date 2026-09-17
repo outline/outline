@@ -1086,6 +1086,8 @@
   "Continue with Email": "Continua amb el correu electrònic",
   "Continue with {{ authProviderName }}": "Continua amb {{ authProviderName }}",
   "Back to home": "Tornar a l'inici",
+  "Open in Gmail": "Obre al Gmail",
+  "Open in Outlook": "Obre a l’Outlook",
   "The workspace could not be found": "No s'ha pogut trobar l'espai de treball",
   "To continue, enter your workspace’s subdomain.": "Per continuar, entra al subdomini del teu espai de treball.",
   "subdomain": "subdomini",

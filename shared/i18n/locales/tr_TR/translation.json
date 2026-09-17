@@ -1086,6 +1086,8 @@
   "Continue with Email": "E-posta ile devam et",
   "Continue with {{ authProviderName }}": "{{ authProviderName }} ile devam et",
   "Back to home": "Anasayfaya geri dön",
+  "Open in Gmail": "Open in Gmail",
+  "Open in Outlook": "Open in Outlook",
   "The workspace could not be found": "Çalışma alanı bulunamadı",
   "To continue, enter your workspace’s subdomain.": "Devam etmek için, çalışma alanınızın alt alan adını girin.",
   "subdomain": "alt alan adı",

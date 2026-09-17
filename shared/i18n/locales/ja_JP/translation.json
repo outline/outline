@@ -1086,6 +1086,8 @@
   "Continue with Email": "Eメール でログイン",
   "Continue with {{ authProviderName }}": "{{ authProviderName }} でログイン",
   "Back to home": "ホームへ戻る",
+  "Open in Gmail": "Gmailで開く",
+  "Open in Outlook": "Outlookで開く",
   "The workspace could not be found": "ワークスペースが見つかりませんでした",
   "To continue, enter your workspace’s subdomain.": "続行するには、ワークスペースのサブドメインを入力してください。",
   "subdomain": "サブドメイン",
