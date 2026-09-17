@@ -27,7 +27,6 @@ import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import { useTranslation } from "react-i18next";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import { DocumentNotice } from "./Notices";
 
 const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 
@@ -293,7 +292,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 8vh;
+  margin-top: var(--document-title-margin-top, 8vh);
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;
@@ -327,13 +326,8 @@ const Title = styled(ContentEditable)<TitleProps>`
       props.$containsIcon ? "1 !important" : 0};
   }
 
-  // A notice above the editor already provides the space from the header
-  ${DocumentNotice} ~ * & {
-    margin-top: 0;
-  }
-
   ${breakpoint("tablet")`
-    margin-top: 6vh;
+    margin-top: var(--document-title-margin-top, 6vh);
     margin-left: 0;
 
     &:hover {
