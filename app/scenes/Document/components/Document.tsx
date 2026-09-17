@@ -25,6 +25,7 @@ import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
@@ -82,6 +83,7 @@ function DocumentScene({
   children,
 }: Props) {
   const { auth, ui, dialogs } = useStores();
+  const isMobile = useMobile();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation<LocationState>();
@@ -304,8 +306,11 @@ function DocumentScene({
     tocPosition ??
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
+  // Hide on mobile at render time so the stored preference is kept intact.
   const showContents =
-    tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+    tocPos &&
+    !isMobile &&
+    (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
   const tocOffset =
     tocPos === TOCPosition.Left
       ? EditorStyleHelper.tocWidth / -2
