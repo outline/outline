@@ -330,6 +330,11 @@ class Document extends ArchivableModel<
   @SkipChangeset
   summary: string;
 
+  /** The reason this document is archived or deleted. */
+  @Length({ max: DocumentValidation.maxDeprecatedDescriptionLength })
+  @Column(DataType.TEXT)
+  deprecatedDescription: string | null;
+
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[];
 
@@ -1465,6 +1470,8 @@ class Document extends ArchivableModel<
 
     if (this.deletedAt) {
       await this.restore({ transaction });
+      this.deprecatedDescription = null;
+      this.changed("deprecatedDescription", true);
       this.collectionId = collectionId;
       await this.saveWithCtx(ctx, undefined, { name: "restore" });
     }
@@ -1598,6 +1605,8 @@ class Document extends ArchivableModel<
       for (const child of childDocuments) {
         await restoreChildren(child.id);
         child.archivedAt = null;
+        child.deprecatedDescription = null;
+        child.changed("deprecatedDescription", true);
         child.lastModifiedById = user.id;
         child.updatedBy = user;
         child.collectionId = collectionId;
@@ -1607,6 +1616,8 @@ class Document extends ArchivableModel<
 
     await restoreChildren(this.id);
     this.archivedAt = null;
+    this.deprecatedDescription = null;
+    this.changed("deprecatedDescription", true);
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.collectionId = collectionId;

@@ -380,6 +380,13 @@ export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
 
 export const DocumentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** The reason the document is archived or deleted. */
+    deprecatedDescription: z
+      .string()
+      .trim()
+      .max(DocumentValidation.maxDeprecatedDescriptionLength)
+      .nullish(),
+
     /** Doc title to be updated */
     title: z.string().optional(),
 

@@ -2380,7 +2380,7 @@ describe("#collections.restore", () => {
     const collection = await buildCollection({
       teamId: team.id,
     });
-    await buildDocument({
+    const document = await buildDocument({
       collectionId: collection.id,
       teamId: team.id,
       publishedAt: new Date(),
@@ -2399,6 +2399,7 @@ describe("#collections.restore", () => {
     ]);
     expect(archiveRes.status).toEqual(200);
     expect(archiveBody.data.archivedAt).not.toBe(null);
+    await document.update({ deprecatedDescription: "Outdated" });
     const res = await server.post("/api/collections.restore", admin, {
       body: {
         id: collection.id,
@@ -2407,6 +2408,8 @@ describe("#collections.restore", () => {
     const [, body] = await Promise.all([collection.reload(), res.json()]);
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
+    await document.reload();
+    expect(document.deprecatedDescription).toBeNull();
     expect(collection.documentStructure).not.toBe(null);
   });
 

@@ -80,6 +80,7 @@ async function presentDocument(
     updatedBy: undefined,
     publishedAt: document.publishedAt,
     archivedAt: document.archivedAt,
+    deprecatedDescription: document.deprecatedDescription,
     deletedAt: document.deletedAt,
     deletedBy: undefined,
     collaboratorIds: [],

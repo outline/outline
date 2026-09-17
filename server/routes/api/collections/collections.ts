@@ -921,6 +921,7 @@ router.post(
       {
         lastModifiedById: user.id,
         archivedAt: null,
+        deprecatedDescription: null,
       },
       {
         where: {
