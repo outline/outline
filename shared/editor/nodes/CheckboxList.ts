@@ -13,6 +13,7 @@ import {
   listWrappingInputRule,
 } from "../lib/listInputRule";
 import { findBlockNodes } from "../queries/findChildren";
+import { isInlineTransaction } from "../queries/isInlineTransaction";
 import { CheckboxListView } from "./CheckboxListView";
 import Node from "./Node";
 
@@ -43,8 +44,11 @@ export default class CheckboxList extends Node {
     // Plugin to auto-assign IDs to checkbox lists
     const assignIdsPlugin = new Plugin({
       appendTransaction: (txs, _oldSt, newSt) => {
-        const hasDocChanges = txs.some((t) => t.docChanged);
-        if (!hasDocChanges) {
+        // Inline edits cannot add checkbox lists
+        const hasStructuralChange = txs.some(
+          (t) => t.docChanged && !isInlineTransaction(t)
+        );
+        if (!hasStructuralChange) {
           return null;
         }
 
