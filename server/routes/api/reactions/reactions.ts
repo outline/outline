@@ -26,6 +26,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
     });
+    comment.document = document;
 
     authorize(user, "readReaction", comment);
     authorize(user, "read", document);

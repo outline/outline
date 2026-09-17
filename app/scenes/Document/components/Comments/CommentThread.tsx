@@ -22,10 +22,24 @@ import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useShare from "@shared/hooks/useShare";
 import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+
+/**
+ * Returns a stable key identifying the author of a comment, for grouping
+ * consecutive comments by the same author. Guest comments have no account,
+ * so different guests are told apart by their supplied display name rather
+ * than being merged together as a single anonymous author.
+ *
+ * @param comment The comment to derive an author key for
+ * @returns A string uniquely identifying the comment's author
+ */
+function authorKey(comment: Comment): string {
+  return comment.createdById ?? comment.guestName ?? "";
+}
 
 type Props = {
   /** The document that this comment thread belongs to */
@@ -59,7 +73,8 @@ function CommentThread({
   const topRef = React.useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const [autoFocus, setAutoFocusOn, setAutoFocusOff] = useBoolean(thread.isNew);
-  const user = useCurrentUser();
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const { isShare, allowPublicComments } = useShare();
 
   const can = usePolicy(document);
 
@@ -73,7 +88,8 @@ function CommentThread({
     new Set()
   );
 
-  const canReply = can.comment && !thread.isResolved;
+  const canReply =
+    (isShare ? !!allowPublicComments : can.comment) && !thread.isResolved;
 
   const highlightedText =
     ProsemirrorHelper.getAnchorTextForComment(
@@ -83,7 +99,7 @@ function CommentThread({
 
   const commentsInThread = comments
     .inThread(thread.id)
-    .filter((comment) => !comment.isNew);
+    .filter((comment) => !comment.isNew && (!isShare || comment.isPublic));
 
   const [collapse, setCollapse] = React.useState(() => {
     const numReplies = commentsInThread.length - 1;
@@ -128,14 +144,14 @@ function CommentThread({
   const handleUpArrowAtStart = React.useCallback(() => {
     // Find the previous comment by the current user in reverse order
     const userComments = commentsInThread
-      .filter((comment) => comment.createdById === user.id)
+      .filter((comment) => comment.createdById === user?.id)
       .reverse(); // Start from most recent
 
     if (userComments.length > 0) {
       const previousComment = userComments[0];
       setEditingCommentIds((prev) => new Set(prev).add(previousComment.id));
     }
-  }, [commentsInThread, user.id]);
+  }, [commentsInThread, user?.id]);
 
   const handleCommentEditStart = React.useCallback((commentId: string) => {
     setEditingCommentIds((prev) => new Set(prev).add(commentId));
@@ -153,7 +169,8 @@ function CommentThread({
     const count = collapse.final - collapse.begin + 1;
     const createdBy = commentsInThread
       .slice(collapse.begin, collapse.final + 1)
-      .map((c) => c.createdBy);
+      .map((c) => c.createdBy)
+      .filter((user): user is NonNullable<typeof user> => user !== null);
     const users = Array.from(new Set(createdBy));
     const limit = 3;
     const overflow = users.length - limit;
@@ -256,10 +273,10 @@ function CommentThread({
           const firstOfAuthor =
             index === 0 ||
             (collapse && index === collapse.final + 1) ||
-            comment.createdById !== commentsInThread[index - 1].createdById;
+            authorKey(comment) !== authorKey(commentsInThread[index - 1]);
           const lastOfAuthor =
             index === commentsInThread.length - 1 ||
-            comment.createdById !== commentsInThread[index + 1].createdById;
+            authorKey(comment) !== authorKey(commentsInThread[index + 1]);
 
           return (
             <CommentThreadItem
@@ -270,7 +287,7 @@ function CommentThread({
               key={comment.id}
               firstOfThread={index === 0}
               lastOfThread={index === commentsInThread.length - 1 && !draft}
-              canReply={focused && can.comment}
+              canReply={focused && canReply}
               firstOfAuthor={firstOfAuthor}
               lastOfAuthor={lastOfAuthor}
               previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}

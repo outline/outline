@@ -482,6 +482,7 @@ export async function buildTemplate(
 
 export async function buildComment(overrides: {
   userId: string;
+  isPublic?: boolean;
   documentId: string;
   parentCommentId?: string;
   resolvedById?: string;
@@ -491,6 +492,7 @@ export async function buildComment(overrides: {
   const comment = await Comment.create(
     {
       resolvedById: overrides.resolvedById,
+      isPublic: overrides.isPublic ?? false,
       parentCommentId: overrides.parentCommentId,
       documentId: overrides.documentId,
       data: {

@@ -22,7 +22,7 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
       Comment.findByPk(event.modelId),
     ]);
 
-    if (!document || !comment) {
+    if (!document || !comment?.createdById) {
       return;
     }
 

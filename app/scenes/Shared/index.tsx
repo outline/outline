@@ -37,6 +37,7 @@ import DelayedMount from "~/components/DelayedMount";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { ShareContext } from "@shared/hooks/useShare";
 import ClickablePadding from "~/components/ClickablePadding";
+import { RightSidebarProvider } from "~/components/RightSidebarContext";
 
 const Login = lazyWithRetry(() => import("../Login"));
 
@@ -251,6 +252,7 @@ function SharedScene() {
         shareId,
         sharedTree: share.tree,
         allowSubscriptions: share.allowSubscriptions,
+        allowPublicComments: share.allowPublicComments,
         showLastUpdated: share.showLastUpdated,
       }}
     >
@@ -263,19 +265,21 @@ function SharedScene() {
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
-            <Layout
-              title={pageTitle}
-              sidebar={hasSidebar ? <Sidebar share={share} /> : null}
-              sidebarCanCollapse={false}
-            >
-              {model instanceof Document ? (
-                <DocumentScene document={model} />
-              ) : model instanceof Collection ? (
-                <CollectionScene collection={model} />
-              ) : null}
-            </Layout>
-            <SharedCommandBar />
-            <ClickablePadding minHeight="20vh" />
+            <RightSidebarProvider>
+              <Layout
+                title={pageTitle}
+                sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+                sidebarCanCollapse={false}
+              >
+                {model instanceof Document ? (
+                  <DocumentScene document={model} />
+                ) : model instanceof Collection ? (
+                  <CollectionScene collection={model} />
+                ) : null}
+              </Layout>
+              <SharedCommandBar />
+              <ClickablePadding minHeight="20vh" />
+            </RightSidebarProvider>
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>

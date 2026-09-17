@@ -28,19 +28,25 @@ import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
 import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
+import useShare from "@shared/hooks/useShare";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
   const { pane } = useSplitView();
-  const user = useCurrentUser();
-  const { editor, isEditorInitialized, setFocusedCommentId } =
-    useDocumentContext();
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const {
+    editor,
+    isEditorInitialized,
+    setFocusedCommentId,
+    document: contextDocument,
+  } = useDocumentContext();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
-  const document = documents.get(match.params.documentSlug);
+  const document = documents.get(match.params.documentSlug) ?? contextDocument;
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
   const isMobile = useMobile();
+  const { isShare, allowPublicComments } = useShare();
 
   const query = useQuery();
   const [viewingResolved, setViewingResolved] = useState(
@@ -65,7 +71,7 @@ function Comments() {
     undefined
   );
 
-  const sortOption: CommentSortOption = user.getPreference(
+  const sortOption: CommentSortOption = user?.getPreference(
     UserPreference.SortCommentsByOrderInDocument
   )
     ? {
@@ -74,11 +80,14 @@ function Comments() {
       }
     : { type: CommentSortType.MostRecent };
 
-  const threads = !document
+  const allThreads = !document
     ? []
     : viewingResolved
       ? comments.resolvedThreadsInDocument(document.id, sortOption)
       : comments.unresolvedThreadsInDocument(document.id, sortOption);
+  const threads = isShare
+    ? allThreads.filter((thread) => allowPublicComments && thread.isPublic)
+    : allThreads;
   const hasComments = threads.length > 0;
 
   const scrollToBottom = () => {
@@ -175,17 +184,19 @@ function Comments() {
           </Wrapper>
         </Scrollable>
         <AnimatePresence initial={false}>
-          {(!focusedComment || isMobile) && can.comment && !viewingResolved && (
-            <NewCommentForm
-              draft={draft}
-              onSaveDraft={onSaveDraft}
-              documentId={document.id}
-              placeholder={`${t("Add a comment")}…`}
-              autoFocus={false}
-              animatePresence
-              standalone
-            />
-          )}
+          {(!focusedComment || isMobile) &&
+            (isShare ? allowPublicComments : can.comment) &&
+            !viewingResolved && (
+              <NewCommentForm
+                draft={draft}
+                onSaveDraft={onSaveDraft}
+                documentId={document.id}
+                placeholder={`${t("Add a comment")}…`}
+                autoFocus={false}
+                animatePresence
+                standalone
+              />
+            )}
         </AnimatePresence>
       </>
     );
@@ -197,12 +208,12 @@ function Comments() {
           <div style={isMobile ? { padding: "0 8px" } : undefined}>
             {t("Comments")}
           </div>
-          <CommentSortMenu
-            viewingResolved={viewingResolved}
-            onChange={(val) => {
-              setViewingResolved(val === "resolved");
-            }}
-          />
+          {!isShare && (
+            <CommentSortMenu
+              viewingResolved={viewingResolved}
+              onChange={(val) => setViewingResolved(val === "resolved")}
+            />
+          )}
         </Flex>
       }
       onClose={() => {

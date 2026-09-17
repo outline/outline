@@ -625,7 +625,7 @@ export default class WebsocketsProcessor {
             },
           ],
         });
-        if (!comment) {
+        if (!comment || !comment.document) {
           return;
         }
 
@@ -647,7 +647,7 @@ export default class WebsocketsProcessor {
             },
           ],
         });
-        if (!comment) {
+        if (!comment || !comment.document) {
           return;
         }
 
@@ -671,7 +671,7 @@ export default class WebsocketsProcessor {
             },
           ],
         });
-        if (!comment) {
+        if (!comment || !comment.document) {
           return;
         }
 

@@ -2,7 +2,7 @@ import type { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
-import type { ProsemirrorData } from "../types";
+import type { ProsemirrorData, ProsemirrorMark } from "../types";
 import { hashString } from "./string";
 import { TextHelper } from "./TextHelper";
 import env from "../env";
@@ -52,23 +52,29 @@ export const attachmentPublicRegex =
 
 export class ProsemirrorHelper {
   /**
-   * Remove specific mark types from all nodes in the document.
+   * Remove mark types from all nodes in the document.
    *
    * @param doc the prosemirror document or JSON data.
-   * @param marks the mark type names to remove.
-   * @returns the document data with specified marks removed.
+   * @param marks either the mark type names to remove, or a predicate that
+   *   returns true for marks that should be removed.
+   * @returns the document data with matching marks removed.
    */
-  static removeMarks(doc: Node | ProsemirrorData, marks: string[]) {
+  static removeMarks(
+    doc: Node | ProsemirrorData,
+    marks: string[] | ((mark: ProsemirrorMark) => boolean)
+  ) {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
-    const markSet = new Set(marks);
+    const shouldRemove = Array.isArray(marks)
+      ? (mark: ProsemirrorMark) => marks.includes(mark.type)
+      : marks;
 
     function removeMarksInner(node: ProsemirrorData) {
       if (node.marks) {
-        node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
+        node.marks = node.marks.filter((mark) => !shouldRemove(mark));
       }
       if (node.attrs?.marks) {
-        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
-          (mark) => !markSet.has(mark.type)
+        node.attrs.marks = (node.attrs.marks as ProsemirrorMark[])?.filter(
+          (mark) => !shouldRemove(mark)
         );
       }
       if (node.content) {

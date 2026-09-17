@@ -149,6 +149,10 @@ class Share extends IdModel<
 
   @Default(false)
   @Column(DataType.BOOLEAN)
+  allowPublicComments: boolean;
+
+  @Default(false)
+  @Column(DataType.BOOLEAN)
   showLastUpdated: boolean;
 
   @Default(false)

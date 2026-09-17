@@ -23,6 +23,7 @@ export default class EmailsProcessor extends BaseProcessor {
       "withTeam",
       "withUser",
       "withActor",
+      "withComment",
     ]).findByPk(event.modelId);
     if (!notification) {
       return;
@@ -47,7 +48,7 @@ export default class EmailsProcessor extends BaseProcessor {
             revisionId: notification.revisionId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
           },
           { notificationId }
         ).schedule();
@@ -63,7 +64,7 @@ export default class EmailsProcessor extends BaseProcessor {
             documentId: notification.documentId,
             membershipId: notification.membershipId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
           },
           { notificationId }
         ).schedule({
@@ -80,7 +81,7 @@ export default class EmailsProcessor extends BaseProcessor {
             userId: notification.userId,
             collectionId: notification.collectionId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
           },
           { notificationId }
         ).schedule({
@@ -98,7 +99,7 @@ export default class EmailsProcessor extends BaseProcessor {
             revisionId: notification.revisionId,
             groupId: notification.groupId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
           },
           { notificationId }
         ).schedule();
@@ -115,7 +116,7 @@ export default class EmailsProcessor extends BaseProcessor {
             revisionId: notification.revisionId,
             userId: notification.userId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
           },
           { notificationId }
         ).schedule();
@@ -130,7 +131,7 @@ export default class EmailsProcessor extends BaseProcessor {
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
             commentId: notification.commentId,
             groupId: notification.groupId,
           },
@@ -149,7 +150,7 @@ export default class EmailsProcessor extends BaseProcessor {
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
@@ -183,7 +184,10 @@ export default class EmailsProcessor extends BaseProcessor {
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName:
+              notification.actor?.name ??
+              notification.comment?.guestName ??
+              "Guest",
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
@@ -201,7 +205,7 @@ export default class EmailsProcessor extends BaseProcessor {
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
-            actorName: notification.actor.name,
+            actorName: notification.actor?.name ?? "",
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
@@ -216,7 +220,7 @@ export default class EmailsProcessor extends BaseProcessor {
           {
             to: notification.user.email,
             documentId: notification.documentId,
-            actorId: notification.actorId,
+            actorId: notification.actorId ?? "",
             teamUrl: notification.team.url,
           },
           { notificationId: notification.id }

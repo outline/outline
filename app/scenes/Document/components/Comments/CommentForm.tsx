@@ -3,17 +3,19 @@ import { v4 as uuidv4 } from "uuid";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
-import { ImageIcon } from "outline-icons";
+import { GlobeIcon, ImageIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
+import { ellipsis, s } from "@shared/styles";
 import { parseReactionShorthand } from "@shared/editor/lib/emoji";
 import type { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import { Avatar } from "~/components/Avatar";
+import Text from "~/components/Text";
 import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
@@ -22,14 +24,30 @@ import Tooltip from "~/components/Tooltip";
 import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 import { Bubble } from "./CommentThreadItem";
+import { GuestNameDialog } from "./GuestNameDialog";
 import { HighlightedText } from "./HighlightText";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { mergeRefs } from "react-merge-refs";
 import { HStack } from "~/components/primitives/HStack";
+import useShare from "@shared/hooks/useShare";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
+
+/**
+ * Local storage key under which the display name of a visitor commenting on a
+ * public share is remembered, so it is only ever asked for once.
+ */
+const GuestNameKey = "guestCommentName";
+
+/**
+ * Local storage key under which the optional email address of a visitor
+ * commenting on a public share is remembered, so it is only ever asked for
+ * once.
+ */
+const GuestEmailKey = "guestCommentEmail";
 
 type Props = {
   /** Callback when the form is submitted. */
@@ -92,8 +110,34 @@ function CommentForm({
   const hasFocusedOnMount = React.useRef(false);
   const theme = useTheme();
   const { t } = useTranslation();
-  const { comments } = useStores();
-  const user = useCurrentUser();
+  const { comments, dialogs, documents } = useStores();
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const { isShare } = useShare();
+  const [guestName, setGuestName] = usePersistedState(
+    GuestNameKey,
+    user?.name ?? ""
+  );
+  const [guestEmail, setGuestEmail] = usePersistedState<string>(
+    GuestEmailKey,
+    ""
+  );
+  const [isPublic, setIsPublic] = React.useState(
+    thread && !thread.isNew ? thread.isPublic : false
+  );
+  const document = documents.get(documentId);
+  const author = React.useMemo(
+    () => user ?? { avatarUrl: null, name: guestName || t("Guest") },
+    [user, guestName, t]
+  );
+
+  // A new thread always lets a member choose its visibility, provided the
+  // document is reachable through a published share. A reply may only
+  // choose between public and internal when replying within an already
+  // public thread — a reply within an internal thread is always internal.
+  const canChooseVisibility =
+    !isShare &&
+    !!document?.isPubliclyShared &&
+    (!thread || thread.isNew || thread.isPublic);
 
   const reset = React.useCallback(async () => {
     const isEmpty = editorRef.current?.isEmpty() ?? true;
@@ -108,13 +152,57 @@ function CommentForm({
 
   useOnClickOutside(formRef, reset);
 
+  /**
+   * Refreshes the document after a successful comment save when viewing a
+   * public share, so that the newly created inline anchor is reflected in
+   * the document content the guest sees.
+   */
+  const refreshDocumentAfterShare = React.useCallback(() => {
+    if (isShare) {
+      void documents.fetch(documentId, { force: true }).catch(() => {
+        toast.error(t("Error loading document"));
+      });
+    }
+  }, [isShare, documents, documentId, t]);
+
+  /**
+   * Asks the visitor for the name (and optionally an email) to publish their
+   * comments under, remembering both so that they are not requested again.
+   *
+   * @returns the chosen name and email, or undefined if the dialog was
+   * dismissed.
+   */
+  const promptForGuestName = React.useCallback(
+    () =>
+      new Promise<{ name: string; email?: string } | undefined>((resolve) => {
+        dialogs.openModal({
+          title: t("Your name"),
+          content: (
+            <GuestNameDialog
+              defaultValue={guestName}
+              defaultEmail={guestEmail}
+              onSubmit={(name, email) => {
+                setGuestName(name);
+                setGuestEmail(email ?? "");
+                resolve({ name, email });
+              }}
+            />
+          ),
+          onClose: () => resolve(undefined),
+        });
+      }),
+    [dialogs, guestName, guestEmail, setGuestName, setGuestEmail, t]
+  );
+
   React.useEffect(() => {
     window.addEventListener("beforeunload", reset);
     return () => window.removeEventListener("beforeunload", reset);
   }, [reset]);
 
-  const handleCreateComment = action(async (event: React.FormEvent) => {
-    event.preventDefault();
+  const createComment = action((authorName?: string, authorEmail?: string) => {
+    if (!draft || thread?.isSaving) {
+      return;
+    }
 
     onSaveDraft(undefined);
     setForceRender((s) => ++s);
@@ -137,12 +225,18 @@ function CommentForm({
       .save({
         documentId,
         data: draft,
+        guestName: authorName,
+        guestEmail: authorEmail,
+        isPublic: canChooseVisibility ? isPublic : undefined,
         ...thread?.pendingAnchor,
       })
       // Note: pendingAnchor is intentionally kept after saving — it continues
       // to provide the highlighted snippet until the server-applied mark
       // arrives through the collaboration sync.
-      .then(() => onSubmit?.())
+      .then(() => {
+        onSubmit?.();
+        refreshDocumentAfterShare();
+      })
       .catch(() => {
         onSaveDraft(commentDraft);
         setForceRender((s) => ++s);
@@ -157,19 +251,20 @@ function CommentForm({
     if (draft) {
       comment.data = draft;
     }
-    comment.isNew = false;
-    comment.createdById = user.id;
-    comment.createdBy = user;
+    if (user && !isShare) {
+      comment.isNew = false;
+      comment.createdById = user.id;
+      comment.createdBy = user;
+    }
   });
 
-  const handleCreateReply = action(async (event: React.FormEvent) => {
-    event.preventDefault();
+  const createReply = action((authorName?: string, authorEmail?: string) => {
     if (!draft) {
       return;
     }
 
     // "+:emoji:" shorthand: react to the comment above instead of replying.
-    if (thread && !thread.isNew) {
+    if (user && !isShare && thread && !thread.isNew) {
       const emoji = parseReactionShorthand(draft);
       if (emoji) {
         const target = comments
@@ -218,9 +313,15 @@ function CommentForm({
         documentId,
         parentCommentId: thread?.id,
         data: draft,
+        guestName: authorName,
+        guestEmail: authorEmail,
+        isPublic: canChooseVisibility ? isPublic : undefined,
         ...comment.pendingAnchor,
       })
-      .then(() => onSubmit?.())
+      .then(() => {
+        onSubmit?.();
+        refreshDocumentAfterShare();
+      })
       .catch(() => {
         onSaveDraft(commentDraft);
         setForceRender((s) => ++s);
@@ -231,15 +332,60 @@ function CommentForm({
       });
 
     // optimistically update the comment model
-    comment.isNew = false;
-    comment.createdById = user.id;
-    comment.createdBy = user;
+    if (user && !isShare) {
+      comment.isNew = false;
+      comment.createdById = user.id;
+      comment.createdBy = user;
+    }
 
     // re-focus the comment editor
     setTimeout(() => {
       editorRef.current?.focusAtStart();
     }, 0);
   });
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!draft) {
+      return;
+    }
+
+    // Visitors of a public share are identified by a name they supply, which
+    // is only asked for the first time they comment. An email is optionally
+    // collected at the same time, to notify them of replies.
+    let authorName: string | undefined;
+    let authorEmail: string | undefined;
+    if (isShare) {
+      if (guestName.trim()) {
+        authorName = guestName.trim();
+        authorEmail = guestEmail.trim() || undefined;
+      } else {
+        const result = await promptForGuestName();
+        authorName = result?.name.trim();
+        authorEmail = result?.email?.trim();
+      }
+      if (!authorName) {
+        return;
+      }
+    }
+
+    if (thread?.isNew) {
+      createComment(authorName, authorEmail);
+    } else {
+      createReply(authorName, authorEmail);
+    }
+  };
+
+  const handleChangeGuestName = async (event: React.MouseEvent) => {
+    event.preventDefault();
+    await promptForGuestName();
+  };
+
+  const handleToggleVisibility = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setIsPublic((value) => !value);
+  };
 
   const handleChange = (
     value: (asString: boolean, trim: boolean) => ProsemirrorData
@@ -254,7 +400,16 @@ function CommentForm({
     );
   };
 
-  const handleClickPadding = () => {
+  const handleClickPadding = (event: React.MouseEvent) => {
+    // Clicks that land on a control inside the bubble must not pull focus
+    // back into the editor.
+    if (
+      event.target instanceof Element &&
+      event.target.closest("button, a, input, textarea, select")
+    ) {
+      return;
+    }
+
     if (editorRef.current?.isBlurred) {
       editorRef.current?.focusAtStart();
     }
@@ -340,12 +495,7 @@ function CommentForm({
     : {};
 
   return (
-    <m.form
-      ref={formRef}
-      onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
-      {...presence}
-      {...rest}
-    >
+    <m.form ref={formRef} onSubmit={handleSubmit} {...presence} {...rest}>
       <VisuallyHidden.Root>
         <input
           ref={file}
@@ -363,10 +513,10 @@ function CommentForm({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <Avatar model={user} size={24} />
+            <Avatar model={author} size={24} />
           </m.div>
         ) : (
-          <Avatar model={user} size={24} style={{ marginTop: 8 }} />
+          <Avatar model={author} size={24} style={{ marginTop: 8 }} />
         )}
         <Bubble
           gap={10}
@@ -410,11 +560,47 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </HStack>
-              <Tooltip content={t("Upload image")} placement="top">
-                <NudeButton onClick={handleImageUpload}>
-                  <ImageIcon color={theme.textTertiary} />
-                </NudeButton>
-              </Tooltip>
+              <HStack spacing={4}>
+                {isShare && guestName && (
+                  <Tooltip content={t("Change your name")} placement="top">
+                    <GuestNameButton
+                      type="button"
+                      onClick={handleChangeGuestName}
+                    >
+                      <Text type="tertiary" size="xsmall">
+                        {guestName}
+                      </Text>
+                    </GuestNameButton>
+                  </Tooltip>
+                )}
+                {canChooseVisibility && (
+                  <Tooltip
+                    content={
+                      isPublic
+                        ? t("Visible to anyone with the share link")
+                        : t("Visible to team members only")
+                    }
+                    placement="top"
+                  >
+                    <VisibilityButton
+                      type="button"
+                      onClick={handleToggleVisibility}
+                      aria-label={t("Comment visibility")}
+                      aria-pressed={isPublic}
+                      $active={isPublic}
+                    >
+                      {isPublic ? <GlobeIcon /> : <PadlockIcon />}
+                    </VisibilityButton>
+                  </Tooltip>
+                )}
+                {!isShare && (
+                  <Tooltip content={t("Upload image")} placement="top">
+                    <NudeButton onClick={handleImageUpload}>
+                      <ImageIcon color={theme.textTertiary} />
+                    </NudeButton>
+                  </Tooltip>
+                )}
+              </HStack>
             </Flex>
           )}
         </Bubble>
@@ -422,5 +608,27 @@ function CommentForm({
     </m.form>
   );
 }
+
+const GuestNameButton = styled(NudeButton)`
+  width: auto;
+  max-width: 140px;
+  padding: 0 6px;
+  line-height: 24px;
+  ${ellipsis()}
+`;
+
+const VisibilityButton = styled(NudeButton)<{ $active: boolean }>`
+  color: ${s("textTertiary")};
+
+  ${(props) =>
+    props.$active &&
+    css`
+      color: ${s("accent")};
+    `}
+
+  &:hover {
+    color: ${(props) => (props.$active ? props.theme.accent : props.theme.text)};
+  }
+`;
 
 export default observer(CommentForm);

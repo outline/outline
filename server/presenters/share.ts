@@ -33,6 +33,7 @@ export default function presentShare(share: Share, options: Options = {}) {
     includeChildDocuments: share.includeChildDocuments,
     allowIndexing: share.allowIndexing,
     allowSubscriptions: share.allowSubscriptions,
+    allowPublicComments: share.allowPublicComments,
     showLastUpdated: share.showLastUpdated,
     showTOC: share.showTOC,
     title: share.title,

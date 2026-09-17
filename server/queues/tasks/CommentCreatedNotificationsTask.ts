@@ -28,26 +28,37 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
       return;
     }
 
-    // Commenting on a doc automatically creates a subscription to the doc
-    // if they haven't previously had one.
-    await sequelize.transaction(async (transaction) => {
-      await subscriptionCreator({
-        ctx: createContext({
-          user: comment.createdBy,
-          authType: event.authType,
-          ip: event.ip,
-          transaction,
-        }),
-        documentId: document.id,
-        event: SubscriptionType.Document,
-        resubscribe: false,
-      });
-    });
+    // Comments left by public visitors have no account behind them, so there
+    // is no author to subscribe to the document or to attribute mentions to
+    // — guest input can't contain mentions in the first place (rejected on
+    // creation), so the subscription and mention handling below are both
+    // skipped entirely for guest comments.
+    const author = comment.createdBy;
 
-    const mentions = ProsemirrorHelper.parseMentions(
-      ProsemirrorHelper.toProsemirror(comment.data),
-      { type: MentionType.User }
-    );
+    if (author) {
+      // Commenting on a doc automatically creates a subscription to the doc
+      // if they haven't previously had one.
+      await sequelize.transaction(async (transaction) => {
+        await subscriptionCreator({
+          ctx: createContext({
+            user: author,
+            authType: event.authType,
+            ip: event.ip,
+            transaction,
+          }),
+          documentId: document.id,
+          event: SubscriptionType.Document,
+          resubscribe: false,
+        });
+      });
+    }
+
+    const mentions = author
+      ? ProsemirrorHelper.parseMentions(
+          ProsemirrorHelper.toProsemirror(comment.data),
+          { type: MentionType.User }
+        )
+      : [];
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
@@ -79,12 +90,14 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
     }
 
     // send notifications to users in mentioned groups
-    const groupMentions = ProsemirrorHelper.parseMentions(
-      ProsemirrorHelper.toProsemirror(comment.data),
-      {
-        type: MentionType.Group,
-      }
-    );
+    const groupMentions = author
+      ? ProsemirrorHelper.parseMentions(
+          ProsemirrorHelper.toProsemirror(comment.data),
+          {
+            type: MentionType.Group,
+          }
+        )
+      : [];
 
     const mentionedGroup: string[] = [];
     for (const group of groupMentions) {
@@ -114,7 +127,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
       await NotificationHelper.getCommentNotificationRecipients(
         document,
         comment,
-        comment.createdById
+        author?.id ?? null
       )
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
 
@@ -124,7 +137,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
           {
             event: NotificationEventType.CreateComment,
             userId: recipient.id,
-            actorId: comment.createdById,
+            actorId: author?.id ?? null,
             teamId: document.teamId,
             commentId: comment.id,
             documentId: document.id,

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Route, matchPath, useHistory, useLocation } from "react-router-dom";
+import { matchPath, useHistory, useLocation } from "react-router-dom";
 import {
   RightSidebarWrappedContext,
   useSetRightSidebar,
@@ -44,18 +44,16 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const panel = ui.getRightSidebar(pane);
 
   const inner = (
-    <Route path={`/doc/${matchDocumentSlug}`}>
-      <React.Suspense
-        fallback={
-          <SidebarLayout title={<PlaceholderText width={100} />}>
-            {null}
-          </SidebarLayout>
-        }
-      >
-        {panel === "comments" && <DocumentComments />}
-        {panel === "history" && <DocumentHistory />}
-      </React.Suspense>
-    </Route>
+    <React.Suspense
+      fallback={
+        <SidebarLayout title={<PlaceholderText width={100} />}>
+          {null}
+        </SidebarLayout>
+      }
+    >
+      {panel === "comments" && <DocumentComments />}
+      {panel === "history" && <DocumentHistory />}
+    </React.Suspense>
   );
 
   if (isMobile) {

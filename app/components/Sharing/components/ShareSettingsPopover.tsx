@@ -62,6 +62,7 @@ function ShareSettingsPopover({ share, children }: Props) {
   const showTOCId = `${idPrefix}-show-toc`;
   const indexingId = `${idPrefix}-indexing`;
   const subscriptionsId = `${idPrefix}-subscriptions`;
+  const publicCommentsId = `${idPrefix}-public-comments`;
 
   const handleTitleChange = React.useMemo(
     () =>
@@ -137,6 +138,18 @@ function ShareSettingsPopover({ share, children }: Props) {
     async (checked: boolean) => {
       try {
         await share.save({ allowSubscriptions: checked });
+        hasChangesRef.current = true;
+      } catch (err) {
+        toast.error(errToString(err));
+      }
+    },
+    [share]
+  );
+
+  const handlePublicCommentsChanged = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await share.save({ allowPublicComments: checked });
         hasChangesRef.current = true;
       } catch (err) {
         toast.error(errToString(err));
@@ -359,6 +372,31 @@ function ShareSettingsPopover({ share, children }: Props) {
               id={indexingId}
               checked={share.allowIndexing ?? false}
               onChange={handleIndexingChanged}
+              width={26}
+              height={14}
+            />
+          }
+        />
+        <ListItem
+          title={
+            <SwitchLabel htmlFor={publicCommentsId}>
+              {t("Public comments")}&nbsp;
+              <Tooltip
+                content={t(
+                  "Allow visitors to comment on selected text using their name"
+                )}
+              >
+                <NudeButton size={18} aria-label={t("More information")}>
+                  <QuestionMarkIcon size={18} />
+                </NudeButton>
+              </Tooltip>
+            </SwitchLabel>
+          }
+          actions={
+            <Switch
+              id={publicCommentsId}
+              checked={share.allowPublicComments ?? false}
+              onChange={handlePublicCommentsChanged}
               width={26}
               height={14}
             />

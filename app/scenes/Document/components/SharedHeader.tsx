@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon } from "outline-icons";
+import { CommentIcon, TableOfContentsIcon } from "outline-icons";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import useMeasure from "react-use-measure";
@@ -22,6 +22,7 @@ import {
 } from "~/components/Sharing/components/Actions";
 import AuthenticatedIsland from "~/components/Sharing/components/AuthenticatedIsland";
 import HeaderBranding from "~/components/Sharing/components/HeaderBranding";
+import { useSplitView } from "~/components/SplitView/context";
 import { useTeamContext } from "~/components/TeamContext";
 import Tooltip from "~/components/Tooltip";
 import env from "~/env";
@@ -42,6 +43,7 @@ type Props = {
 function SharedDocumentHeader({ document }: Props) {
   const { t } = useTranslation();
   const { ui, shares } = useStores();
+  const { pane } = useSplitView();
   const isMobileMedia = useMobile();
   const isEditingFocus = useEditingFocus();
 
@@ -56,7 +58,9 @@ function SharedDocumentHeader({ document }: Props) {
   const { hasHeadings } = useDocumentContext();
   const [measureRef, size] = useMeasure();
   const scrollbarWidth = useWindowScrollbarWidth() ?? 0;
-  const { shareId, sharedTree, allowSubscriptions } = useShare();
+  const { shareId, sharedTree, allowSubscriptions, allowPublicComments } =
+    useShare();
+  const commentsOpen = ui.getRightSidebar(pane) === "comments";
   const share = shareId ? shares.get(shareId) : undefined;
   const team = useTeamContext() as PublicTeam | undefined;
   const tocPosition = team?.tocPosition ?? TOCPosition.Left;
@@ -70,6 +74,10 @@ function SharedDocumentHeader({ document }: Props) {
       ui.set({ tocVisible: !ui.tocVisible });
     }
   }, [ui]);
+
+  const handleToggleComments = useCallback(() => {
+    ui.setRightSidebar(commentsOpen ? null : "comments", pane);
+  }, [ui, pane, commentsOpen]);
 
   const showContents = ui.tocVisible !== false;
 
@@ -156,6 +164,23 @@ function SharedDocumentHeader({ document }: Props) {
         <>
           <SearchHighlightChip />
           {hasHeadings && !isMobile && !tocInLeft && <Action>{toc}</Action>}
+          {allowPublicComments && (
+            <Action>
+              <Tooltip
+                content={commentsOpen ? t("Hide comments") : t("Comments")}
+                placement="bottom"
+              >
+                <Button
+                  icon={<CommentIcon />}
+                  onClick={handleToggleComments}
+                  aria-label={t("Comments")}
+                  aria-expanded={commentsOpen}
+                  neutral
+                  borderOnHover
+                />
+              </Tooltip>
+            </Action>
+          )}
           {allowSubscriptions !== false && env.EMAIL_ENABLED && (
             <SubscribeAction shareId={shareId} documentId={document.id} />
           )}

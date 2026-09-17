@@ -3211,6 +3211,46 @@ describe("#documents.search", () => {
     expect(body.data[0].document.id).toEqual(share.documentId);
   });
 
+  it("passes the share's allowPublicComments through to the presented document", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "search term",
+      text: "Public anchor text",
+    });
+    const share = await buildShare({
+      userId: user.id,
+      teamId: user.teamId,
+      documentId: document.id,
+      includeChildDocuments: true,
+      allowPublicComments: true,
+    });
+
+    const created = await server.post("/api/comments.create", {
+      body: {
+        shareId: share.id,
+        documentId: document.id,
+        guestName: "Visitor",
+        text: "Feedback",
+        anchorText: "Public anchor text",
+      },
+    });
+    const { data: comment } = await created.json();
+
+    const res = await server.post("/api/documents.search", {
+      body: { query: "search term", shareId: share.id },
+      headers: { "x-api-version": "3" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    // A public comment anchor is only retained in the search result's
+    // document body when allowPublicComments reaches the presenter.
+    expect(JSON.stringify(body.data[0].document.data)).toContain(comment.id);
+  });
+
   it("should not return drafts using shareId", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument({

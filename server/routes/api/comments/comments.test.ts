@@ -16,6 +16,7 @@ import {
   buildDocument,
   buildEmoji,
   buildResolvedComment,
+  buildShare,
   buildTeam,
   buildUser,
   buildViewer,
@@ -179,6 +180,69 @@ describe("#comments.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it("should return only public comments for an enabled share", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      allowPublicComments: true,
+    });
+    const internalComment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const publicComment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      isPublic: true,
+    });
+
+    const res = await server.post("/api/comments.list", {
+      body: { documentId: document.id, shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(publicComment.id);
+    expect(body.data[0].createdById).toEqual(user.id);
+    expect(Object.keys(body.data[0].createdBy).sort()).toEqual([
+      "avatarUrl",
+      "color",
+      "id",
+      "name",
+    ]);
+    expect(body.data[0].resolvedById).toBeNull();
+    expect(
+      body.data.map((comment: { id: string }) => comment.id)
+    ).not.toContain(internalComment.id);
+  });
+
+  it("should reject public listing when comments are disabled", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      allowPublicComments: false,
+    });
+
+    const res = await server.post("/api/comments.list", {
+      body: { documentId: document.id, shareId: share.id },
+    });
+
+    expect(res.status).toEqual(400);
   });
 
   it("should return all comments for a document", async () => {
@@ -443,6 +507,100 @@ describe("#comments.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it("should create a named public guest comment", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      allowPublicComments: true,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        documentId: document.id,
+        shareId: share.id,
+        guestName: "Public visitor",
+        text: "Public feedback",
+      },
+    });
+    const body = await res.json();
+    const comment = await Comment.unscoped().findByPk(body.data.id, {
+      rejectOnEmpty: true,
+    });
+
+    expect(res.status).toEqual(200);
+    expect(comment.createdById).toBeNull();
+    expect(comment.guestName).toEqual("Public visitor");
+    expect(comment.isPublic).toBe(true);
+    expect(body.data.createdBy).toBeNull();
+    expect(body.data.createdById).toBeNull();
+    expect(body.data.guestName).toEqual("Public visitor");
+  });
+
+  it("should require a guest name for public comments", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      allowPublicComments: true,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        documentId: document.id,
+        shareId: share.id,
+        text: "Public feedback",
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should prevent public replies across documents", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const otherDocument = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      allowPublicComments: true,
+    });
+    const parent = await buildComment({
+      userId: user.id,
+      documentId: otherDocument.id,
+      isPublic: true,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        documentId: document.id,
+        shareId: share.id,
+        parentCommentId: parent.id,
+        guestName: "Public visitor",
+        text: "Cross-document reply",
+      },
+    });
+
+    expect(res.status).toEqual(400);
   });
 
   it("should create a comment", async () => {
@@ -1418,5 +1576,58 @@ describe("#comments.remove_reaction", () => {
       { emoji: "😄", userIds: ["test-user"] },
     ]);
     expect(removedReaction).toBeNull();
+  });
+});
+
+describe("Comment default scope", () => {
+  it("is still findable once its document is soft-deleted", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    await document.destroy();
+
+    expect(await Comment.findByPk(comment.id)).not.toBeNull();
+    expect(await Comment.count({ where: { id: comment.id } })).toEqual(1);
+  });
+
+  it("does not merge with an explicit Document include, so the joined document keeps its full attributes", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const found = await Comment.findByPk(comment.id, {
+      include: [
+        {
+          model: Document.scope("withDrafts"),
+          as: "document",
+          required: true,
+        },
+      ],
+      rejectOnEmpty: true,
+    });
+
+    expect(found.document).not.toBeNull();
+    expect(found.document!.dataValues.publishedAt).toBeDefined();
+    expect(found.document!.dataValues.collectionId).toEqual(collection.id);
   });
 });

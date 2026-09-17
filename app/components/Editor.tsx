@@ -203,11 +203,15 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   const paragraphs = React.useMemo(() => {
-    if (props.readOnly && typeof props.value === "object") {
+    if (
+      props.readOnly &&
+      !props.canComment &&
+      typeof props.value === "object"
+    ) {
       return ProsemirrorHelper.getPlainParagraphs(props.value);
     }
     return undefined;
-  }, [props.readOnly, props.value]);
+  }, [props.readOnly, props.canComment, props.value]);
 
   return (
     <ErrorBoundary component="div" reloadOnChunkMissing>

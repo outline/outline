@@ -81,7 +81,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const sidebarContext = useLocationSidebarContext();
   const params = useQuery();
-  const { shareId, showLastUpdated } = useShare();
+  const { shareId, showLastUpdated, allowPublicComments } = useShare();
   const {
     document,
     onChangeTitle,
@@ -93,7 +93,10 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
     ...rest
   } = props;
   const can = usePolicy(document);
-  const commentingEnabled = !!team?.commentingEnabled;
+  const commentingEnabled = shareId
+    ? !!allowPublicComments
+    : !!team?.commentingEnabled;
+  const canComment = shareId ? !!allowPublicComments : can.comment;
 
   const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
@@ -143,7 +146,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
       createdById: string,
       options?: { focus: boolean; anchor?: CommentAnchor }
     ) => {
-      if (comments.get(commentId) || createdById !== user?.id) {
+      if (comments.get(commentId) || (!shareId && createdById !== user?.id)) {
         return;
       }
 
@@ -152,6 +155,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
           documentId: props.id,
           createdAt: new Date(),
           createdById,
+          isPublic: !!shareId,
           reactions: [],
         },
         comments
@@ -164,7 +168,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         setFocusedCommentId(commentId);
       }
     },
-    [comments, user?.id, props.id, setFocusedCommentId]
+    [comments, user?.id, props.id, setFocusedCommentId, shareId]
   );
 
   // Focus a comment and open the sidebar when its mark or gutter marker is
@@ -267,18 +271,16 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
           placeholder={t("Type '/' to insert, or start writing…")}
           scrollTo={decodeURIComponentSafe(location.hash)}
           readOnly={readOnly}
-          userId={user?.id}
+          userId={shareId ? "public" : user?.id}
           focusedCommentId={focusedComment?.id}
           onClickCommentMark={
-            commentingEnabled && can.comment
-              ? handleClickCommentMark
-              : undefined
+            commentingEnabled && canComment ? handleClickCommentMark : undefined
           }
           onCreateCommentMark={
-            commentingEnabled && can.comment ? handleDraftComment : undefined
+            commentingEnabled && canComment ? handleDraftComment : undefined
           }
           onDeleteCommentMark={
-            commentingEnabled && can.comment ? handleRemoveComment : undefined
+            commentingEnabled && canComment ? handleRemoveComment : undefined
           }
           onOpenCommentsSidebar={
             commentingEnabled
@@ -296,7 +298,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
           extensions={extensions}
           editorStyle={editorStyle}
           {...rest}
-          canComment={commentingEnabled && can.comment}
+          canComment={commentingEnabled && canComment}
         />
       </React.Suspense>
       <div ref={childRef}>{children}</div>

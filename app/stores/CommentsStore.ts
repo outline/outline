@@ -39,6 +39,7 @@ export default class CommentsStore extends Store<Comment> {
         comment.documentId === documentId &&
         !comment.parentCommentId &&
         (!comment.isNew ||
+          (!!client.shareId && comment.isPublic) ||
           comment.createdById === this.rootStore.auth.currentUserId)
     );
 
