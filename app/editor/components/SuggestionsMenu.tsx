@@ -13,7 +13,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import type { MenuItem } from "@shared/editor/types";
 import { toastNotice } from "~/editor/toastNotice";
-import { s } from "@shared/styles";
+import { hideScrollbars, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import {
@@ -1269,12 +1269,15 @@ const bouncyFadeIn = keyframes`
 `;
 
 const BouncyPopoverContent = styled(PopoverContent)`
+  ${hideScrollbars()}
+
   &[data-state="open"] {
     animation: ${bouncyFadeIn} 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 `;
 
 const SubmenuPopoverContent = styled(PopoverContent)`
+  ${hideScrollbars()}
   max-height: min(324px, var(--radix-popover-content-available-height));
 `;
 
