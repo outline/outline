@@ -1,7 +1,7 @@
 import copy from "copy-to-clipboard";
 import type { TFunction } from "i18next";
 import invariant from "invariant";
-import { capitalize, uniqBy } from "es-toolkit/compat";
+import { uniqBy } from "es-toolkit/compat";
 import {
   DuplicateIcon,
   StarredIcon,
@@ -70,7 +70,6 @@ import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
   ActionSeparator,
   createAction,
-  createActionGroup,
   createActionWithChildren,
   createInternalLinkAction,
 } from "~/actions";
@@ -104,7 +103,6 @@ import {
 import { getFocusedSplitPane, openRouteInSplit } from "~/utils/splitView";
 import { recentDocuments } from "~/components/CommandBar/useRecentDocumentActions";
 import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
   Action,
   ActionContext,
@@ -116,6 +114,7 @@ import env from "~/env";
 import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
+import DocumentRestore from "~/components/DocumentExplorer/DocumentRestore";
 
 const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
@@ -1479,81 +1478,35 @@ export const archiveDocument = createAction({
 });
 
 export const restoreDocument = createAction({
-  name: ({ t }) => `${t("Restore")}`,
+  name: ({ t }) => `${t("Restore")}…`,
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
   icon: <RestoreIcon />,
   visible: (context) =>
     everyActiveModel(context, Document, (document) => {
-      const collection = document.collectionId
-        ? context.stores.collections.get(document.collectionId)
-        : undefined;
       const can = context.stores.policies.abilities(document.id);
-      return !!collection?.isActive && !!(can.restore || can.unarchive);
+      return !!(can.restore || can.unarchive);
     }),
-  perform: (context) =>
-    performBatchOnActiveModels(
-      context,
-      Document,
-      (document) => document.restore(),
-      (documents, succeeded, t) =>
-        documents.length === 1
-          ? t("{{ documentName }} restored", {
-              documentName: capitalize(documents[0].noun),
-            })
-          : t("{{ count }} documents restored", { count: succeeded })
-    ),
-});
-
-export const restoreDocumentToCollection = createActionWithChildren({
-  name: ({ t }) => `${t("Restore")}…`,
-  analyticsName: "Restore document",
-  section: ActiveDocumentSection,
-  icon: <RestoreIcon />,
-  visible: ({ stores, activeDocumentId }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
-      return false;
+  perform: ({ getActiveModels, stores, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
     }
 
-    const can = stores.policies.abilities(document.id);
-    const collection = document.collectionId
-      ? stores.collections.get(document.collectionId)
-      : undefined;
-
-    return !collection?.isActive && !!(can.restore || can.unarchive);
-  },
-  children: ({ t, activeDocumentId, stores }) => {
-    const { collections, documents, policies } = stores;
-
-    const document = activeDocumentId
-      ? documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
-      return [];
-    }
-
-    const actions = collections.orderedData.map((collection) => {
-      const can = policies.abilities(collection.id);
-      return createAction({
-        name: collection.name,
-        section: ActiveDocumentSection,
-        icon: <CollectionIcon collection={collection} />,
-        visible: can.createDocument,
-        perform: async () => {
-          await document.restore({ collectionId: collection.id });
-          toast.success(
-            t("{{ documentName }} restored", {
-              documentName: capitalize(document.noun),
-            })
-          );
-        },
-      });
+    stores.dialogs.openModal({
+      title:
+        documents.length === 1 ? (
+          <DialogTitle
+            title={t("Restore {{ documentType }}", {
+              documentType: documents[0].noun,
+            })}
+            model={documents[0]}
+          />
+        ) : (
+          t("Restore {{ count }} documents", { count: documents.length })
+        ),
+      content: <DocumentRestore documents={documents} />,
     });
-
-    return [createActionGroup({ name: t("Choose a collection"), actions })];
   },
 });
 
