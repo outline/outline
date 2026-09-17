@@ -1,10 +1,11 @@
 import ColorSwatchPreview from "../extensions/ColorSwatchPreview";
 import DateTime from "../extensions/DateTime";
-import DeleteNearAtom from "../extensions/DeleteNearAtom";
 import HeadingPrefix from "../extensions/HeadingPrefix";
 import History from "../extensions/History";
+import InlineAtomSpacer from "../extensions/InlineAtomSpacer";
 import InputRuleUndo from "../extensions/InputRuleUndo";
 import MaxLength from "../extensions/MaxLength";
+import TableCellInteraction from "../extensions/TableCellInteraction";
 import TrailingNode from "../extensions/TrailingNode";
 import type { AnyExtensionClass } from "../lib/types";
 import Bold from "../marks/Bold";
@@ -71,7 +72,7 @@ export const inlineExtensions: Nodes = [
   MaxLength,
   DateTime,
   HardBreak,
-  DeleteNearAtom,
+  InlineAtomSpacer,
   ColorSwatchPreview,
 ];
 
@@ -87,6 +88,7 @@ export const tableExtensions: Nodes = [
   TableCell,
   TableHeader,
   TableRow,
+  TableCellInteraction,
   // Note: Table nodes comes last to ensure the table selection plugin is registered after the
   // plugins for table grips in TableCell and TableHeader.
   Table,

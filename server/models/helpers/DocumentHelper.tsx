@@ -7,6 +7,10 @@ import {
   ChangesetHelper,
   type ExtendedChange,
 } from "@shared/editor/lib/ChangesetHelper";
+import {
+  stripSpacersFromNode,
+  ZERO_WIDTH_SPACER,
+} from "@shared/editor/extensions/InlineAtomSpacer";
 import headingToSlug from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
@@ -152,6 +156,11 @@ export class DocumentHelper {
         !options?.signedUrls &&
         !options?.internalUrlBase
       ) {
+        if (JSON.stringify(document.content).includes(ZERO_WIDTH_SPACER)) {
+          return stripSpacersFromNode(
+            Node.fromJSON(schema, document.content)
+          ).toJSON();
+        }
         return document.content;
       }
       doc = Node.fromJSON(schema, document.content);
@@ -163,6 +172,10 @@ export class DocumentHelper {
       doc = parser.parse(document.description ?? "");
     } else {
       doc = parser.parse("text" in document ? (document.text ?? "") : "");
+    }
+
+    if (doc?.textBetween(0, doc.content.size).includes(ZERO_WIDTH_SPACER)) {
+      doc = stripSpacersFromNode(doc);
     }
 
     if (doc && options?.signedUrls && options?.teamId) {

@@ -1,6 +1,7 @@
 import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
+import { ZERO_WIDTH_SPACER } from "@shared/editor/extensions/InlineAtomSpacer";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { HeadingPrefixStyle } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
@@ -88,6 +89,23 @@ describe("DocumentHelper", () => {
       const document = await buildDocument();
       const result = await DocumentHelper.toJSON(document);
       expect(result === document.content).toBe(true);
+    });
+
+    it("should remove generated caret anchors from returned content", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: ZERO_WIDTH_SPACER }],
+            },
+          ],
+        },
+      });
+
+      const result = await DocumentHelper.toJSON(document);
+      expect(JSON.stringify(result)).not.toContain(ZERO_WIDTH_SPACER);
     });
 
     it("should remove marks and replace internal urls together", async () => {

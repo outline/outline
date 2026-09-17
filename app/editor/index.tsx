@@ -72,6 +72,7 @@ import type { PortalRenderer } from "./components/NodeViewRenderer";
 import WithTheme from "./components/WithTheme";
 import { isArray, isNull, map } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
+import { stripSpacersFromNode } from "@shared/editor/extensions/InlineAtomSpacer";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
@@ -664,9 +665,10 @@ export class Editor extends React.PureComponent<
       return trim ? content.trim() : content;
     }
 
-    return (
-      trim ? ProsemirrorHelper.trim(this.view.state.doc) : this.view.state.doc
-    ).toJSON();
+    const doc = trim
+      ? ProsemirrorHelper.trim(this.view.state.doc)
+      : this.view.state.doc;
+    return stripSpacersFromNode(doc).toJSON();
   };
 
   private calculateDir = () => {
@@ -1138,8 +1140,8 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.focusedCommentId}
-        ~ span.component-image
-        div.image-wrapper {
+      ~ span.component-image
+      div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1156,8 +1158,8 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.hoveredCommentId}
-        ~ span.component-image
-        div.image-wrapper {
+      ~ span.component-image
+      div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1170,9 +1172,11 @@ const EditorContainer = styled(Styles)<{
         background: ${props.theme.textHighlight};
 
         &.ProseMirror-selectednode {
-          outline-color: ${props.readOnly
-            ? "transparent"
-            : darken(0.2, props.theme.textHighlight)};
+          outline-color: ${
+            props.readOnly
+              ? "transparent"
+              : darken(0.2, props.theme.textHighlight)
+          };
         }
       }
     `}
