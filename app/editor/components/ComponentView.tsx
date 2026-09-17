@@ -164,12 +164,15 @@ export default class ComponentView {
    */
   handleContentRef = (element: HTMLElement | null) => {
     if (
-      element &&
-      this.contentDOM &&
-      element !== this.contentDOM.parentElement
+      !element ||
+      !this.contentDOM ||
+      element === this.contentDOM.parentElement
     ) {
-      element.appendChild(this.contentDOM);
+      return;
     }
+
+    element.appendChild(this.contentDOM);
+    this.syncSelection();
   };
 
   stopEvent(event: Event) {
@@ -210,5 +213,26 @@ export default class ComponentView {
       decorations: this.decorations,
       contentRef: this.handleContentRef,
     } as ComponentProps;
+  }
+
+  /**
+   * Re-apply the editor selection to the DOM once the content is mounted. React
+   * mounts the content after ProseMirror has already synced the selection, so a
+   * selection inside a freshly created node lands on a detached element and the
+   * browser leaves the caret after the node instead.
+   */
+  private syncSelection() {
+    const { view } = this;
+    if (!this.dom || !view.hasFocus()) {
+      return;
+    }
+
+    const pos = this.getPos();
+    const { from, to } = view.state.selection;
+    if (from <= pos || to >= pos + this.node.nodeSize) {
+      return;
+    }
+
+    view.focus();
   }
 }
