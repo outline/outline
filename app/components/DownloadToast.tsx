@@ -2,8 +2,7 @@ import { t } from "i18next";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
-import { s } from "@shared/styles";
+import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Desktop from "~/utils/Desktop";
 
@@ -15,22 +14,22 @@ type DownloadedFile = {
 };
 
 /**
- * Displays a toast notifying that a file finished downloading, with actions to
- * open the file or reveal it in the file manager. Desktop app only.
+ * Displays a toast notifying that a file finished downloading, with the file
+ * name and actions to open the file or reveal it in the file manager. Desktop
+ * app only.
  *
  * @param file the name and path of the downloaded file.
  */
 export function showDownloadToast(file: DownloadedFile) {
   const toastId = `download-${file.filePath}`;
 
-  toast.success(t("Download complete"), {
+  toast.message(t("Download complete"), {
     id: toastId,
-    description: file.fileName,
-    action: <DownloadToastActions file={file} toastId={toastId} />,
+    description: <DownloadToastDescription file={file} toastId={toastId} />,
   });
 }
 
-function DownloadToastActions({
+function DownloadToastDescription({
   file,
   toastId,
 }: {
@@ -57,33 +56,16 @@ function DownloadToastActions({
       : t("Show in folder");
 
   return (
-    <Flex gap={4} shrink={false}>
-      <Action type="button" onClick={handleOpen}>
-        {t("Open")}
-      </Action>
-      <Action type="button" onClick={handleShowInFolder}>
-        {showInFolderLabel}
-      </Action>
+    <Flex column gap={8}>
+      {file.fileName}
+      <Flex gap={4}>
+        <Button onClick={handleOpen} neutral>
+          {t("Open")}
+        </Button>
+        <Button onClick={handleShowInFolder} neutral>
+          {showInFolderLabel}
+        </Button>
+      </Flex>
     </Flex>
   );
 }
-
-const Action = styled.button`
-  height: 24px;
-  padding: 0 8px;
-  flex-shrink: 0;
-  border: 1px solid ${s("divider")};
-  border-radius: 4px;
-  background: transparent;
-  color: ${s("toastText")};
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
-  cursor: var(--pointer);
-
-  &:hover {
-    background: ${s("sidebarActiveBackground")};
-  }
-`;
