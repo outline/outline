@@ -22,6 +22,9 @@ type ComponentViewConstructor = {
 };
 
 export default class ComponentView {
+  /** The class name applied to the editable content element of every node view. */
+  static readonly contentClassName = "component-content";
+
   /** The React component to render. */
   component: FunctionComponent<ComponentProps>;
   /** The editor instance. */
@@ -76,6 +79,10 @@ export default class ComponentView {
       this.contentDOM = document.createElement(
         node.type.spec.inline ? "span" : "div"
       );
+      // Chrome unwraps an attribute-less div that is the only child of its
+      // parent when a deletion empties a block inside it, which orphans the
+      // content from ProseMirror. Any attribute prevents this.
+      this.contentDOM.className = ComponentView.contentClassName;
     }
 
     this.className = `component-${node.type.name}`;
