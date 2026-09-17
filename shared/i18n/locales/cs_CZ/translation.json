@@ -1086,6 +1086,8 @@
   "Continue with Email": "Pokračovat e-mailem",
   "Continue with {{ authProviderName }}": "Pokračovat přes {{ authProviderName }}",
   "Back to home": "Zpět domů",
+  "Open in Gmail": "Otevřít v Gmailu",
+  "Open in Outlook": "Otevřít v Outlooku",
   "The workspace could not be found": "Pracovní prostor nebyl nalezen.",
   "To continue, enter your workspace’s subdomain.": "Pro pokračování zadejte subdoménu pracovního prostoru.",
   "subdomain": "subdoména",
