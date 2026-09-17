@@ -1,8 +1,11 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { Inner } from "~/components/Button";
 import ButtonLarge from "~/components/ButtonLarge";
 import Flex from "~/components/Flex";
+import { GmailIcon } from "~/components/Icons/GmailIcon";
+import { OutlookIcon } from "~/components/Icons/OutlookIcon";
 import { useEmailInboxLinks } from "~/hooks/useEmailInboxLinks";
 
 interface EmailInboxButtonsProps {
@@ -30,6 +33,7 @@ export const EmailInboxButtons = observer(function EmailInboxButtons({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
+          icon={provider === "gmail" ? <GmailIcon /> : <OutlookIcon />}
           fullwidth
           neutral
         >
@@ -43,4 +47,8 @@ export const EmailInboxButtons = observer(function EmailInboxButtons({
 const Buttons = styled(Flex)`
   width: 100%;
   margin-bottom: 12px;
+
+  ${Inner} {
+    height: 100%;
+  }
 `;
