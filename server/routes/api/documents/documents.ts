@@ -1461,10 +1461,10 @@ router.post(
     const { transaction } = ctx.state;
     const { id, insightsEnabled, publish, collectionId, ...input } =
       ctx.input.body;
-    const updatingDeprecatedDescription =
-      input.deprecatedDescription !== undefined &&
+    const updatingDeprecatedReason =
+      input.deprecatedReason !== undefined &&
       Object.keys(ctx.input.body).every(
-        (key) => key === "id" || key === "deprecatedDescription"
+        (key) => key === "id" || key === "deprecatedReason"
       );
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1474,21 +1474,18 @@ router.post(
     let document = await Document.findByPk(id, {
       userId: user.id,
       includeState: true,
-      paranoid: !updatingDeprecatedDescription,
+      paranoid: !updatingDeprecatedReason,
       transaction,
     });
     collection = document?.collection;
     authorize(
       user,
-      updatingDeprecatedDescription ? "updateDeprecatedDescription" : "update",
+      updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
       document
     );
 
-    if (
-      !updatingDeprecatedDescription &&
-      input.deprecatedDescription !== undefined
-    ) {
-      authorize(user, "updateDeprecatedDescription", document);
+    if (!updatingDeprecatedReason && input.deprecatedReason !== undefined) {
+      authorize(user, "updateDeprecatedReason", document);
     }
 
     if (collection && insightsEnabled !== undefined) {

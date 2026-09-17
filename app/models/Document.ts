@@ -144,7 +144,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   /** The reason this document is archived or deleted. */
   @observable
-  deprecatedDescription: string | null = null;
+  deprecatedReason: string | null = null;
 
   /** The likely language of the document, in ISO 639-1 format.  */
   language: string | undefined;

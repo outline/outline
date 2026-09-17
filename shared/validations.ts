@@ -68,15 +68,17 @@ export const CommentValidation = {
   maxLength: 1000,
 };
 
+export const DeprecationValidation = {
+  /** The maximum length of an archive or deletion reason. */
+  maxReasonLength: 2000,
+};
+
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,
 
   /** The maximum length of the document summary */
   maxSummaryLength: 1000,
-
-  /** The maximum length of the reason a document is archived or deleted. */
-  maxDeprecatedDescriptionLength: 2000,
 
   /** The maximum size of the collaborative document state */
   maxStateLength: 1500 * 1024,

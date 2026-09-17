@@ -10,7 +10,7 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -381,10 +381,10 @@ export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
 export const DocumentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** The reason the document is archived or deleted. */
-    deprecatedDescription: z
+    deprecatedReason: z
       .string()
       .trim()
-      .max(DocumentValidation.maxDeprecatedDescriptionLength)
+      .max(DeprecationValidation.maxReasonLength)
       .nullish(),
 
     /** Doc title to be updated */

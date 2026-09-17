@@ -12,7 +12,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -5451,7 +5451,7 @@ describe("#documents.restore", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
-      deprecatedDescription: "Outdated",
+      deprecatedReason: "Outdated",
     });
     await document.destroy();
     const res = await server.post("/api/documents.restore", user, {
@@ -5462,9 +5462,9 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.deletedAt).toEqual(null);
-    expect(body.data.deprecatedDescription).toBeNull();
+    expect(body.data.deprecatedReason).toBeNull();
     await document.reload();
-    expect(document.deprecatedDescription).toBeNull();
+    expect(document.deprecatedReason).toBeNull();
   });
 
   it("should allow restore of trashed documents with collectionId", async () => {
@@ -5603,7 +5603,7 @@ describe("#documents.restore", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
-      deprecatedDescription: "Outdated",
+      deprecatedReason: "Outdated",
     });
     await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
@@ -5614,9 +5614,9 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toEqual(null);
-    expect(body.data.deprecatedDescription).toBeNull();
+    expect(body.data.deprecatedReason).toBeNull();
     await document.reload();
-    expect(document.deprecatedDescription).toBeNull();
+    expect(document.deprecatedReason).toBeNull();
   });
 
   it("should clear reasons from archived descendants when restoring", async () => {
@@ -5630,14 +5630,14 @@ describe("#documents.restore", () => {
       teamId: user.teamId,
       collectionId: document.collectionId,
       parentDocumentId: document.id,
-      deprecatedDescription: "Child is outdated",
+      deprecatedReason: "Child is outdated",
     });
     const grandchild = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       collectionId: document.collectionId,
       parentDocumentId: child.id,
-      deprecatedDescription: "Grandchild is outdated",
+      deprecatedReason: "Grandchild is outdated",
     });
     await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
@@ -5647,7 +5647,7 @@ describe("#documents.restore", () => {
     await Promise.all([child.reload(), grandchild.reload()]);
     for (const descendant of [child, grandchild]) {
       expect(descendant.archivedAt).toBeNull();
-      expect(descendant.deprecatedDescription).toBeNull();
+      expect(descendant.deprecatedReason).toBeNull();
     }
   });
 
@@ -6337,7 +6337,7 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
-  describe("deprecatedDescription", () => {
+  describe("deprecatedReason", () => {
     it.each(["archived", "deleted"])(
       "should update the reason for an %s document without changing attribution",
       async (status) => {
@@ -6353,20 +6353,16 @@ describe("#documents.update", () => {
         const res = await server.post("/api/documents.update", editor, {
           body: {
             id: document.id,
-            deprecatedDescription: "  Replaced by the new guide.  ",
+            deprecatedReason: "  Replaced by the new guide.  ",
           },
         });
         const body = await res.json();
         expect(res.status).toBe(200);
-        expect(body.data.deprecatedDescription).toBe(
-          "Replaced by the new guide."
-        );
+        expect(body.data.deprecatedReason).toBe("Replaced by the new guide.");
         expect(body.data.updatedBy.id).toBe(user.id);
         expect(body.data.updatedAt).toBe(updatedAt);
         await document.reload({ paranoid: false });
-        expect(document.deprecatedDescription).toBe(
-          "Replaced by the new guide."
-        );
+        expect(document.deprecatedReason).toBe("Replaced by the new guide.");
         expect(document.isActive).toBe(false);
       }
     );
@@ -6379,14 +6375,14 @@ describe("#documents.update", () => {
           userId: user.id,
           teamId: user.teamId,
           archivedAt: new Date(),
-          deprecatedDescription: "Outdated",
+          deprecatedReason: "Outdated",
         });
         const res = await server.post("/api/documents.update", user, {
-          body: { id: document.id, deprecatedDescription: value },
+          body: { id: document.id, deprecatedReason: value },
         });
         expect(res.status).toBe(200);
         await document.reload();
-        expect(document.deprecatedDescription).toBeNull();
+        expect(document.deprecatedReason).toBeNull();
       }
     );
 
@@ -6409,14 +6405,14 @@ describe("#documents.update", () => {
           const res = await server.post("/api/documents.update", user, {
             body: {
               id: document.id,
-              deprecatedDescription: "Outdated",
+              deprecatedReason: "Outdated",
               ...fields,
             },
           });
           expect([403, 404]).toContain(res.status);
         }
         await document.reload({ paranoid: false });
-        expect(document.deprecatedDescription).toBeNull();
+        expect(document.deprecatedReason).toBeNull();
       }
     );
 
@@ -6445,11 +6441,11 @@ describe("#documents.update", () => {
           archivedAt: new Date(),
         });
         const res = await server.post("/api/documents.update", user, {
-          body: { id: document.id, deprecatedDescription: "Outdated" },
+          body: { id: document.id, deprecatedReason: "Outdated" },
         });
         expect(res.status).toBe(403);
         await document.reload();
-        expect(document.deprecatedDescription).toBeNull();
+        expect(document.deprecatedReason).toBeNull();
       }
     );
 
@@ -6460,7 +6456,7 @@ describe("#documents.update", () => {
         teamId: user.teamId,
       });
       const res = await server.post("/api/documents.update", user, {
-        body: { id: document.id, deprecatedDescription: "Outdated" },
+        body: { id: document.id, deprecatedReason: "Outdated" },
       });
       expect(res.status).toBe(403);
     });
@@ -6475,8 +6471,8 @@ describe("#documents.update", () => {
       const res = await server.post("/api/documents.update", user, {
         body: {
           id: document.id,
-          deprecatedDescription: "x".repeat(
-            DocumentValidation.maxDeprecatedDescriptionLength + 1
+          deprecatedReason: "x".repeat(
+            DeprecationValidation.maxReasonLength + 1
           ),
         },
       });

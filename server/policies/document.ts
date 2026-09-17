@@ -256,7 +256,7 @@ allow(
   (document, revision) => document.id === revision?.documentId
 );
 
-allow(User, "updateDeprecatedDescription", Document, (actor, document) =>
+allow(User, "updateDeprecatedReason", Document, (actor, document) =>
   and(
     isTeamMutable(actor),
     or(can(actor, "unarchive", document), can(actor, "restore", document))

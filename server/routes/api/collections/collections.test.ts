@@ -1,7 +1,9 @@
 import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
+import { DeprecationValidation } from "@shared/validations";
 import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
+  buildViewer,
   buildAdmin,
   buildGroup,
   buildCollection,
@@ -1899,6 +1901,161 @@ describe("#collections.duplicate", () => {
 });
 
 describe("#collections.update", () => {
+  describe("deprecatedReason", () => {
+    it.each(["admin", "manager"])(
+      "should let a collection %s save a reason without changing archive attribution",
+      async (role) => {
+        const owner = await buildUser();
+        const editor =
+          role === "admin" ? await buildAdmin({ teamId: owner.teamId }) : owner;
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          archivedAt: new Date(),
+        });
+        const updatedAt = collection.updatedAt.toISOString();
+        const archivedAt = collection.archivedAt?.toISOString();
+        const res = await server.post("/api/collections.update", editor, {
+          body: {
+            id: collection.id,
+            deprecatedReason: "  Replaced by the new collection.  ",
+          },
+        });
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.data.deprecatedReason).toBe(
+          "Replaced by the new collection."
+        );
+        expect(body.data.archivedAt).toBe(archivedAt);
+        expect(body.data.archivedBy.id).toBe(owner.id);
+        expect(body.data.updatedAt).toBe(updatedAt);
+        expect(body.policies[0].abilities.updateDeprecatedReason).toBeTruthy();
+        await collection.reload();
+        expect(collection.deprecatedReason).toBe(
+          "Replaced by the new collection."
+        );
+      }
+    );
+
+    it.each([null, "", "   "])(
+      "should clear the reason with %j",
+      async (value) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: value },
+        });
+        expect(res.status).toBe(200);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["member", "viewer", "other team"])(
+      "should deny edits by a %s without collection management access",
+      async (role) => {
+        const owner = await buildUser();
+        const editor =
+          role === "viewer"
+            ? await buildViewer({ teamId: owner.teamId })
+            : await buildUser(
+                role === "other team" ? {} : { teamId: owner.teamId }
+              );
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/collections.update", editor, {
+          body: { id: collection.id, deprecatedReason: "Changed" },
+        });
+        expect(res.status).toBe(403);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBe("Outdated");
+      }
+    );
+
+    it("should show the reason to readers", async () => {
+      const owner = await buildUser();
+      const reader = await buildViewer({ teamId: owner.teamId });
+      const collection = await buildCollection({
+        userId: owner.id,
+        teamId: owner.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Outdated",
+      });
+      const res = await server.post("/api/collections.info", reader, {
+        body: { id: collection.id },
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe("Outdated");
+      expect(body.policies[0].abilities.updateDeprecatedReason).toBeFalsy();
+    });
+
+    it.each([
+      { name: "Changed" },
+      { description: "Changed" },
+      { permission: null },
+    ])(
+      "should reject updates to other fields with a reason: %j",
+      async (fields) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: "Outdated", ...fields },
+        });
+        expect(res.status).toBe(403);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["active", "deleted"])(
+      "should reject a reason on an %s collection",
+      async (status) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: "Outdated" },
+        });
+        expect(res.status).toBe(403);
+      }
+    );
+
+    it("should validate the reason length", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/collections.update", user, {
+        body: {
+          id: collection.id,
+          deprecatedReason: "x".repeat(
+            DeprecationValidation.maxReasonLength + 1
+          ),
+        },
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("should require authentication", async () => {
     const collection = await buildCollection();
     const res = await server.post("/api/collections.update", {
@@ -2399,7 +2556,8 @@ describe("#collections.restore", () => {
     ]);
     expect(archiveRes.status).toEqual(200);
     expect(archiveBody.data.archivedAt).not.toBe(null);
-    await document.update({ deprecatedDescription: "Outdated" });
+    await document.update({ deprecatedReason: "Outdated" });
+    await collection.update({ deprecatedReason: "Collection is outdated" });
     const res = await server.post("/api/collections.restore", admin, {
       body: {
         id: collection.id,
@@ -2409,7 +2567,9 @@ describe("#collections.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
     await document.reload();
-    expect(document.deprecatedDescription).toBeNull();
+    expect(document.deprecatedReason).toBeNull();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(body.data.deprecatedReason).toBeNull();
     expect(collection.documentStructure).not.toBe(null);
   });
 

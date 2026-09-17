@@ -43,7 +43,7 @@ describe("#restoreTo", () => {
 
       // Simulate another request saving a reason after the restore loaded its model.
       await Document.update(
-        { deprecatedDescription: "Outdated" },
+        { deprecatedReason: "Outdated" },
         { where: { id: document.id }, paranoid: false }
       );
       await withAPIContext(user, (ctx) =>
@@ -51,7 +51,7 @@ describe("#restoreTo", () => {
       );
       await document.reload();
       expect(document.isActive).toBe(true);
-      expect(document.deprecatedDescription).toBeNull();
+      expect(document.deprecatedReason).toBeNull();
     }
   );
 });
