@@ -211,11 +211,11 @@ class UiStore {
           return;
         }
 
-        // Note: we do not sync all properties here, sidebar widths cause fighting between windows
+        // Note: we do not sync all properties here, sidebar widths and TOC
+        // visibility cause fighting between windows
         this.theme = newData.theme;
         this.languagePromptDismissed = newData.languagePromptDismissed;
         this.sidebarCollapsed = !!newData.sidebarCollapsed;
-        this.tocVisible = newData.tocVisible;
       }
     });
 
