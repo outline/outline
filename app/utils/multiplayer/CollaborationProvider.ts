@@ -14,6 +14,26 @@ export type CollaborationProviderConfiguration =
     localProvider?: IndexeddbPersistence;
   };
 
+/** The state of the connection to the collaboration server. */
+export type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | void;
+
+/** Emitted when the connection status changes. */
+export interface ConnectionStatusEvent {
+  status: ConnectionStatus;
+}
+
+/** Emitted for incoming, outgoing and close messages of the connection. */
+export interface ConnectionMessageEvent {
+  message: string;
+  event: Event & {
+    code?: number;
+  };
+}
+
 export interface SyncStateEvent {
   /** Whether there are local edits the server has not confirmed. */
   hasUnsyncedChanges: boolean;

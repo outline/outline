@@ -8,7 +8,7 @@ import type { TextStats } from "~/hooks/useTextStats";
 import { getTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import type { Editor } from "~/editor";
-import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import type { ConnectionStatus } from "~/utils/multiplayer/CollaborationProvider";
 
 class DocumentContext {
   /** The current document */

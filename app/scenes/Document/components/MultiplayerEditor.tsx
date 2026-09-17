@@ -32,7 +32,11 @@ import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
 import Logger from "~/utils/Logger";
-import { CollaborationProvider } from "~/utils/multiplayer/CollaborationProvider";
+import {
+  CollaborationProvider,
+  type ConnectionMessageEvent,
+  type ConnectionStatusEvent,
+} from "~/utils/multiplayer/CollaborationProvider";
 import { IndexeddbPersistence } from "~/utils/multiplayer/IndexeddbPersistence";
 import { homePath } from "~/utils/routeHelpers";
 import { sleep } from "@shared/utils/timers";
@@ -40,21 +44,6 @@ import { sleep } from "@shared/utils/timers";
 type Props = EditorProps & {
   id: string;
   onSynced?: () => Promise<void>;
-};
-
-export type ConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | void;
-
-type ConnectionStatusEvent = { status: ConnectionStatus };
-
-type MessageEvent = {
-  message: string;
-  event: Event & {
-    code?: number;
-  };
 };
 
 function MultiplayerEditor(
@@ -214,7 +203,7 @@ function MultiplayerEditor(
       retryCount.current = 0;
     });
 
-    provider.on("close", (ev: MessageEvent) => {
+    provider.on("close", (ev: ConnectionMessageEvent) => {
       if ("code" in ev.event) {
         // Note other close code are handled internally by the library
         if (ev.event.code === EditorUpdateError.code) {
@@ -230,15 +219,15 @@ function MultiplayerEditor(
     });
 
     if (debug) {
-      provider.on("close", (ev: MessageEvent) =>
+      provider.on("close", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "close", ev)
       );
-      provider.on("message", (ev: MessageEvent) =>
+      provider.on("message", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "incoming", {
           message: ev.message,
         })
       );
-      provider.on("outgoingMessage", (ev: MessageEvent) =>
+      provider.on("outgoingMessage", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "outgoing", {
           message: ev.message,
         })
