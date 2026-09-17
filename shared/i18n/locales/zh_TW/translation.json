@@ -1086,6 +1086,8 @@
   "Continue with Email": "使用電子郵件以繼續",
   "Continue with {{ authProviderName }}": "使用 {{ authProviderName }} 以繼續",
   "Back to home": "回到首頁",
+  "Open in Gmail": "在 Gmail 中開啟",
+  "Open in Outlook": "在 Outlook 中開啟",
   "The workspace could not be found": "找不到工作區",
   "To continue, enter your workspace’s subdomain.": "若要繼續，請輸入您工作區的子網域。",
   "subdomain": "子網域",
