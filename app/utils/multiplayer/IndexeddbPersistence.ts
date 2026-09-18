@@ -54,7 +54,7 @@ export class IndexeddbPersistence {
       return this;
     });
 
-    this.dbPromise.catch((error) => this.stop(error));
+    this.whenSynced.catch((error) => this.stop(error));
     doc.on("update", this.handleDocUpdate);
     doc.on("destroy", this.destroy);
   }
