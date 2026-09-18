@@ -188,7 +188,16 @@ const NavLink = observer(function NavLink({
 
         // Wait a frame until following the link
         requestAnimationFrame(() => {
-          requestAnimationFrame(navigateTo);
+          requestAnimationFrame(() => {
+            navigateTo();
+
+            // A <Prompt> may block the navigation, in which case the location
+            // is unchanged and the pending target must be released.
+            const value = pendingNavigation.get();
+            if (value && value.from === history.location) {
+              setPendingNavigation(null);
+            }
+          });
           element.blur();
         });
       }
