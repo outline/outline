@@ -18,11 +18,11 @@ env:
 
 jobs:
   changes:
-    # Blacksmith runners are only available in the upstream repository, forks
+    # Blacksmith runners are only available to the outline organization, forks
     # fall back to GitHub-hosted runners.
-    runs-on: ${{ github.repository == 'outline/outline' && 'blacksmith-4vcpu-ubuntu-2404' || 'ubuntu-latest' }}
+    runs-on: ${{ github.repository_owner == 'outline' && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
     outputs:
-      runner: ${{ github.repository == 'outline/outline' && 'blacksmith-4vcpu-ubuntu-2404' || 'ubuntu-latest' }}
+      runner: ${{ github.repository_owner == 'outline' && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
       code: ${{ steps.filter.outputs.code }}
       config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
@@ -72,7 +72,7 @@ jobs:
   actionlint:
     needs: changes
     if: ${{ needs.changes.outputs.config == 'true' }}
-    runs-on: ${{ needs.changes.outputs.runner }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: docker://rhysd/actionlint:1.7.12
@@ -166,7 +166,7 @@ jobs:
   ci:
     needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
     if: always()
-    runs-on: ${{ needs.changes.outputs.runner }}
+    runs-on: ubuntu-latest
     steps:
       - name: Check job results
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
