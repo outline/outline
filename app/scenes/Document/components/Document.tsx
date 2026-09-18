@@ -14,6 +14,7 @@ import { IconType, TOCPosition, TeamPreference } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import { useDocumentContext } from "~/components/DocumentContext";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import ErrorBoundary from "~/components/ErrorBoundary";
@@ -24,6 +25,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
+import useEventListener from "~/hooks/useEventListener";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
@@ -83,6 +85,7 @@ function DocumentScene({
   children,
 }: Props) {
   const { auth, ui, dialogs } = useStores();
+  const documentContext = useDocumentContext();
   const isMobile = useMobile();
   const { t } = useTranslation();
   const history = useHistory();
@@ -319,6 +322,35 @@ function DocumentScene({
   const multiplayerEditor =
     !document.isArchived && !document.isDeleted && !revision && !isShare;
 
+  const hasUnsyncedChanges = !readOnly && documentContext.hasUnsyncedChanges;
+
+  const handleBlockNavigation = () => {
+    if (hasUnsyncedChanges) {
+      return documentContext.hasLocalPersistence
+        ? t(
+            `Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?`
+          )
+        : t(
+            `Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?`
+          );
+    }
+    if (isUploading && !isEditorDirty) {
+      return t(
+        `Images are still uploading.\nAre you sure you want to discard them?`
+      );
+    }
+    return true;
+  };
+
+  const handleUnload = (event: BeforeUnloadEvent) => {
+    if (hasUnsyncedChanges) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  };
+
+  useEventListener("beforeunload", handleUnload);
+
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
   const pageTitle = hasEmojiInTitle
     ? document.titleWithDefault.replace(document.icon!, "")
@@ -359,10 +391,8 @@ function DocumentScene({
         <Container column auto>
           {!readOnly && (
             <Prompt
-              when={isUploading && !isEditorDirty}
-              message={t(
-                `Images are still uploading.\nAre you sure you want to discard them?`
-              )}
+              when={(isUploading && !isEditorDirty) || hasUnsyncedChanges}
+              message={handleBlockNavigation}
             />
           )}
           {isShare ? (
