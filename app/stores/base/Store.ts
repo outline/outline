@@ -249,7 +249,7 @@ export default abstract class Store<T extends Model> {
       }
 
       // @ts-expect-error TS thinks that we're instantiating an abstract class here
-      const newModel = new ModelClass(item, this);
+      const newModel: T = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
       this.persistence?.persist(newModel.id);
       return newModel;
