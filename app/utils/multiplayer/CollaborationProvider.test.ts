@@ -68,9 +68,9 @@ describe("CollaborationProvider", () => {
 
   it("clears pending changes once the server confirms a full sync", () => {
     edit();
+    edit();
     expect(provider.hasPendingChanges).toBe(true);
 
-    provider.unsyncedChanges = 0;
     provider.synced = true;
 
     expect(provider.hasPendingChanges).toBe(false);
@@ -78,11 +78,15 @@ describe("CollaborationProvider", () => {
       hasUnsyncedChanges: false,
       hasLocalPersistence: false,
     });
+
+    vi.advanceTimersByTime(2000);
+
+    expect(provider.hasPendingChanges).toBe(false);
   });
 
-  it("keeps pending changes across a reconnect", () => {
-    edit();
+  it("keeps pending changes while the connection is down", () => {
     provider.synced = true;
+    edit();
     vi.advanceTimersByTime(2000);
     expect(provider.hasPendingChanges).toBe(true);
 

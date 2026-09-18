@@ -53,7 +53,7 @@ export class CollaborationProvider extends HocuspocusProvider {
     this.localPersistence = !!localProvider;
 
     this.document.on("update", this.handleDocumentUpdate);
-    this.on("synced", this.updateSyncState);
+    this.on("synced", this.handleSynced);
     this.updateSyncState();
   }
 
@@ -111,9 +111,19 @@ export class CollaborationProvider extends HocuspocusProvider {
     this.updateSyncState();
   };
 
+  // The sync handshake delivers every local edit, so the inherited count only
+  // covers edits made from here on. It would otherwise keep counting edits
+  // made while reconnecting, which are never echoed individually.
+  private handleSynced = ({ state }: { state: boolean }) => {
+    if (state) {
+      this.unsyncedChanges = 0;
+    }
+    this.updateSyncState();
+  };
+
   // While synced the inherited count is reliable, as the server echoes every
   // update back. Otherwise fall back to whether an edit was made since the
-  // last confirmed sync, as the count is reset on every reconnect.
+  // last confirmed sync.
   private updateSyncState = () => {
     if (this.synced && !this.hasUnsyncedChanges) {
       this.editedSinceSync = false;
