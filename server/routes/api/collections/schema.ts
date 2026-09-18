@@ -268,13 +268,27 @@ export const CollectionsListSchema = BaseSchema.extend({
 export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
 
 export const CollectionsDeleteSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for deleting the collection. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type CollectionsDeleteReq = z.infer<typeof CollectionsDeleteSchema>;
 
 export const CollectionsArchiveSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for archiving the collection. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type CollectionsArchiveReq = z.infer<typeof CollectionsArchiveSchema>;

@@ -500,13 +500,26 @@ export const DocumentsMoveSchema = BaseSchema.extend({
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
 export const DocumentsArchiveSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for archiving the document. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type DocumentsArchiveReq = z.infer<typeof DocumentsArchiveSchema>;
 
 export const DocumentsDeleteSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** The reason for deleting the document. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
     /** Whether to permanently delete the doc as opposed to soft-delete */
     permanent: z.boolean().optional(),
   }),

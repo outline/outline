@@ -2387,6 +2387,47 @@ describe("#collections.update", () => {
 });
 
 describe("#collections.delete", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should delete with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+      await buildCollection({ teamId: user.teamId });
+      const res = await server.post("/api/collections.delete", user, {
+        body: { id: collection.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await collection.reload({ paranoid: false });
+      expect(collection.deletedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? "Archived reason" : reason?.trim() || null;
+      expect(collection.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before delete", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.delete", user, {
+      body: {
+        id: collection.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await collection.reload();
+    expect(collection.isActive).toBe(true);
+    expect(collection.deprecatedReason).toBeNull();
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.delete");
     const body = await res.json();
@@ -2412,9 +2453,13 @@ describe("#collections.delete", () => {
     const res = await server.post("/api/collections.delete", admin, {
       body: {
         id: collection.id,
+        reason: "No longer needed",
       },
     });
     expect(res.status).toEqual(400);
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(collection.isActive).toBe(true);
   });
 
   it("should delete collection", async () => {
@@ -2426,11 +2471,14 @@ describe("#collections.delete", () => {
     const res = await server.post("/api/collections.delete", admin, {
       body: {
         id: collection.id,
+        reason: "No longer needed",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+    await collection.reload({ paranoid: false });
+    expect(collection.deprecatedReason).toBe("No longer needed");
   });
 
   it("should delete published documents", async () => {
@@ -2499,6 +2547,46 @@ describe("#collections.delete", () => {
 });
 
 describe("#collections.archive", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should archive with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/collections.archive", user, {
+        body: { id: collection.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await collection.reload({ paranoid: false });
+      expect(collection.archivedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? null : reason?.trim() || null;
+      expect(collection.deprecatedReason).toBe(expectedReason);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before archive", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.archive", user, {
+      body: {
+        id: collection.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await collection.reload();
+    expect(collection.isActive).toBe(true);
+    expect(collection.deprecatedReason).toBeNull();
+  });
+
   it("should archive collection", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });

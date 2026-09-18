@@ -875,7 +875,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsDeleteReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {
@@ -884,6 +884,10 @@ router.post(
     });
 
     authorize(user, "delete", collection);
+
+    if (reason !== undefined) {
+      collection.deprecatedReason = reason || null;
+    }
 
     await collection.destroyWithCtx(ctx);
 
@@ -900,7 +904,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsArchiveReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {
@@ -910,6 +914,10 @@ router.post(
     });
 
     authorize(user, "archive", collection);
+
+    if (reason !== undefined) {
+      collection.deprecatedReason = reason || null;
+    }
 
     await collection.archiveWithCtx(ctx);
 

@@ -1653,7 +1653,7 @@ router.post(
   validate(T.DocumentsArchiveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -1663,6 +1663,10 @@ router.post(
       transaction,
     });
     authorize(user, "archive", document);
+
+    if (reason !== undefined) {
+      document.deprecatedReason = reason || null;
+    }
 
     await document.archiveWithCtx(ctx);
 
@@ -1681,7 +1685,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
     const { transaction } = ctx.state;
-    const { id, permanent } = ctx.input.body;
+    const { id, permanent, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (permanent) {
@@ -1708,6 +1712,10 @@ router.post(
       });
 
       authorize(user, "delete", document);
+
+      if (reason !== undefined) {
+        document.deprecatedReason = reason || null;
+      }
 
       await document.destroyWithCtx(ctx);
     }
