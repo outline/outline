@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "Suntingan yang Anda buat akan disinkronkan saat Anda daring",
   "Offline": "Luring",
   "Document restored": "Dokumen dipulihkan",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "Perubahan Anda belum disinkronkan, perubahan tersebut disimpan di perangkat ini.\nApakah Anda yakin ingin keluar?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "Perubahan Anda belum disinkronkan dan akan hilang.\nApakah Anda yakin ingin keluar?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Gambar masih diunggah.\nApa Anda yakin ingin membatalkannya?",
   "{{ count }} comment": "{{ count }} komentar",
   "{{ count }} comment_plural": "{{ count }} komentar",
