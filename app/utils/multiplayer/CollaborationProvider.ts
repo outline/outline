@@ -3,6 +3,7 @@ import {
   type HocuspocusProviderConfiguration,
 } from "@hocuspocus/provider";
 import { Second } from "@shared/utils/time";
+import Logger from "~/utils/Logger";
 import type { IndexeddbPersistence } from "./IndexeddbPersistence";
 
 /** How long a local change may await the server echo before it is unsynced. */
@@ -115,6 +116,11 @@ export class CollaborationProvider extends HocuspocusProvider {
   // covers edits made from here on. It would otherwise keep counting edits
   // made while reconnecting, which are never echoed individually.
   private handleSynced = ({ state }: { state: boolean }) => {
+    Logger.debug("collaboration", "synced", {
+      state,
+      unsyncedChanges: this.unsyncedChanges,
+      editedSinceSync: this.editedSinceSync,
+    });
     if (state) {
       this.unsyncedChanges = 0;
     }
@@ -157,6 +163,7 @@ export class CollaborationProvider extends HocuspocusProvider {
       return;
     }
     this.syncState = next;
+    Logger.debug("collaboration", "sync state", next);
     this.emit("syncStateChange", next);
   }
 
