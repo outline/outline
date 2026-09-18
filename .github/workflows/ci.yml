@@ -137,7 +137,7 @@ jobs:
       - uses: ./.github/actions/install
       - run: yarn sequelize db:migrate
       - name: Run server tests
-        run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4
+        run: yarn test:server --maxWorkers=4 --shard=${{ matrix.shard }}/4
 
   bundle-size:
     needs: changes
