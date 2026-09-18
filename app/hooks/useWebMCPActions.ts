@@ -11,6 +11,7 @@ import type {
   ActionVariant,
   ActionWithChildren,
 } from "~/types";
+import Analytics from "~/utils/Analytics";
 import {
   isModelContextSupported,
   registerModelContextTool,
@@ -55,6 +56,7 @@ export default function useWebMCPActions(
     }
 
     const controller = new AbortController();
+    let registered = 0;
 
     for (const action of performableRef.current) {
       const ctx = contextRef.current;
@@ -68,7 +70,7 @@ export default function useWebMCPActions(
         continue;
       }
 
-      registerModelContextTool(
+      const didRegister = registerModelContextTool(
         {
           name,
           description,
@@ -102,6 +104,14 @@ export default function useWebMCPActions(
         },
         controller.signal
       );
+
+      if (didRegister) {
+        registered++;
+      }
+    }
+
+    if (registered > 0) {
+      Analytics.track("webmcp", "register", { tools: String(registered) });
     }
 
     return () => controller.abort();
