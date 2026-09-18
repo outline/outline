@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import type Koa from "koa";
 import { DatabaseError } from "sequelize";
 import type { Mock } from "vitest";

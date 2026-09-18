@@ -69,6 +69,15 @@ void pluginModules;
 const { BaseTask: BaseTaskClass } =
   await import("@server/queues/tasks/base/BaseTask");
 
+// Module-level code in a test file, such as building the web service, must
+// see the same environment whether or not the module registry is shared with
+// the previous file in the worker, so the URL is restored after each file.
+const defaultUrl = env.URL;
+
+afterAll(() => {
+  env.URL = sharedEnv.URL = defaultUrl;
+});
+
 beforeEach(() => {
   env.URL = sharedEnv.URL = "https://app.outline.dev";
 

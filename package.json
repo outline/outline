@@ -31,7 +31,7 @@
     "test": "TZ=UTC vitest run",
     "test:app": "TZ=UTC vitest run --project app",
     "test:shared": "TZ=UTC vitest run --project shared-node --project shared-jsdom",
-    "test:server": "TZ=UTC vitest run --project server",
+    "test:server": "TZ=UTC vitest run --project \"server*\"",
     "test:watch": "TZ=UTC vitest",
     "vite:dev": "VITE_CJS_IGNORE_WARNING=true vite",
     "vite:build": "VITE_CJS_IGNORE_WARNING=true vite build",
