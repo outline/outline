@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "Les edicions que feu se sincronitzaran un cop estiguis en línia",
   "Offline": "Fora de línia",
   "Document restored": "Document restaurat",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "Els teus canvis encara no s'han sincronitzat; s'han desat en aquest dispositiu.\nSegur que vols sortir?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "Els teus canvis encara no s'han sincronitzat i es perdran.\nSegur que vols sortir?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Les imatges encara s'estan penjant.\nSegur que voleu descartar-les?",
   "{{ count }} comment": "{{ count }} comentari",
   "{{ count }} comment_plural": "{{ count }} comentaris",
