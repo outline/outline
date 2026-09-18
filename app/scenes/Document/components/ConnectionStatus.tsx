@@ -10,13 +10,13 @@ import {
   EditorUpdateError,
   TooManyConnections,
 } from "@shared/collaboration/CloseEvents";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-import useStores from "~/hooks/useStores";
 
 function ConnectionStatus() {
-  const { ui } = useStores();
+  const { multiplayerStatus, multiplayerErrorCode } = useDocumentContext();
   const { t } = useTranslation();
 
   const codeToMessage = {
@@ -44,12 +44,12 @@ function ConnectionStatus() {
     },
   };
 
-  const message = ui.multiplayerErrorCode
-    ? codeToMessage[ui.multiplayerErrorCode as keyof typeof codeToMessage]
+  const message = multiplayerErrorCode
+    ? codeToMessage[multiplayerErrorCode as keyof typeof codeToMessage]
     : undefined;
 
-  return ui.multiplayerStatus === "connecting" ||
-    ui.multiplayerStatus === "disconnected" ? (
+  return multiplayerStatus === "connecting" ||
+    multiplayerStatus === "disconnected" ? (
     <Tooltip
       content={
         message ? (
