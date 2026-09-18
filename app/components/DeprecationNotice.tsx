@@ -4,7 +4,7 @@ import Notice from "./Notice";
 
 /** A deprecation notice with a focus border around its editable reason. */
 export const DeprecationNotice = styled(Notice)`
-  &:focus-within {
+  &:has([contenteditable="true"]:focus) {
     outline: 1px solid ${s("inputBorderFocused")};
   }
 

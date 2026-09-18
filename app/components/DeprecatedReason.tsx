@@ -17,18 +17,19 @@ interface Props {
  * Displays an editable reason for archiving or deleting a document or collection.
  *
  * @param props the model to describe.
- * @returns the reason field, or plain text for readers.
+ * @returns the reason field, in read-only mode for readers.
  */
 export const DeprecatedReason = observer(function DeprecatedReason({
   model,
 }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(model);
+  const readOnly = !can.updateDeprecatedReason;
   const [draft, setDraft] = useState<string>();
   const value = draft ?? model.deprecatedReason ?? "";
 
   const handleSave = async () => {
-    if (model.isSaving || draft === undefined) {
+    if (readOnly || model.isSaving || draft === undefined) {
       return;
     }
 
@@ -47,17 +48,16 @@ export const DeprecatedReason = observer(function DeprecatedReason({
     }
   };
 
-  if (!can.updateDeprecatedReason) {
-    return model.deprecatedReason ? (
-      <Description>{model.deprecatedReason}</Description>
-    ) : null;
+  if (readOnly && !model.deprecatedReason) {
+    return null;
   }
 
   return (
     <Input
       aria-label={t("Reason for archiving or deleting")}
-      placeholder={t("Add a reason…")}
-      value={value}
+      placeholder={readOnly ? undefined : `${t("Add a reason")}…`}
+      value={readOnly ? (model.deprecatedReason ?? "") : value}
+      readOnly={readOnly}
       maxLength={DeprecationValidation.maxReasonLength}
       disabled={model.isSaving}
       onChange={setDraft}
@@ -75,13 +75,6 @@ export const DeprecatedReason = observer(function DeprecatedReason({
     />
   );
 });
-
-const Description = styled.span`
-  display: block;
-  margin-top: 4px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-`;
 
 const Input = styled(ContentEditable)`
   margin-top: 4px;
