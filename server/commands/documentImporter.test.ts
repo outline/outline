@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import path from "node:path";
 import fs from "fs-extra";
 import { errToString } from "@shared/utils/error";
