@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "Dine redigeringer synkroniseres, når du er online",
   "Offline": "Ikke online",
   "Document restored": "Dokument gendannet",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Billeder uploades stadig.\nEr du sikker på, at du vil kassere dem?",
   "{{ count }} comment": "{{ count }} kommentar",
   "{{ count }} comment_plural": "{{ count }} kommentarer",
