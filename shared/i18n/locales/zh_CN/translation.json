@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "您所做的修改将在您上线后立即同步",
   "Offline": "离线",
   "Document restored": "文档已恢复",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "您的更改尚未同步，但已保存在此设备上。\n确定要离开吗？",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "您的更改尚未同步，将会丢失。\n确定要离开吗？",
   "Images are still uploading.\nAre you sure you want to discard them?": "图片仍在上传中。\n您确定要丢弃它们吗？",
   "{{ count }} comment": "{{ count }} 条评论",
   "{{ count }} comment_plural": "{{ count }} 条评论",
