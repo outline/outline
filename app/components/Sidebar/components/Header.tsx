@@ -1,15 +1,24 @@
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
+import { ActionSeparator, createRootMenuAction } from "~/actions";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import NudeButton from "~/components/NudeButton";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
-import { SectionDragContext } from "./DraggableSection";
+import type { ActionVariant } from "~/types";
+import { SidebarSectionContext } from "./DraggableSection";
 
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
   id?: string;
   title: React.ReactNode;
+  /** Actions shown at the top of the header's context menu */
+  actions?: ActionVariant[];
   children?: React.ReactNode;
 };
 
@@ -20,9 +29,28 @@ export function getHeaderExpandedKey(id: string) {
 /**
  * Toggleable sidebar header
  */
-export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
+export const Header: React.FC<Props> = ({
+  id,
+  title,
+  actions,
+  children,
+}: Props) => {
+  const { t } = useTranslation();
   const [firstRender, setFirstRender] = React.useState(true);
-  const dragRef = React.useContext(SectionDragContext);
+  const sectionContext = React.useContext(SidebarSectionContext);
+  const sectionActions = sectionContext?.menuActions;
+  const hasMenu = !!(actions?.length || sectionActions?.length);
+
+  // Dangling separators are trimmed when the menu items are rendered.
+  const menuAction = React.useMemo(
+    () =>
+      createRootMenuAction([
+        ...(actions ?? []),
+        ActionSeparator,
+        ...(sectionActions ?? []),
+      ]),
+    [actions, sectionActions]
+  );
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
     true
@@ -40,12 +68,28 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
 
   return (
     <>
-      <H3 ref={dragRef}>
-        <Button onClick={handleClick} disabled={!id}>
-          {title}
-          {id && <Disclosure $expanded={expanded} size={20} />}
-        </Button>
-      </H3>
+      <ContextMenu
+        action={hasMenu ? menuAction : undefined}
+        ariaLabel={t("Section options")}
+      >
+        <H3 ref={sectionContext?.dragRef}>
+          <Button onClick={handleClick} disabled={!id}>
+            {title}
+            {id && <Disclosure $expanded={expanded} size={20} />}
+          </Button>
+          {hasMenu && (
+            <Actions>
+              <DropdownMenu
+                action={menuAction}
+                align="end"
+                ariaLabel={t("Section options")}
+              >
+                <OverflowMenuButton />
+              </DropdownMenu>
+            </Actions>
+          )}
+        </H3>
+      </ContextMenu>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
     </>
   );
@@ -79,7 +123,7 @@ const Button = styled.button`
   letter-spacing: 0.03em;
   margin: 0;
   padding-block: 4px;
-  padding-inline: 12px 2px;
+  padding-inline: 12px 32px;
   border: 0;
   background: none;
   border-radius: 4px;
@@ -87,15 +131,39 @@ const Button = styled.button`
   transition: all 100ms ease;
   ${undraggableOnDesktop()}
 
-  &:not(:disabled):hover,
-  &:not(:disabled):active {
-    background: ${s("sidebarHoverBackground")};
+  &:not(:disabled) {
     cursor: var(--pointer);
   }
+`;
 
-  @media (hover: hover) {
-    &:not(:disabled):hover {
-      color: ${s("text")};
+const Actions = styled.span`
+  display: inline-flex;
+  visibility: hidden;
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 4px;
+  height: 24px;
+
+  [data-drag-active] & {
+    display: none;
+  }
+
+  svg {
+    color: ${s("textSecondary")};
+    fill: currentColor;
+    opacity: 0.5;
+  }
+
+  ${NudeButton} {
+    background: transparent;
+
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${s("sidebarControlHoverBackground")};
+
+      svg {
+        opacity: 0.75;
+      }
     }
   }
 `;
@@ -114,12 +182,41 @@ const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
 `;
 
 const H3 = styled.h3`
+  position: relative;
   margin: 0;
 
+  /* The context menu marks the header itself, the dropdown marks its button. */
   &:hover,
-  &:focus-within {
+  &:focus-within,
+  &[data-state="open"],
+  &:has([data-state="open"]) {
     ${Disclosure} {
       opacity: 1;
+    }
+
+    ${Actions} {
+      visibility: visible;
+    }
+  }
+
+  /* Hovering the actions must keep the header highlighted, so the hover
+     background is applied from the heading rather than the button. */
+  &:hover,
+  &:active,
+  &[data-state="open"],
+  &:has([data-state="open"]) {
+    ${Button}:not(:disabled) {
+      background: ${s("sidebarHoverBackground")};
+    }
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &[data-state="open"],
+    &:has([data-state="open"]) {
+      ${Button}:not(:disabled) {
+        color: ${s("text")};
+      }
     }
   }
 `;
