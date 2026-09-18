@@ -115,7 +115,7 @@ jobs:
     runs-on: ${{ needs.changes.outputs.runner }}
     strategy:
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
 
     steps:
       - uses: actions/checkout@v5
@@ -130,7 +130,7 @@ jobs:
       - uses: ./.github/actions/install
       - run: yarn sequelize db:migrate
       - name: Run server tests
-        run: yarn test:server --maxWorkers=4 --shard=${{ matrix.shard }}/4
+        run: yarn test:server --maxWorkers=4 --shard=${{ matrix.shard }}/6
 
   bundle-size:
     needs: changes

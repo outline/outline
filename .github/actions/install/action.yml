@@ -3,6 +3,12 @@ description: Set up Node.js, Corepack, and install dependencies with yarn cache
 runs:
   using: composite
   steps:
+    - name: Mount Node.js toolcache
+      if: ${{ github.repository_owner == 'outline' }}
+      uses: useblacksmith/stickydisk@94697d49e77d0dd78b77deb85ad3de63a28b4b8a # v1.7.1
+      with:
+        key: ${{ github.repository }}-node-toolcache
+        path: /opt/hostedtoolcache/node
     - name: Enable Corepack
       shell: bash
       run: corepack enable
