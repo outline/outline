@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "Wijzigingen die je maakt worden gesynchroniseerd zodra je online bent",
   "Offline": "Offline",
   "Document restored": "Document hersteld",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "Uw wijzigingen zijn nog niet gesynchroniseerd; ze zijn opgeslagen op dit apparaat.\nWeet u zeker dat u wilt vertrekken?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "Uw wijzigingen zijn nog niet gesynchroniseerd en gaan verloren.\nWeet u zeker dat u wilt vertrekken?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Afbeeldingen worden nog steeds geüpload.\nWeet je zeker dat je ze wilt verwijderen?",
   "{{ count }} comment": "{{ count }} reactie",
   "{{ count }} comment_plural": "{{ count }} opmerkingen",
