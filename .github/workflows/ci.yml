@@ -113,27 +113,20 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ${{ needs.changes.outputs.runner }}
-    services:
-      postgres:
-        image: postgres:14.2
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: outline_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     strategy:
       matrix:
         shard: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@v5
+      # The runner image ships with PostgreSQL preinstalled, starting it is much
+      # faster than pulling and initializing a service container.
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          until pg_isready -h localhost; do sleep 1; done
+          sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'password';"
+          sudo -u postgres createdb outline_test
       - uses: ./.github/actions/install
       - run: yarn sequelize db:migrate
       - name: Run server tests
