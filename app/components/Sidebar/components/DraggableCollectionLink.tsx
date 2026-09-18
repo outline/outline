@@ -2,7 +2,6 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
-import type { DropTargetMonitor } from "react-dnd";
 import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
@@ -11,7 +10,6 @@ import type Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
-import type { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import SidebarDisclosureContext, {
@@ -25,6 +23,12 @@ type Props = {
   activeDocument: Document | undefined;
   belowCollection: Collection | void;
 };
+
+interface CollectionDragItem {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+}
 
 function DraggableCollectionLink({
   collection,
@@ -48,9 +52,13 @@ function DraggableCollectionLink({
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
-  ] = useDrop({
+  ] = useDrop<
+    CollectionDragItem,
+    void,
+    { isCollectionDropping: boolean; isDraggingAnyCollection: boolean }
+  >({
     accept: "collection",
-    drop: (item: DragObject) => {
+    drop: (item) => {
       void collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
@@ -60,7 +68,7 @@ function DraggableCollectionLink({
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
       !!policies.abilities(item.id).move,
-    collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
+    collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),
     }),

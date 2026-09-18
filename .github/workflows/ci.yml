@@ -18,8 +18,11 @@ env:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    # Blacksmith runners are only available in the upstream repository, forks
+    # fall back to GitHub-hosted runners.
+    runs-on: ${{ github.repository == 'outline/outline' && 'blacksmith-4vcpu-ubuntu-2404' || 'ubuntu-latest' }}
     outputs:
+      runner: ${{ github.repository == 'outline/outline' && 'blacksmith-4vcpu-ubuntu-2404' || 'ubuntu-latest' }}
       code: ${{ steps.filter.outputs.code }}
       config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
@@ -60,7 +63,7 @@ jobs:
   lint:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -69,7 +72,7 @@ jobs:
   actionlint:
     needs: changes
     if: ${{ needs.changes.outputs.config == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: docker://rhysd/actionlint:1.7.12
@@ -79,7 +82,7 @@ jobs:
   types:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -88,7 +91,7 @@ jobs:
   audit:
     needs: changes
     if: ${{ needs.changes.outputs.deps == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -97,7 +100,7 @@ jobs:
   test:
     needs: changes
     if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     strategy:
       matrix:
         test-group: [app, shared]
@@ -109,7 +112,7 @@ jobs:
   test-server:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     services:
       postgres:
         image: postgres:14.2
@@ -139,7 +142,7 @@ jobs:
   bundle-size:
     needs: changes
     if: ${{ (needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true') && github.repository == 'outline/outline' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -163,7 +166,7 @@ jobs:
   ci:
     needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - name: Check job results
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
