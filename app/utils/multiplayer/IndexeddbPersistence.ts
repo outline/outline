@@ -231,10 +231,14 @@ export class IndexeddbPersistence {
     this.stopListeners.clear();
   }
 
+  /**
+   * Opens a read-write transaction on the updates store. Writes report
+   * failures such as a full quota asynchronously by aborting the transaction.
+   */
   private updatesStore(db: IDBDatabase): IDBObjectStore {
-    return db
-      .transaction(updatesStoreName, "readwrite")
-      .objectStore(updatesStoreName);
+    const transaction = db.transaction(updatesStoreName, "readwrite");
+    transaction.onabort = () => this.stop(transaction.error);
+    return transaction.objectStore(updatesStoreName);
   }
 }
 
