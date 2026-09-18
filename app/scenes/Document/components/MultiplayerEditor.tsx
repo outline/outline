@@ -194,7 +194,6 @@ function MultiplayerEditor(
         // IndexedDB exists but is unusable, e.g. Firefox private browsing.
         if (isActive) {
           setHasLocalPersistence(false);
-          provider.setLocalPersistence(false);
         }
       });
     provider.on("synced", () => {

@@ -96,13 +96,41 @@ describe("CollaborationProvider", () => {
     expect(events).toHaveLength(1);
   });
 
-  it("includes the local persistence state", () => {
-    provider.setLocalPersistence(true);
-    edit();
+  it("reports when local persistence stops", () => {
+    provider.destroy();
+    const listeners = new Set<() => void>();
+    const localProvider = {
+      stopped: false,
+      onStop: (listener: () => void) => {
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+        };
+      },
+    };
+    provider = new CollaborationProvider({
+      url: "ws://localhost",
+      name: "test",
+      document: doc,
+      connect: false,
+      localProvider,
+    });
+    provider.on("syncStateChange", (event: SyncStateEvent) => {
+      events.push(event);
+    });
+    expect(provider.hasLocalPersistence).toBe(true);
 
+    edit();
     expect(events.at(-1)).toEqual({
       hasUnsyncedChanges: true,
       hasLocalPersistence: true,
+    });
+
+    listeners.forEach((listener) => listener());
+    expect(provider.hasLocalPersistence).toBe(false);
+    expect(events.at(-1)).toEqual({
+      hasUnsyncedChanges: true,
+      hasLocalPersistence: false,
     });
   });
 

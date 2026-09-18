@@ -23,6 +23,12 @@ export class IndexeddbPersistence {
   public synced = false;
 
   /**
+   * Whether persisting has stopped for good, because the database could not
+   * be opened or the connection was closed underneath us.
+   */
+  public stopped = false;
+
+  /**
    * Resolves once the state stored in the database has been applied to the
    * document, or immediately if the instance is destroyed beforehand – check
    * `synced` to distinguish the two.
@@ -48,8 +54,22 @@ export class IndexeddbPersistence {
       return this;
     });
 
+    this.dbPromise.catch((error) => this.stop(error));
     doc.on("update", this.handleDocUpdate);
     doc.on("destroy", this.destroy);
+  }
+
+  /**
+   * Registers a listener that is called once persisting stops, see `stopped`.
+   *
+   * @param listener the function to call.
+   * @returns a function that removes the listener.
+   */
+  public onStop(listener: () => void): () => void {
+    this.stopListeners.add(listener);
+    return () => {
+      this.stopListeners.delete(listener);
+    };
   }
 
   /**
@@ -100,6 +120,8 @@ export class IndexeddbPersistence {
 
   private destroyed = false;
 
+  private stopListeners = new Set<() => void>();
+
   /**
    * Number of stored updates after which they are merged into a single
    * database row containing the entire document state, keeping loads fast.
@@ -122,11 +144,9 @@ export class IndexeddbPersistence {
 
     try {
       this.updatesStore(this.db).add(update);
-    } catch (err) {
-      // A throw here would break every later Y.Doc transaction, so stop
-      // persisting instead – the connection was closed underneath us.
-      this.db = null;
-      Logger.warn("Local document persistence stopped", { error: err });
+    } catch (error) {
+      // A throw here would break every later Y.Doc transaction.
+      this.stop(error);
       return;
     }
 
@@ -195,6 +215,20 @@ export class IndexeddbPersistence {
       store.delete(IDBKeyRange.upperBound(this.dbref, true));
       this.dbsize = await requestToPromise(store.count());
     }
+  }
+
+  private stop(error: unknown) {
+    if (this.stopped) {
+      return;
+    }
+    this.stopped = true;
+    this.db = null;
+
+    if (!this.destroyed) {
+      Logger.warn("Local document persistence stopped", { error });
+    }
+    this.stopListeners.forEach((listener) => listener());
+    this.stopListeners.clear();
   }
 
   private updatesStore(db: IDBDatabase): IDBObjectStore {

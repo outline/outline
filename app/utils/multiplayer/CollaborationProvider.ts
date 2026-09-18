@@ -9,10 +9,13 @@ import type { IndexeddbPersistence } from "./IndexeddbPersistence";
 /** How long a local change may await the server echo before it is unsynced. */
 const unsyncedGracePeriod = 2 * Second.ms;
 
+/** The part of local persistence the provider relies on. */
+type LocalProvider = Pick<IndexeddbPersistence, "stopped" | "onStop">;
+
 export type CollaborationProviderConfiguration =
   HocuspocusProviderConfiguration & {
     /** Local persistence for the same document, if available. */
-    localProvider?: IndexeddbPersistence;
+    localProvider?: LocalProvider;
   };
 
 /** The state of the connection to the collaboration server. */
@@ -51,7 +54,10 @@ export class CollaborationProvider extends HocuspocusProvider {
     const { localProvider, ...rest } = configuration;
     super(rest);
     this.localProvider = localProvider;
-    this.localPersistence = !!localProvider;
+    this.localPersistence = !!localProvider && !localProvider.stopped;
+    this.stopLocalProviderListener = localProvider?.onStop(() =>
+      this.setLocalPersistence(false)
+    );
 
     this.document.on("update", this.handleDocumentUpdate);
     this.on("synced", this.handleSynced);
@@ -68,17 +74,6 @@ export class CollaborationProvider extends HocuspocusProvider {
     return this.localPersistence;
   }
 
-  /**
-   * Records whether local persistence is working, for example after IndexedDB
-   * turned out to be unusable.
-   *
-   * @param value whether edits are stored in the browser.
-   */
-  setLocalPersistence(value: boolean) {
-    this.localPersistence = value;
-    this.updateSyncState();
-  }
-
   onMessage(event: Parameters<HocuspocusProvider["onMessage"]>[0]) {
     super.onMessage(event);
     this.updateSyncState();
@@ -86,13 +81,16 @@ export class CollaborationProvider extends HocuspocusProvider {
 
   destroy() {
     this.clearUnsyncedTimeout();
+    this.stopLocalProviderListener?.();
     this.document.off("update", this.handleDocumentUpdate);
     super.destroy();
   }
 
-  private localProvider?: IndexeddbPersistence;
+  private localProvider?: LocalProvider;
 
   private localPersistence: boolean;
+
+  private stopLocalProviderListener?: () => void;
 
   /** The last state reported to listeners. */
   private syncState: SyncStateEvent = {
@@ -165,6 +163,11 @@ export class CollaborationProvider extends HocuspocusProvider {
     this.syncState = next;
     Logger.debug("collaboration", "sync state", next);
     this.emit("syncStateChange", next);
+  }
+
+  private setLocalPersistence(value: boolean) {
+    this.localPersistence = value;
+    this.updateSyncState();
   }
 
   private clearUnsyncedTimeout() {
