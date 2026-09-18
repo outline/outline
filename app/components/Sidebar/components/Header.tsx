@@ -3,15 +3,21 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
-import { ActionSeparator, createRootMenuAction } from "~/actions";
+import { ActionSeparator, createRootMenuAction, resolve } from "~/actions";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import NudeButton from "~/components/NudeButton";
+import useActionContext from "~/hooks/useActionContext";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
-import type { ActionVariant } from "~/types";
+import type { Action, ActionVariant } from "~/types";
 import { SidebarSectionContext } from "./DraggableSection";
+import {
+  SidebarActions,
+  hoveredOrMenuOpen,
+  revealActionsOnHover,
+} from "./SidebarActions";
 
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
@@ -19,6 +25,8 @@ type Props = {
   title: React.ReactNode;
   /** Actions shown at the top of the header's context menu */
   actions?: ActionVariant[];
+  /** Action rendered as an icon button beside the header's menu button */
+  primaryAction?: Action;
   children?: React.ReactNode;
 };
 
@@ -33,9 +41,11 @@ export const Header: React.FC<Props> = ({
   id,
   title,
   actions,
+  primaryAction,
   children,
 }: Props) => {
   const { t } = useTranslation();
+  const actionContext = useActionContext({ isButton: true });
   const [firstRender, setFirstRender] = React.useState(true);
   const sectionContext = React.useContext(SidebarSectionContext);
   const sectionActions = sectionContext?.menuActions;
@@ -78,7 +88,19 @@ export const Header: React.FC<Props> = ({
             {id && <Disclosure $expanded={expanded} size={20} />}
           </Button>
           {hasMenu && (
-            <Actions>
+            <SidebarActions>
+              {primaryAction && (
+                <NudeButton
+                  action={primaryAction}
+                  hideOnActionDisabled
+                  tooltip={{
+                    content: resolve<string>(primaryAction.name, actionContext),
+                    delay: 500,
+                  }}
+                >
+                  {resolve<React.ReactNode>(primaryAction.icon, actionContext)}
+                </NudeButton>
+              )}
               <DropdownMenu
                 action={menuAction}
                 align="end"
@@ -86,7 +108,7 @@ export const Header: React.FC<Props> = ({
               >
                 <OverflowMenuButton />
               </DropdownMenu>
-            </Actions>
+            </SidebarActions>
           )}
         </H3>
       </ContextMenu>
@@ -133,38 +155,7 @@ const Button = styled.button`
 
   &:not(:disabled) {
     cursor: var(--pointer);
-  }
-`;
-
-const Actions = styled.span`
-  display: inline-flex;
-  visibility: hidden;
-  position: absolute;
-  top: 2px;
-  inset-inline-end: 4px;
-  height: 24px;
-
-  [data-drag-active] & {
-    display: none;
-  }
-
-  svg {
-    color: ${s("textSecondary")};
-    fill: currentColor;
-    opacity: 0.5;
-  }
-
-  ${NudeButton} {
-    background: transparent;
-
-    &:hover,
-    &[aria-expanded="true"] {
-      background: ${s("sidebarControlHoverBackground")};
-
-      svg {
-        opacity: 0.75;
-      }
-    }
+    background: var(--background);
   }
 `;
 
@@ -184,36 +175,19 @@ const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
 const H3 = styled.h3`
   position: relative;
   margin: 0;
+  ${revealActionsOnHover}
 
-  /* The context menu marks the header itself, the dropdown marks its button. */
-  &:hover,
-  &:focus-within,
-  &[data-state="open"],
-  &:has([data-state="open"]) {
+  ${hoveredOrMenuOpen},
+  &:focus-within {
+    --background: ${s("sidebarHoverBackground")};
+
     ${Disclosure} {
       opacity: 1;
-    }
-
-    ${Actions} {
-      visibility: visible;
-    }
-  }
-
-  /* Hovering the actions must keep the header highlighted, so the hover
-     background is applied from the heading rather than the button. */
-  &:hover,
-  &:active,
-  &[data-state="open"],
-  &:has([data-state="open"]) {
-    ${Button}:not(:disabled) {
-      background: ${s("sidebarHoverBackground")};
     }
   }
 
   @media (hover: hover) {
-    &:hover,
-    &[data-state="open"],
-    &:has([data-state="open"]) {
+    ${hoveredOrMenuOpen} {
       ${Button}:not(:disabled) {
         color: ${s("text")};
       }

@@ -64,6 +64,7 @@ function Collections() {
           id="collections"
           title={t("Collections")}
           actions={headerActions}
+          primaryAction={createCollection}
         >
           <Relative>
             <PaginatedList<Collection>
