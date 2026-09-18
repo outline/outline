@@ -17,7 +17,7 @@ runs:
       with:
         node-version: 26.x
         # Blacksmith jobs persist the yarn cache on a sticky disk instead.
-        cache: ${{ github.repository_owner != 'outline' && 'yarn' || '' }}
+        package-manager-cache: ${{ github.repository_owner != 'outline' }}
     - name: Mount yarn cache
       if: ${{ github.repository_owner == 'outline' }}
       uses: useblacksmith/stickydisk@94697d49e77d0dd78b77deb85ad3de63a28b4b8a # v1.7.1
