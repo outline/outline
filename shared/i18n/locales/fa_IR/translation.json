@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "ویرایش هایی که انجام می دهید پس از آنلاین بودن همگام سازی می شوند",
   "Offline": "آفلاین",
   "Document restored": "سند بازیابی شد",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?",
   "Images are still uploading.\nAre you sure you want to discard them?": "تصاویر هنوز در حال بارگذاری هستند.\nآیا مطمئن هستید که می خواهید آنها را نادیده بگیرید؟",
   "{{ count }} comment": "{{ count }} دیدگاه",
   "{{ count }} comment_plural": "{{ count }} دیدگاه",
