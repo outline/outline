@@ -13,6 +13,7 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   onBlur?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onInput?: React.FormEventHandler<HTMLSpanElement> | undefined;
   onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement> | undefined;
+  onCompositionEnd?: React.CompositionEventHandler<HTMLSpanElement> | undefined;
   placeholder?: string;
   maxLength?: number;
   autoFocus?: boolean;
@@ -39,6 +40,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
     onFocus,
     onBlur,
     onKeyDown,
+    onCompositionEnd,
     value,
     children,
     className,
@@ -95,7 +97,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
         return;
       }
 
-      const text = event.currentTarget.textContent || "";
+      let text = event.currentTarget.textContent || "";
 
       if (
         maxLength &&
@@ -105,6 +107,13 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       ) {
         event.preventDefault();
         return;
+      }
+
+      // Paste, drop, IME and other non-keyboard input paths bypass the check
+      // above, so clamp whatever landed in the DOM. Skip mid-composition as
+      // editing the DOM would break the IME session.
+      if (maxLength && text.length > maxLength && !isComposing(event)) {
+        text = truncateContent(event.currentTarget, maxLength);
       }
 
       if (text !== lastValue.current) {
@@ -146,10 +155,18 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
   const handlePaste = React.useCallback(
     (event: React.ClipboardEvent<HTMLSpanElement>) => {
       event.preventDefault();
-      const text = event.clipboardData.getData("text/plain");
+      let text = event.clipboardData.getData("text/plain");
+
+      if (maxLength) {
+        const current = event.currentTarget.textContent || "";
+        const selected = window.getSelection()?.toString() || "";
+        const remaining = maxLength - (current.length - selected.length);
+        text = text.slice(0, Math.max(0, remaining));
+      }
+
       window.document.execCommand("insertText", false, text);
     },
-    []
+    [maxLength]
   );
   const contentEditable = !disabled && !readOnly;
 
@@ -163,6 +180,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
         onFocus={wrappedEvent(onFocus)}
         onBlur={wrappedEvent(onBlur)}
         onKeyDown={wrappedEvent(onKeyDown)}
+        onCompositionEnd={wrappedEvent(onCompositionEnd)}
         onPaste={handlePaste}
         data-placeholder={placeholder}
         suppressContentEditableWarning
@@ -174,6 +192,45 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
     </div>
   );
 });
+
+function isComposing(event: React.SyntheticEvent<HTMLSpanElement>) {
+  const native = event.nativeEvent;
+  return (
+    (native instanceof InputEvent || native instanceof KeyboardEvent) &&
+    native.isComposing
+  );
+}
+
+/**
+ * Truncates the text content of an element to the given length while keeping
+ * the caret at its current position where possible.
+ */
+function truncateContent(element: HTMLElement, maxLength: number): string {
+  const selection = window.getSelection();
+  const range = selection?.rangeCount ? selection.getRangeAt(0) : undefined;
+  let offset = maxLength;
+
+  if (range && element.contains(range.startContainer)) {
+    const before = range.cloneRange();
+    before.selectNodeContents(element);
+    before.setEnd(range.startContainer, range.startOffset);
+    offset = Math.min(before.toString().length, maxLength);
+  }
+
+  const text = (element.textContent || "").slice(0, maxLength);
+  element.textContent = text;
+
+  const textNode = element.firstChild;
+  if (textNode && selection) {
+    const caret = document.createRange();
+    caret.setStart(textNode, offset);
+    caret.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(caret);
+  }
+
+  return text;
+}
 
 function placeCaret(element: HTMLElement, atStart: boolean) {
   if (
