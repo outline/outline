@@ -56,7 +56,6 @@ export default function useWebMCPActions(
     }
 
     const controller = new AbortController();
-    let registered = 0;
 
     for (const action of performableRef.current) {
       const ctx = contextRef.current;
@@ -70,7 +69,7 @@ export default function useWebMCPActions(
         continue;
       }
 
-      const didRegister = registerModelContextTool(
+      registerModelContextTool(
         {
           name,
           description,
@@ -104,15 +103,9 @@ export default function useWebMCPActions(
         },
         controller.signal
       );
-
-      if (didRegister) {
-        registered++;
-      }
     }
 
-    if (registered > 0) {
-      Analytics.track("webmcp", "register", { tools: String(registered) });
-    }
+    Analytics.track("webmcp", "register");
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
