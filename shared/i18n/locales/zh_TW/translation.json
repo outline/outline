@@ -922,6 +922,8 @@
   "Edits you make will sync once you’re online": "您所做的變更將在您與伺服器連線時同步",
   "Offline": "離線",
   "Document restored": "文件已經被還原",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "您的變更尚未同步，但已儲存在此裝置上。\n您確定要離開嗎？",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "您的變更尚未同步，且將會遺失。\n您確定要離開嗎？",
   "Images are still uploading.\nAre you sure you want to discard them?": "圖片皆已被上傳。\n您確定要捨棄嗎？",
   "{{ count }} comment": "{{ count }} 則留言",
   "{{ count }} comment_plural": "{{ count }} 則留言",
