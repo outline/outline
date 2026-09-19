@@ -3,6 +3,7 @@ import {
   DocumentIcon,
   EmailIcon,
   CollectionIcon,
+  HashtagIcon,
   WarningIcon,
 } from "outline-icons";
 import type { Node } from "prosemirror-model";
@@ -31,6 +32,7 @@ import {
   type JSONValue,
   type UnfurlResponse,
 } from "../../types";
+import { isSectionMention } from "../lib/mention";
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
 import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
@@ -107,6 +109,7 @@ export const MentionDocument = observer(function MentionDocument_(
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
   const anchorId = node.attrs.anchorId;
+  const label = node.attrs.label;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
@@ -116,6 +119,7 @@ export const MentionDocument = observer(function MentionDocument_(
   }, [modelId, documents]);
 
   const documentPath = doc?.path ?? `/doc/${node.attrs.modelId}`;
+  const isSection = isSectionMention({ anchorId, label });
 
   return (
     <Link
@@ -125,7 +129,9 @@ export const MentionDocument = observer(function MentionDocument_(
       })}
       to={anchorId ? `${documentPath}#${anchorId}` : documentPath}
     >
-      {doc?.icon ? (
+      {isSection ? (
+        <HashtagIcon size={18} />
+      ) : doc?.icon ? (
         <Icon
           value={doc.icon}
           initial={doc.initial}
@@ -135,7 +141,7 @@ export const MentionDocument = observer(function MentionDocument_(
       ) : (
         <DocumentIcon size={18} />
       )}
-      <span>{doc?.title || node.attrs.label}</span>
+      <span>{anchorId ? label : doc?.title || label}</span>
     </Link>
   );
 });
