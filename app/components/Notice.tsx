@@ -34,13 +34,14 @@ const Notice: React.FC<Props> = ({
 );
 
 const Title = styled.span`
+  color: ${s("textSecondary")};
   font-weight: 500;
   font-size: 16px;
 `;
 
 const Container = styled(Text)`
   background: ${s("sidebarBackground")};
-  color: ${s("sidebarText")};
+  color: ${s("textTertiary")};
   padding: 10px 12px;
   border-radius: 4px;
   position: relative;

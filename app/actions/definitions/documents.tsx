@@ -62,6 +62,7 @@ import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
+import { DocumentArchiveDialog } from "~/components/DocumentArchiveDialog";
 import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
@@ -1464,10 +1465,11 @@ export const archiveDocument = createAction({
           })
         ),
       content: (
-        <ConfirmationDialog
-          onSubmit={async () => {
+        <DocumentArchiveDialog
+          count={documents.length}
+          onSubmit={async (reason) => {
             const succeeded = await performBatch(documents, (document) =>
-              document.archive()
+              document.archive({ reason })
             );
             if (succeeded) {
               toast.success(
@@ -1477,16 +1479,7 @@ export const archiveDocument = createAction({
               );
             }
           }}
-          savingText={`${t("Archiving")}…`}
-        >
-          {documents.length === 1
-            ? t(
-                "Archiving this document will remove it from the collection and search results."
-              )
-            : t(
-                "Archiving these documents will remove them from their collections and search results."
-              )}
-        </ConfirmationDialog>
+        />
       ),
     });
   },
