@@ -317,6 +317,93 @@ describe("membership ids", () => {
   });
 });
 
+describe("duplicate", () => {
+  it("should allow members to duplicate from a read-write collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.duplicate).toBeTruthy();
+  });
+
+  it("should allow members to duplicate from a read-only collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.Read,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.duplicate).toBeTruthy();
+  });
+
+  it("should allow guests to duplicate documents they can update", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      role: UserRole.Guest,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.duplicate).toBeTruthy();
+  });
+
+  it("should not allow guests to duplicate read-only documents", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      role: UserRole.Guest,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: DocumentPermission.Read,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toEqual(false);
+    expect(abilities.duplicate).toEqual(false);
+  });
+});
+
 describe("no collection", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();

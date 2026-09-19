@@ -78,10 +78,10 @@ export default class BlockMenuExtension extends Suggestion {
       }),
       new PlaceholderPlugin([
         {
-          condition: ({ node, $start, textContent, state }) =>
+          condition: ({ node, $start, isDocEmpty, state }) =>
             $start.depth === 1 &&
             state.selection.$from.pos === $start.pos + node.content.size &&
-            !!textContent &&
+            !isDocEmpty &&
             node.childCount === 0 &&
             node.textContent === "",
           text: `${t("Type '/' to insert")}…`,

@@ -1086,6 +1086,8 @@
   "Continue with Email": "המשך עם אימייל",
   "Continue with {{ authProviderName }}": "המשך עם {{ authProviderName }}",
   "Back to home": "חזרה הביתה",
+  "Open in Gmail": "פתח ב-Gmail",
+  "Open in Outlook": "פתח ב-Outlook",
   "The workspace could not be found": "לא ניתן למצוא את סביבת העבודה",
   "To continue, enter your workspace’s subdomain.": "כדי להמשיך, הזן את תת-הדומיין של סביבת העבודה שלך.",
   "subdomain": "תת-דומיין",

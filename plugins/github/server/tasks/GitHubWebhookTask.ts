@@ -21,6 +21,7 @@ export default class GitHubWebhookTask extends BaseTask<Props> {
     await plugin.value.handleWebhook({
       headers,
       payload,
+      teamId: null,
     });
   }
 }

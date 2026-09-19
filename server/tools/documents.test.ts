@@ -1,3 +1,4 @@
+import { DeprecationValidation } from "@shared/validations";
 import { CollectionPermission, DocumentPermission, Scope } from "@shared/types";
 import {
   buildUser,
@@ -989,4 +990,124 @@ describe("restore_document", () => {
 
     expect(res?.result?.isError).toBe(true);
   });
+});
+
+describe.each([false, true])("delete_document with archive=%s", (archive) => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "saves reason %j with the status change",
+    async (reason) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "delete_document", {
+        id: document.id,
+        archive,
+        reason,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.parse(res?.result?.content?.[0]?.text ?? "{}").success).toBe(
+        true
+      );
+      await document.reload({ paranoid: false });
+      expect(document.deprecatedReason).toBe(reason?.trim() || null);
+      expect(archive ? document.archivedAt : document.deletedAt).not.toBeNull();
+    }
+  );
+
+  it("rejects an oversized reason without changing the item", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "delete_document", {
+      id: document.id,
+      archive,
+      reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+    expect(document.archivedAt).toBeNull();
+    expect(document.deletedAt).toBeNull();
+  });
+
+  it("checks permissions before saving the reason", async () => {
+    const { user } = await buildOAuthUser();
+    const { accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "delete_document", {
+      id: document.id,
+      archive,
+      reason: "No longer needed",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+    expect(document.archivedAt).toBeNull();
+    expect(document.deletedAt).toBeNull();
+  });
+});
+
+describe("delete_document", () => {
+  it.each([undefined, null, "   "])(
+    "preserves or clears the archive reason when deleting with reason %j",
+    async (reason) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      await document.update({
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+
+      const res = await callMcpTool(server, accessToken, "delete_document", {
+        id: document.id,
+        reason,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.parse(res?.result?.content?.[0]?.text ?? "{}").success).toBe(
+        true
+      );
+      await document.reload({ paranoid: false });
+      expect(document.deletedAt).not.toBeNull();
+      expect(document.deprecatedReason).toBe(
+        reason === undefined ? "Archived reason" : null
+      );
+    }
+  );
 });

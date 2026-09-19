@@ -11,6 +11,7 @@ import type {
   ActionVariant,
   ActionWithChildren,
 } from "~/types";
+import Analytics from "~/utils/Analytics";
 import {
   isModelContextSupported,
   registerModelContextTool,
@@ -103,6 +104,8 @@ export default function useWebMCPActions(
         controller.signal
       );
     }
+
+    Analytics.track("webmcp", "register");
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps

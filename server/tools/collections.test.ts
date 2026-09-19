@@ -1,3 +1,4 @@
+import { DeprecationValidation } from "@shared/validations";
 import { Collection } from "@server/models";
 import { buildCollection, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -150,4 +151,110 @@ describe("collection tools", () => {
       "The update resulted in no changes to the collection"
     );
   });
+});
+
+describe.each([false, true])("delete_collection with archive=%s", (archive) => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "saves reason %j with the status change",
+    async (reason) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildCollection({ teamId: user.teamId });
+
+      const res = await callMcpTool(server, accessToken, "delete_collection", {
+        id: collection.id,
+        archive,
+        reason,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.parse(res?.result?.content?.[0]?.text ?? "{}").success).toBe(
+        true
+      );
+      await collection.reload({ paranoid: false });
+      expect(collection.deprecatedReason).toBe(reason?.trim() || null);
+      expect(
+        archive ? collection.archivedAt : collection.deletedAt
+      ).not.toBeNull();
+    }
+  );
+
+  it("rejects an oversized reason without changing the item", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildCollection({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "delete_collection", {
+      id: collection.id,
+      archive,
+      reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(collection.archivedAt).toBeNull();
+    expect(collection.deletedAt).toBeNull();
+  });
+
+  it("checks permissions before saving the reason", async () => {
+    const { user } = await buildOAuthUser();
+    const { accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildCollection({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "delete_collection", {
+      id: collection.id,
+      archive,
+      reason: "No longer needed",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(collection.archivedAt).toBeNull();
+    expect(collection.deletedAt).toBeNull();
+  });
+});
+
+describe("delete_collection", () => {
+  it.each([undefined, null, "   "])(
+    "preserves or clears the archive reason when deleting with reason %j",
+    async (reason) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildCollection({ teamId: user.teamId });
+      await collection.update({
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+
+      const res = await callMcpTool(server, accessToken, "delete_collection", {
+        id: collection.id,
+        reason,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.parse(res?.result?.content?.[0]?.text ?? "{}").success).toBe(
+        true
+      );
+      await collection.reload({ paranoid: false });
+      expect(collection.deletedAt).not.toBeNull();
+      expect(collection.deprecatedReason).toBe(
+        reason === undefined ? "Archived reason" : null
+      );
+    }
+  );
 });

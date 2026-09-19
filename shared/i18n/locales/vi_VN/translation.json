@@ -1086,6 +1086,8 @@
   "Continue with Email": "Tiếp tục với email",
   "Continue with {{ authProviderName }}": "Tiếp tục với {{ authProviderName }}",
   "Back to home": "Quay lại trang chủ",
+  "Open in Gmail": "Mở trong Gmail",
+  "Open in Outlook": "Mở trong Outlook",
   "The workspace could not be found": "Không tìm thấy không gian làm việc",
   "To continue, enter your workspace’s subdomain.": "To continue, enter your workspace’s subdomain.",
   "subdomain": "tên miền phụ",

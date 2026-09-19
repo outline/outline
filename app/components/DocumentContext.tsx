@@ -8,6 +8,7 @@ import type { TextStats } from "~/hooks/useTextStats";
 import { getTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import type { Editor } from "~/editor";
+import type { ConnectionStatus } from "~/utils/multiplayer/CollaborationProvider";
 
 class DocumentContext {
   /** The current document */
@@ -32,6 +33,22 @@ class DocumentContext {
   /** The headings in the document */
   @observable
   headings: Heading[] = [];
+
+  /** The connection status of the collaboration provider */
+  @observable
+  multiplayerStatus: ConnectionStatus | undefined = undefined;
+
+  /** The close code of the collaboration connection, when it was closed with an error */
+  @observable
+  multiplayerErrorCode?: number = undefined;
+
+  /** Whether there are local edits the collaboration server has not confirmed */
+  @observable
+  hasUnsyncedChanges = false;
+
+  /** Whether edits are also stored in the browser, so they survive a reload */
+  @observable
+  hasLocalPersistence = true;
 
   constructor() {
     makeObservable(this);
@@ -80,6 +97,21 @@ class DocumentContext {
   @action
   setFocusedCommentId = (commentId: string | null) => {
     this.focusedCommentId = commentId;
+  };
+
+  @action
+  setMultiplayerStatus = (status: ConnectionStatus, errorCode?: number) => {
+    this.multiplayerStatus = status;
+    this.multiplayerErrorCode = errorCode;
+  };
+
+  @action
+  setMultiplayerSyncState = (
+    hasUnsyncedChanges: boolean,
+    hasLocalPersistence: boolean
+  ) => {
+    this.hasUnsyncedChanges = hasUnsyncedChanges;
+    this.hasLocalPersistence = hasLocalPersistence;
   };
 
   @action

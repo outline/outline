@@ -91,6 +91,37 @@ describe("#team.update", () => {
     expect(res.status).toEqual(400);
   });
 
+  it("should fail upon sending an invalid custom theme color", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          customTheme: {
+            accent: "#qqqq",
+          },
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should accept a valid custom theme color", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          customTheme: {
+            accent: "#0366d6",
+            accentText: "#fff",
+          },
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.customTheme.accent).toEqual("#0366d6");
+  });
+
   it("should add avatar", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });

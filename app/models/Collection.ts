@@ -38,6 +38,10 @@ export default class Collection extends ParanoidModel {
   @observable
   name: string;
 
+  /** The reason this collection is archived. */
+  @observable
+  deprecatedReason: string | null = null;
+
   /** Collection description in Prosemirror format. */
   @Field
   @observable.shallow

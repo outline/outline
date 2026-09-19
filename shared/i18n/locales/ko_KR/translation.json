@@ -1086,6 +1086,8 @@
   "Continue with Email": "이메일로 계속하기",
   "Continue with {{ authProviderName }}": "{{ authProviderName }} 사용하여 계속하기",
   "Back to home": "홈으로 돌아가기",
+  "Open in Gmail": "Gmail에서 열기",
+  "Open in Outlook": "Outlook에서 열기",
   "The workspace could not be found": "워크스페이스를 찾을 수 없습니다",
   "To continue, enter your workspace’s subdomain.": "계속하려면 워크스페이스의 서브도메인을 입력하세요.",
   "subdomain": "하위 도메인",

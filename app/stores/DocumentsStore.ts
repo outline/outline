@@ -664,10 +664,18 @@ export default class DocumentsStore extends Store<Document> {
     }
   }
 
+  /**
+   * Archives a document and updates its local state.
+   *
+   * @param document the document to archive.
+   * @param options the archive options.
+   * @returns a promise that resolves when local state is updated.
+   */
   @action
-  archive = async (document: Document) => {
+  archive = async (document: Document, options: { reason?: string } = {}) => {
     const res = await client.post("/documents.archive", {
       id: document.id,
+      reason: options.reason,
     });
     runInAction(() => {
       invariant(res?.data, "Data should be available");

@@ -101,6 +101,12 @@ export async function start(id: number, disconnect: () => void) {
   // must happen before the services add upgrade handlers of their own
   onupgrade(server);
 
+  // The admin service exposes internal queue state without authentication,
+  // so it is restricted to non-production environments.
+  if (env.SERVICES.includes("admin") && env.isProduction) {
+    throw new Error("The admin service cannot be run with NODE_ENV=production");
+  }
+
   // loop through requested services at startup
   for (const name of env.SERVICES) {
     if (!Object.keys(services).includes(name)) {

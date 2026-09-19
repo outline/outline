@@ -111,12 +111,6 @@ function DocumentHeader({
   const canToggleEmbeds = team?.documentEmbeds;
   const showContents = ui.tocVisible === true;
 
-  useEffect(() => {
-    if (isMobile && showContents) {
-      ui.set({ tocVisible: false });
-    }
-  }, [isMobile, showContents, ui]);
-
   const toc = (
     <Tooltip
       content={

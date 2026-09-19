@@ -24,6 +24,38 @@ beforeEach(() => {
   vi.resetAllMocks();
 });
 
+describe("#restoreTo", () => {
+  it.each(["archived", "deleted"])(
+    "should clear a reason saved after an %s document was loaded",
+    async (status) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+        archivedAt: status === "archived" ? new Date() : null,
+        deletedAt: status === "deleted" ? new Date() : null,
+      });
+
+      // Simulate another request saving a reason after the restore loaded its model.
+      await Document.update(
+        { deprecatedReason: "Outdated" },
+        { where: { id: document.id }, paranoid: false }
+      );
+      await withAPIContext(user, (ctx) =>
+        document.restoreTo(ctx, { collectionId: collection.id })
+      );
+      await document.reload();
+      expect(document.isActive).toBe(true);
+      expect(document.deprecatedReason).toBeNull();
+    }
+  );
+});
+
 describe("#getSummary", () => {
   test("should strip markdown", async () => {
     const document = await buildDocument({

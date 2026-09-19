@@ -12,7 +12,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -42,6 +42,7 @@ import {
   buildAdmin,
   buildTemplate,
   buildAttachment,
+  buildSubdomain,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -606,7 +607,7 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("shareId: Invalid input");
+    expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
   });
 });
 
@@ -3173,7 +3174,7 @@ describe("#documents.search", () => {
   });
 
   it("should return results using shareId", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     const team = await buildTeam({ subdomain });
     const findableDocument = await buildDocument({
       title: "search term",
@@ -3974,7 +3975,7 @@ describe("#documents.search", () => {
     });
 
     it("should scope results to a documentId filter combined with shareId", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const team = await buildTeam({ subdomain });
       const parent = await buildDocument({
         title: "search term",
@@ -4021,7 +4022,7 @@ describe("#documents.search", () => {
     });
 
     it("should scope results to the legacy documentId param combined with shareId", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const team = await buildTeam({ subdomain });
       const parent = await buildDocument({
         title: "search term",
@@ -5450,6 +5451,7 @@ describe("#documents.restore", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      deprecatedReason: "Outdated",
     });
     await document.destroy();
     const res = await server.post("/api/documents.restore", user, {
@@ -5460,6 +5462,9 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.deprecatedReason).toBeNull();
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
   });
 
   it("should allow restore of trashed documents with collectionId", async () => {
@@ -5598,6 +5603,7 @@ describe("#documents.restore", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      deprecatedReason: "Outdated",
     });
     await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
@@ -5608,6 +5614,41 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toEqual(null);
+    expect(body.data.deprecatedReason).toBeNull();
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+  });
+
+  it("should clear reasons from archived descendants when restoring", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: document.id,
+      deprecatedReason: "Child is outdated",
+    });
+    const grandchild = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: child.id,
+      deprecatedReason: "Grandchild is outdated",
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: { id: document.id },
+    });
+    expect(res.status).toBe(200);
+    await Promise.all([child.reload(), grandchild.reload()]);
+    for (const descendant of [child, grandchild]) {
+      expect(descendant.archivedAt).toBeNull();
+      expect(descendant.deprecatedReason).toBeNull();
+    }
   });
 
   it("should restore archived when previous parent is archived", async () => {
@@ -6296,6 +6337,149 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
+  describe("deprecatedReason", () => {
+    it.each(["archived", "deleted"])(
+      "should update the reason for an %s document without changing attribution",
+      async (status) => {
+        const user = await buildUser();
+        const editor = await buildUser({ teamId: user.teamId });
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: status === "archived" ? new Date() : null,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        const updatedAt = document.updatedAt.toISOString();
+        const res = await server.post("/api/documents.update", editor, {
+          body: {
+            id: document.id,
+            deprecatedReason: "  Replaced by the new guide.  ",
+          },
+        });
+        const body = await res.json();
+        expect(res.status).toBe(200);
+        expect(body.data.deprecatedReason).toBe("Replaced by the new guide.");
+        expect(body.data.updatedBy.id).toBe(user.id);
+        expect(body.data.updatedAt).toBe(updatedAt);
+        await document.reload({ paranoid: false });
+        expect(document.deprecatedReason).toBe("Replaced by the new guide.");
+        expect(document.isActive).toBe(false);
+      }
+    );
+
+    it.each([null, "", "   "])(
+      "should clear the reason with %j",
+      async (value) => {
+        const user = await buildUser();
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/documents.update", user, {
+          body: { id: document.id, deprecatedReason: value },
+        });
+        expect(res.status).toBe(200);
+        await document.reload();
+        expect(document.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["archived", "deleted"])(
+      "should reject changes to other fields on an %s document",
+      async (status) => {
+        const user = await buildUser();
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: status === "archived" ? new Date() : null,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        for (const fields of [
+          { title: "Changed" },
+          { text: "Changed" },
+          { publish: true },
+          { fullWidth: true },
+        ]) {
+          const res = await server.post("/api/documents.update", user, {
+            body: {
+              id: document.id,
+              deprecatedReason: "Outdated",
+              ...fields,
+            },
+          });
+          expect([403, 404]).toContain(res.status);
+        }
+        await document.reload({ paranoid: false });
+        expect(document.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["viewer", "other team", "private collection"])(
+      "should deny a user with no edit access: %s",
+      async (access) => {
+        const owner = await buildUser();
+        const user =
+          access === "viewer"
+            ? await buildViewer({ teamId: owner.teamId })
+            : await buildUser(
+                access === "other team" ? {} : { teamId: owner.teamId }
+              );
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          permission:
+            access === "private collection"
+              ? null
+              : CollectionPermission.ReadWrite,
+        });
+        const document = await buildDocument({
+          userId: owner.id,
+          teamId: owner.teamId,
+          collectionId: collection.id,
+          archivedAt: new Date(),
+        });
+        const res = await server.post("/api/documents.update", user, {
+          body: { id: document.id, deprecatedReason: "Outdated" },
+        });
+        expect(res.status).toBe(403);
+        await document.reload();
+        expect(document.deprecatedReason).toBeNull();
+      }
+    );
+
+    it("should reject a reason on an active document", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, deprecatedReason: "Outdated" },
+      });
+      expect(res.status).toBe(403);
+    });
+
+    it("should validate the reason length", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: {
+          id: document.id,
+          deprecatedReason: "x".repeat(
+            DeprecationValidation.maxReasonLength + 1
+          ),
+        },
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("should update document details in the root", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -6892,6 +7076,46 @@ describe("#documents.update", () => {
 });
 
 describe("#documents.archive", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should archive with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.archive", user, {
+        body: { id: document.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await document.reload({ paranoid: false });
+      expect(document.archivedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? null : reason?.trim() || null;
+      expect(document.deprecatedReason).toBe(expectedReason);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before archive", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.archive", user, {
+      body: {
+        id: document.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await document.reload();
+    expect(document.isActive).toBe(true);
+    expect(document.deprecatedReason).toBeNull();
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.archive", user);
@@ -6935,6 +7159,46 @@ describe("#documents.archive", () => {
 });
 
 describe("#documents.delete", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should delete with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+      const res = await server.post("/api/documents.delete", user, {
+        body: { id: document.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await document.reload({ paranoid: false });
+      expect(document.deletedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? "Archived reason" : reason?.trim() || null;
+      expect(document.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before delete", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.delete", user, {
+      body: {
+        id: document.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await document.reload();
+    expect(document.isActive).toBe(true);
+    expect(document.deprecatedReason).toBeNull();
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.delete", user);
@@ -6952,11 +7216,14 @@ describe("#documents.delete", () => {
     const res = await server.post("/api/documents.delete", user, {
       body: {
         id: document.id,
+        reason: "No longer needed",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+    await document.reload({ paranoid: false });
+    expect(document.deprecatedReason).toBe("No longer needed");
   });
 
   it("should delete a draft without collection", async () => {

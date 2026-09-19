@@ -342,6 +342,7 @@ export class Environment {
 
   /**
    * A comma list of which services should be enabled on this instance – defaults to all.
+   * The "admin" service is only available in development.
    *
    * If a services flag is passed it takes priority over the environment variable
    * for example: --services=web,worker

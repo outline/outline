@@ -56,7 +56,7 @@ import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -329,6 +329,11 @@ class Document extends ArchivableModel<
   @Column(DataType.STRING)
   @SkipChangeset
   summary: string;
+
+  /** The reason this document is archived or deleted. */
+  @Length({ max: DeprecationValidation.maxReasonLength })
+  @Column(DataType.TEXT)
+  deprecatedReason: string | null;
 
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[];
@@ -1465,6 +1470,8 @@ class Document extends ArchivableModel<
 
     if (this.deletedAt) {
       await this.restore({ transaction });
+      this.deprecatedReason = null;
+      this.changed("deprecatedReason", true);
       this.collectionId = collectionId;
       await this.saveWithCtx(ctx, undefined, { name: "restore" });
     }
@@ -1598,6 +1605,8 @@ class Document extends ArchivableModel<
       for (const child of childDocuments) {
         await restoreChildren(child.id);
         child.archivedAt = null;
+        child.deprecatedReason = null;
+        child.changed("deprecatedReason", true);
         child.lastModifiedById = user.id;
         child.updatedBy = user;
         child.collectionId = collectionId;
@@ -1607,6 +1616,8 @@ class Document extends ArchivableModel<
 
     await restoreChildren(this.id);
     this.archivedAt = null;
+    this.deprecatedReason = null;
+    this.changed("deprecatedReason", true);
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.collectionId = collectionId;
