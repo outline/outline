@@ -11,7 +11,9 @@ describe("AwarenessIdentityExtension", () => {
 
   const encode = (clientId: number, state: Record<string, unknown> | null) => {
     const awareness = new Awareness(new Y.Doc());
-    awareness.states.set(clientId, state ?? {});
+    if (state !== null) {
+      awareness.states.set(clientId, state);
+    }
     awareness.meta.set(clientId, { clock: 1, lastUpdated: 0 });
     return new OutgoingMessage()
       .createAwarenessUpdateMessage(awareness, [clientId])
@@ -86,7 +88,7 @@ describe("AwarenessIdentityExtension", () => {
     const payload = buildPayload(
       "a",
       "user-1",
-      encode(2, { user: { id: "user-2" } }),
+      encode(2, { user: { id: "user-1" } }),
       [
         { socketId: "a", clients: [1] },
         { socketId: "b", clients: [2] },
@@ -95,6 +97,16 @@ describe("AwarenessIdentityExtension", () => {
     await expect(extension.beforeHandleMessage(payload)).rejects.toBe(
       AuthorizationFailed
     );
+  });
+
+  it("should allow a removal of the connection's own client id", async () => {
+    const payload = buildPayload("a", "user-1", encode(1, null), [
+      { socketId: "a", clients: [1] },
+      { socketId: "b", clients: [2] },
+    ]);
+    await expect(
+      extension.beforeHandleMessage(payload)
+    ).resolves.toBeUndefined();
   });
 
   it("should reject a removal of a client id owned by another connection", async () => {
