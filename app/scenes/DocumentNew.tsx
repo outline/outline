@@ -31,6 +31,7 @@ function DocumentNew() {
 
     async function createDocument() {
       const index = parseInt(query.get("index") || "0", 10);
+      const isPersonal = query.get("personal") === "true";
       const parentDocumentId = query.get("parentDocumentId") ?? undefined;
       const parentDocument = parentDocumentId
         ? documents.get(parentDocumentId)
@@ -38,14 +39,14 @@ function DocumentNew() {
       let collection;
 
       try {
-        if (id) {
+        if (id && !isPersonal) {
           collection = await collections.fetch(id);
         }
 
         const document = await documents.create(
           {
             collectionId: collection?.id,
-            parentDocumentId,
+            parentDocumentId: isPersonal ? undefined : parentDocumentId,
             fullWidth:
               parentDocument?.fullWidth ||
               user.getPreference(UserPreference.FullWidthDocuments),
@@ -54,10 +55,18 @@ function DocumentNew() {
             data: ProsemirrorDataHelper.getEmpty(),
           },
           {
-            publish: collection?.id || parentDocumentId ? true : undefined,
+            publish:
+              isPersonal || collection?.id || parentDocumentId
+                ? true
+                : undefined,
+            personalOwnerId: isPersonal ? user.id : undefined,
             index,
           }
         );
+
+        if (isPersonal) {
+          void documents.fetchPersonal();
+        }
 
         if (parentDocumentId) {
           userMemberships

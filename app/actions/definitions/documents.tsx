@@ -1496,7 +1496,12 @@ export const restoreDocument = createAction({
         ? context.stores.collections.get(document.collectionId)
         : undefined;
       const can = context.stores.policies.abilities(document.id);
-      return !!collection?.isActive && !!(can.restore || can.unarchive);
+      // Documents outside any collection, such as private documents, are
+      // restored in place.
+      return (
+        (!document.collectionId || !!collection?.isActive) &&
+        !!(can.restore || can.unarchive)
+      );
     }),
   perform: (context) =>
     performBatchOnActiveModels(
@@ -1530,7 +1535,11 @@ export const restoreDocumentToCollection = createActionWithChildren({
       ? stores.collections.get(document.collectionId)
       : undefined;
 
-    return !collection?.isActive && !!(can.restore || can.unarchive);
+    return (
+      !!document.collectionId &&
+      !collection?.isActive &&
+      !!(can.restore || can.unarchive)
+    );
   },
   children: ({ t, activeDocumentId, stores }) => {
     const { collections, documents, policies } = stores;
@@ -1883,8 +1892,12 @@ export const leaveDocument = createAction({
     const membership = stores.userMemberships.orderedData.find(
       (m) => m.documentId === activeDocumentId && m.userId === currentUserId
     );
+    if (!membership || !activeDocumentId) {
+      return false;
+    }
 
-    return !!membership;
+    // The owner cannot leave their own personal document.
+    return !stores.documents.get(activeDocumentId)?.isPersonalToMe;
   },
   perform: async ({ t, location, currentUserId, activeDocumentId, stores }) => {
     if (!activeDocumentId) {

@@ -3,12 +3,17 @@ import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { match } from "react-router";
-import { IconType, NotificationEventType } from "@shared/types";
-import { determineIconType } from "@shared/utils/icon";
+import { useHistory } from "react-router-dom";
+import { NotificationEventType, UserPreference } from "@shared/types";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
+import type { RefHandle } from "~/components/EditableTitle";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import * as Scenes from "~/routes/scenes";
@@ -30,13 +35,19 @@ import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
+import { documentEditPath } from "~/utils/routeHelpers";
 
 type Props = {
   membership: UserMembership | GroupMembership;
   depth?: number;
 };
 
-function SharedWithMeLink({ membership, depth = 0 }: Props) {
+/**
+ * A sidebar row for a document reached through a membership, together with the
+ * tree of documents nested below it. Used by every section that lists
+ * documents outside a collection – shared with me, groups, and personal.
+ */
+function DocumentMembershipLink({ membership, depth = 0 }: Props) {
   const { ui, collections, documents } = useStores();
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -44,7 +55,59 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const isActiveDocument = documentId === ui.activeDocumentId;
   const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = useSidebarContext();
+  const user = useCurrentUser();
+  const history = useHistory();
   const document = documentId ? documents.get(documentId) : undefined;
+  const can = usePolicy(documentId ?? "");
+  const [isEditing, setIsEditing] = React.useState(false);
+  const editableTitleRef = React.useRef<RefHandle>(null);
+
+  const handleTitleChange = React.useCallback(
+    async (value: string) => {
+      if (!documentId) {
+        return;
+      }
+      await documents.update({
+        id: documentId,
+        title: value,
+      });
+    },
+    [documents, documentId]
+  );
+
+  const handleRename = React.useCallback(() => {
+    editableTitleRef.current?.setIsEditing(true);
+  }, []);
+
+  const contextMenuAction = useDocumentMenuAction({
+    documentId: documentId ?? "",
+    onRename: handleRename,
+  });
+
+  const handleNewDoc = React.useCallback(
+    async (input: string) => {
+      if (!documentId) {
+        return;
+      }
+      const newDocument = await documents.create(
+        {
+          parentDocumentId: documentId,
+          fullWidth:
+            document?.fullWidth ??
+            user.getPreference(UserPreference.FullWidthDocuments),
+          title: input,
+          data: ProsemirrorDataHelper.getEmpty(),
+        },
+        { publish: true }
+      );
+      membership.addDocument(newDocument, documentId);
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
+    },
+    [documents, documentId, document, membership, sidebarContext, user, history]
+  );
 
   const membershipDocuments = membership.documents;
   const expansion = useSidebarExpansionState(
@@ -154,17 +217,13 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     return null;
   }
 
-  const { icon: docIcon } = document;
-  const label =
-    determineIconType(docIcon) === IconType.Emoji
-      ? document.title.replace(docIcon!, "")
-      : document.titleWithDefault;
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
 
   const childDocuments = membershipDocuments ?? [];
   const hasChildren = childDocuments.length > 0;
+  const childDepth = Math.max(depth + 1, 2);
 
   const unreadBadge =
     document.unreadNotifications.filter(
@@ -175,6 +234,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const menu = !isDragging ? (
     <DocumentMenu
       document={document}
+      onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
     />
@@ -188,21 +248,36 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       onClickIntent={Scenes.Document.preload}
       depth={depth}
       icon={icon}
-      canEdit={false}
-      label={label}
+      canEdit={can.update}
+      labelText={document.titleWithDefault}
+      onTitleChange={handleTitleChange}
+      editableTitleRef={editableTitleRef}
+      onEditingChange={setIsEditing}
       unreadBadge={unreadBadge}
       expanded={expanded && !isDragging}
       hasChildren={hasChildren}
       onDisclosureClick={handleDisclosureClick}
       onExpand={setExpanded}
       onCollapse={setCollapsed}
-      dragRef={draggableRef}
+      dragRef={isEditing ? undefined : draggableRef}
       isDragging={isDragging}
       parentRef={parentRef}
       dropToReparentRef={dropToReparent}
       isActiveDropTarget={isOverReparent}
+      cursorAfter={
+        reorderProps.isDragging ? (
+          <DropCursor
+            isActiveDrop={reorderProps.isOverCursor}
+            innerRef={dropToReorderRef}
+          />
+        ) : undefined
+      }
       menu={menu}
       menuOpen={menuOpen}
+      canCreateChild={can.createChildDocument}
+      onCreateChild={handleNewDoc}
+      newChildDepth={childDepth}
+      contextAction={contextMenuAction}
       isActiveOverride={isActive}
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
@@ -215,8 +290,11 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
                 collection={collection}
                 membership={membership}
                 activeDocument={documents.active}
+                // Loads the document and its policies on hover, without which
+                // rows that were never opened cannot be dragged or dropped on.
+                prefetchDocument={documents.prefetchDocument}
                 isDraft={childNode.isDraft}
-                depth={depth + 1}
+                depth={childDepth}
                 index={index}
                 parentId={document.id}
               />
@@ -224,14 +302,8 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
           </Folder>
         </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>
-      {reorderProps.isDragging && (
-        <DropCursor
-          isActiveDrop={reorderProps.isOverCursor}
-          innerRef={dropToReorderRef}
-        />
-      )}
     </DocumentRow>
   );
 }
 
-export default observer(SharedWithMeLink);
+export default observer(DocumentMembershipLink);

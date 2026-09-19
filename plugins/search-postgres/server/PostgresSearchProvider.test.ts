@@ -2,6 +2,7 @@ import { DirectionFilter, DocumentPermission, SortFilter } from "@shared/types";
 import {
   buildDocument,
   buildDraftDocument,
+  buildPersonalDocument,
   buildCollection,
   buildTeam,
   buildUser,
@@ -953,6 +954,54 @@ describe("PostgresSearchProvider", () => {
       expect(results.length).toBe(1);
       expect(results[0].document?.id).toBe(draft.id);
     });
+  });
+
+  describe("personal document visibility", () => {
+    it.each([false, true])(
+      "should require sharing to search personal documents created for another owner (shared: %s)",
+      async (shared) => {
+        const creator = await buildUser();
+        const owner = await buildUser({ teamId: creator.teamId });
+        const document = await buildPersonalDocument({
+          teamId: creator.teamId,
+          userId: creator.id,
+          personalOwnerId: owner.id,
+          title: "personal test",
+        });
+
+        if (shared) {
+          await UserMembership.create({
+            documentId: document.id,
+            userId: creator.id,
+            createdById: owner.id,
+            permission: DocumentPermission.Read,
+          });
+        }
+
+        const { results } = await provider.searchForUser(creator, {
+          query: "personal test",
+        });
+        const titles = await provider.searchTitlesForUser(creator, {
+          query: "personal test",
+        });
+        const expectedIds = shared ? [document.id] : [];
+        expect(results.map((result) => result.document.id)).toEqual(
+          expectedIds
+        );
+        expect(titles.map((result) => result.id)).toEqual(expectedIds);
+
+        const ownerResults = await provider.searchForUser(owner, {
+          query: "personal test",
+        });
+        const ownerTitles = await provider.searchTitlesForUser(owner, {
+          query: "personal test",
+        });
+        expect(
+          ownerResults.results.map((result) => result.document.id)
+        ).toEqual([document.id]);
+        expect(ownerTitles.map((result) => result.id)).toEqual([document.id]);
+      }
+    );
   });
 
   describe("#searchTitlesForUser", () => {

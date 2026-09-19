@@ -41,9 +41,13 @@ router.post(
           required: true,
           attributes: [],
           where: {
-            archivedAt: {
-              [Op.eq]: null,
-            },
+            archivedAt: { [Op.eq]: null },
+            // NOT (col = value) is null for a null column, so the two cases
+            // are spelled out rather than negated.
+            [Op.or]: [
+              { personalOwnerId: { [Op.eq]: null } },
+              { personalOwnerId: { [Op.ne]: user.id } },
+            ],
           },
         },
       ],
