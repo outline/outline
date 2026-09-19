@@ -33,6 +33,7 @@ import lazyWithRetry from "~/utils/lazyWithRetry";
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 import { HighlightedText } from "./HighlightText";
 import { useDocumentContext } from "~/components/DocumentContext";
+import useShare from "@shared/hooks/useShare";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -113,7 +114,8 @@ function CommentThreadItem({
 }: Props) {
   const { setFocusedCommentId } = useDocumentContext();
   const { t } = useTranslation();
-  const user = useCurrentUser();
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const { isShare } = useShare();
   const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
@@ -122,6 +124,10 @@ function CommentThreadItem({
     comment.updatedAt !== comment.createdAt &&
     !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
+  // A reply inside a public thread may still be internal-only, which is
+  // worth calling out since the thread as a whole otherwise reads as public.
+  const showInternalReplyLabel =
+    !isShare && !!comment.parentComment?.isPublic && !comment.isPublic;
 
   // Handle forced edit mode
   React.useEffect(() => {
@@ -140,14 +146,18 @@ function CommentThreadItem({
 
   const handleAddReaction = React.useCallback(
     async (emoji: string) => {
-      await comment.addReaction({ emoji, user });
+      if (user) {
+        await comment.addReaction({ emoji, user });
+      }
     },
     [comment, user]
   );
 
   const handleRemoveReaction = React.useCallback(
     async (emoji: string) => {
-      await comment.removeReaction({ emoji, user });
+      if (user) {
+        await comment.removeReaction({ emoji, user });
+      }
     },
     [comment, user]
   );
@@ -201,7 +211,7 @@ function CommentThreadItem({
     <Flex gap={8} align="flex-start">
       {firstOfAuthor && (
         <AvatarSpacer>
-          <Avatar model={comment.createdBy} size={24} />
+          <Avatar model={comment.createdBy ?? undefined} size={24} />
         </AvatarSpacer>
       )}
       <Bubble
@@ -211,9 +221,18 @@ function CommentThreadItem({
         $canReply={canReply}
         column
       >
-        {(showAuthor || showTime) && (
+        {(showAuthor || showTime || showInternalReplyLabel) && (
           <Meta size="xsmall" type="secondary">
-            {showAuthor && <em>{comment.createdBy.name}</em>}
+            {showAuthor && (
+              <em>
+                {comment.createdBy?.name ?? comment.guestName ?? t("Guest")}
+              </em>
+            )}
+            {showAuthor && comment.isGuest && <> · {t("Guest")}</>}
+            {!isShare && firstOfThread && (
+              <> · {comment.isPublic ? t("Public") : t("Internal")}</>
+            )}
+            {showInternalReplyLabel && <> · {t("Internal")}</>}
             {showAuthor && showTime && <> &middot; </>}
             {showTime && (
               <Time dateTime={comment.createdAt} addSuffix shorten />
@@ -253,7 +272,7 @@ function CommentThreadItem({
             </Flex>
           )}
           <ResizingHeightContainer hideOverflow>
-            {!!comment.reactions.length && (
+            {!isShare && !!comment.reactions.length && (
               <ReactionListContainer gap={6} align="center">
                 <ReactionList
                   model={comment}
@@ -275,7 +294,7 @@ function CommentThreadItem({
           </ResizingHeightContainer>
         </Body>
         <EventBoundary>
-          {!isEditing && (
+          {!isShare && !isEditing && (
             <Actions gap={4}>
               {!comment.isResolved && (
                 <>

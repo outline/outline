@@ -136,7 +136,9 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
       const userIds = mentions.map((mention) => mention.modelId);
 
       // Comment author:
-      userIds.push(item.createdById);
+      if (item.createdById) {
+        userIds.push(item.createdById);
+      }
 
       for (const userId of userIds) {
         if (userIdsNotified.includes(userId)) {

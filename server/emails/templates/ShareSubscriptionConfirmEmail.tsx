@@ -14,6 +14,13 @@ type Props = EmailProps & {
   documentTitle: string;
   confirmUrl: string;
   teamName?: string;
+  /**
+   * What the subscription notifies about — defaults to document update
+   * notifications, matching the standalone subscribe flow. Guests who leave
+   * their email while commenting are subscribed for comment notifications
+   * instead, which reads more naturally as "comments" here.
+   */
+  reason?: "updates" | "comments";
 };
 
 /**
@@ -28,26 +35,39 @@ export default class ShareSubscriptionConfirmEmail extends BaseEmail<Props> {
     return this.t("Confirm your subscription");
   }
 
-  protected preview({ documentTitle }: Props) {
-    return this.t(
-      'Confirm your subscription to receive updates when "{{ documentTitle }}" changes.',
-      { documentTitle }
-    );
+  protected preview({ documentTitle, reason }: Props) {
+    return reason === "comments"
+      ? this.t(
+          'Confirm your subscription to receive replies to your comments on "{{ documentTitle }}".',
+          { documentTitle }
+        )
+      : this.t(
+          'Confirm your subscription to receive updates when "{{ documentTitle }}" changes.',
+          { documentTitle }
+        );
   }
 
   protected renderAsText({
     documentTitle,
     confirmUrl,
     teamName,
+    reason,
   }: Props): string {
     const appName = teamName ?? env.APP_NAME;
+    const body =
+      reason === "comments"
+        ? this.t(
+            'You requested to receive email notifications about new comments on "{{ documentTitle }}" on {{ appName }}. Please confirm your subscription by following the link below.',
+            { documentTitle, appName }
+          )
+        : this.t(
+            'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}. Please confirm your subscription by following the link below.',
+            { documentTitle, appName }
+          );
     return `
 ${this.t("Confirm your subscription")}
 
-${this.t(
-  'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}. Please confirm your subscription by following the link below.',
-  { documentTitle, appName }
-)}
+${body}
 
 ${this.t("Confirm Subscription")}: ${confirmUrl}
 
@@ -55,19 +75,26 @@ ${this.t("This link will expire in 24 hours.")}
 `;
   }
 
-  protected render({ documentTitle, confirmUrl, teamName }: Props) {
+  protected render({ documentTitle, confirmUrl, teamName, reason }: Props) {
     const appName = teamName ?? env.APP_NAME;
     return (
-      <EmailTemplate previewText={this.preview({ documentTitle } as Props)}>
+      <EmailTemplate
+        previewText={this.preview({ documentTitle, reason } as Props)}
+      >
         <Header />
 
         <Body>
           <Heading>{this.t("Confirm your subscription")}</Heading>
           <p>
-            {this.t(
-              'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}.',
-              { documentTitle, appName }
-            )}
+            {reason === "comments"
+              ? this.t(
+                  'You requested to receive email notifications about new comments on "{{ documentTitle }}" on {{ appName }}.',
+                  { documentTitle, appName }
+                )
+              : this.t(
+                  'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}.',
+                  { documentTitle, appName }
+                )}
           </p>
           <p>
             {this.t(

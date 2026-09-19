@@ -5,6 +5,7 @@ type ShareContextType = {
   shareId?: string;
   sharedTree?: NavigationNode;
   allowSubscriptions?: boolean;
+  allowPublicComments?: boolean;
   showLastUpdated?: boolean;
 };
 

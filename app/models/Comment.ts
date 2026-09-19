@@ -54,15 +54,31 @@ class Comment extends Model {
   document: Document;
 
   /**
-   * The user who created this comment.
+   * The user who created this comment. Null for guest comments.
    */
   @Relation(() => User)
-  createdBy: User;
+  createdBy: User | null;
 
   /**
-   * The ID of the user who created this comment.
+   * The ID of the user who created this comment. Null for guest comments.
    */
-  createdById: string;
+  createdById: string | null;
+
+  /**
+   * The unverified display name supplied by a guest (public visitor) author.
+   * Only set for guest comments.
+   */
+  @observable
+  guestName: string | null;
+
+  /** Whether the author supplied an unverified guest name. */
+  @observable
+  isGuest: boolean;
+
+  /** Whether this thread is visible on published shares. */
+  @Field
+  @observable
+  isPublic: boolean;
 
   /**
    * The anchor location for a draft inline comment created by a user without

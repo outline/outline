@@ -376,6 +376,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           const document = await Document.findByPk(comment.documentId, {
             userId: user.id,
           });
+          comment.document = document;
 
           authorize(user, "read", comment);
           authorize(user, "read", document);
@@ -450,6 +451,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           const document = await Document.findByPk(comment.documentId, {
             userId: user.id,
           });
+          comment.document = document;
 
           authorize(user, "delete", comment);
           authorize(user, "comment", document);

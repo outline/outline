@@ -52,7 +52,7 @@ export default class NotificationHelper {
   public static getCommentNotificationRecipients = async (
     document: Document,
     comment: Comment,
-    actorId: string
+    actorId: string | null
   ): Promise<User[]> => {
     let recipients: User[];
 
@@ -70,7 +70,9 @@ export default class NotificationHelper {
         },
       });
 
-      const createdUserIdsInThread = contextComments.map((c) => c.createdById);
+      const createdUserIdsInThread = contextComments
+        .map((c) => c.createdById)
+        .filter((id): id is string => !!id);
       const mentionedUserIdsInThread = contextComments
         .flatMap((c) =>
           ProsemirrorHelper.parseMentions(
@@ -162,17 +164,19 @@ export default class NotificationHelper {
   }: {
     document: Document;
     notificationType: NotificationEventType;
-    actorId: string;
+    actorId: string | null;
     disableAccessCheck?: boolean;
   }): Promise<User[]> => {
     let recipients: User[];
 
+    // A comment left by a public visitor has no account behind it, so there is
+    // no actor to exclude from the recipients.
+    const excludeActor = actorId ? { [Op.ne]: actorId } : undefined;
+
     if (notificationType === NotificationEventType.PublishDocument) {
       recipients = await User.findAll({
         where: {
-          id: {
-            [Op.ne]: actorId,
-          },
+          ...(excludeActor ? { id: excludeActor } : {}),
           teamId: document.teamId,
           notificationSettings: {
             [notificationType]: true,
@@ -180,7 +184,7 @@ export default class NotificationHelper {
         },
       });
     } else {
-      const userFilter = { userId: { [Op.ne]: actorId } };
+      const userFilter = excludeActor ? { userId: excludeActor } : {};
       const userInclude = [{ association: "user" as const, required: true }];
 
       const [collectionSubs, documentSubs] = await Promise.all([

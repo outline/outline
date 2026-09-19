@@ -46,6 +46,7 @@ import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
+import type { Share } from "@server/models";
 import {
   Attachment,
   Relationship,
@@ -756,6 +757,7 @@ router.post(
         isPublic,
         shareId,
         includeUpdatedAt: result.share.showLastUpdated,
+        allowPublicComments: result.share.allowPublicComments,
         backlinkIds,
       });
     } else {
@@ -1264,7 +1266,7 @@ router.post(
 
     let teamId;
     let response;
-    let share;
+    let share: Share | undefined;
     let isPublic = false;
     const searchStartedAt = Date.now();
 
@@ -1366,6 +1368,7 @@ router.post(
         const document = await presentDocument(ctx, result.document, {
           isPublic,
           shareId,
+          allowPublicComments: share?.allowPublicComments,
         });
         return { ...result, document };
       })
