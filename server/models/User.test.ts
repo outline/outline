@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { errToString } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import { createContext } from "@server/context";
 import { Event } from "@server/models";
@@ -76,6 +77,30 @@ describe("user model", () => {
     });
   });
 
+  describe("ip setters", () => {
+    it("normalizes lastActiveIp and lastSignedInIp on assignment", async () => {
+      const user = await buildUser();
+
+      user.lastActiveIp = "::ffff:127.0.0.1";
+      user.lastSignedInIp = "203.0.113.1, 70.41.3.18";
+      await user.save({ hooks: false });
+
+      expect(user.lastActiveIp).toBe("127.0.0.1");
+      expect(user.lastSignedInIp).toBe("203.0.113.1");
+    });
+
+    it("nulls out invalid IP values without failing validation", async () => {
+      const user = await buildUser();
+
+      user.lastActiveIp = "unknown";
+      user.lastSignedInIp = "not-an-ip";
+      await expect(user.save({ hooks: false })).resolves.toBeDefined();
+
+      expect(user.lastActiveIp).toBeNull();
+      expect(user.lastSignedInIp).toBeNull();
+    });
+  });
+
   describe("destroy", () => {
     it("should clear PII", async () => {
       const user = await buildUser();
@@ -99,7 +124,7 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete last user");
+      expect(errToString(error)).toContain("Cannot delete last user");
     });
 
     it("should prevent last admin from deleting account", async () => {
@@ -115,7 +140,7 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete account");
+      expect(errToString(error)).toContain("Cannot delete account");
     });
 
     it("should not prevent multiple admin from deleting account", async () => {
@@ -202,6 +227,22 @@ describe("user model", () => {
       const response = await user.collectionIds();
       expect(response.length).toEqual(1);
       expect(response[0]).toEqual(collection.id);
+    });
+
+    it("should not return a cached response after a role change", async () => {
+      const team = await buildTeam();
+      const user = await buildGuestUser({
+        teamId: team.id,
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      expect(await user.collectionIds()).toEqual([]);
+
+      await user.update({ role: UserRole.Member });
+
+      expect(await user.collectionIds()).toEqual([collection.id]);
     });
 
     it("should not return private collections", async () => {

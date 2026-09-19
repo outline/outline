@@ -2,6 +2,7 @@ import data from "@emoji-mart/data";
 import type { EmojiMartData } from "@emoji-mart/data";
 import { Schema } from "prosemirror-model";
 import type { Editor } from "~/editor";
+import defaultEmbeds from "@shared/editor/embeds";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { populateEmojiData } from "@shared/editor/lib/emoji";
 import {
@@ -9,7 +10,10 @@ import {
   richExtensions,
   withComments,
 } from "@shared/editor/nodes";
+import CodeBlock from "@shared/editor/nodes/CodeBlock";
+import CodeFence from "@shared/editor/nodes/CodeFence";
 import Mention from "@shared/editor/nodes/Mention";
+import mentionRules from "./rules/mentions";
 
 populateEmojiData(data as EmojiMartData);
 
@@ -17,7 +21,14 @@ populateEmojiData(data as EmojiMartData);
 // but the Extension API expects a full Editor. This stub satisfies bindEditor
 // without instantiating the React component.
 const stubEditor = (s: Schema): Editor =>
-  ({ schema: s, props: { theme: { isDark: false } } }) as unknown as Editor;
+  ({
+    schema: s,
+    props: {
+      theme: { isDark: false },
+      embeds: defaultEmbeds,
+      embedsDisabled: false,
+    },
+  }) as unknown as Editor;
 
 const extensions = withComments(richExtensions);
 export const extensionManager = new ExtensionManager(extensions);
@@ -33,7 +44,7 @@ for (const extension of extensionManager.extensions) {
 
 export const parser = extensionManager.parser({
   schema,
-  plugins: extensionManager.rulePlugins,
+  plugins: [...extensionManager.rulePlugins, mentionRules],
 });
 
 export const serializer = extensionManager.serializer();
@@ -56,7 +67,7 @@ export const basicParser = basicExtensionManager.parser({
   plugins: basicExtensionManager.rulePlugins,
 });
 
-const commentExtensions = [...basicExtensions, Mention];
+const commentExtensions = [...basicExtensions, CodeBlock, CodeFence, Mention];
 export const commentExtensionManager = new ExtensionManager(commentExtensions);
 
 export const commentSchema = new Schema({
@@ -70,5 +81,5 @@ for (const extension of commentExtensionManager.extensions) {
 
 export const commentParser = commentExtensionManager.parser({
   schema: commentSchema,
-  plugins: commentExtensionManager.rulePlugins,
+  plugins: [...commentExtensionManager.rulePlugins, mentionRules],
 });

@@ -1,0 +1,348 @@
+import type { History } from "history";
+import { parsePath } from "history";
+import { action, observable } from "mobx";
+import queryString from "query-string";
+import { isMobile } from "@shared/utils/browser";
+import { isModKey } from "@shared/utils/keyboard";
+import Desktop from "./Desktop";
+
+/**
+ * Name of the query string parameter that holds the route displayed in the
+ * secondary pane of the split view. Keeping the value in the URL allows a
+ * reload to hydrate both panes.
+ */
+export const splitViewQueryParam = "split";
+
+/** Identifies a pane within the split view. */
+export type SplitViewPane = "primary" | "secondary";
+
+/**
+ * Parses the split view route from a location search string.
+ *
+ * @param search the location search string, with or without a leading "?".
+ * @returns the internal path shown in the secondary pane, or undefined when
+ * no valid split route is present.
+ */
+export function getSplitPath(search: string): string | undefined {
+  const value = queryString.parse(search)[splitViewQueryParam];
+  const path = Array.isArray(value) ? value[value.length - 1] : value;
+
+  if (typeof path !== "string") {
+    return undefined;
+  }
+
+  // Only allow internal, absolute paths – never protocol-relative or full
+  // URLs – as the value is used to drive the router directly.
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return undefined;
+  }
+
+  if (!isSplittablePath(parsePath(path).pathname)) {
+    return undefined;
+  }
+
+  return path;
+}
+
+/**
+ * Returns a new search string with the split view route set or removed,
+ * preserving all other query parameters.
+ *
+ * @param search the current location search string.
+ * @param path the internal path to open in the secondary pane, or undefined
+ * to remove the split view parameter.
+ * @returns the updated search string, prefixed with "?" when non-empty.
+ */
+export function setSplitPath(search: string, path: string | undefined): string {
+  const params = queryString.parse(search);
+
+  if (path === undefined) {
+    delete params[splitViewQueryParam];
+  } else {
+    params[splitViewQueryParam] = path;
+  }
+
+  const stringified = queryString.stringify(params);
+  return stringified ? `?${stringified}` : "";
+}
+
+const nonSplitViewPrefixes = [
+  "/api",
+  "/settings",
+  "/s",
+  "/share",
+  "/login",
+  "/logout",
+  "/create",
+  "/desktop-redirect",
+  "/oauth",
+  "/auth",
+  "/404",
+];
+
+/**
+ * Whether a route can be rendered inside a split view pane. Routes such as
+ * settings or authentication render their own chrome and must always be
+ * displayed full width.
+ *
+ * @param pathname the pathname to check.
+ * @returns true if the route can be displayed in a split view pane.
+ */
+export function isSplittablePath(pathname: string): boolean {
+  // Require an internal, absolute pathname – full URLs and protocol-relative
+  // values must never be treated as splittable.
+  if (!pathname.startsWith("/") || pathname.startsWith("//")) {
+    return false;
+  }
+
+  if (pathname === "/") {
+    return false;
+  }
+
+  return !nonSplitViewPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+const focusedSplitPane = observable.box<SplitViewPane>("primary");
+
+/**
+ * Returns the pane of the split view that currently has focus. Defaults to
+ * the primary pane when no split view is open. The value is observable, so
+ * observer components reading it re-render when focus changes.
+ *
+ * @returns the focused pane.
+ */
+export function getFocusedSplitPane(): SplitViewPane {
+  return focusedSplitPane.get();
+}
+
+/**
+ * Sets the pane of the split view that currently has focus. Navigation
+ * triggered outside of a pane, such as from the sidebar or command bar, is
+ * directed to the focused pane.
+ *
+ * @param pane the pane to focus.
+ */
+export const setFocusedSplitPane = action((pane: SplitViewPane): void => {
+  focusedSplitPane.set(pane);
+});
+
+let navigationSuppressed = false;
+
+/**
+ * Whether split view handling of navigation is temporarily suppressed, used
+ * when closing the split view so that the navigation is not rewritten.
+ *
+ * @returns true if split view navigation handling is suppressed.
+ */
+export function isSplitViewNavigationSuppressed(): boolean {
+  return navigationSuppressed;
+}
+
+/**
+ * Runs a callback with split view handling of navigation disabled, allowing
+ * the exact location passed to history.push or history.replace to be used.
+ *
+ * @param callback the callback to run.
+ */
+export function withoutSplitViewNavigation(callback: () => void): void {
+  navigationSuppressed = true;
+  try {
+    callback();
+  } finally {
+    navigationSuppressed = false;
+  }
+}
+
+let splitModifierPressed = false;
+
+/**
+ * Whether an event carries the modifier combination that opens a route in the
+ * secondary pane of the split view. The desktop app has no tabs of its own, so
+ * the modifier stands in for the browser's open-in-new-tab; in the browser the
+ * shift key is added so that both native behaviors remain available.
+ *
+ * @param event the keyboard or mouse event to check.
+ * @returns true if the split view modifier combination is held.
+ */
+export function isSplitViewModifierEvent(
+  event: KeyboardEvent | MouseEvent
+): boolean {
+  if (!isModKey(event) || event.altKey) {
+    return false;
+  }
+
+  return Desktop.isElectron() ? !event.shiftKey : event.shiftKey;
+}
+
+/**
+ * Starts handling navigation that should be directed to the secondary pane of
+ * the split view. While active:
+ *
+ * - Clicks on internal links held with the split view modifier open the link
+ *   in the secondary pane rather than following it.
+ * - Whether the modifier is held during events dispatched to the window is
+ *   recorded, allowing code without direct access to the triggering event,
+ *   such as the patched history methods, to check it with
+ *   isSplitViewModifierPressed.
+ *
+ * Synthetic clicks, such as the one kbar dispatches when Enter is pressed, are
+ * ignored so the state of the originating keyboard event is preserved.
+ *
+ * @param history the history instance to navigate with.
+ * @returns a function that stops handling navigation.
+ */
+export function initSplitViewNavigation(history: History): () => void {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  const record = (event: KeyboardEvent | MouseEvent) => {
+    splitModifierPressed = isSplitViewModifierEvent(event);
+
+    // Scope the recorded state to the dispatch of this event so that a
+    // navigation triggered later, while the modifier happens to still be held,
+    // is unaffected.
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      splitModifierPressed = false;
+    }, 0);
+  };
+
+  const handleClick = (event: MouseEvent) => {
+    // Clicks not produced by a pointer press carry no modifier state.
+    if (event.detail === 0) {
+      return;
+    }
+    record(event);
+
+    const path = splitViewPathFromClick(event);
+    if (path) {
+      // Also stops the click reaching the link, as react-router ignores an
+      // event that has had its default prevented.
+      event.preventDefault();
+      openRouteInSplit(history, path);
+    }
+  };
+
+  window.addEventListener("keydown", record, { capture: true });
+  window.addEventListener("click", handleClick, { capture: true });
+
+  return () => {
+    clearTimeout(timeout);
+    splitModifierPressed = false;
+    window.removeEventListener("keydown", record, { capture: true });
+    window.removeEventListener("click", handleClick, { capture: true });
+  };
+}
+
+/**
+ * Whether the split view modifier combination was held during the most recent
+ * tracked event, see initSplitViewNavigation. Intended to be read while that
+ * event is still being dispatched.
+ *
+ * @returns true if the split view modifier is held.
+ */
+export function isSplitViewModifierPressed(): boolean {
+  return splitModifierPressed;
+}
+
+/**
+ * Resolves the path that a click should open in the secondary pane of the
+ * split view.
+ *
+ * @param event the click event to inspect.
+ * @returns the internal path to open, or undefined when the click should be
+ * handled normally.
+ */
+function splitViewPathFromClick(event: MouseEvent): string | undefined {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    isMobile() ||
+    !isSplitViewModifierEvent(event) ||
+    !(event.target instanceof Element)
+  ) {
+    return undefined;
+  }
+
+  const anchor = event.target.closest("a[href]");
+  if (
+    !(anchor instanceof HTMLAnchorElement) ||
+    anchor.target ||
+    anchor.hasAttribute("download")
+  ) {
+    return undefined;
+  }
+
+  // Editor links resolve their own destination, see useEditorClickHandlers.
+  if (anchor.closest(".ProseMirror")) {
+    return undefined;
+  }
+
+  const url = new URL(anchor.href, window.location.origin);
+  if (
+    url.origin !== window.location.origin ||
+    !isSplittablePath(url.pathname)
+  ) {
+    return undefined;
+  }
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+/**
+ * Opens the given path in the secondary pane of the split view, keeping the
+ * current route in the primary pane, and focuses the secondary pane.
+ *
+ * @param history the history instance to navigate with.
+ * @param path the internal path to open in the secondary pane.
+ */
+export function openRouteInSplit(history: History, path: string): void {
+  const { location } = history;
+  setFocusedSplitPane("secondary");
+
+  // The location below is already the intended result, so it is pushed without
+  // further split view handling.
+  withoutSplitViewNavigation(() => {
+    history.push({
+      pathname: location.pathname,
+      hash: location.hash,
+      state: location.state,
+      search: setSplitPath(location.search, path),
+    });
+  });
+}
+
+/**
+ * Closes one pane of the split view, leaving the other pane's route as the
+ * single displayed route, and returns focus to the primary pane. Closing the
+ * primary pane promotes the secondary route to become the main route.
+ *
+ * @param history the history instance to navigate with.
+ * @param pane the pane to close, defaults to the secondary pane.
+ */
+export function closeSplitPane(
+  history: History,
+  pane: SplitViewPane = "secondary"
+): void {
+  const { location } = history;
+  const splitPath = getSplitPath(location.search);
+  setFocusedSplitPane("primary");
+  withoutSplitViewNavigation(() => {
+    if (pane === "primary" && splitPath !== undefined) {
+      const target = parsePath(splitPath);
+      history.push({
+        ...target,
+        search: setSplitPath(target.search, undefined),
+      });
+      return;
+    }
+
+    history.push({
+      pathname: location.pathname,
+      hash: location.hash,
+      state: location.state,
+      search: setSplitPath(location.search, undefined),
+    });
+  });
+}

@@ -23,6 +23,7 @@ import type LocalStorage from "@server/storage/files/LocalStorage";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
+import { ByteRangeHelper } from "../utils/ByteRangeHelper";
 import * as T from "./schema";
 
 const router = new Router();
@@ -30,7 +31,7 @@ const router = new Router();
 router.post(
   "files.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth(),
+  auth({ optional: true }),
   validate(T.FilesCreateSchema),
   timeout(30 * 60 * 1000), // 30 minutes for large file uploads
   multipart({
@@ -41,15 +42,27 @@ router.post(
   }),
   async (ctx: APIContext<T.FilesCreateReq>) => {
     const actor = ctx.state.auth.user;
-    const { key } = ctx.input.body;
+    const { key, sig } = ctx.input.body;
     const file = ctx.input.file;
+
+    if (!file) {
+      throw ValidationError("Request must include a file parameter");
+    }
+
+    // A short-lived signature authorizes the upload to this key without a session.
+    if (sig) {
+      verifyUploadSignature(sig, key);
+    } else if (!actor) {
+      throw AuthenticationError("Authentication required");
+    }
 
     const attachment = await Attachment.findOne({
       where: { key },
       rejectOnEmpty: true,
     });
 
-    if (attachment.userId !== actor.id) {
+    // For session-based uploads, ensure the attachment belongs to the actor.
+    if (!sig && actor && attachment.userId !== actor.id) {
       throw AuthorizationError("Invalid key");
     }
 
@@ -66,7 +79,7 @@ router.post(
     try {
       await attachment.writeFile(file);
     } catch (err) {
-      if (err.message.includes("permission denied")) {
+      if (err instanceof Error && err.message.includes("permission denied")) {
         throw Error(
           `Permission denied writing to "${key}". Check the host machine file system permissions.`
         );
@@ -86,7 +99,8 @@ router.post(
 
 router.get(
   "files.get",
-  auth({ optional: true }),
+  // Signed requests are authorized by their signature alone.
+  auth({ optional: true, skip: (ctx) => !!ctx.query.sig }),
   validate(T.FilesGetSchema),
   async (ctx: APIContext<T.FilesGetReq>) => {
     const actor = ctx.state.auth.user;
@@ -138,14 +152,20 @@ router.get(
       contentDisposition(fileName, {
         type: forceDownload
           ? "attachment"
-          : FileStorage.getContentDisposition(contentType),
+          : FileStorage.getContentDispositionType(contentType),
       })
     );
 
     // Handle byte range requests
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
     const stats = await (FileStorage as LocalStorage).stat(key);
-    const range = getByteRange(ctx, stats.size);
+    const range = ByteRangeHelper.parse(ctx.headers.range, stats.size);
+
+    if (range === ByteRangeHelper.unsatisfiable) {
+      ctx.status = 416;
+      ctx.set("Content-Range", `bytes */${stats.size}`);
+      return;
+    }
 
     if (range) {
       ctx.status = 206;
@@ -162,24 +182,26 @@ router.get(
   }
 );
 
-function getByteRange(
-  ctx: APIContext<T.FilesGetReq>,
-  size: number
-): { start: number; end: number } | undefined {
-  const { range } = ctx.headers;
-  if (!range) {
-    return;
+/**
+ * Verifies a short-lived signature authorizing an upload to a single key.
+ *
+ * @param sig The signature to verify.
+ * @param key The key the upload is being made to.
+ * @throws AuthenticationError if the signature is invalid, expired, or scoped
+ * to a different key.
+ */
+function verifyUploadSignature(sig: string, key: string) {
+  const payload = getJWTPayload(sig);
+
+  if (payload.type !== "attachment-upload" || payload.key !== key) {
+    throw AuthenticationError("Invalid signature");
   }
 
-  const match = range.match(/bytes=(\d+)-(\d+)?/);
-  if (!match) {
-    return;
+  try {
+    JWT.verify(sig, env.SECRET_KEY);
+  } catch (_err) {
+    throw AuthenticationError("Invalid signature");
   }
-
-  const start = parseInt(match[1], 10);
-  const end = parseInt(match[2], 10) || size - 1;
-
-  return { start, end };
 }
 
 function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {

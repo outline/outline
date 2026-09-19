@@ -1,4 +1,3 @@
-import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { Op } from "sequelize";
@@ -21,8 +20,8 @@ import { hash } from "@server/utils/crypto";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import IsScope from "./validators/IsScope";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
@@ -35,7 +34,6 @@ import Length from "./validators/Length";
     ],
   },
 }))
-@Fix
 class ApiKey extends ParanoidModel<
   InferAttributes<ApiKey>,
   Partial<InferCreationAttributes<ApiKey>>
@@ -50,19 +48,17 @@ class ApiKey extends ParanoidModel<
     max: ApiKeyValidation.maxNameLength,
     msg: `Name must be between ${ApiKeyValidation.minNameLength} and ${ApiKeyValidation.maxNameLength} characters`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   /** A list of scopes that this API key has access to */
-  @Matches(/[/.\w\s]*/, {
-    each: true,
-  })
+  @IsScope
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[] | null;
 
   /** @deprecated The plain text value of the API key, removed soon. */
   @Unique
-  @Column
+  @Column(DataType.STRING)
   secret: string;
 
   /** The cached plain text value. Only available when creating the API key */
@@ -71,23 +67,23 @@ class ApiKey extends ParanoidModel<
 
   /** The hashed value of the API key */
   @Unique
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   hash: string;
 
   /** The last 4 characters of the API key */
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   last4: string;
 
   /** The date and time when this API key will expire */
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   expiresAt: Date | null;
 
   /** The date and time when this API key was last used */
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 
@@ -153,7 +149,7 @@ class ApiKey extends ParanoidModel<
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   // methods
@@ -179,7 +175,9 @@ class ApiKey extends ParanoidModel<
     // MCP endpoint access is allowed if the key has any valid scope.
     // Fine-grained scope enforcement happens at the tool level.
     if (path.startsWith("/mcp")) {
-      return this.scope.length > 0;
+      return this.scope.some((scope) =>
+        AuthenticationHelper.isValidScope(scope)
+      );
     }
 
     return AuthenticationHelper.canAccess(path, this.scope);

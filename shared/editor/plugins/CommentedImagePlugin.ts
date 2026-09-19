@@ -22,7 +22,7 @@ export class CommentedImagePlugin extends Plugin {
             return pluginState;
           }
 
-          if (isRemoteTransaction(tr) || this.hasImageChange(tr)) {
+          if (isRemoteTransaction(tr, newState) || this.hasImageChange(tr)) {
             return { decorations: this.createDecorations(newState) };
           }
 

@@ -33,6 +33,15 @@ $1.00`)
   ).toBe(false);
 });
 
+it("returns false for currency amounts on a single line", () => {
+  expect(isMarkdown(`-$187.55\t-$91.93`)).toBe(false);
+  expect(
+    isMarkdown(`-$187.55\t-$91.93
+-$2,222.97\t-$4,109.98`)
+  ).toBe(false);
+  expect(isMarkdown(`It costs $10 or $20`)).toBe(false);
+});
+
 test("returns false for non-closed fence", () => {
   expect(
     isMarkdown(`\`\`\`

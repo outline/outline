@@ -15,16 +15,17 @@ import {
 import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { isTruthyQueryValue } from "~/utils/urls";
 import Notifications from "./Notifications";
 
 type Props = {
   children?: React.ReactNode;
 };
 
-const NotificationsPopover: React.FC = ({ children }: Props) => {
+const NotificationsPopover: React.FC<Props> = ({ children }: Props) => {
   const { t } = useTranslation();
   const { notifications } = useStores();
-  const shouldOpen = useConsumeQueryParam("notifications") === "true";
+  const shouldOpen = isTruthyQueryValue(useConsumeQueryParam("notifications"));
   const [open, setOpen] = useState(shouldOpen);
   const isMobile = useMobile();
   const scrollableRef = useRef<HTMLDivElement>(null);

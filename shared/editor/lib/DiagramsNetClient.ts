@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /**
  * Events sent by diagrams.net to the parent window.
  */
@@ -23,22 +25,25 @@ export enum DiagramsNetAction {
 }
 
 /**
- * Message format for communication with diagrams.net.
+ * Message format for communication with diagrams.net. Unknown properties are
+ * stripped, so only the ones below are read from incoming messages.
  */
-export interface DiagramsNetMessage {
+export const DiagramsNetMessageSchema = z.object({
   /** Event type from diagrams.net. */
-  event?: string;
+  event: z.string().optional(),
   /** Action to perform in diagrams.net. */
-  action?: string;
+  action: z.string().optional(),
   /** Export format (e.g., "xmlsvg", "xmlpng"). */
-  format?: string;
+  format: z.string().optional(),
   /** Base64 encoded data for export responses. */
-  data?: string;
+  data: z.string().optional(),
   /** Data URI or base64 encoded image with embedded XML for loading. */
-  xml?: string;
+  xml: z.string().optional(),
   /** Loading spinner key. */
-  spinKey?: string;
-}
+  spinKey: z.string().optional(),
+});
+
+export type DiagramsNetMessage = z.infer<typeof DiagramsNetMessageSchema>;
 
 /**
  * Handles communication with the diagrams.net editor window.
@@ -133,11 +138,19 @@ export class DiagramsNetClient {
    * @param event - the message event.
    */
   private handleMessage = (event: MessageEvent) => {
-    if (!event.data.length || event.source !== this.window) {
+    if (
+      !this.window ||
+      event.source !== this.window ||
+      typeof event.data !== "string" ||
+      !event.data.length
+    ) {
       return;
     }
 
-    const message = JSON.parse(event.data) as DiagramsNetMessage;
+    const message = this.parseMessage(event.data);
+    if (!message) {
+      return;
+    }
 
     switch (message.event) {
       case DiagramsNetEvent.Init:
@@ -159,6 +172,24 @@ export class DiagramsNetClient {
         break;
     }
   };
+
+  /**
+   * Parses a message received from the editor window. The editor also emits
+   * plain text messages, such as "ready", which are not part of the JSON
+   * protocol and are ignored.
+   *
+   * @param data - the raw message data.
+   * @returns the parsed message, or null if the data does not match the
+   * message format.
+   */
+  private parseMessage(data: string): DiagramsNetMessage | null {
+    try {
+      const result = DiagramsNetMessageSchema.safeParse(JSON.parse(data));
+      return result.success ? result.data : null;
+    } catch (_err) {
+      return null;
+    }
+  }
 }
 
 /**

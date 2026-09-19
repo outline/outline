@@ -1,3 +1,4 @@
+import { TeamPreference } from "@shared/types";
 import { Team, User, OAuthClient } from "@server/models";
 import { allow } from "./cancan";
 import { or, isTeamModel, isTeamMutable, and, isTeamAdmin } from "./utils";
@@ -11,7 +12,12 @@ allow(User, "listOAuthClients", Team, (actor, team) =>
 );
 
 allow(User, "read", OAuthClient, (actor, oauthClient) =>
-  or(isTeamModel(actor, oauthClient), !!oauthClient?.published)
+  and(
+    or(isTeamModel(actor, oauthClient), !!oauthClient?.published),
+    // Dynamically registered clients exist only to serve MCP, so they become
+    // unreachable when the team turns the preference off.
+    !oauthClient?.isDCR || !!actor.team?.getPreference(TeamPreference.MCP)
+  )
 );
 
 allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>

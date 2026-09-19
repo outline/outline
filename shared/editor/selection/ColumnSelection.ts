@@ -5,13 +5,42 @@ import { CellSelection, inSameTable, TableMap } from "prosemirror-tables";
 import type { Mappable } from "prosemirror-transform";
 
 export class ColumnSelection extends CellSelection {
+  constructor(
+    public $anchorCell: ResolvedPos,
+    public $headCell: ResolvedPos,
+    public anchorIndex: number = 0,
+    public headIndex: number = anchorIndex
+  ) {
+    super($anchorCell, $headCell);
+  }
+
+  /**
+   * Check whether a column is part of the selection.
+   *
+   * @param index the visual index of the column.
+   * @returns true if the column is within the selected range.
+   */
+  containsColumn(index: number): boolean {
+    return (
+      index >= Math.min(this.anchorIndex, this.headIndex) &&
+      index <= Math.max(this.anchorIndex, this.headIndex)
+    );
+  }
+
   getBookmark(): ColumnBookmark {
-    return new ColumnBookmark(this.$anchorCell.pos, this.$headCell.pos);
+    return new ColumnBookmark(
+      this.$anchorCell.pos,
+      this.$headCell.pos,
+      this.anchorIndex,
+      this.headIndex
+    );
   }
 
   public static colSelection(
     $anchorCell: ResolvedPos,
-    $headCell: ResolvedPos = $anchorCell
+    $headCell: ResolvedPos = $anchorCell,
+    anchorIndex: number = 0,
+    headIndex: number = anchorIndex
   ): CellSelection {
     const table = $anchorCell.node(-1);
     const map = TableMap.get(table);
@@ -42,18 +71,25 @@ export class ColumnSelection extends CellSelection {
         );
       }
     }
-    return new ColumnSelection($anchorCell, $headCell);
+    return new ColumnSelection($anchorCell, $headCell, anchorIndex, headIndex);
   }
 }
 
 export class ColumnBookmark {
   constructor(
     public anchor: number,
-    public head: number
+    public head: number,
+    public anchorIndex: number = 0,
+    public headIndex: number = anchorIndex
   ) {}
 
   map(mapping: Mappable): ColumnBookmark {
-    return new ColumnBookmark(mapping.map(this.anchor), mapping.map(this.head));
+    return new ColumnBookmark(
+      mapping.map(this.anchor),
+      mapping.map(this.head),
+      this.anchorIndex,
+      this.headIndex
+    );
   }
 
   resolve(doc: Node): CellSelection | Selection {
@@ -66,7 +102,12 @@ export class ColumnBookmark {
       $headCell.index() < $headCell.parent.childCount &&
       inSameTable($anchorCell, $headCell)
     ) {
-      return new ColumnSelection($anchorCell, $headCell);
+      return new ColumnSelection(
+        $anchorCell,
+        $headCell,
+        this.anchorIndex,
+        this.headIndex
+      );
     } else {
       return Selection.near($headCell, 1);
     }

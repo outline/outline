@@ -3,6 +3,7 @@ import { EmailIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -19,7 +20,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import SettingRow from "./components/SettingRow";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
-import { getRedirectUrl } from "~/utils/urls";
+import { getRedirectUrl, toRelative } from "~/utils/urls";
 import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
@@ -52,7 +53,7 @@ function Authentication() {
         await team.save({ guestSignin: checked });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [team, t]
@@ -64,7 +65,7 @@ function Authentication() {
         await provider.save({ isEnabled });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [t]
@@ -98,7 +99,9 @@ function Authentication() {
 
   const handleConnectProvider = React.useCallback((name: string) => {
     setPostLoginPath(settingsPath("authentication"));
-    window.location.href = getRedirectUrl(`/auth/${name}`);
+    // Start the flow on the current workspace origin so the signed-in actor is
+    // captured from the host-scoped session before bouncing to the apex.
+    window.location.href = toRelative(getRedirectUrl(`/auth/${name}`));
   }, []);
 
   const handleToggleGroupSync = React.useCallback(
@@ -114,7 +117,7 @@ function Authentication() {
             });
             toast.success(t("Settings saved"));
           } catch (err) {
-            toast.error(err.message);
+            toast.error(errToString(err));
           }
         })();
       } else {
@@ -143,7 +146,7 @@ function Authentication() {
         });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [t]
@@ -308,7 +311,7 @@ function Authentication() {
               await team.save({ passkeysEnabled: checked });
               toast.success(t("Settings saved"));
             } catch (err) {
-              toast.error(err.message);
+              toast.error(errToString(err));
             }
           }}
         />
@@ -370,7 +373,7 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
         toast.success(t("Settings saved"));
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }

@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { useWebHaptics } from "web-haptics/react";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -9,8 +8,10 @@ import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
+import { useResizeHandle } from "~/hooks/useResizeHandle";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
@@ -32,16 +33,24 @@ type Props = {
   hidden?: boolean;
   /** Whether the sidebar can be collapsed, defaults to true. */
   canCollapse?: boolean;
+  /** Whether to show the account menu for the signed-in user, defaults to true. */
+  showAccountMenu?: boolean;
   /** CSS class name(s) to apply to the sidebar container. */
   className?: string;
   /** Content to render inside the sidebar. */
   children: React.ReactNode;
+  /** Ref to the sidebar container. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
-  { children, hidden = false, canCollapse = true, className }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function Sidebar({
+  children,
+  hidden = false,
+  canCollapse = true,
+  showAccountMenu = true,
+  className,
+  ref,
+}: Props) {
   const [isCollapsing, setCollapsing] = React.useState(false);
   const { t } = useTranslation();
   const theme = useTheme();
@@ -51,29 +60,29 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobile = useMobile();
   const width = ui.sidebarWidth;
-  const collapsed = ui.sidebarIsClosed && canCollapse;
+  const sidebarIsClosed = ui.sidebarIsClosed;
+  const collapsed = sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
-  const minWidth = theme.sidebarMinWidth + 16; // padding
-  const { trigger } = useWebHaptics();
+  const minWidth = theme.sidebarResizeMinWidth;
   const direction = useDirection();
 
   const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
   const [isAnimating, setAnimating] = React.useState(false);
-  const [isResizing, setResizing] = React.useState(false);
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const internalRef = React.useRef<HTMLDivElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
 
-  const handleDrag = React.useCallback(
-    (event: MouseEvent) => {
-      // suppresses text selection
-      event.preventDefault();
-      const rawWidth =
-        direction === "rtl" ? offset - event.pageX : event.pageX - offset;
-      const newWidth = Math.min(rawWidth, maxWidth);
+  const measure = React.useCallback(
+    (event: MouseEvent) =>
+      direction === "rtl" ? offset - event.pageX : event.pageX - offset,
+    [offset, direction]
+  );
+
+  const handleResize = React.useCallback(
+    (newWidth: number) => {
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
       if (canCollapse) {
@@ -86,12 +95,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
       }
     },
-    [ui, theme, offset, minWidth, maxWidth, direction, canCollapse]
+    [ui, theme, minWidth, canCollapse]
   );
 
-  const handleStopDrag = React.useCallback(() => {
-    setResizing(false);
-
+  const handleResizeEnd = React.useCallback(() => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
@@ -107,17 +114,26 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         ui.set({ sidebarWidth: minWidth });
         setAnimating(true);
       }
-    } else {
-      ui.set({ sidebarWidth: width });
+    } else if (width > maxWidth) {
+      ui.set({ sidebarWidth: maxWidth });
+      setAnimating(true);
     }
-  }, [ui, isSmallerThanMinimum, minWidth, width, canCollapse]);
+  }, [ui, isSmallerThanMinimum, minWidth, maxWidth, width, canCollapse]);
+
+  // The lower bound is the collapse gesture rather than a stop, so only the maximum is stretchable.
+  const { isResizing, startResize } = useResizeHandle({
+    measure,
+    onResize: handleResize,
+    onResizeEnd: handleResizeEnd,
+    max: maxWidth,
+  });
 
   const handleBlur = React.useCallback(() => {
     setHovering(false);
   }, []);
 
   const handleMouseDown = React.useCallback(
-    (event) => {
+    (event: React.MouseEvent) => {
       event.preventDefault();
       if (!document.hasFocus()) {
         return;
@@ -126,25 +142,32 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
       setOffset(
         direction === "rtl" ? event.pageX + width : event.pageX - width
       );
-      setResizing(true);
       setAnimating(false);
+      startResize(event);
     },
-    [width, direction]
+    [width, direction, startResize]
   );
 
-  const handlePointerActivity = React.useCallback(() => {
-    if (ui.sidebarIsClosed) {
-      // clear the timeout when mouse exits
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
+  const handlePointerActivity = React.useCallback(
+    (event: React.PointerEvent) => {
+      if (sidebarIsClosed) {
+        // don't reveal while a button is held, e.g. selecting text near the edge
+        if (event.buttons !== 0) {
+          return;
+        }
+        // clear the timeout when mouse exits
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+        }
+        setHovering(document.hasFocus());
+        setPointerMoved(true);
       }
-      setHovering(document.hasFocus());
-      setPointerMoved(true);
-    }
-  }, [ui.sidebarIsClosed]);
+    },
+    [sidebarIsClosed]
+  );
 
   const handlePointerLeave = React.useCallback(
-    (ev) => {
+    (ev: React.PointerEvent) => {
       if (hasPointerMoved) {
         // clear any previous timeout
         if (hoverTimeoutRef.current) {
@@ -171,11 +194,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   React.useEffect(() => {
-    if (ui.sidebarIsClosed) {
+    if (sidebarIsClosed) {
       setHovering(false);
       setPointerMoved(false);
     }
-  }, [ui.sidebarIsClosed]);
+  }, [sidebarIsClosed]);
 
   // Reset stale hover state when the sidebar becomes visible after being
   // hidden via display:none (e.g. returning from settings). Without this, a
@@ -217,23 +240,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     }
   }, [ui, minWidth, isCollapsing]);
 
-  React.useEffect(() => {
-    if (isResizing) {
-      document.body.style.cursor = "col-resize";
-      document.addEventListener("mousemove", handleDrag);
-      document.addEventListener("mouseup", handleStopDrag);
-    } else {
-      document.body.style.cursor = "initial";
-    }
-
-    window.addEventListener("blur", handleBlur);
-
-    return () => {
-      window.removeEventListener("blur", handleBlur);
-      document.removeEventListener("mousemove", handleDrag);
-      document.removeEventListener("mouseup", handleStopDrag);
-    };
-  }, [isResizing, handleDrag, handleBlur, handleStopDrag]);
+  useEventListener("blur", handleBlur);
 
   const handleReset = React.useCallback(() => {
     ui.set({ sidebarWidth: theme.sidebarWidth });
@@ -257,7 +264,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   const handleCloseSidebar = () => {
-    void trigger("light");
     ui.toggleMobileSidebar();
   };
 
@@ -282,7 +288,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
       >
         {children}
 
-        {user && (
+        {user && showAccountMenu && (
           <AccountMenu>
             <SidebarButton
               showMoreMenu
@@ -293,6 +299,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
+                  showHoverCard={false}
                 />
               }
             >
@@ -309,13 +316,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         )}
         <ResizeBorder
           onMouseDown={handleMouseDown}
-          onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
+          onDoubleClick={sidebarIsClosed ? undefined : handleReset}
         />
       </Container>
       {ui.mobileSidebarVisible && <Backdrop onClick={handleCloseSidebar} />}
     </TooltipProvider>
   );
-});
+}
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;

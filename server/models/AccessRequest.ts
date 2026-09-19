@@ -13,13 +13,12 @@ import {
   AllowNull,
   DefaultScope,
   BeforeCreate,
+  IsIn,
 } from "sequelize-typescript";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import Fix from "./decorators/Fix";
 import IdModel from "./base/IdModel";
-import { IsIn } from "class-validator";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 
@@ -45,7 +44,6 @@ export enum AccessRequestStatus {
   tableName: "access_requests",
   modelName: "access_request",
 })
-@Fix
 class AccessRequest extends IdModel<
   InferAttributes<AccessRequest>,
   Partial<InferCreationAttributes<AccessRequest>>
@@ -56,7 +54,7 @@ class AccessRequest extends IdModel<
   status: AccessRequestStatus;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   respondedAt: Date | null;
 
   // associations

@@ -1,10 +1,11 @@
 import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { s, ellipsis } from "@shared/styles";
 import EventBoundary from "@shared/components/EventBoundary";
 
-type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
+type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** A callback when the title is submitted. */
   onSubmit: (title: string) => Promise<void> | void;
   /** A callback when the editing status changes. */
@@ -19,6 +20,7 @@ type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   maxLength?: number;
   /** The default editing state. */
   isEditing?: boolean;
+  ref?: React.Ref<RefHandle>;
 };
 
 export type RefHandle = {
@@ -26,10 +28,15 @@ export type RefHandle = {
   setIsEditing: (isEditing: boolean) => void;
 };
 
-function EditableTitle(
-  { title, onSubmit, canUpdate, onEditing, onCancel, ...rest }: Props,
-  ref: React.RefObject<RefHandle>
-) {
+function EditableTitle({
+  title,
+  onSubmit,
+  canUpdate,
+  onEditing,
+  onCancel,
+  ref,
+  ...rest
+}: Props) {
   const [isEditing, setIsEditing] = React.useState(rest.isEditing || false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
@@ -109,7 +116,7 @@ function EditableTitle(
         setValue(value);
         setIsEditing(true);
 
-        toast.error(error.message);
+        toast.error(errToString(error));
         throw error;
       } finally {
         setIsSubmitting(false);
@@ -189,4 +196,4 @@ const Input = styled.input`
   }
 `;
 
-export default React.forwardRef(EditableTitle);
+export default EditableTitle;

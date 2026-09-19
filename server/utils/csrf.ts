@@ -1,5 +1,29 @@
 import { randomBytes, createHmac } from "node:crypto";
+import type { Context } from "koa";
+import { CSRF } from "@shared/constants";
 import { safeEqual } from "./crypto";
+
+/**
+ * Returns the name of the cookie that carries the CSRF token for a request.
+ * Secure requests use the host-bound cookie, which a sibling subdomain cannot
+ * write. The name must be resolved the same way when attaching and verifying,
+ * otherwise the host-bound cookie can be substituted for the weaker one.
+ *
+ * @param ctx the request context.
+ * @returns the cookie name for this request.
+ */
+export const getCookieName = (ctx: Pick<Context, "request">): string =>
+  ctx.request.secure ? CSRF.secureCookieName : CSRF.cookieName;
+
+/**
+ * Reads the CSRF token from the request cookies.
+ *
+ * @param ctx the request context.
+ * @returns the token, or undefined when no CSRF cookie is present.
+ */
+export const getTokenFromCookie = (
+  ctx: Pick<Context, "cookies" | "request">
+): string | undefined => ctx.cookies.get(getCookieName(ctx));
 
 /**
  * Generates cryptographically secure random bytes

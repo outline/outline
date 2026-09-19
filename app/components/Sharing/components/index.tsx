@@ -1,4 +1,4 @@
-import { darken } from "polished";
+import type { Transition } from "framer-motion";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s, hover } from "@shared/styles";
@@ -13,7 +13,7 @@ export { GroupMembersPopover } from "./GroupMembersPopover";
 export const Wrapper = styled.div`
   ${NudeButton}:${hover},
   ${NudeButton}[aria-expanded="true"] {
-    background: ${(props) => darken(0.05, props.theme.buttonNeutralBackground)};
+    background: ${s("buttonNeutralHoverBackground")};
   }
 `;
 
@@ -93,7 +93,7 @@ export const presence = {
       type: "spring",
       duration: 0.2,
       bounce: 0,
-    },
+    } satisfies Transition,
   },
   exit: {
     opacity: 0,

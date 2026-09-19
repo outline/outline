@@ -2,6 +2,7 @@ import escape from "escape-html";
 import type { Context, Next } from "koa";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
+import { allowScriptSrc, allowStyleSrc } from "@server/middlewares/csp";
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
@@ -58,15 +59,9 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
     ctx.path === "/embeds/gitlab"
   ) {
     const snippetLink = `${url}.js`;
-    const csp = ctx.response.get("Content-Security-Policy");
 
-    // Inject gitlab.com into the script-src and style-src directives
-    ctx.set(
-      "Content-Security-Policy",
-      csp
-        .replace("script-src", "script-src gitlab.com")
-        .replace("style-src", "style-src gitlab.com")
-    );
+    allowScriptSrc(ctx, ["gitlab.com"]);
+    allowStyleSrc(ctx, ["gitlab.com"]);
     ctx.set("X-Frame-Options", "sameorigin");
 
     ctx.type = "html";
@@ -92,15 +87,9 @@ ${resizeObserverScript(ctx)}
   ) {
     const id = parsed.pathname.split("/")[2];
     const gistLink = `https://gist.github.com/${id}.js`;
-    const csp = ctx.response.get("Content-Security-Policy");
 
-    // Inject GitHub domains into the script-src and style-src directives
-    ctx.set(
-      "Content-Security-Policy",
-      csp
-        .replace("script-src", "script-src gist.github.com")
-        .replace("style-src", "style-src github.githubassets.com")
-    );
+    allowScriptSrc(ctx, ["gist.github.com"]);
+    allowStyleSrc(ctx, ["github.githubassets.com"]);
     ctx.set("X-Frame-Options", "sameorigin");
 
     ctx.type = "html";
@@ -125,13 +114,8 @@ ${resizeObserverScript(ctx)}
     ctx.path === "/embeds/dropbox"
   ) {
     const dropboxJs = "https://www.dropbox.com/static/api/2/dropins.js";
-    const csp = ctx.response.get("Content-Security-Policy");
 
-    // Inject Dropbox domain into the script-src directive
-    ctx.set(
-      "Content-Security-Policy",
-      csp.replace("script-src", "script-src www.dropbox.com")
-    );
+    allowScriptSrc(ctx, ["www.dropbox.com"]);
     ctx.set("X-Frame-Options", "sameorigin");
 
     ctx.type = "html";
@@ -153,12 +137,12 @@ ${resizeObserverScript(ctx)}
   }
 
   if (
-    parsed.host.endsWith("pinterest.com") &&
+    (parsed.host === "pinterest.com" ||
+      parsed.host.endsWith(".pinterest.com")) &&
     parsed.protocol === "https:" &&
     ctx.path === "/embeds/pinterest"
   ) {
     const pinterestJs = "https://assets.pinterest.com/js/pinit.js";
-    const csp = ctx.response.get("Content-Security-Policy");
 
     const pathParts = parsed.pathname.split("/").filter(Boolean);
     const isProfile =
@@ -166,18 +150,9 @@ ${resizeObserverScript(ctx)}
       (pathParts.length === 2 && pathParts[1].startsWith("_"));
     const pinType = isProfile ? "embedUser" : "embedBoard";
 
-    ctx.set(
-      "Content-Security-Policy",
-      csp
-        .replace(
-          "script-src",
-          "script-src assets.pinterest.com widgets.pinterest.com"
-        )
-        .replace(
-          "style-src",
-          "style-src assets.pinterest.com widgets.pinterest.com"
-        )
-    );
+    const pinterestSrc = ["assets.pinterest.com", "widgets.pinterest.com"];
+    allowScriptSrc(ctx, pinterestSrc);
+    allowStyleSrc(ctx, pinterestSrc);
     ctx.set("X-Frame-Options", "sameorigin");
 
     ctx.type = "html";

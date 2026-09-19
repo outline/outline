@@ -1,10 +1,15 @@
 import { createHash } from "crypto";
 import type { IRateLimiterStoreOptions } from "rate-limiter-flexible";
 import { RateLimiterRedis, RateLimiterMemory } from "rate-limiter-flexible";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 
+/**
+ * Manages rate limiters for API endpoints, backed by Redis with an in-memory
+ * insurance limiter as a fallback.
+ */
 export default class RateLimiter {
   constructor() {
     throw Error(`Cannot instantiate class!`);
@@ -16,6 +21,9 @@ export default class RateLimiter {
 
   static readonly TOKEN_CACHE_TTL_SECONDS = 3600;
 
+  /** Distinguishes credential-derived identifiers from user ids and IPs. */
+  static readonly CREDENTIAL_IDENTIFIER_PREFIX = "cred:";
+
   static readonly rateLimiterMap = new Map<string, RateLimiterRedis>();
 
   static readonly insuranceRateLimiter = new RateLimiterMemory({
@@ -25,6 +33,10 @@ export default class RateLimiter {
 
   private static _defaultRateLimiter: RateLimiterRedis | undefined;
 
+  /**
+   * The default rate limiter, used for any path without a specific limiter
+   * registered.
+   */
   static get defaultRateLimiter(): RateLimiterRedis {
     if (!this._defaultRateLimiter) {
       this._defaultRateLimiter = new RateLimiterRedis({
@@ -38,17 +50,68 @@ export default class RateLimiter {
     return this._defaultRateLimiter;
   }
 
-  static getRateLimiter(path: string): RateLimiterRedis {
-    return this.rateLimiterMap.get(path) || this.defaultRateLimiter;
+  /**
+   * Normalizes a request path into the key that identifies its rate limiter.
+   * The router matches paths case-insensitively and with an optional trailing
+   * slash, so every one of those variants must collapse onto a single key.
+   *
+   * @param path the request path to normalize.
+   * @returns the normalized path.
+   */
+  static normalizePath(path: string): string {
+    const lowercased = path.toLowerCase();
+    return lowercased.length > 1 && lowercased.endsWith("/")
+      ? lowercased.slice(0, -1)
+      : lowercased;
   }
 
+  /**
+   * Returns the rate limiter registered for a path, falling back to the
+   * default rate limiter. The path is normalized before lookup.
+   *
+   * @param path the request path to look up.
+   * @returns the rate limiter for the path.
+   */
+  static getRateLimiter(path: string): RateLimiterRedis {
+    return (
+      this.rateLimiterMap.get(this.normalizePath(path)) ||
+      this.defaultRateLimiter
+    );
+  }
+
+  /**
+   * Registers a rate limiter with a custom configuration for a path. The path
+   * is normalized before registration.
+   *
+   * @param path the request path to register the rate limiter for.
+   * @param config the rate limiter configuration.
+   */
   static setRateLimiter(path: string, config: IRateLimiterStoreOptions): void {
     const rateLimiter = new RateLimiterRedis(config);
-    this.rateLimiterMap.set(path, rateLimiter);
+    this.rateLimiterMap.set(this.normalizePath(path), rateLimiter);
   }
 
+  /**
+   * Checks whether a custom rate limiter is registered for a path. The path is
+   * normalized before lookup.
+   *
+   * @param path the request path to check.
+   * @returns true if a custom rate limiter is registered.
+   */
   static hasRateLimiter(path: string): boolean {
-    return this.rateLimiterMap.has(path);
+    return this.rateLimiterMap.has(this.normalizePath(path));
+  }
+
+  /**
+   * Derives a stable rate limiting identifier for a long-lived credential such
+   * as an API key or OAuth access token. The credential itself is never used
+   * as an identifier so that it does not reach the rate limiter store.
+   *
+   * @param token The credential presented on the request.
+   * @returns An identifier scoped to the credential.
+   */
+  static identifierForCredential(token: string): string {
+    return `${this.CREDENTIAL_IDENTIFIER_PREFIX}${this.hashToken(token)}`;
   }
 
   /**
@@ -69,7 +132,7 @@ export default class RateLimiter {
         this.TOKEN_CACHE_TTL_SECONDS
       );
     } catch (err) {
-      Logger.warn("Failed to cache user for rate limiter token", err);
+      Logger.warn("Failed to cache user for rate limiter token", toError(err));
     }
   }
 
@@ -84,7 +147,10 @@ export default class RateLimiter {
     try {
       return await Redis.defaultClient.get(this.tokenCacheKey(token));
     } catch (err) {
-      Logger.warn("Failed to read cached user for rate limiter token", err);
+      Logger.warn(
+        "Failed to read cached user for rate limiter token",
+        toError(err)
+      );
       return null;
     }
   }
@@ -99,13 +165,16 @@ export default class RateLimiter {
     try {
       await Redis.defaultClient.del(this.tokenCacheKey(token));
     } catch (err) {
-      Logger.warn("Failed to clear cached rate limiter token", err);
+      Logger.warn("Failed to clear cached rate limiter token", toError(err));
     }
   }
 
   private static tokenCacheKey(token: string): string {
-    const hash = createHash("sha256").update(token).digest("hex");
-    return `${this.TOKEN_CACHE_KEY_PREFIX}${hash}`;
+    return `${this.TOKEN_CACHE_KEY_PREFIX}${this.hashToken(token)}`;
+  }
+
+  private static hashToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
   }
 }
 

@@ -11,6 +11,11 @@ import fetch from "./fetch";
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
 
+/**
+ * Checks the updates service for available updates and important messages,
+ * caching any returned notice in Redis. Sends anonymous usage statistics with
+ * the request.
+ */
 export async function checkUpdates() {
   const secret = env.SECRET_KEY.slice(0, 6) + env.URL;
   const id = crypto.createHash("sha256").update(secret).digest("hex");

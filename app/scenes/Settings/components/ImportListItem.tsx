@@ -5,6 +5,7 @@ import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Spinner from "@shared/components/Spinner";
 import { ImportState } from "@shared/types";
 import type Import from "~/models/Import";
@@ -16,6 +17,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ImportMenu } from "~/menus/ImportMenu";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { useFormatNumber } from "~/hooks/useFormatNumber";
 
 type Props = {
   /** Import that's displayed as list item. */
@@ -27,6 +29,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
   const { dialogs } = useStores();
   const user = useCurrentUser();
   const theme = useTheme();
+  const formatNumber = useFormatNumber();
   const showProgress =
     importModel.state !== ImportState.Canceled &&
     importModel.state !== ImportState.Errored;
@@ -61,7 +64,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         await importModel.cancel();
         toast.success(t("Import canceled"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     };
 
@@ -88,7 +91,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         await importModel.delete();
         toast.success(t("Import deleted"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     };
 
@@ -138,7 +141,8 @@ export const ImportListItem = observer(({ importModel }: Props) => {
           {showProgress && (
             <>
               &nbsp;•&nbsp;
-              {t("{{ count }} document imported", {
+              {t("{{ total }} document imported", {
+                total: formatNumber(importModel.documentCount),
                 count: importModel.documentCount,
               })}
             </>

@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import { EventEmitter } from "node:events";
+import type { Job } from "bull";
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
+import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
 import { server } from "./msw";
@@ -13,13 +15,18 @@ afterAll(() => server.close());
 // This needs to be done before any modules that use EventEmitter are loaded
 EventEmitter.defaultMaxListeners = 100;
 
-// Mock AWS SDK S3 client and related commands
+// Mock AWS SDK S3 client and related commands. The client must be a real
+// class as it is instantiated with `new` via a dynamic import, which does not
+// apply the spy-constructor interop that static imports receive.
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn(() => ({
-    send: vi.fn(),
-  })),
+  S3Client: class MockS3Client {
+    send = vi.fn();
+  },
   DeleteObjectCommand: vi.fn(),
   GetObjectCommand: vi.fn(),
+  HeadObjectCommand: vi.fn(),
+  CopyObjectCommand: vi.fn(),
+  PutObjectCommand: vi.fn(),
   ObjectCannedACL: {},
 }));
 
@@ -48,7 +55,7 @@ await import("@server/storage/database");
 // import.meta.glob to load them through the Vite resolver instead.
 const { PluginManager } = await import("@server/utils/PluginManager");
 const pluginModules = import.meta.glob(
-  "../../plugins/*/server/!(*.test|schema).{js,ts}",
+  ["../../plugins/*/server/*.{js,ts}", "!**/*.test.*", "!**/schema.*"],
   { eager: true }
 );
 void pluginModules;
@@ -56,6 +63,30 @@ void pluginModules;
 // no-op during tests.
 (PluginManager as unknown as { loaded: boolean }).loaded = true;
 
+// No worker consumes the task queue in tests, so a scheduled task is performed
+// lazily by the job handle instead. Callers that block on the result get it;
+// scheduling alone stays a no-op, as it is when the queue has no processor.
+const { BaseTask: BaseTaskClass } =
+  await import("@server/queues/tasks/base/BaseTask");
+
+// Module-level code in a test file, such as building the web service, must
+// see the same environment whether or not the module registry is shared with
+// the previous file in the worker, so the URL is restored after each file.
+const defaultUrl = env.URL;
+
+afterAll(() => {
+  env.URL = sharedEnv.URL = defaultUrl;
+});
+
 beforeEach(() => {
   env.URL = sharedEnv.URL = "https://app.outline.dev";
+
+  vi.spyOn(BaseTaskClass.prototype, "schedule").mockImplementation(function (
+    this: BaseTask<object>,
+    props: object
+  ) {
+    return Promise.resolve({
+      finished: () => this.perform(props),
+    } as Job);
+  });
 });

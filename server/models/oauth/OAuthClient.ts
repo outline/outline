@@ -1,10 +1,3 @@
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsUrl,
-} from "class-validator";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -25,9 +18,9 @@ import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Encrypted from "@server/models/decorators/Encrypted";
-import Fix from "@server/models/decorators/Fix";
 import { hash } from "@server/utils/crypto";
 import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import IsUrlList from "@server/models/validators/IsUrlList";
 import Length from "@server/models/validators/Length";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 import type { FindOptions } from "sequelize";
@@ -36,7 +29,6 @@ import type { FindOptions } from "sequelize";
   tableName: "oauth_clients",
   modelName: "oauth_client",
 })
-@Fix
 class OAuthClient extends ParanoidModel<
   InferAttributes<OAuthClient>,
   Partial<InferCreationAttributes<OAuthClient>>
@@ -52,7 +44,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxNameLength,
     msg: `name must be ${OAuthClientValidation.maxNameLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @AllowNull
@@ -61,7 +53,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxDescriptionLength,
     msg: `description must be ${OAuthClientValidation.maxDescriptionLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   description: string | null;
 
   @AllowNull
@@ -70,7 +62,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxDeveloperNameLength,
     msg: `developerName must be ${OAuthClientValidation.maxDeveloperNameLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   developerName: string | null;
 
   @AllowNull
@@ -79,7 +71,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxDeveloperUrlLength,
     msg: `developerUrl must be ${OAuthClientValidation.maxDeveloperUrlLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   developerUrl: string | null;
 
   @AllowNull
@@ -88,10 +80,10 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxAvatarUrlLength,
     msg: `avatarUrl must be ${OAuthClientValidation.maxAvatarUrlLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   avatarUrl: string | null;
 
-  @Column
+  @Column(DataType.STRING)
   clientId: string;
 
   @IsIn([Array.from(OAuthClientValidation.clientTypes)])
@@ -102,36 +94,24 @@ class OAuthClient extends ParanoidModel<
   @Encrypted
   clientSecret: string;
 
-  @Column
+  @Column(DataType.BOOLEAN)
   published: boolean;
 
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  @ArrayMinSize(1)
-  @ArrayMaxSize(10)
-  @IsUrl(
-    {
-      require_tld: false,
-      allow_underscores: true,
-    },
-    {
-      each: true,
-    }
-  )
+  @IsUrlList({ min: 1, max: OAuthClientValidation.maxRedirectUris })
   @Column(DataType.ARRAY(DataType.STRING))
   redirectUris: string[];
 
   /** The last time this client was used to make an API request. */
   @AllowNull
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 
   /** SHA-256 hash of the registration access token (RFC 7592). */
   @AllowNull
   @Unique
-  @Column
+  @Column(DataType.STRING)
   registrationAccessTokenHash: string | null;
 
   /** The cached registration access token. Only available during creation. */

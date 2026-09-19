@@ -3,6 +3,14 @@ import type { FindOptions } from "sequelize";
 import naturalSort from "@shared/utils/naturalSort";
 import { Collection, Document, Star } from "@server/models";
 
+/**
+ * Ensures all collections in a team have a fractional index, generating
+ * indexes for any collections without one.
+ *
+ * @param teamId the team to index collections for.
+ * @param options find options including an optional transaction.
+ * @returns a map of collection ids to their indexes.
+ */
 export async function collectionIndexing(
   teamId: string,
   { transaction }: FindOptions<Collection>
@@ -40,6 +48,13 @@ export async function collectionIndexing(
   return indexedCollections;
 }
 
+/**
+ * Ensures all stars belonging to a user have a fractional index, generating
+ * indexes for any stars without one.
+ *
+ * @param userId the user to index stars for.
+ * @returns a map of star ids to their indexes.
+ */
 export async function starIndexing(userId: string) {
   const stars = await Star.findAll({
     where: { userId },

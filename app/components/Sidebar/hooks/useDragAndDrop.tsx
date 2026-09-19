@@ -1,12 +1,24 @@
 import fractionalIndex from "fractional-index";
 import * as React from "react";
-import type { ConnectDragSource } from "react-dnd";
+import type {
+  ConnectDragPreview,
+  ConnectDragSource,
+  ConnectDropTarget,
+  DragSourceHookSpec,
+  DropTargetHookSpec,
+  FactoryOrInstance,
+} from "react-dnd";
 import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
-import type { NavigationNode } from "@shared/types";
+import {
+  type NavigationNode,
+  type SidebarSection,
+  UserPreference,
+} from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
@@ -24,11 +36,77 @@ export type DragObject = NavigationNode & {
   collectionId: string;
 };
 
+/**
+ * Adapts a react-dnd connector to a ref callback. Connectors return the
+ * connected node so that calls can be chained, which React does not permit
+ * from a ref.
+ *
+ * @param connect The connector to adapt.
+ * @returns a ref callback.
+ */
+function useConnectorRef(
+  connect: ConnectDragSource | ConnectDropTarget
+): React.RefCallback<HTMLElement> {
+  return React.useCallback(
+    (node: HTMLElement | null) => void connect(node),
+    [connect]
+  );
+}
+
+/**
+ * Wrapper around react-dnd's `useDrag` that returns the connector as a ref
+ * callback.
+ *
+ * @param spec The drag source specification.
+ * @returns a tuple of the collected props, a ref callback and the drag preview
+ * connector.
+ */
+export function useDragRef<
+  DragObj = unknown,
+  DropResult = unknown,
+  CollectedProps = unknown,
+>(
+  spec: FactoryOrInstance<
+    DragSourceHookSpec<DragObj, DropResult, CollectedProps>
+  >
+): [CollectedProps, React.RefCallback<HTMLElement>, ConnectDragPreview] {
+  const [collected, connect, preview] = useDrag<
+    DragObj,
+    DropResult,
+    CollectedProps
+  >(spec);
+  return [collected, useConnectorRef(connect), preview];
+}
+
+/**
+ * Wrapper around react-dnd's `useDrop` that returns the connector as a ref
+ * callback.
+ *
+ * @param spec The drop target specification.
+ * @returns a tuple of the collected props and a ref callback.
+ */
+export function useDropRef<
+  DragObj = unknown,
+  DropResult = unknown,
+  CollectedProps = unknown,
+>(
+  spec: FactoryOrInstance<
+    DropTargetHookSpec<DragObj, DropResult, CollectedProps>
+  >
+): [CollectedProps, React.RefCallback<HTMLElement>] {
+  const [collected, connect] = useDrop<DragObj, DropResult, CollectedProps>(
+    spec
+  );
+  return [collected, useConnectorRef(connect)];
+}
+
 function useHover(
-  elementRef: React.RefObject<HTMLDivElement>,
+  elementRef: React.RefObject<HTMLDivElement | null>,
   callback: () => void
 ) {
-  const hoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
+  const hoverTimeoutRef = React.useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
 
   const startHover = React.useCallback(() => {
     if (!hoverTimeoutRef.current) {
@@ -64,11 +142,11 @@ function useHover(
  */
 export function useDragStar(
   star: Star
-): [{ isDragging: boolean }, ConnectDragSource] {
+): [{ isDragging: boolean }, React.RefCallback<HTMLElement>] {
   const id = star.id;
   const { label: title, icon } = useSidebarLabelAndIcon(star);
 
-  const [{ isDragging }, draggableRef, preview] = useDrag({
+  const [{ isDragging }, dragRef, preview] = useDragRef({
     type: "star",
     item: () => ({ id, title, icon }),
     collect: (monitor) => ({
@@ -80,7 +158,7 @@ export function useDragStar(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef];
+  return [{ isDragging }, dragRef];
 }
 
 /**
@@ -98,13 +176,19 @@ export function useDropToCreateStar(getIndex?: () => string) {
   const { documents, stars, collections, userMemberships, groupMemberships } =
     useStores();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverCursor: boolean; isDragging: boolean }
   >({
     accept,
     drop: async (item, monitor) => {
+      // A more specific drop target (e.g. a reorder cursor) has already
+      // handled this drop, so avoid creating a duplicate star.
+      if (monitor.didDrop()) {
+        return;
+      }
+
       const type = monitor.getItemType();
       let model;
 
@@ -122,7 +206,7 @@ export function useDropToCreateStar(getIndex?: () => string) {
       );
     },
     collect: (monitor) => ({
-      isOverCursor: !!monitor.isOver(),
+      isOverCursor: !!monitor.isOver({ shallow: true }),
       isDragging: accept.includes(String(monitor.getItemType())),
     }),
   });
@@ -136,7 +220,7 @@ export function useDropToCreateStar(getIndex?: () => string) {
 export function useDropToReorderStar(getIndex?: () => string) {
   const { stars } = useStores();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverCursor: boolean; isDragging: boolean }
@@ -152,6 +236,63 @@ export function useDropToReorderStar(getIndex?: () => string) {
     collect: (monitor) => ({
       isOverCursor: !!monitor.isOver(),
       isDragging: monitor.getItemType() === "star",
+    }),
+  });
+}
+
+/**
+ * Hook for shared logic that allows dragging a sidebar section by its header.
+ *
+ * @param section The section to drag.
+ * @param title The localized title of the section, shown in the drag preview.
+ */
+export function useDragSidebarSection(
+  section: SidebarSection,
+  title: string
+): [{ isDragging: boolean }, React.RefCallback<HTMLElement>] {
+  const [{ isDragging }, dragRef, preview] = useDragRef({
+    type: "sidebarSection",
+    item: () => ({ id: section, title }),
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+
+  React.useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
+
+  return [{ isDragging }, dragRef];
+}
+
+/**
+ * Hook for shared logic that allows dropping a sidebar section to reorder it,
+ * persisting the new order as a user preference.
+ *
+ * @param getNewOrder A function that returns the section order after dropping the given section here, or undefined when the drop would not change the order.
+ */
+export function useDropToReorderSidebarSection(
+  getNewOrder: (section: SidebarSection) => SidebarSection[] | undefined
+) {
+  const user = useCurrentUser();
+
+  return useDropRef<
+    { id: SidebarSection; title: string },
+    void,
+    { isOverCursor: boolean; isDragging: boolean }
+  >({
+    accept: "sidebarSection",
+    drop: (item) => {
+      const order = getNewOrder(item.id);
+      if (order) {
+        user.setPreference(UserPreference.SidebarSectionOrder, order);
+        void user.save();
+      }
+    },
+    canDrop: (item) => !!getNewOrder(item.id),
+    collect: (monitor) => ({
+      isOverCursor: monitor.isOver() && monitor.canDrop(),
+      isDragging: monitor.getItemType() === "sidebarSection",
     }),
   });
 }
@@ -174,7 +315,7 @@ export function useDragDocument(
   const color = document?.color || node.color;
   const initial = document?.initial || node.title;
 
-  const [{ isDragging }, draggableRef, preview] = useDrag<
+  const [{ isDragging }, dragRef, preview] = useDragRef<
     DragObject,
     Promise<void>,
     { isDragging: boolean }
@@ -199,20 +340,20 @@ export function useDragDocument(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef] as const;
+  return [{ isDragging }, dragRef] as const;
 }
 
 export function useDropToChangeCollection(
   collection: Collection,
   expandNode: () => void,
-  parentRef: React.RefObject<HTMLDivElement>
+  parentRef: React.RefObject<HTMLDivElement | null>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
   const can = usePolicy(collection);
   const startHover = useHover(parentRef, expandNode);
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOver: boolean; canDrop: boolean }
@@ -258,12 +399,12 @@ export function useDropToChangeCollection(
               )
             );
           } else {
-            toast.error(err.message);
+            toast.error(errToString(err));
           }
         }
       }
     },
-    canDrop: () => can.createDocument,
+    canDrop: (item) => can.createDocument && !!policies.abilities(item.id).move,
     hover: (_, monitor) => {
       if (
         collection.hasDocuments &&
@@ -290,10 +431,10 @@ export function useDropToChangeCollection(
 export function useDropToReparentDocument(
   node: NavigationNode | undefined,
   setExpanded: () => void,
-  parentRef: React.RefObject<HTMLDivElement>
+  parentRef: React.RefObject<HTMLDivElement | null>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
   const hasChildDocuments = !!node?.children.length;
   const document = node ? documents.get(node.id) : undefined;
   const pathToNode = React.useMemo(
@@ -303,11 +444,7 @@ export function useDropToReparentDocument(
 
   const startHover = useHover(parentRef, setExpanded);
 
-  return useDrop<
-    DragObject,
-    Promise<void>,
-    { isOverReparent: boolean; canDropToReparent: boolean }
-  >({
+  return useDropRef<DragObject, Promise<void>, { isOverReparent: boolean }>({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
@@ -353,13 +490,13 @@ export function useDropToReparentDocument(
               )
             );
           } else {
-            toast.error(err.message);
+            toast.error(errToString(err));
           }
         }
       }
     },
     canDrop: (item) => {
-      if (!node || item.id === node.id) {
+      if (!node || item.id === node.id || !policies.abilities(item.id).move) {
         return false;
       }
 
@@ -382,9 +519,11 @@ export function useDropToReparentDocument(
         startHover();
       }
     },
+    // Collected values must stay unchanged while the target is not hovered.
+    // Collecting global drag state (e.g. a bare canDrop) re-renders every
+    // sidebar row at drag start and drop.
     collect: (monitor) => ({
-      isOverReparent: monitor.isOver({ shallow: true }),
-      canDropToReparent: monitor.canDrop(),
+      isOverReparent: monitor.isOver({ shallow: true }) && monitor.canDrop(),
     }),
   });
 }
@@ -409,21 +548,31 @@ export function useDropToReorderDocument(
       }
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
 
   const document = documents.get(node.id);
 
-  return useDrop<
-    DragObject,
-    Promise<void>,
-    { isOverReorder: boolean; isDraggingAnyDocument: boolean }
-  >({
+  return useDropRef<DragObject, Promise<void>, { isOverReorder: boolean }>({
     accept: "document",
     canDrop: (item: DragObject) => {
-      if (item.id === node.id || (document && !document.isActive)) {
+      if (
+        (document && !document.isActive) ||
+        !policies.abilities(item.id).move
+      ) {
         return false;
       }
-      return true;
+      if (item.id !== node.id) {
+        return true;
+      }
+      // A document can only be dropped on its own cursor when that moves it to
+      // a different parent, e.g. out of the end of an expanded subtree.
+      const params = getMoveParams(item);
+      return (
+        !!params &&
+        params.parentDocumentId !== item.id &&
+        (params.parentDocumentId ?? null) !==
+          (document?.parentDocumentId ?? null)
+      );
     },
     drop: async (item) => {
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
@@ -466,15 +615,17 @@ export function useDropToReorderDocument(
                 })
               );
             } else {
-              toast.error(err.message);
+              toast.error(errToString(err));
             }
           }
         }
       }
     },
+    // Collected values must stay unchanged while the target is not hovered.
+    // Collecting global drag state (e.g. a bare canDrop) re-renders every
+    // sidebar row at drag start and drop.
     collect: (monitor) => ({
-      isOverReorder: monitor.isOver(),
-      isDraggingAnyDocument: monitor.canDrop(),
+      isOverReorder: monitor.isOver() && monitor.canDrop(),
     }),
   });
 }
@@ -490,7 +641,7 @@ export function useDragMembership(
   const id = membership.id;
   const { label: title, icon } = useSidebarLabelAndIcon(membership);
 
-  const [{ isDragging }, draggableRef, preview] = useDrag({
+  const [{ isDragging }, dragRef, preview] = useDragRef({
     type:
       membership instanceof UserMembership
         ? "userMembership"
@@ -505,7 +656,7 @@ export function useDragMembership(
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  return [{ isDragging }, draggableRef] as const;
+  return [{ isDragging }, dragRef] as const;
 }
 
 /**
@@ -517,7 +668,7 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
   const { userMemberships } = useStores();
   const user = useCurrentUser();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverCursor: boolean; isDragging: boolean }
@@ -546,7 +697,7 @@ export function useDropToArchive() {
   const { documents, collections, policies } = useStores();
   const { t } = useTranslation();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOverArchiveSection: boolean; isDragging: boolean }
@@ -583,7 +734,7 @@ export function useDropToUnpublish() {
   const { t } = useTranslation();
   const { policies, documents } = useStores();
 
-  return useDrop<
+  return useDropRef<
     DragObject,
     Promise<void>,
     { isOver: boolean; canDrop: boolean }
@@ -603,7 +754,7 @@ export function useDropToUnpublish() {
           })
         );
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     canDrop: (item) => {

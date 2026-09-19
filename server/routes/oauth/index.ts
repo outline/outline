@@ -15,6 +15,7 @@ import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
 import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { TeamPreference } from "@shared/types";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
@@ -41,7 +42,9 @@ const oauth = new OAuth2Server({
 router.post(
   "/authorize",
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
-  auth(),
+  // Consent is given interactively, so only a session may authorize a client.
+  // An API key or access token must never mint credentials for another client.
+  auth({ type: AuthenticationType.APP }),
   async (ctx) => {
     const { user } = ctx.state.auth;
     const clientId = ctx.request.body.client_id;
@@ -209,7 +212,9 @@ router.post(
         : "public";
 
     const client = await OAuthClient.createWithCtx(ctx, {
-      name: client_name,
+      // RFC 7591 makes client_name optional; fall back to a generic label so
+      // dynamic-registration clients that omit it still register cleanly.
+      name: client_name ?? "Untitled application",
       redirectUris: redirect_uris,
       clientType,
       developerUrl: client_uri ?? null,

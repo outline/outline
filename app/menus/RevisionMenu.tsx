@@ -5,8 +5,8 @@ import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionSeparator } from "~/actions";
 import {
-  copyLinkToRevision,
-  downloadRevision,
+  copyLinkToRevisionActionFactory,
+  exportRevisionActionFactory,
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import { useMemo } from "react";
@@ -24,8 +24,8 @@ function RevisionMenu({ document, revisionId }: Props) {
     () => [
       restoreRevision,
       ActionSeparator,
-      copyLinkToRevision(revisionId),
-      downloadRevision(revisionId),
+      copyLinkToRevisionActionFactory(revisionId),
+      exportRevisionActionFactory(revisionId),
     ],
     [revisionId]
   );

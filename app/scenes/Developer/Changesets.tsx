@@ -14,7 +14,7 @@ import useStores from "~/hooks/useStores";
 import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
-import { action } from "mobx";
+import { runInAction } from "mobx";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 /**
@@ -39,8 +39,8 @@ function Changesets() {
    * This ensures that MobX reactions in RevisionViewer and the model computed properties
    * (like `changeset`) are triggered correctly.
    */
-  React.useEffect(
-    action(() => {
+  React.useEffect(() => {
+    runInAction(() => {
       stores.revisions.data.clear();
       stores.documents.data.clear();
 
@@ -82,9 +82,8 @@ function Changesets() {
         createdAt: "2024-01-02T12:00:00.000Z",
         data: selectedExample.after,
       });
-    }),
-    [selectedExample, id]
-  );
+    });
+  }, [selectedExample, id]);
 
   const mockDocument = stores.documents.get("mock-document-id");
   const mockDiffRevision = stores.revisions.get("mock-diff-revision-" + id);

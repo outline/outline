@@ -58,7 +58,7 @@ export default class Paragraph extends Node {
       node.childCount === 0 &&
       !state.inTable
     ) {
-      state.write(state.options.softBreak ? "\n" : "\\\n");
+      state.write(state.options.commonMark ? "\n" : "\\\n");
     } else {
       state.renderInline(node);
       state.closeBlock(node);

@@ -86,4 +86,51 @@ describe("WebhookProcessor", () => {
       subscriptionId: subscriptionTwo.id,
     });
   });
+
+  describe("shouldQueue", () => {
+    it("returns true when a matching subscription exists", async () => {
+      const subscription = await buildWebhookSubscription({
+        url: "http://example.com",
+        events: ["users"],
+      });
+      const event: UserEvent = {
+        name: "users.signin",
+        userId: subscription.createdById,
+        teamId: subscription.teamId,
+        actorId: subscription.createdById,
+        ip,
+      };
+
+      expect(await WebhookProcessor.shouldQueue(event)).toBe(true);
+    });
+
+    it("returns false when no subscription matches the event", async () => {
+      const subscription = await buildWebhookSubscription({
+        url: "http://example.com",
+        events: ["documents.create"],
+      });
+      const event: UserEvent = {
+        name: "users.signin",
+        userId: subscription.createdById,
+        teamId: subscription.teamId,
+        actorId: subscription.createdById,
+        ip,
+      };
+
+      expect(await WebhookProcessor.shouldQueue(event)).toBe(false);
+    });
+
+    it("returns false when the team has no subscriptions", async () => {
+      const user = await buildUser();
+      const event: UserEvent = {
+        name: "users.signin",
+        userId: user.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        ip,
+      };
+
+      expect(await WebhookProcessor.shouldQueue(event)).toBe(false);
+    });
+  });
 });

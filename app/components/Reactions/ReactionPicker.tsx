@@ -20,6 +20,12 @@ const EmojiPanel = createLazyComponent(
   () => import("~/components/IconPicker/components/EmojiPanel")
 );
 
+/** Fits nine 32px emoji per row, with 12px of padding on either side. */
+const PANEL_WIDTH = 332;
+
+/** Leaves room for two more 32px rows than the panel's minimum. */
+const PANEL_HEIGHT = 364;
+
 type Props = {
   /** Callback when an emoji is selected by the user. */
   onSelect: (emoji: string) => Promise<void>;
@@ -37,7 +43,7 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
 
   const [query, setQuery] = React.useState("");
 
-  const popoverWidth = isMobile ? windowWidth : 300;
+  const popoverWidth = isMobile ? windowWidth : PANEL_WIDTH;
   // In mobile, popover is absolutely positioned to leave 8px on both sides.
   const panelWidth = isMobile ? windowWidth - 16 : popoverWidth;
 
@@ -79,7 +85,7 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
           <React.Suspense fallback={<Placeholder />}>
             <EventBoundary>
               <EmojiPanel.Component
-                height={300}
+                height={PANEL_HEIGHT}
                 panelWidth={panelWidth}
                 query={query}
                 onEmojiChange={handleEmojiSelect}
@@ -96,7 +102,10 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
 
 const Placeholder = React.memo(
   () => (
-    <VStack spacing={6} style={{ height: "300px", padding: "6px 12px" }}>
+    <VStack
+      spacing={6}
+      style={{ height: `${PANEL_HEIGHT}px`, padding: "6px 12px" }}
+    >
       <HStack>
         <PlaceholderText height={32} minWidth={90} />
         <PlaceholderText height={32} width={32} />

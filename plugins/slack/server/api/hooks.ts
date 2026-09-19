@@ -3,6 +3,7 @@ import Router from "koa-router";
 import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
 import { z } from "zod";
+import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import {
@@ -23,6 +24,7 @@ import {
   AuthenticationProvider,
   Comment,
 } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { can } from "@server/policies";
 import type { APIContext } from "@server/types";
@@ -155,7 +157,7 @@ router.post(
       callback_id = parsed.callback_id;
       token = parsed.token;
     } catch (err) {
-      Logger.error("Failed to parse Slack interactive payload", err, {
+      Logger.error("Failed to parse Slack interactive payload", toError(err), {
         payload,
       });
       throw ValidationError("Invalid payload");
@@ -244,7 +246,7 @@ router.post(
     await SearchQuery.create({
       userId: user ? user.id : null,
       teamId: user.teamId,
-      source: "slack",
+      source: SearchQuerySource.Slack,
       query: text,
       results: total,
     });

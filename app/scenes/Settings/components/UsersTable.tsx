@@ -1,0 +1,206 @@
+import { compact } from "es-toolkit/compat";
+import { observer } from "mobx-react";
+import { useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import Text from "@shared/components/Text";
+import type User from "~/models/User";
+import { Avatar, AvatarSize } from "~/components/Avatar";
+import Badge from "~/components/Badge";
+import { HEADER_HEIGHT } from "~/components/Header";
+import {
+  type Props as TableProps,
+  SortableTable,
+} from "~/components/SortableTable";
+import { type Column as TableColumn } from "~/components/Table";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useUserMenuActions } from "~/hooks/useUserMenuActions";
+import Time from "~/components/Time";
+import { UserHoverCard } from "~/components/UserHoverCard";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useMobile from "~/hooks/useMobile";
+import UserMenu from "~/menus/UserMenu";
+import { FILTER_HEIGHT } from "./StickyFilters";
+import UserSelectionToolbar from "./UserSelectionToolbar";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
+
+const ROW_HEIGHT = 50;
+const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
+
+type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
+  canManage: boolean;
+};
+
+const UserRowContextMenu = observer(function UserRowContextMenu({
+  user,
+  menuLabel,
+  children,
+}: {
+  user: User;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useUserMenuActions();
+  return (
+    <ActionContextProvider value={{ activeModels: [user] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
+  );
+});
+
+export function UsersTable({ canManage, ...rest }: Props) {
+  const { t } = useTranslation();
+  const currentUser = useCurrentUser();
+  const isMobile = useMobile();
+
+  // The current user is excluded, none of the bulk actions apply to yourself.
+  const isRowSelectable = useCallback(
+    (user: User) => canManage && user.id !== currentUser.id,
+    [canManage, currentUser.id]
+  );
+
+  const applyContextMenu = useCallback(
+    (user: User, rowElement: React.ReactNode) => {
+      if (currentUser.id === user.id) {
+        return rowElement;
+      }
+
+      return (
+        <UserRowContextMenu user={user} menuLabel={t("User options")}>
+          {rowElement}
+        </UserRowContextMenu>
+      );
+    },
+    [currentUser.id, t]
+  );
+
+  const columns = useMemo<TableColumn<User>[]>(
+    () =>
+      compact<TableColumn<User>>([
+        {
+          type: "data",
+          id: "name",
+          header: t("Name"),
+          accessor: (user) => user.name,
+          component: (user) => (
+            <HStack>
+              <Avatar model={user} size={AvatarSize.Large} />
+              <VStack align="flex-start" spacing={0}>
+                <Text selectable>
+                  {user.name} {currentUser.id === user.id && `(${t("You")})`}
+                </Text>
+                {isMobile && canManage && (
+                  <Text type="tertiary" selectable>
+                    {user.email}
+                  </Text>
+                )}
+              </VStack>
+            </HStack>
+          ),
+          width: "4fr",
+        },
+        canManage
+          ? {
+              type: "data",
+              id: "email",
+              header: t("Email"),
+              accessor: (user) => user.email,
+              component: (user) => <>{user.email}</>,
+              width: "4fr",
+              hideOnMobile: true,
+            }
+          : undefined,
+        {
+          type: "data",
+          id: "lastActiveAt",
+          header: t("Last active"),
+          accessor: (user) => user.lastActiveAt,
+          component: (user) =>
+            user.lastActiveAt ? (
+              <Time dateTime={user.lastActiveAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
+        canManage
+          ? {
+              type: "data",
+              id: "invitedBy",
+              header: t("Invited by"),
+              accessor: (user) => user.invitedBy?.name,
+              component: (user) =>
+                user.invitedBy ? (
+                  <UserHoverCard user={user.invitedBy}>
+                    <Text selectable ellipsis>
+                      {user.invitedBy.name}
+                    </Text>
+                  </UserHoverCard>
+                ) : null,
+              sortable: false,
+              width: "2fr",
+              hideOnMobile: true,
+            }
+          : undefined,
+        {
+          type: "data",
+          id: "createdAt",
+          header: t("Joined"),
+          accessor: (user) => user.createdAt,
+          component: (user) =>
+            user.createdAt ? (
+              <Time dateTime={user.createdAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
+        {
+          type: "data",
+          id: "role",
+          header: t("Role"),
+          accessor: (user) => user.role,
+          component: (user) => (
+            <HStack spacing={4} wrap>
+              {user.isInvited && <Badge>{t("Invited")}</Badge>}
+              {user.isAdmin ? (
+                <Badge primary>{t("Admin")}</Badge>
+              ) : user.isViewer ? (
+                <Badge>{t("Viewer")}</Badge>
+              ) : user.isGuest ? (
+                <Badge>{t("Guest")}</Badge>
+              ) : (
+                <Badge>{t("Editor")}</Badge>
+              )}
+              {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
+            </HStack>
+          ),
+          width: "1.4fr",
+        },
+        canManage
+          ? {
+              type: "action",
+              id: "action",
+              component: (user) =>
+                currentUser.id !== user.id ? <UserMenu user={user} /> : null,
+              width: "50px",
+            }
+          : undefined,
+      ]),
+    [t, currentUser, canManage, isMobile]
+  );
+
+  return (
+    <SortableTable
+      id="users"
+      columns={columns}
+      rowHeight={ROW_HEIGHT}
+      stickyOffset={STICKY_OFFSET}
+      decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<UserSelectionToolbar />}
+      {...rest}
+    />
+  );
+}

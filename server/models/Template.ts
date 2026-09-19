@@ -1,4 +1,4 @@
-import { isUUID } from "class-validator";
+import isUUID from "validator/lib/isUUID";
 import type {
   Identifier,
   InferAttributes,
@@ -32,7 +32,6 @@ import Revision from "./Revision";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 
@@ -87,7 +86,6 @@ type AdditionalFindOptions = {
   },
 }))
 @Table({ tableName: "documents", modelName: "template" })
-@Fix
 class Template extends ParanoidModel<
   InferAttributes<Template>,
   Partial<InferCreationAttributes<Template>>
@@ -101,22 +99,22 @@ class Template extends ParanoidModel<
     msg: `urlId must be 10 characters`,
   })
   @Unique
-  @Column
+  @Column(DataType.STRING)
   urlId: string;
 
   @Length({
     max: DocumentValidation.maxTitleLength,
     msg: `Template title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   title: string;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   fullWidth: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   template: boolean;
 
   /** The version of the editor last used to edit this template. */
@@ -124,7 +122,7 @@ class Template extends ParanoidModel<
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   editorVersion: string | null;
 
   /** An icon to use as the template icon. */
@@ -132,16 +130,16 @@ class Template extends ParanoidModel<
     max: 50,
     msg: `icon must be 50 characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   icon: string | null;
 
   /** The color of the icon. */
   @IsHexColor
-  @Column
+  @Column(DataType.STRING)
   color: string | null;
 
   /** The likely language of the template, in ISO 639-1 format. */
-  @Column
+  @Column(DataType.STRING)
   language: string | null;
 
   /**
@@ -185,7 +183,7 @@ class Template extends ParanoidModel<
 
   /** Whether the template is published, and if so when. */
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   publishedAt: Date | null;
 
   // getters
@@ -206,6 +204,16 @@ class Template extends ParanoidModel<
    */
   get isWorkspaceTemplate() {
     return !this.collectionId;
+  }
+
+  /**
+   * Returns whether this template is an unpublished draft, only visible to the
+   * user that created it.
+   *
+   * @returns boolean
+   */
+  get isDraft() {
+    return !this.publishedAt;
   }
 
   @BeforeValidate

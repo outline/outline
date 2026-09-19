@@ -1,8 +1,15 @@
+import { parsePath } from "history";
 import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
+import browserHistory, { patchLocation } from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
+import {
+  isSplittablePath,
+  isSplitViewModifierEvent,
+  openRouteInSplit,
+} from "~/utils/splitView";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
 import { isFirefox } from "@shared/utils/browser";
@@ -19,7 +26,20 @@ export default function useEditorClickHandlers({ shareId }: Params) {
     (href: string, event?: MouseEvent) => {
       // on page hash
       if (isHash(href)) {
-        window.location.href = href;
+        // Navigate via history rather than assigning window.location so the
+        // current location state (e.g. the active sidebar context) is retained
+        // when scrolling to an anchor within the same document. The hash (and
+        // search, for an absolute link) come from the href; everything else
+        // stays as the current location.
+        const target = href.startsWith("#")
+          ? { hash: href, search: history.location.search }
+          : new URL(href);
+        history.push(
+          patchLocation(history.location, {
+            search: target.search,
+            hash: target.hash,
+          })
+        );
         return;
       }
 
@@ -83,6 +103,12 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         ) {
           ui.setPresentingDocument(null);
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
+        } else if (
+          isSplitViewModifierEvent(event) &&
+          event.button !== 1 &&
+          isSplittablePath(parsePath(navigateTo).pathname)
+        ) {
+          openRouteInSplit(browserHistory, navigateTo);
         } else {
           window.open(navigateTo, "_blank");
         }

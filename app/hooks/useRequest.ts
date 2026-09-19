@@ -29,7 +29,7 @@ export default function useRequest<T = unknown>(
   const [data, setData] = useState<T>();
   const [loading, setLoading] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState<unknown>();
 
   const request = useCallback(async () => {
     setLoading(true);
@@ -59,6 +59,9 @@ export default function useRequest<T = unknown>(
     if (makeRequestOnMount) {
       void request();
     }
+    // Only ever request on mount, later changes to the request function are
+    // surfaced through the returned `request` for the caller to invoke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { data, loading, loaded, error, request };

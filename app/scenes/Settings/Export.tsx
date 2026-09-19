@@ -10,7 +10,7 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import ExportDialog from "../../components/ExportDialog";
+import { ExportDialog } from "~/components/Export/ExportDialog";
 import FileOperationListItem from "./components/FileOperationListItem";
 
 function Export() {

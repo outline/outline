@@ -1,7 +1,7 @@
 import type { Attrs, Node, Schema } from "prosemirror-model";
 import type { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
-import { validateColorHex } from "../../utils/color";
+import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
 import type { TableLayout, NodeAttrMark } from "../types";
 import { readableColor } from "polished";
 
@@ -77,6 +77,21 @@ export const isValidCellMarks = (
 };
 
 /**
+ * Reads a background color styled on a cell by an external application, such as
+ * a spreadsheet or word processor, so that it is retained when pasting.
+ *
+ * @param dom DOM node to read the background from
+ * @returns The background in hex notation, or null when there is none worth keeping
+ */
+function getCellBackground(dom: HTMLElement): string | null {
+  const background = dom.style.backgroundColor;
+  if (!background || isNearWhite(background)) {
+    return null;
+  }
+  return toHexColor(background);
+}
+
+/**
  * Helper to get cell attributes from a DOM node, used when pasting table content.
  *
  * @param dom DOM node to get attributes from
@@ -94,7 +109,7 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
       : null;
   const colspan = Number(dom.getAttribute("colspan") || 1);
 
-  const bgColor = dom.getAttribute("data-bgcolor");
+  const bgColor = dom.getAttribute("data-bgcolor") ?? getCellBackground(dom);
 
   return {
     colspan,

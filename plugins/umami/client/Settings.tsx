@@ -4,6 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import type Integration from "~/models/Integration";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
@@ -15,7 +16,7 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
 import Flex from "~/components/Flex";
-import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import { disconnectAnalyticsIntegrationActionFactory } from "~/actions/definitions/integrations";
 import styled from "styled-components";
 
 type FormData = {
@@ -75,7 +76,7 @@ function Umami() {
 
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [integrations, integration, t]
@@ -146,7 +147,7 @@ function Umami() {
           </StyledSubmit>
 
           <Button
-            action={disconnectAnalyticsIntegrationFactory(integration)}
+            action={disconnectAnalyticsIntegrationActionFactory(integration)}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

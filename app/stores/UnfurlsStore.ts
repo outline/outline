@@ -1,5 +1,6 @@
 import { subMinutes } from "date-fns";
-import { action } from "mobx";
+import { action, makeObservable } from "mobx";
+import { errToString } from "@shared/utils/error";
 import type { UnfurlResourceType } from "@shared/types";
 import Unfurl from "~/models/Unfurl";
 import { client } from "~/utils/ApiClient";
@@ -13,6 +14,7 @@ class UnfurlsStore extends Store<Unfurl<any>> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Unfurl);
+    makeObservable(this);
   }
 
   fetchUnfurl = async <UnfurlType extends UnfurlResourceType>({
@@ -89,7 +91,7 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     } catch (err) {
       Logger.warn("Failed to unfurl url", {
         url,
-        message: err.message,
+        message: errToString(err),
       });
       return;
     } finally {

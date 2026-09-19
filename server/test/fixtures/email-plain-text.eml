@@ -1,0 +1,13 @@
+From: Alice <alice@example.com>
+To: Bob <bob@example.com>
+Subject: Plain text note
+Date: Mon, 1 Jan 2024 00:00:00 -0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Bob,
+
+This is a plain text email with no HTML part.
+
+Regards,
+Alice

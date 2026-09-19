@@ -2,7 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import styled from "styled-components";
 import { Drawer as DrawerPrimitive } from "vaul";
-import { depths, s } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Flex from "../Flex";
 import Text from "../Text";
 import { Overlay } from "./components/Overlay";
@@ -21,11 +21,12 @@ const DrawerTrigger = DrawerPrimitive.Trigger;
 const DrawerHandle = DrawerPrimitive.Handle;
 
 /** Drawer's content - renders the overlay and the actual content. */
-const DrawerContent = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->((props, ref) => {
-  const { children, ...rest } = props;
+function DrawerContent(
+  props: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
+    ref?: React.Ref<React.ComponentRef<typeof DrawerPrimitive.Content>>;
+  }
+) {
+  const { ref, children, ...rest } = props;
   const [measureRef, bounds] = useMeasure();
 
   return (
@@ -51,15 +52,16 @@ const DrawerContent = React.forwardRef<
       </DrawerPrimitive.Content>
     </DrawerPrimitive.Portal>
   );
-});
+}
 DrawerContent.displayName = DrawerPrimitive.Content.displayName;
 
 /** Drawer's title shown in the center. */
-const DrawerTitle = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
->((props, ref) => {
-  const { hidden, children, ...rest } = props;
+function DrawerTitle(
+  props: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title> & {
+    ref?: React.Ref<React.ComponentRef<typeof DrawerPrimitive.Title>>;
+  }
+) {
+  const { ref, hidden, children, ...rest } = props;
 
   const title = (
     <StyledText size="medium" weight="bold" as={TitleWrapper} justify="center">
@@ -76,7 +78,7 @@ const DrawerTitle = React.forwardRef<
       )}
     </DrawerPrimitive.Title>
   );
-});
+}
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
 const StyledText = styled(Text)`
@@ -95,13 +97,14 @@ const StyledContent = styled(m.div)`
   min-height: 44px;
   max-height: 90vh;
 
-  border-radius: 6px;
+  ${borderRadius(8)}
 
   background: ${s("menuBackground")};
 `;
 
 const StyledInnerContent = styled(Flex)`
   padding: 6px;
+  padding-bottom: calc(6px + var(--sab, 0px));
   height: 100%;
 `;
 

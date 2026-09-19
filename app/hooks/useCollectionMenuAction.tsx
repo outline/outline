@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useMenuAction } from "./useMenuAction";
-import { ActionSeparator, createAction } from "~/actions";
+import { ActionSeparator } from "~/actions";
 import {
   deleteCollection,
+  duplicateCollection,
   editCollection,
   editCollectionPermissions,
   starCollection,
@@ -16,13 +17,11 @@ import {
   createDocument,
   exportCollection,
   importDocument,
+  openCollectionInSplit,
   sortCollection,
 } from "~/actions/definitions/collections";
+import { renameActionFactory } from "~/actions/definitions/common";
 import { ActiveCollectionSection } from "~/actions/sections";
-import { InputIcon } from "outline-icons";
-import usePolicy from "./usePolicy";
-import useStores from "./useStores";
-import { useTranslation } from "react-i18next";
 
 type Props = {
   /** Collection ID for which the actions are generated */
@@ -32,11 +31,6 @@ type Props = {
 };
 
 export function useCollectionMenuAction({ collectionId, onRename }: Props) {
-  const { collections } = useStores();
-  const { t } = useTranslation();
-  const collection = collections.get(collectionId);
-  const can = usePolicy(collection);
-
   const actions = useMemo(
     () => [
       restoreCollection,
@@ -48,24 +42,24 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       createDocument,
       importDocument,
       ActionSeparator,
-      createAction({
-        name: `${t("Rename")}…`,
+      renameActionFactory({
         section: ActiveCollectionSection,
-        icon: <InputIcon />,
-        visible: !!can.update && !!onRename,
-        perform: () => requestAnimationFrame(() => onRename?.()),
+        modelId: collectionId,
+        onRename,
       }),
       editCollection,
       editCollectionPermissions,
       createTemplate,
+      duplicateCollection,
       sortCollection,
       exportCollection,
       archiveCollection,
+      openCollectionInSplit,
       searchInCollection,
       ActionSeparator,
       deleteCollection,
     ],
-    [t, can.update, onRename]
+    [collectionId, onRename]
   );
 
   return useMenuAction(actions);

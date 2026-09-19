@@ -1,3 +1,10 @@
+/**
+ * Converts an emoji character to a data URL that can be used as an image
+ * source.
+ *
+ * @param text the emoji character to convert.
+ * @returns a data URL containing the emoji rendered as an SVG.
+ */
 export function emojiToUrl(text: string) {
   return `data:image/svg+xml;data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${text}</text></svg>`;
 }

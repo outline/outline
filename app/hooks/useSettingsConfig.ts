@@ -40,7 +40,7 @@ const Features = lazy(() => import("~/scenes/Settings/Features"));
 const Groups = lazy(() => import("~/scenes/Settings/Groups"));
 const Import = lazy(() => import("~/scenes/Settings/Import"));
 const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
-const Members = lazy(() => import("~/scenes/Settings/Members"));
+const Users = lazy(() => import("~/scenes/Settings/Users"));
 const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
 const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
 const Profile = lazy(() => import("~/scenes/Settings/Profile"));
@@ -154,10 +154,10 @@ const useSettingsConfig = () => {
         icon: SparklesIcon,
       },
       {
-        name: t("Members"),
-        path: settingsPath("members"),
-        component: Members.Component,
-        preload: Members.preload,
+        name: t("Users"),
+        path: settingsPath("users"),
+        component: Users.Component,
+        preload: Users.preload,
         enabled: can.listUsers,
         group: t("Workspace"),
         icon: UserIcon,

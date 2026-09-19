@@ -1,12 +1,9 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { mergeRefs } from "react-merge-refs";
 import { Link } from "react-router-dom";
-import { DocumentIcon } from "outline-icons";
+import { CheckmarkIcon, DocumentIcon } from "outline-icons";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
@@ -14,6 +11,7 @@ import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
 import type Document from "~/models/Document";
 import Badge from "~/components/Badge";
+import { useModelSelection } from "~/components/ModelSelectionContext";
 import DocumentMeta from "~/components/DocumentMeta";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
@@ -23,14 +21,17 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
+import usePolicy from "~/hooks/usePolicy";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
+import { useDragDocument } from "./Sidebar/hooks/useDragAndDrop";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
-import useStores from "~/hooks/useStores";
+import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 type Props = {
   document: Document;
@@ -40,6 +41,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -49,26 +51,23 @@ function replaceResultMarks(tag: string) {
   return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
-function DocumentListItem(
-  props: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
-  const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMobile = useMobile();
+  const selection = useModelSelection();
+  const iconRef = React.useRef<HTMLDivElement>(null);
 
-  let itemRef: React.Ref<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
-  if (ref) {
-    itemRef = ref;
+  if (props.ref) {
+    itemRef = props.ref;
   }
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
-  useFocusEffect(focused, itemRef);
 
   const {
     document,
@@ -78,6 +77,7 @@ function DocumentListItem(
     showDraft = true,
     highlight,
     context,
+    ref: _ref,
     ...rest
   } = props;
   const queryIsInTitle =
@@ -85,10 +85,38 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived;
 
-  const isShared = !!(
-    userMemberships.getByDocumentId(document.id) ||
-    groupMemberships.getByDocumentId(document.id)
-  );
+  // Multi-select is only offered for documents the user can update.
+  const can = usePolicy(document.id);
+  const selectable = !!selection && !!can.update;
+  const isSelected = selection?.isSelected(document.id) ?? false;
+  const isSelecting =
+    selectable && ((selection?.isActive ?? false) || isSelected);
+
+  const inSelectArea = (event: React.MouseEvent) =>
+    selectable && !!iconRef.current?.contains(event.target as Node);
+
+  // Handled on the link so preventDefault reliably suppresses navigation.
+  const handleLinkClick = (event: React.MouseEvent) => {
+    if (selection && inSelectArea(event)) {
+      event.preventDefault();
+      if (event.shiftKey) {
+        selection.selectRange(document.id);
+      } else {
+        selection.toggle(document.id);
+      }
+      return;
+    }
+    rovingTabIndex.onClick?.(event);
+  };
+
+  // Suppress the browser's text selection when shift-clicking to select a range.
+  const handleLinkMouseDown = (event: React.MouseEvent) => {
+    if (event.shiftKey && inSelectArea(event)) {
+      event.preventDefault();
+    }
+  };
+
+  const activeModels = useDocumentActiveModels(document);
 
   const sidebarContext = determineSidebarContext({
     document,
@@ -98,15 +126,24 @@ function DocumentListItem(
 
   const contextMenuAction = useDocumentMenuAction({ documentId: document.id });
 
+  const [{ isDragging }, draggableRef] = useDragDocument(
+    document.asNavigationNode,
+    0,
+    document,
+    false
+  );
+
+  const mergedRef = React.useMemo(
+    () =>
+      mergeRefs<HTMLAnchorElement>([
+        itemRef,
+        draggableRef,
+      ] as React.Ref<HTMLAnchorElement>[]),
+    [itemRef, draggableRef]
+  );
+
   return (
-    <ActionContextProvider
-      value={{
-        activeModels: [
-          document,
-          ...(!isShared && document.collection ? [document.collection] : []),
-        ],
-      }}
-    >
+    <ActionContextProvider value={{ activeModels }}>
       <ContextMenu
         action={contextMenuAction}
         ariaLabel={t("Document options")}
@@ -114,10 +151,12 @@ function DocumentListItem(
         onClose={handleMenuClose}
       >
         <DocumentLink
-          ref={itemRef}
+          ref={mergedRef}
           dir={document.dir}
           $isStarred={document.isStarred}
+          $isDragging={isDragging}
           $menuOpen={menuOpen}
+          $selectable={selectable}
           to={{
             pathname: documentPath(document),
             search: highlight
@@ -130,21 +169,37 @@ function DocumentListItem(
           }}
           {...rest}
           {...rovingTabIndex}
+          onClick={handleLinkClick}
+          onMouseDown={handleLinkMouseDown}
         >
           <Flex gap={4} auto>
-            <IconWrapper>
-              {document.icon ? (
-                <Icon
-                  value={document.icon}
-                  color={document.color ?? undefined}
-                  initial={document.initial}
-                />
-              ) : (
-                <DocumentIcon
-                  outline={document.isDraft}
-                  color={theme.textSecondary}
-                />
+            <IconWrapper ref={iconRef}>
+              {selectable && (
+                <SelectButton
+                  role="checkbox"
+                  aria-checked={isSelected}
+                  aria-label={t("Select")}
+                  $checked={isSelected}
+                  $visible={isSelecting}
+                  tabIndex={-1}
+                >
+                  {isSelected && <CheckmarkIcon size={16} />}
+                </SelectButton>
               )}
+              <DocumentIconWrapper $dimmed={isSelecting}>
+                {document.icon ? (
+                  <Icon
+                    value={document.icon}
+                    color={document.color ?? undefined}
+                    initial={document.initial}
+                  />
+                ) : (
+                  <DocumentIcon
+                    outline={document.isDraft}
+                    color={theme.textSecondary}
+                  />
+                )}
+              </DocumentIconWrapper>
             </IconWrapper>
             <Content>
               <Heading dir={document.dir}>
@@ -194,11 +249,51 @@ function DocumentListItem(
 }
 
 const IconWrapper = styled.div`
+  position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   width: 24px;
+  /* Hug the icon rather than stretching to the height of the item, so that only
+  clicks landing on the icon itself begin a selection – the remainder of the
+  item navigates. */
+  align-self: flex-start;
+`;
+
+const DocumentIconWrapper = styled.span<{ $dimmed: boolean }>`
+  display: flex;
+  transition: opacity 100ms ease;
+  opacity: ${(props) => (props.$dimmed ? 0 : 1)};
+`;
+
+const SelectButton = styled(NudeButton)<{
+  $checked: boolean;
+  $visible: boolean;
+}>`
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid ${s("inputBorder")};
+  color: ${(props) => props.theme.accentText};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transition:
+    opacity 100ms ease,
+    background 100ms ease,
+    border-color 100ms ease;
+
+  ${(props) =>
+    props.$checked &&
+    css`
+      background: ${props.theme.accent};
+      border-color: ${props.theme.accent};
+    `}
 `;
 
 const Content = styled.div`
@@ -227,7 +322,9 @@ const Actions = styled(EventBoundary)`
 
 const DocumentLink = styled(Link)<{
   $isStarred?: boolean;
+  $isDragging?: boolean;
   $menuOpen?: boolean;
+  $selectable?: boolean;
 }>`
   display: flex;
   align-items: center;
@@ -237,6 +334,8 @@ const DocumentLink = styled(Link)<{
   max-height: 50vh;
   width: calc(100vw - 8px);
   cursor: var(--pointer);
+  transition: opacity 250ms ease;
+  opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
 
   &:focus-visible {
     outline: none;
@@ -270,6 +369,28 @@ const DocumentLink = styled(Link)<{
       &:${hover} {
         opacity: 1;
       }
+    }
+  }
+
+  /* Revealing the checkbox is a hover affordance only – on touch devices the
+  equivalent states (active, focus) are triggered by tapping the item to
+  navigate, which makes an item appear selected when it is not. There, the
+  checkbox appears once a selection is underway. */
+  @media (hover: hover) {
+    &:hover,
+    &:focus,
+    &:focus-within {
+      ${(props) =>
+        props.$selectable &&
+        css`
+          ${SelectButton} {
+            opacity: 1;
+          }
+
+          ${DocumentIconWrapper} {
+            opacity: 0;
+          }
+        `}
     }
   }
 
@@ -319,4 +440,4 @@ const ResultContext = styled(Highlight)`
   overflow: hidden;
 `;
 
-export default observer(React.forwardRef(DocumentListItem));
+export default observer(DocumentListItem);

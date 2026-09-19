@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type WebhookSubscription from "~/models/WebhookSubscription";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import {
@@ -10,6 +9,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import Text from "~/components/Text";
@@ -90,13 +90,7 @@ export const WebhookSubscriptionsTable = observer(
           id: "createdById",
           header: t("Created by"),
           accessor: (webhook) => webhook.createdBy?.name,
-          component: (webhook) =>
-            webhook.createdBy ? (
-              <HStack>
-                <Avatar model={webhook.createdBy} size={AvatarSize.Medium} />
-                <Text selectable>{webhook.createdBy.name}</Text>
-              </HStack>
-            ) : null,
+          component: (webhook) => <UserLabel user={webhook.createdBy} />,
           width: "2fr",
         },
         {
@@ -122,6 +116,7 @@ export const WebhookSubscriptionsTable = observer(
 
     return (
       <SortableTable
+        id="webhooks"
         columns={columns}
         rowHeight={ROW_HEIGHT}
         stickyOffset={STICKY_OFFSET}

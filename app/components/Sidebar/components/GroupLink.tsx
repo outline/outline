@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import type Group from "~/models/Group";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
@@ -18,17 +18,17 @@ type Props = {
 };
 
 const GroupLink: React.FC<Props> = ({ group }) => {
-  const locationSidebarContext = useLocationSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = groupSidebarContext(group.id);
   const [expanded, setExpanded] = React.useState(
-    locationSidebarContext === sidebarContext
+    activeSidebarContext === sidebarContext
   );
 
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
 
   const handleDisclosureClick = React.useCallback(
-    (ev) => {
+    (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
       setExpanded((e) => {
         const willExpand = !e;
@@ -40,10 +40,10 @@ const GroupLink: React.FC<Props> = ({ group }) => {
   );
 
   React.useEffect(() => {
-    if (locationSidebarContext === sidebarContext) {
+    if (activeSidebarContext === sidebarContext) {
       setExpanded(true);
     }
-  }, [sidebarContext, locationSidebarContext, setExpanded]);
+  }, [sidebarContext, activeSidebarContext, setExpanded]);
 
   return (
     <Relative>

@@ -1,5 +1,12 @@
 import invariant from "invariant";
-import { action, comparer, computed, observable, runInAction } from "mobx";
+import {
+  action,
+  comparer,
+  computed,
+  observable,
+  override,
+  runInAction,
+} from "mobx";
 import {
   type CollectionPermission,
   type FileOperationFormat,
@@ -19,12 +26,21 @@ import { AfterChange } from "./decorators/Lifecycle";
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
 
+  constructor(fields: Record<string, unknown>, store: CollectionsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   store: CollectionsStore;
 
   /** The name of the collection. */
   @Field
   @observable
   name: string;
+
+  /** The reason this collection is archived. */
+  @observable
+  deprecatedReason: string | null = null;
 
   /** Collection description in Prosemirror format. */
   @Field
@@ -39,13 +55,11 @@ export default class Collection extends ParanoidModel {
   /** The color to use for the collection icon and other highlights. */
   @Field
   @observable
-  color?: string | null;
-
+  color?: string | null = undefined;
   /** The default permission for workspace users. */
   @Field
   @observable
-  permission?: CollectionPermission;
-
+  permission?: CollectionPermission = undefined;
   /**
    * Whether public sharing is enabled for the collection. Note this can also be disabled at the
    * workspace level.
@@ -77,12 +91,10 @@ export default class Collection extends ParanoidModel {
    */
   @Field
   @observable
-  commenting?: boolean | null;
-
+  commenting?: boolean | null = undefined;
   /** The child documents of the collection. */
   @observable
-  documents?: NavigationNode[];
-
+  documents?: NavigationNode[] = undefined;
   /** @deprecated Use path instead. */
   @observable
   url: string;
@@ -101,8 +113,7 @@ export default class Collection extends ParanoidModel {
    * User who archived the collection.
    */
   @observable
-  archivedBy?: User;
-
+  archivedBy?: User = undefined;
   @computed
   get searchContent(): string {
     return this.name;
@@ -162,6 +173,29 @@ export default class Collection extends ParanoidModel {
     return sortNavigationNodes(this.documents, this.sort);
   }
 
+  /**
+   * Returns a lookup from document id to child documents.
+   *
+   * @returns a map of document id to child document nodes.
+   */
+  @computed({ keepAlive: true })
+  get childrenByDocumentId(): Map<string, NavigationNode[]> {
+    const childrenByDocumentId = new Map<string, NavigationNode[]>();
+
+    const travelNodes = (nodes: NavigationNode[]) => {
+      for (const node of nodes) {
+        childrenByDocumentId.set(node.id, node.children);
+        travelNodes(node.children);
+      }
+    };
+
+    if (this.sortedDocuments) {
+      travelNodes(this.sortedDocuments);
+    }
+
+    return childrenByDocumentId;
+  }
+
   /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
@@ -191,7 +225,7 @@ export default class Collection extends ParanoidModel {
     return !!this.archivedAt;
   }
 
-  @computed
+  @override
   get isDeleted() {
     return !!this.deletedAt;
   }
@@ -221,7 +255,7 @@ export default class Collection extends ParanoidModel {
       });
       invariant(res?.data, "Data should be available");
 
-      runInAction("Collection#fetchDocuments", () => {
+      runInAction(() => {
         this.documents = res.data;
       });
     } finally {
@@ -319,24 +353,7 @@ export default class Collection extends ParanoidModel {
   }
 
   getChildrenForDocument(documentId: string) {
-    let result: NavigationNode[] = [];
-
-    const travelNodes = (nodes: NavigationNode[]) => {
-      nodes.forEach((node) => {
-        if (node.id === documentId) {
-          result = node.children;
-          return;
-        }
-
-        return travelNodes(node.children);
-      });
-    };
-
-    if (this.sortedDocuments) {
-      travelNodes(this.sortedDocuments);
-    }
-
-    return result;
+    return this.childrenByDocumentId.get(documentId) ?? [];
   }
 
   @computed
@@ -415,6 +432,14 @@ export default class Collection extends ParanoidModel {
   archive = () => this.store.archive(this);
 
   restore = () => this.store.restore(this);
+
+  /**
+   * Duplicates the collection and the published documents within it.
+   *
+   * @returns A promise that resolves to the duplicated collection.
+   */
+  duplicate = (options?: { name?: string }) =>
+    this.store.duplicate(this, options);
 
   export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export", {

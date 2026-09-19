@@ -192,10 +192,11 @@ export interface Props extends Omit<
 }
 
 function Input(
-  props: Props,
-  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+  props: Props & { ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement> }
 ) {
-  const internalRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>();
+  const internalRef = React.useRef<
+    HTMLInputElement | HTMLTextAreaElement | undefined
+  >(undefined);
   const [focused, setFocused] = React.useState(false);
   const [charCount, setCharCount] = React.useState(() => {
     if (typeof props.value === "string") {
@@ -282,6 +283,7 @@ function Input(
     onChange,
     onRequestSubmit,
     children,
+    ref,
     ...rest
   } = props;
 
@@ -295,6 +297,16 @@ function Input(
     warningLimit !== undefined && charCount > warningLimit;
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
+
+  // Ensure the control always has an accessible name. When no visible or
+  // visually-hidden label is provided, fall back to the placeholder text so
+  // that screen readers announce a persistent name for the field. A caller
+  // supplied aria-label/aria-labelledby (spread via rest) still takes
+  // precedence over this fallback.
+  const fallbackAriaLabel =
+    !label && typeof props.placeholder === "string"
+      ? props.placeholder
+      : undefined;
 
   return (
     <Wrapper className={className} short={short} flex={flex}>
@@ -312,7 +324,7 @@ function Input(
             <NativeTextarea
               ref={mergeRefs([
                 internalRef,
-                ref as React.RefObject<HTMLTextAreaElement>,
+                ref as React.Ref<HTMLTextAreaElement>,
               ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
@@ -321,6 +333,7 @@ function Input(
               $autoSize={autoSize}
               $minHeight={minHeight}
               $maxHeight={maxHeight}
+              aria-label={fallbackAriaLabel}
               {...rest}
               // set it after "rest" to override props from spread.
               maxLength={maxLength}
@@ -329,15 +342,13 @@ function Input(
             />
           ) : (
             <NativeInput
-              ref={mergeRefs([
-                internalRef,
-                ref as React.RefObject<HTMLInputElement>,
-              ])}
+              ref={mergeRefs([internalRef, ref as React.Ref<HTMLInputElement>])}
               onBlur={handleBlur}
               onFocus={handleFocus}
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               type={type}
+              aria-label={fallbackAriaLabel}
               {...rest}
               // set it after "rest" to override "onKeyDown" and "onChange" from prop.
               maxLength={maxLength}
@@ -372,4 +383,4 @@ export const TextWrapper = styled.span`
   margin-top: -16px;
 `;
 
-export default React.forwardRef(Input);
+export default Input;

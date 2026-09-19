@@ -1,5 +1,5 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
-import type { Server } from "node:https";
+import { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
@@ -29,6 +29,23 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
 
   if (env.isProduction) {
+    // Trust the X-Forwarded-* headers set by an upstream proxy, eg
+    // X-Forwarded-For. Defaults to true, but can be disabled with
+    // PROXY_HEADERS_TRUSTED when the app is reachable directly.
+    if (env.PROXY_HEADERS_TRUSTED) {
+      app.proxy = true;
+      if (env.PROXY_IP_HEADER) {
+        app.proxyIpHeader = env.PROXY_IP_HEADER;
+      }
+    } else if (env.URL.startsWith("https://") && !(server instanceof Server)) {
+      // TLS is terminated upstream, but without X-Forwarded-Proto the app
+      // cannot tell, so the CSRF token falls back to a cookie that a sibling
+      // subdomain is able to write.
+      Logger.warn(
+        "PROXY_HEADERS_TRUSTED is disabled while URL is https and the app is not terminating TLS itself, which weakens CSRF protection. Enable it when running behind a proxy that terminates TLS."
+      );
+    }
+
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (env.FORCE_HTTPS) {
       app.use(
@@ -37,18 +54,15 @@ export default function init(app: Koa = new Koa(), server?: Server) {
             if (httpsResolver(ctx)) {
               return true;
             }
-            return xForwardedProtoResolver(ctx);
+            // Only honor X-Forwarded-Proto when proxy headers are trusted
+            return env.PROXY_HEADERS_TRUSTED
+              ? xForwardedProtoResolver(ctx)
+              : false;
           },
         })
       );
     } else {
       Logger.warn("Enforced https was disabled with FORCE_HTTPS env variable");
-    }
-
-    // trust header fields set by our proxy. eg X-Forwarded-For
-    app.proxy = true;
-    if (env.PROXY_IP_HEADER) {
-      app.proxyIpHeader = env.PROXY_IP_HEADER;
     }
   }
 
@@ -66,7 +80,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
         }
         Metrics.gaugePerInstance("connections.count", count);
       });
-    }, 5 * Second.ms);
+    }, 5 * Second.ms).unref();
   }
 
   ShutdownHelper.add("connections", ShutdownOrder.normal, async () => {

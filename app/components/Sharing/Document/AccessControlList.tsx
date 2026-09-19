@@ -247,15 +247,17 @@ const CollectionSquircle = ({ collection }: { collection: Collection }) => {
 
 function useUsersInCollection(collection?: Collection) {
   const { users, memberships } = useStores();
-  const { request } = useRequest(() =>
-    memberships.fetchPage({ limit: 1, id: collection!.id })
+  const fetchMemberships = React.useCallback(
+    () => memberships.fetchPage({ limit: 1, id: collection!.id }),
+    [memberships, collection]
   );
+  const { request } = useRequest(fetchMemberships);
 
   React.useEffect(() => {
     if (collection && !collection.permission) {
       void request();
     }
-  }, [collection]);
+  }, [collection, request]);
 
   return collection
     ? collection.permission

@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import auth from "@server/middlewares/authentication";
 import Router from "koa-router";
 import * as T from "./schema";
@@ -102,7 +103,10 @@ router.get(
 
       ctx.redirect(FigmaUtils.successUrl());
     } catch (err) {
-      Logger.error("Encountered error during Figma OAuth callback", err);
+      Logger.error(
+        "Encountered error during Figma OAuth callback",
+        toError(err)
+      );
       ctx.redirect(FigmaUtils.errorUrl("unknown"));
     }
   }

@@ -17,6 +17,17 @@ export default function shareDomains() {
             [Op.is]: null,
           },
         },
+        include: [
+          {
+            association: "team",
+            required: true,
+            where: {
+              suspendedAt: {
+                [Op.is]: null,
+              },
+            },
+          },
+        ],
       });
       ctx.state.rootShare = share;
     }

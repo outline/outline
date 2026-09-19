@@ -1,6 +1,7 @@
-import type { EditorState } from "prosemirror-state";
+import type { EditorState, Transaction } from "prosemirror-state";
 import type { TableRect } from "prosemirror-tables";
 import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
+import { findParentNodeClosestToPos } from "./findParentNode";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
 import type { EditorView } from "prosemirror-view";
@@ -214,14 +215,11 @@ export function getCellsInRow(index: number) {
  * @returns Boolean indicating if the column is selected
  */
 export function isColumnSelected(index: number) {
-  return (state: EditorState): boolean => {
-    if (isColSelection(state)) {
-      const rect = selectedRect(state);
-      return rect.left <= index && rect.right > index;
-    }
-
-    return false;
-  };
+  return (state: EditorState): boolean =>
+    state.selection instanceof ColumnSelection &&
+    state.selection.isColSelection()
+      ? state.selection.containsColumn(index)
+      : false;
 }
 
 /**
@@ -265,7 +263,7 @@ export function isHeaderEnabled(
 export function isRowSelected(index: number) {
   return (state: EditorState): boolean =>
     state.selection instanceof RowSelection && state.selection.isRowSelection()
-      ? state.selection.$index === index
+      ? state.selection.containsRow(index)
       : false;
 }
 
@@ -371,7 +369,33 @@ export function tableHasRowspan(state: EditorState): boolean {
   return false;
 }
 
+/**
+ * Get the indices between two bounds, in ascending order and inclusive of both.
+ */
+function indexRange(from: number, to: number): number[] {
+  const indices: number[] = [];
+  for (let index = Math.min(from, to); index <= Math.max(from, to); index++) {
+    indices.push(index);
+  }
+
+  return indices;
+}
+
+/**
+ * Get the indices of all currently selected columns.
+ *
+ * @param state The editor state
+ * @returns Array of selected column indices
+ */
 export function getAllSelectedColumns(state: EditorState): number[] {
+  const { selection } = state;
+
+  // A cell that spans columns widens the rect beyond the selected columns, so
+  // take the range from the selection itself where it is known.
+  if (selection instanceof ColumnSelection && selection.isColSelection()) {
+    return indexRange(selection.anchorIndex, selection.headIndex);
+  }
+
   const rect = selectedRect(state);
 
   const selectedColumns: number[] = [];
@@ -380,6 +404,101 @@ export function getAllSelectedColumns(state: EditorState): number[] {
   }
 
   return selectedColumns;
+}
+
+/**
+ * Get the indices of all currently selected rows.
+ *
+ * @param state The editor state
+ * @returns Array of selected row indices
+ */
+export function getAllSelectedRows(state: EditorState): number[] {
+  const { selection } = state;
+
+  // A cell that spans rows deepens the rect beyond the selected rows, so take
+  // the range from the selection itself where it is known.
+  if (selection instanceof RowSelection && selection.isRowSelection()) {
+    return indexRange(selection.anchorIndex, selection.headIndex);
+  }
+
+  const rect = selectedRect(state);
+
+  const selectedRows: number[] = [];
+  for (let row = rect.top; row < rect.bottom; row++) {
+    selectedRows.push(row);
+  }
+
+  return selectedRows;
+}
+
+/**
+ * Get the positions of every unique cell across all selected columns, falling
+ * back to a single column when it is not part of the selection.
+ *
+ * Operating on the full selection ensures column operations affect all selected
+ * columns – including columns spanned by a merged (colspan) header cell, which a
+ * single-column lookup would miss.
+ *
+ * @param state The editor state
+ * @param fallbackIndex The column index to use when nothing is selected
+ * @returns Array of unique cell positions
+ */
+export function getCellsInSelectedColumns(
+  state: EditorState,
+  fallbackIndex: number
+): number[] {
+  const selectedColumns = getAllSelectedColumns(state);
+  const columns = selectedColumns.includes(fallbackIndex)
+    ? selectedColumns
+    : [fallbackIndex];
+
+  const seen = new Set<number>();
+  const cells: number[] = [];
+  columns.forEach((index) => {
+    getCellsInColumn(index)(state).forEach((pos) => {
+      if (!seen.has(pos)) {
+        seen.add(pos);
+        cells.push(pos);
+      }
+    });
+  });
+
+  return cells;
+}
+
+/**
+ * Get the positions of every unique cell across all selected rows, falling back
+ * to a single row when it is not part of the selection.
+ *
+ * Operating on the full selection ensures row operations affect all selected
+ * rows – including rows spanned by a merged (rowspan) cell, which a single-row
+ * lookup would miss.
+ *
+ * @param state The editor state
+ * @param fallbackIndex The row index to use when nothing is selected
+ * @returns Array of unique cell positions
+ */
+export function getCellsInSelectedRows(
+  state: EditorState,
+  fallbackIndex: number
+): number[] {
+  const selectedRows = getAllSelectedRows(state);
+  const rows = selectedRows.includes(fallbackIndex)
+    ? selectedRows
+    : [fallbackIndex];
+
+  const seen = new Set<number>();
+  const cells: number[] = [];
+  rows.forEach((index) => {
+    getCellsInRow(index)(state).forEach((pos) => {
+      if (!seen.has(pos)) {
+        seen.add(pos);
+        cells.push(pos);
+      }
+    });
+  });
+
+  return cells;
 }
 
 /**
@@ -541,3 +660,38 @@ export const hasNodeAttrMarkWithAttrsCellSelection = (
 
   return attrsMatch;
 };
+
+/**
+ * Checks whether the selection change in a transaction can alter table
+ * decorations that depend on the selection: a cell selection on either side,
+ * or the selection moving into, out of, or between tables. Moving the cursor
+ * within one table does not.
+ *
+ * @param tr The transaction.
+ * @param oldState The editor state before the transaction.
+ * @param newState The editor state after the transaction.
+ * @returns true if the selected table or the cell selection changed.
+ */
+export function hasTableSelectionChanged(
+  tr: Transaction,
+  oldState: EditorState,
+  newState: EditorState
+): boolean {
+  if (!tr.selectionSet) {
+    return false;
+  }
+  if (
+    oldState.selection instanceof CellSelection ||
+    newState.selection instanceof CellSelection
+  ) {
+    return true;
+  }
+
+  const isTable = (node: Node) => node.type.spec.tableRole === "table";
+  const before = findParentNodeClosestToPos(oldState.selection.$head, isTable);
+  const after = findParentNodeClosestToPos(newState.selection.$head, isTable);
+  if (!before || !after) {
+    return !!before !== !!after;
+  }
+  return tr.mapping.map(before.pos) !== after.pos;
+}

@@ -1,12 +1,10 @@
 import { observer } from "mobx-react";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
-import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import useStores from "~/hooks/useStores";
-import { createAction } from "~/actions";
+import { revokeOAuthAuthenticationActionFactory } from "~/actions/definitions/oauthAuthentications";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
@@ -15,40 +13,11 @@ type Props = {
 };
 
 function OAuthAuthenticationMenu({ oauthAuthentication }: Props) {
-  const { dialogs } = useStores();
   const { t } = useTranslation();
 
-  const handleRevoke = useCallback(() => {
-    dialogs.openModal({
-      title: t("Revoke {{ appName }}", {
-        appName: oauthAuthentication.oauthClient.name,
-      }),
-      content: (
-        <ConfirmationDialog
-          onSubmit={async () => {
-            await oauthAuthentication.deleteAll();
-            dialogs.closeAllModals();
-          }}
-          submitText={t("Revoke")}
-          savingText={`${t("Revoking")}…`}
-          danger
-        >
-          {t("Are you sure you want to revoke access?")}
-        </ConfirmationDialog>
-      ),
-    });
-  }, [t, dialogs, oauthAuthentication]);
-
   const actions = useMemo(
-    () => [
-      createAction({
-        name: t("Revoke"),
-        section: "OAuth",
-        dangerous: true,
-        perform: handleRevoke,
-      }),
-    ],
-    [t, handleRevoke]
+    () => [revokeOAuthAuthenticationActionFactory({ oauthAuthentication })],
+    [oauthAuthentication]
   );
 
   const rootAction = useMenuAction(actions);

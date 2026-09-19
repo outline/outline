@@ -34,6 +34,7 @@ router.post(
 
     if (
       body.service === IntegrationService.Markdown ||
+      body.service === IntegrationService.Slab ||
       body.service === IntegrationService.JSON
     ) {
       const attachment = await Attachment.findByPk(body.attachmentId, {

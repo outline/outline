@@ -7,18 +7,22 @@ import {
   Attachment,
   Collection,
   Document,
+  Import,
   ImportTask,
   User,
 } from "@server/models";
 import FileStorage from "@server/storage/files";
 import {
   CollectionPermission,
+  ImportState,
   ImportTaskPhase,
   ImportTaskState,
   IntegrationService,
 } from "@shared/types";
 import {
   buildAdmin,
+  buildAttachment,
+  buildDocument,
   buildImport,
   buildTeam,
   buildUser,
@@ -35,6 +39,8 @@ const FIXTURE_USER_EMAIL = "hmac.devo@gmail.com";
 
 interface BuiltZip {
   filePath: string;
+  documentOneUrlId: string;
+  documentTwoUrlId: string;
   cleanup: () => Promise<void>;
 }
 
@@ -84,6 +90,42 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
             {
               type: "paragraph",
               content: [{ type: "text", text: "Some random text" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "see doc two",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: {
+                        href: `/doc/document-2-${documentTwoUrlId}`,
+                        title: null,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "see collection",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: {
+                        href: `/collection/test-json-${collectionUrlId}`,
+                        title: null,
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               type: "paragraph",
@@ -168,6 +210,8 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
 
   return {
     filePath,
+    documentOneUrlId,
+    documentTwoUrlId,
     cleanup: async () => {
       await fs.rm(filePath, { force: true }).catch(() => {});
     },
@@ -187,6 +231,7 @@ async function runImport(opts: {
   teamId: string;
   createdById: string;
   zipPath: string;
+  storageKey?: string;
 }): Promise<{ importId: string }> {
   vi.spyOn(FileStorage, "getFileHandle").mockResolvedValue({
     path: opts.zipPath,
@@ -201,7 +246,7 @@ async function runImport(opts: {
     input: [
       { externalId: randomUUID(), permission: CollectionPermission.Read },
     ],
-    scratch: { storageKey: "fixture-key" },
+    scratch: { storageKey: opts.storageKey ?? "fixture-key" },
   });
 
   // Seed the bootstrap row that JSONImportsProcessor would have created.
@@ -288,6 +333,116 @@ describe("JSONAPIImportTask", () => {
     expect(collections.length).toBe(1);
     expect(documents.length).toBe(2);
     expect(attachments.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("deletes the source archive after the import completes", async () => {
+    const admin = await buildAdmin();
+    const sourceAttachment = await buildAttachment({
+      teamId: admin.teamId,
+      userId: admin.id,
+      key: `uploads/${admin.id}/${randomUUID()}/import.zip`,
+    });
+
+    const { importId } = await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+      storageKey: sourceAttachment.key,
+    });
+
+    const importModel = await Import.findByPk(importId, {
+      rejectOnEmpty: true,
+    });
+    expect(importModel.scratch).toBeNull();
+    expect(await Attachment.findByPk(sourceAttachment.id)).toBeNull();
+  });
+
+  it("completes the import when source archive cleanup fails", async () => {
+    const admin = await buildAdmin();
+    const sourceAttachment = await buildAttachment({
+      teamId: admin.teamId,
+      userId: admin.id,
+      key: `uploads/${admin.id}/${randomUUID()}/import.zip`,
+    });
+    const destroy = vi
+      .spyOn(Attachment.prototype, "destroy")
+      .mockRejectedValueOnce(new Error("Storage unavailable"));
+
+    try {
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        storageKey: sourceAttachment.key,
+      });
+
+      const importModel = await Import.findByPk(importId, {
+        rejectOnEmpty: true,
+      });
+      expect(importModel.state).toBe(ImportState.Completed);
+      expect(await Attachment.findByPk(sourceAttachment.id)).not.toBeNull();
+    } finally {
+      destroy.mockRestore();
+    }
+  });
+
+  it("rewrites internal document links to the new urlIds", async () => {
+    const admin = await buildAdmin();
+    // Pre-create a document with the exported urlId so the importer is
+    // forced to allocate a fresh urlId for Document 2. Without a collision
+    // the original urlId would be preserved and link rewriting wouldn't be
+    // exercised end-to-end.
+    await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+      urlId: zip.documentTwoUrlId,
+    });
+
+    const { importId } = await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+    });
+
+    const documents = await Document.findAll({
+      where: { apiImportId: importId },
+      order: [["title", "ASC"]],
+    });
+    expect(documents.length).toBe(2);
+    const docOne = documents.find((d) => d.title === "Document 1");
+    const docTwo = documents.find((d) => d.title === "Document 2");
+    expect(docOne).toBeDefined();
+    expect(docTwo).toBeDefined();
+    expect(docTwo!.urlId).not.toBe(zip.documentTwoUrlId);
+
+    const linkParagraph = docOne!.content?.content?.[1];
+    const linkText = linkParagraph?.content?.[0];
+    const linkMark = linkText?.marks?.find((m) => m.type === "link");
+    expect(linkMark?.attrs?.href).toBe(`/doc/document-2-${docTwo!.urlId}`);
+    expect(linkMark?.attrs?.href).not.toContain(zip.documentTwoUrlId);
+  });
+
+  it("rewrites internal collection links to slugged collection paths", async () => {
+    const admin = await buildAdmin();
+    const { importId } = await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+    });
+
+    const collection = await Collection.findOne({
+      where: { apiImportId: importId },
+      rejectOnEmpty: true,
+    });
+    const docOne = await Document.findOne({
+      where: { apiImportId: importId, title: "Document 1" },
+      rejectOnEmpty: true,
+    });
+
+    const linkParagraph = docOne.content?.content?.[2];
+    const linkText = linkParagraph?.content?.[0];
+    const linkMark = linkText?.marks?.find((m) => m.type === "link");
+    expect(linkMark?.attrs?.href).toBe(collection.path);
   });
 
   describe("user mapping", () => {

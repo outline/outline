@@ -32,7 +32,6 @@ import Revision from "./Revision";
 import Team from "./Team";
 import User from "./User";
 import Group from "./Group";
-import Fix from "./decorators/Fix";
 import AccessRequest from "./AccessRequest";
 
 let baseDomain;
@@ -102,7 +101,6 @@ let baseDomain;
   modelName: "notification",
   updatedAt: false,
 })
-@Fix
 class Notification extends Model<
   InferAttributes<Notification>,
   Partial<InferCreationAttributes<Notification>>
@@ -114,15 +112,15 @@ class Notification extends Model<
   id: string;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   emailedAt?: Date | null;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   viewedAt: Date | null;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   archivedAt: Date | null;
 
   @CreatedAt

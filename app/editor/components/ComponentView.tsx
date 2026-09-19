@@ -22,6 +22,9 @@ type ComponentViewConstructor = {
 };
 
 export default class ComponentView {
+  /** The class name applied to the editable content element of every node view. */
+  static readonly contentClassName = "component-content";
+
   /** The React component to render. */
   component: FunctionComponent<ComponentProps>;
   /** The editor instance. */
@@ -42,6 +45,8 @@ export default class ComponentView {
   isSelected = false;
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
+  /** The DOM element that the node's editable content is rendered into, if the node has editable content. */
+  contentDOM: HTMLElement | null = null;
   /** The base class name for the node's DOM element. */
   className?: string;
 
@@ -68,12 +73,24 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
+    // Atoms have no directly editable content, and ProseMirror only marks a node
+    // view uneditable when it has no contentDOM.
+    if (!node.type.isAtom) {
+      this.contentDOM = document.createElement(
+        node.type.spec.inline ? "span" : "div"
+      );
+      // Chrome unwraps an attribute-less div that is the only child of its
+      // parent when a deletion empties a block inside it, which orphans the
+      // content from ProseMirror. Any attribute prevents this.
+      this.contentDOM.className = ComponentView.contentClassName;
+    }
+
     this.className = `component-${node.type.name}`;
     this.dom.classList.add(this.className);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
-    // Add the renderer to the editor's set of renderers so that it is included in the React tree.
-    this.editor.renderers.add(this.renderer);
+    // Add the renderer to the editor's set of node renderers so that it is included in the React tree.
+    this.editor.nodeRenderers.add(this.renderer);
 
     // Apply decoration classes to the DOM element.
     this.applyDecorationClasses();
@@ -147,7 +164,32 @@ export default class ComponentView {
     }
   }
 
+  /**
+   * Ref callback for the component to mark the element that the node's
+   * editable content should be mounted within. The content itself is managed
+   * by ProseMirror rather than React.
+   */
+  handleContentRef = (element: HTMLElement | null) => {
+    if (
+      !element ||
+      !this.contentDOM ||
+      element === this.contentDOM.parentElement
+    ) {
+      return;
+    }
+
+    element.appendChild(this.contentDOM);
+    this.syncSelection();
+  };
+
   stopEvent(event: Event) {
+    if (
+      this.contentDOM &&
+      event.target instanceof globalThis.Node &&
+      this.contentDOM.contains(event.target)
+    ) {
+      return false;
+    }
     return (
       event.type !== "mousedown" &&
       !event.type.startsWith("drag") &&
@@ -156,11 +198,15 @@ export default class ComponentView {
   }
 
   destroy() {
-    this.editor.renderers.delete(this.renderer);
+    this.editor.nodeRenderers.delete(this.renderer);
     this.dom = null;
+    this.contentDOM = null;
   }
 
-  ignoreMutation() {
+  ignoreMutation(mutation: MutationRecord) {
+    if (this.contentDOM) {
+      return !this.contentDOM.contains(mutation.target);
+    }
     return true;
   }
 
@@ -172,6 +218,28 @@ export default class ComponentView {
       isEditable: this.view.editable,
       getPos: this.getPos,
       decorations: this.decorations,
+      contentRef: this.handleContentRef,
     } as ComponentProps;
+  }
+
+  /**
+   * Re-apply the editor selection to the DOM once the content is mounted. React
+   * mounts the content after ProseMirror has already synced the selection, so a
+   * selection inside a freshly created node lands on a detached element and the
+   * browser leaves the caret after the node instead.
+   */
+  private syncSelection() {
+    const { view } = this;
+    if (!this.dom || !view.hasFocus()) {
+      return;
+    }
+
+    const pos = this.getPos();
+    const { from, to } = view.state.selection;
+    if (from <= pos || to >= pos + this.node.nodeSize) {
+      return;
+    }
+
+    view.focus();
   }
 }

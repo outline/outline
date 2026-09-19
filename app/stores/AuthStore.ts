@@ -1,8 +1,16 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { isNil } from "es-toolkit/compat";
-import { observable, action, computed, autorun, runInAction } from "mobx";
+import {
+  action,
+  autorun,
+  computed,
+  makeObservable,
+  observable,
+  runInAction,
+} from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
+import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
@@ -41,20 +49,16 @@ export default class AuthStore extends Store<Team> {
 
   /* The ID of the user that is currently signed in. */
   @observable
-  public currentUserId?: string | null;
-
+  public currentUserId?: string | null = undefined;
   /* The ID of the team that is currently signed in. */
   @observable
-  public currentTeamId?: string | null;
-
+  public currentTeamId?: string | null = undefined;
   /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
-  public collaborationToken?: string | null;
-
+  public collaborationToken?: string | null = undefined;
   /* When set, the user will be redirected to this URL after logging out. */
   @observable
-  public logoutRedirectUri?: string;
-
+  public logoutRedirectUri?: string = undefined;
   /* A list of teams that the current user has access to. */
   @observable
   public availableTeams?: {
@@ -63,28 +67,27 @@ export default class AuthStore extends Store<Team> {
     avatarUrl: string;
     url: string;
     isSignedIn: boolean;
-  }[];
+  }[] = undefined;
 
   /* The authentication provider the user signed in with. */
   @observable
-  public lastSignedIn?: string | null;
-
+  public lastSignedIn?: string | null = undefined;
   /* Whether the user is currently suspended. */
   @observable
   public isSuspended = false;
 
   /* The email address to contact if the user is suspended. */
   @observable
-  public suspendedContactEmail?: string | null;
-
+  public suspendedContactEmail?: string | null = undefined;
   /* The auth configuration for the current domain. */
   @observable
-  public config: Config | null | undefined;
+  public config: Config | null | undefined = undefined;
 
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
     super(rootStore, Team);
+    makeObservable(this);
 
     this.rootStore = rootStore;
 
@@ -92,6 +95,13 @@ export default class AuthStore extends Store<Team> {
     const data: PersistedData = Storage.get(this.name) || {};
 
     this.rehydrate(data);
+
+    client.setUnauthorizedHandler((reason) =>
+      reason === "user_suspended"
+        ? this.logout({ savePath: false, revokeToken: false, clearCache: true })
+        : this.logout({ savePath: true, revokeToken: false, clearCache: false })
+    );
+
     void this.fetchAuth();
 
     // persists this entire store to localstorage whenever any keys are changed
@@ -185,11 +195,12 @@ export default class AuthStore extends Store<Team> {
     };
   }
 
-  @action
   fetchConfig = async () => {
     const res = await client.post("/auth.config");
     invariant(res?.data, "Config not available");
-    this.config = res.data;
+    runInAction(() => {
+      this.config = res.data;
+    });
   };
 
   @action
@@ -202,7 +213,7 @@ export default class AuthStore extends Store<Team> {
       });
       invariant(res?.data, "Auth not available");
 
-      runInAction("AuthStore#refresh", () => {
+      runInAction(() => {
         const { data } = res;
         this.addPolicies(res.policies);
         this.add(data.team);
@@ -215,12 +226,15 @@ export default class AuthStore extends Store<Team> {
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
 
+        // Covers the first session after login, where no team was available
+        // in localStorage when the root store was constructed.
+        this.rootStore.enablePersistence();
+
         if (env.SENTRY_DSN) {
-          Sentry.configureScope((scope) => {
-            scope.setUser({ id: this.currentUserId! });
-            scope.setExtra("team", this.team?.name);
-            scope.setExtra("teamId", this.currentTeamId);
-          });
+          const scope = Sentry.getCurrentScope();
+          scope.setUser({ id: this.currentUserId! });
+          scope.setExtra("team", this.team?.name);
+          scope.setExtra("teamId", this.currentTeamId);
         }
 
         // Redirect to the correct custom domain or team subdomain if needed
@@ -248,9 +262,20 @@ export default class AuthStore extends Store<Team> {
         }
       });
     } catch (err) {
-      if (err.error === "user_suspended") {
+      if (
+        err instanceof Error &&
+        "error" in err &&
+        err.error === "user_suspended"
+      ) {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.data.adminEmail;
+        if (
+          "data" in err &&
+          err.data instanceof Object &&
+          "adminEmail" in err.data &&
+          typeof err.data.adminEmail === "string"
+        ) {
+          this.suspendedContactEmail = err.data.adminEmail;
+        }
         return;
       }
       throw err;
@@ -266,7 +291,7 @@ export default class AuthStore extends Store<Team> {
   @action
   deleteUser = async (data: { code: string }) => {
     await client.post(`/users.delete`, data);
-    runInAction("AuthStore#deleteUser", () => {
+    runInAction(() => {
       this.currentUserId = null;
       this.currentTeamId = null;
       this.collaborationToken = null;
@@ -280,7 +305,7 @@ export default class AuthStore extends Store<Team> {
   deleteTeam = async (data: { code: string }) => {
     await client.post(`/teams.delete`, data);
 
-    runInAction("AuthStore#deleteTeam", () => {
+    runInAction(() => {
       this.currentUserId = null;
       this.currentTeamId = null;
       this.availableTeams = this.availableTeams?.filter(
@@ -335,7 +360,7 @@ export default class AuthStore extends Store<Team> {
         // invalidate authentication token on server and unset auth cookie
         await client.post(`/auth.delete`);
       } catch (err) {
-        Logger.error("Failed to delete authentication", err);
+        Logger.error("Failed to delete authentication", toError(err));
       }
     }
 
@@ -350,8 +375,13 @@ export default class AuthStore extends Store<Team> {
       });
     }
 
-    if (userInitiated) {
-      this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
+    if (
+      userInitiated &&
+      (env.OIDC_LOGOUT_URI || this.lastSignedIn === "oidc")
+    ) {
+      // Route through the server so it can build a spec-compliant RP-initiated
+      // logout URL (including the id_token_hint) for the OIDC provider.
+      this.logoutRedirectUri = "/auth/oidc.logout";
     }
 
     if (clearCache) {

@@ -11,6 +11,8 @@ const Key = styled.kbd<Props>`
   font-size: 11px;
   font-family: ${(props) =>
     props.symbol ? props.theme.fontFamily : props.theme.fontFamilyMono};
+  /* Disambiguation for "I" and slashed zero so "0" doesn't read as "O" */
+  font-feature-settings: "cv08", "zero";
   line-height: 10px;
   color: ${(props) => props.theme.almostBlack};
   vertical-align: middle;

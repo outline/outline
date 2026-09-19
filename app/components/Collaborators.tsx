@@ -3,6 +3,8 @@ import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
+import type User from "~/models/User";
+import type { AvatarProps } from "~/components/Avatar";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
@@ -41,11 +43,15 @@ function Collaborators(props: Props) {
     [documentPresence]
   );
 
-  // Use Set for O(1) lookups and stable references
-  const presentIds = useMemo(
-    () => new Set(documentPresenceArray.map((p) => p.userId)),
-    [documentPresenceArray]
-  );
+  // Use Set for O(1) lookups and stable references. The current user is
+  // always included to avoid a flash while the multiplayer connection forms.
+  const presentIds = useMemo(() => {
+    const ids = new Set(documentPresenceArray.map((p) => p.userId));
+    if (currentUserId) {
+      ids.add(currentUserId);
+    }
+    return ids;
+  }, [documentPresenceArray, currentUserId]);
   const editingIds = useMemo(
     () =>
       new Set(
@@ -57,7 +63,7 @@ function Collaborators(props: Props) {
   // ensure currently present via websocket are always ordered first
   // Memoize collaboratorIds as a Set for efficient lookup
   const collaboratorIdsSet = useMemo(
-    () => new Set(document.collaboratorIds),
+    () => new Set(document.collaboratorIds ?? []),
     [document.collaboratorIds]
   );
   const collaborators = useMemo(
@@ -79,10 +85,10 @@ function Collaborators(props: Props) {
   // Memoize ids to avoid unnecessary effect executions
   const missingUserIds = useMemo(
     () =>
-      uniq([...document.collaboratorIds, ...Array.from(presentIds)])
+      uniq([...collaboratorIdsSet, ...presentIds])
         .filter((userId) => !users.get(userId))
         .sort(),
-    [document.collaboratorIds, presentIds, users]
+    [collaboratorIdsSet, presentIds, users]
   );
 
   useEffect(() => {
@@ -114,7 +120,7 @@ function Collaborators(props: Props) {
   );
 
   const renderAvatar = useCallback(
-    ({ model: collaborator, ...rest }) => {
+    ({ model: collaborator, ...rest }: AvatarProps & { model: User }) => {
       const isPresent = presentIds.has(collaborator.id);
       const isEditing = editingIds.has(collaborator.id);
       const isObserving = observingUserId === collaborator.id;

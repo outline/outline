@@ -1,20 +1,16 @@
 import { difference } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
-import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
-import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { getDataTransferFiles } from "@shared/utils/files";
-import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
@@ -36,7 +32,7 @@ export type Props = Optional<
   editorStyle?: React.CSSProperties;
 };
 
-function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
+function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   const {
     id,
     onChange,
@@ -49,9 +45,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { shareId } = useShare();
   const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
-  const localRef = React.useRef<SharedEditor>();
+  const localRef = React.useRef<SharedEditor | undefined>(undefined);
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
-  const previousCommentIds = React.useRef<string[]>();
+  const previousCommentIds = React.useRef<string[] | undefined>(undefined);
 
   // Upload progress tracking for delayed toast
   const progressMap = React.useMemo(() => new Map<string, number>(), []);
@@ -134,60 +130,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [localRef]);
 
   const handleDrop = React.useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const files = getDataTransferFiles(event);
-
-      const view = localRef?.current?.view;
-      if (!view) {
-        return;
-      }
-
-      // Find a valid position at the end of the document to insert our content
-      const pos = TextSelection.near(
-        view.state.doc.resolve(view.state.doc.nodeSize - 2)
-      ).from;
-
-      // If there are no files in the drop event attempt to parse the html
-      // as a fragment and insert it at the end of the document
-      if (files.length === 0) {
-        const text =
-          event.dataTransfer.getData("text/html") ||
-          event.dataTransfer.getData("text/plain");
-
-        const dom = new DOMParser().parseFromString(text, "text/html");
-
-        view.dispatch(
-          view.state.tr.insert(
-            pos,
-            ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
-          )
-        );
-
-        return;
-      }
-
-      // Insert all files as attachments if any of the files are not images.
-      const isAttachment = files.some(
-        (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
-      );
-
-      return insertFiles(view, event, pos, files, {
-        uploadFile: handleUploadFile,
-        onFileUploadStart: handleFileUploadStart,
-        onFileUploadStop: handleFileUploadStop,
-        onFileUploadProgress: handleFileUploadProgress,
-        isAttachment,
-      });
-    },
-    [
-      localRef,
-      handleFileUploadStart,
-      handleFileUploadStop,
-      handleFileUploadProgress,
-      handleUploadFile,
-    ]
+    (event: React.DragEvent<HTMLDivElement>) =>
+      localRef.current?.insertDroppedContent(event),
+    []
   );
 
   // see: https://stackoverflow.com/a/50233827/192065
@@ -199,42 +144,51 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     []
   );
 
-  const updateComments = React.useCallback(() => {
-    if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
-      const commentMarks = localRef.current.getComments();
-      const commentIds = comments.orderedData.map((c) => c.id);
-      const commentMarkIds = commentMarks?.map((c) => c.id);
-      const focus = previousCommentIds.current !== undefined;
-      const newCommentIds = difference(
-        commentMarkIds,
-        previousCommentIds.current ?? [],
-        commentIds
-      );
+  const updateComments = React.useCallback(
+    (event?: { remote: boolean }) => {
+      if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
+        const commentMarks = localRef.current.getComments();
+        const commentIds = comments.orderedData.map((c) => c.id);
+        const commentMarkIds = commentMarks?.map((c) => c.id);
 
-      newCommentIds.forEach((commentId) => {
-        const mark = commentMarks.find((c) => c.id === commentId);
-        if (mark) {
-          onCreateCommentMark(mark.id, mark.userId, { focus });
-        }
-      });
+        // Only marks created by a local change should steal focus. Marks that
+        // arrive through a remote or sync transaction, or that are discovered
+        // by a rescan outside of a change event – such as the initial load of
+        // a document containing a draft comment – should not.
+        const focus =
+          previousCommentIds.current !== undefined && !!event && !event.remote;
+        const newCommentIds = difference(
+          commentMarkIds,
+          previousCommentIds.current ?? [],
+          commentIds
+        );
 
-      const removedCommentIds = difference(
-        previousCommentIds.current ?? [],
-        commentMarkIds ?? []
-      );
+        newCommentIds.forEach((commentId) => {
+          const mark = commentMarks.find((c) => c.id === commentId);
+          if (mark) {
+            onCreateCommentMark(mark.id, mark.userId, { focus });
+          }
+        });
 
-      removedCommentIds.forEach((commentId) => {
-        onDeleteCommentMark(commentId);
-      });
+        const removedCommentIds = difference(
+          previousCommentIds.current ?? [],
+          commentMarkIds ?? []
+        );
 
-      previousCommentIds.current = commentMarkIds;
-    }
-  }, [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]);
+        removedCommentIds.forEach((commentId) => {
+          onDeleteCommentMark(commentId);
+        });
 
-  const handleChange = React.useCallback(
-    (event) => {
-      onChange?.(event);
-      updateComments();
+        previousCommentIds.current = commentMarkIds;
+      }
+    },
+    [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]
+  );
+
+  const handleChange = React.useCallback<NonNullable<EditorProps["onChange"]>>(
+    (value, event) => {
+      onChange?.(value, event);
+      updateComments(event);
     },
     [onChange, updateComments]
   );
@@ -276,21 +230,27 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             </div>
           </EditorContainer>
         ) : (
-          <LazyLoadedEditor
-            key={props.extensions?.length || 0}
-            ref={mergeRefs([ref, localRef, handleRefChanged])}
-            uploadFile={handleUploadFile}
-            embeds={embeds}
-            userPreferences={preferences}
-            {...props}
-            onClickLink={handleClickLink}
-            onChange={handleChange}
-            onFileUploadStart={handleFileUploadStart}
-            onFileUploadStop={handleFileUploadStop}
-            onFileUploadProgress={handleFileUploadProgress}
-            placeholder={props.placeholder || ""}
-            defaultValue={props.defaultValue || ""}
-          />
+          // The boundary must live between the lazy editor and any ancestor
+          // with effects or refs. If the suspension reached an outer boundary
+          // React 18 would hide mounted ancestors and destroy their effects,
+          // re-running provider setup and ref callbacks in a loop.
+          <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
+            <LazyLoadedEditor
+              key={props.extensions?.length || 0}
+              ref={mergeRefs([ref, localRef, handleRefChanged])}
+              uploadFile={handleUploadFile}
+              embeds={embeds}
+              userPreferences={preferences}
+              {...props}
+              onClickLink={handleClickLink}
+              onChange={handleChange}
+              onFileUploadStart={handleFileUploadStart}
+              onFileUploadStop={handleFileUploadStop}
+              onFileUploadProgress={handleFileUploadProgress}
+              placeholder={props.placeholder || ""}
+              defaultValue={props.defaultValue || ""}
+            />
+          </React.Suspense>
         )}
         {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding
@@ -305,4 +265,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default observer(React.forwardRef(Editor));
+export default observer(Editor);

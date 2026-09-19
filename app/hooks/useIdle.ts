@@ -28,7 +28,7 @@ export default function useIdle(
 ) {
   const isMounted = useIsMounted();
   const [isIdle, setIsIdle] = useState(false);
-  const timeout = useRef<ReturnType<typeof setTimeout>>();
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const onActivity = useCallback(() => {
     if (timeout.current) {
@@ -53,7 +53,16 @@ export default function useIdle(
     events.forEach((eventName) =>
       window.addEventListener(eventName, handleUserActivityEvent)
     );
+
+    // Start the countdown immediately, otherwise the user is never considered
+    // idle unless activity occurs after mount.
+    onActivity();
+
     return () => {
+      handleUserActivityEvent.cancel();
+      if (timeout.current) {
+        clearTimeout(timeout.current);
+      }
       events.forEach((eventName) =>
         window.removeEventListener(eventName, handleUserActivityEvent)
       );

@@ -27,6 +27,16 @@ export const AuthorizationFailed = {
 };
 
 /**
+ * The access the user was granted may have changed and must be established
+ * again. The client is expected to reconnect, at which point it is either
+ * authorized as normal or refused with `AuthorizationFailed`.
+ */
+export const AuthorizationChanged = {
+  code: 4205,
+  reason: "Authorization Changed",
+};
+
+/**
  * The server is refusing to process the request because there are too many connections
  * to the given document.
  */

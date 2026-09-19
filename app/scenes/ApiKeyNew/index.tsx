@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { ApiKeyValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -13,7 +14,6 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { dateToExpiry } from "~/utils/date";
-import "react-day-picker/dist/style.css";
 import ExpiryDatePicker from "./components/ExpiryDatePicker";
 import { ExpiryType, ExpiryValues, calculateExpiryDate } from "./utils";
 
@@ -50,13 +50,19 @@ function ApiKeyNew({ onSubmit }: Props) {
     []
   );
 
-  const handleNameChange = React.useCallback((event) => {
-    setName(event.target.value);
-  }, []);
+  const handleNameChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setName(event.target.value);
+    },
+    []
+  );
 
-  const handleScopeChange = React.useCallback((event) => {
-    setScope(event.target.value);
-  }, []);
+  const handleScopeChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setScope(event.target.value);
+    },
+    []
+  );
 
   const handleExpiryTypeChange = React.useCallback((value: string) => {
     const expiry = value as ExpiryType;
@@ -77,7 +83,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         await apiKeys.create({
           name,
           expiresAt: expiresAt?.toISOString(),
-          scope: scope ? scope.split(" ") : undefined,
+          scope: scope ? scope.split(/[\s,]+/).filter(Boolean) : undefined,
         });
         toast.success(
           t(
@@ -86,7 +92,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         );
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }
@@ -123,7 +129,7 @@ function ApiKeyNew({ onSubmit }: Props) {
           )}
           .
         </Text>
-        <Flex align="center" gap={16}>
+        <Flex align="center" gap={8}>
           <StyledExpirySelect
             options={expiryOptions}
             value={expiryType}

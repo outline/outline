@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import type { IssueSource } from "@shared/schema";
 import { IntegrationService, type IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -69,7 +70,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         }))
       );
     } catch (err) {
-      Logger.warn("Failed to fetch projects from GitLab", err);
+      Logger.warn("Failed to fetch projects from GitLab", toError(err));
     }
 
     return sources;
@@ -78,9 +79,11 @@ export class GitLabIssueProvider extends BaseIssueProvider {
   async handleWebhook({
     payload,
     headers,
+    teamId,
   }: {
     payload: Record<string, unknown>;
     headers: Record<string, unknown>;
+    teamId: string | null | undefined;
   }) {
     const hookId = headers["x-gitlab-webhook-uuid"] as string;
     const typedPayload = payload as GitLabWebhookPayload;
@@ -93,35 +96,44 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       return;
     }
 
+    if (teamId === undefined) {
+      Logger.warn(`Received GitLab webhook without authorization scope`);
+      return;
+    }
+
     switch (eventName) {
       case "project_update":
       case "project_transfer":
       case "project_rename":
-        await this.updateProject(typedPayload);
+        await this.updateProject(typedPayload, teamId);
         break;
       case "repository_update":
-        await this.createProject(typedPayload);
+        await this.createProject(typedPayload, teamId);
         break;
       case "project_destroy":
-        await this.destroyProject(typedPayload);
+        await this.destroyProject(typedPayload, teamId);
         break;
       case "group_rename":
       case "user_rename":
-        await this.updateNamespace(typedPayload);
+        await this.updateNamespace(typedPayload, teamId);
         break;
       case "user_destroy":
       case "group_destroy":
-        await this.destroyNamespace(typedPayload);
+        await this.destroyNamespace(typedPayload, teamId);
         break;
       default:
         break;
     }
   }
 
-  private async updateNamespace(payload: GitLabWebhookPayload) {
+  private async updateNamespace(
+    payload: GitLabWebhookPayload,
+    teamId: string | null
+  ) {
     const name = payload.old_full_path ?? payload.old_username;
     const where = {
       service: IntegrationService.GitLab,
+      ...(teamId ? { teamId } : {}),
       [Op.and]: sequelize.literal(`"issueSources"::jsonb @> :jsonCondition`),
     };
     const jsonCondition = JSON.stringify([{ owner: { name } }]);
@@ -165,7 +177,10 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async destroyNamespace(payload: GitLabWebhookPayload) {
+  private async destroyNamespace(
+    payload: GitLabWebhookPayload,
+    teamId: string | null
+  ) {
     if (!payload.user_id && !payload.full_path) {
       Logger.warn(
         `GitLab namespace_destroy event without user_id or full_path`
@@ -176,6 +191,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     let replacements = {};
     const whereCondition: WhereOptions = {
       service: IntegrationService.GitLab,
+      ...(teamId ? { teamId } : {}),
       ...(payload.user_id && {
         "settings.gitlab.installation.account.id": payload.user_id,
       }),
@@ -217,17 +233,21 @@ export class GitLabIssueProvider extends BaseIssueProvider {
           integration.changed("issueSources", true);
           await integration.save({ transaction });
         } else if (payload.user_id) {
-          await integration.destroy();
+          await integration.destroy({ transaction });
         }
       }
     });
   }
 
-  private async destroyProject(payload: GitLabWebhookPayload) {
+  private async destroyProject(
+    payload: GitLabWebhookPayload,
+    teamId: string | null
+  ) {
     await sequelize.transaction(async (transaction) => {
       const integrations = await Integration.findAll({
         where: {
           service: IntegrationService.GitLab,
+          ...(teamId ? { teamId } : {}),
           [Op.and]: sequelize.where(
             sequelize.literal(`"issueSources"::jsonb @> :projectJson`),
             Op.eq,
@@ -259,7 +279,10 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async createProject(payload: GitLabWebhookPayload) {
+  private async createProject(
+    payload: GitLabWebhookPayload,
+    teamId: string | null
+  ) {
     const createEvent = payload.changes?.some((p: { before: string }) =>
       /^0{40}$/.test(p.before)
     );
@@ -277,9 +300,11 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       const integration = (await Integration.findOne({
         where: {
           service: IntegrationService.GitLab,
+          ...(teamId ? { teamId } : {}),
           "settings.gitlab.installation.account.id": payload.user_id,
         },
         lock: transaction.LOCK.UPDATE,
+        transaction,
       })) as Integration<IntegrationType.Embed>;
 
       if (!integration) {
@@ -305,7 +330,10 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async updateProject(payload: GitLabWebhookPayload) {
+  private async updateProject(
+    payload: GitLabWebhookPayload,
+    teamId: string | null
+  ) {
     if (!payload.name || !payload.path_with_namespace) {
       return;
     }
@@ -316,6 +344,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       const integrations = await Integration.findAll({
         where: {
           service: IntegrationService.GitLab,
+          ...(teamId ? { teamId } : {}),
           [Op.and]: sequelize.where(
             sequelize.literal(`"issueSources"::jsonb @> :projectJson`),
             Op.eq,

@@ -1,10 +1,10 @@
-import { BrowserTracing } from "@sentry/browser";
 import * as Sentry from "@sentry/react";
 import type { History } from "history";
 import env from "~/env";
 import {
   AuthorizationError,
   BadRequestError,
+  ClientClosedRequestError,
   NetworkError,
   NotFoundError,
   OfflineError,
@@ -13,11 +13,18 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
+import { staleChunkErrorPattern } from "./lazyWithRetry";
 
+/**
+ * Initializes the Sentry error tracking client for the browser.
+ *
+ * @param history the router history used for navigation instrumentation.
+ */
 export function initSentry(history: History) {
   const ignoredErrorTypes = [
     AuthorizationError,
     BadRequestError,
+    ClientClosedRequestError,
     NetworkError,
     NotFoundError,
     OfflineError,
@@ -33,14 +40,18 @@ export function initSentry(history: History) {
     release: env.VERSION,
     tunnel: env.SENTRY_TUNNEL,
     allowUrls: [env.URL, env.CDN_URL, env.COLLABORATION_URL],
-    integrations: [
-      new BrowserTracing({
-        routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
-      }),
+    integrations: [Sentry.reactRouterV5BrowserTracingIntegration({ history })],
+    ignoreSpans: [
+      // Resource timing spans are emitted for every subresource of a pageload (scripts)
+      { op: /^resource\./ },
+      // Connection phases of a pageload, per Sentry's recommended defaults
+      { op: /^browser\.(cache|connect|DNS)$/ },
+      // Performance marks and measures are mostly emitted by third-party browser extensions
+      { op: /^(mark|measure)$/ },
     ],
-    tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1,
+    tracesSampleRate: env.ENVIRONMENT === "production" ? 0.05 : 1,
     ignoreErrors: [
-      "Failed to fetch dynamically imported module",
+      staleChunkErrorPattern,
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "Object Not Found Matching Id",

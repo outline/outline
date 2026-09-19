@@ -4,10 +4,12 @@ import useDragResize from "./hooks/useDragResize";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import type { ComponentProps } from "../types";
 import { isFirefox } from "../../utils/browser";
+import { sanitizeUrl } from "../../utils/urls";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { pdfNaturalHeight, pdfNaturalWidth } from "../lib/pdf";
 
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
@@ -27,27 +29,14 @@ export default function PdfViewer(props: Props) {
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
-    {
-      width: node.attrs.width,
-      height: node.attrs.height,
-      naturalWidth: 300,
-      naturalHeight: 424,
-      gridSnap: 5,
-      onChangeSize,
-      ref,
-    }
-  );
-
-  useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [node.attrs.width]);
+  const { width, handlePointerDown, dragging } = useDragResize({
+    width: node.attrs.width,
+    height: node.attrs.height,
+    naturalWidth: pdfNaturalWidth,
+    naturalHeight: pdfNaturalHeight,
+    onChangeSize,
+    ref,
+  });
 
   // force embed to reload, so the content fits the new size.
   useEffect(() => {
@@ -71,7 +60,7 @@ export default function PdfViewer(props: Props) {
           embedRef.current.src = "";
           requestAnimationFrame(() => {
             if (embedRef.current) {
-              embedRef.current.src = href;
+              embedRef.current.src = sanitizeUrl(href) ?? "";
             }
           });
         }
@@ -97,8 +86,8 @@ export default function PdfViewer(props: Props) {
           ? "pdf-wrapper ProseMirror-selectednode"
           : "pdf-wrapper"
       }
-      style={{ width: width ?? "auto" }}
-      $dragging={dragging}
+      style={{ width: width ?? "100%" }}
+      $dragging={!!dragging}
     >
       <Flex gap={6} align="center">
         {props.icon}
@@ -109,14 +98,12 @@ export default function PdfViewer(props: Props) {
       </Flex>
       <embed
         title={name}
-        src={href}
+        src={sanitizeUrl(href)}
         ref={embedRef}
-        width={
-          // subtract padding and borders from width
-          width - 24
-        }
-        height={height}
         style={{
+          width: "100%",
+          height: "auto",
+          aspectRatio: `${pdfNaturalWidth} / ${pdfNaturalHeight}`,
           pointerEvents:
             !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,
@@ -126,11 +113,11 @@ export default function PdfViewer(props: Props) {
         <>
           <ResizeLeft
             onPointerDown={handlePointerDown("left")}
-            $dragging={isSelected || dragging}
+            $dragging={!!(isSelected || dragging)}
           />
           <ResizeRight
             onPointerDown={handlePointerDown("right")}
-            $dragging={isSelected || dragging}
+            $dragging={!!(isSelected || dragging)}
           />
         </>
       )}
@@ -145,7 +132,7 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   margin-right: auto;
   max-width: 100%;
   transition-property: width, height;
-  transition-duration: 120ms;
+  transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
   transition-timing-function: ease-in-out;
   overflow: hidden;
   will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
@@ -154,8 +141,10 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   padding: ${EditorStyleHelper.blockRadius};
 
   embed {
+    display: block;
+    max-width: 100%;
     transition-property: width, height;
-    transition-duration: 120ms;
+    transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
     transition-timing-function: ease-in-out;
     will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
   }

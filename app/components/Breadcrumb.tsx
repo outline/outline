@@ -20,12 +20,16 @@ type Props = React.PropsWithChildren<{
   actions: InternalLinkAction[];
   max?: number;
   highlightFirstItem?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
 }>;
 
-function Breadcrumb(
-  { actions, highlightFirstItem, children, max = 2 }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function Breadcrumb({
+  actions,
+  highlightFirstItem,
+  children,
+  max = 2,
+  ref,
+}: Props) {
   const actionContext = useActionContext({ isMenu: true });
 
   const visibleActions = useComputed(
@@ -73,17 +77,14 @@ function Breadcrumb(
       const item = actionToMenuItem(action, actionContext) as MenuInternalLink;
 
       return (
-        <>
+        <Item
+          to={item.to}
+          onClick={handleClick}
+          $highlight={!!highlightFirstItem && index === 0}
+        >
           {item.icon}
-          <Item
-            to={item.to}
-            onClick={handleClick}
-            $withIcon={!!item.icon}
-            $highlight={!!highlightFirstItem && index === 0}
-          >
-            {item.title}
-          </Item>
-        </>
+          <Title>{item.title}</Title>
+        </Item>
       );
     },
     [actionContext, handleClick, highlightFirstItem]
@@ -109,24 +110,39 @@ const Slash = styled(GoToIcon)`
   fill: ${s("divider")};
 `;
 
-const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
-  ${ellipsis()}
+const Item = styled(Link)<{ $highlight: boolean }>`
   ${undraggableOnDesktop()}
 
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 1;
   min-width: 0;
   cursor: var(--pointer);
   color: ${s("text")};
   font-size: 15px;
-  height: 24px;
-  line-height: 24px;
+  height: 32px;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
-  margin-inline-start: ${(props) => (props.$withIcon ? "4px" : "0")};
-  max-width: 460px;
+  padding-inline: 8px;
+  border-radius: 4px;
+  margin-inline: -4px;
 
-  &:hover {
-    text-decoration: underline;
+  &:first-child {
+    margin-inline-start: 0;
+  }
+  max-width: 460px;
+  transition: background 100ms ease-in-out;
+
+  &:hover,
+  &:has([data-state="open"]) {
+    background: ${s("buttonNeutralHoverBackground")};
+    transition: none;
   }
 `;
 
-export default observer(React.forwardRef<HTMLDivElement, Props>(Breadcrumb));
+const Title = styled.span`
+  ${ellipsis()}
+  min-width: 0;
+`;
+
+export default observer(Breadcrumb);

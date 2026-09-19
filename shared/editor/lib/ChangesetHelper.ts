@@ -1,5 +1,5 @@
 import type { Mark, Slice } from "prosemirror-model";
-import { Node, Schema } from "prosemirror-model";
+import { Fragment, Node, Schema } from "prosemirror-model";
 import type { Change, TokenEncoder } from "prosemirror-changeset";
 import { ChangeSet, simplifyChanges } from "prosemirror-changeset";
 import { ReplaceStep, type Step } from "prosemirror-transform";
@@ -7,6 +7,190 @@ import ExtensionManager from "./ExtensionManager";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
+
+/**
+ * The structural subset of a changeset `Change` that this module reads and
+ * produces. Using a `Pick` rather than the `Change` class avoids requiring
+ * class-only members (such as `toJSON`) on the plain objects we build.
+ */
+type ChangeFields<T> = Pick<
+  Change<T>,
+  "fromA" | "toA" | "fromB" | "toB" | "deleted" | "inserted"
+>;
+
+/**
+ * The maximum number of unchanged characters allowed between two adjacent
+ * changes for them to still be merged into a single change. This is
+ * deliberately small: merging absorbs the gap into the diff, so any unchanged
+ * text within it is rendered as deleted/reinserted. A value of 3 is the
+ * minimum that rejoins hyphenated word fragments such as replacing
+ * "no-await-in-loop", where the differ aligns the shared "no" and leaves an
+ * unchanged "no-" (gap of 3) between fragments, without swallowing longer
+ * unchanged words.
+ */
+const MAX_UNCHANGED_GAP = 3;
+
+/**
+ * Merges adjacent Change objects that represent interleaved deletions/insertions.
+ *
+ * When word-level diffing is used, replacing "no-await-in-loop" with
+ * "jsx-no-jsx-as-prop" can produce multiple adjacent Change objects like:
+ *   Change1: delete "no", insert "jsx"
+ *   Change2: delete "await", insert "no"
+ *   ...
+ *
+ * This function merges such adjacent changes into a single change:
+ *   Change: delete "no-await-in-loop", insert "jsx-no-jsx-as-prop"
+ *
+ * @param changes - The changes from simplifyChanges
+ * @param docOld - The old document (to extract merged deletion content)
+ * @returns Changes with adjacent interleaved changes merged
+ */
+function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
+  changes: readonly ChangeFields<T>[],
+  docOld: Node
+): ChangeFields<T>[] {
+  if (changes.length <= 1) {
+    return [...changes];
+  }
+
+  const result: ChangeFields<T>[] = [];
+  let i = 0;
+
+  while (i < changes.length) {
+    const current = changes[i];
+
+    // Check if this change and subsequent changes form a contiguous replacement
+    // (i.e., they're adjacent in both old and new document positions)
+    let j = i + 1;
+    while (j < changes.length) {
+      const prev = changes[j - 1];
+      const next = changes[j];
+
+      // Check if changes are adjacent (toA of prev equals fromA of next, same for B)
+      // Allow gaps (like hyphens or other unchanged characters between changes)
+      const gapA = next.fromA - prev.toA;
+      const gapB = next.fromB - prev.toB;
+
+      // Check if changes are in the same parent node (e.g., same table cell, same paragraph)
+      // by verifying that the gap in the old document doesn't cross node boundaries
+      let crossesNodeBoundary = false;
+      if (gapA > 0) {
+        try {
+          // If the gap contains any non-text node, it crosses a boundary
+          const gap = docOld.slice(prev.toA, next.fromA).content;
+          for (let n = 0; n < gap.childCount; n++) {
+            if (!gap.child(n).isText) {
+              crossesNodeBoundary = true;
+              break;
+            }
+          }
+        } catch {
+          crossesNodeBoundary = true;
+        }
+      }
+
+      // If gaps are equal, reasonably small, and don't cross node boundaries,
+      // they're part of the same logical replacement
+      if (
+        gapA === gapB &&
+        gapA >= 0 &&
+        gapA <= MAX_UNCHANGED_GAP &&
+        !crossesNodeBoundary
+      ) {
+        j++;
+      } else {
+        break;
+      }
+    }
+
+    // The merged change only needs the first deletion/insertion in the window
+    // to carry forward the originating step; the spans themselves are
+    // recomputed from the window bounds below.
+    let firstDeleted: { length: number; data: T } | undefined;
+    let firstInserted: { length: number; data: T } | undefined;
+    for (let k = i; k < j; k++) {
+      firstDeleted ??= changes[k].deleted[0];
+      firstInserted ??= changes[k].inserted[0];
+    }
+
+    // Merge the window only when it is a genuine replacement — it must contain
+    // both a deletion and an insertion. Otherwise a cluster of pure insertions
+    // (or pure deletions) separated by a short unchanged gap would merge and
+    // render the unchanged text between them as inserted/deleted.
+    if (j > i + 1 && firstDeleted && firstInserted) {
+      const lastChange = changes[j - 1];
+
+      // Create merged change. The deletion slice holds the original (old) text
+      // spanning the whole window so it renders as one block; it is not treated
+      // as a modification downstream because its text differs from the insertion.
+      const mergedChange: ChangeFields<T> = {
+        fromA: current.fromA,
+        toA: lastChange.toA,
+        fromB: current.fromB,
+        toB: lastChange.toB,
+        deleted: [
+          {
+            length: lastChange.toA - current.fromA,
+            data: {
+              ...firstDeleted.data,
+              slice: docOld.slice(current.fromA, lastChange.toA),
+            } as T,
+          },
+        ],
+        inserted: [
+          {
+            length: lastChange.toB - current.fromB,
+            data: firstInserted.data,
+          },
+        ],
+      };
+
+      result.push(mergedChange);
+      i = j;
+    } else {
+      result.push(current);
+      i++;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * The maximum estimated cost of computing a changeset, as the number of patch
+ * operations multiplied by the document node size. Step recreation copies and
+ * validates the full document once per operation, so its runtime grows with
+ * this product; above the bound the changeset is skipped instead of blocking
+ * the process for seconds or minutes.
+ */
+const MAX_CHANGESET_COMPLEXITY = 50_000_000;
+
+/**
+ * Marks that carry no document content and should not be surfaced as changes.
+ */
+const IGNORED_MARKS = ["comment"];
+
+/**
+ * Recursively removes marks that are irrelevant to a diff from a node, so that
+ * adding or removing one does not render as a change to the text it covers.
+ *
+ * @param node - The node to strip marks from.
+ * @returns an equivalent node without the ignored marks.
+ */
+function removeIgnoredMarks(node: Node): Node {
+  const marks = node.marks.filter(
+    (mark) => !IGNORED_MARKS.includes(mark.type.name)
+  );
+
+  if (node.isText || !node.childCount) {
+    return node.mark(marks);
+  }
+
+  const children: Node[] = [];
+  node.content.forEach((child) => children.push(removeIgnoredMarks(child)));
+  return node.copy(Fragment.fromArray(children)).mark(marks);
+}
 
 /**
  * Represents a modification (attribute change) in the document.
@@ -62,11 +246,12 @@ class AttributeEncoder implements TokenEncoder<string | number> {
 
   // See: https://github.com/ProseMirror/prosemirror-changeset/blob/23f67c002e5489e454a0473479e407decb238afe/src/diff.ts#L26
   public encodeNodeEnd({ type }: Node): number {
-    let cache: Record<string, number> =
+    const cache: Record<string, number> =
       type.schema.cached.changeSetIDs ||
       (type.schema.cached.changeSetIDs = Object.create(null));
+    // The cache has a null prototype, so a miss reads as undefined.
     let id = cache[type.name];
-    if (id === null) {
+    if (id === undefined) {
       cache[type.name] = id =
         Object.keys(type.schema.nodes).indexOf(type.name) + 1;
     }
@@ -97,7 +282,9 @@ export class ChangesetHelper {
    *
    * @param revision - The current revision data.
    * @param previousRevision - The previous revision data to compare against.
-   * @returns An object containing the simplified changes and the new document.
+   * @returns An object containing the simplified changes and the new document,
+   * or null when there is nothing to compare against or the changeset is too
+   * expensive to compute.
    */
   public static getChangeset(
     revision?: ProsemirrorData | null,
@@ -119,14 +306,23 @@ export class ChangesetHelper {
       });
 
       // Parse documents from JSON (old = previous revision, new = current revision)
-      const docOld = Node.fromJSON(schema, previousRevision);
-      const docNew = Node.fromJSON(schema, revision);
+      const original = Node.fromJSON(schema, revision);
 
-      // Calculate the transform and changeset
+      // Diffing runs against copies without the ignored marks. Stripping marks
+      // leaves every position unchanged, so the resulting changes still line up
+      // with the original document.
+      const docOld = removeIgnoredMarks(
+        Node.fromJSON(schema, previousRevision)
+      );
+      const docNew = removeIgnoredMarks(original);
+
+      // Calculate the transform and changeset. Throws, and so returns null,
+      // when the diff is too expensive to compute.
       const tr = recreateTransform(docOld, docNew, {
         complexSteps: false,
         wordDiffs: true,
         simplifyDiff: true,
+        maxComplexity: MAX_CHANGESET_COMPLEXITY,
       });
 
       // Map steps to capture the actual content being replaced from the document
@@ -147,7 +343,11 @@ export class ChangesetHelper {
         }))
       );
 
-      let changes = simplifyChanges(changeset.changes, docNew);
+      // Merge interleaved deletions/insertions into cleaner blocks
+      const changes = mergeInterleavedChanges(
+        simplifyChanges(changeset.changes, docNew),
+        docOld
+      );
 
       // Post-process changes to detect modifications (attribute-only changes)
       const extendedChanges: ExtendedChange[] = changes.map((change) => {
@@ -268,7 +468,7 @@ export class ChangesetHelper {
 
       return {
         changes: extendedChanges,
-        doc: tr.doc,
+        doc: original,
       };
     } catch {
       return null;

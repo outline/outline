@@ -10,13 +10,13 @@ import {
   BelongsTo,
   Column,
 } from "sequelize-typescript";
+import { toError } from "@shared/utils/error";
 import type { IntegrationService } from "@shared/types";
 import Logger from "../logging/Logger";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 import { Minute } from "@shared/utils/time";
 import { addSeconds } from "date-fns";
 
@@ -31,7 +31,6 @@ export type TokenRefreshCallback = (
 ) => Promise<TokenRefreshResponse>;
 
 @Table({ tableName: "authentications", modelName: "authentication" })
-@Fix
 class IntegrationAuthentication extends IdModel<
   InferAttributes<IntegrationAuthentication>,
   Partial<InferCreationAttributes<IntegrationAuthentication>>
@@ -161,7 +160,10 @@ class IntegrationAuthentication extends IdModel<
 
       return refreshedToken;
     } catch (err) {
-      Logger.warn(`Failed to refresh ${this.service} access token`, err);
+      Logger.warn(
+        `Failed to refresh ${this.service} access token`,
+        toError(err)
+      );
       // Continue with existing token - it might still work
       return this.token;
     }

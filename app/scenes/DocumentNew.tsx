@@ -4,13 +4,14 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { toast } from "sonner";
 import { UserPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { preloadEditor } from "~/routes/scenes";
 import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 
 function DocumentNew() {
@@ -25,6 +26,9 @@ function DocumentNew() {
   const id = match.params.collectionSlug || query.get("collectionId");
 
   useEffect(() => {
+    // Download the editor while the document is being created on the server
+    preloadEditor();
+
     async function createDocument() {
       const index = parseInt(query.get("index") || "0", 10);
       const parentDocumentId = query.get("parentDocumentId") ?? undefined;
@@ -47,7 +51,7 @@ function DocumentNew() {
               user.getPreference(UserPreference.FullWidthDocuments),
             templateId: query.get("templateId") ?? undefined,
             title: query.get("title") ?? "",
-            data: ProsemirrorHelper.getEmptyDocument(),
+            data: ProsemirrorDataHelper.getEmpty(),
           },
           {
             publish: collection?.id || parentDocumentId ? true : undefined,

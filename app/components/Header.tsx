@@ -1,25 +1,31 @@
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { MenuIcon } from "outline-icons";
+import { CloseIcon, MenuIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useMeasure from "react-use-measure";
+import { HEADER_HEIGHT } from "@shared/constants";
 import { depths, s } from "@shared/styles";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { useSplitView } from "~/components/SplitView/context";
+import Tooltip from "~/components/Tooltip";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import Desktop from "~/utils/Desktop";
+import history from "~/utils/history";
+import { closeSplitPane } from "~/utils/splitView";
 import { TooltipProvider } from "./TooltipContext";
 
-export const HEADER_HEIGHT = 64;
+export { HEADER_HEIGHT };
 
 type Props = {
   left?: React.ReactNode;
@@ -29,18 +35,22 @@ type Props = {
     | React.ReactNode;
   hasSidebar?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function Header(
-  { left, title, actions, hasSidebar, className }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
   const { ui } = useStores();
+  const { t } = useTranslation();
+  const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
   const hasMobileSidebar = hasSidebar && isMobile;
   const [internalMeasureRef, size] = useMeasure();
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
-  const passThrough = !actions && !left && !title;
+  const passThrough = !actions && !left && !title && !isSplitView;
+
+  const handleCloseSplitPane = React.useCallback(() => {
+    closeSplitPane(history, pane);
+  }, [pane]);
 
   const [isScrolled, setScrolled] = React.useState(false);
   const handleScroll = React.useMemo(
@@ -88,7 +98,6 @@ function Header(
           <Breadcrumbs ref={setBreadcrumbRef}>
             {hasMobileSidebar && (
               <MobileMenuButton
-                haptic="light"
                 onClick={ui.toggleMobileSidebar}
                 icon={<MenuIcon />}
                 neutral
@@ -107,6 +116,17 @@ function Header(
         )}
         <Actions align="center" justify="flex-end">
           {typeof actions === "function" ? actions({ isCompact }) : actions}
+          {isSplitView && (
+            <Tooltip content={t("Close pane")} side="bottom">
+              <CloseSplitPaneButton
+                aria-label={t("Close pane")}
+                onClick={handleCloseSplitPane}
+                icon={<CloseIcon />}
+                neutral
+                borderOnHover
+              />
+            </Tooltip>
+          )}
         </Actions>
       </Wrapper>
     </TooltipProvider>
@@ -131,7 +151,7 @@ const Actions = styled(Flex)`
   flex-basis: 0;
   min-width: auto;
   padding-inline: 8px 0;
-  gap: 12px;
+  gap: 8px;
   margin-inline-start: 8px;
 
   ${breakpoint("tablet")`
@@ -161,7 +181,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       backdrop-filter: blur(20px);
       `};
 
-  padding: 12px;
+  padding: 12px 16px;
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;
@@ -173,8 +193,12 @@ const Wrapper = styled(Flex)<WrapperProps>`
   }
 
   @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
+    ${(props) =>
+      !props.$passThrough &&
+      `
+      backdrop-filter: blur(20px);
+      background: ${transparentize(0.2, props.theme.background)};
+      `}
   }
 
   @media print {
@@ -182,7 +206,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
   }
 
   ${breakpoint("tablet")`
-    padding: 16px;
+    padding: 12px;
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
@@ -221,4 +245,8 @@ const MobileMenuButton = styled(Button)`
   }
 `;
 
-export default observer(React.forwardRef(Header));
+const CloseSplitPaneButton = styled(Button)`
+  pointer-events: auto;
+`;
+
+export default observer(Header);

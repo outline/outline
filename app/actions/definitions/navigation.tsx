@@ -13,6 +13,7 @@ import {
   ShapesIcon,
   DraftsIcon,
   BugIcon,
+  ImportIcon,
 } from "outline-icons";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
@@ -46,12 +47,15 @@ export const navigateToHome = createInternalLinkAction({
   visible: ({ location }) => location.pathname !== homePath(),
 });
 
-export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
+export const navigateToRecentSearchQueryActionFactory = (
+  searchQuery: SearchQuery
+) =>
   createInternalLinkAction({
     section: RecentSearchesSection,
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
     icon: <SearchIcon />,
+    visible: ({ isMCP }) => !isMCP,
     to: searchPath({ query: searchQuery.query }),
   });
 
@@ -109,6 +113,22 @@ export const navigateToWorkspaceSettings = createInternalLinkAction({
   icon: <SettingsIcon />,
   visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
   to: settingsPath("details"),
+});
+
+/**
+ * Only visible to workspaces that appear to be newly created and have little
+ * content of their own, so it is intentionally not a root navigation action.
+ */
+export const navigateToImport = createInternalLinkAction({
+  name: ({ t }) => t("Import docs"),
+  analyticsName: "Navigate to import",
+  section: NavigationSection,
+  icon: <ImportIcon />,
+  visible: () =>
+    stores.policies.abilities(stores.auth.team?.id || "").createImport &&
+    stores.collections.all.length === 1 &&
+    stores.documents.all.length < 10,
+  to: settingsPath("import"),
 });
 
 export const navigateToProfileSettings = createInternalLinkAction({

@@ -1,3 +1,4 @@
+import { debounce } from "es-toolkit/compat";
 import {
   CaretDownIcon,
   CaretUpIcon,
@@ -21,6 +22,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import { useClearSearchHighlight } from "~/hooks/useClearSearchHighlight";
 import useKeyDown from "~/hooks/useKeyDown";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
@@ -28,6 +30,7 @@ import { HStack } from "~/components/primitives/HStack";
 
 type KeyboardShortcutsProps = {
   open: boolean;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
@@ -35,6 +38,7 @@ type KeyboardShortcutsProps = {
 
 function useKeyboardShortcuts({
   open,
+  inputRef,
   handleOpen,
   handleCaseSensitive,
   handleRegex,
@@ -43,8 +47,8 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
-      !open &&
       ev.code === "KeyF" &&
+      (!open || ev.altKey || document.activeElement !== inputRef.current) &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
@@ -100,11 +104,12 @@ export default function FindAndReplace({
 }: Props) {
   const editor = useEditor();
   const [localOpen, setLocalOpen] = React.useState(open);
-  const selectionRef = React.useRef<string | undefined>();
+  const selectionRef = React.useRef<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const theme = useTheme();
+  const clearSearchHighlight = useClearSearchHighlight();
   const [showReplace, setShowReplace] = React.useState(false);
   const [caseSensitive, setCaseSensitive] = React.useState(false);
   const [regexEnabled, setRegex] = React.useState(false);
@@ -211,9 +216,31 @@ export default function FindAndReplace({
     });
   }, [caseSensitive, editor.commands, searchTerm]);
 
+  // Searching the document on every keystroke is expensive in long documents –
+  // it traverses the entire doc and rebuilds highlights – so debounce.
+  const debouncedFind = React.useMemo(
+    () =>
+      debounce(
+        (attrs: {
+          text: string;
+          caseSensitive: boolean;
+          regexEnabled: boolean;
+        }) => {
+          editor.commands.find(attrs);
+        },
+        100
+      ),
+    [editor.commands]
+  );
+
+  React.useEffect(() => () => debouncedFind.cancel(), [debouncedFind]);
+
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       function nextPrevious() {
+        // Ensure any pending debounced search has run so navigation acts on the
+        // results for the text currently in the input.
+        debouncedFind.flush();
         if (ev.shiftKey) {
           editor.commands.prevSearchMatch();
         } else {
@@ -243,11 +270,11 @@ export default function FindAndReplace({
         }
       }
     },
-    [editor.commands, selectInputText]
+    [debouncedFind, editor.commands, selectInputText]
   );
 
   const handleReplace = React.useCallback(
-    (ev) => {
+    (ev: React.SyntheticEvent) => {
       if (readOnly) {
         return;
       }
@@ -258,7 +285,7 @@ export default function FindAndReplace({
   );
 
   const handleReplaceAll = React.useCallback(
-    (ev) => {
+    (ev: React.SyntheticEvent) => {
       if (readOnly) {
         return;
       }
@@ -274,13 +301,13 @@ export default function FindAndReplace({
       ev.stopPropagation();
       setSearchTerm(ev.currentTarget.value);
 
-      editor.commands.find({
+      debouncedFind({
         text: ev.currentTarget.value,
         caseSensitive,
         regexEnabled,
       });
     },
-    [caseSensitive, editor.commands, regexEnabled]
+    [caseSensitive, debouncedFind, regexEnabled]
   );
 
   const handleReplaceKeyDown = React.useCallback(
@@ -293,8 +320,23 @@ export default function FindAndReplace({
     [handleReplace]
   );
 
+  const handleEscape = React.useCallback(
+    (ev: KeyboardEvent) => {
+      if (!searchTerm) {
+        return;
+      }
+
+      ev.preventDefault();
+      debouncedFind.cancel();
+      setSearchTerm("");
+      editor.commands.clearSearch();
+    },
+    [debouncedFind, editor.commands, searchTerm]
+  );
+
   useKeyboardShortcuts({
     open: localOpen,
+    inputRef,
     handleOpen,
     handleCaseSensitive,
     handleRegex,
@@ -313,6 +355,8 @@ export default function FindAndReplace({
   React.useEffect(() => {
     if (localOpen) {
       onOpen();
+      // The find controls take over highlighting from here.
+      clearSearchHighlight();
       const startSearchText = selectionRef.current || searchTerm;
 
       editor.commands.find({
@@ -331,6 +375,9 @@ export default function FindAndReplace({
     } else {
       onClose();
       setShowReplace(false);
+      // Cancel any pending debounced find so it can't reactivate highlights
+      // after the search has been cleared.
+      debouncedFind.cancel();
       editor.commands.clearSearch();
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps
@@ -346,7 +393,10 @@ export default function FindAndReplace({
       >
         <ButtonLarge
           disabled={disabled}
-          onClick={() => editor.commands.prevSearchMatch()}
+          onClick={() => {
+            debouncedFind.flush();
+            editor.commands.prevSearchMatch();
+          }}
           aria-label={t("Previous match")}
         >
           <CaretUpIcon />
@@ -355,7 +405,10 @@ export default function FindAndReplace({
       <Tooltip content={t("Next match")} shortcut="Enter" placement="bottom">
         <ButtonLarge
           disabled={disabled}
-          onClick={() => editor.commands.nextSearchMatch()}
+          onClick={() => {
+            debouncedFind.flush();
+            editor.commands.nextSearchMatch();
+          }}
           aria-label={t("Next match")}
         >
           <CaretDownIcon />
@@ -378,11 +431,9 @@ export default function FindAndReplace({
         width={0}
         minWidth={420}
         scrollable={false}
-        onPointerDownOutside={() => setLocalOpen(false)}
-        onFocusOutside={(event) => {
-          event.preventDefault();
-          inputRef.current?.focus();
-        }}
+        onEscapeKeyDown={handleEscape}
+        onPointerDownOutside={(ev) => ev.preventDefault()}
+        onFocusOutside={(ev) => ev.preventDefault()}
         style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>

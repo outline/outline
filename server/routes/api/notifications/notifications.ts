@@ -39,7 +39,7 @@ const handleUnsubscribe = async (
     eventType
   );
 
-  if (unsubscribeToken !== token) {
+  if (!safeEqual(unsubscribeToken, token)) {
     ctx.redirect(`${env.URL}?notice=invalid-auth`);
     return;
   }

@@ -11,7 +11,7 @@ const Logout = () => {
     clearCache: true,
   });
 
-  if (env.OIDC_LOGOUT_URI) {
+  if (env.OIDC_LOGOUT_URI || auth.lastSignedIn === "oidc") {
     return null; // user will be redirected to logout URI after logout
   }
   return <Redirect to={logoutPath()} />;

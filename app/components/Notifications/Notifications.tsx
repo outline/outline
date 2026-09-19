@@ -73,15 +73,14 @@ function useStableOrderedNotifications(
 type Props = {
   /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
+  /** Ref to the scrollable container. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
  * A panel containing a list of notifications and controls to manage them.
  */
-function Notifications(
-  { onRequestClose }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function Notifications({ onRequestClose, ref }: Props) {
   const { notifications } = useStores();
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -145,7 +144,7 @@ function Notifications(
             <NotificationMenu />
           </HStack>
         </Header>
-        <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+        <StyledScrollable ref={ref} flex topShadow hiddenScrollbars>
           <React.Suspense fallback={null}>
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
@@ -165,7 +164,7 @@ function Notifications(
               )}
             />
           </React.Suspense>
-        </Scrollable>
+        </StyledScrollable>
       </Flex>
     </ErrorBoundary>
   );
@@ -183,11 +182,16 @@ const StyledInputSelect = styled(InputSelect)`
   }
 `;
 
+const StyledScrollable = styled(Scrollable)`
+  flex: 1;
+  min-height: 0;
+`;
+
 const EmptyNotifications = styled(Empty)`
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
 `;
 
 const Button = styled(NudeButton)`
@@ -217,4 +221,4 @@ const Header = styled(Flex)`
   }
 `;
 
-export default observer(React.forwardRef(Notifications));
+export default observer(Notifications);

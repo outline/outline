@@ -1,4 +1,6 @@
 export default class Queue {
+  handler?: (job: unknown, done: () => void) => void;
+
   done() {
     //
   }
@@ -15,27 +17,27 @@ export default class Queue {
     return 0;
   }
 
-  add = function (data: unknown) {
+  add(data: unknown) {
     const job = this.createJob(data);
 
     if (!this.handler) {
       return;
     }
 
-    this.handler(job, this.done);
-  };
+    this.handler(job, () => this.done());
+  }
 
-  process = function (handler: (job: unknown, done: () => void) => void) {
+  process(handler: (job: unknown, done: () => void) => void) {
     if (this.handler) {
       throw Error("Cannot define a handler more than once per Queue instance");
     }
 
     this.handler = handler;
-  };
+  }
 
-  createJob = function (data: unknown) {
+  createJob(data: unknown) {
     return {
       data,
     };
-  };
+  }
 }

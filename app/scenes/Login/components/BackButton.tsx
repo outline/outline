@@ -6,6 +6,7 @@ import type { Config } from "~/stores/AuthStore";
 import env from "~/env";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { DefaultHost } from "../urls";
 
 type Props = {
   config?: Config;
@@ -24,17 +25,27 @@ export function BackButton({ onBack, config }: Props) {
     );
   }
 
-  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
-    return null;
+  // In the desktop app any host other than the default is one the user has
+  // switched to, so back always returns to the default host.
+  if (Desktop.isElectron()) {
+    if (window.location.origin === DefaultHost) {
+      return null;
+    }
+
+    return (
+      <Link href={DefaultHost}>
+        <BackIcon /> {t("Back")}
+      </Link>
+    );
   }
 
-  if (Desktop.isElectron() && !isSubdomain) {
+  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
     return null;
   }
 
   return (
     <Link href={isSubdomain ? env.URL : "https://www.getoutline.com"}>
-      <BackIcon /> {Desktop.isElectron() ? t("Back") : t("Back to home")}
+      <BackIcon /> {t("Back to home")}
     </Link>
   );
 }

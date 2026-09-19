@@ -1,4 +1,4 @@
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import {
   DoneIcon,
   ExpandedIcon,
@@ -6,17 +6,22 @@ import {
   StarredIcon,
   WarningIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
-import type { MenuItem } from "@shared/editor/types";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 
-export default function noticeMenuItems(
-  state: EditorState,
-  readOnly: boolean | undefined,
-  t: TFunction
-): MenuItem[] {
-  const node = state.selection.$from.node(-1);
-  const currentStyle = node?.attrs.style as NoticeTypes;
+/**
+ * Returns menu items for the notice/callout selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
+export default function noticeMenuItems(ctx: SelectionContext): MenuItem[] {
+  const notice = findParentNode(
+    (node) => node.type === ctx.schema.nodes.container_notice
+  )(ctx.selection);
+  const currentStyle: NoticeTypes =
+    notice?.node.attrs.style ?? NoticeTypes.Info;
 
   const mapping = {
     [NoticeTypes.Info]: t("Info notice"),
@@ -28,7 +33,7 @@ export default function noticeMenuItems(
   return [
     {
       name: "container_notice",
-      visible: !readOnly,
+      visible: !ctx.readOnly,
       label: mapping[currentStyle],
       icon: <ExpandedIcon />,
       children: [

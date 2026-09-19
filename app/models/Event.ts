@@ -1,3 +1,4 @@
+import type { AuthenticationType } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -6,6 +7,11 @@ import Relation from "./decorators/Relation";
 
 class Event<T extends Model> extends Model {
   static modelName = "Event";
+
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   name: string;
 
@@ -32,6 +38,8 @@ class Event<T extends Model> extends Model {
   actor: User;
 
   actorId: string;
+
+  authType: AuthenticationType | null;
 
   data: Partial<T> | null;
 

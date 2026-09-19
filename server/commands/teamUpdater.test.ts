@@ -1,7 +1,8 @@
 import type { CustomTheme } from "@shared/types";
-import { TeamPreference } from "@shared/types";
+import { randomString } from "@shared/random";
+import { CommentingAccess, TeamPreference } from "@shared/types";
 import { buildTeam, buildUser } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { setCloudHosted, withAPIContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";
 
 describe("teamUpdater", () => {
@@ -10,8 +11,7 @@ describe("teamUpdater", () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
 
-      const originalValue = team.getPreference(TeamPreference.Commenting);
-      const newValue = !originalValue;
+      const newValue = CommentingAccess.None;
 
       const updatedTeam = await withAPIContext(user, (ctx) =>
         teamUpdater(ctx, {
@@ -97,7 +97,7 @@ describe("teamUpdater", () => {
       const user = await buildUser({ teamId: team.id });
 
       // Set initial values
-      team.setPreference(TeamPreference.Commenting, true);
+      team.setPreference(TeamPreference.Commenting, CommentingAccess.Members);
       team.setPreference(TeamPreference.ViewersCanExport, true);
       await team.save();
 
@@ -105,7 +105,8 @@ describe("teamUpdater", () => {
         teamUpdater(ctx, {
           params: {
             preferences: {
-              [TeamPreference.Commenting]: true, // Same - should skip due to isEqual
+              // Same - should skip due to isEqual
+              [TeamPreference.Commenting]: CommentingAccess.Members,
               [TeamPreference.ViewersCanExport]: false, // Different - should update
             },
           },
@@ -115,7 +116,7 @@ describe("teamUpdater", () => {
       );
 
       expect(updatedTeam.getPreference(TeamPreference.Commenting)).toEqual(
-        true
+        CommentingAccess.Members
       );
       expect(
         updatedTeam.getPreference(TeamPreference.ViewersCanExport)
@@ -137,6 +138,43 @@ describe("teamUpdater", () => {
       );
 
       expect(updatedTeam.name).toEqual("Updated Team Name");
+    });
+  });
+
+  describe("subdomain", () => {
+    beforeEach(setCloudHosted);
+
+    it("should update subdomain when available", async () => {
+      const subdomain = `available-${randomString({ length: 10, charset: "alphabetic", capitalization: "lowercase" })}`;
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+
+      const updatedTeam = await withAPIContext(user, (ctx) =>
+        teamUpdater(ctx, {
+          params: { subdomain },
+          user,
+          team,
+        })
+      );
+
+      expect(updatedTeam.subdomain).toEqual(subdomain);
+    });
+
+    it("should throw a validation error when subdomain is taken", async () => {
+      const subdomain = `taken-${randomString({ length: 10, charset: "alphabetic", capitalization: "lowercase" })}`;
+      await buildTeam({ subdomain });
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+
+      await expect(
+        withAPIContext(user, (ctx) =>
+          teamUpdater(ctx, {
+            params: { subdomain },
+            user,
+            team,
+          })
+        )
+      ).rejects.toThrow("Subdomain is already in use");
     });
   });
 });

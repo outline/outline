@@ -1,4 +1,4 @@
-import { AllowNull, Column, IsDate } from "sequelize-typescript";
+import { AllowNull, Column, DataType, IsDate } from "sequelize-typescript";
 import ParanoidModel from "./ParanoidModel";
 
 class ArchivableModel<
@@ -9,7 +9,7 @@ class ArchivableModel<
   /** Whether the document is archived, and if so when. */
   @AllowNull
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   archivedAt: Date | null;
 
   /**

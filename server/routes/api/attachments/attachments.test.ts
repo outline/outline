@@ -1,5 +1,7 @@
+// @vitest-isolate true
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
+import env from "@server/env";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
@@ -165,7 +167,67 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
     });
 
-    it("should create expiring attachment using import preset", async () => {
+    it("should return PUT data when AWS_S3_UPLOAD_METHOD is put", async () => {
+      const original = env.AWS_S3_UPLOAD_METHOD;
+      env.AWS_S3_UPLOAD_METHOD = "put";
+
+      try {
+        const user = await buildUser();
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.png",
+            contentType: "image/png",
+            size: 1000,
+            preset: AttachmentPreset.Avatar,
+          },
+        });
+        expect(res.status).toEqual(200);
+
+        const body = await res.json();
+        expect(body.data.mode).toBe("put");
+        expect(body.data.url).toBeDefined();
+        expect(body.data.headers).toBeDefined();
+        expect(body.data.headers["Content-Type"]).toBeDefined();
+        expect(body.data.headers["Content-Length"]).toBe("1000");
+        expect(body.data.headers["Content-Disposition"]).toBeDefined();
+        expect(body.data.headers["Cache-Control"]).toBe("max-age=31557600");
+        expect(body.data.uploadUrl).toBeUndefined();
+        expect(body.data.form).toBeUndefined();
+        expect(body.data.attachment).toBeDefined();
+      } finally {
+        env.AWS_S3_UPLOAD_METHOD = original;
+      }
+    });
+
+    it("should return POST data when AWS_S3_UPLOAD_METHOD is post", async () => {
+      const original = env.AWS_S3_UPLOAD_METHOD;
+      env.AWS_S3_UPLOAD_METHOD = "post";
+
+      try {
+        const user = await buildUser();
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.png",
+            contentType: "image/png",
+            size: 1000,
+            preset: AttachmentPreset.Avatar,
+          },
+        });
+        expect(res.status).toEqual(200);
+
+        const body = await res.json();
+        expect(body.data.mode).toBe("post");
+        expect(body.data.url).toBeUndefined();
+        expect(body.data.headers).toBeUndefined();
+        expect(body.data.uploadUrl).toBeDefined();
+        expect(body.data.form).toBeDefined();
+        expect(body.data.attachment).toBeDefined();
+      } finally {
+        env.AWS_S3_UPLOAD_METHOD = original;
+      }
+    });
+
+    it("should not allow upload using workspaceImport preset", async () => {
       const user = await buildUser();
       const res = await server.post("/api/attachments.create", user, {
         body: {
@@ -173,6 +235,38 @@ describe("#attachments.create", () => {
           contentType: "application/zip",
           size: 10000,
           preset: AttachmentPreset.WorkspaceImport,
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should create expiring attachment using import preset", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.zip",
+          contentType: "application/zip",
+          size: 10000,
+          preset: AttachmentPreset.Import,
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeTruthy();
+    });
+
+    it("should allow viewer to upload using import preset", async () => {
+      const user = await buildViewer();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.zip",
+          contentType: "application/zip",
+          size: 10000,
+          preset: AttachmentPreset.Import,
         },
       });
       expect(res.status).toEqual(200);
@@ -299,6 +393,49 @@ describe("#attachments.create", () => {
       });
       expect(res.status).toEqual(200);
     });
+  });
+
+  describe("admin", () => {
+    it.each([AttachmentPreset.Import, AttachmentPreset.WorkspaceImport])(
+      "should create expiring attachment using %s preset",
+      async (preset) => {
+        const user = await buildAdmin();
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.zip",
+            contentType: "application/zip",
+            size: 10000,
+            preset,
+          },
+        });
+        expect(res.status).toEqual(200);
+
+        const body = await res.json();
+        const attachment = await Attachment.findByPk(body.data.attachment.id, {
+          rejectOnEmpty: true,
+        });
+        expect(attachment.expiresAt).toBeTruthy();
+      }
+    );
+
+    it.each([AttachmentPreset.Import, AttachmentPreset.WorkspaceImport])(
+      "should not allow upload using %s preset for another team's document",
+      async (preset) => {
+        const user = await buildAdmin();
+        const document = await buildDocument();
+
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.zip",
+            contentType: "application/zip",
+            size: 10000,
+            documentId: document.id,
+            preset,
+          },
+        });
+        expect(res.status).toEqual(403);
+      }
+    );
   });
 });
 

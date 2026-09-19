@@ -10,14 +10,12 @@ import AuthenticationProvider from "./AuthenticationProvider";
 import Group from "./Group";
 import Team from "./Team";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
 @Table({
   tableName: "external_groups",
   modelName: "external_group",
 })
-@Fix
 class ExternalGroup extends IdModel<
   InferAttributes<ExternalGroup>,
   Partial<InferCreationAttributes<ExternalGroup>>
@@ -27,7 +25,7 @@ class ExternalGroup extends IdModel<
     max: 255,
     msg: "externalId must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   externalId: string;
 
   /** The group name as reported by the external provider. */
@@ -35,7 +33,7 @@ class ExternalGroup extends IdModel<
     max: 255,
     msg: "name must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   /** When this record was last synced from the provider. */

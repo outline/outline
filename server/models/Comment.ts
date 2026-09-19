@@ -20,7 +20,7 @@ import {
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
-import { commentSchema } from "@server/editor";
+import { commentSchema, serializer } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -28,7 +28,6 @@ import Document from "./Document";
 import User from "./User";
 import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import TextLength from "./validators/TextLength";
 import { SkipChangeset } from "./decorators/Changeset";
 
@@ -47,7 +46,6 @@ import { SkipChangeset } from "./decorators/Changeset";
   ],
 }))
 @Table({ tableName: "comments", modelName: "comment" })
-@Fix
 class Comment extends ParanoidModel<
   InferAttributes<Comment>,
   Partial<InferCreationAttributes<Comment>>
@@ -148,6 +146,19 @@ class Comment extends ParanoidModel<
   public toPlainText() {
     const node = Node.fromJSON(commentSchema, this.data);
     return ProsemirrorHelper.toPlainText(node);
+  }
+
+  /**
+   * Convert the comment data to markdown.
+   *
+   * @returns The markdown representation of the comment data
+   */
+  public toMarkdown() {
+    const node = Node.fromJSON(commentSchema, this.data);
+    return serializer
+      .serialize(node)
+      .replace(/(^|\n)\\(\n|$)/g, "\n\n")
+      .trim();
   }
 
   // hooks

@@ -1,5 +1,7 @@
 import { addMinutes, subMinutes } from "date-fns";
+import JWT from "jsonwebtoken";
 import type { Context } from "koa";
+import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -10,7 +12,7 @@ import {
   OAuthStateMismatchError,
 } from "../errors";
 import { safeEqual } from "./crypto";
-import fetch from "./fetch";
+import fetch, { type Response } from "./fetch";
 
 /**
  * Generate a random nonce, persist it in a same-origin cookie, and return it
@@ -45,8 +47,8 @@ export function generateOAuthStateNonce(
  * @param ctx The Koa context for the callback request.
  * @param cookieName The cookie used to persist the nonce, unique per provider.
  * @param stateNonce The nonce extracted from the parsed OAuth state.
- * @throws {OAuthStateMismatchError} When the cookie is missing or does not
- *   match the supplied nonce.
+ * @throws {OAuthStateMismatchError} When the cookie or state nonce is missing,
+ *   or when they do not match.
  */
 export function verifyOAuthStateNonce(
   ctx: Context,
@@ -61,8 +63,53 @@ export function verifyOAuthStateNonce(
     domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
   });
 
+  if (!cookieNonce) {
+    throw OAuthStateMismatchError("OAuth state cookie was missing");
+  }
+
+  if (!stateNonce) {
+    throw OAuthStateMismatchError("State returned in OAuth flow was missing");
+  }
+
   if (!safeEqual(cookieNonce, stateNonce)) {
     throw OAuthStateMismatchError();
+  }
+}
+
+/**
+ * Parse a UserInfo endpoint response according to OIDC Core 1.0. Claims are
+ * normally returned as a JSON object with `Content-Type: application/json`,
+ * but when a signed and/or encrypted response was requested during client
+ * registration the provider returns a JWT with `Content-Type: application/jwt`
+ * instead.
+ *
+ * @param response The response received from the userinfo endpoint.
+ * @returns The claims contained in the response body.
+ * @throws {Error} When the body cannot be parsed as JSON or a decodable JWT.
+ */
+export async function parseUserInfoResponse<T = JWT.JwtPayload>(
+  response: Response
+): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const mediaType = contentType.split(";")[0].trim().toLowerCase();
+  const text = await response.text();
+
+  if (mediaType === "application/jwt") {
+    // The JWT arrives directly from the provider over TLS so, as with the
+    // id_token, claims are read without local signature verification.
+    const claims = JWT.decode(text.trim());
+    if (!claims || typeof claims !== "object") {
+      throw new Error(
+        "Failed to decode application/jwt response, note that encrypted responses are not supported"
+      );
+    }
+    return claims as T;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (_err) {
+    throw new Error(`Expected JSON response from OIDC provider, got: ${text}`);
   }
 }
 
@@ -95,7 +142,7 @@ export default abstract class OAuthClient {
         },
       });
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     const success = response.status >= 200 && response.status < 300;
@@ -104,9 +151,9 @@ export default abstract class OAuthClient {
     }
 
     try {
-      data = await response.json();
+      data = await parseUserInfoResponse(response);
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     return data;
@@ -142,7 +189,7 @@ export default abstract class OAuthClient {
       });
       data = await response.json();
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     const success = response.status >= 200 && response.status < 300;

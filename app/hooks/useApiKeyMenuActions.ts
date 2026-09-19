@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import {
-  copyApiKeyFactory,
-  revokeApiKeyFactory,
+  copyApiKeyActionFactory,
+  revokeApiKeyActionFactory,
 } from "~/actions/definitions/apiKeys";
 import type ApiKey from "~/models/ApiKey";
 import { useMenuAction } from "~/hooks/useMenuAction";
@@ -14,7 +14,10 @@ import { useMenuAction } from "~/hooks/useMenuAction";
  */
 export function useApiKeyMenuActions(apiKey: ApiKey) {
   const actions = useMemo(
-    () => [copyApiKeyFactory({ apiKey }), revokeApiKeyFactory({ apiKey })],
+    () => [
+      copyApiKeyActionFactory({ apiKey }),
+      revokeApiKeyActionFactory({ apiKey }),
+    ],
     [apiKey]
   );
   return useMenuAction(actions);

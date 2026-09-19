@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import react from "@vitejs/plugin-react-oxc";
+import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
-import type { ServerOptions } from "vite";
+import type { ConfigEnv, ServerOptions } from "vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import environment from "./server/utils/environment";
@@ -25,8 +25,17 @@ if (environment.NODE_ENV === "development") {
   }
 }
 
-export default () =>
+export default ({ mode }: ConfigEnv) =>
   defineConfig({
+    // The local .env file can set NODE_ENV=development in process.env via the
+    // environment import above, which would cause Vite to bundle development
+    // builds of dependencies such as React. Derive the bundled value from the
+    // Vite mode instead so `vite build` always bundles production dependencies.
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(
+        mode === "development" ? "development" : "production"
+      ),
+    },
     root: "./",
     publicDir: "./server/static",
     base: (environment.CDN_URL ?? "") + "/static/",
@@ -52,7 +61,7 @@ export default () =>
         registerType: "autoUpdate",
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          globPatterns: ["**/*.{js,css,ico,png,svg}"],
+          globPatterns: ["**/*.{css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
             "": `${environment.CDN_URL ?? ""}/static/`,
@@ -61,6 +70,24 @@ export default () =>
           clientsClaim: true,
           cleanupOutdatedCaches: true,
           runtimeCaching: [
+            {
+              // Chunks are content-hashed and immutable, so cache them on
+              // first use rather than precaching the entire build.
+              urlPattern: ({ url }) =>
+                url.pathname.startsWith("/static/assets/") &&
+                url.pathname.endsWith(".js"),
+              handler: "CacheFirst",
+              options: {
+                cacheName: "js-cache",
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 2592000, // 30 days
+                },
+                cacheableResponse: {
+                  statuses: [200],
+                },
+              },
+            },
             {
               urlPattern: /api\/urls\.unfurl$/,
               handler: "CacheOnly",
@@ -76,7 +103,13 @@ export default () =>
               },
             },
             {
-              urlPattern: /api\/files\.get/,
+              // Limited to images, as media and PDFs are loaded with byte range
+              // requests which Safari cannot play back when the response is
+              // served by a service worker.
+              urlPattern: ({ url, request }) =>
+                url.pathname.endsWith("/api/files.get") &&
+                request.destination === "image" &&
+                !request.headers.has("range"),
               handler: "CacheFirst",
               options: {
                 cacheName: "files-cache",
@@ -85,9 +118,8 @@ export default () =>
                   maxAgeSeconds: 604800, // 7 days
                 },
                 cacheableResponse: {
-                  statuses: [0, 200, 206], // Include partial content for range requests
+                  statuses: [200],
                 },
-                rangeRequests: true, // Allow range requests for partial content
               },
             },
           ],
@@ -151,9 +183,6 @@ export default () =>
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
       webpackStats(),
     ],
-    experimental: {
-      enableNativePlugin: true,
-    },
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./app"),
@@ -184,7 +213,7 @@ export default () =>
           assetFileNames: "assets/[name].[hash][extname]",
           chunkFileNames: "assets/[name].[hash].js",
           entryFileNames: "assets/[name].[hash].js",
-          advancedChunks: {
+          codeSplitting: {
             groups: [
               // Shared utilities used across the app — higher priority
               // prevents them being absorbed into lazy vendor chunks
@@ -195,7 +224,7 @@ export default () =>
               },
               {
                 name: "vendor-react",
-                test: /node_modules[\\/](react|react-dom|scheduler|react-router)/,
+                test: /node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|history)[\\/]/,
                 priority: 20,
               },
               {
@@ -205,7 +234,7 @@ export default () =>
               },
               {
                 name: "vendor-collab",
-                test: /node_modules[\\/](yjs|y-prosemirror|y-indexeddb|@hocuspocus|lib0)/,
+                test: /node_modules[\\/](yjs|y-prosemirror|@hocuspocus|lib0)/,
                 priority: 20,
               },
               {
@@ -215,18 +244,8 @@ export default () =>
               },
               {
                 name: "vendor-styled",
-                test: /node_modules[\\/]styled-components/,
-                priority: 20,
-              },
-              {
-                name: "vendor-mermaid-elk",
-                test: /node_modules[\\/](@mermaid-js[\\/]layout-elk|elkjs)/,
-                priority: 25,
-              },
-              {
-                name: "vendor-mermaid",
-                test: /node_modules[\\/](mermaid|cytoscape|cytoscape-fcose|layout-base|dagre-d3-es|langium|chevrotain|roughjs|@mermaid-js)/,
-                priority: 20,
+                test: /node_modules[\\/](styled-components|stylis)/,
+                priority: 22,
               },
               {
                 name: "vendor-katex",
@@ -241,7 +260,7 @@ export default () =>
               {
                 name: "vendor-es-toolkit",
                 test: /node_modules[\\/]es-toolkit/,
-                priority: 20,
+                priority: 22,
               },
               {
                 name: "vendor-date",

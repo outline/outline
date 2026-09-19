@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
+import { resolvePDFDimensions } from "@shared/editor/lib/pdf";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
@@ -17,10 +18,14 @@ type Dimension = {
 
 export function MediaDimension() {
   const ref = useRef<HTMLDivElement>(null);
-  const boundsRef = useRef<{
-    width: { min: number; max: number };
-    height: { min: number; max: number };
-  }>();
+  const isDraggingRef = useRef(false);
+  const boundsRef = useRef<
+    | {
+        width: { min: number; max: number };
+        height: { min: number; max: number };
+      }
+    | undefined
+  >(undefined);
   const { t } = useTranslation();
   const { view, commands } = useEditor();
   const { state } = view;
@@ -28,9 +33,13 @@ export function MediaDimension() {
 
   // This component will be rendered for specific media nodes like image, video or pdfs (NodeSelection types).
   const node = (selection as NodeSelection).node;
-  const nodeType = node.type.name,
-    width = node.attrs.width as number,
-    height = node.attrs.height as number;
+  const nodeType = node.type.name;
+  const nodeWidth = node.attrs.width as number | null | undefined;
+  const nodeHeight = node.attrs.height as number | null | undefined;
+  const { width, height } =
+    nodeType === "attachment"
+      ? resolvePDFDimensions(nodeWidth, nodeHeight)
+      : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
 
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
     width: width ? String(width) : "",
@@ -188,15 +197,56 @@ export function MediaDimension() {
     [handleBlur, reset]
   );
 
-  // Sync dimension changes from outside.
+  // Sync dimension changes from outside, without clobbering in-progress edits
+  // to the inputs (which also change `localDimension`).
+  const prevSizeRef = useRef({ width, height });
   useEffect(() => {
-    if (
-      width !== Number(localDimension.width) ||
-      height !== Number(localDimension.height)
-    ) {
+    const prev = prevSizeRef.current;
+    prevSizeRef.current = { width, height };
+
+    if (isDraggingRef.current) {
+      return;
+    }
+    if (prev.width !== width || prev.height !== height) {
       reset();
     }
   }, [width, height, reset]);
+
+  // Listen to drag resize updates in real-time.
+  useEffect(() => {
+    const handleDragResize = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        width: number;
+        height?: number;
+        isDragging?: boolean;
+      }>;
+      const {
+        width: newWidth,
+        height: newHeight,
+        isDragging,
+      } = customEvent.detail;
+
+      if (isDragging !== undefined) {
+        isDraggingRef.current = isDragging;
+      }
+
+      const dimensions =
+        nodeType === "attachment"
+          ? resolvePDFDimensions(newWidth)
+          : { width: newWidth, height: newHeight };
+
+      setLocalDimension({
+        width: dimensions.width ? String(dimensions.width) : "",
+        height: dimensions.height ? String(dimensions.height) : "",
+        changed: "none",
+      });
+    };
+
+    window.addEventListener("media-drag-resize", handleDragResize);
+    return () => {
+      window.removeEventListener("media-drag-resize", handleDragResize);
+    };
+  }, [nodeType]);
 
   // hacky debounce for checking error.
   useEffect(() => {
@@ -268,7 +318,7 @@ const StyledInput = styled(Input)<{ $error?: boolean }>`
   }
 
   ${NativeInput} {
-    height: 24px;
+    height: 22px;
     padding: 0;
     text-align: center;
 

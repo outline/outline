@@ -10,7 +10,7 @@ import { s, depths, hover } from "@shared/styles";
 import { cloneDeep } from "es-toolkit/compat";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import Editor from "~/components/Editor";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
@@ -143,11 +143,9 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const slides = React.useMemo(() => {
     const result = splitIntoSlides(strippedData, title, icon, iconColor);
     const contentSlides = result.filter((s) => s.type === "content");
-    const hasContent =
-      contentSlides.length > 0 &&
-      contentSlides.some(
-        (s) => s.type === "content" && !isContentEmpty(s.content)
-      );
+    const hasContent = contentSlides.some(
+      (s) => s.type === "content" && !isContentEmpty(s.content)
+    );
 
     if (!hasContent) {
       return [result[0], { type: "instructions" as const }];

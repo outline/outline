@@ -10,27 +10,25 @@ import {
 } from "sequelize-typescript";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import { UserPasskeyValidation } from "@shared/validations";
 import NotContainsUrl from "./validators/NotContainsUrl";
 import { SkipChangeset } from "./decorators/Changeset";
 
 @Table({ tableName: "user_passkeys", modelName: "user_passkey" })
-@Fix
 class UserPasskey extends IdModel<
   InferAttributes<UserPasskey>,
   Partial<InferCreationAttributes<UserPasskey>>
 > {
   static eventNamespace = "passkeys";
 
-  @Column
+  @Column(DataType.STRING)
   credentialId: string;
 
   @Column(DataType.BLOB)
   @SkipChangeset
   credentialPublicKey: Buffer;
 
-  @Column
+  @Column(DataType.STRING)
   aaguid: string | null;
 
   @Column(DataType.BIGINT)
@@ -46,14 +44,14 @@ class UserPasskey extends IdModel<
     msg: `Name must be between ${UserPasskeyValidation.minNameLength} and ${UserPasskeyValidation.maxNameLength} characters`,
   })
   @NotContainsUrl
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
-  @Column
+  @Column(DataType.STRING)
   userAgent: string | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 

@@ -36,13 +36,13 @@ export class VerificationCode {
   private static readonly ATTEMPTS_PREFIX = "email_verification_attempts:";
 
   /**
-   * Generate a random 6-digit code
+   * Generate a random 6-digit code, drawn uniformly from the full range of
+   * possible values and left-padded to a fixed six characters.
    *
-   * @returns A string representing a 6-digit code
+   * @returns A string representing a 6-digit code.
    */
   public static generate(): string {
-    // Generate a random integer between 100000 and 999999 (6 digits)
-    return randomInt(100000, 1000000).toString().padStart(6, "0");
+    return randomInt(0, 1000000).toString().padStart(6, "0");
   }
 
   /**

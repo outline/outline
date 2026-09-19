@@ -3,7 +3,7 @@ import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import { PlaceholderPlugin } from "@shared/editor/plugins/PlaceholderPlugin";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -17,6 +17,7 @@ export default class BlockMenuExtension extends Suggestion {
       allowSpaces: false,
       requireSearchTerm: false,
       enabledInCode: false,
+      enabledInMarks: false,
     };
   }
 
@@ -28,7 +29,7 @@ export default class BlockMenuExtension extends Suggestion {
     const button = document.createElement("button");
     button.className = "block-menu-trigger";
     button.type = "button";
-    ReactDOM.render(<PlusIcon />, button);
+    createRoot(button).render(<PlusIcon />);
 
     return [
       ...super.plugins,
@@ -58,6 +59,8 @@ export default class BlockMenuExtension extends Suggestion {
                   () => {
                     button.onclick = action(() => {
                       this.state.query = "";
+                      this.state.trigger = null;
+                      this.state.triggerPos = null;
                       this.state.open = true;
                     });
                     return button;
@@ -75,10 +78,10 @@ export default class BlockMenuExtension extends Suggestion {
       }),
       new PlaceholderPlugin([
         {
-          condition: ({ node, $start, textContent, state }) =>
+          condition: ({ node, $start, isDocEmpty, state }) =>
             $start.depth === 1 &&
             state.selection.$from.pos === $start.pos + node.content.size &&
-            !!textContent &&
+            !isDocEmpty &&
             node.childCount === 0 &&
             node.textContent === "",
           text: `${t("Type '/' to insert")}…`,
@@ -87,7 +90,8 @@ export default class BlockMenuExtension extends Suggestion {
           condition: ({ node, $start, state }) =>
             $start.depth === 1 &&
             state.selection.$from.pos === $start.pos + node.content.size &&
-            node.textContent === "/",
+            node.textContent === "/" &&
+            node.firstChild?.marks.length === 0,
           text: `  ${t("Keep typing to filter")}…`,
         },
       ]),

@@ -18,6 +18,19 @@ export default class AuthenticationHelper {
   }
 
   /**
+   * Returns the human-readable display name for an authentication provider.
+   *
+   * @param id The authentication provider id, eg "google".
+   * @returns The display name if known, otherwise the provided id.
+   */
+  public static getProviderName(id: string): string {
+    const provider = AuthenticationHelper.providers.find(
+      (hook) => hook.value.id === id
+    );
+    return provider?.name ?? id;
+  }
+
+  /**
    * Returns the enabled authentication provider configurations for a team,
    * if given otherwise all enabled providers are returned.
    *

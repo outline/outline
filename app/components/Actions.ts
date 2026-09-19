@@ -31,7 +31,7 @@ const Actions = styled(Flex)`
   background: ${s("background")};
   padding: 12px;
   backdrop-filter: blur(20px);
-  gap: 12px;
+  gap: 8px;
 
   @media print {
     display: none;

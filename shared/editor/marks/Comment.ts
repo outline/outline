@@ -4,8 +4,10 @@ import type { Command } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import { collapseSelection } from "../commands/collapseSelection";
-import { addComment } from "../commands/comment";
+import type { CommentAnchor } from "../commands/comment";
+import { addComment, addDraftCommentAnchor } from "../commands/comment";
 import { chainTransactions } from "../lib/chainTransactions";
+import { DraftCommentAnchorPlugin } from "../plugins/DraftCommentAnchorPlugin";
 import { isMarkActive } from "../queries/isMarkActive";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Mark from "./Mark";
@@ -16,11 +18,15 @@ import Mark from "./Mark";
 type CommentOptions = {
   /** The id of the current user, recorded on newly created comment marks. */
   userId?: string;
+  /** Whether the editor is in read-only mode. */
+  readOnly?: boolean;
+  /** Whether the current user has permission to edit the document. */
+  canUpdate?: boolean;
   /** Callback invoked when a comment mark is created in the document. */
   onCreateCommentMark?: (
     commentId: string,
     userId: string,
-    options?: { focus: boolean }
+    options?: { focus: boolean; anchor?: CommentAnchor }
   ) => void;
   /** Callback invoked when an existing comment mark is clicked. */
   onClickCommentMark?: (commentId: string) => void;
@@ -99,6 +105,10 @@ export default class Comment extends Mark<CommentOptions> {
           return false;
         }
 
+        if (this.isAnchorOnly) {
+          return this.draftCommentAnchorCommand(state, dispatch);
+        }
+
         if (
           isMarkActive(state.schema.marks.comment, {
             resolved: false,
@@ -122,9 +132,13 @@ export default class Comment extends Mark<CommentOptions> {
   }
 
   commands() {
-    return this.options.onCreateCommentMark
-      ? (): Command => addComment({ userId: this.options.userId })
-      : undefined;
+    if (!this.options.onCreateCommentMark) {
+      return undefined;
+    }
+    if (this.isAnchorOnly) {
+      return (): Command => this.draftCommentAnchorCommand;
+    }
+    return (): Command => addComment({ userId: this.options.userId });
   }
 
   toMarkdown() {
@@ -136,8 +150,26 @@ export default class Comment extends Mark<CommentOptions> {
     };
   }
 
+  /**
+   * Whether inline comments must be created through anchoring rather than by
+   * writing the mark into the document, which is the case for users that can
+   * comment but not edit.
+   */
+  private get isAnchorOnly(): boolean {
+    return !!this.options.readOnly && !this.options.canUpdate;
+  }
+
+  private get draftCommentAnchorCommand(): Command {
+    return addDraftCommentAnchor({
+      userId: this.options.userId,
+      onCreate: this.options.onCreateCommentMark,
+      onOpenCommentsSidebar: this.options.onOpenCommentsSidebar,
+    });
+  }
+
   get plugins(): Plugin[] {
     return [
+      new DraftCommentAnchorPlugin(),
       new Plugin({
         appendTransaction(transactions, oldState, newState) {
           if (

@@ -1,8 +1,17 @@
 import { subHours } from "date-fns";
 import { randomString } from "@shared/random";
+import documentMover from "@server/commands/documentMover";
 import ShareDocumentUpdatedEmail from "@server/emails/templates/ShareDocumentUpdatedEmail";
-import { ShareSubscription } from "@server/models";
-import { buildDocument, buildShare } from "@server/test/factories";
+import { Collection, ShareSubscription } from "@server/models";
+import {
+  buildCollection,
+  buildDocument,
+  buildDraftDocument,
+  buildShare,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import ShareSubscriptionNotificationsTask from "./ShareSubscriptionNotificationsTask";
 
 const ip = "127.0.0.1";
@@ -348,6 +357,126 @@ describe("ShareSubscriptionNotificationsTask", () => {
       documentId: sibling.id,
       teamId: sibling.teamId,
       actorId: sibling.createdById,
+      modelId: "revision-id",
+      ip,
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("should not send when updated child document is an unpublished draft", async () => {
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+
+    const parent = await buildDocument();
+    const draft = await buildDraftDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: parent.teamId,
+      includeChildDocuments: true,
+    });
+    await ShareSubscription.create({
+      shareId: share.id,
+      documentId: parent.id,
+      email: "subscriber@example.com",
+      emailFingerprint: "subscriber@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const task = new ShareSubscriptionNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: draft.id,
+      teamId: draft.teamId,
+      actorId: draft.createdById,
+      modelId: "revision-id",
+      ip,
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("should not send when subscribed document has moved out of the shared collection", async () => {
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const other = await buildCollection({ teamId: team.id, userId: user.id });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    const share = await buildShare({
+      collectionId: collection.id,
+      teamId: team.id,
+      userId: user.id,
+      includeChildDocuments: true,
+    });
+    await ShareSubscription.create({
+      shareId: share.id,
+      documentId: document.id,
+      email: "subscriber@example.com",
+      emailFingerprint: "subscriber@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    await withAPIContext(user, (ctx) =>
+      documentMover(ctx, { document, collectionId: other.id })
+    );
+
+    const task = new ShareSubscriptionNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      modelId: "revision-id",
+      ip,
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("should not send when sharing is disabled on the collection", async () => {
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    await ShareSubscription.create({
+      shareId: share.id,
+      documentId: document.id,
+      email: "subscriber@example.com",
+      emailFingerprint: "subscriber@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const collection = await Collection.findByPk(document.collectionId!, {
+      rejectOnEmpty: true,
+    });
+    collection.sharing = false;
+    await collection.save();
+
+    const task = new ShareSubscriptionNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: document.createdById,
       modelId: "revision-id",
       ip,
     });

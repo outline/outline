@@ -24,7 +24,6 @@ import Model from "@server/models/base/Model";
 import { ValidationError } from "../errors";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
 // TODO: Avoid this hardcoding of plugins
@@ -53,7 +52,6 @@ import type { DestroyOptions } from "sequelize";
   modelName: "authentication_provider",
   updatedAt: false,
 })
-@Fix
 class AuthenticationProvider extends Model<
   InferAttributes<AuthenticationProvider>,
   Partial<InferCreationAttributes<AuthenticationProvider>>
@@ -68,18 +66,18 @@ class AuthenticationProvider extends Model<
     max: 255,
     msg: "name must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   enabled: boolean;
 
   @Length({
     max: 255,
     msg: "providerId must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   providerId: string;
 
   /** Provider-specific settings such as group sync configuration. */

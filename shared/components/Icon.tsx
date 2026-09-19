@@ -5,7 +5,7 @@ import breakpoint from "styled-components-breakpoint";
 import useStores from "../hooks/useStores";
 import { IconType } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
-import { colorPalette } from "../utils/collections";
+import { colorPalette } from "../constants";
 import { determineIconType } from "../utils/icon";
 import EmojiIcon from "./EmojiIcon";
 import Flex from "./Flex";

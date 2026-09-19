@@ -4,6 +4,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -37,7 +38,7 @@ function DomainManagement({ onSuccess }: Props) {
       setExistingDomainsTouched(false);
       updateLastKnownDomainCount(allowedDomains.length);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     }
   }, [team, allowedDomains, onSuccess]);
 

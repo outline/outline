@@ -2,6 +2,19 @@ import { Scope } from "@shared/types";
 import { buildOAuthAuthentication, buildUser } from "@server/test/factories";
 
 describe("OAuthAuthentication", () => {
+  describe("scope", () => {
+    it("should reject malformed scopes", async () => {
+      const user = await buildUser();
+
+      await expect(
+        buildOAuthAuthentication({
+          user,
+          scope: ["documents:read,documents:write"],
+        })
+      ).rejects.toThrow("Scope must be a valid API scope");
+    });
+  });
+
   describe("canAccess", () => {
     it("should allow MCP access for scoped tokens", async () => {
       const user = await buildUser();
@@ -20,6 +33,17 @@ describe("OAuthAuthentication", () => {
         user,
         scope: [],
       });
+
+      expect(authentication.canAccess("/mcp")).toBe(false);
+    });
+
+    it("should deny MCP access when no scope is well-formed", async () => {
+      const user = await buildUser();
+      const authentication = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+      authentication.scope = ["documents:read,documents:write"];
 
       expect(authentication.canAccess("/mcp")).toBe(false);
     });

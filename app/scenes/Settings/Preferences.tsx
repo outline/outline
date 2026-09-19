@@ -73,6 +73,24 @@ function Preferences() {
     [user, t]
   );
 
+  const handleCommentsInGutterChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.CommentsInGutter, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
+  const handleShowDocumentStatsChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.ShowDocumentStats, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.SeamlessEdit, !checked);
@@ -142,7 +160,7 @@ function Preferences() {
   );
 
   const handleThemeChange = React.useCallback(
-    (theme) => {
+    (theme: string) => {
       ui.setTheme(theme as Theme);
       toast.success(t("Preferences saved"));
     },
@@ -223,13 +241,41 @@ function Preferences() {
         name={UserPreference.CodeBlockLineNumers}
         label={t("Show line numbers")}
         description={t("Show line numbers on code blocks in documents.")}
-        border={false}
       >
         <Switch
           id={UserPreference.CodeBlockLineNumers}
           name={UserPreference.CodeBlockLineNumers}
           checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
           onChange={handleCodeBlockLineNumbersChange}
+        />
+      </SettingRow>
+      <SettingRow
+        name={UserPreference.CommentsInGutter}
+        label={t("Show comment marker")}
+        description={t(
+          "Display a marker beside lines in the editor that contain comments."
+        )}
+      >
+        <Switch
+          id={UserPreference.CommentsInGutter}
+          name={UserPreference.CommentsInGutter}
+          checked={user.getPreference(UserPreference.CommentsInGutter)}
+          onChange={handleCommentsInGutterChange}
+        />
+      </SettingRow>
+      <SettingRow
+        name={UserPreference.ShowDocumentStats}
+        label={t("Show editing stats")}
+        description={t(
+          "Display live word, character, and paragraph counts while editing."
+        )}
+        border={false}
+      >
+        <Switch
+          id={UserPreference.ShowDocumentStats}
+          name={UserPreference.ShowDocumentStats}
+          checked={user.getPreference(UserPreference.ShowDocumentStats)}
+          onChange={handleShowDocumentStatsChange}
         />
       </SettingRow>
 

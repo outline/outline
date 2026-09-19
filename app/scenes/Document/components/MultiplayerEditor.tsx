@@ -1,23 +1,25 @@
-import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
+import { WebSocketStatus } from "@hocuspocus/provider";
 import { throttle } from "es-toolkit/compat";
+import { Node as ProsemirrorNode } from "prosemirror-model";
 import {
   useState,
   useLayoutEffect,
   useMemo,
   useEffect,
-  forwardRef,
   useRef,
-  type ForwardedRef,
+  type Ref,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
@@ -29,42 +31,32 @@ import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
 import Logger from "~/utils/Logger";
+import {
+  CollaborationProvider,
+  type ConnectionMessageEvent,
+  type ConnectionStatusEvent,
+} from "~/utils/multiplayer/CollaborationProvider";
+import { IndexeddbPersistence } from "~/utils/multiplayer/IndexeddbPersistence";
 import { homePath } from "~/utils/routeHelpers";
 import { sleep } from "@shared/utils/timers";
 
 type Props = EditorProps & {
   id: string;
   onSynced?: () => Promise<void>;
+  ref?: Ref<SharedEditor>;
 };
 
-export type ConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | void;
-
-type ConnectionStatusEvent = { status: ConnectionStatus };
-
-type MessageEvent = {
-  message: string;
-  event: Event & {
-    code?: number;
-  };
-};
-
-function MultiplayerEditor(
-  { onSynced, ...props }: Props,
-  ref: ForwardedRef<SharedEditor>
-) {
+function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const retryCount = useRef(0);
   const { presence, auth, ui } = useStores();
+  const documentContext = useDocumentContext();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
-  const [remoteProvider, setRemoteProvider] = useState<HocuspocusProvider>();
+  const [remoteProvider, setRemoteProvider] = useState<CollaborationProvider>();
   const [hasLocalPersistence, setHasLocalPersistence] = useState(true);
   const [isLocalSynced, setLocalSynced] = useState(false);
   const [isRemoteSynced, setRemoteSynced] = useState(false);
@@ -79,6 +71,9 @@ function MultiplayerEditor(
   // an orphaned websocket connection.
   // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
   useLayoutEffect(() => {
+    // Tracks whether this effect has been cleaned up so async persistence
+    // callbacks below do not update state afterwards.
+    let isActive = true;
     const debug = env.ENVIRONMENT === "development";
     const name = `document.${documentId}`;
     const localProvider =
@@ -90,7 +85,7 @@ function MultiplayerEditor(
       setHasLocalPersistence(false);
     }
 
-    const provider = new HocuspocusProvider({
+    const provider = new CollaborationProvider({
       parameters: {
         editorVersion: EDITOR_VERSION,
       },
@@ -98,6 +93,7 @@ function MultiplayerEditor(
       name,
       document: ydoc,
       token,
+      localProvider,
     });
 
     const syncScrollPosition = throttle(() => {
@@ -169,24 +165,48 @@ function MultiplayerEditor(
     };
 
     provider.on("awarenessChange", showCursorNames);
-    localProvider?.on("synced", () =>
-      // only set local storage to "synced" if it's loaded a non-empty doc
-      setLocalSynced(!!ydoc.get("default")._start)
-    );
+
+    const syncState = () => {
+      documentContext.setMultiplayerSyncState(
+        provider.hasPendingChanges,
+        provider.hasLocalPersistence
+      );
+    };
+
+    provider.on("syncStateChange", syncState);
+    syncState();
+
+    localProvider?.whenSynced
+      .then(() => {
+        if (!isActive || !localProvider.synced) {
+          return;
+        }
+        if (debug) {
+          Logger.debug("collaboration", "local synced");
+        }
+        // only set local storage to "synced" if it's loaded a non-empty doc
+        setLocalSynced(!!ydoc.get("default")._start);
+      })
+      .catch(() => {
+        // IndexedDB exists but is unusable, e.g. Firefox private browsing.
+        if (isActive) {
+          setHasLocalPersistence(false);
+        }
+      });
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
       setRemoteSynced(true);
       retryCount.current = 0;
     });
 
-    provider.on("close", (ev: MessageEvent) => {
+    provider.on("close", (ev: ConnectionMessageEvent) => {
       if ("code" in ev.event) {
         // Note other close code are handled internally by the library
         if (ev.event.code === EditorUpdateError.code) {
           provider.shouldConnect = false;
         }
 
-        ui.setMultiplayerStatus("disconnected", ev.event.code);
+        documentContext.setMultiplayerStatus("disconnected", ev.event.code);
 
         if (ev.event.code === EditorUpdateError.code) {
           setEditorVersionBehind(true);
@@ -195,46 +215,49 @@ function MultiplayerEditor(
     });
 
     if (debug) {
-      provider.on("close", (ev: MessageEvent) =>
+      provider.on("close", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "close", ev)
       );
-      provider.on("message", (ev: MessageEvent) =>
+      provider.on("message", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "incoming", {
           message: ev.message,
         })
       );
-      provider.on("outgoingMessage", (ev: MessageEvent) =>
+      provider.on("outgoingMessage", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "outgoing", {
           message: ev.message,
         })
       );
-      localProvider?.on("synced", () =>
-        Logger.debug("collaboration", "local synced")
-      );
     }
 
     provider.on("status", (ev: ConnectionStatusEvent) => {
-      if (ui.multiplayerStatus !== ev.status) {
-        ui.setMultiplayerStatus(ev.status, undefined);
+      if (documentContext.multiplayerStatus !== ev.status) {
+        documentContext.setMultiplayerStatus(ev.status, undefined);
       }
     });
 
     setRemoteProvider(provider);
 
     return () => {
+      isActive = false;
       window.removeEventListener("click", finishObserving);
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
       void localProvider?.destroy();
       setRemoteProvider(undefined);
-      ui.setMultiplayerStatus(undefined, undefined);
+      documentContext.setMultiplayerStatus(undefined, undefined);
+      documentContext.setMultiplayerSyncState(false, true);
     };
+    // `token` is intentionally omitted, it is only read when establishing the
+    // connection and a refreshed token must not tear down the provider.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     history,
     t,
     documentId,
     ui,
+    documentContext,
     presence,
     ydoc,
     currentUser.id,
@@ -256,8 +279,12 @@ function MultiplayerEditor(
       return props.extensions;
     }
 
+    // The Yjs undo manager (added by the Multiplayer extension below) is the
+    // sole source of undo/redo history when collaborating.
     return [
-      ...(props.extensions || []),
+      ...(props.extensions || []).filter(
+        (extension) => extension !== History && !(extension instanceof History)
+      ),
       new MultiplayerExtension({
         user,
         provider: remoteProvider,
@@ -266,11 +293,15 @@ function MultiplayerEditor(
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
+  // Read through a ref so the callback runs once per sync, not per identity.
+  const onSyncedRef = useRef(onSynced);
+  onSyncedRef.current = onSynced;
+
   useEffect(() => {
     if ((!hasLocalPersistence || isLocalSynced) && isRemoteSynced) {
-      void onSynced?.();
+      void onSyncedRef.current?.();
     }
-  }, [onSynced, hasLocalPersistence, isLocalSynced, isRemoteSynced]);
+  }, [hasLocalPersistence, isLocalSynced, isRemoteSynced]);
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
@@ -320,7 +351,8 @@ function MultiplayerEditor(
   // while the collaborative document is loading, we render a version of the
   // document from the last text cache in read-only mode if we have it.
   const isLocalReady = !hasLocalPersistence || isLocalSynced;
-  const showCache = !isLocalReady && !isRemoteSynced;
+  const showCache =
+    !isLocalReady && !isRemoteSynced && hasContent(props.defaultValue);
 
   return (
     <>
@@ -331,6 +363,7 @@ function MultiplayerEditor(
           defaultValue={props.defaultValue}
           extensions={props.extensions}
           scrollTo={props.scrollTo}
+          headingPrefix={props.headingPrefix}
           cacheOnly
           readOnly
           ref={ref}
@@ -357,4 +390,28 @@ function MultiplayerEditor(
   );
 }
 
-export default forwardRef<SharedEditor, Props>(MultiplayerEditor);
+/**
+ * Whether the last known content of the document is worth displaying while the
+ * collaborative document loads. An empty document, such as one that was just
+ * created, renders identically either way so there is nothing to wait for.
+ *
+ * @param value the cached editor content.
+ * @returns true if the content is non-empty.
+ */
+function hasContent(value: Props["defaultValue"]): boolean {
+  if (!value) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    return !!value.trim();
+  }
+
+  if (value instanceof ProsemirrorNode) {
+    return !!value.textContent.trim();
+  }
+
+  return !ProsemirrorDataHelper.isEmpty(value);
+}
+
+export default MultiplayerEditor;

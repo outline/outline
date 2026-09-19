@@ -1,38 +1,37 @@
-import { DoneIcon, SmileyIcon, TrashIcon } from "outline-icons";
+import copy from "copy-to-clipboard";
+import { CopyIcon, DoneIcon, SmileyIcon, TrashIcon } from "outline-icons";
 import { toast } from "sonner";
 import type Comment from "~/models/Comment";
 import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ViewReactionsDialog from "~/components/Reactions/ViewReactionsDialog";
 import { createAction } from "..";
+import { dialogActionFactory } from "./common";
 import { ActiveDocumentSection } from "../sections";
+import { commentPath, urlify } from "~/utils/routeHelpers";
 
-export const deleteCommentFactory = ({
+export const deleteCommentActionFactory = ({
   comment,
   onDelete,
 }: {
   comment: Comment;
   onDelete: () => void;
 }) =>
-  createAction({
-    name: ({ t }) => `${t("Delete")}…`,
+  dialogActionFactory({
     analyticsName: "Delete comment",
     section: ActiveDocumentSection,
+    name: (t) => `${t("Delete")}…`,
+    title: (t) => t("Delete comment"),
+    content: () => (
+      <CommentDeleteDialog comment={comment} onSubmit={onDelete} />
+    ),
     icon: <TrashIcon />,
     keywords: "trash",
     dangerous: true,
+    stopEvent: true,
     visible: ({ stores }) => stores.policies.abilities(comment.id).delete,
-    perform: ({ t, stores, event }) => {
-      event?.preventDefault();
-      event?.stopPropagation();
-
-      stores.dialogs.openModal({
-        title: t("Delete comment"),
-        content: <CommentDeleteDialog comment={comment} onSubmit={onDelete} />,
-      });
-    },
   });
 
-export const resolveCommentFactory = ({
+export const resolveCommentActionFactory = ({
   comment,
   onResolve,
 }: {
@@ -54,7 +53,7 @@ export const resolveCommentFactory = ({
     },
   });
 
-export const unresolveCommentFactory = ({
+export const unresolveCommentActionFactory = ({
   comment,
   onUnresolve,
 }: {
@@ -75,26 +74,42 @@ export const unresolveCommentFactory = ({
     },
   });
 
-export const viewCommentReactionsFactory = ({
+export const copyCommentLinkActionFactory = ({
   comment,
 }: {
   comment: Comment;
 }) =>
   createAction({
-    name: ({ t }) => `${t("View reactions")}`,
+    name: ({ t }) => t("Copy link"),
+    analyticsName: "Copy comment link",
+    section: ActiveDocumentSection,
+    icon: <CopyIcon />,
+    keywords: "clipboard",
+    perform: ({ stores, t }) => {
+      const document = stores.documents.get(comment.documentId);
+      if (!document) {
+        return;
+      }
+
+      copy(urlify(commentPath(document, comment)));
+      toast.message(t("Link copied to clipboard"));
+    },
+  });
+
+export const viewCommentReactionsActionFactory = ({
+  comment,
+}: {
+  comment: Comment;
+}) =>
+  dialogActionFactory({
     analyticsName: "View comment reactions",
     section: ActiveDocumentSection,
+    name: (t) => t("View reactions"),
+    title: (t) => t("Reactions"),
+    content: () => <ViewReactionsDialog model={comment} />,
     icon: <SmileyIcon />,
+    stopEvent: true,
     visible: ({ stores }) =>
       stores.policies.abilities(comment.id).read &&
       comment.reactions.length > 0,
-    perform: ({ t, stores, event }) => {
-      event?.preventDefault();
-      event?.stopPropagation();
-
-      stores.dialogs.openModal({
-        title: t("Reactions"),
-        content: <ViewReactionsDialog model={comment} />,
-      });
-    },
   });

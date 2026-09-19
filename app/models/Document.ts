@@ -1,18 +1,29 @@
-import { addDays, differenceInDays } from "date-fns";
+import { addDays, differenceInDays, differenceInSeconds } from "date-fns";
 import i18n, { t } from "i18next";
 import { capitalize, floor } from "es-toolkit/compat";
-import { action, autorun, comparer, computed, observable, set } from "mobx";
+import {
+  action,
+  autorun,
+  comparer,
+  computed,
+  observable,
+  override,
+  set,
+} from "mobx";
 import type {
   JSONObject,
   NavigationNode,
   ProsemirrorData,
 } from "@shared/types";
 import {
+  type DocumentPreference,
+  type DocumentPreferences,
   type ExportContentType,
   FileOperationFormat,
   NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
+import { DocumentPreferenceDefaults } from "@shared/constants";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
@@ -39,6 +50,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   constructor(fields: Record<string, unknown>, store: DocumentsStore) {
     super(fields, store);
+    this.initialize(fields);
 
     this.embedsDisabled = Storage.get(`embedsDisabled-${this.id}`) ?? false;
 
@@ -50,14 +62,14 @@ export default class Document extends ArchivableModel implements Searchable {
     });
   }
 
-  @observable
+  // Declared on Model; redeclared here only to give it a default.
   isSaving = false;
 
   @observable
-  embedsDisabled: boolean;
+  embedsDisabled = false;
 
   @observable
-  lastViewedAt: string | undefined;
+  lastViewedAt: string | undefined = undefined;
 
   store: DocumentsStore;
 
@@ -116,8 +128,7 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @Field
   @observable
-  collectionId?: string | null;
-
+  collectionId?: string | null = undefined;
   /**
    * The collection that this document belongs to.
    */
@@ -131,6 +142,10 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   title: string;
 
+  /** The reason this document is archived or deleted. */
+  @observable
+  deprecatedReason: string | null = null;
+
   /** The likely language of the document, in ISO 639-1 format.  */
   language: string | undefined;
 
@@ -139,21 +154,26 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @Field
   @observable
-  icon?: string | null;
-
+  icon?: string | null = undefined;
   /**
    * The color to use for the document icon.
    */
   @Field
   @observable
-  color?: string | null;
-
+  color?: string | null = undefined;
   /**
    * Whether the document layout is displayed full page width.
    */
   @Field
   @observable
   fullWidth: boolean;
+
+  /**
+   * Display preferences for the document.
+   */
+  @Field
+  @observable
+  preferences: DocumentPreferences | null;
 
   /**
    * Whether team members can see who has viewed this document.
@@ -166,33 +186,41 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @Field
   @observable
-  templateId: string | undefined;
+  templateId: string | undefined = undefined;
 
   /**
    * The id of the parent document that this is a child of, if any.
    */
   @Field
   @observable
-  parentDocumentId: string | undefined;
-
+  parentDocumentId?: string = undefined;
   /**
    * Parent document that this is a child of, if any.
    */
   @Relation(() => Document, { onArchive: "cascade", onDelete: "cascade" })
   parentDocument?: Document;
 
+  /**
+   * The ids of users that have edited this document.
+   */
   @observable
-  collaboratorIds: string[] = [];
+  collaboratorIds: string[] | undefined = undefined;
 
   @Relation(() => User)
   createdBy: User | undefined;
 
   @Relation(() => User)
-  @observable
   updatedBy: User | undefined;
 
+  /**
+   * The user that deleted this document, only set while the document is in the
+   * trash.
+   */
+  @Relation(() => User)
+  deletedBy: User | undefined;
+
   @observable
-  publishedAt: string | undefined;
+  publishedAt: string | undefined = undefined;
 
   @observable
   popularityScore: number;
@@ -226,8 +254,7 @@ export default class Document extends ArchivableModel implements Searchable {
    * Only populated when viewing through a share link.
    */
   @observable
-  backlinkIds?: string[];
-
+  backlinkIds?: string[] = undefined;
   /**
    * Returns the notifications associated with this document.
    */
@@ -309,7 +336,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get collaborators(): User[] {
-    return this.collaboratorIds
+    return (this.collaboratorIds ?? [])
       .map((id) => this.store.rootStore.users.get(id))
       .filter(Boolean) as User[];
   }
@@ -378,7 +405,7 @@ export default class Document extends ArchivableModel implements Searchable {
     return !!this.archivedAt;
   }
 
-  @computed
+  @override
   get isDeleted(): boolean {
     return !!this.deletedAt;
   }
@@ -388,7 +415,6 @@ export default class Document extends ArchivableModel implements Searchable {
     return !this.publishedAt;
   }
 
-  @computed
   get hasEmptyTitle(): boolean {
     return this.title === "";
   }
@@ -405,6 +431,16 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get isPersistedOnce(): boolean {
     return this.createdAt === this.updatedAt;
+  }
+
+  /**
+   * Whether the document was created moments ago, and so cannot yet have views, comments, shares,
+   * or backlinks of its own.
+   *
+   * @returns true if the document was created within the last ten seconds.
+   */
+  get isJustCreated(): boolean {
+    return differenceInSeconds(new Date(), new Date(this.createdAt)) < 10;
   }
 
   @computed
@@ -459,7 +495,42 @@ export default class Document extends ArchivableModel implements Searchable {
     }
   }
 
-  archive = () => this.store.archive(this);
+  /**
+   * Get the value for a specific display preference key, or the default if
+   * none is set.
+   *
+   * @param key The DocumentPreference key to retrieve
+   * @returns The value
+   */
+  getPreference<K extends DocumentPreference>(key: K): DocumentPreferences[K] {
+    return this.preferences?.[key] ?? DocumentPreferenceDefaults[key];
+  }
+
+  /**
+   * Set the value for a specific display preference key.
+   *
+   * @param key The DocumentPreference key to set
+   * @param value The value to set
+   */
+  @action
+  setPreference<K extends DocumentPreference>(
+    key: K,
+    value: NonNullable<DocumentPreferences[K]>
+  ) {
+    this.preferences = {
+      ...this.preferences,
+      [key]: value,
+    };
+  }
+
+  /**
+   * Archives the document with an optional reason.
+   *
+   * @param options the archive options.
+   * @returns a promise that resolves when the document is archived.
+   */
+  archive = (options?: { reason?: string }) =>
+    this.store.archive(this, options);
 
   restore = (options?: { revisionId?: string; collectionId?: string }) =>
     this.store.restore(this, options);
@@ -667,18 +738,29 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  download = ({
+  /**
+   * Download the document in the given format.
+   *
+   * Nested documents are included by default when the document has children, in
+   * which case the file is prepared in the background and the user is notified
+   * with a toast once it is ready.
+   *
+   * @param options.contentType The format to export the document in.
+   * @param options.includeChildDocuments Whether to include nested documents.
+   * @returns the API response.
+   */
+  download = async ({
     contentType,
-    includeChildDocuments,
+    includeChildDocuments = this.children.length > 0,
   }: {
     contentType: ExportContentType;
     includeChildDocuments?: boolean;
-  }) =>
-    client.post(
+  }) => {
+    const response = await client.post(
       `/documents.export`,
       {
         id: this.id,
-        includeChildDocuments: includeChildDocuments ?? false,
+        includeChildDocuments,
       },
       {
         ...(includeChildDocuments ? {} : { download: true }),
@@ -687,4 +769,12 @@ export default class Document extends ArchivableModel implements Searchable {
         },
       }
     );
+
+    const fileOperation = response?.data?.fileOperation;
+    if (fileOperation) {
+      this.store.rootStore.ui.showExportToast(fileOperation.id);
+    }
+
+    return response;
+  };
 }

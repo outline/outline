@@ -12,9 +12,9 @@ import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType, TOCPosition, TeamPreference } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import { isModKey } from "@shared/utils/keyboard";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import { useDocumentContext } from "~/components/DocumentContext";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import ErrorBoundary from "~/components/ErrorBoundary";
@@ -25,8 +25,11 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
+import useEventListener from "~/hooks/useEventListener";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
@@ -35,7 +38,7 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import Notices from "./Notices";
+import Notices, { DocumentNotice } from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 import SharedHeader from "./SharedHeader";
@@ -82,6 +85,8 @@ function DocumentScene({
   children,
 }: Props) {
   const { auth, ui, dialogs } = useStores();
+  const documentContext = useDocumentContext();
+  const isMobile = useMobile();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation<LocationState>();
@@ -150,18 +155,26 @@ function DocumentScene({
 
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
-      if (isModKey(event)) {
-        event.preventDefault();
+      const target = event.target instanceof Element ? event.target : undefined;
 
-        if (event.shiftKey) {
-          if (!readOnly) {
-            editorRef.current?.commands.redo?.();
-          }
-        } else {
-          if (!readOnly) {
-            editorRef.current?.commands.undo?.();
-          }
-        }
+      // The editor handles undo/redo through its own keymap when focused
+      if (
+        editorRef.current?.view?.hasFocus() ||
+        (target && (isTextInput(target) || !!target.closest(".ProseMirror")))
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (readOnly) {
+        return;
+      }
+
+      if (event.shiftKey) {
+        editorRef.current?.commands.redo?.();
+      } else {
+        editorRef.current?.commands.undo?.();
       }
     },
     [readOnly]
@@ -196,6 +209,37 @@ function DocumentScene({
       }
     },
     [readOnly, abilities.update, history, document, sidebarContext]
+  );
+
+  // Files dropped in the margins around the document are inserted at the
+  // closest point in the editor, rather than being ignored by the browser.
+  const isFileDrag = useCallback(
+    (event: React.DragEvent<HTMLElement>) =>
+      !readOnly && !revision && event.dataTransfer.types.includes("Files"),
+    [readOnly, revision]
+  );
+
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      if (isFileDrag(event)) {
+        event.dataTransfer.dropEffect = "copy";
+        event.preventDefault();
+      }
+    },
+    [isFileDrag]
+  );
+
+  const handleDrop = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      // A drop that landed inside the editor has already been handled.
+      if (event.defaultPrevented || !isFileDrag(event)) {
+        return;
+      }
+      // Prevent the browser from navigating to the file if it cannot be added.
+      event.preventDefault();
+      void editorRef.current?.insertDroppedContent(event);
+    },
+    [isFileDrag]
   );
 
   const goToHistory = useCallback(
@@ -247,15 +291,6 @@ function DocumentScene({
     [document, dialogs, t, onSave]
   );
 
-  const handlePublishShortcut = useCallback(
-    (event: KeyboardEvent) => {
-      if (isModKey(event) && event.shiftKey) {
-        onPublish(event);
-      }
-    },
-    [onPublish]
-  );
-
   const goBack = useCallback(() => {
     if (!readOnly) {
       history.push({
@@ -274,8 +309,11 @@ function DocumentScene({
     tocPosition ??
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
+  // Hide on mobile at render time so the stored preference is kept intact.
   const showContents =
-    tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+    tocPos &&
+    !isMobile &&
+    (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
   const tocOffset =
     tocPos === TOCPosition.Left
       ? EditorStyleHelper.tocWidth / -2
@@ -283,6 +321,35 @@ function DocumentScene({
 
   const multiplayerEditor =
     !document.isArchived && !document.isDeleted && !revision && !isShare;
+
+  const hasUnsyncedChanges = !readOnly && documentContext.hasUnsyncedChanges;
+
+  const handleBlockNavigation = () => {
+    if (hasUnsyncedChanges) {
+      return documentContext.hasLocalPersistence
+        ? t(
+            `Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?`
+          )
+        : t(
+            `Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?`
+          );
+    }
+    if (isUploading && !isEditorDirty) {
+      return t(
+        `Images are still uploading.\nAre you sure you want to discard them?`
+      );
+    }
+    return true;
+  };
+
+  const handleUnload = (event: BeforeUnloadEvent) => {
+    if (hasUnsyncedChanges) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  };
+
+  useEventListener("beforeunload", handleUnload);
 
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
   const pageTitle = hasEmojiInTitle
@@ -297,40 +364,41 @@ function DocumentScene({
   return (
     <ErrorBoundary showTitle>
       <RegisterKeyDown trigger="m" handler={onMove} />
-      <RegisterKeyDown trigger="z" handler={onUndoRedo} />
+      <RegisterKeyDown trigger="z" metaKey handler={onUndoRedo} />
       <RegisterKeyDown trigger="e" handler={goToEdit} />
       <RegisterKeyDown trigger="Escape" handler={goBack} />
       <RegisterKeyDown trigger="h" handler={goToHistory} />
       <RegisterKeyDown
         trigger="p"
+        metaKey
+        shiftKey
         options={{
           allowInInput: true,
         }}
-        handler={handlePublishShortcut}
+        handler={onPublish}
       />
       <MeasuredContainer
         as={Background}
         name="container"
-        key={revision ? revision.id : document.id}
         column
         auto
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        data-drop-area
       >
         <PageTitle title={pageTitle} favicon={favicon} />
         {(isUploading || isSaving) && <LoadingIndicator />}
-        <Container column>
+        <Container column auto>
           {!readOnly && (
             <Prompt
-              when={isUploading && !isEditorDirty}
-              message={t(
-                `Images are still uploading.\nAre you sure you want to discard them?`
-              )}
+              when={(isUploading && !isEditorDirty) || hasUnsyncedChanges}
+              message={handleBlockNavigation}
             />
           )}
           {isShare ? (
             <SharedHeader document={document} />
           ) : (
             <Header
-              editorRef={editorRef}
               document={document}
               revision={revision}
               isDraft={document.isDraft}
@@ -506,9 +574,15 @@ type EditorContainerProps = {
 
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
-  padding: 0 44px;
+  padding: 0 32px;
+
+  // A notice above the editor already provides the space from the header
+  &:has(> ${DocumentNotice}) {
+    --document-title-margin-top: 0;
+  }
 
   ${breakpoint("tablet")`
+    padding: 0 44px;
     grid-row: 1;
 
     // Decides the editor column position & span

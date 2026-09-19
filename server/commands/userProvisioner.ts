@@ -8,7 +8,12 @@ import {
   InviteRequiredError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { Team, User, UserAuthentication } from "@server/models";
+import {
+  AuthenticationProvider,
+  Team,
+  User,
+  UserAuthentication,
+} from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 import { UserFlag } from "@server/models/User";
@@ -25,6 +30,13 @@ type Props = {
   name: string;
   /** The email address of the user */
   email: string;
+  /**
+   * Whether the provider has verified the user owns the email address.
+   * Matching an existing account by email only happens when explicitly true.
+   */
+  emailVerified?: boolean;
+  /** The display name of the authentication provider, eg "Google". */
+  authenticationProviderName?: string;
   /** The language of the user, if known */
   language?: string;
   /** The role for new user, Member if none is provided */
@@ -54,23 +66,58 @@ type Props = {
 
 export default async function userProvisioner(
   ctx: APIContext,
-  { name, email, role, language, avatarUrl, teamId, authentication }: Props
+  {
+    name,
+    email,
+    emailVerified,
+    authenticationProviderName,
+    role,
+    language,
+    avatarUrl,
+    teamId,
+    authentication,
+  }: Props
 ): Promise<UserProvisionerResult> {
-  const auth = authentication
-    ? await UserAuthentication.findOne({
+  // The provider being signed in with, external user identifiers are only
+  // unique within the namespace of a single provider so it must be known
+  // before an existing authentication record can be matched.
+  const provider = authentication
+    ? await AuthenticationProvider.findOne({
         where: {
-          providerId: String(authentication.providerId),
+          id: authentication.authenticationProviderId,
+          teamId,
         },
-        include: [
-          {
-            model: User,
-            as: "user",
-            where: { teamId },
-            required: true,
-          },
-        ],
       })
     : undefined;
+
+  if (authentication && !provider) {
+    throw InvalidAuthenticationError();
+  }
+
+  const auth =
+    authentication && provider
+      ? await UserAuthentication.findOne({
+          where: {
+            providerId: String(authentication.providerId),
+          },
+          include: [
+            {
+              model: User,
+              as: "user",
+              where: { teamId },
+              required: true,
+            },
+            {
+              // Restrict matching to the same type of provider, an identifier
+              // from one provider must never match a record from another.
+              model: AuthenticationProvider,
+              as: "authenticationProvider",
+              where: { name: provider.name },
+              required: true,
+            },
+          ],
+        })
+      : undefined;
 
   // Someone has signed in with this authentication before, we just
   // want to update the details instead of creating a new record
@@ -103,7 +150,10 @@ export default async function userProvisioner(
           avatarUrl,
         });
       }
-      await user.update({ email });
+      // Overwrite the stored email when the provider verified it
+      if (emailVerified === true) {
+        await user.update({ email });
+      }
       await auth.update(rest);
 
       return {
@@ -134,6 +184,14 @@ export default async function userProvisioner(
   const team = await Team.scope("withDomains").findByPk(teamId, {
     attributes: ["defaultUserRole", "inviteRequired", "id"],
   });
+
+  // Unverified emails cannot match an existing account or pass allow listed domains
+  if (emailVerified !== true && (existingUser || team?.allowedDomains.length)) {
+    const providerName = authenticationProviderName ?? "your identity provider";
+    throw InvalidAuthenticationError(
+      `Your email address has not been verified by ${providerName}. Please verify your email and try signing in again.`
+    );
+  }
 
   // We have an existing user, so we need to update it with our
   // new details and count this as a new user creation.

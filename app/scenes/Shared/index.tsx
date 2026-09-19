@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { Suspense, useCallback, useEffect } from "react";
-import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { useLocation, useParams } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
@@ -49,7 +48,7 @@ const canonicalOrigin = canonicalUrl
   : window.location.origin;
 
 type PathParams = {
-  shareId: string;
+  shareId?: string;
   collectionSlug?: string;
   documentSlug?: string;
 };
@@ -254,18 +253,17 @@ function SharedScene() {
         showLastUpdated: share.showLastUpdated,
       }}
     >
-      <Helmet>
-        <link
-          rel="canonical"
-          href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
-        />
-      </Helmet>
+      <link
+        rel="canonical"
+        href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
+      />
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
             <Layout
               title={pageTitle}
               sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+              sidebarCanCollapse={false}
             >
               {model instanceof Document ? (
                 <DocumentScene document={model} />

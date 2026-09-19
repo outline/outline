@@ -1,8 +1,10 @@
 import { Gitlab } from "@gitbeaker/rest";
 import type {
+  EpicSchema,
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
   ProjectSchema,
+  SimpleLabelSchema,
   StatisticsSchema,
 } from "@gitbeaker/rest";
 import z from "zod";
@@ -11,6 +13,7 @@ import {
   IntegrationService,
   UnfurlResourceType,
 } from "@shared/types";
+import { toError, errToString } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
@@ -103,6 +106,25 @@ export class GitLab {
     }
 
     return issues[0];
+  }
+
+  /**
+   * Fetches an epic from a GitLab group.
+   *
+   * @param accessToken - The access token for authentication.
+   * @param groupPath - The full path of the group.
+   * @param epicIid - The epic IID (internal ID within the group).
+   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @returns The epic data.
+   */
+  public static async getEpic(
+    accessToken: string,
+    groupPath: string,
+    epicIid: number,
+    customUrl?: string
+  ) {
+    const client = await this.createClient(accessToken, customUrl);
+    return client.Epics.show(groupPath, epicIid);
   }
 
   /**
@@ -227,7 +249,6 @@ export class GitLab {
 
     try {
       const customUrl = matchedIntegration.settings?.gitlab?.url;
-      const projectPath = `${resource.owner}/${resource.repo}`;
       const { authentication } = matchedIntegration;
       const token = await authentication.refreshTokenIfNeeded(
         async (refreshToken: string) =>
@@ -238,6 +259,23 @@ export class GitLab {
             clientSecret: authentication.clientSecret ?? undefined,
           })
       );
+
+      // Epics are group-scoped, so they have no project path.
+      if (
+        resource.type === UnfurlResourceType.Issue &&
+        resource.scope === "group"
+      ) {
+        const epic = await this.getEpic(
+          token,
+          resource.owner,
+          resource.id,
+          customUrl
+        );
+
+        return this.transformIssue(epic);
+      }
+
+      const projectPath = `${resource.owner}/${resource.repo}`;
 
       if (resource.type === UnfurlResourceType.Issue) {
         const issue = await this.getIssue(
@@ -267,8 +305,10 @@ export class GitLab {
 
       return { error: "Resource not found" };
     } catch (err) {
-      Logger.warn("Failed to fetch resource from GitLab", err);
-      return { error: err.message || "Unknown error" };
+      Logger.warn("Failed to fetch resource from GitLab", toError(err));
+      return {
+        error: errToString(err) || "Unknown error",
+      };
     }
   };
 
@@ -356,7 +396,11 @@ export class GitLab {
     return AccessTokenResponseSchema.parse(resJson);
   }
 
-  private static transformIssue(issue: IssueSchemaWithExpandedLabels) {
+  private static transformIssue(
+    issue: IssueSchemaWithExpandedLabels | EpicSchema
+  ) {
+    const labels: (string | SimpleLabelSchema)[] = issue.labels;
+
     return {
       type: UnfurlResourceType.Issue,
       url: issue.web_url,
@@ -367,10 +411,12 @@ export class GitLab {
         name: issue.author?.username ?? "",
         avatarUrl: issue.author?.avatar_url ?? "",
       },
-      labels: issue.labels.map((label) => ({
-        name: label.name,
-        color: label.color,
-      })),
+      // Epics are returned without label color details.
+      labels: labels.map((label) =>
+        typeof label === "string"
+          ? { name: label, color: GitLabUtils.defaultLabelColor }
+          : { name: label.name, color: label.color }
+      ),
       state: {
         name: issue.state,
         color: GitLabUtils.getColorForStatus(issue.state),
@@ -433,7 +479,7 @@ export class GitLab {
       },
       labels: (project.topics ?? []).map((topic: string) => ({
         name: topic,
-        color: "#6B7280",
+        color: GitLabUtils.defaultLabelColor,
       })),
       progress,
       createdAt: project.created_at,

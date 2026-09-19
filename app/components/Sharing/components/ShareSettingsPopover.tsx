@@ -10,6 +10,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import { HStack } from "~/components/primitives/HStack";
 import { AttachmentPreset } from "@shared/types";
@@ -28,7 +29,7 @@ import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import useStores from "~/hooks/useStores";
-import { compressImage } from "~/utils/compressImage";
+import { ImageHelper } from "~/utils/ImageHelper";
 import { uploadFile } from "~/utils/files";
 import {
   Popover,
@@ -70,7 +71,7 @@ function ShareSettingsPopover({ share, children }: Props) {
           await share.save({ title: val || null });
           hasChangesRef.current = true;
         } catch (err) {
-          toast.error(err.message);
+          toast.error(errToString(err));
         }
       }, 500),
     [share]
@@ -89,7 +90,7 @@ function ShareSettingsPopover({ share, children }: Props) {
 
       setIsUploading(true);
       try {
-        const compressed = await compressImage(file, {
+        const compressed = await ImageHelper.compress(file, {
           maxHeight: 512,
           maxWidth: 512,
         });
@@ -100,7 +101,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ iconUrl: attachment.url });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) {
@@ -116,7 +117,7 @@ function ShareSettingsPopover({ share, children }: Props) {
       await share.save({ iconUrl: null });
       hasChangesRef.current = true;
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     }
   }, [share]);
 
@@ -126,7 +127,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ allowIndexing: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -138,7 +139,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ allowSubscriptions: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -150,7 +151,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ showLastUpdated: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -162,7 +163,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ showTOC: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -294,7 +295,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                   "Display the last modified timestamp on the shared page"
                 )}
               >
-                <NudeButton size={18}>
+                <NudeButton size={18} aria-label={t("More information")}>
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
@@ -319,7 +320,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                   "Display the table of contents on documents by default"
                 )}
               >
-                <NudeButton size={18}>
+                <NudeButton size={18} aria-label={t("More information")}>
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
@@ -347,7 +348,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                   "Disable this setting to discourage search engines from indexing the page"
                 )}
               >
-                <NudeButton size={18}>
+                <NudeButton size={18} aria-label={t("More information")}>
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
@@ -373,7 +374,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                     "Allow viewers to subscribe and receive email notifications when documents are updated"
                   )}
                 >
-                  <NudeButton size={18}>
+                  <NudeButton size={18} aria-label={t("More information")}>
                     <QuestionMarkIcon size={18} />
                   </NudeButton>
                 </Tooltip>

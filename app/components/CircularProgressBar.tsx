@@ -43,19 +43,37 @@ const Circle = ({
   );
 };
 
+/**
+ * Renders a small circular progress indicator.
+ *
+ * @param percentage - the progress to display, clamped to the range 0–100.
+ * @param size - the width and height of the indicator in pixels.
+ * @param label - an accessible name announced by assistive technology.
+ * @returns the rendered progress bar element.
+ */
 const CircularProgressBar = ({
   percentage,
   size = 16,
+  label,
 }: {
   percentage: number;
   size?: number;
+  label?: string;
 }) => {
   const theme = useTheme();
   percentage = cleanPercentage(percentage);
   const offset = Math.floor(size / 2);
 
   return (
-    <SVG width={size} height={size}>
+    <SVG
+      width={size}
+      height={size}
+      role="progressbar"
+      aria-label={label}
+      aria-valuenow={Math.round(percentage)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
       <g transform={`rotate(-90 ${offset} ${offset})`}>
         <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (

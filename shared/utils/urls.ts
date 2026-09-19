@@ -209,16 +209,19 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
-  const lower = url.toLowerCase();
+  // Surrounding whitespace, a newline in particular, would otherwise fail
+  // validation and have a scheme prepended to an already qualified url.
+  const trimmed = url.trim();
+  const lower = trimmed.toLowerCase();
   if (
-    !isUrl(url, { requireHostname: false }) &&
-    !url.startsWith("/") &&
-    !url.startsWith("#") &&
+    !isUrl(trimmed, { requireHostname: false }) &&
+    !trimmed.startsWith("/") &&
+    !trimmed.startsWith("#") &&
     !allowedSchemes.some((scheme) => lower.startsWith(scheme))
   ) {
-    return `https://${url}`;
+    return `https://${trimmed}`;
   }
-  return url;
+  return trimmed;
 }
 
 /**
@@ -243,10 +246,10 @@ export function sanitizeImageSrc(src: string | null | undefined) {
 }
 
 /**
- * Returns a regex to match the given url.
+ * Returns a regex to match urls that begin with the given url's origin.
  *
  * @param url The url to create a regex for.
- * @returns A regex to match the url.
+ * @returns A regex anchored to the origin, a path and query may follow.
  */
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
@@ -255,7 +258,7 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(sanitizeUrl(url) as string);
 
-  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
+  return new RegExp(`^${escapeRegExp(`${urlObj.protocol}//${urlObj.host}`)}`);
 }
 
 /**
@@ -299,6 +302,77 @@ export function parseShareIdFromUrl(url: string): string | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Adds the port that the application is publicly reachable on to a url that
+ * does not specify one. A proxy commonly forwards a Host header without the
+ * public port, so urls derived from an incoming request would otherwise point
+ * at the wrong address.
+ *
+ * @param url the url to modify, may be relative.
+ * @returns the url with the port added, if one was missing.
+ */
+export function addMissingUrlPort(url: string): string {
+  let port;
+  try {
+    port = new URL(env.URL).port;
+  } catch (_err) {
+    return url;
+  }
+
+  if (!port) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.port) {
+      return url;
+    }
+    parsed.port = port;
+    return parsed.toString();
+  } catch (_err) {
+    // Relative urls are resolved against the current origin and need no port.
+    return url;
+  }
+}
+
+/**
+ * Removes the fragment (hash) from a url, if present.
+ *
+ * @param url The url to modify.
+ * @returns The url without its fragment.
+ */
+export function removeUrlFragment(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.hash = "";
+    return parsed.toString();
+  } catch (_err) {
+    return url.split("#")[0];
+  }
+}
+
+/**
+ * Removes a suffix from the end of a url's pathname, if present. The url is
+ * parsed rather than string-replaced so that a matching substring elsewhere in
+ * the url (such as the hostname) is not affected.
+ *
+ * @param url The url to modify.
+ * @param suffix The pathname suffix to remove (e.g. `/edit`).
+ * @returns The url with the suffix removed from the end of its pathname.
+ */
+export function removeUrlPathSuffix(url: string, suffix: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith(suffix)) {
+      parsed.pathname = parsed.pathname.slice(0, -suffix.length);
+    }
+    return parsed.toString();
+  } catch (_err) {
+    return url.endsWith(suffix) ? url.slice(0, -suffix.length) : url;
+  }
 }
 
 /**

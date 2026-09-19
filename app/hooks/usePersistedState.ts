@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
 import { isBrowser } from "@shared/utils/browser";
@@ -41,7 +42,7 @@ export default function usePersistedState<T extends Primitive | object>(
   key: string,
   defaultValue: T,
   options?: Options
-): [T, (value: T) => void] {
+): [T, Dispatch<SetStateAction<T>>] {
   const previousKey = usePrevious(key);
   const [storedValue, setStoredValue] = useState(() => {
     if (!isBrowser) {
@@ -50,34 +51,48 @@ export default function usePersistedState<T extends Primitive | object>(
     return Storage.get(key) ?? defaultValue;
   });
 
-  const setValue = useCallback(
-    (value: T | ((value: T) => void)) => {
-      try {
-        // Allow value to be a function so we have same API as useState
-        const valueToStore =
-          value instanceof Function ? value(storedValue) : value;
+  // Mirrors the latest state so functional updates can be computed without
+  // capturing `storedValue` in the setter's closure, keeping its identity
+  // stable and safe to use in dependency arrays.
+  const storedValueRef = useRef<T>(storedValue);
 
-        setStoredValue(valueToStore);
-        Storage.set(key, valueToStore);
-      } catch (error) {
-        // A more advanced implementation would handle the error case
-        Logger.debug("misc", "Failed to persist state", { error });
-      }
+  const updateStoredValue = useCallback((value: T) => {
+    storedValueRef.current = value;
+    setStoredValue(value);
+  }, []);
+
+  const setValue = useCallback(
+    (value: SetStateAction<T>) => {
+      const valueToStore =
+        value instanceof Function ? value(storedValueRef.current) : value;
+      updateStoredValue(valueToStore);
+      Storage.set(key, valueToStore);
     },
-    [key, storedValue]
+    [key, updateStoredValue]
   );
 
   // Sync state when key changes
   useEffect(() => {
-    if (previousKey !== key) {
-      setStoredValue(Storage.get(key) ?? defaultValue);
+    if (previousKey !== undefined && previousKey !== key) {
+      updateStoredValue(Storage.get(key) ?? defaultValue);
     }
-  }, [previousKey, key, defaultValue]);
+  }, [previousKey, key, defaultValue, updateStoredValue]);
 
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {
-    if (options?.listen !== false && event.key === key && event.newValue) {
-      setStoredValue(JSON.parse(event.newValue));
+    if (options?.listen === false || event.key !== key) {
+      return;
+    }
+    if (event.newValue === null) {
+      updateStoredValue(defaultValue);
+      return;
+    }
+    try {
+      updateStoredValue(JSON.parse(event.newValue));
+    } catch (error) {
+      // Another tab or unrelated code may have written a value under this key
+      // that is not valid JSON – never let that crash the listener.
+      Logger.debug("misc", "Failed to parse persisted state", { error });
     }
   });
 

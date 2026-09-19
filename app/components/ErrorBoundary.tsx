@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { TFunction } from "i18next";
@@ -14,6 +14,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { isStaleChunkError } from "~/utils/lazyWithRetry";
 import Storage from "@shared/utils/Storage";
 import { deleteAllDatabases } from "~/utils/developer";
 import Flex from "./Flex";
@@ -24,7 +25,7 @@ interface OwnProps {
   /** Whether to show a title heading. */
   showTitle?: boolean;
   /** The wrapping component to use. */
-  component?: React.ComponentType | string;
+  component?: React.ComponentType<React.PropsWithChildren> | string;
   /** Children rendered when no error is present. */
   children?: React.ReactNode;
 }
@@ -39,13 +40,18 @@ const ERROR_TRACKING_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 @observer
 class ErrorBoundaryClass extends React.Component<Props> {
   @observable
-  error: Error | null | undefined;
+  error: Error | null | undefined = undefined;
 
   @observable
   showDetails = false;
 
   @observable
   isRepeatedError = false;
+
+  constructor(props: Props) {
+    super(props);
+    makeObservable(this);
+  }
 
   componentDidMount() {
     this.checkForPreviousErrors();
@@ -57,8 +63,7 @@ class ErrorBoundaryClass extends React.Component<Props> {
 
     if (
       this.props.reloadOnChunkMissing &&
-      error.message &&
-      error.message.match(/dynamically imported module/) &&
+      isStaleChunkError(error) &&
       !this.isRepeatedError
     ) {
       // If the editor bundle fails to load then reload the entire window. This
@@ -133,12 +138,7 @@ class ErrorBoundaryClass extends React.Component<Props> {
     if (this.error) {
       const error = this.error;
       const isReported = !!env.SENTRY_DSN && isCloudHosted;
-      const isChunkError = [
-        "module script failed",
-        "dynamically imported module",
-      ].some((msg) => this.error?.message?.includes(msg));
-
-      if (isChunkError) {
+      if (isStaleChunkError(error)) {
         return (
           <Component>
             {showTitle && (

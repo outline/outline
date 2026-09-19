@@ -8,6 +8,10 @@ export default class AuthenticationHelper {
    * - `documents.create` -> `Scope.Create`
    * - `documents.list` -> `Scope.Read`
    * - `documents.info` -> `Scope.Read`
+   * - `collections.memberships` -> `Scope.Read`
+   * - `collections.group_memberships` -> `Scope.Read`
+   * - `attachments.redirect` -> `Scope.Read`
+   * - `files.get` -> `Scope.Read`
    */
   private static methodToScope = {
     create: Scope.Create,
@@ -19,6 +23,45 @@ export default class AuthenticationHelper {
     drafts: Scope.Read,
     viewed: Scope.Read,
     export: Scope.Read,
+    redirect: Scope.Read,
+    get: Scope.Read,
+    memberships: Scope.Read,
+    group_memberships: Scope.Read,
+  };
+
+  /**
+   * Matches exactly one of the supported scope grammars:
+   *
+   * - `*` — full wildcard
+   * - `read` | `write` | `create` — global access scope
+   * - `<namespace>:(read|write|create)` — namespaced access scope
+   * - `/api/<namespace>.<method>` — route scope, namespace and method may be `*`
+   */
+  public static scopeGrammarRegex =
+    /^(\*|read|write|create|\w+:(read|write|create)|\/api\/(\*|\w+)\.(\*|\w+))$/;
+
+  /**
+   * Returns whether the given string is a well-formed scope. Scopes that mix
+   * route and namespaced forms (e.g. `/api/documents.list:read`) are rejected
+   * to avoid ambiguity between validation and enforcement.
+   *
+   * @param scope The scope to validate
+   * @param options.allowRootWildcard Whether scopes that grant access to every
+   *   route (`*` and `/api/*.*`) should be considered valid. Defaults to true.
+   * @returns true if the scope conforms to the supported grammar
+   */
+  public static isValidScope = (
+    scope: string,
+    options: { allowRootWildcard?: boolean } = {}
+  ): boolean => {
+    const { allowRootWildcard = true } = options;
+    if (!AuthenticationHelper.scopeGrammarRegex.test(scope)) {
+      return false;
+    }
+    if (!allowRootWildcard && (scope === "*" || scope === "/api/*.*")) {
+      return false;
+    }
+    return true;
   };
 
   /**
@@ -28,6 +71,8 @@ export default class AuthenticationHelper {
    * - `/api/namespace.method`
    * - `namespace:scope`
    * - `scope`
+   *
+   * Malformed scopes that do not match the supported grammar are ignored.
    *
    * @param path The path to check
    * @param scopes The scopes to check
@@ -39,13 +84,17 @@ export default class AuthenticationHelper {
       return true;
     }
 
-    // strip any query string, this is never used as part of scope matching
-    path = path.split("?")[0];
+    // strip any query string or fragment, these are never used as part of scope matching
+    path = path.split("?")[0].split("#")[0];
 
     const resource = path.split("/").pop() ?? "";
     const [namespace, method] = resource.split(".");
 
     return scopes.some((scope) => {
+      if (!AuthenticationHelper.isValidScope(scope)) {
+        return false;
+      }
+
       const [scopeNamespace, scopeMethod] = scope.match(/[:.]/g)
         ? scope.replace("/api/", "").split(/[:.]/g)
         : ["*", scope];

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { Slice } from "prosemirror-model";
+import type { Slice } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
@@ -9,6 +9,7 @@ import breakpoint from "styled-components-breakpoint";
 import Icon, { IconTitleWrapper } from "@shared/components/Icon";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import { sliceWithoutFirstNode } from "@shared/editor/lib/sliceWithoutFirstNode";
 import { extraArea, s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
@@ -52,27 +53,27 @@ type Props = {
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
   /** Callback called when focus leaves the input */
   onBlur?: React.FocusEventHandler<HTMLSpanElement>;
+  /** Ref to the underlying content editable */
+  ref?: React.Ref<RefHandle>;
 };
 
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const DocumentTitle = React.forwardRef(function DocumentTitle_(
-  {
-    documentId,
-    title,
-    icon,
-    color,
-    readOnly,
-    onChangeTitle,
-    onChangeIcon,
-    onSave,
-    onGoToNextInput,
-    onBlur,
-    placeholder,
-  }: Props,
-  externalRef: React.RefObject<RefHandle>
-) {
+function DocumentTitle({
+  documentId,
+  title,
+  icon,
+  color,
+  readOnly,
+  onChangeTitle,
+  onChangeIcon,
+  onSave,
+  onGoToNextInput,
+  onBlur,
+  placeholder,
+  ref: externalRef,
+}: Props) {
   const { t } = useTranslation();
   const ref = React.useRef<RefHandle>(null);
   const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
@@ -147,10 +148,10 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
       if (/\/date\s$/.test(input)) {
         value = getCurrentDateAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/time$/.test(input)) {
+      } else if (input.endsWith("/time")) {
         value = getCurrentTimeAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/datetime$/.test(input)) {
+      } else if (input.endsWith("/datetime")) {
         value = getCurrentDateTimeAsString();
         ref?.current?.focusAtEnd();
       }
@@ -179,7 +180,7 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
 
       if (editor && content) {
         const { view, pasteParser } = editor;
-        let slice;
+        let slice: Slice | undefined;
 
         if (isMarkdown(text)) {
           const paste = pasteParser.parse(normalizePastedMarkdown(content));
@@ -195,16 +196,10 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
             view.state.selection.$from
           );
 
-          // remove first node from slice
-          slice = defaultSlice.content.firstChild
-            ? new Slice(
-                defaultSlice.content.cut(
-                  defaultSlice.content.firstChild.nodeSize
-                ),
-                defaultSlice.openStart,
-                defaultSlice.openEnd
-              )
-            : defaultSlice;
+          // remove first node from slice, it was inserted into the title
+          slice = defaultSlice
+            ? sliceWithoutFirstNode(defaultSlice)
+            : undefined;
         }
 
         if (slice) {
@@ -281,7 +276,7 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
       ) : null}
     </Title>
   );
-});
+}
 
 type TitleProps = {
   $containsIcon: boolean;
@@ -297,7 +292,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 8vh;
+  margin-top: var(--document-title-margin-top, 8vh);
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;
@@ -332,7 +327,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
-    margin-top: 6vh;
+    margin-top: var(--document-title-margin-top, 6vh);
     margin-left: 0;
 
     &:hover {

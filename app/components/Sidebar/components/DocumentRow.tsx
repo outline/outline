@@ -2,7 +2,6 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import type { ConnectDragSource } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
 import styled from "styled-components";
@@ -19,7 +18,7 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
-import type { ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionWithChildren } from "~/types";
 
 export type DocumentRowProps = {
   /** Document identifier for policy, prefetch and import. */
@@ -67,7 +66,7 @@ export type DocumentRowProps = {
   onCollapse?: () => void;
 
   /** Drag source ref from the container's drag hook. */
-  dragRef?: ConnectDragSource;
+  dragRef?: React.RefCallback<HTMLElement>;
   /** Whether the row is being dragged. */
   isDragging?: boolean;
   /** Whether the row's document is being moved. */
@@ -98,7 +97,7 @@ export type DocumentRowProps = {
   newChildDepth?: number;
 
   /** Context menu action for the row. */
-  contextAction?: ActionWithChildren;
+  contextAction?: ActionWithChildren | ActionFactory;
 
   /** Optional override for the active-match function. */
   isActiveOverride?: (
@@ -284,6 +283,7 @@ function DocumentRow({
     <ActionContextProvider
       value={{
         activeModels: document ? [document] : [],
+        sidebarContext,
       }}
     >
       <Relative ref={parentRef}>

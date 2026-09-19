@@ -1,11 +1,14 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { basicExtensions, withComments } from "@shared/editor/nodes";
+import CodeBlock from "@shared/editor/nodes/CodeBlock";
+import CodeFence from "@shared/editor/nodes/CodeFence";
 import HardBreak from "@shared/editor/nodes/HardBreak";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
+import DocumentMenuExtension from "~/editor/extensions/DocumentMenu";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import Keys from "~/editor/extensions/Keys";
 import MentionMenuExtension from "~/editor/extensions/MentionMenu";
@@ -17,12 +20,15 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 
 const extensions = [
   ...withComments(basicExtensions),
+  CodeBlock,
+  CodeFence,
   HardBreak,
   SmartText,
   PasteHandler,
   ClipboardTextSerializer,
   EmojiMenuExtension,
   MentionMenuExtension,
+  DocumentMenuExtension,
   UpArrowAtStart,
   // Order these default key handlers last
   PreventTab,
@@ -32,12 +38,10 @@ const extensions = [
 type CommentEditorProps = EditorProps & {
   /** Callback when user presses up arrow at the start of the editor */
   onUpArrowAtStart?: () => void;
+  ref?: React.Ref<SharedEditor>;
 };
 
-const CommentEditor = (
-  props: CommentEditorProps,
-  ref: React.RefObject<SharedEditor>
-) => {
+const CommentEditor = ({ ref, ...props }: CommentEditorProps) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
 
   return (
@@ -45,4 +49,4 @@ const CommentEditor = (
   );
 };
 
-export default observer(React.forwardRef(CommentEditor));
+export default observer(CommentEditor);

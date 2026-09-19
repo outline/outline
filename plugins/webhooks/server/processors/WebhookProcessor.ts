@@ -6,20 +6,39 @@ import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 export default class WebhookProcessor extends BaseProcessor {
   static applicableEvents: ["*"] = ["*"];
 
+  /**
+   * Only queue an event when the team has an enabled webhook subscription that
+   * matches it. The vast majority of events belong to teams with no applicable
+   * subscriptions, so this avoids creating and running an empty job for them.
+   *
+   * @param event The event about to be queued.
+   * @returns true if a matching subscription exists.
+   */
+  static async shouldQueue(event: Event): Promise<boolean> {
+    if (!event.teamId) {
+      return false;
+    }
+
+    const subscriptions = await WebhookSubscription.findEnabledByTeamId(
+      event.teamId
+    );
+
+    return subscriptions.some((subscription) =>
+      WebhookSubscription.matchEvent(subscription.events, event.name)
+    );
+  }
+
   async perform(event: Event) {
     if (!event.teamId) {
       return;
     }
 
-    const webhookSubscriptions = await WebhookSubscription.findAll({
-      where: {
-        enabled: true,
-        teamId: event.teamId,
-      },
-    });
+    const subscriptions = await WebhookSubscription.findEnabledByTeamId(
+      event.teamId
+    );
 
-    const applicableSubscriptions = webhookSubscriptions.filter((webhook) =>
-      webhook.validForEvent(event)
+    const applicableSubscriptions = subscriptions.filter((subscription) =>
+      WebhookSubscription.matchEvent(subscription.events, event.name)
     );
 
     await Promise.all(

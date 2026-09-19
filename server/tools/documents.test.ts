@@ -1,12 +1,28 @@
-import { CollectionPermission, Scope } from "@shared/types";
+import { DeprecationValidation } from "@shared/validations";
+import { CollectionPermission, DocumentPermission, Scope } from "@shared/types";
 import {
   buildUser,
+  buildViewer,
   buildCollection,
   buildDocument,
+  buildTemplate,
   buildOAuthAuthentication,
+  buildGroup,
 } from "@server/test/factories";
+import {
+  Attachment,
+  Document,
+  GroupMembership,
+  SearchQuery,
+  UserMembership,
+} from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  parseMcpListContent,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 
@@ -38,6 +54,33 @@ describe("list_documents", () => {
     expect(
       (match.document as { commentCount?: number }).commentCount
     ).toBeUndefined();
+  });
+
+  it("does not return templates in recent documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
+    expect(ids).not.toContain(template.id);
   });
 
   it("filters by collection", async () => {
@@ -78,6 +121,70 @@ describe("list_documents", () => {
     ).toBe(true);
   });
 
+  it("returns documents shared directly with the user", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const author = await buildUser({ teamId: user.teamId });
+    // A document in a private collection the user is not a member of, shared
+    // directly with the user via a membership ("Shared with me").
+    const collection = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: author.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
+  });
+
+  it("returns documents shared with the user via a group", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const author = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+
+    const group = await buildGroup({ teamId: user.teamId });
+    await group.$add("user", user, { through: { createdById: author.id } });
+    await GroupMembership.create({
+      createdById: author.id,
+      groupId: group.id,
+      documentId: document.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
+  });
+
   it("does not return private documents via exact urlId match", async () => {
     const owner = await buildUser();
     const otherUser = await buildUser({ teamId: owner.teamId });
@@ -103,12 +210,15 @@ describe("list_documents", () => {
       query: privateDocument.urlId,
     });
 
-    const data = (res?.result?.content ?? []).map((c: { text?: string }) =>
-      JSON.parse(c.text ?? "{}")
+    expect(res?.result?.content).toEqual([{ type: "text", text: "[]" }]);
+
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      res?.result?.content
     );
-    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    const ids = data.map((d) => d.document.id);
 
     expect(res?.result?.isError).not.toBe(true);
+    expect(ids).toHaveLength(0);
     expect(ids).not.toContain(privateDocument.id);
   });
 
@@ -141,6 +251,136 @@ describe("list_documents", () => {
 
     expect(ids).toContain(document.id);
   });
+
+  it("excludes archived documents from search by default", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Blackberry",
+    });
+    const archived = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Blackberry",
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: "Blackberry",
+    });
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      res?.result?.content
+    );
+    const ids = data.map((d) => d.document.id);
+
+    expect(ids).toContain(document.id);
+    expect(ids).not.toContain(archived.id);
+  });
+
+  it("includes archived documents in search when requested", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const archived = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Blackberry",
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: "Blackberry",
+      includeArchived: true,
+    });
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      res?.result?.content
+    );
+    const ids = data.map((d) => d.document.id);
+
+    expect(ids).toContain(archived.id);
+  });
+
+  it("includes archived documents in recent documents when requested", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const archived = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    const excluded = parseMcpListContent<{ document: { id: string } }>(
+      (await callMcpTool(server, accessToken, "list_documents"))?.result
+        ?.content
+    ).map((d) => d.document.id);
+    expect(excluded).not.toContain(archived.id);
+
+    const included = parseMcpListContent<{ document: { id: string } }>(
+      (
+        await callMcpTool(server, accessToken, "list_documents", {
+          includeArchived: true,
+        })
+      )?.result?.content
+    ).map((d) => d.document.id);
+    expect(included).toContain(archived.id);
+  });
+
+  it("records the search query with an mcp source", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+
+    await callMcpTool(server, accessToken, "list_documents", {
+      query: "Metaphysics",
+    });
+
+    const searchQuery = await SearchQuery.findOne({
+      where: { teamId: user.teamId, userId: user.id },
+    });
+    expect(searchQuery?.source).toEqual(SearchQuerySource.MCP);
+    expect(searchQuery?.query).toEqual("Metaphysics");
+  });
+
+  it("does not record a search query when listing recent documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    await callMcpTool(server, accessToken, "list_documents");
+
+    expect(await SearchQuery.count({ where: { teamId: user.teamId } })).toEqual(
+      0
+    );
+  });
 });
 
 describe("create_document", () => {
@@ -158,10 +398,48 @@ describe("create_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.title).toEqual("New Document");
-    expect(data.document.collectionId).toEqual(collection.id);
-    expect(data.document.id).toBeDefined();
-    expect(data.document.url).toMatch(/^https?:\/\//);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("New Document");
+    expect(data.id).toBeDefined();
+    expect(data.url).toMatch(/^https?:\/\//);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.collectionId).toEqual(collection.id);
+  });
+
+  it("creates from HTML and preserves images as attachments", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const image =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "HTML Document",
+      text: `<p>Hello <strong>HTML</strong></p><img alt="chart" src="data:image/png;base64,${image}" width="1" height="1">`,
+      format: "html",
+      collectionId: collection.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    const attachmentCount = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType: "image/png",
+      },
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("HTML Document");
+    expect(attachmentCount).toEqual(1);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.collectionId).toEqual(collection.id);
+    expect(document.text).toContain("Hello **HTML**");
+    expect(document.text).toContain("/api/attachments.redirect?id=");
   });
 
   it("creates nested under parent document", async () => {
@@ -183,8 +461,145 @@ describe("create_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.title).toEqual("Child Document");
-    expect(data.document.parentDocumentId).toEqual(parent.id);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("Child Document");
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.parentDocumentId).toEqual(parent.id);
+  });
+
+  it("creates from a template", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Content from the template",
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "From Template",
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).not.toBe(true);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("From Template");
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.templateId).toEqual(template.id);
+    expect(document.text).toContain("Content from the template");
+  });
+
+  it("defaults the title to the template title", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Template Title",
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).not.toBe(true);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("Template Title");
+  });
+
+  it("does not allow creating from a template the user cannot access", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const otherUser = await buildUser();
+    const otherCollection = await buildCollection({
+      teamId: otherUser.teamId,
+      userId: otherUser.id,
+    });
+    const template = await buildTemplate({
+      teamId: otherUser.teamId,
+      userId: otherUser.id,
+      collectionId: otherCollection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "From Template",
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("does not allow a viewer to create a draft", async () => {
+    const user = await buildViewer();
+    const auth = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "create_document",
+      {
+        title: "Viewer Draft",
+        text: "Should not be created",
+        publish: false,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+
+    const documents = await Document.unscoped().findAll({
+      where: { createdById: user.id },
+    });
+    expect(documents.length).toEqual(0);
+  });
+
+  it("does not allow a viewer to create a document in a collection", async () => {
+    const user = await buildViewer();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const auth = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "create_document",
+      {
+        title: "Viewer Document",
+        collectionId: collection.id,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+
+    const documents = await Document.unscoped().findAll({
+      where: { createdById: user.id },
+    });
+    expect(documents.length).toEqual(0);
   });
 });
 
@@ -208,8 +623,86 @@ describe("update_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.title).toEqual("Updated Title");
-    expect(data.document.url).toMatch(/^https?:\/\//);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("Updated Title");
+    expect(data.url).toMatch(/^https?:\/\//);
+    expect(res?.result?.content?.length).toEqual(1);
+
+    await document.reload();
+    expect(document.text).toContain("Updated content");
+  });
+
+  it("returns the resulting content when patching", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "the original sentence",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      editMode: "patch",
+      findText: "original",
+      text: "patched",
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(res?.result?.content?.[1]?.text).toContain("the patched sentence");
+  });
+
+  it("errors when no fields are provided to update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "original text",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the document"
+    );
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.text).toEqual("original text");
+  });
+
+  it("errors when provided fields are identical to the current document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: document.title,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the document"
+    );
   });
 
   it("unpublishes a document", async () => {
@@ -230,7 +723,8 @@ describe("update_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.id).toEqual(document.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(document.id);
     expect(res?.result?.isError).toBeUndefined();
   });
 
@@ -259,6 +753,41 @@ describe("update_document", () => {
 
     expect(res?.result?.isError).toBe(true);
   });
+
+  it("does not allow a viewer to publish their draft into a restricted collection", async () => {
+    const viewer = await buildViewer();
+    const collection = await buildCollection({
+      teamId: viewer.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const draft = await buildDocument({
+      teamId: viewer.teamId,
+      userId: viewer.id,
+      collectionId: null,
+      publishedAt: null,
+    });
+    const auth = await buildOAuthAuthentication({
+      user: viewer,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "update_document",
+      {
+        id: draft.id,
+        publish: true,
+        collectionId: collection.id,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+
+    const reloaded = await Document.unscoped().findByPk(draft.id);
+    expect(reloaded?.collectionId).toBeNull();
+    expect(reloaded?.publishedAt).toBeNull();
+  });
 });
 
 describe("move_document", () => {
@@ -282,16 +811,15 @@ describe("move_document", () => {
       id: document.id,
       collectionId: collection2.id,
     });
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).toBeUndefined();
-    const moved = data.find(
-      (d: { document: { id: string } }) => d.document.id === document.id
-    ) as { document: { collectionId: string } };
-    expect(moved).toBeDefined();
-    expect(moved.document.collectionId).toEqual(collection2.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(document.id);
+    expect(data.breadcrumb).toEqual(collection2.name);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection2.id);
   });
 
   it("moves under a parent document", async () => {
@@ -315,16 +843,14 @@ describe("move_document", () => {
       id: child.id,
       parentDocumentId: parent.id,
     });
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).toBeUndefined();
-    const moved = data.find(
-      (d: { document: { id: string } }) => d.document.id === child.id
-    ) as { document: { parentDocumentId: string } };
-    expect(moved).toBeDefined();
-    expect(moved.document.parentDocumentId).toEqual(parent.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(child.id);
+
+    await child.reload();
+    expect(child.parentDocumentId).toEqual(parent.id);
   });
 
   it("fails without collectionId or parentDocumentId", async () => {
@@ -365,4 +891,223 @@ describe("move_document", () => {
 
     expect(res?.result?.isError).toBe(true);
   });
+});
+
+describe("restore_document", () => {
+  it("restores an archived document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(document.id);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).toBeNull();
+  });
+
+  it("restores a trashed document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    await document.destroy();
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+
+    const reloaded = await Document.unscoped().findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(reloaded?.deletedAt).toBeNull();
+  });
+
+  it("restores into a different collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: source.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+      collectionId: destination.id,
+    });
+    expect(res?.result?.isError).toBeUndefined();
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.collectionId).toEqual(destination.id);
+  });
+
+  it("fails when the document is not archived or trashed", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+});
+
+describe.each([false, true])("delete_document with archive=%s", (archive) => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "saves reason %j with the status change",
+    async (reason) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "delete_document", {
+        id: document.id,
+        archive,
+        reason,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.parse(res?.result?.content?.[0]?.text ?? "{}").success).toBe(
+        true
+      );
+      await document.reload({ paranoid: false });
+      expect(document.deprecatedReason).toBe(reason?.trim() || null);
+      expect(archive ? document.archivedAt : document.deletedAt).not.toBeNull();
+    }
+  );
+
+  it("rejects an oversized reason without changing the item", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "delete_document", {
+      id: document.id,
+      archive,
+      reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+    expect(document.archivedAt).toBeNull();
+    expect(document.deletedAt).toBeNull();
+  });
+
+  it("checks permissions before saving the reason", async () => {
+    const { user } = await buildOAuthUser();
+    const { accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "delete_document", {
+      id: document.id,
+      archive,
+      reason: "No longer needed",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+    expect(document.archivedAt).toBeNull();
+    expect(document.deletedAt).toBeNull();
+  });
+});
+
+describe("delete_document", () => {
+  it.each([undefined, null, "   "])(
+    "preserves or clears the archive reason when deleting with reason %j",
+    async (reason) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      await document.update({
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+
+      const res = await callMcpTool(server, accessToken, "delete_document", {
+        id: document.id,
+        reason,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      expect(JSON.parse(res?.result?.content?.[0]?.text ?? "{}").success).toBe(
+        true
+      );
+      await document.reload({ paranoid: false });
+      expect(document.deletedAt).not.toBeNull();
+      expect(document.deprecatedReason).toBe(
+        reason === undefined ? "Archived reason" : null
+      );
+    }
+  );
 });

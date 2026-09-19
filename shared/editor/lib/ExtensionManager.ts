@@ -8,6 +8,7 @@ import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
 import type Node from "../nodes/Node";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 import type { CommandFactory, WidgetProps } from "./Extension";
 import type Extension from "./Extension";
 import type { AnyExtension, AnyExtensionClass } from "./types";
@@ -65,7 +66,11 @@ export default class ExtensionManager {
     return Object.fromEntries(
       this.extensions
         .filter((extension) =>
-          extension.widget({ rtl: false, readOnly: false })
+          extension.widget({
+            rtl: false,
+            readOnly: false,
+            isEditorFocused: false,
+          })
         )
         .map((node: Node) => [
           node.name,
@@ -235,6 +240,17 @@ export default class ExtensionManager {
     );
   }
 
+  /**
+   * Collects selection toolbar menu descriptors from all extensions and returns
+   * them sorted by priority (highest first). The toolbar evaluates these in
+   * order and displays the first match.
+   */
+  get selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return this.extensions
+      .flatMap((extension) => extension.selectionToolbarMenus())
+      .sort((a, b) => b.priority - a.priority);
+  }
+
   commands({ schema, view }: { schema: Schema; view: EditorView }) {
     return this.extensions
       .filter((extension) => extension.commands)
@@ -261,7 +277,20 @@ export default class ExtensionManager {
             return;
           }
           if (extension.focusAfterExecution) {
+            // Focusing a blurred editor (e.g. when the command is run from a
+            // menu that holds focus) can collapse a non-text selection such as
+            // a table cell selection. Restore it so selection-based commands
+            // operate on the intended selection, unless focus also flushed
+            // document changes that make the previous selection invalid.
+            const { doc, selection } = view.state;
             view.focus();
+            if (view.state.doc === doc && !view.state.selection.eq(selection)) {
+              view.dispatch(
+                view.state.tr
+                  .setSelection(selection)
+                  .setMeta("addToHistory", false)
+              );
+            }
           }
           return callback(attrs)?.(view.state, view.dispatch, view);
         };

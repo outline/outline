@@ -8,6 +8,7 @@ import { Sequelize } from "sequelize";
 import type { Endpoints, OctokitResponse } from "@octokit/types";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
+import { toError, errToString } from "@shared/utils/error";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -385,8 +386,10 @@ export class GitHub {
 
       return GitHub.transformData(res.data, resource.type);
     } catch (err) {
-      Logger.warn("Failed to fetch resource from GitHub", err);
-      return { error: err.message || "Unknown error" };
+      Logger.warn("Failed to fetch resource from GitHub", toError(err));
+      return {
+        error: errToString(err) || "Unknown error",
+      };
     }
   };
 
@@ -398,7 +401,7 @@ export class GitHub {
     try {
       project = await client.requestProject(resource);
     } catch (err) {
-      Logger.warn("Failed to fetch project from GitHub", err);
+      Logger.warn("Failed to fetch project from GitHub", toError(err));
       return { error: "Resource not found" };
     }
 

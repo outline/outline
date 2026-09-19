@@ -1,9 +1,10 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { escapeRegExp } from "es-toolkit/compat";
+import { escapeRegExp, truncate } from "es-toolkit/compat";
 import mime from "mime-types";
 import { UniqueConstraintError } from "sequelize";
-import { DocumentValidation } from "@shared/validations";
+import { replaceMarkdownLinks } from "@shared/utils/markdown";
+import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type {
   ImportTaskInput,
   ImportTaskOutput,
@@ -21,14 +22,14 @@ import { Attachment } from "@server/models";
 import AttachmentHelper, {
   Buckets,
 } from "@server/models/helpers/AttachmentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import type { ZipTreeNode } from "@server/utils/ZipHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
-import { DocumentConverter } from "@server/utils/DocumentConverter";
+import { DocumentConverter } from "@server/converters/DocumentConverter";
 
 type Markdown = IntegrationService.Markdown;
 
@@ -133,27 +134,42 @@ export function rewriteInternalLinks(
   docMap: Record<string, string>
 ): string {
   const basePath = path.dirname(documentPath);
-  const internalLinks = [...markdown.matchAll(/\[[^\]]+\]\(([^)]+\.md)\)/g)];
 
-  let text = markdown;
-  for (const match of internalLinks) {
-    const referredDocPath = match[1];
-    const normalizedDocPath = decodeURI(
-      path.normalize(`${basePath}/${referredDocPath}`)
-    );
+  return replaceMarkdownLinks(markdown, (href) => {
+    let normalizedDocPath: string;
+    try {
+      normalizedDocPath = decodeURI(path.normalize(`${basePath}/${href}`));
+    } catch {
+      return undefined;
+    }
 
     const referredDocId = docMap[normalizedDocPath];
-    if (referredDocId) {
-      text = text.replace(referredDocPath, `<<${referredDocId}>>`);
-    }
-  }
-
-  return text;
+    return referredDocId ? `<<${referredDocId}>>` : undefined;
+  });
 }
 
 export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   protected shouldUploadAttachmentsPerPage(): boolean {
-    return false;
+    // Per-page upload downloads remote image/attachment URLs referenced in
+    // the markdown (e.g. Slab's signed export URLs) and rewrites them to
+    // internal redirect URLs. The base step skips URLs that are already
+    // internal, so local zip attachments — rewritten to redirect URLs during
+    // `rewriteMarkdown` and uploaded from the archive in
+    // `onAllTasksCompleted` — pass through untouched.
+    return true;
+  }
+
+  /**
+   * Whether a document's leading H1 heading should be lifted out as its title
+   * (and removed from the body). Outline's own Markdown export writes the
+   * title as a leading H1, so this defaults to true. Sources where the
+   * filename is authoritative and the first heading is real content (e.g.
+   * Slab) override this to keep the heading in the body.
+   *
+   * @returns true to derive the title from a leading H1 heading.
+   */
+  protected shouldExtractTitleFromHeading(): boolean {
+    return true;
   }
 
   protected async scheduleNextTask(importTask: ImportTask<Markdown>) {
@@ -262,18 +278,31 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         }
       );
 
-      if (tree.children.length === 0) {
+      const rootNodes = this.resolveCollectionRootNodes(tree.children);
+
+      if (rootNodes.length === 0) {
         throw new Error("Could not find valid content in zip file");
       }
 
       const collections: DiscoveredCollection[] = [];
       const manifest: MarkdownAttachmentManifestItem[] = [];
+      // Loose markdown files that sit at the archive root rather than inside a
+      // collection folder are gathered into a fallback collection below.
+      const looseDocuments: ZipTreeNode[] = [];
 
-      for (const node of tree.children) {
+      for (const node of rootNodes) {
         if (node.children.length === 0) {
-          Logger.debug("task", `Unhandled file in zip: ${node.pathInZip}`, {
-            importTaskId: importTask.id,
-          });
+          const ext = path.extname(node.name).toLowerCase();
+          if (ext === ".md" || ext === ".markdown") {
+            looseDocuments.push(node);
+          } else {
+            manifest.push({
+              id: randomUUID(),
+              name: node.name,
+              pathInZip: node.pathInZip,
+              mimeType: mime.lookup(node.name) || "application/octet-stream",
+            });
+          }
           continue;
         }
 
@@ -291,6 +320,23 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
 
         this.collectDocumentsAndAttachments({
           children: node.children,
+          collectionId: collection.id,
+          out: collection.children,
+          manifest,
+          markdownByNode,
+        });
+      }
+
+      if (looseDocuments.length > 0) {
+        const collection: DiscoveredCollection = {
+          id: randomUUID(),
+          title: this.fallbackCollectionTitle(),
+          children: [],
+        };
+        collections.push(collection);
+
+        this.collectDocumentsAndAttachments({
+          children: looseDocuments,
           collectionId: collection.id,
           out: collection.children,
           manifest,
@@ -326,7 +372,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           permission: placeholder.permission,
         })),
       ];
-      associatedImport.scratch = { storageKey, manifest };
+
+      associatedImport.scratch = { storageKey, manifest, docMap };
       await associatedImport.save();
 
       // Append collection placeholder items so ImportsProcessor iterates
@@ -340,15 +387,16 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           path: c.title,
           markdownText: "",
           attachmentMap: [],
-          docMap: {},
         }));
 
       importTask.input = [importTask.input[0], ...collectionInputItems];
 
       const collectionOutputs: ImportTaskOutput = collections.map((c) => ({
         externalId: c.id,
-        title: c.title,
-        content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+        title: truncate(c.title, {
+          length: CollectionValidation.maxNameLength,
+        }),
+        content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
       }));
 
       // First wave of document tasks: only top-level docs in each collection.
@@ -357,7 +405,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       // depth-ordered cascade of ImportTask rows so parent FKs are always
       // satisfied at child-doc creation time.
       const childTasksInput: ImportTaskInput<Markdown> = collections.flatMap(
-        (c) => c.children.map((d) => this.toPageInput(d, manifest, docMap))
+        (c) => c.children.map((d) => this.toPageInput(d, manifest))
       );
 
       return { taskOutput: collectionOutputs, childTasksInput };
@@ -373,13 +421,11 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    *
    * @param doc The discovered document, including its descendants.
    * @param manifest The full attachment manifest (used for per-page refs).
-   * @param docMap Path → externalId map for internal link rewriting.
    * @returns A self-contained per-page task input.
    */
   private toPageInput(
     doc: DiscoveredDocument,
-    manifest: MarkdownAttachmentManifestItem[],
-    docMap: Record<string, string>
+    manifest: MarkdownAttachmentManifestItem[]
   ): MarkdownPageImportTaskInputItem {
     return {
       externalId: doc.id,
@@ -389,9 +435,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       path: doc.pathInZip,
       markdownText: doc.markdownText,
       attachmentMap: this.attachmentsReferencedBy(doc.markdownText, manifest),
-      docMap,
       children: doc.children.length
-        ? doc.children.map((c) => this.toPageInput(c, manifest, docMap))
+        ? doc.children.map((c) => this.toPageInput(c, manifest))
         : undefined,
     };
   }
@@ -401,6 +446,10 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   ): Promise<ProcessOutput<Markdown>> {
     const taskOutput: ImportTaskOutput = [];
     const childTasksInput: MarkdownPageImportTaskInputItem[] = [];
+
+    // docMap is stored once on scratch rather than embedded in each page's
+    // input (see processBootstrap) — read it back here for link rewriting.
+    const docMap = importTask.import.scratch?.docMap ?? {};
 
     const items = importTask.input as MarkdownPageImportTaskInputItem[];
     for (const item of items) {
@@ -412,20 +461,25 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       if (!item.markdownText) {
         taskOutput.push({
           externalId: item.externalId,
-          title: item.title,
-          content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+          title: truncate(item.title, {
+            length: DocumentValidation.maxTitleLength,
+          }),
+          content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
         });
       } else {
-        const transformedMarkdown = this.rewriteMarkdown(item);
+        const transformedMarkdown = this.rewriteMarkdown(item, docMap);
         const { doc, title, icon } = await DocumentConverter.convert(
           transformedMarkdown,
           path.basename(item.path),
-          "text/markdown"
+          "text/markdown",
+          { extractTitle: this.shouldExtractTitleFromHeading() }
         );
 
         taskOutput.push({
           externalId: item.externalId,
-          title: title || item.title,
+          title: truncate(title || item.title, {
+            length: DocumentValidation.maxTitleLength,
+          }),
           icon,
           content: doc.toJSON() as ProsemirrorDoc,
         });
@@ -453,10 +507,15 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    * an angle-bracket-wrapped URL (which produced broken image src attrs).
    *
    * @param page The per-page task input.
+   * @param docMap Path → externalId map for internal link rewriting, shared
+   *               across all pages via `Import.scratch`.
    * @returns Rewritten markdown text ready for DocumentConverter.
    */
-  private rewriteMarkdown(page: MarkdownPageImportTaskInputItem): string {
-    let text = rewriteInternalLinks(page.markdownText, page.path, page.docMap);
+  private rewriteMarkdown(
+    page: MarkdownPageImportTaskInputItem,
+    docMap: Record<string, string>
+  ): string {
+    let text = rewriteInternalLinks(page.markdownText, page.path, docMap);
 
     // Convert `[label](<<id>>)` links from rewriteInternalLinks into mention
     // markdown the editor recognises: `@[label](mention://<uuid>/document/<id>)`.
@@ -497,6 +556,30 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         markdown.includes(fileName) || markdown.includes(encodeURI(fileName))
       );
     });
+  }
+
+  /**
+   * Resolves the archive's top-level entries into the nodes that should be
+   * treated as collections. The base implementation uses the entries as-is;
+   * subclasses can override to unwrap a known wrapper directory before the
+   * bootstrap phase maps each node to a collection.
+   *
+   * @param nodes The archive's top-level tree nodes.
+   * @returns The nodes to import as collections.
+   */
+  protected resolveCollectionRootNodes(nodes: ZipTreeNode[]): ZipTreeNode[] {
+    return nodes;
+  }
+
+  /**
+   * Title for the fallback collection that holds markdown files found loose at
+   * the archive root (outside any collection folder). Subclasses can override
+   * to give the collection a source-appropriate name.
+   *
+   * @returns The fallback collection title.
+   */
+  protected fallbackCollectionTitle(): string {
+    return "Documents";
   }
 
   /**
@@ -579,6 +662,16 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     manifest: MarkdownAttachmentManifestItem[];
     markdownByNode: Map<ZipTreeNode, string>;
   }): void {
+    // Index existing docs by title so the folder/file merge lookup below is O(1)
+    // instead of an `out.find` scan per child (O(n²) over the number of siblings
+    // in a single directory). First occurrence wins, mirroring `find`.
+    const byTitle = new Map<string, DiscoveredDocument>();
+    for (const doc of out) {
+      if (!byTitle.has(doc.title)) {
+        byTitle.set(doc.title, doc);
+      }
+    }
+
     for (const child of children) {
       if (child.children.length > 0 && this.isAttachmentFolder(child)) {
         this.collectAttachments(child, manifest);
@@ -605,7 +698,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       // Folder-and-file with the same title (a "name.md" alongside a "name/"
       // directory) is merged onto a single document: the folder body picks up
       // the file's markdown text, and the folder's contents become children.
-      const sibling = out.find((d) => d.title === child.title);
+      const sibling = byTitle.get(child.title);
 
       if (sibling) {
         if (sibling.markdownText === "" && markdownText) {
@@ -634,6 +727,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         children: [],
       };
       out.push(node);
+      byTitle.set(node.title, node);
 
       if (isFolder) {
         this.collectDocumentsAndAttachments({

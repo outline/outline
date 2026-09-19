@@ -48,6 +48,35 @@ describe("parseMentionUrl", () => {
     });
   });
 
+  it("should parse a date modelId", () => {
+    expect(
+      parseMentionUrl(
+        "mention://9a17c1c8-d178-4350-9001-203a73070fcb/date/2024-02-03"
+      )
+    ).toEqual({
+      id: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      mentionType: "date",
+      modelId: "2024-02-03",
+    });
+  });
+
+  it("should parse a datetime modelId", () => {
+    expect(
+      parseMentionUrl(
+        "mention://9a17c1c8-d178-4350-9001-203a73070fcb/date/2024-02-03T13:00"
+      )
+    ).toEqual({
+      id: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      mentionType: "date",
+      modelId: "2024-02-03T13:00",
+    });
+
+    expect(parseMentionUrl("mention://date/2024-02-03T13:00")).toEqual({
+      mentionType: "date",
+      modelId: "2024-02-03T13:00",
+    });
+  });
+
   it("should return empty object for invalid URL", () => {
     expect(parseMentionUrl("https://example.com")).toEqual({});
   });

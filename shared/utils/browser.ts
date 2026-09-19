@@ -9,7 +9,7 @@ export const isBrowser = typeof window !== "undefined";
  */
 export const isNode =
   typeof process !== "undefined" &&
-  process.versions !== null &&
+  process.versions &&
   process.versions.node !== null;
 
 /**

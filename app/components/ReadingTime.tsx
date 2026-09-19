@@ -13,9 +13,13 @@ const ReadingTime = ({ document }: { document: Document }) => {
   );
   const stats = useTextStats(markdown);
 
-  const readingTimeMinutes = stats.total.readingTime;
+  const readingTimeMinutes = stats.readingTime;
   const hours = Math.floor(readingTimeMinutes / 60);
   const minutes = readingTimeMinutes % 60;
+
+  if (!readingTimeMinutes) {
+    return null;
+  }
 
   let readingTimeText;
   if (hours > 0) {

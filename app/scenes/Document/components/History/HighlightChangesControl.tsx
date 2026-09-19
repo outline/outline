@@ -117,7 +117,10 @@ export function HighlightChangesControl({
               label={t("Compare to")}
               displayValue={(item) => (
                 <>
-                  <Text weight="bold">{t("Compare to")}</Text> {item?.label}
+                  <CompareToLabel weight="bold">
+                    {t("Compare to")}
+                  </CompareToLabel>{" "}
+                  {item?.label}
                 </>
               )}
               labelHidden
@@ -130,6 +133,10 @@ export function HighlightChangesControl({
     </Content>
   );
 }
+
+const CompareToLabel = styled(Text)`
+  white-space: nowrap;
+`;
 
 const StyledInputSelect = styled(InputSelect)`
   margin: -4px -9px -1px;

@@ -1,3 +1,4 @@
+import { errToString } from "@shared/utils/error";
 import { createContext } from "@server/context";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -39,7 +40,7 @@ export default class UploadAttachmentFromUrlTask extends BaseTask<Props> {
         });
       }
     } catch (err) {
-      return { error: err.message };
+      return { error: errToString(err) };
     }
 
     return {};

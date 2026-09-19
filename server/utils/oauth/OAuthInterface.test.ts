@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { subSeconds } from "date-fns";
 import { Scope } from "@shared/types";
 import { OAuthInterface } from "./OAuthInterface";
+import { OAuthAuthentication } from "@server/models";
 import {
   buildOAuthAuthentication,
   buildOAuthClient,
@@ -86,6 +88,64 @@ describe("OAuthInterface", () => {
     it("should return false for invalid refresh token", async () => {
       const result = await OAuthInterface.getRefreshToken("invalid_token");
       expect(result).toBe(false);
+    });
+
+    it("should revoke the entire grant when a refresh token is reused outside the reuse interval", async () => {
+      const user = await buildUser();
+      const scope = [Scope.Read];
+      const grantId = randomUUID();
+      const oAuthClient = await buildOAuthClient({ teamId: user.teamId });
+      const rotated = await buildOAuthAuthentication({
+        user,
+        oauthClientId: oAuthClient.id,
+        scope,
+        grantId,
+      });
+      const sibling = await buildOAuthAuthentication({
+        user,
+        oauthClientId: oAuthClient.id,
+        scope,
+        grantId,
+      });
+      const refreshToken = rotated.refreshToken!;
+
+      // Simulate a rotation that happened longer ago than the reuse interval.
+      await rotated.destroy();
+      await OAuthAuthentication.update(
+        { deletedAt: subSeconds(new Date(), 60) },
+        { where: { id: rotated.id }, paranoid: false, silent: true }
+      );
+
+      const result = await OAuthInterface.getRefreshToken(refreshToken);
+      expect(result).toBe(false);
+      expect(await OAuthAuthentication.findByPk(sibling.id)).toBeNull();
+    });
+
+    it("should not revoke the grant when a rotated refresh token is replayed within the reuse interval", async () => {
+      const user = await buildUser();
+      const scope = [Scope.Read];
+      const grantId = randomUUID();
+      const oAuthClient = await buildOAuthClient({ teamId: user.teamId });
+      const rotated = await buildOAuthAuthentication({
+        user,
+        oauthClientId: oAuthClient.id,
+        scope,
+        grantId,
+      });
+      const sibling = await buildOAuthAuthentication({
+        user,
+        oauthClientId: oAuthClient.id,
+        scope,
+        grantId,
+      });
+      const refreshToken = rotated.refreshToken!;
+
+      // Simulate a rotation that just happened, as with a concurrent refresh.
+      await rotated.destroy();
+
+      const result = await OAuthInterface.getRefreshToken(refreshToken);
+      expect(result).toBe(false);
+      expect(await OAuthAuthentication.findByPk(sibling.id)).not.toBeNull();
     });
   });
 
@@ -351,6 +411,13 @@ describe("OAuthInterface", () => {
     it("should reject if any requested scope is invalid", async () => {
       const scope = [Scope.Read, "*"];
       const result = await OAuthInterface.validateScope(user, client, scope);
+      expect(result).toBe(false);
+    });
+
+    it("should reject root wildcard route scopes", async () => {
+      const result = await OAuthInterface.validateScope(user, client, [
+        "/api/*.*",
+      ]);
       expect(result).toBe(false);
     });
   });

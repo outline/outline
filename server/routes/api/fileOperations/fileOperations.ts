@@ -24,6 +24,7 @@ router.post(
     const { user } = ctx.state.auth;
 
     const fileOperation = await FileOperation.findByPk(id, {
+      userId: user.id,
       rejectOnEmpty: true,
     });
 
@@ -77,7 +78,8 @@ const handleFileOperationsRedirect = async (
   const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
   const { user } = ctx.state.auth;
 
-  const fileOperation = await FileOperation.unscoped().findByPk(id, {
+  const fileOperation = await FileOperation.findByPk(id, {
+    userId: user.id,
     rejectOnEmpty: true,
   });
   authorize(user, "read", fileOperation);
@@ -90,17 +92,14 @@ const handleFileOperationsRedirect = async (
   ctx.redirect(accessUrl);
 };
 
-router.get(
+router.register(
   "fileOperations.redirect",
-  auth(),
-  validate(T.FileOperationsRedirectSchema),
-  handleFileOperationsRedirect
-);
-router.post(
-  "fileOperations.redirect",
-  auth(),
-  validate(T.FileOperationsRedirectSchema),
-  handleFileOperationsRedirect
+  ["get", "post"],
+  [
+    auth(),
+    validate(T.FileOperationsRedirectSchema),
+    handleFileOperationsRedirect,
+  ]
 );
 
 router.post(

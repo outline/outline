@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import type User from "~/models/User";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -31,7 +32,7 @@ function TeamNew({ user }: Props) {
         });
       }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     } finally {
       setIsSaving(false);
     }

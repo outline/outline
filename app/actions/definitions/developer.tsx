@@ -9,7 +9,11 @@ import {
   UserIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { createAction, createActionWithChildren } from "~/actions";
+import {
+  createAction,
+  createActionWithChildren,
+  createInternalLinkAction,
+} from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
@@ -19,14 +23,12 @@ import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
 import { homePath, debugPath } from "~/utils/routeHelpers";
 
-export const goToDebug = createAction({
+export const goToDebug = createInternalLinkAction({
   name: "Go to debug screen",
   icon: <BeakerIcon />,
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
-  perform: () => {
-    history.push(debugPath());
-  },
+  to: debugPath(),
 });
 
 export const copyId = createActionWithChildren({
@@ -131,9 +133,10 @@ export const clearIndexedDB = createAction({
   icon: <TrashIcon />,
   keywords: "cache clear database",
   section: DeveloperSection,
-  perform: async ({ t }) => {
+  perform: async ({ t, stores }) => {
     history.push(homePath());
     await deleteAllDatabases();
+    stores.enablePersistence();
     toast.success(t("IndexedDB cache cleared"));
   },
 });
@@ -158,6 +161,18 @@ export const createTestUsers = createAction({
     const count = 10;
     await client.post("/developer.create_test_users", { count });
     toast.message(`${count} test users created`);
+  },
+});
+
+export const createTestNotifications = createAction({
+  name: "Create 10 notifications",
+  icon: <BeakerIcon />,
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  perform: async () => {
+    const count = 10;
+    await client.post("/developer.create_test_notifications", { count });
+    toast.message(`${count} test notifications created`);
   },
 });
 
@@ -239,6 +254,7 @@ export const developer = createActionWithChildren({
     toggleFeatureFlag,
     createToast,
     createTestUsers,
+    createTestNotifications,
     clearIndexedDB,
     clearStorage,
     startTyping,

@@ -1,6 +1,8 @@
+import { setTimeout as delay } from "node:timers/promises";
 import emojiRegex from "emoji-regex";
-import { JSDOM } from "jsdom";
+import type { JSDOM } from "jsdom";
 import { chunk, isMatch } from "es-toolkit/compat";
+import ukkonen from "ukkonen";
 import { EditorState, type Plugin } from "prosemirror-state";
 import {
   DecorationSet,
@@ -16,14 +18,21 @@ import {
   yDocToProsemirrorJSON,
 } from "y-prosemirror";
 import * as Y from "yjs";
+import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
+import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import textBetween from "@shared/editor/lib/textBetween";
+import { withTrailingNode } from "@shared/editor/lib/trailingNode";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
-import type { ProsemirrorData, UnfurlResponse } from "@shared/types";
+import type {
+  HeadingPrefixStyle,
+  ProsemirrorData,
+  UnfurlResponse,
+} from "@shared/types";
 import { AttachmentPreset, MentionType } from "@shared/types";
 import {
   attachmentRedirectRegex,
@@ -32,6 +41,7 @@ import {
 
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { plugins, schema, parser } from "@server/editor";
@@ -61,6 +71,16 @@ export type HTMLOptions = {
   changes?: readonly ExtendedChange[];
   /** CSP nonce to apply to injected inline scripts */
   cspNonce?: string;
+  /** The style of prefix displayed before headings (defaults to none) */
+  headingPrefix?: HeadingPrefixStyle;
+};
+
+/** The identifiers of a document that another document's content may link to. */
+export type DocumentReference = {
+  /** The id of the document */
+  id: string;
+  /** The path to the document */
+  path: string;
 };
 
 export type MentionAttrs = {
@@ -74,6 +94,25 @@ export type MentionAttrs = {
 };
 
 const pluginsWithSafeDecorations = new WeakSet<Plugin>();
+
+// jsdom does not implement ResizeObserver, and the exported document never
+// resizes, so components that observe their element on mount get a no-op.
+class NoopResizeObserver implements ResizeObserver {
+  public observe() {
+    // noop
+  }
+  public unobserve() {
+    // noop
+  }
+  public disconnect() {
+    // noop
+  }
+}
+
+// KaTeX renders math server-side during HTML export, but relies on this
+// stylesheet (loaded dynamically in the app) to position glyphs correctly.
+const katexStylesheetUrl =
+  "https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.css";
 
 function isDecorationSource(value: unknown): value is DecorationSource {
   if (typeof value !== "object" || value === null) {
@@ -100,21 +139,28 @@ function isDecorationSource(value: unknown): value is DecorationSource {
 @trace()
 export class ProsemirrorHelper extends SharedProsemirrorHelper {
   /**
+   * Maximum amount of visible text, in characters, to grow a mention email
+   * snippet outward when climbing toward surrounding context.
+   */
+  static readonly mentionEmailMaxChars = 1000;
+
+  /**
    * Returns the input text as a Y.Doc.
    *
    * @param markdown The text to parse
    * @returns The content as a Y.Doc.
    */
   static toYDoc(input: string | ProsemirrorData, fieldName = "default"): Y.Doc {
-    if (typeof input === "object") {
-      return prosemirrorToYDoc(
-        ProsemirrorHelper.toProsemirror(input),
-        fieldName
-      );
+    const node =
+      typeof input === "object"
+        ? ProsemirrorHelper.toProsemirror(input)
+        : parser.parse(input);
+    if (!node) {
+      return new Y.Doc();
     }
-
-    const node = parser.parse(input);
-    return node ? prosemirrorToYDoc(node, fieldName) : new Y.Doc();
+    // Normalize to the editor's trailing-node form so the document opens without
+    // the editor inserting a trailing paragraph, which would be a spurious edit.
+    return prosemirrorToYDoc(withTrailingNode(node), fieldName);
   }
 
   /**
@@ -219,82 +265,194 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
-   * Find the nearest ancestor block node which contains the mention.
+   * Build an email snippet around a mention. A surrounding list is trimmed to
+   * the mentioned item plus one sibling on either side, a table to the
+   * mentioned row; otherwise the largest complete block that still fits the
+   * size budget is kept.
    *
    * @param doc The top-level doc node of a document / revision.
-   * @param mention The mention for which the ancestor node is needed.
-   * @returns A new top-level doc node with the ancestor node as the only child.
+   * @param mention The mention to build the snippet around.
+   * @returns A new top-level doc node with the chosen block as its only child,
+   * or undefined if the mention could not be found.
    */
   static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
-    let blockNode: Node | undefined;
-    const potentialBlockNodes = [
-      "table",
-      "checkbox_list",
-      "heading",
-      "paragraph",
-    ];
-
-    const isNodeContainingMention = (node: Node) => {
-      let foundMention = false;
-
-      node.descendants((childNode: Node) => {
-        if (
-          childNode.type.name === "mention" &&
-          isMatch(childNode.attrs, mention)
-        ) {
-          foundMention = true;
-          return false;
-        }
-
-        // No need to traverse other descendants once we find the mention.
-        if (foundMention) {
-          return false;
-        }
-
-        return true;
-      });
-
-      return foundMention;
-    };
-
-    doc.descendants((node: Node) => {
-      // No need to traverse other descendants once we find the containing block node.
-      if (blockNode) {
+    // A mention is an inline node, so it always lives inside a textblock
+    // (paragraph or heading). Locate it once and resolve its position.
+    let mentionPos: number | undefined;
+    doc.descendants((node: Node, pos: number) => {
+      if (mentionPos !== undefined) {
         return false;
       }
-
-      if (potentialBlockNodes.includes(node.type.name)) {
-        if (isNodeContainingMention(node)) {
-          blockNode = node;
-        }
+      if (node.type.name === "mention" && isMatch(node.attrs, mention)) {
+        mentionPos = pos;
         return false;
       }
-
       return true;
     });
 
-    // Use the containing block node to maintain structure during serialization.
-    // Minify to include mentioned child only.
-    if (blockNode && !["heading", "paragraph"].includes(blockNode.type.name)) {
-      const children: Node[] = [];
+    if (mentionPos === undefined) {
+      return undefined;
+    }
 
-      blockNode.forEach((child: Node) => {
-        if (isNodeContainingMention(child)) {
-          children.push(child);
+    const $pos = doc.resolve(mentionPos);
+
+    // Lists and tables can be long, so rather than show the whole container,
+    // trim a list to the mentioned item plus one sibling on either side, and a
+    // table to the mentioned row. Use the nearest such ancestor so nested
+    // structures show the content closest to the mention.
+    const listTypes = ["bullet_list", "ordered_list", "checkbox_list"];
+    for (let d = $pos.depth - 1; d >= 1; d--) {
+      const container = $pos.node(d);
+      const name = container.type.name;
+
+      if (listTypes.includes(name)) {
+        const index = $pos.index(d);
+        const start = Math.max(0, index - 1);
+        const end = Math.min(container.childCount, index + 2);
+        const items: Node[] = [];
+        for (let i = start; i < end; i++) {
+          items.push(container.child(i));
         }
-      });
+        // Keep an ordered list's numbering aligned with the original document
+        // by advancing its start to match the first item shown.
+        const attrs =
+          name === "ordered_list" && start > 0
+            ? {
+                ...container.attrs,
+                order: (container.attrs.order ?? 1) + start,
+              }
+            : container.attrs;
+        const trimmed = container.type.create(
+          attrs,
+          Fragment.fromArray(items),
+          container.marks
+        );
+        return doc.copy(Fragment.fromArray([trimmed]));
+      }
 
-      blockNode = blockNode.copy(Fragment.fromArray(children));
+      if (name === "table") {
+        const row = container.child($pos.index(d));
+        return doc.copy(
+          Fragment.fromArray([container.copy(Fragment.fromArray([row]))])
+        );
+      }
+    }
+
+    // Always include at least the textblock the mention sits in, then climb the
+    // ancestor chain outward keeping the largest complete block that still fits
+    // the size budget. Each ancestor strictly contains the previous, so sizes
+    // grow monotonically and we can stop at the first that overflows.
+    let node = $pos.node($pos.depth);
+    for (let d = $pos.depth - 1; d >= 1; d--) {
+      const ancestor = $pos.node(d);
+      // textBetween rather than textContent so leaf text (mentions, etc.) is
+      // counted towards the budget.
+      const length = textBetween(ancestor, 0, ancestor.content.size).length;
+      if (length > ProsemirrorHelper.mentionEmailMaxChars) {
+        break;
+      }
+      node = ancestor;
     }
 
     // Return a new top-level "doc" node to maintain structure during serialization.
-    return blockNode ? doc.copy(Fragment.fromArray([blockNode])) : undefined;
+    return doc.copy(Fragment.fromArray([node]));
   }
 
-  static async replaceInternalUrls(
+  /**
+   * Replaces links and mentions that point to the given documents so that they
+   * point to their replacements instead. A link is matched on the document it
+   * identifies rather than its host, as an installation can be reached through
+   * more than one, and a fully qualified link keeps the host it was written
+   * with.
+   *
+   * @param doc The prosemirror document or JSON data.
+   * @param documents A map keyed by both the id and urlId of each document to
+   * replace, with the id and path of its replacement.
+   * @returns The document data with references replaced.
+   */
+  static replaceDocumentReferences(
+    doc: Node | ProsemirrorData,
+    documents: Map<string, DocumentReference>
+  ): ProsemirrorData {
+    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+
+    function replaceHref(href: string) {
+      let origin = "";
+      let path = href;
+
+      if (!href.startsWith("/")) {
+        try {
+          const url = new URL(href);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            return href;
+          }
+          origin = url.origin;
+          path = `${url.pathname}${url.search}${url.hash}`;
+        } catch (_err) {
+          return href;
+        }
+      }
+
+      const match = /^\/doc\/([^/?#]+)(.*)$/.exec(path);
+      if (!match) {
+        return href;
+      }
+
+      // The identifier is either a document id or a `<slug>-<urlId>` pair.
+      const slug = UrlHelper.SLUG_URL_REGEX.exec(match[1]);
+      const replacement =
+        documents.get(match[1]) ?? (slug ? documents.get(slug[1]) : undefined);
+
+      return replacement ? `${origin}${replacement.path}${match[2]}` : href;
+    }
+
+    function replaceDocumentReferencesInner(node: ProsemirrorData) {
+      if (
+        node.type === "mention" &&
+        node.attrs?.type === MentionType.Document &&
+        typeof node.attrs.modelId === "string"
+      ) {
+        const replacement = documents.get(node.attrs.modelId);
+        if (replacement) {
+          node.attrs.modelId = replacement.id;
+        }
+      }
+
+      node.marks?.forEach((mark) => {
+        if (mark.type === "link" && typeof mark.attrs?.href === "string") {
+          const href = replaceHref(mark.attrs.href);
+
+          // A link that has the url as its own text is displayed as the url,
+          // so the two are kept in sync.
+          if (node.text === mark.attrs.href) {
+            node.text = href;
+          }
+
+          mark.attrs.href = href;
+        }
+      });
+
+      node.content?.forEach(replaceDocumentReferencesInner);
+
+      return node;
+    }
+
+    return replaceDocumentReferencesInner(json);
+  }
+
+  /**
+   * Prefixes internal document and collection links with the given base path.
+   *
+   * @param doc The prosemirror document or JSON data.
+   * @param basePath The base path to prefix internal links with, without a
+   * trailing slash.
+   * @returns The document data with internal links rewritten.
+   * @throws If the base path ends with a slash.
+   */
+  static replaceInternalUrls(
     doc: Node | ProsemirrorData,
     basePath: string
-  ) {
+  ): ProsemirrorData {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
 
     if (basePath.endsWith("/")) {
@@ -471,164 +629,207 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param options Options for the HTML output
    * @returns The content as a HTML string
    */
-  public static toHTML(node: Node, options?: HTMLOptions) {
-    let view;
-    let cleanupEnv;
+  public static async toHTML(node: Node, options?: HTMLOptions) {
+    // Loaded lazily to keep jsdom and react-dom off the startup path — only HTML
+    // export needs them. react-dom must additionally be imported here, before
+    // patchGlobalEnv runs, while `window` is still unpatched: `scheduler` binds
+    // a setTimeout fallback only when `window` is undefined at module load; if
+    // loaded while jsdom globals are patched it binds a MessageChannel that
+    // holds the event loop open.
+    const { JSDOM } = await import("jsdom");
+    const { createNodeViews } = await import("../../editor/nodeViews");
 
+    const sheet = new ServerStyleSheet();
+    let html = "";
+    let styleTags = "";
+
+    const Centered = options?.centered
+      ? styled.article`
+          max-width: calc(
+            ${EditorStyleHelper.documentWidth} +
+              ${EditorStyleHelper.documentGutter}
+          );
+          margin: 0 auto;
+          padding: 0 1em;
+        `
+      : "article";
+
+    const rtl = isRTL(node.textBetween(0, Math.min(node.content.size, 100)));
+    const content = <div id="content" className="ProseMirror exported" />;
+    const children = (
+      <>
+        {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
+        {options?.includeStyles !== false ? (
+          <EditorContainer dir={rtl ? "rtl" : "ltr"} $rtl={rtl} staticHTML>
+            {content}
+          </EditorContainer>
+        ) : (
+          content
+        )}
+      </>
+    );
+
+    // First render the containing document which has all the editor styles,
+    // global styles, layout and title. This is a pure render that does not
+    // touch process globals, so it stays outside the export lock below.
     try {
-      const sheet = new ServerStyleSheet();
-      let html = "";
-      let styleTags = "";
-
-      const Centered = options?.centered
-        ? styled.article`
-            max-width: calc(
-              ${EditorStyleHelper.documentWidth} +
-                ${EditorStyleHelper.documentGutter}
-            );
-            margin: 0 auto;
-            padding: 0 1em;
-          `
-        : "article";
-
-      const rtl = isRTL(node.textBetween(0, Math.min(node.content.size, 100)));
-      const content = <div id="content" className="ProseMirror exported" />;
-      const children = (
-        <>
-          {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
-          {options?.includeStyles !== false ? (
-            <EditorContainer dir={rtl ? "rtl" : "ltr"} $rtl={rtl} staticHTML>
-              {content}
-            </EditorContainer>
-          ) : (
-            content
-          )}
-        </>
+      html = renderToString(
+        sheet.collectStyles(
+          <ThemeProvider theme={light}>
+            <>
+              {options?.includeStyles === false ? (
+                <article>{children}</article>
+              ) : (
+                <>
+                  <GlobalStyles staticHTML />
+                  <Centered>{children}</Centered>
+                </>
+              )}
+            </>
+          </ThemeProvider>
+        )
       );
+      styleTags = sheet.getStyleTags();
+    } catch (error) {
+      Logger.error(
+        "Failed to render styles on node HTML conversion",
+        toError(error)
+      );
+    } finally {
+      sheet.seal();
+    }
 
-      // First render the containing document which has all the editor styles,
-      // global styles, layout and title.
+    // Render the Prosemirror document using virtual DOM and serialize the
+    // result to a string
+    const dom = new JSDOM(
+      `<!DOCTYPE html><meta charset="utf-8">${
+        options?.includeStyles === false ? "" : styleTags
+      }${html}`
+    );
+    const doc = dom.window.document;
+    const target = doc.getElementById("content");
+
+    // Rendering node components patches process globals (patchGlobalEnv) and
+    // awaits an effect flush, opening a window where a concurrent export could
+    // re-patch globals mid-flight — so exports are serialized per process.
+    return ProsemirrorHelper.runExclusive(async () => {
+      let view;
+      let cleanupEnv;
+      // Per-export sheet so component styles are collected in isolation and
+      // never bind to another export's document.
+      const componentSheet = new ServerStyleSheet();
+
       try {
-        html = renderToString(
-          sheet.collectStyles(
-            <ThemeProvider theme={light}>
-              <>
-                {options?.includeStyles === false ? (
-                  <article>{children}</article>
-                ) : (
-                  <>
-                    <GlobalStyles staticHTML />
-                    <Centered>{children}</Centered>
-                  </>
-                )}
-              </>
-            </ThemeProvider>
-          )
-        );
-        styleTags = sheet.getStyleTags();
-      } catch (error) {
-        Logger.error("Failed to render styles on node HTML conversion", error);
-      } finally {
-        sheet.seal();
-      }
+        cleanupEnv = this.patchGlobalEnv(dom.window);
 
-      // Render the Prosemirror document using virtual DOM and serialize the
-      // result to a string
-      const dom = new JSDOM(
-        `<!DOCTYPE html><meta charset="utf-8">${
-          options?.includeStyles === false ? "" : styleTags
-        }${html}`
-      );
-      const doc = dom.window.document;
-      const target = doc.getElementById("content");
+        const nodeViews = createNodeViews(componentSheet);
 
-      cleanupEnv = this.patchGlobalEnv(dom.window);
+        const diffPlugins = options?.changes
+          ? new Diff({ changes: options.changes }).plugins
+          : [];
+        const editorPlugins = [...plugins, ...diffPlugins];
 
-      const diffPlugins = options?.changes
-        ? new Diff({ changes: options.changes }).plugins
-        : [];
-      const editorPlugins = [...plugins, ...diffPlugins];
-
-      for (const plugin of plugins) {
-        if (
-          !plugin.props.decorations ||
-          pluginsWithSafeDecorations.has(plugin)
-        ) {
-          continue;
-        }
-
-        plugin.props.decorations = () => DecorationSet.empty;
-        pluginsWithSafeDecorations.add(plugin);
-      }
-
-      for (const plugin of diffPlugins) {
-        if (
-          !plugin.props.decorations ||
-          pluginsWithSafeDecorations.has(plugin)
-        ) {
-          continue;
-        }
-
-        const decorations = plugin.props.decorations.bind(plugin);
-        plugin.props.decorations = (state) => {
-          const result = decorations(state);
-          return isDecorationSource(result) ? result : DecorationSet.empty;
-        };
-        pluginsWithSafeDecorations.add(plugin);
-      }
-
-      const state = EditorState.create({
-        doc: node,
-        plugins: editorPlugins,
-        schema,
-      });
-
-      view = new EditorView(
-        { mount: target as HTMLElement },
-        {
-          state,
-          editable: () => false,
-        }
-      );
-
-      // Convert relative urls to absolute
-      if (options?.baseUrl) {
-        const elements = doc.querySelectorAll("a[href]");
-        for (const el of elements) {
-          if ("href" in el && (el.href as string).startsWith("/")) {
-            el.href = new URL(el.href as string, options.baseUrl).toString();
+        for (const plugin of plugins) {
+          if (
+            !plugin.props.decorations ||
+            pluginsWithSafeDecorations.has(plugin)
+          ) {
+            continue;
           }
-        }
-      }
 
-      // Inject mermaidjs scripts if the document contains mermaid diagrams (supports both "mermaid" and "mermaidjs")
-      if (options?.includeMermaid) {
-        const mermaidElements = dom.window.document.querySelectorAll(
-          `[data-language="mermaid"] pre code, [data-language="mermaidjs"] pre code`
+          plugin.props.decorations = () => DecorationSet.empty;
+          pluginsWithSafeDecorations.add(plugin);
+        }
+
+        for (const plugin of diffPlugins) {
+          if (
+            !plugin.props.decorations ||
+            pluginsWithSafeDecorations.has(plugin)
+          ) {
+            continue;
+          }
+
+          const decorations = plugin.props.decorations.bind(plugin);
+          plugin.props.decorations = (state) => {
+            const result = decorations(state);
+            return isDecorationSource(result) ? result : DecorationSet.empty;
+          };
+          pluginsWithSafeDecorations.add(plugin);
+        }
+
+        const state = EditorState.create({
+          doc: node,
+          plugins: editorPlugins,
+          schema,
+        });
+
+        view = new EditorView(
+          { mount: target as HTMLElement },
+          {
+            state,
+            editable: () => false,
+            nodeViews,
+          }
         );
 
-        // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
-        for (const el of mermaidElements) {
-          const parent = el.parentNode as HTMLElement;
-          if (parent) {
-            while (el.firstChild) {
-              parent.insertBefore(el.firstChild, el);
+        // Flush passive effects so components that mount content asynchronously
+        // (e.g. Frame's iframe) commit before serialization, then rewriting.
+        await this.flushReactEffects();
+
+        // The heading prefix is a decoration in the editor, which the export
+        // renders without, so the labels are added to the output directly.
+        if (options?.headingPrefix) {
+          HeadingPrefixHelper.applyToDOM(
+            target as HTMLElement,
+            node,
+            options.headingPrefix
+          );
+        }
+
+        // Components may render editable regions, such as captions, but the
+        // exported document is static.
+        for (const el of doc.querySelectorAll('[contenteditable="true"]')) {
+          el.removeAttribute("contenteditable");
+        }
+
+        // Convert relative urls to absolute
+        if (options?.baseUrl) {
+          const elements = doc.querySelectorAll("a[href]");
+          for (const el of elements) {
+            if ("href" in el && (el.href as string).startsWith("/")) {
+              el.href = new URL(el.href as string, options.baseUrl).toString();
             }
-            parent.removeChild(el);
-            parent.setAttribute("class", "mermaid");
           }
         }
 
-        const element = dom.window.document.createElement("script");
-        element.setAttribute("type", "module");
+        // Inject mermaidjs scripts if the document contains mermaid diagrams (supports both "mermaid" and "mermaidjs")
+        if (options?.includeMermaid) {
+          const mermaidElements = dom.window.document.querySelectorAll(
+            `[data-language="mermaid"] pre code, [data-language="mermaidjs"] pre code`
+          );
 
-        if (options?.cspNonce) {
-          element.setAttribute("nonce", options.cspNonce);
-        }
+          // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
+          for (const el of mermaidElements) {
+            const parent = el.parentNode as HTMLElement;
+            if (parent) {
+              while (el.firstChild) {
+                parent.insertBefore(el.firstChild, el);
+              }
+              parent.removeChild(el);
+              parent.setAttribute("class", "mermaid");
+            }
+          }
 
-        // Inject Mermaid script
-        if (mermaidElements.length) {
-          element.innerHTML = `
+          const element = dom.window.document.createElement("script");
+          element.setAttribute("type", "module");
+
+          if (options?.cspNonce) {
+            element.setAttribute("nonce", options.cspNonce);
+          }
+
+          // Inject Mermaid script
+          if (mermaidElements.length) {
+            element.innerHTML = `
           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
           import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
           mermaid.registerLayoutLoaders(elkLayouts);
@@ -638,38 +839,108 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           });
           window.status = "ready";
         `;
-        } else {
-          element.innerHTML = `
+          } else {
+            element.innerHTML = `
           window.status = "ready";
         `;
+          }
+
+          dom.window.document.body.appendChild(element);
         }
 
-        dom.window.document.body.appendChild(element);
-      }
-
-      const output = dom.serialize();
-
-      if (options?.includeHead === false) {
-        // replace everything upto and including "<body>"
-        const body = "<body>";
-        const bodyIndex = output.indexOf(body) + body.length;
-        if (bodyIndex !== -1) {
-          return output
-            .substring(bodyIndex)
-            .replace("</body>", "")
-            .replace("</html>", "");
+        // Include the KaTeX stylesheet if the document contains rendered math, so
+        // that formulas display correctly in the exported HTML/PDF.
+        if (doc.querySelector(".katex")) {
+          const link = doc.createElement("link");
+          link.setAttribute("rel", "stylesheet");
+          link.setAttribute("href", katexStylesheetUrl);
+          doc.head.appendChild(link);
         }
-      }
 
-      return output;
-    } finally {
-      try {
-        view?.destroy();
-      } catch (err) {
-        Logger.error("Error destroying ProseMirror view", err);
+        // Emit the styles collected while rendering node components, mirroring
+        // how the shell's styles are injected above.
+        if (options?.includeStyles !== false) {
+          const componentStyleTags = componentSheet.getStyleTags();
+          if (componentStyleTags) {
+            doc.head.insertAdjacentHTML("beforeend", componentStyleTags);
+          }
+        }
+
+        const output = dom.serialize();
+
+        if (options?.includeHead === false) {
+          // replace everything upto and including "<body>"
+          const body = "<body>";
+          const bodyIndex = output.indexOf(body) + body.length;
+          if (bodyIndex !== -1) {
+            return output
+              .substring(bodyIndex)
+              .replace("</body>", "")
+              .replace("</html>", "");
+          }
+        }
+
+        return output;
+      } finally {
+        try {
+          view?.destroy();
+        } catch (err) {
+          Logger.error("Error destroying ProseMirror view", toError(err));
+        }
+        // Unmounting schedules a final passive-effect flush; run it while the
+        // globals are still patched or React reads an undefined `window`.
+        await this.flushReactEffects();
+        try {
+          dom.window.close();
+        } catch (_err) {
+          // Best effort, closing the window releases its timers and resources.
+        }
+        cleanupEnv?.();
+        componentSheet.seal();
       }
-      cleanupEnv?.();
+    });
+  }
+
+  /** Promise chain serializing HTML exports within the process. */
+  private static htmlRenderQueue: Promise<void> = Promise.resolve();
+
+  /**
+   * Flushes React passive effects and the follow-on renders they trigger by
+   * yielding a couple of macrotask turns. Turn 1 flushes passive effects, and
+   * turn 2 fires Frame's own `setTimeout(0)` whose synchronous setState commits
+   * its iframe. Each turn costs roughly a millisecond of otherwise idle time on
+   * every export, so this yields no more turns than the components need.
+   *
+   * Errors thrown inside passive effects (as opposed to initial render) are
+   * not caught by the node view's try/catch fallback — current components'
+   * effects are jsdom-safe.
+   *
+   * @param turns The number of macrotask turns to yield.
+   * @returns A promise that resolves once the turns have elapsed.
+   */
+  private static async flushReactEffects(turns = 2): Promise<void> {
+    for (let i = 0; i < turns; i++) {
+      // node:timers/promises is not replaced by test environments faking the
+      // global timers, which would otherwise deadlock the render lock.
+      await delay(0);
     }
+  }
+
+  /**
+   * Serializes HTML exports within a process. Exports patch process globals and
+   * await effect flushes, so overlapping them would let one export re-patch
+   * globals while another is mid-render.
+   *
+   * @param task The critical section to run exclusively.
+   * @returns The result of the task.
+   */
+  private static runExclusive<T>(task: () => Promise<T>): Promise<T> {
+    const result = ProsemirrorHelper.htmlRenderQueue.then(task, task);
+    ProsemirrorHelper.htmlRenderQueue = result.then(
+      () => undefined,
+      () => undefined
+    );
+    return result;
   }
 
   /**
@@ -819,27 +1090,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // Create a new document with the emoji removed from the text
     const json = doc.toJSON();
 
-    function removeEmojiFromNode(node: ProsemirrorData): ProsemirrorData {
+    function removeEmojiFromNode(
+      node: ProsemirrorData
+    ): ProsemirrorData | null {
       if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
+        const text = node.text.slice(emoji.length);
+        // Removing the emoji can leave an empty text node (e.g. when the text
+        // node contained only the emoji). Prosemirror disallows empty text
+        // nodes, so drop the node entirely in that case.
+        if (!text) {
+          return null;
+        }
         return {
           ...node,
-          text: node.text.slice(emoji.length),
+          text,
         };
       }
       if (node.content) {
         let found = false;
+        const content: ProsemirrorData[] = [];
+        for (const child of node.content) {
+          if (found) {
+            content.push(child);
+            continue;
+          }
+          const result = removeEmojiFromNode(child);
+          if (result !== child) {
+            found = true;
+          }
+          if (result !== null) {
+            content.push(result);
+          }
+        }
         return {
           ...node,
-          content: node.content.map((child) => {
-            if (found) {
-              return child;
-            }
-            const result = removeEmojiFromNode(child);
-            if (result !== child) {
-              found = true;
-            }
-            return result;
-          }),
+          content,
         };
       }
       return node;
@@ -848,7 +1133,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const modifiedJson = removeEmojiFromNode(json as ProsemirrorData);
     return {
       emoji,
-      doc: Node.fromJSON(schema, modifiedJson),
+      doc: modifiedJson ? Node.fromJSON(schema, modifiedJson) : doc,
     };
   }
 
@@ -872,6 +1157,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       HTMLElement: g.HTMLElement,
       Node: g.Node,
       MutationObserver: g.MutationObserver,
+      ResizeObserver: g.ResizeObserver,
     };
 
     const patch = (key: string, value: unknown) => {
@@ -891,6 +1177,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     patch("HTMLElement", domWindow.HTMLElement);
     patch("Node", domWindow.Node);
     patch("MutationObserver", domWindow.MutationObserver);
+    patch("ResizeObserver", NoopResizeObserver);
 
     return () => {
       Object.entries(globalParams).forEach(([key, value]) => {
@@ -905,12 +1192,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Replaces remote and base64 encoded images in the given Prosemirror node
-   * with attachment urls and uploads the images to the storage provider.
+   * with attachment urls and uploads the images to the storage provider. Links
+   * pointing at a data URI are uploaded too, so that files which are not
+   * images — a PDF bundled alongside a document, for example — do not remain
+   * embedded in the document as base64.
    *
    * @param ctx The API context.
    * @param doc The Prosemirror node to process.
    * @param user The user context.
-   * @returns A new Prosemirror node with images replaced.
+   * @returns A new Prosemirror node with images and embedded files replaced.
    */
   static async replaceImagesWithAttachments(
     ctx: APIContext,
@@ -921,21 +1211,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const videos = ProsemirrorHelper.getVideos(doc);
     const nodes = [...images, ...videos];
 
-    if (!nodes.length) {
+    // Only data URIs are collected from links: an ordinary external link is a
+    // reference to a page, not a file the document should take a copy of.
+    const links: { href: string; name: string }[] = [];
+    doc.descendants((node) => {
+      const link = node.marks.find((mark) => mark.type.name === "link");
+      const href = String(link?.attrs.href ?? "");
+      if (href.startsWith("data:")) {
+        links.push({ href, name: node.textContent || "file" });
+      }
+      return true;
+    });
+
+    if (!nodes.length && !links.length) {
       return doc;
     }
 
+    const sources = [
+      ...nodes.map((node) => ({
+        href: String(node.attrs.src ?? ""),
+        name: String(node.attrs.alt ?? node.type.name),
+      })),
+      ...links,
+    ];
+
     const timeoutPerImage = Math.floor(
-      Math.min(env.REQUEST_TIMEOUT / nodes.length, 10000)
+      Math.min(env.REQUEST_TIMEOUT / sources.length, 10000)
     );
 
     const urlToAttachment: Map<string, Attachment> = new Map();
-    const chunks = chunk(nodes, 10);
+    const chunks = chunk(sources, 10);
 
-    for (const nodeChunk of chunks) {
+    for (const sourceChunk of chunks) {
       await Promise.all(
-        nodeChunk.map(async (node) => {
-          const src = String(node.attrs.src ?? "");
+        sourceChunk.map(async (source) => {
+          const src = source.href;
 
           // Skip invalid URLs
           try {
@@ -956,7 +1266,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
           try {
             const attachment = await attachmentCreator({
-              name: String(node.attrs.alt ?? node.type.name),
+              name: source.name,
               url: src,
               preset: AttachmentPreset.DocumentAttachment,
               user,
@@ -971,7 +1281,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             }
           } catch (err) {
             Logger.warn("Failed to download image for attachment", {
-              error: err.message,
+              error: errToString(err),
               src,
             });
           }
@@ -979,7 +1289,8 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       );
     }
 
-    // Transform the document to replace image/video src attributes
+    // Transform the document to replace image/video src attributes and the
+    // href of any link that was uploaded above.
     const transformFragment = (fragment: Fragment): Fragment => {
       const transformedNodes: Node[] = [];
 
@@ -995,10 +1306,27 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           } else {
             transformedNodes.push(node);
           }
-        } else if (node.content.size > 0) {
-          transformedNodes.push(node.copy(transformFragment(node.content)));
         } else {
-          transformedNodes.push(node);
+          const marks = node.marks.map((mark) => {
+            const attachment =
+              mark.type.name === "link"
+                ? urlToAttachment.get(String(mark.attrs.href ?? ""))
+                : undefined;
+
+            return attachment
+              ? mark.type.create({
+                  ...mark.attrs,
+                  href: attachment.redirectUrl,
+                })
+              : mark;
+          });
+
+          const content =
+            node.content.size > 0 ? transformFragment(node.content) : undefined;
+
+          transformedNodes.push(
+            (content ? node.copy(content) : node).mark(marks)
+          );
         }
       });
 
@@ -1020,13 +1348,16 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * text equals `prefix` and immediately following text equals `suffix` is
    * used. Empty or omitted prefix/suffix imposes no constraint on that side.
    *
+   * Callers commonly take the text from the document's markdown, so when
+   * there is no match the text is converted from markdown and matched again.
+   *
    * @param params.docState The current Yjs document state.
    * @param params.anchorText The plain text substring to anchor the comment to.
    * @param params.commentId The comment identifier.
    * @param params.userId The user identifier.
    * @param params.prefix Optional plain text immediately preceding the match.
    * @param params.suffix Optional plain text immediately following the match.
-   * @returns Updated Yjs state, or null if the mark cannot be applied.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
    * @throws ValidationError when no match satisfies the prefix/suffix.
    */
   static applyCommentMarkByText({
@@ -1043,17 +1374,25 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     userId: string;
     prefix?: string;
     suffix?: string;
-  }): Buffer | null {
+  }): { state: Buffer; content: ProsemirrorData } | null {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
-    const range = ProsemirrorHelper.findTextRange(doc, anchorText, {
-      prefix,
-      suffix,
-    });
+    const text = ProsemirrorHelper.markdownToPlainText(anchorText);
+    const range =
+      ProsemirrorHelper.findTextRange(doc, anchorText, { prefix, suffix }) ??
+      ProsemirrorHelper.findTextRange(doc, text, {
+        prefix: prefix && ProsemirrorHelper.markdownToPlainText(prefix),
+        suffix: suffix && ProsemirrorHelper.markdownToPlainText(suffix),
+      });
 
     if (!range) {
-      throw ValidationError("anchorText was not found in the document");
+      const closest = ProsemirrorHelper.findClosestText(doc, text);
+      throw ValidationError(
+        closest
+          ? `anchorText was not found in the document, the closest text is ${JSON.stringify(closest)}`
+          : "anchorText was not found in the document"
+      );
     }
 
     try {
@@ -1071,6 +1410,70 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
   }
 
+  /**
+   * Applies a comment mark to a node in a document's Yjs state, identified by
+   * a hash of the node's attributes, see `ProsemirrorHelper.getNodeHash`. The
+   * first matching node in document order is used, and the mark is stored in
+   * the node's `marks` attribute.
+   *
+   * @param params.docState The current Yjs document state.
+   * @param params.anchorNodeId The hash of the node to anchor the comment to.
+   * @param params.commentId The comment identifier.
+   * @param params.userId The user identifier.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
+   * @throws ValidationError when no node matches or the node cannot hold comments.
+   */
+  static applyCommentMarkByNode({
+    docState,
+    anchorNodeId,
+    commentId,
+    userId,
+  }: {
+    docState: Uint8Array;
+    anchorNodeId: string;
+    commentId: string;
+    userId: string;
+  }): { state: Buffer; content: ProsemirrorData } | null {
+    const yjsDoc = new Y.Doc();
+    Y.applyUpdate(yjsDoc, docState);
+    const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
+    const match = SharedProsemirrorHelper.findNodeByHash(doc, anchorNodeId);
+
+    if (!match) {
+      throw ValidationError("anchorNodeId was not found in the document");
+    }
+    if (!("marks" in (match.node.type.spec.attrs ?? {}))) {
+      throw ValidationError("This node cannot be commented on");
+    }
+
+    try {
+      const initialState = EditorState.create({
+        doc,
+        schema,
+      });
+      const stateTransform = initialState.tr.setNodeMarkup(
+        match.pos,
+        undefined,
+        {
+          ...match.node.attrs,
+          marks: [
+            ...(match.node.attrs.marks ?? []),
+            {
+              type: "comment",
+              attrs: { id: commentId, userId, draft: false, resolved: false },
+            },
+          ],
+        }
+      );
+      const transformedState = initialState.apply(stateTransform);
+
+      return ProsemirrorHelper.applyDocToYDoc(yjsDoc, transformedState.doc);
+    } catch (error) {
+      Logger.error("Error applying comment mark by node", error as Error);
+      return null;
+    }
+  }
+
   private static applyCommentMarkAtRange(
     yjsDoc: Y.Doc,
     doc: Node,
@@ -1078,7 +1481,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     rangeEnd: number,
     commentId: string,
     userId: string
-  ): Buffer | null {
+  ): { state: Buffer; content: ProsemirrorData } | null {
     const docSize = doc.content.size;
     if (rangeStart < 0 || rangeEnd > docSize || rangeStart > rangeEnd) {
       Logger.warn("Invalid position range for comment anchor", {
@@ -1106,20 +1509,35 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     );
     const transformedState = initialState.apply(stateTransform);
 
-    // Mutate the existing yjsDoc in place so the resulting state is a
-    // continuation of the original document — same client IDs, same operation
-    // history — rather than a fresh Y.Doc whose content would merge as
-    // duplicates against any client still holding the original state.
+    return ProsemirrorHelper.applyDocToYDoc(yjsDoc, transformedState.doc);
+  }
+
+  /**
+   * Mutate the existing yjsDoc in place so the resulting state is a
+   * continuation of the original document — same client IDs, same operation
+   * history — rather than a fresh Y.Doc whose content would merge as
+   * duplicates against any client still holding the original state.
+   */
+  private static applyDocToYDoc(
+    yjsDoc: Y.Doc,
+    doc: Node
+  ): { state: Buffer; content: ProsemirrorData } {
     const yFragment = yjsDoc.get("default", Y.XmlFragment) as Y.XmlFragment;
     if (!yFragment.doc) {
       throw new Error("yFragment.doc not found");
     }
-    updateYFragment(yFragment.doc, yFragment, transformedState.doc, {
+    updateYFragment(yFragment.doc, yFragment, doc, {
       mapping: new Map(),
       isOMark: new Map(),
     });
 
-    return Buffer.from(Y.encodeStateAsUpdate(yjsDoc));
+    return {
+      state: Buffer.from(Y.encodeStateAsUpdate(yjsDoc)),
+      content: Node.fromJSON(
+        schema,
+        yDocToProsemirrorJSON(yjsDoc, "default")
+      ).toJSON() as ProsemirrorData,
+    };
   }
 
   /**
@@ -1242,5 +1660,52 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     return { from, to };
+  }
+
+  /**
+   * Converts markdown text to the plain text it represents, preserving any
+   * surrounding whitespace, which markdown parsing would otherwise discard.
+   */
+  private static markdownToPlainText(text: string): string {
+    const leading = text.slice(0, text.length - text.trimStart().length);
+    const trailing = text.slice(text.trimEnd().length);
+    const doc = parser.parse(text.trim());
+
+    return doc
+      ? leading + textBetween(doc, 0, doc.content.size) + trailing
+      : text;
+  }
+
+  /**
+   * Returns the block of the document's plain text that most closely
+   * resembles `needle`, or null if none resembles it closely enough. Used to
+   * point callers at a usable anchor when their text cannot be resolved.
+   */
+  private static findClosestText(doc: Node, needle: string): string | null {
+    // Text this long is unlikely to be a single block, and comparing it is
+    // not worth the cost.
+    if (!needle.length || needle.length > 1000) {
+      return null;
+    }
+
+    // At most half of the text may differ for a block to be a suggestion.
+    let limit = Math.floor(needle.length / 2);
+    let closest: string | null = null;
+
+    for (const block of textBetween(doc, 0, doc.content.size).split("\n")) {
+      // Two strings differ by at least the difference in their lengths, so
+      // most blocks can be discarded without comparing them.
+      if (Math.abs(block.length - needle.length) > limit) {
+        continue;
+      }
+
+      const distance = ukkonen(needle, block, limit + 1);
+      if (distance <= limit) {
+        limit = distance;
+        closest = block;
+      }
+    }
+
+    return closest;
   }
 }

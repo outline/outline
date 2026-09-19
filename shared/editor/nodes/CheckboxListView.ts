@@ -97,15 +97,24 @@ export class CheckboxListView implements NodeView {
     const storageKey = `checklist-${listId}-${this.userIdentifier}-hidden`;
     const shouldCollapse = !!Storage.get(storageKey);
 
-    // Count completed items, including nested checkbox lists
+    // Count completed items, including checkbox lists nested directly within a
+    // checkbox_item (which are toggle-less). Skip checkbox lists nested via a
+    // non-checkbox list, as those manage their own toggle.
     let completedItemsCount = 0;
-    this.node.descendants((childNode) => {
+    this.node.descendants((childNode, _pos, parent) => {
+      if (
+        childNode.type.name === "checkbox_list" &&
+        parent?.type.name !== "checkbox_item"
+      ) {
+        return false;
+      }
       if (
         childNode.type.name === "checkbox_item" &&
         childNode.attrs.checked === true
       ) {
         completedItemsCount++;
       }
+      return undefined;
     });
 
     // Show/hide button based on completed count

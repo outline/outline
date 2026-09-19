@@ -8,6 +8,8 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { TableMap } from "prosemirror-tables";
+import { isRemoteTransaction } from "../lib/multiplayer";
+import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellAttrs,
   isValidCellAlignment,
@@ -18,6 +20,8 @@ import Node from "./Node";
 import { presetColors, rgbaToHex } from "@shared/utils/color";
 import { parseToRgb, transparentize } from "polished";
 import type { RgbaColor } from "polished/lib/types/color";
+
+const isTableNode = (node: ProsemirrorNode) => !!node.type.spec.tableRole;
 
 export default class TableCell extends Node {
   /** The default opacity of the table cell background */
@@ -146,9 +150,18 @@ export default class TableCell extends Node {
         state: {
           init: (_, state) => createCellDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Only recompute if document changed
             if (!tr.docChanged) {
               return pluginState;
+            }
+
+            // Local inline edits cannot change the table layout, so mapping
+            // the existing decorations is enough. Remote transactions do not
+            // reflect the shape of the change, so they always rebuild.
+            if (
+              !isRemoteTransaction(tr, newState) &&
+              isInlineTransaction(tr, isTableNode)
+            ) {
+              return pluginState.map(tr.mapping, tr.doc);
             }
 
             return createCellDecorations(newState);
@@ -179,11 +192,19 @@ export default class TableCell extends Node {
                   row.childCount === 1
                 ) {
                   const cell = row.firstChild;
-                  if (cell?.type.spec.tableRole === "cell") {
+                  if (
+                    cell?.type.spec.tableRole === "cell" ||
+                    cell?.type.spec.tableRole === "header_cell"
+                  ) {
+                    // The table, row, and cell levels are gone from the content,
+                    // so the open depths must lose them too – a slice that is
+                    // open deeper than its content is malformed and throws when
+                    // ProseMirror walks into it.
+                    const unwrapped = 3;
                     return new Slice(
                       cell.content,
-                      slice.openStart,
-                      slice.openEnd
+                      Math.max(0, slice.openStart - unwrapped),
+                      Math.max(0, slice.openEnd - unwrapped)
                     );
                   }
                 }

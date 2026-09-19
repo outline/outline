@@ -1,8 +1,10 @@
 /* oxlint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
 import { snakeCase } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -49,18 +51,43 @@ export function createQueue(
   queue.on("error", () => {
     Metrics.increment(`${prefix}.jobs.errored`);
   });
-  queue.on("failed", () => {
+  queue.on("failed", (job, err) => {
     Metrics.increment(`${prefix}.jobs.failed`);
+
+    // Report on the final attempt to avoid noise from intermediate retries.
+    const attempts = job?.opts?.attempts ?? 1;
+    if ((job?.attemptsMade ?? 0) + 1 >= attempts) {
+      Logger.error(`Job failed in ${name} queue`, toError(err), {
+        jobId: job?.id,
+        attemptsMade: job?.attemptsMade,
+        data: job?.data,
+      });
+    }
   });
 
+  let metricsTimer: NodeJS.Timeout | undefined;
   if (env.ENVIRONMENT !== "test") {
-    setInterval(async () => {
-      Metrics.gauge(`${prefix}.count`, await queue.count());
-      Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());
+    metricsTimer = setInterval(async () => {
+      try {
+        Metrics.gauge(`${prefix}.count`, await queue.count());
+        Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());
+      } catch (err) {
+        // A transient error querying the queue (eg Redis blip or a queue closing
+        // during shutdown) should not crash the process with an unhandled rejection.
+        Logger.warn("Failed to gather queue metrics", {
+          queue: name,
+          error: err,
+        });
+      }
     }, 5 * Second.ms);
+
+    metricsTimer.unref();
   }
 
   ShutdownHelper.add(name, ShutdownOrder.normal, async () => {
+    if (metricsTimer) {
+      clearInterval(metricsTimer);
+    }
     await queue.close();
   });
 

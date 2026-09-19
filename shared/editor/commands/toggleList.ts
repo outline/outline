@@ -1,4 +1,9 @@
-import type { NodeType } from "prosemirror-model";
+import type {
+  Attrs,
+  Node as ProsemirrorNode,
+  NodeType,
+  Schema,
+} from "prosemirror-model";
 import { liftListItem, wrapInList } from "prosemirror-schema-list";
 import type { Command } from "prosemirror-state";
 import { chainTransactions } from "../lib/chainTransactions";
@@ -40,10 +45,31 @@ export default function toggleList(
       const differentType = currentItemType && currentItemType !== itemType;
 
       if (differentType) {
-        return chainTransactions(
-          clearNodes(),
-          wrapInList(listType, { listStyle })
-        )(state, dispatch);
+        // Convert the list in place, preserving any nested list structure,
+        // rather than clearing the nodes and re-wrapping which would flatten
+        // nesting – this path is hit when toggling to or from a checklist.
+        try {
+          const converted = convertListType(
+            parentList.node,
+            listType,
+            itemType,
+            schema,
+            listStyle ? { listStyle } : undefined
+          );
+          dispatch?.(
+            tr.replaceWith(
+              parentList.pos,
+              parentList.pos + parentList.node.nodeSize,
+              converted
+            )
+          );
+          return true;
+        } catch (_err) {
+          return chainTransactions(
+            clearNodes(),
+            wrapInList(listType, { listStyle })
+          )(state, dispatch);
+        }
       }
 
       if (
@@ -54,7 +80,14 @@ export default function toggleList(
           parentList.pos,
           parentList.pos + parentList.node.nodeSize,
           (node, pos) => {
-            if (isList(node, schema)) {
+            // nodesBetween also visits the ancestors of the given range, these
+            // must be skipped so that toggling a nested list does not convert
+            // the lists it is nested within.
+            if (
+              pos >= parentList.pos &&
+              isList(node, schema) &&
+              listType.validContent(node.content)
+            ) {
               tr.setNodeMarkup(pos, listType, listStyle ? { listStyle } : {});
             }
           }
@@ -77,4 +110,48 @@ export default function toggleList(
       dispatch
     );
   };
+}
+
+/**
+ * Recursively converts a list node, its items, and any lists nested within
+ * those items to the given list and item type, preserving nesting structure.
+ *
+ * @param node the list node to convert.
+ * @param listType the node type to convert lists to.
+ * @param itemType the node type to convert list items to.
+ * @param schema the document schema.
+ * @param attrs optional attributes for the converted lists.
+ * @returns the converted list node.
+ * @throws if the content of an item is not valid for the new item type.
+ */
+function convertListType(
+  node: ProsemirrorNode,
+  listType: NodeType,
+  itemType: NodeType,
+  schema: Schema,
+  attrs?: Attrs
+): ProsemirrorNode {
+  const items: ProsemirrorNode[] = [];
+  node.forEach((item) => {
+    const content: ProsemirrorNode[] = [];
+    item.forEach((child) => {
+      content.push(
+        isList(child, schema)
+          ? convertListType(child, listType, itemType, schema, attrs)
+          : child
+      );
+    });
+    items.push(
+      itemType.createChecked(
+        item.type === itemType ? item.attrs : null,
+        content,
+        item.marks
+      )
+    );
+  });
+  return listType.createChecked(
+    node.type === listType ? node.attrs : (attrs ?? null),
+    items,
+    node.marks
+  );
 }

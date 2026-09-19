@@ -1,20 +1,24 @@
 import type Token from "markdown-it/lib/token.mjs";
-import type { NodeSpec } from "prosemirror-model";
+import type { Node as ProsemirrorNode, NodeSpec } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { isInTable, moveTableColumn, TableMap } from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
+import { isMobile } from "../../utils/browser";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import {
   getCellAttrs,
   isValidCellAlignment,
   isValidCellMarks,
   setCellAttrs,
 } from "../lib/table";
+import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellsInColumn,
   getCellsInRow,
+  hasTableSelectionChanged,
   isColumnSelected,
   isTableSelected,
 } from "../queries/table";
@@ -132,13 +136,24 @@ function setupColumnDragTracking(
     document.body.classList.remove(EditorStyleHelper.tableDragging);
 
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
-      const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
-        view.state,
-        view.dispatch
-      );
-      if (moved) {
-        // Select the column at its new position
-        selectColumn(currentToIndex)(view.state, view.dispatch);
+      // Verify both indices are still valid for the current table. The document
+      // may have changed during the drag (e.g. collaborative editing)
+      const currentCols = getCellsInRow(0)(view.state);
+      const inBounds =
+        fromIndex >= 0 &&
+        fromIndex < currentCols.length &&
+        currentToIndex >= 0 &&
+        currentToIndex < currentCols.length;
+
+      if (inBounds) {
+        const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
+          view.state,
+          view.dispatch
+        );
+        if (moved) {
+          // Select the column at its new position
+          selectColumn(currentToIndex)(view.state, view.dispatch);
+        }
       }
     }
 
@@ -194,6 +209,8 @@ function createColumnDragDecorations(state: EditorState): DecorationSet {
 
   return DecorationSet.create(state.doc, decorations);
 }
+
+const isTableNode = (node: ProsemirrorNode) => !!node.type.spec.tableRole;
 
 export default class TableHeader extends Node {
   get name() {
@@ -315,7 +332,9 @@ export default class TableHeader extends Node {
             )
           );
 
-          if (!isDragging) {
+          // The add-column affordance is too small to tap on mobile, where
+          // columns can be added via the inline menu instead.
+          if (!isDragging && !isMobile()) {
             if (index === 0) {
               decorations.push(buildAddColumnDecoration(pos, index));
             }
@@ -389,9 +408,18 @@ export default class TableHeader extends Node {
         state: {
           init: (_, state) => createHeaderDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Only recompute if document changed
             if (!tr.docChanged) {
               return pluginState;
+            }
+
+            // Local inline edits cannot change the table layout, so mapping
+            // the existing decorations is enough. Remote transactions do not
+            // reflect the shape of the change, so they always rebuild.
+            if (
+              !isRemoteTransaction(tr, newState) &&
+              isInlineTransaction(tr, isTableNode)
+            ) {
+              return pluginState.map(tr.mapping, tr.doc);
             }
 
             return createHeaderDecorations(newState);
@@ -408,17 +436,32 @@ export default class TableHeader extends Node {
         state: {
           init: (_, state) => createColumnDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Recompute if selection, document, or drag state changed
-            if (
-              !tr.selectionSet &&
-              !tr.docChanged &&
-              !tr.getMeta(columnDragPluginKey) &&
-              !tr.getMeta(rowDragPluginKey)
-            ) {
+            const hasDragChanged =
+              !!tr.getMeta(columnDragPluginKey) ||
+              !!tr.getMeta(rowDragPluginKey);
+            if (!tr.selectionSet && !tr.docChanged && !hasDragChanged) {
               return pluginState;
             }
 
-            return createColumnDecorations(newState);
+            // Rebuild for drag state, selection changes that affect the grips,
+            // and any change that may alter the table layout. The set is also
+            // empty when built before the view existed, so build it once the
+            // selection is in a table.
+            if (
+              hasDragChanged ||
+              hasTableSelectionChanged(tr, oldState, newState) ||
+              (pluginState === DecorationSet.empty && isInTable(newState)) ||
+              (tr.docChanged &&
+                (isRemoteTransaction(tr, newState) ||
+                  !isInlineTransaction(tr, isTableNode)))
+            ) {
+              return createColumnDecorations(newState);
+            }
+
+            // Local inline edits only shift positions, so mapping is enough.
+            return tr.docChanged
+              ? pluginState.map(tr.mapping, tr.doc)
+              : pluginState;
           },
         },
         props: {

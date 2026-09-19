@@ -7,12 +7,13 @@ import type {
   NodeType,
 } from "prosemirror-model";
 import type { Command, EditorState, Transaction } from "prosemirror-state";
-import * as React from "react";
-import ReactDOM from "react-dom";
 import type { Primitive } from "utility-types";
 import toggleWrap from "../commands/toggleWrap";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import noticesRule from "../rules/notices";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
 
 export enum NoticeTypes {
@@ -42,13 +43,14 @@ export default class Notice extends Node {
         "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
       group: "block",
       defining: true,
-      draggable: true,
+      draggable: false,
       parseDOM: [
         {
-          tag: "div.notice-block",
+          tag: `div.${EditorStyleHelper.notice}`,
           preserveWhitespace: "full",
           contentElement: (node: HTMLDivElement) =>
-            node.querySelector("div.content") || node,
+            node.querySelector(`div.${EditorStyleHelper.noticeContent}`) ||
+            node,
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.className.includes(NoticeTypes.Tip)
               ? NoticeTypes.Tip
@@ -94,33 +96,11 @@ export default class Notice extends Node {
           }),
         },
       ],
-      toDOM: (node) => {
-        let icon;
-        if (typeof document !== "undefined") {
-          let component;
-
-          if (node.attrs.style === NoticeTypes.Tip) {
-            component = <StarredIcon />;
-          } else if (node.attrs.style === NoticeTypes.Warning) {
-            component = <WarningIcon />;
-          } else if (node.attrs.style === NoticeTypes.Success) {
-            component = <DoneIcon />;
-          } else {
-            component = <InfoIcon />;
-          }
-
-          icon = document.createElement("div");
-          icon.className = "icon";
-          ReactDOM.render(component, icon);
-        }
-
-        return [
-          "div",
-          { class: `notice-block ${node.attrs.style}` },
-          ...(icon ? [icon] : []),
-          ["div", { class: "content" }, 0],
-        ];
-      },
+      toDOM: (node) => [
+        "div",
+        { class: `${EditorStyleHelper.notice} ${node.attrs.style}` },
+        ["div", { class: EditorStyleHelper.noticeContent }, 0],
+      ],
     };
   }
 
@@ -146,19 +126,50 @@ export default class Notice extends Node {
   ): boolean => {
     const { tr, selection } = state;
     const { $from } = selection;
-    const node = $from.node(-1);
+    const notice = findParentNodeClosestToPos(
+      $from,
+      (node) => node.type === state.schema.nodes.container_notice
+    );
 
-    if (node?.type.name === this.name) {
-      if (dispatch) {
-        const transaction = tr.setNodeMarkup($from.before(-1), undefined, {
-          ...node.attrs,
-          style,
-        });
-        dispatch(transaction);
-      }
-      return true;
+    if (!notice) {
+      return false;
     }
-    return false;
+
+    if (dispatch) {
+      const transaction = tr.setNodeMarkup(notice.pos, undefined, {
+        ...notice.node.attrs,
+        style,
+      });
+      dispatch(transaction);
+    }
+    return true;
+  };
+
+  component = (props: ComponentProps) => {
+    const { node } = props;
+
+    let icon;
+    if (node.attrs.style === NoticeTypes.Tip) {
+      icon = <StarredIcon />;
+    } else if (node.attrs.style === NoticeTypes.Warning) {
+      icon = <WarningIcon />;
+    } else if (node.attrs.style === NoticeTypes.Success) {
+      icon = <DoneIcon />;
+    } else {
+      icon = <InfoIcon />;
+    }
+
+    return (
+      <div className={`${EditorStyleHelper.notice} ${node.attrs.style}`}>
+        <div className={EditorStyleHelper.noticeIcon} contentEditable={false}>
+          {icon}
+        </div>
+        <div
+          className={EditorStyleHelper.noticeContent}
+          ref={props.contentRef}
+        />
+      </div>
+    );
   };
 
   inputRules({ type }: { type: NodeType }) {

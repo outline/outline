@@ -1,0 +1,21 @@
+name: Publish nightly build
+
+on:
+  schedule:
+    # 03:00 UTC daily
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    uses: ./.github/workflows/docker-build.yml
+    secrets: inherit
+    with:
+      ref: main
+      environment: dockerhub-nightly
+      flavor: |
+        latest=false
+      tags: |
+        type=raw,value=nightly
+        type=raw,value=nightly-{{date 'YYYYMMDD'}}
+        type=sha,prefix=nightly-,format=short

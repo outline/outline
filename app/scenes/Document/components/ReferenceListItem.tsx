@@ -1,7 +1,10 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { CheckmarkIcon, DocumentIcon, PlusIcon } from "outline-icons";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover, ellipsis } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
@@ -10,11 +13,20 @@ import { determineIconType } from "@shared/utils/icon";
 import useShare from "@shared/hooks/useShare";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useModelSelection } from "~/components/ModelSelectionContext";
+import NudeButton from "~/components/NudeButton";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import { sharedModelPath } from "~/utils/routeHelpers";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import DocumentMenu from "~/menus/DocumentMenu";
+import { newNestedDocumentPath, sharedModelPath } from "~/utils/routeHelpers";
+import useBoolean from "~/hooks/useBoolean";
 import useClickIntent from "~/hooks/useClickIntent";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+import useCurrentUser from "~/hooks/useCurrentUser";
 
 type Props = {
   document: Document | NavigationNode;
@@ -23,8 +35,110 @@ type Props = {
   sidebarContext?: SidebarContextType;
 };
 
-const DocumentLink = styled(Link)`
-  display: block;
+type NewChildProps = {
+  parentDocumentId: string;
+  sidebarContext?: SidebarContextType;
+};
+
+/**
+ * A list item that starts the creation of a new document nested under the given
+ * parent document.
+ *
+ * @param parentDocumentId - the identifier of the parent document.
+ * @param sidebarContext - the sidebar context to keep after navigation.
+ * @returns a list item linking to the new document screen.
+ */
+export function NewChildReferenceListItem({
+  parentDocumentId,
+  sidebarContext,
+}: NewChildProps) {
+  const { t } = useTranslation();
+  const [pathname, search] = newNestedDocumentPath(parentDocumentId).split("?");
+
+  return (
+    <li>
+      <DocumentLink
+        to={{
+          pathname,
+          search,
+          state: { sidebarContext },
+        }}
+      >
+        <Content gap={4} dir="auto">
+          <PlusIcon />
+          <SecondaryTitle>{t("New doc")}</SecondaryTitle>
+        </Content>
+      </DocumentLink>
+    </li>
+  );
+}
+
+const Actions = styled(EventBoundary)`
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+  flex-grow: 0;
+  color: ${s("textSecondary")};
+
+  ${NudeButton}:${hover},
+  ${NudeButton}[aria-expanded= "true"] {
+    background: ${s("sidebarControlHoverBackground")};
+  }
+
+  ${breakpoint("tablet")`
+    display: flex;
+  `};
+`;
+
+const IconWrapper = styled.span`
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  width: 24px;
+  height: 24px;
+`;
+
+const DocumentIconWrapper = styled.span<{ $dimmed: boolean }>`
+  display: flex;
+  transition: opacity 100ms ease;
+  opacity: ${(props) => (props.$dimmed ? 0 : 1)};
+`;
+
+const SelectButton = styled(NudeButton)<{
+  $checked: boolean;
+  $visible: boolean;
+}>`
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid ${s("inputBorder")};
+  color: ${(props) => props.theme.accentText};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transition:
+    opacity 100ms ease,
+    background 100ms ease,
+    border-color 100ms ease;
+
+  ${(props) =>
+    props.$checked &&
+    css`
+      background: ${props.theme.accent};
+      border-color: ${props.theme.accent};
+    `}
+`;
+
+const DocumentLink = styled(Link)<{
+  $menuOpen?: boolean;
+  $selectable?: boolean;
+}>`
+  display: flex;
+  align-items: center;
   margin: 2px -8px;
   padding: 6px 8px;
   border-radius: 8px;
@@ -34,14 +148,56 @@ const DocumentLink = styled(Link)`
   position: relative;
   cursor: var(--pointer);
 
+  ${Actions} {
+    opacity: 0;
+  }
+
   &:${hover},
   &:active,
-  &:focus {
+  &:focus,
+  &:focus-within {
     background: ${s("listItemHoverBackground")};
+
+    ${Actions} {
+      opacity: 1;
+    }
   }
+
+  /* Revealing the checkbox is a hover affordance only – on touch devices the
+  equivalent states (active, focus) are triggered by tapping the item to
+  navigate. There, the checkbox appears once a selection is underway. */
+  @media (hover: hover) {
+    &:hover,
+    &:focus,
+    &:focus-within {
+      ${(props) =>
+        props.$selectable &&
+        css`
+          ${SelectButton} {
+            opacity: 1;
+          }
+
+          ${DocumentIconWrapper} {
+            opacity: 0;
+          }
+        `}
+    }
+  }
+
+  ${(props) =>
+    props.$menuOpen &&
+    css`
+      background: ${s("listItemHoverBackground")};
+
+      ${Actions} {
+        opacity: 1;
+      }
+    `}
 `;
 
 const Content = styled(Flex)`
+  flex-grow: 1;
+  min-width: 0;
   color: ${s("textSecondary")};
   margin-left: -4px;
 `;
@@ -56,6 +212,10 @@ const Title = styled.div`
   font-family: ${s("fontFamily")};
 `;
 
+const SecondaryTitle = styled(Title)`
+  color: ${s("textSecondary")};
+`;
+
 function ReferenceListItem({
   document,
   showCollection,
@@ -63,8 +223,13 @@ function ReferenceListItem({
   sidebarContext,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
   const { documents } = useStores();
   const { shareId } = useShare();
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const selection = useModelSelection();
+  const iconRef = useRef<HTMLSpanElement>(null);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const prefetchDocument = useCallback(async () => {
     await documents.prefetchDocument(document.id);
   }, [documents, document.id]);
@@ -75,35 +240,148 @@ function ReferenceListItem({
   const title =
     document instanceof Document ? document.titleWithDefault : document.title;
   const initial = title.charAt(0).toUpperCase();
+  const showContextMenu = document instanceof Document && !!user;
+
+  // Multi-select is only offered for documents the user can update.
+  const can = usePolicy(document.id);
+  const selectable = !!selection && !!can.update;
+  const isSelected = selection?.isSelected(document.id) ?? false;
+  const isSelecting =
+    selectable && ((selection?.isActive ?? false) || isSelected);
+
+  const inSelectArea = (event: React.MouseEvent) =>
+    selectable && !!iconRef.current?.contains(event.target as Node);
+
+  // Handled on the link so preventDefault reliably suppresses navigation.
+  const handleLinkClick = (event: React.MouseEvent) => {
+    if (selection && inSelectArea(event)) {
+      event.preventDefault();
+      if (event.shiftKey) {
+        selection.selectRange(document.id);
+      } else {
+        selection.toggle(document.id);
+      }
+    }
+  };
+
+  // Suppress the browser's text selection when shift-clicking to select a range.
+  const handleLinkMouseDown = (event: React.MouseEvent) => {
+    if (event.shiftKey && inSelectArea(event)) {
+      event.preventDefault();
+    }
+  };
+
+  const link = (
+    <DocumentLink
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleLinkClick}
+      onMouseDown={handleLinkMouseDown}
+      $menuOpen={menuOpen}
+      $selectable={selectable}
+      to={{
+        pathname: shareId
+          ? sharedModelPath(shareId, document.url)
+          : document.url,
+        hash: anchor ? `d-${anchor}` : undefined,
+        state: {
+          title: document.title,
+          sidebarContext,
+        },
+      }}
+      {...rest}
+    >
+      <Content gap={4} dir="auto">
+        <IconWrapper ref={iconRef}>
+          {selectable && (
+            <SelectButton
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-label={t("Select")}
+              $checked={isSelected}
+              $visible={isSelecting}
+              tabIndex={-1}
+            >
+              {isSelected && <CheckmarkIcon size={16} />}
+            </SelectButton>
+          )}
+          <DocumentIconWrapper $dimmed={isSelecting}>
+            {icon ? (
+              <Icon value={icon} color={color ?? undefined} initial={initial} />
+            ) : (
+              <DocumentIcon />
+            )}
+          </DocumentIconWrapper>
+        </IconWrapper>
+        <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
+      </Content>
+      {showContextMenu && (
+        <Actions>
+          <DocumentMenu
+            document={document}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        </Actions>
+      )}
+    </DocumentLink>
+  );
+
+  if (!showContextMenu) {
+    return <li>{link}</li>;
+  }
 
   return (
     <li>
-      <DocumentLink
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        to={{
-          pathname: shareId
-            ? sharedModelPath(shareId, document.url)
-            : document.url,
-          hash: anchor ? `d-${anchor}` : undefined,
-          state: {
-            title: document.title,
-            sidebarContext,
-          },
-        }}
-        {...rest}
+      <ReferenceListItemContextMenu
+        document={document}
+        handleMenuOpen={handleMenuOpen}
+        handleMenuClose={handleMenuClose}
       >
-        <Content gap={4} dir="auto">
-          {icon ? (
-            <Icon value={icon} color={color ?? undefined} initial={initial} />
-          ) : (
-            <DocumentIcon />
-          )}
-          <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
-        </Content>
-      </DocumentLink>
+        {link}
+      </ReferenceListItemContextMenu>
     </li>
   );
 }
+
+const ReferenceListItemContextMenu = observer(
+  function ReferenceListItemContextMenu_({
+    document,
+    children,
+    handleMenuOpen,
+    handleMenuClose,
+  }: {
+    document: Document;
+    handleMenuOpen: () => void;
+    handleMenuClose: () => void;
+    children: React.ReactNode;
+  }) {
+    const { t } = useTranslation();
+    const { isShare } = useShare();
+    const contextMenuAction = useDocumentMenuAction({
+      documentId: document.id,
+    });
+
+    return (
+      <ActionContextProvider
+        value={{
+          activeModels: [
+            document,
+            ...(!isShare && document.collection ? [document.collection] : []),
+          ],
+        }}
+      >
+        <ContextMenu
+          action={contextMenuAction}
+          ariaLabel={t("Document options")}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
+        >
+          {children}
+        </ContextMenu>
+      </ActionContextProvider>
+    );
+  }
+);
 
 export default observer(ReferenceListItem);

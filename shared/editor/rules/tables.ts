@@ -1,10 +1,111 @@
 import type MarkdownIt from "markdown-it";
+import { unescapeRawTableCell } from "../lib/markdown/tableCell";
 
-const BREAK_REGEX = /(?<=^|[^\\])\\n/;
 const BR_TAG_REGEX = /<br\s*\/?>/gi;
+
 // Matches checkbox syntax with optional list prefix: "- [x] Task" or "[x] Task"
 // Stops at <br> or newline to handle multiple checkboxes in a cell
 const CHECKBOX_REGEX = /^(?:-\s*)?\[(X|\s|_|-)\]\s([^<\n]*)?/i;
+
+// Matches the opening of a notice (:::style), toggle (+++), code (```) or math
+// ($$) fence
+const FENCE_OPEN_REGEX = /^(?::::\S|\+{3,}|```|\$\$)/;
+
+/**
+ * Find the offset of the first "\n" escape at or after the given offset that is
+ * not itself escaped by a preceding backslash.
+ *
+ * A lookbehind assertion would say this in one regex, but Safari below 16.4
+ * throws on lookbehind, so the preceding character is examined by hand.
+ *
+ * @param content - the text to scan.
+ * @param from - the offset to start scanning at.
+ * @returns the offset of the break, or -1 if there is none.
+ */
+function findBreak(content: string, from: number): number {
+  let index = content.indexOf("\\n", from);
+  while (index !== -1) {
+    if (index === 0 || content[index - 1] !== "\\") {
+      return index;
+    }
+    index = content.indexOf("\\n", index + 2);
+  }
+  return -1;
+}
+
+/**
+ * Check whether the text holds a "\n" escape that is not itself escaped.
+ *
+ * @param content - the text to scan.
+ * @returns true if the text holds an unescaped break.
+ */
+function hasBreak(content: string): boolean {
+  return findBreak(content, 0) !== -1;
+}
+
+/**
+ * Split the text on each "\n" escape that is not itself escaped, leaving
+ * escaped ones in place.
+ *
+ * @param content - the text to split.
+ * @returns the parts between the breaks.
+ */
+function splitOnBreaks(content: string): string[] {
+  const parts: string[] = [];
+  let start = 0;
+  let index = findBreak(content, start);
+
+  while (index !== -1) {
+    parts.push(content.slice(start, index));
+    start = index + 2;
+    index = findBreak(content, start);
+  }
+
+  parts.push(content.slice(start));
+  return parts;
+}
+
+/**
+ * Block content (notice, toggle, code & math fences) is serialized onto a
+ * single table-cell line using <br> in place of newlines so it does not break
+ * the row. Reconstruct it by re-parsing the un-flattened source, round-tripping
+ * back to the original block rather than leaving literal fence markers as
+ * text.
+ *
+ * @param md - the markdown-it instance, used to re-parse the cell source.
+ * @param content - the raw inline content of the cell.
+ * @param env - the markdown-it environment, forwarded to the nested parse.
+ * @returns the reconstructed block tokens, or null if the cell is not a fence.
+ */
+function parseFencedCell(
+  md: MarkdownIt,
+  content: string,
+  env: unknown
+): ReturnType<MarkdownIt["parse"]> | null {
+  const source = content.replace(BR_TAG_REGEX, "\n");
+  // A fenced block spans multiple lines and opens with its fence marker.
+  if (!source.includes("\n") || !FENCE_OPEN_REGEX.test(source)) {
+    return null;
+  }
+
+  // Code & math fences are raw, so the parser won't undo the escaping the
+  // serializer added to keep the cell intact — reverse it here. Notice and
+  // toggle content is inline, so markdown unescapes it on re-parse.
+  const isRawFence = source.startsWith("```") || source.startsWith("$$");
+  const unescaped = isRawFence ? unescapeRawTableCell(source) : source;
+
+  const tokens = md.parse(unescaped, env);
+  const type = tokens[0]?.type;
+  if (
+    type === "container_notice_open" ||
+    type === "container_toggle_open" ||
+    type === "fence" ||
+    type === "math_block"
+  ) {
+    return tokens;
+  }
+  return null;
+}
 
 export default function markdownTables(md: MarkdownIt): void {
   // insert a new rule after the "inline" rules are parsed
@@ -20,8 +121,7 @@ export default function markdownTables(md: MarkdownIt): void {
       // convert unescaped \n and <br> tags in the text into real br tokens
       if (
         tokens[i].type === "inline" &&
-        (tokens[i].content.match(BREAK_REGEX) ||
-          tokens[i].content.match(BR_TAG_REGEX))
+        (hasBreak(tokens[i].content) || tokens[i].content.match(BR_TAG_REGEX))
       ) {
         const existing = tokens[i].children || [];
         tokens[i].children = [];
@@ -40,7 +140,7 @@ export default function markdownTables(md: MarkdownIt): void {
             content = content.replace(BR_TAG_REGEX, "\\n");
           }
 
-          const breakParts = content.split(BREAK_REGEX);
+          const breakParts = splitOnBreaks(content);
 
           // a schema agnostic way to know if a node is inline code would be
           // great, for now we are stuck checking the node type.
@@ -102,6 +202,14 @@ export default function markdownTables(md: MarkdownIt): void {
             new state.Token("paragraph_close", "p", -1)
           );
           tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
+          continue;
+        }
+
+        // Reconstruct notice, toggle, code & math fences that were serialized
+        // onto a single line, replacing the inline token with the block tokens.
+        const fenceTokens = parseFencedCell(md, inlineToken.content, state.env);
+        if (fenceTokens) {
+          tokens.splice(i + 1, closeIndex - i - 1, ...fenceTokens);
           continue;
         }
 

@@ -66,9 +66,7 @@ export function useTemplateMenuActions({
       return [];
     }
 
-    const templates = templatesStore.orderedData.filter(
-      (template) => template.isActive
-    );
+    const templates = templatesStore.published;
 
     const collectionTemplatesActions = templates
       .filter(

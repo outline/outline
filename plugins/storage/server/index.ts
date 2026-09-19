@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync } from "node:fs";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -18,7 +19,7 @@ if (env.FILE_STORAGE === "local") {
   } catch (err) {
     Logger.fatal(
       `Failed to create directory for local file storage at ${env.FILE_STORAGE_LOCAL_ROOT_DIR}`,
-      err
+      toError(err)
     );
   }
 }

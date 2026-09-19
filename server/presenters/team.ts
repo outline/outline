@@ -1,3 +1,5 @@
+import { pick } from "es-toolkit";
+import { TeamPreference } from "@shared/types";
 import type { Team } from "@server/models";
 
 export default function presentTeam(team: Team) {
@@ -19,7 +21,10 @@ export default function presentTeam(team: Team) {
     defaultUserRole: team.defaultUserRole,
     inviteRequired: team.inviteRequired,
     allowedDomains: team.allowedDomains?.map((d) => d.name),
-    preferences: team.preferences,
+    // Unrecognized keys are omitted so that clients can safely send the object back.
+    preferences: team.preferences
+      ? pick(team.preferences, Object.values(TeamPreference))
+      : team.preferences,
     guidanceMCP: team.guidanceMCP,
   };
 }

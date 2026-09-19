@@ -3,8 +3,11 @@ import type { StaticContext } from "react-router";
 import { useHistory } from "react-router";
 import type { RouteComponentProps } from "react-router-dom";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
+import { useSplitView } from "~/components/SplitView/context";
 import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
+import { patchLocation } from "~/utils/history";
+import { getFocusedSplitPane } from "~/utils/splitView";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import { Footer } from "./components/Footer";
@@ -26,19 +29,30 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState>;
 export default function DocumentScene(props: Props) {
   const { ui } = useStores();
   const history = useHistory();
-  const { documentSlug, revisionId } = props.match.params;
+  const { pane, isSplitView } = useSplitView();
+  const { documentSlug } = props.match.params;
   const currentPath = props.location.pathname;
   useTrackLastVisitedPath(currentPath);
 
-  useEffect(() => () => ui.clearActiveDocument(), [ui]);
+  useEffect(
+    () => () => {
+      // In a split view only the focused pane owns the active document, so an
+      // unfocused pane unmounting must not clear the focused pane's state.
+      if (!isSplitView || pane === getFocusedSplitPane()) {
+        ui.clearActiveDocument();
+      }
+    },
+    [ui, isSplitView, pane]
+  );
 
   useEffect(() => {
     // When opening a document directly on app load, sidebarContext will not be set.
     if (!props.location.state?.sidebarContext) {
-      history.replace({
-        ...props.location,
-        state: { ...props.location.state, sidebarContext: "collections" }, // optimistic preference of "collections"
-      });
+      history.replace(
+        patchLocation(props.location, {
+          state: { ...props.location.state, sidebarContext: "collections" }, // optimistic preference of "collections"
+        })
+      );
     }
   }, [props.location, history]);
 
@@ -49,16 +63,12 @@ export default function DocumentScene(props: Props) {
   const urlParts = documentSlug ? documentSlug.split("-") : [];
   const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
 
-  // Normalize the key so that it is *stable* between renders.
-  // Without this, the initial value can be "<urlId>/undefined" and then flip to
-  // "<urlId>/" when React stringifies `undefined` on the next render, causing a
-  // full unmount/mount cycle of the document subtree. Keeping the key constant
-  // prevents extra network requests and preserves editor state on resize.
-  const key = revisionId ? `${urlId}/${revisionId}` : urlId;
-
+  // The revision is deliberately not part of the key: remounting the subtree
+  // between revisions would empty the page while the next one loads and reset
+  // the scroll position. DataLoader refetches when the revision id changes.
   return (
     <DataLoader
-      key={key}
+      key={urlId}
       match={props.match}
       history={props.history}
       location={props.location}

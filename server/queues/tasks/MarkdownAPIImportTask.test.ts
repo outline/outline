@@ -66,6 +66,18 @@ describe("rewriteAttachmentPaths", () => {
     ]);
     expect(out).toBe("![x](https://example.com/a.png)");
   });
+
+  it("leaves remote signed URLs untouched so the base task can download them", () => {
+    // Slab exports reference images as remote signed URLs rather than files
+    // in the zip; these aren't in the manifest and must survive rewriting so
+    // the per-page attachment upload step can fetch and re-host them.
+    const signedUrl =
+      "https://uploads.slab.com/posts/abc/image.png?Signature=xyz&Expires=123";
+    const out = rewriteAttachmentPaths(`![x](${signedUrl})`, [
+      { id: "id-a", pathInZip: "C/attachments/local.png" },
+    ]);
+    expect(out).toBe(`![x](${signedUrl})`);
+  });
 });
 
 describe("rewriteInternalLinks", () => {
@@ -112,5 +124,23 @@ describe("rewriteInternalLinks", () => {
       { "Collection/My Doc.md": "doc-3" }
     );
     expect(out).toBe("see [other](<<doc-3>>)");
+  });
+
+  it("rewrites an angle bracketed link to a document with spaces", () => {
+    const out = rewriteInternalLinks(
+      "see [other](<./My Doc.md>)",
+      "Collection/parent.md",
+      { "Collection/My Doc.md": "doc-4" }
+    );
+    expect(out).toBe("see [other](<<doc-4>>)");
+  });
+
+  it("rewrites a link carrying a title, keeping the title", () => {
+    const out = rewriteInternalLinks(
+      'see [other](./other.md "The other one")',
+      "Collection/parent.md",
+      { "Collection/other.md": "doc-5" }
+    );
+    expect(out).toBe('see [other](<<doc-5>> "The other one")');
   });
 });

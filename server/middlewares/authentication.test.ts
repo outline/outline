@@ -1,4 +1,5 @@
 import type { DefaultState } from "koa";
+import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { Scope } from "@shared/types";
 import {
@@ -49,7 +50,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e.message).toBe("Invalid token");
+        expect(errToString(e)).toBe("Invalid token");
       }
     });
 
@@ -73,7 +74,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e.message).toBe("Invalid authentication type");
+        expect(errToString(e)).toBe("Invalid authentication type");
       }
     });
   });
@@ -147,9 +148,11 @@ describe("Authentication middleware", () => {
         );
         throw new Error("Expected error to be thrown");
       } catch (e) {
-        expect(e.status).toBe(403);
-        expect(e.id).toBe("authorization_error");
-        expect(e.message).toContain("does not have access to this resource");
+        expect(e).toHaveProperty("status", 403);
+        expect(e).toHaveProperty("id", "authorization_error");
+        expect(errToString(e)).toContain(
+          "does not have access to this resource"
+        );
       }
     });
 
@@ -170,7 +173,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e.message).toBe("Invalid API key");
+        expect(errToString(e)).toBe("Invalid API key");
       }
     });
   });
@@ -225,7 +228,9 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e.message).toContain("does not have access to this resource");
+        expect(errToString(e)).toContain(
+          "does not have access to this resource"
+        );
       }
     });
 
@@ -255,7 +260,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e.message).toContain(
+        expect(errToString(e)).toContain(
           "must be passed in the Authorization header"
         );
       }
@@ -279,13 +284,13 @@ describe("Authentication middleware", () => {
         vi.fn()
       );
     } catch (e) {
-      expect(e.message).toBe(
+      expect(errToString(e)).toBe(
         'Bad Authorization header format. Format is "Authorization: Bearer <token>"'
       );
     }
   });
 
-  it("should allow passing auth token as a GET param", async () => {
+  it("should allow passing session token in a cookie", async () => {
     const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
@@ -294,9 +299,10 @@ describe("Authentication middleware", () => {
         request: {
           // @ts-expect-error mock request
           get: vi.fn(() => null),
-          query: {
-            token: user.getSessionToken(),
-          },
+        },
+        // @ts-expect-error mock cookies
+        cookies: {
+          get: vi.fn(() => user.getSessionToken()),
         },
         state,
         cache: {},
@@ -306,7 +312,57 @@ describe("Authentication middleware", () => {
     expect(state.auth.user.id).toEqual(user.id);
   });
 
-  it("should allow passing auth token in body params", async () => {
+  it("should return error with session token as a GET param", async () => {
+    const state = {} as DefaultState;
+    const user = await buildUser();
+    const authMiddleware = auth();
+
+    await expect(
+      authMiddleware(
+        {
+          request: {
+            // @ts-expect-error mock request
+            get: vi.fn(() => null),
+            query: {
+              token: user.getSessionToken(),
+            },
+          },
+          state,
+          cache: {},
+        },
+        vi.fn()
+      )
+    ).rejects.toThrow(
+      "Session token must be passed in the cookie or Authorization header"
+    );
+  });
+
+  it("should return error with session token in body params", async () => {
+    const state = {} as DefaultState;
+    const user = await buildUser();
+    const authMiddleware = auth();
+
+    await expect(
+      authMiddleware(
+        {
+          request: {
+            // @ts-expect-error mock request
+            get: vi.fn(() => null),
+            body: {
+              token: user.getSessionToken(),
+            },
+          },
+          state,
+          cache: {},
+        },
+        vi.fn()
+      )
+    ).rejects.toThrow(
+      "Session token must be passed in the cookie or Authorization header"
+    );
+  });
+
+  it("should allow passing transfer token as a GET param", async () => {
     const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
@@ -315,8 +371,8 @@ describe("Authentication middleware", () => {
         request: {
           // @ts-expect-error mock request
           get: vi.fn(() => null),
-          body: {
-            token: user.getSessionToken(),
+          query: {
+            token: user.getTransferToken(),
           },
         },
         state,
@@ -353,10 +409,10 @@ describe("Authentication middleware", () => {
       error = err;
     }
 
-    expect(error.message).toEqual(
+    expect(errToString(error)).toEqual(
       "Your access has been suspended by a workspace admin"
     );
-    expect(error.errorData.adminEmail).toEqual(admin.email);
+    expect(error).toHaveProperty("errorData.adminEmail", admin.email);
   });
 
   it("should return an error for deleted team", async () => {
@@ -383,6 +439,60 @@ describe("Authentication middleware", () => {
       error = err;
     }
 
-    expect(error.message).toEqual("Invalid token");
+    expect(errToString(error)).toEqual("Invalid token");
+  });
+  describe("with skip", () => {
+    it("should ignore credentials when skip returns true", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const apiKey = await buildApiKey({
+        userId: user.id,
+        scope: ["/api/documents.info"],
+      });
+      const next = vi.fn();
+      const authMiddleware = auth({
+        optional: true,
+        skip: (ctx) => !!ctx.query.sig,
+      });
+      await authMiddleware(
+        {
+          // @ts-expect-error mock request
+          request: {
+            get: vi.fn(() => `Bearer ${apiKey.value}`),
+          },
+          query: { sig: "signature" },
+          originalUrl: "/api/files.get?sig=signature",
+          state,
+          cache: {},
+        },
+        next
+      );
+      expect(next).toHaveBeenCalled();
+      expect(state.auth).toEqual({});
+    });
+
+    it("should authenticate when skip returns false", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const next = vi.fn();
+      const authMiddleware = auth({
+        optional: true,
+        skip: (ctx) => !!ctx.query.sig,
+      });
+      await authMiddleware(
+        {
+          // @ts-expect-error mock request
+          request: {
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
+          },
+          query: {},
+          state,
+          cache: {},
+        },
+        next
+      );
+      expect(next).toHaveBeenCalled();
+      expect(state.auth.user.id).toEqual(user.id);
+    });
   });
 });

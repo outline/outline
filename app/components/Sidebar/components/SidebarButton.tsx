@@ -11,55 +11,50 @@ import Desktop from "~/utils/Desktop";
 import { HStack } from "~/components/primitives/HStack";
 
 export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
-  position: "top" | "bottom";
-  title: React.ReactNode;
+  position?: "top" | "bottom";
+  title?: React.ReactNode;
   image: React.ReactNode;
   showMoreMenu?: boolean;
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children?: React.ReactNode;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
-const SidebarButton = observer(
-  React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
-    function SidebarButton_(
-      {
-        position = "top",
-        showMoreMenu,
-        image,
-        title,
-        children,
-        onClick,
-        ...rest
-      }: SidebarButtonProps,
-      ref
-    ) {
-      return (
-        <Container
-          justify="space-between"
-          align="center"
-          shrink={false}
-          $position={position}
-        >
-          <Button
-            {...rest}
-            onClick={onClick}
-            $position={position}
-            as="button"
-            ref={ref}
-            role="button"
-          >
-            <Content>
-              {image}
-              {title && <Title>{title}</Title>}
-            </Content>
-            {showMoreMenu && <StyledMoreIcon />}
-          </Button>
-          {children}
-        </Container>
-      );
-    }
-  )
-);
+const SidebarButton = observer(function SidebarButton({
+  position = "top",
+  showMoreMenu,
+  image,
+  title,
+  children,
+  onClick,
+  ref,
+  ...rest
+}: SidebarButtonProps) {
+  return (
+    <Container
+      justify="space-between"
+      align="center"
+      shrink={false}
+      $position={position}
+    >
+      <Button
+        {...rest}
+        onClick={onClick}
+        $position={position}
+        as="button"
+        ref={ref}
+        role="button"
+      >
+        <Content>
+          {image}
+          {title && <Title>{title}</Title>}
+        </Content>
+        {showMoreMenu && <StyledMoreIcon />}
+      </Button>
+      {children}
+    </Container>
+  );
+});
 
 const StyledMoreIcon = styled(MoreIcon)`
   flex-shrink: 0;
@@ -68,7 +63,7 @@ const StyledMoreIcon = styled(MoreIcon)`
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
   overflow: hidden;
   padding-top: ${(props) =>
-    props.$position === "top" && Desktop.hasInsetTitlebar() ? 36 : 0}px;
+    props.$position === "top" && Desktop.hasInsetTitlebar() ? 40 : 0}px;
   ${draggableOnDesktop()}
 `;
 
@@ -103,6 +98,7 @@ const Button = styled(Flex)<{
   text-align: start;
   user-select: none;
   position: relative;
+  cursor: var(--pointer);
 
   ${undraggableOnDesktop()}
   ${extraArea(4)}
@@ -119,7 +115,6 @@ const Button = styled(Flex)<{
     &[aria-expanded="true"] {
       color: ${s("sidebarText")};
       background: ${s("sidebarActiveBackground")};
-      cursor: var(--pointer);
     }
   }
 `;

@@ -9,7 +9,9 @@
     "patches/**",
     "*.d.ts"
   ],
+  "jsPlugins": ["./.oxlint/mobx.mjs"],
   "rules": {
+    "mobx/observable-needs-initializer": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
@@ -41,6 +43,7 @@
     "no-irregular-whitespace": "error",
     "no-loss-of-precision": "error",
     "no-new-native-nonconstructor": "error",
+    "unicorn/no-new-array": "error",
     "no-nonoctal-decimal-escape": "error",
     "no-obj-calls": "error",
     "no-prototype-builtins": "error",
@@ -68,11 +71,34 @@
   },
   "overrides": [
     {
+      "files": ["**/*.{ts,tsx}"],
+      "rules": {
+        "no-redeclare": "off"
+      }
+    },
+    {
       "files": ["**/*.{js,jsx,ts,tsx}"],
       "rules": {
         "eqeqeq": "error",
         "curly": "error",
         "no-console": "error",
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "prosemirror-tables",
+                "importNames": [
+                  "addRowBefore",
+                  "addRowAfter",
+                  "addColumnBefore",
+                  "addColumnAfter"
+                ],
+                "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              }
+            ]
+          }
+        ],
         "no-unused-expressions": "error",
         "arrow-body-style": ["error", "as-needed"],
         "react/react-in-jsx-scope": "off",
@@ -87,12 +113,13 @@
             "html": true
           }
         ],
-        "@typescript-eslint/no-require-imports": "off",
+        "typescript/no-require-imports": "error",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "typescript/consistent-type-imports": "error",
         "typescript/restrict-template-expressions": "error",
         "typescript/no-floating-promises": "error",
+        "typescript/no-useless-default-assignment": "error",
         "no-unused-vars": [
           "error",
           {
@@ -102,7 +129,8 @@
             "ignoreRestSiblings": true
           }
         ],
-        "react/rules-of-hooks": "error"
+        "react/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "error"
       },
       "plugins": ["eslint", "oxc", "react", "typescript", "import"]
     }

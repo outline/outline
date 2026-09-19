@@ -92,7 +92,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
 const Navigation = styled(Flex)`
   position: absolute;
   inset-inline-end: 12px;
-  top: 14px;
+  top: 20px;
 
   button {
     cursor: default;

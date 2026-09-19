@@ -1,6 +1,5 @@
 import Router from "koa-router";
 import { Op, Sequelize, type WhereOptions } from "sequelize";
-import { Scope } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -11,12 +10,11 @@ import { presentApiKey } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
-
-const globalScopes = new Set<string>(Object.values(Scope));
 
 router.post(
   "apiKeys.create",
@@ -36,11 +34,7 @@ router.post(
       name,
       userId: user.id,
       expiresAt,
-      scope: scope?.map((s) =>
-        s.startsWith("/api/") || s.includes(":") || globalScopes.has(s)
-          ? s
-          : `/api/${s.replace(/^\//, "")}`
-      ),
+      scope,
     });
 
     apiKey.user = user;
@@ -95,7 +89,7 @@ router.post(
       };
     }
 
-    const replacements = { query: `%${query}%` };
+    const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const apiKeys = await ApiKey.findAll({
       where,

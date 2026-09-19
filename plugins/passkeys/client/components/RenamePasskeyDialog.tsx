@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -44,7 +45,7 @@ function RenamePasskeyDialog({
       onSuccess();
     } catch (err) {
       toast.error(
-        err.message || t("Failed to update passkey. Please try again.")
+        errToString(err) || t("Failed to update passkey. Please try again.")
       );
     } finally {
       setIsSaving(false);

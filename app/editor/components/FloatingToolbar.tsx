@@ -1,18 +1,18 @@
+import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
 import { Portal as ReactPortal } from "react-portal";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
-import { getSafeAreaInsets } from "@shared/utils/browser";
+import { depths, hairline, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
+import useKeyboardStickyOffset from "~/hooks/useKeyboardStickyOffset";
 import useMobile from "~/hooks/useMobile";
-import useWindowSize from "~/hooks/useWindowSize";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
@@ -25,6 +25,7 @@ type Props = {
   children: React.ReactNode;
   width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
+  ref?: React.RefObject<HTMLDivElement | null>;
 };
 
 const defaultPosition = {
@@ -41,7 +42,7 @@ function usePosition({
   active,
   align = "center",
 }: {
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
   active?: boolean;
   align?: Props["align"];
 }) {
@@ -50,7 +51,9 @@ function usePosition({
   const [menuWidth, setMenuWidth] = React.useState(0);
   const menuHeight = 36;
 
-  // Measure the menu width after DOM updates to ensure accurate positioning
+  // Measure the menu width after DOM updates to ensure accurate positioning.
+  // Runs after every render by design, the width comparison prevents a loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     if (menuRef.current) {
       const width = menuRef.current.offsetWidth;
@@ -68,7 +71,7 @@ function usePosition({
     fromPos = view.coordsAtPos(selection.from);
     toPos = view.coordsAtPos(selection.to, -1);
   } catch (err) {
-    Logger.warn("Unable to calculate selection position", err);
+    Logger.warn("Unable to calculate selection position", { err });
     return defaultPosition;
   }
 
@@ -239,12 +242,10 @@ function usePosition({
   };
 }
 
-const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
-  props: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function FloatingToolbar({ ref, ...props }: Props) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
+  const raisedClickAt = React.useRef(0);
 
   let position = usePosition({
     menuRef,
@@ -267,26 +268,61 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   });
 
   const isMobile = useMobile();
-  const { height } = useWindowSize();
+  const isMobileToolbarVisible = isMobile && !!props.active && !!props.children;
+
+  // Keep the mobile toolbar glued to the top of the on-screen keyboard. The
+  // hook tracks the visual viewport directly — see its implementation for the
+  // iOS specifics.
+  useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
+
+  // Tapping the bar must not move focus out of the editor, that would dismiss
+  // the on-screen keyboard and take the bar down with it. Mousedown is the
+  // event that assigns focus, and a tap dispatches it only after pointerup.
+  const handleMouseDown = (event: React.MouseEvent) => {
+    if (
+      event.target instanceof Element &&
+      !event.target.closest("input, textarea, [contenteditable='true']")
+    ) {
+      event.preventDefault();
+    }
+  };
+
+  // Canceling that mousedown cancels the tap's click with it, so the click is
+  // raised here instead, from the pointerup that comes before both.
+  const handlePointerUp = (event: React.PointerEvent) => {
+    if (event.pointerType === "mouse") {
+      return;
+    }
+
+    const button =
+      event.target instanceof Element ? event.target.closest("button") : null;
+    if (button) {
+      raisedClickAt.current = event.timeStamp;
+      button.click();
+    }
+  };
+
+  // A browser that delivers the tap's click anyway must not act twice.
+  const handleClickCapture = (event: React.MouseEvent) => {
+    if (event.isTrusted && event.timeStamp - raisedClickAt.current < 500) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
 
   if (isMobile) {
-    if (props.active && position.visible) {
-      const rect = document.body.getBoundingClientRect();
-      const safeAreaInsets = getSafeAreaInsets();
-
+    if (isMobileToolbarVisible) {
+      // Vertical position (above the keyboard) is owned entirely by
+      // useKeyboardStickyOffset, which writes the transform directly.
       return (
         <ReactPortal>
           <MobileWrapper
             ref={menuRef}
-            style={{
-              bottom: `calc(100% - ${
-                height - rect.y - safeAreaInsets.bottom
-              }px)`,
-            }}
+            onMouseDown={handleMouseDown}
+            onPointerUp={handlePointerUp}
+            onClickCapture={handleClickCapture}
           >
-            {props.children && (
-              <MobileBackground>{props.children}</MobileBackground>
-            )}
+            <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
         </ReactPortal>
       );
@@ -315,7 +351,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       </Wrapper>
     </Portal>
   );
-});
+}
 
 type WrapperProps = {
   active?: boolean;
@@ -347,31 +383,42 @@ const arrow = (props: WrapperProps) =>
     : "";
 
 const MobileWrapper = styled.div`
-  position: absolute;
+  position: fixed;
+  bottom: 0;
   left: 0;
   right: 0;
   width: 100vw;
   box-sizing: border-box;
+  padding: 0 16px 4px;
   z-index: ${depths.editorToolbar};
+  will-change: transform;
 
   @media print {
     display: none;
   }
 `;
 
+// A rounded bar floating clear of the edges of the screen, with the buttons
+// inside clipped to its corners as they scroll.
 const MobileBackground = styled.div`
-  padding: 10px 6px;
-  height: 60px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px;
+  min-height: 48px;
+  overflow: hidden;
   background-color: ${s("menuBackground")};
-  border-top: 1px solid ${s("divider")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 24px;
+  ${(props) => hairline(props.theme.divider)}
 
-  &:after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background-color: ${s("menuBackground")};
+  // The frosted glass of the iOS accessory bars.
+  @supports (backdrop-filter: blur(20px)) or
+    (-webkit-backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px) saturate(180%);
+    background-color: ${(props) =>
+      transparentize(0.2, props.theme.menuBackground)};
   }
 `;
 
@@ -399,6 +446,15 @@ const Background = styled.div<{ align: Props["align"] }>`
   `}
 `;
 
+// pointer-events is a discrete property and cannot be transitioned, so a
+// delayed animation is used to re-enable interaction once the open animation
+// has finished
+const enableInteraction = keyframes`
+  to {
+    pointer-events: auto;
+  }
+`;
+
 const Wrapper = styled.div<WrapperProps>`
   will-change: opacity, transform;
   position: absolute;
@@ -420,12 +476,24 @@ const Wrapper = styled.div<WrapperProps>`
     box-sizing: border-box;
   }
 
+  & button,
+  & a,
+  & input {
+    pointer-events: none;
+  }
+
   ${({ active }) =>
     active &&
-    `
-    transform: translateY(-6px) scale(1);
-    opacity: 1;
-  `};
+    css`
+      transform: translateY(-6px) scale(1);
+      opacity: 1;
+
+      & button,
+      & a,
+      & input {
+        animation: ${enableInteraction} 0s 300ms forwards;
+      }
+    `};
 
   @media print {
     display: none;

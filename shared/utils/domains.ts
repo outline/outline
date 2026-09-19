@@ -21,14 +21,16 @@ export function slugifyDomain(domain: string) {
 // strips protocol, userinfo, port, path, query, and whitespace from input
 // to extract a clean hostname
 function normalizeUrl(url: string) {
-  const stripped = trim(url.replace(/(https?:)?\/\//, ""));
+  const stripped = trim(url.replace(/(https?:)?\/\//i, ""));
   // Extract authority (everything before the first slash)
   const authority = stripped.split("/")[0];
   // Strip userinfo if present (e.g. "user:pass@host" → "host")
   const atIndex = authority.lastIndexOf("@");
   const hostWithPort =
     atIndex !== -1 ? authority.substring(atIndex + 1) : authority;
-  return hostWithPort.split(/[:?]/)[0];
+  const host = hostWithPort.split(/[:?]/)[0];
+  // Hostnames are case-insensitive and may carry a trailing root label
+  return host.toLowerCase().replace(/\.$/, "");
 }
 
 // The base domain is where root cookies are set in hosted mode
@@ -62,16 +64,17 @@ export function parseDomain(url: string): Domain {
 
   const host = normalizeUrl(url);
   const baseDomain = getBaseDomain();
+  const suffix = `.${baseDomain}`;
 
-  // if the url doesn't include the base url, then it must be a custom domain
-  const baseUrlStart = host === baseDomain ? 0 : host.indexOf(`.${baseDomain}`);
-
-  if (baseUrlStart === -1) {
+  // the host must be the base domain, or end with it on a label boundary,
+  // otherwise it is a custom domain
+  if (host !== baseDomain && !host.endsWith(suffix)) {
     return { teamSubdomain: "", host, port: undefined, custom: true };
   }
 
   // we consider anything in front of the baseUrl to be the subdomain
-  const subdomain = host.substring(0, baseUrlStart);
+  const subdomain =
+    host === baseDomain ? "" : host.substring(0, host.length - suffix.length);
   const isReservedSubdomain = RESERVED_SUBDOMAINS.includes(subdomain);
 
   return {

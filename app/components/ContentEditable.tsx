@@ -2,6 +2,7 @@ import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { TextHelper } from "@shared/utils/TextHelper";
 import useOnScreen from "~/hooks/useOnScreen";
 
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
@@ -13,11 +14,13 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   onBlur?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onInput?: React.FormEventHandler<HTMLSpanElement> | undefined;
   onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement> | undefined;
+  onCompositionEnd?: React.CompositionEventHandler<HTMLSpanElement> | undefined;
   placeholder?: string;
   maxLength?: number;
   autoFocus?: boolean;
   children?: React.ReactNode;
   value: string;
+  ref?: React.Ref<RefHandle>;
 };
 
 export type RefHandle = {
@@ -31,29 +34,29 @@ export type RefHandle = {
  * Defines a content editable component with the same interface as a native
  * HTMLInputElement (or, as close as we can get).
  */
-const ContentEditable = React.forwardRef(function ContentEditable_(
-  {
-    disabled,
-    onChange,
-    onInput,
-    onFocus,
-    onBlur,
-    onKeyDown,
-    value,
-    children,
-    className,
-    maxLength,
-    autoFocus,
-    placeholder,
-    readOnly,
-    dir,
-    onClick,
-    ...rest
-  }: Props,
-  ref: React.RefObject<RefHandle>
-) {
+function ContentEditable({
+  disabled,
+  onChange,
+  onInput,
+  onFocus,
+  onBlur,
+  onKeyDown,
+  onCompositionEnd,
+  value,
+  children,
+  className,
+  maxLength,
+  autoFocus,
+  placeholder,
+  readOnly,
+  dir,
+  onClick,
+  ref,
+  ...rest
+}: Props) {
   const contentRef = React.useRef<HTMLSpanElement>(null);
   const [innerValue, setInnerValue] = React.useState<string>(value);
+  const [isEmpty, setIsEmpty] = React.useState(value.length === 0);
   const lastValue = React.useRef(value);
 
   React.useImperativeHandle(ref, () => ({
@@ -95,16 +98,31 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
         return;
       }
 
-      const text = event.currentTarget.textContent || "";
+      let text = event.currentTarget.textContent || "";
+      setIsEmpty(text.length === 0);
+      const overLimit =
+        !!maxLength && TextHelper.codePointLength(text) > maxLength;
 
       if (
         maxLength &&
         event.nativeEvent instanceof KeyboardEvent &&
         isPrintableKeyEvent(event.nativeEvent) &&
-        text.length >= maxLength
+        TextHelper.codePointLength(text) >= maxLength
       ) {
         event.preventDefault();
         return;
+      }
+
+      // Paste, drop, IME and other non-keyboard input paths bypass the check
+      // above, so clamp whatever landed in the DOM. Editing the DOM would
+      // break an active IME session, so wait for composition end and do not
+      // publish the over-limit buffer in the meantime.
+      if (overLimit && maxLength) {
+        if (isComposing(event)) {
+          callback?.(event);
+          return;
+        }
+        text = truncateContent(event.currentTarget, maxLength);
       }
 
       if (text !== lastValue.current) {
@@ -128,8 +146,17 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
   }, [autoFocus, disabled, isVisible, readOnly, contentRef]);
 
   React.useEffect(() => {
-    if (contentRef.current && value !== contentRef.current.textContent) {
-      if (document.activeElement === contentRef.current) {
+    if (!contentRef.current) {
+      return;
+    }
+
+    const isFocused = document.activeElement === contentRef.current;
+    setIsEmpty(
+      isFocused ? !contentRef.current.textContent : value.length === 0
+    );
+
+    if (value !== contentRef.current.textContent) {
+      if (isFocused) {
         // Don't reset content while the user is actively editing. Update
         // lastValue so that the next input or blur event will push the
         // current DOM text back to the model via onChange.
@@ -146,10 +173,21 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
   const handlePaste = React.useCallback(
     (event: React.ClipboardEvent<HTMLSpanElement>) => {
       event.preventDefault();
-      const text = event.clipboardData.getData("text/plain");
+      let text = event.clipboardData.getData("text/plain");
+
+      if (maxLength) {
+        const current = event.currentTarget.textContent || "";
+        const selected = window.getSelection()?.toString() || "";
+        const remaining =
+          maxLength -
+          (TextHelper.codePointLength(current) -
+            TextHelper.codePointLength(selected));
+        text = TextHelper.truncate(text, remaining);
+      }
+
       window.document.execCommand("insertText", false, text);
     },
-    []
+    [maxLength]
   );
   const contentEditable = !disabled && !readOnly;
 
@@ -163,8 +201,10 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
         onFocus={wrappedEvent(onFocus)}
         onBlur={wrappedEvent(onBlur)}
         onKeyDown={wrappedEvent(onKeyDown)}
+        onCompositionEnd={wrappedEvent(onCompositionEnd)}
         onPaste={handlePaste}
         data-placeholder={placeholder}
+        data-empty={isEmpty}
         suppressContentEditableWarning
         role={contentEditable ? "textbox" : undefined}
         {...rest}
@@ -173,7 +213,46 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       </Content>
     </div>
   );
-});
+}
+
+function isComposing(event: React.SyntheticEvent<HTMLSpanElement>) {
+  const native = event.nativeEvent;
+  return (
+    (native instanceof InputEvent || native instanceof KeyboardEvent) &&
+    native.isComposing
+  );
+}
+
+/**
+ * Truncates the text content of an element to the given number of code points
+ * while keeping the caret at its current position where possible.
+ */
+function truncateContent(element: HTMLElement, maxLength: number): string {
+  const selection = window.getSelection();
+  const range = selection?.rangeCount ? selection.getRangeAt(0) : undefined;
+  let offset = Number.MAX_SAFE_INTEGER;
+
+  if (range && element.contains(range.startContainer)) {
+    const before = range.cloneRange();
+    before.selectNodeContents(element);
+    before.setEnd(range.startContainer, range.startOffset);
+    offset = before.toString().length;
+  }
+
+  const text = TextHelper.truncate(element.textContent || "", maxLength);
+  element.textContent = text;
+
+  const textNode = element.firstChild;
+  if (textNode && selection) {
+    const caret = document.createRange();
+    caret.setStart(textNode, Math.min(offset, text.length));
+    caret.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(caret);
+  }
+
+  return text;
+}
 
 function placeCaret(element: HTMLElement, atStart: boolean) {
   if (
@@ -198,12 +277,14 @@ const Content = styled.span`
   cursor: text;
   word-break: anywhere;
 
-  &:empty {
+  /* Browsers can leave line breaks behind after all text is deleted. */
+  &[data-empty="true"] {
     display: inline-block;
   }
 
-  &:empty::before {
+  &[data-empty="true"]::before {
     display: inline-block;
+    float: inline-start;
     color: ${s("placeholder")};
     -webkit-text-fill-color: ${s("placeholder")};
     content: attr(data-placeholder);

@@ -115,6 +115,50 @@ describe("#parseDomain", () => {
     });
   });
 
+  it("should treat a host that only contains the base domain as custom", () => {
+    expect(parseDomain("myteam.example.com.evil.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "myteam.example.com.evil.com",
+      custom: true,
+    });
+    expect(parseDomain("https://example.com.evil.com/path")).toMatchObject({
+      teamSubdomain: "",
+      host: "example.com.evil.com",
+      custom: true,
+    });
+    expect(parseDomain("notexample.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "notexample.com",
+      custom: true,
+    });
+  });
+
+  it("should normalize the case of the host", () => {
+    expect(parseDomain("MyTeam.Example.Com")).toMatchObject({
+      teamSubdomain: "myteam",
+      host: "myteam.example.com",
+      custom: false,
+    });
+    expect(parseDomain("HTTPS://WWW.EXAMPLE.COM")).toMatchObject({
+      teamSubdomain: "",
+      host: "www.example.com",
+      custom: false,
+    });
+  });
+
+  it("should remove a trailing root label", () => {
+    expect(parseDomain("myteam.example.com.")).toMatchObject({
+      teamSubdomain: "myteam",
+      host: "myteam.example.com",
+      custom: false,
+    });
+    expect(parseDomain("example.com.")).toMatchObject({
+      teamSubdomain: "",
+      host: "example.com",
+      custom: false,
+    });
+  });
+
   it("should recognize include private domains like blogspot.com as custom", () => {
     expect(parseDomain("foo.blogspot.com")).toMatchObject({
       teamSubdomain: "",

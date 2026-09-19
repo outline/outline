@@ -1,4 +1,3 @@
-import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import type {
   FindOptions,
@@ -19,7 +18,7 @@ import env from "@server/env";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
-import Fix from "@server/models/decorators/Fix";
+import IsScope from "@server/models/validators/IsScope";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
@@ -28,7 +27,6 @@ import OAuthClient from "./OAuthClient";
   tableName: "oauth_authentications",
   modelName: "oauth_authentication",
 })
-@Fix
 class OAuthAuthentication extends ParanoidModel<
   InferAttributes<OAuthAuthentication>,
   Partial<InferCreationAttributes<OAuthAuthentication>>
@@ -49,7 +47,7 @@ class OAuthAuthentication extends ParanoidModel<
   public static refreshTokenPrefix = "ol_rt_";
 
   @Unique
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   accessTokenHash: string;
 
@@ -58,11 +56,11 @@ class OAuthAuthentication extends ParanoidModel<
   accessToken: string | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   accessTokenExpiresAt: Date;
 
   @Unique
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   refreshTokenHash: string;
 
@@ -71,7 +69,7 @@ class OAuthAuthentication extends ParanoidModel<
   refreshToken: string | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   refreshTokenExpiresAt: Date;
 
   /**
@@ -83,14 +81,12 @@ class OAuthAuthentication extends ParanoidModel<
   grantId: string | null;
 
   /** A list of scopes that this authentication has access to */
-  @Matches(/[/.\w\s]*/, {
-    each: true,
-  })
+  @IsScope
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date;
 
@@ -149,7 +145,9 @@ class OAuthAuthentication extends ParanoidModel<
     // MCP endpoint access is allowed if the token has any valid scope.
     // Fine-grained scope enforcement happens at the tool level.
     if (path.startsWith("/mcp")) {
-      return this.scope.length > 0;
+      return this.scope.some((scope) =>
+        AuthenticationHelper.isValidScope(scope)
+      );
     }
 
     return AuthenticationHelper.canAccess(path, this.scope);
@@ -241,6 +239,24 @@ class OAuthAuthentication extends ParanoidModel<
       ],
       ...options,
     });
+  }
+
+  /**
+   * Revokes the OAuthAuthentication with the given refresh token. The update is
+   * atomic, so concurrent attempts to rotate one refresh token result in a
+   * single successful caller.
+   *
+   * @param input The refresh token to revoke
+   * @returns True if this call revoked the authentication
+   */
+  public static async revokeByRefreshToken(input: string) {
+    const count = await this.destroy({
+      where: {
+        refreshTokenHash: hash(input),
+      },
+    });
+
+    return count > 0;
   }
 }
 

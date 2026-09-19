@@ -11,6 +11,13 @@ export type Chunk = {
 
 export type ManifestStructure = Record<string, Chunk>;
 
+/**
+ * Reads and parses the Vite build manifest from disk, returning an empty
+ * manifest if the file cannot be found.
+ *
+ * @param file the path to the manifest file.
+ * @returns the parsed manifest structure.
+ */
 export const readManifestFile = (file = "./build/app/.vite/manifest.json") => {
   const absoluteFilePath = path.resolve(file);
 

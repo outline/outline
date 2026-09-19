@@ -19,57 +19,63 @@ import {
   Info,
 } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type">;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type"> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
 
-const HoverPreviewPullRequest = React.forwardRef(
-  function HoverPreviewPullRequest_(
-    { url, title, id, description, author, state, createdAt }: Props,
-    ref: React.Ref<HTMLDivElement>
-  ) {
-    const authorName = author.name;
+function HoverPreviewPullRequest({
+  url,
+  title,
+  id,
+  description,
+  author,
+  state,
+  createdAt,
+  ref,
+}: Props) {
+  const authorName = author.name;
 
-    return (
-      <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
-        <Flex column ref={ref}>
-          <Card fadeOut={false}>
-            <CardContent>
-              <Flex gap={2} column>
-                <Title>
-                  <StyledPullRequestIcon size={18} state={state} />
-                  <span>
-                    <Backticks content={title} />
-                    &nbsp;<Text type="tertiary">{id}</Text>
-                  </span>
-                </Title>
-                <Flex align="center" gap={6}>
-                  <Avatar src={author.avatarUrl} size={18} />
-                  <Info>
-                    <Trans>
-                      {{ authorName }} opened{" "}
-                      <Time dateTime={createdAt} addSuffix />
-                    </Trans>
-                  </Info>
-                </Flex>
-                {description && (
-                  <Description as="div">
-                    <React.Suspense fallback={<div />}>
-                      <Editor
-                        extensions={richExtensions}
-                        defaultValue={description}
-                        embedsDisabled
-                        readOnly
-                      />
-                    </React.Suspense>
-                  </Description>
-                )}
+  return (
+    <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
+      <Flex column ref={ref}>
+        <Card fadeOut={false}>
+          <CardContent>
+            <Flex gap={2} column>
+              <Title>
+                <StyledPullRequestIcon size={18} state={state} />
+                <span>
+                  <Backticks content={title} />
+                  &nbsp;<Text type="tertiary">{id}</Text>
+                </span>
+              </Title>
+              <Flex align="center" gap={6}>
+                <Avatar src={author.avatarUrl} size={18} />
+                <Info>
+                  <Trans>
+                    {{ authorName }} opened{" "}
+                    <Time dateTime={createdAt} addSuffix />
+                  </Trans>
+                </Info>
               </Flex>
-            </CardContent>
-          </Card>
-        </Flex>
-      </Preview>
-    );
-  }
-);
+              {description && (
+                <Description as="div">
+                  <React.Suspense fallback={<div />}>
+                    <Editor
+                      extensions={richExtensions}
+                      defaultValue={description}
+                      embedsDisabled
+                      readOnly
+                    />
+                  </React.Suspense>
+                </Description>
+              )}
+            </Flex>
+          </CardContent>
+        </Card>
+      </Flex>
+    </Preview>
+  );
+}
 
 const StyledPullRequestIcon = styled(PullRequestIcon)`
   margin-top: 2px;

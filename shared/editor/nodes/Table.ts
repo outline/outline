@@ -3,8 +3,6 @@ import { InputRule } from "prosemirror-inputrules";
 import type { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import {
-  addColumnAfter,
-  addRowAfter,
   columnResizing,
   deleteColumn,
   deleteRow,
@@ -17,9 +15,12 @@ import {
 } from "prosemirror-tables";
 import {
   addRowBefore,
+  addRowAfter,
   addColumnBefore,
+  addColumnAfter,
   addRowAndMoveSelection,
   setColumnAttr,
+  setRowAttr,
   createTable,
   exportTable,
   distributeColumns,
@@ -42,6 +43,7 @@ import {
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
+import { TableColumnResizePlugin } from "../plugins/TableColumnResizePlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -89,13 +91,14 @@ export default class Table extends Node {
     return {
       createTable,
       setColumnAttr,
+      setRowAttr,
       setTableAttr,
       sortTable,
       addColumnBefore,
-      addColumnAfter: () => addColumnAfter,
+      addColumnAfter,
       deleteColumn: () => deleteColumn,
       addRowBefore,
-      addRowAfter: () => addRowAfter,
+      addRowAfter,
       moveTableRow,
       moveTableColumn,
       deleteRow: () => deleteRow,
@@ -166,6 +169,7 @@ export default class Table extends Node {
         defaultCellMinWidth: 25,
       }),
       tableEditing(),
+      new TableColumnResizePlugin(),
       new FixTablesPlugin(),
       new TableLayoutPlugin(),
     ];

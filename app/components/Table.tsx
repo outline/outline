@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
+import { CollapsedIcon, SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
@@ -23,9 +23,26 @@ import { s } from "@shared/styles";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
+import type { ModelSelection } from "~/components/ModelSelection";
+import {
+  ModelSelectionProvider,
+  useModelSelection,
+} from "~/components/ModelSelectionContext";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
+import {
+  Menu,
+  MenuButton,
+  MenuContent,
+  MenuTrigger,
+} from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
+import { SelectionCheckbox } from "~/components/SelectionCheckbox";
+import Tooltip from "~/components/Tooltip";
+import useMobile from "~/hooks/useMobile";
+import usePersistedState from "~/hooks/usePersistedState";
 import usePrevious from "~/hooks/usePrevious";
+import { preventDefault } from "~/utils/events";
 import { transparentize } from "polished";
 
 const HEADER_HEIGHT = 40;
@@ -39,16 +56,28 @@ type DataColumn<TData> = {
 
 type ActionColumn = {
   type: "action";
-  header?: string;
+  header?: string | (() => React.ReactNode);
 };
 
 export type Column<TData> = {
   id: string;
   component: (data: TData) => React.ReactNode;
   width: string;
+  /** Whether the column is hidden on narrow viewports (defaults to false). */
+  hideOnMobile?: boolean;
 } & (DataColumn<TData> | ActionColumn);
 
+/** The minimum shape of a row, rows are identified by the model identifier. */
+export type RowData = {
+  id: string;
+};
+
 export type Props<TData> = {
+  /**
+   * Unique identifier for this table. When provided the visibility of columns
+   * can be toggled from a context menu on the header and is persisted locally.
+   */
+  id?: string;
   data: TData[];
   columns: Column<TData>[];
   sort: ColumnSort;
@@ -61,9 +90,44 @@ export type Props<TData> = {
   rowHeight: number;
   stickyOffset?: number;
   decorateRow?: (item: TData, rowElement: React.ReactNode) => React.ReactNode;
+  /**
+   * Enables multi-selection of rows, returns whether the given row may be
+   * selected. Rows that cannot be selected are shown without a checkbox.
+   */
+  isRowSelectable?: (data: TData) => boolean;
+  /** Toolbar of bulk actions, rendered while a selection is active. */
+  selectionToolbar?: React.ReactNode;
 };
 
-function Table<TData>({
+/**
+ * Wraps the table in a selection provider when multi-selection is enabled, so
+ * that any table can offer bulk actions by supplying `isRowSelectable` and a
+ * `selectionToolbar`.
+ */
+function Table<TData extends RowData>(props: Props<TData>) {
+  const { data, isRowSelectable, selectionToolbar } = props;
+
+  const selectableIds = React.useMemo(
+    () =>
+      isRowSelectable
+        ? data.filter(isRowSelectable).map((item) => item.id)
+        : [],
+    [data, isRowSelectable]
+  );
+
+  if (!isRowSelectable) {
+    return <TableView {...props} />;
+  }
+
+  return (
+    <ModelSelectionProvider items={selectableIds} toolbar={selectionToolbar}>
+      <TableView {...props} selectableCount={selectableIds.length} />
+    </ModelSelectionProvider>
+  );
+}
+
+function TableViewInner<TData extends RowData>({
+  id,
   data,
   columns,
   sort,
@@ -73,16 +137,75 @@ function Table<TData>({
   rowHeight,
   stickyOffset = 0,
   decorateRow,
-}: Props<TData>) {
+  isRowSelectable,
+  selectableCount = 0,
+}: Props<TData> & { selectableCount?: number }) {
   const { t } = useTranslation();
+  const selection = useModelSelection();
+  const isMobile = useMobile();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
 
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<string[]>(
+    `hiddenTableColumns-${id}`,
+    []
+  );
+
+  const handleToggleColumn = React.useCallback(
+    (columnId: string) => {
+      setHiddenColumns((hidden) =>
+        hidden.includes(columnId)
+          ? hidden.filter((hiddenId) => hiddenId !== columnId)
+          : [...hidden, columnId]
+      );
+    },
+    [setHiddenColumns]
+  );
+
+  const visibleColumns = React.useMemo(
+    () =>
+      columns.filter(
+        (column) =>
+          (!isMobile || !column.hideOnMobile) &&
+          (!id || column.type !== "data" || !hiddenColumns.includes(column.id))
+      ),
+    [id, columns, hiddenColumns, isMobile]
+  );
+
+  const allColumns = React.useMemo(() => {
+    if (!selection || !isRowSelectable) {
+      return visibleColumns;
+    }
+
+    const selectColumn: Column<TData> = {
+      type: "action",
+      id: "select",
+      header: () => (
+        <SelectAllCheckbox
+          selection={selection}
+          count={selectableCount}
+          label={t("Select all")}
+        />
+      ),
+      component: (item) =>
+        isRowSelectable(item) ? (
+          <RowSelectCheckbox
+            selection={selection}
+            id={item.id}
+            label={t("Select")}
+          />
+        ) : null,
+      width: "28px",
+    };
+
+    return [selectColumn, ...visibleColumns];
+  }, [visibleColumns, selection, isRowSelectable, selectableCount, t]);
+
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(
     () =>
-      columns.map((column) => {
+      allColumns.map((column) => {
         const cell = ({ row }: CellContext<TData, unknown>) => (
           <ObservedCell data={row.original} render={column.component} />
         );
@@ -100,12 +223,12 @@ function Table<TData>({
               cell,
             });
       }),
-    [columns, columnHelper]
+    [allColumns, columnHelper]
   );
 
   const gridColumns = React.useMemo(
-    () => columns.map((column) => column.width).join(" "),
-    [columns]
+    () => allColumns.map((column) => column.width).join(" "),
+    [allColumns]
   );
 
   const handleChangeSort = React.useCallback(
@@ -174,32 +297,83 @@ function Table<TData>({
     <>
       <InnerTable role="table">
         <THead role="rowgroup" $topPos={stickyOffset}>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TR role="row" key={headerGroup.id} $columns={gridColumns}>
-              {headerGroup.headers.map((header) => (
-                <TH role="columnheader" key={header.id}>
-                  <SortWrapper
-                    align="center"
-                    gap={4}
-                    onClick={header.column.getToggleSortingHandler()}
-                    $sortable={header.column.getCanSort()}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                    {header.column.getIsSorted() === "asc" ? (
-                      <AscSortIcon />
-                    ) : header.column.getIsSorted() === "desc" ? (
-                      <DescSortIcon />
-                    ) : (
-                      <div />
-                    )}
-                  </SortWrapper>
-                </TH>
-              ))}
-            </TR>
-          ))}
+          {table.getHeaderGroups().map((headerGroup) => {
+            const headerRow = (
+              <TR role="row" $columns={gridColumns}>
+                {headerGroup.headers.map((header) => {
+                  const sorted = header.column.getIsSorted();
+                  const canSort = header.column.getCanSort();
+                  const toggleSorting = header.column.getToggleSortingHandler();
+                  const handleSortKeyDown = (
+                    ev: React.KeyboardEvent<HTMLDivElement>
+                  ) => {
+                    if (!ev.repeat && (ev.key === "Enter" || ev.key === " ")) {
+                      ev.preventDefault();
+                      toggleSorting?.(ev);
+                    }
+                  };
+
+                  return (
+                    <TH
+                      role="columnheader"
+                      key={header.id}
+                      aria-sort={
+                        !canSort
+                          ? undefined
+                          : sorted === "asc"
+                            ? "ascending"
+                            : sorted === "desc"
+                              ? "descending"
+                              : "none"
+                      }
+                    >
+                      <SortWrapper
+                        align="center"
+                        gap={4}
+                        onClick={toggleSorting}
+                        onKeyDown={canSort ? handleSortKeyDown : undefined}
+                        role={canSort ? "button" : undefined}
+                        tabIndex={canSort ? 0 : undefined}
+                        $sortable={canSort}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {sorted === "asc" ? (
+                          <AscSortIcon />
+                        ) : sorted === "desc" ? (
+                          <DescSortIcon />
+                        ) : (
+                          <div />
+                        )}
+                      </SortWrapper>
+                    </TH>
+                  );
+                })}
+              </TR>
+            );
+
+            return id && !isMobile ? (
+              <ColumnVisibilityMenu
+                key={headerGroup.id}
+                columns={columns}
+                hiddenColumns={hiddenColumns}
+                onToggleColumn={handleToggleColumn}
+              >
+                {headerRow}
+              </ColumnVisibilityMenu>
+            ) : (
+              <React.Fragment key={headerGroup.id}>{headerRow}</React.Fragment>
+            );
+          })}
+          {id && !isMobile && (
+            <ColumnVisibilityButton
+              columns={columns}
+              hiddenColumns={hiddenColumns}
+              onToggleColumn={handleToggleColumn}
+            />
+          )}
         </THead>
 
         <TBody
@@ -209,30 +383,43 @@ function Table<TData>({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index] as TRow<TData>;
-            const baseRow = (
-              <TR
-                role="row"
+            const rowProps = {
+              role: "row",
+              "data-index": virtualRow.index,
+              style: {
+                position: "absolute" as const,
+                transform: `translateY(${
+                  virtualRow.start - rowVirtualizer.options.scrollMargin
+                }px)`,
+                height: `${virtualRow.size}px`,
+              },
+              $columns: gridColumns,
+              children: row.getAllCells().map((cell) => (
+                <TD
+                  role="cell"
+                  key={cell.id}
+                  className={
+                    cell.column.id === "action"
+                      ? "actions"
+                      : cell.column.id === "select"
+                        ? "select"
+                        : ""
+                  }
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TD>
+              )),
+            };
+
+            const baseRow = selection ? (
+              <SelectableRow
                 key={row.id}
-                data-index={virtualRow.index}
-                style={{
-                  position: "absolute",
-                  transform: `translateY(${
-                    virtualRow.start - rowVirtualizer.options.scrollMargin
-                  }px)`,
-                  height: `${virtualRow.size}px`,
-                }}
-                $columns={gridColumns}
-              >
-                {row.getAllCells().map((cell) => (
-                  <TD
-                    role="cell"
-                    key={cell.id}
-                    className={cell.column.id === "action" ? "actions" : ""}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TD>
-                ))}
-              </TR>
+                selection={selection}
+                id={row.original.id}
+                {...rowProps}
+              />
+            ) : (
+              <TR key={row.id} {...rowProps} />
             );
 
             return decorateRow ? (
@@ -245,7 +432,7 @@ function Table<TData>({
           })}
         </TBody>
         {showPlaceholder && (
-          <Placeholder columns={columns.length} gridColumns={gridColumns} />
+          <Placeholder columns={allColumns.length} gridColumns={gridColumns} />
         )}
       </InnerTable>
       {page.hasNext && (
@@ -259,6 +446,167 @@ function Table<TData>({
     </>
   );
 }
+
+// The observer wrapper does not preserve the generic signature of the table.
+const TableView = observer(TableViewInner) as typeof TableViewInner;
+
+type ColumnVisibilityProps<TData> = {
+  columns: Column<TData>[];
+  hiddenColumns: string[];
+  onToggleColumn: (columnId: string) => void;
+};
+
+/**
+ * Menu items that toggle the visibility of individual columns. Only columns
+ * that display data can be hidden, and at least one must remain visible.
+ */
+function ColumnVisibilityItems<TData>({
+  columns,
+  hiddenColumns,
+  onToggleColumn,
+}: ColumnVisibilityProps<TData>) {
+  const dataColumns = columns.filter(
+    (column): column is Column<TData> & DataColumn<TData> =>
+      column.type === "data"
+  );
+  const visibleCount = dataColumns.filter(
+    (column) => !hiddenColumns.includes(column.id)
+  ).length;
+
+  return (
+    <>
+      {dataColumns.map((column) => {
+        const visible = !hiddenColumns.includes(column.id);
+
+        return (
+          <MenuButton
+            key={column.id}
+            label={column.header}
+            selected={visible}
+            disabled={visible && visibleCount === 1}
+            onSelect={preventDefault}
+            onClick={() => onToggleColumn(column.id)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/** Column visibility options, opened by right-clicking the header row. */
+function ColumnVisibilityMenu<TData>({
+  children,
+  ...rest
+}: ColumnVisibilityProps<TData> & { children: React.ReactNode }) {
+  const { t } = useTranslation();
+  const label = t("Columns");
+
+  return (
+    <MenuProvider variant="context">
+      <Menu>
+        <MenuTrigger aria-label={label}>{children}</MenuTrigger>
+        <MenuContent aria-label={label} onCloseAutoFocus={preventDefault}>
+          <ColumnVisibilityItems {...rest} />
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
+  );
+}
+
+/** Column visibility options, opened by a button at the end of the header row. */
+function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
+  const { t } = useTranslation();
+  const label = t("Columns");
+
+  return (
+    <MenuProvider variant="dropdown">
+      <Menu>
+        <Tooltip content={label} placement="bottom">
+          <MenuTrigger aria-label={label}>
+            <ColumnOptions>
+              <SettingsIcon size={18} />
+            </ColumnOptions>
+          </MenuTrigger>
+        </Tooltip>
+        <MenuContent
+          align="end"
+          aria-label={label}
+          onCloseAutoFocus={preventDefault}
+        >
+          <ColumnVisibilityItems {...props} />
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
+  );
+}
+
+const SelectableRow = observer(function SelectableRow_({
+  selection,
+  id,
+  ...rest
+}: {
+  selection: ModelSelection;
+  id: string;
+} & React.ComponentProps<typeof TR>) {
+  return <TR aria-selected={selection.isSelected(id)} {...rest} />;
+});
+
+const RowSelectCheckbox = observer(function RowSelectCheckbox_({
+  selection,
+  id,
+  label,
+}: {
+  selection: ModelSelection;
+  id: string;
+  label: string;
+}) {
+  const handleClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (event.shiftKey) {
+      selection.selectRange(id);
+    } else {
+      selection.toggle(id);
+    }
+  };
+
+  return (
+    <SelectionCheckbox
+      checked={selection.isSelected(id)}
+      label={label}
+      onClick={handleClick}
+    />
+  );
+});
+
+const SelectAllCheckbox = observer(function SelectAllCheckbox_({
+  selection,
+  count,
+  label,
+}: {
+  selection: ModelSelection;
+  count: number;
+  label: string;
+}) {
+  const checked = count > 0 && selection.size === count;
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (selection.isActive) {
+      selection.clear();
+    } else {
+      selection.selectAll();
+    }
+  };
+
+  return (
+    <SelectionCheckbox
+      checked={checked}
+      indeterminate={selection.isActive && !checked}
+      label={label}
+      onClick={handleClick}
+    />
+  );
+});
 
 const ObservedCell = observer(function <TData>({
   data,
@@ -282,9 +630,9 @@ function Placeholder({
   return (
     <DelayedMount>
       <TBody $height={150}>
-        {new Array(rows).fill(1).map((_r, row) => (
+        {Array.from({ length: rows }).map((_r, row) => (
           <TR key={row} $columns={gridColumns}>
-            {new Array(columns).fill(1).map((_c, col) => (
+            {Array.from({ length: columns }).map((_c, col) => (
               <TD key={col}>
                 <PlaceholderText minWidth={25} maxWidth={75} />
               </TD>
@@ -322,6 +670,26 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
     background: ${(props) =>
       props.$sortable ? props.theme.backgroundSecondary : "none"};
   }
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.accent};
+    outline-offset: 2px;
+  }
+`;
+
+const ColumnOptions = styled(NudeButton)`
+  position: absolute;
+  top: ${(HEADER_HEIGHT - 24) / 2}px;
+  right: 0;
+  color: ${s("placeholder")};
+  background: ${s("background")};
+
+  &:hover,
+  &:focus-visible,
+  &[aria-expanded="true"] {
+    color: ${s("textSecondary")};
+    background: ${s("sidebarControlHoverBackground")};
+  }
 `;
 
 const InnerTable = styled.div`
@@ -334,7 +702,7 @@ const THead = styled.div<{ $topPos: number }>`
   height: ${HEADER_HEIGHT}px;
   z-index: 1;
   font-size: 14px;
-  color: ${s("textSecondary")};
+  color: ${s("text")};
   font-weight: 500;
 
   border-bottom: 1px solid
@@ -354,19 +722,44 @@ const TR = styled.div<{ $columns: string }>`
   align-items: center;
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
-  overflow: hidden;
 
   &:last-child {
+    border-bottom: 0;
+  }
+
+  /* The header has its own border, avoid doubling the divider beneath it. */
+  ${THead} & {
     border-bottom: 0;
   }
 
   &:hover ${NudeButton}[aria-haspopup="menu"] {
     opacity: 1;
   }
+
+  /* Drawn behind the cells so the highlight can bleed past the table edges. */
+  &[aria-selected="true"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 -8px;
+    border-radius: 8px;
+    background: ${(props) => transparentize(0.95, props.theme.accent)};
+  }
+
+  /* Adjacent selected rows join into a single rounded block. */
+  [aria-selected="true"] + &[aria-selected="true"]::before {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  &[aria-selected="true"]:has(+ [aria-selected="true"])::before {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 `;
 
 const TH = styled.span`
-  padding: 6px 6px 2px;
+  position: relative;
+  padding: 6px;
 
   &:first-child {
     padding-left: 0;
@@ -378,6 +771,8 @@ const TH = styled.span`
 `;
 
 const TD = styled.span`
+  /* Positioned so cells paint above the row's selected highlight. */
+  position: relative;
   padding: 10px 6px;
   font-size: 14px;
   text-wrap: wrap;
@@ -385,9 +780,17 @@ const TD = styled.span`
   text-overflow: ellipsis;
 
   &:first-child {
+    padding-left: 0;
+  }
+
+  &:first-child:not(.select),
+  .select + & {
     font-size: 15px;
     font-weight: 500;
-    padding-left: 0;
+  }
+
+  &.select {
+    overflow: visible;
   }
 
   &:last-child {
@@ -401,7 +804,6 @@ const TD = styled.span`
   }
 
   &.actions {
-    background: ${s("background")};
     position: sticky;
     right: 0;
   }
@@ -416,6 +818,7 @@ const TD = styled.span`
       background: ${s("sidebarControlHoverBackground")};
     }
 
+    &:focus-visible,
     &[aria-expanded="true"] {
       opacity: 1;
     }

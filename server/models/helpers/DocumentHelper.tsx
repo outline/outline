@@ -1,4 +1,5 @@
-import { JSDOM } from "jsdom";
+import { isEqual, omit } from "es-toolkit/compat";
+import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -7,11 +8,13 @@ import {
   ChangesetHelper,
   type ExtendedChange,
 } from "@shared/editor/lib/ChangesetHelper";
+import headingToSlug from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
-import { IconType, TextEditMode } from "@shared/types";
+import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { parser, serializer, schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
@@ -102,6 +105,24 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns the collaborative state for a document. Documents that have never been opened in a
+   * collaborative session have no state, in which case one is derived from the content, falling
+   * back to Markdown.
+   *
+   * @param document The document to convert
+   * @returns The collaborative state
+   */
+  static toState(document: Document): Uint8Array {
+    if (document.state) {
+      return document.state;
+    }
+
+    return ProsemirrorHelper.toState(
+      ProsemirrorHelper.toYDoc(document.content ?? document.text ?? "")
+    );
+  }
+
+  /**
    * Returns the document as a plain JSON object. This method uses the derived content if available
    * then the collaborative state, otherwise it falls back to Markdown.
    *
@@ -123,7 +144,7 @@ export class DocumentHelper {
     }
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
-    let data;
+    let data: ProsemirrorData;
 
     if ("content" in document && document.content) {
       // Optimized path for documents with content available and no transformation required.
@@ -152,7 +173,7 @@ export class DocumentHelper {
         options.signedUrls
       );
     } else {
-      data = doc?.toJSON() ?? {};
+      data = doc?.toJSON() ?? ProsemirrorDataHelper.getEmpty();
     }
 
     if (options?.internalUrlBase) {
@@ -181,6 +202,86 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns the Markdown content of the section beginning at the heading that
+   * matches the given anchor. A section spans from the matched heading up to
+   * (but not including) the next heading of the same or higher level.
+   *
+   * @param document The document or revision or prosemirror data to extract from
+   * @param anchor The heading anchor to locate, with or without a leading "#"
+   * @returns the section content as Markdown, or undefined if no heading matches.
+   */
+  static getAnchorContent(
+    document: Document | Revision | ProsemirrorData,
+    anchor: string
+  ): string | undefined {
+    let id = anchor.replace(/^#/, "");
+    try {
+      id = decodeURIComponent(id);
+    } catch {
+      // Keep the raw anchor if it cannot be decoded.
+    }
+    if (!id) {
+      return undefined;
+    }
+
+    const node = DocumentHelper.toProsemirror(document);
+
+    // Headings are always top-level nodes, so iterating the document's direct
+    // children is sufficient to locate the section.
+    const children: Node[] = [];
+    node.content.forEach((child) => children.push(child));
+
+    const previouslySeen: Record<string, number> = {};
+    let startIndex = -1;
+    let level = 0;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child.type.name !== "heading") {
+        continue;
+      }
+
+      // Calculate the heading id using the same de-duplication logic as the
+      // editor so that anchors to repeated headings resolve correctly.
+      const slug = headingToSlug(child);
+      const headingId =
+        previouslySeen[slug] > 0
+          ? headingToSlug(child, previouslySeen[slug])
+          : slug;
+      previouslySeen[slug] =
+        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
+
+      if (startIndex === -1 && headingId === id) {
+        startIndex = i;
+        level = child.attrs.level;
+      }
+    }
+
+    if (startIndex === -1) {
+      return undefined;
+    }
+
+    const sectionNodes: Node[] = [children[startIndex]];
+    for (let i = startIndex + 1; i < children.length; i++) {
+      const child = children[i];
+      if (child.type.name === "heading" && child.attrs.level <= level) {
+        break;
+      }
+      sectionNodes.push(child);
+    }
+
+    const sectionDoc = schema.topNodeType.create(
+      null,
+      Fragment.fromArray(sectionNodes)
+    );
+
+    return serializer
+      .serialize(sectionDoc)
+      .replace(/(^|\n)\\(\n|$)/g, "\n\n")
+      .trim();
+  }
+
+  /**
    * Returns the document as Markdown. This is a lossy conversion and should only be used for export.
    *
    * @param document The document or revision to convert
@@ -196,6 +297,12 @@ export class DocumentHelper {
       signedUrls?: number;
       /** The team context */
       teamId?: string;
+      /**
+       * Whether the Markdown is leaving Outline, in which case portable
+       * CommonMark is written in place of Outline's internal representation
+       * (default: false)
+       */
+      commonMark?: boolean;
     }
   ) {
     let node = DocumentHelper.toProsemirror(document);
@@ -210,12 +317,8 @@ export class DocumentHelper {
     }
 
     const text = serializer
-      .serialize(node)
+      .serialize(node, { commonMark: options?.commonMark })
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
-      .replace(/“/g, '"')
-      .replace(/”/g, '"')
-      .replace(/‘/g, "'")
-      .replace(/’/g, "'")
       .trim();
 
     if (
@@ -246,7 +349,16 @@ export class DocumentHelper {
     options?: HTMLOptions
   ) {
     const node = DocumentHelper.toProsemirror(model);
-    let output = ProsemirrorHelper.toHTML(node, {
+    // Heading numbering is a preference of the document, which a revision
+    // inherits from the document it belongs to.
+    const document =
+      model instanceof Document
+        ? model
+        : model instanceof Revision
+          ? await model.$get("document")
+          : null;
+
+    let output = await ProsemirrorHelper.toHTML(node, {
       title:
         options?.includeTitle !== false
           ? model instanceof Collection
@@ -260,6 +372,7 @@ export class DocumentHelper {
       baseUrl: options?.baseUrl,
       changes: options?.changes,
       cspNonce: options?.cspNonce,
+      headingPrefix: document?.getPreference(DocumentPreference.HeadingPrefix),
     });
 
     addTags({
@@ -269,9 +382,7 @@ export class DocumentHelper {
 
     if (options?.signedUrls) {
       const teamId =
-        model instanceof Collection || model instanceof Document
-          ? model.teamId
-          : (await model.$get("document"))?.teamId;
+        model instanceof Collection ? model.teamId : document?.teamId;
 
       if (!teamId) {
         return output;
@@ -355,21 +466,62 @@ export class DocumentHelper {
    * @param before The before document
    * @param after The after document
    * @param options Options passed to HTML generation
-   * @returns The diff as a HTML string
+   * @returns The diff as an HTML string, an empty string when there is no
+   * before document, or undefined when the documents contain no changes or
+   * the changeset was too expensive to compute.
    */
   static async toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
-  ) {
+  ): Promise<string | undefined> {
     if (!before) {
       return "";
     }
 
-    const html = await DocumentHelper.diff(before, after, options);
-    const dom = new JSDOM(html);
-    const doc = dom.window.document;
+    addTags({
+      beforeId: before.id,
+      documentId: after.documentId,
+      options,
+    });
 
+    const beforeJSON = await DocumentHelper.toJSON(before);
+    const afterJSON = await DocumentHelper.toJSON(after);
+    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
+
+    // Without a changeset no diff elements can render, so skip the expensive
+    // HTML generation and clipping entirely.
+    if (!changeset?.changes.length) {
+      return undefined;
+    }
+
+    const html = await DocumentHelper.toHTML(after, {
+      ...options,
+      changes: changeset.changes,
+    });
+    // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
+    const { JSDOM } = await import("jsdom");
+    const dom = new JSDOM(html);
+    try {
+      return DocumentHelper.clipEmailDiff(dom.window.document);
+    } finally {
+      try {
+        dom.window.close();
+      } catch (_err) {
+        // Best effort, closing the window releases its timers and resources.
+      }
+    }
+  }
+
+  /**
+   * Clips a rendered diff document down to only the changed nodes and their
+   * surrounding context, returning the resulting HTML or undefined when the
+   * document contains no diff elements.
+   *
+   * @param doc The rendered diff document to clip.
+   * @returns The clipped HTML, or undefined when there is nothing to show.
+   */
+  private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
     const containsDiffElement = (node: Element | null) => {
       if (!node) {
         return false;
@@ -687,31 +839,36 @@ export class DocumentHelper {
       return undefined;
     }
 
-    const patchedBlock = DocumentHelper.patchNode(blockNode, patch);
+    const patchedBlocks = DocumentHelper.patchNode(blockNode, patch);
 
-    if (!patchedBlock) {
+    if (!patchedBlocks) {
       return undefined;
     }
 
     const before = existingDoc.content.cut(0, pmFrom);
     const after = existingDoc.content.cut(pmTo);
-    return existingDoc.copy(
-      before.append(Fragment.from(patchedBlock)).append(after)
-    );
+    return existingDoc.copy(before.append(patchedBlocks).append(after));
   }
 
   /**
    * Recursively patch a single node. For textblocks, performs an inline
-   * replacement. For container nodes, serializes children to find which
-   * child contains the match, patches that child, and preserves siblings.
+   * replacement. For container nodes, re-parses the container markdown with
+   * the modification applied and preserves rich content in unchanged
+   * children. The replacement may split the container or introduce blocks
+   * that cannot live inside it, so the result is a fragment of one or more
+   * top-level blocks.
    *
    * @param node The node to patch.
    * @param patch The patch context.
-   * @returns The patched node, or undefined to fall back.
+   * @returns The blocks that replace the node, or undefined to fall back.
    */
-  private static patchNode(node: Node, patch: PatchContext): Node | undefined {
+  private static patchNode(
+    node: Node,
+    patch: PatchContext
+  ): Fragment | undefined {
     if (node.isTextblock) {
-      return DocumentHelper.tryInlinePatch(node, patch);
+      const patched = DocumentHelper.tryInlinePatch(node, patch);
+      return patched ? Fragment.from(patched) : undefined;
     }
 
     const {
@@ -735,23 +892,90 @@ export class DocumentHelper {
       replacementText +
       containerMd.slice(localEnd);
 
-    const parsed = parser.parse(modifiedMd.replace(/^\n+/, ""));
-    const newContainer = DocumentHelper.findChildOfType(parsed, node.type);
+    const parsed = DocumentHelper.joinAdjacentLists(
+      parser.parse(modifiedMd.replace(/^\n+/, ""))
+    );
+    const blocks = DocumentHelper.childrenOf(parsed);
+    const containerIndex = blocks.findIndex(
+      (child) => child.type === node.type
+    );
 
-    if (!newContainer) {
+    // The container itself is gone, there is no rich content to preserve so
+    // the plain region re-parse in the caller is sufficient.
+    if (containerIndex === -1) {
       return undefined;
     }
 
     // Parse the original (unmodified) container markdown to get a round-trip
     // baseline. This lets mergeNodes distinguish attrs that were intentionally
     // changed by the modification from attrs lost during markdown round-trip.
-    const originalParsed = parser.parse(containerMd.replace(/^\n+/, ""));
+    const originalParsed = DocumentHelper.joinAdjacentLists(
+      parser.parse(containerMd.replace(/^\n+/, ""))
+    );
     const roundTripped = DocumentHelper.findChildOfType(
       originalParsed,
       node.type
     );
 
-    return DocumentHelper.mergeNodes(node, newContainer, roundTripped);
+    blocks[containerIndex] = DocumentHelper.mergeNodes(
+      node,
+      blocks[containerIndex],
+      roundTripped
+    );
+
+    return Fragment.from(blocks);
+  }
+
+  /**
+   * Join adjacent lists of the same kind into one, at every depth. Markdown
+   * starts a new list when the marker or delimiter changes, but the
+   * serializer normalizes both so such a change inside a patch must not split
+   * the list. The start number of a split fragment only continues the
+   * numbering, so it is ignored; lists that differ in any other attr, such
+   * as a numeric list next to an alpha list, are kept separate.
+   *
+   * @param node The parsed node.
+   * @returns The node with adjacent matching lists joined.
+   */
+  private static joinAdjacentLists(node: Node): Node {
+    if (node.isTextblock || node.isLeaf) {
+      return node;
+    }
+
+    const isSameList = (a: Node, b: Node) =>
+      a.type === b.type &&
+      a.type.isInGroup("list") &&
+      isEqual(omit(a.attrs, ["order"]), omit(b.attrs, ["order"]));
+
+    const children = DocumentHelper.childrenOf(node).reduce<Node[]>(
+      (joined, child) => {
+        const current = DocumentHelper.joinAdjacentLists(child);
+        const previous = joined[joined.length - 1];
+        if (previous && isSameList(previous, current)) {
+          joined[joined.length - 1] = previous.copy(
+            previous.content.append(current.content)
+          );
+        } else {
+          joined.push(current);
+        }
+        return joined;
+      },
+      []
+    );
+
+    return node.copy(Fragment.from(children));
+  }
+
+  /**
+   * Collect the direct children of a node into an array.
+   *
+   * @param node The parent node.
+   * @returns The child nodes in document order.
+   */
+  private static childrenOf(node: Node): Node[] {
+    const children: Node[] = [];
+    node.forEach((child: Node) => children.push(child));
+    return children;
   }
 
   /**
@@ -762,13 +986,7 @@ export class DocumentHelper {
    * @returns The first matching child, or undefined.
    */
   private static findChildOfType(doc: Node, type: NodeType): Node | undefined {
-    let result: Node | undefined;
-    doc.forEach((child: Node) => {
-      if (child.type === type && !result) {
-        result = child;
-      }
-    });
-    return result;
+    return DocumentHelper.childrenOf(doc).find((child) => child.type === type);
   }
 
   /**
@@ -776,6 +994,9 @@ export class DocumentHelper {
    * content is unchanged are kept from the original (preserving attributes
    * that cannot be represented in markdown, such as comment marks or
    * highlight colors). Children whose content changed use the updated version.
+   * Children may have been added or removed; the runs at the start and end
+   * that match the round-trip baseline anchor the merge so only the changed
+   * middle is compared pairwise.
    *
    * @param original The original node with rich content to preserve.
    * @param updated The re-parsed node with the modification applied.
@@ -792,16 +1013,76 @@ export class DocumentHelper {
       return updated;
     }
 
-    const oldChildren: Node[] = [];
-    const newChildren: Node[] = [];
-    const rtChildren: Node[] = [];
-    original.forEach((child: Node) => oldChildren.push(child));
-    updated.forEach((child: Node) => newChildren.push(child));
-    roundTripped?.forEach((child: Node) => rtChildren.push(child));
+    const oldChildren = DocumentHelper.childrenOf(original);
+    const newChildren = DocumentHelper.childrenOf(updated);
+    const rtChildren = roundTripped
+      ? DocumentHelper.childrenOf(roundTripped)
+      : [];
 
-    // If structure changed significantly, use the fully re-parsed version.
+    // Children that equal the round-trip baseline were not touched by the
+    // patch. Only align on them when the baseline mirrors the original.
+    const maxShared =
+      rtChildren.length === oldChildren.length
+        ? Math.min(oldChildren.length, newChildren.length)
+        : 0;
+
+    let prefix = 0;
+    while (prefix < maxShared && newChildren[prefix].eq(rtChildren[prefix])) {
+      prefix++;
+    }
+
+    let suffix = 0;
+    while (
+      suffix < maxShared - prefix &&
+      newChildren[newChildren.length - 1 - suffix].eq(
+        rtChildren[rtChildren.length - 1 - suffix]
+      )
+    ) {
+      suffix++;
+    }
+
+    const merged = [
+      ...oldChildren.slice(0, prefix),
+      ...DocumentHelper.mergeChildren(
+        oldChildren.slice(prefix, oldChildren.length - suffix),
+        newChildren.slice(prefix, newChildren.length - suffix),
+        rtChildren.slice(prefix, rtChildren.length - suffix)
+      ),
+      ...oldChildren.slice(oldChildren.length - suffix),
+    ];
+
+    // Merge container attrs so markdown-driven changes (e.g. ordered list
+    // order/listStyle) are applied while preserving non-markdown attrs.
+    const mergedAttrs = DocumentHelper.mergeAttrs(
+      original,
+      updated,
+      roundTripped
+    );
+
+    return original.type.create(
+      mergedAttrs,
+      Fragment.from(merged),
+      original.marks
+    );
+  }
+
+  /**
+   * Merge two child lists pairwise. When the lists differ in length or a
+   * pair differs in type there is no positional correspondence, so the
+   * re-parsed children are used as-is.
+   *
+   * @param oldChildren The original children with rich content to preserve.
+   * @param newChildren The re-parsed children with the modification applied.
+   * @param rtChildren The original children after a markdown round-trip.
+   * @returns The merged children.
+   */
+  private static mergeChildren(
+    oldChildren: Node[],
+    newChildren: Node[],
+    rtChildren: Node[]
+  ): Node[] {
     if (oldChildren.length !== newChildren.length) {
-      return updated;
+      return newChildren;
     }
 
     const merged: Node[] = [];
@@ -811,14 +1092,24 @@ export class DocumentHelper {
       const rtChild = rtChildren[i];
 
       if (oldChild.type !== newChild.type) {
-        return updated;
+        return newChildren;
       }
 
       const textSame = oldChild.textContent === newChild.textContent;
 
       if (textSame && oldChild.sameMarkup(newChild)) {
-        // Fully unchanged — keep original with its rich content
-        merged.push(oldChild);
+        // Compare against the round-tripped baseline: when the
+        // updated child is identical to a plain round-trip of the original,
+        // the patch did not touch it
+        if (!rtChild || newChild.eq(rtChild)) {
+          merged.push(oldChild);
+        } else if (!oldChild.isTextblock && !oldChild.isLeaf) {
+          // Container child changed deeper down — recurse to preserve rich
+          // content in the parts that did not change.
+          merged.push(DocumentHelper.mergeNodes(oldChild, newChild, rtChild));
+        } else {
+          merged.push(newChild);
+        }
       } else if (textSame) {
         // Attrs changed (e.g. checked state) but content same — merge attrs
         // so that non-markdown-representable values (colwidth, highlight
@@ -840,19 +1131,7 @@ export class DocumentHelper {
       }
     }
 
-    // Merge container attrs so markdown-driven changes (e.g. ordered list
-    // order/listStyle) are applied while preserving non-markdown attrs.
-    const mergedAttrs = DocumentHelper.mergeAttrs(
-      original,
-      updated,
-      roundTripped
-    );
-
-    return original.type.create(
-      mergedAttrs,
-      Fragment.from(merged),
-      original.marks
-    );
+    return merged;
   }
 
   /**

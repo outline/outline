@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { Op } from "sequelize";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UserRole } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -19,6 +20,21 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/**
+ * Whether the presented credential is scoped to manage OAuth clients. The
+ * user's ability is not sufficient on its own to receive a client secret, as a
+ * restricted credential must not be able to trade itself for a durable one.
+ *
+ * @param ctx The request context.
+ * @returns true if the credential's scope covers managing clients.
+ */
+function hasManageScope(ctx: APIContext) {
+  return AuthenticationHelper.canAccess(
+    "/api/oauthClients.update",
+    ctx.state.auth.scope ?? ["*"]
+  );
+}
 
 router.post(
   "oauthClients.list",
@@ -49,7 +65,9 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: oauthClients.map((oauthClient) =>
         can(user, "update", oauthClient)
-          ? presentOAuthClient(oauthClient)
+          ? presentOAuthClient(oauthClient, {
+              includeSecret: hasManageScope(ctx),
+            })
           : presentPublishedOAuthClient(oauthClient)
       ),
       policies: presentPolicies(user, oauthClients),
@@ -79,7 +97,9 @@ router.post(
 
     ctx.body = {
       data: canUpdate
-        ? presentOAuthClient(oauthClient)
+        ? presentOAuthClient(oauthClient, {
+            includeSecret: hasManageScope(ctx),
+          })
         : presentPublishedOAuthClient(oauthClient),
       policies: isInternalApp ? presentPolicies(user, [oauthClient]) : [],
     };
@@ -105,7 +125,7 @@ router.post(
     });
 
     ctx.body = {
-      data: presentOAuthClient(oauthClient),
+      data: presentOAuthClient(oauthClient, { includeSecret: true }),
       policies: presentPolicies(user, [oauthClient]),
     };
   }
@@ -131,7 +151,7 @@ router.post(
     await oauthClient.updateWithCtx(ctx, input);
 
     ctx.body = {
-      data: presentOAuthClient(oauthClient),
+      data: presentOAuthClient(oauthClient, { includeSecret: true }),
       policies: presentPolicies(user, [oauthClient]),
     };
   }
@@ -159,7 +179,7 @@ router.post(
     await oauthClient.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentOAuthClient(oauthClient),
+      data: presentOAuthClient(oauthClient, { includeSecret: true }),
       policies: presentPolicies(user, [oauthClient]),
     };
   }

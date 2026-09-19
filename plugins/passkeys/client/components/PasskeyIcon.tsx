@@ -1,15 +1,14 @@
-import {
-  faChrome,
-  faSafari,
-  faFirefoxBrowser,
-  faEdge,
-  faOpera,
-  faApple,
-  faAndroid,
-  faWindows,
-  faGoogle,
-  faLinux,
-} from "@fortawesome/free-brands-svg-icons";
+// Import icons individually, see the note in shared/utils/IconLibrary.tsx.
+import { faAndroid } from "@fortawesome/free-brands-svg-icons/faAndroid";
+import { faApple } from "@fortawesome/free-brands-svg-icons/faApple";
+import { faChrome } from "@fortawesome/free-brands-svg-icons/faChrome";
+import { faEdge } from "@fortawesome/free-brands-svg-icons/faEdge";
+import { faFirefoxBrowser } from "@fortawesome/free-brands-svg-icons/faFirefoxBrowser";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons/faGoogle";
+import { faLinux } from "@fortawesome/free-brands-svg-icons/faLinux";
+import { faOpera } from "@fortawesome/free-brands-svg-icons/faOpera";
+import { faSafari } from "@fortawesome/free-brands-svg-icons/faSafari";
+import { faWindows } from "@fortawesome/free-brands-svg-icons/faWindows";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { KeyIcon } from "outline-icons";
 import styled from "styled-components";

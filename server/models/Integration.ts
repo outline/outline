@@ -18,7 +18,6 @@ import IntegrationAuthentication from "@server/models/IntegrationAuthentication"
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
-import Fix from "@server/models/decorators/Fix";
 
 @Scopes(() => ({
   withAuthentication: {
@@ -32,11 +31,31 @@ import Fix from "@server/models/decorators/Fix";
   },
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
-@Fix
 class Integration<T = unknown> extends ParanoidModel<
   InferAttributes<Integration<T>>,
   Partial<InferCreationAttributes<Integration<T>>>
 > {
+  /**
+   * Load the analytics integrations enabled for a team.
+   *
+   * @param teamId The team to load integrations for, if any.
+   * @returns the team's analytics integrations.
+   */
+  public static async findAnalyticsIntegrationsForTeam(
+    teamId: string | undefined
+  ): Promise<Integration<IntegrationType.Analytics>[]> {
+    if (!teamId) {
+      return [];
+    }
+
+    return this.findAll({
+      where: {
+        teamId,
+        type: IntegrationType.Analytics,
+      },
+    });
+  }
+
   @IsIn([Object.values(IntegrationType)])
   @Column(DataType.STRING)
   type: IntegrationType;
@@ -83,6 +102,52 @@ class Integration<T = unknown> extends ParanoidModel<
   @ForeignKey(() => IntegrationAuthentication)
   @Column(DataType.UUID)
   authenticationId: string;
+
+  // methods
+
+  /**
+   * The subset of settings that are safe to expose to clients. Each integration
+   * type opts-in to the specific fields its client consumes, so sensitive values
+   * such as webhook URLs are never serialized by default.
+   *
+   * @returns the client-safe settings, or undefined when none are exposed.
+   */
+  public presentSettings() {
+    switch (this.type) {
+      case IntegrationType.Embed: {
+        const settings = this
+          .settings as IntegrationSettings<IntegrationType.Embed>;
+        return {
+          url: settings?.url,
+          github: settings?.github,
+          gitlab: settings?.gitlab,
+          linear: settings?.linear,
+          diagrams: settings?.diagrams,
+        };
+      }
+      case IntegrationType.Analytics: {
+        const settings = this
+          .settings as IntegrationSettings<IntegrationType.Analytics>;
+        return {
+          measurementId: settings?.measurementId,
+          instanceUrl: settings?.instanceUrl,
+          scriptName: settings?.scriptName,
+        };
+      }
+      case IntegrationType.Post: {
+        const settings = this
+          .settings as IntegrationSettings<IntegrationType.Post>;
+        return { channel: settings?.channel };
+      }
+      case IntegrationType.LinkedAccount: {
+        const settings = this
+          .settings as IntegrationSettings<IntegrationType.LinkedAccount>;
+        return { figma: settings?.figma };
+      }
+      default:
+        return undefined;
+    }
+  }
 
   // hooks
 

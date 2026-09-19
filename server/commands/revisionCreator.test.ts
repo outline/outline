@@ -26,6 +26,7 @@ describe("revisionCreator", () => {
     expect(revision.documentId).toEqual(document.id);
     expect(revision.userId).toEqual(user.id);
     expect(revision.createdAt).toEqual(document.updatedAt);
+    expect(revision.sourceMetadata?.authType).toEqual(AuthenticationType.APP);
     expect(event!.name).toEqual("revisions.create");
     expect(event!.modelId).toEqual(revision.id);
     expect(event!.authType).toEqual(AuthenticationType.APP);

@@ -1,6 +1,7 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { Op } from "sequelize";
 import {
+  AllowNull,
   DataType,
   BelongsTo,
   Column,
@@ -11,13 +12,12 @@ import {
   Length as SimpleLength,
   BeforeDestroy,
 } from "sequelize-typescript";
-import type { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData, SourceMetadata } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
 import type { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import { SkipChangeset } from "./decorators/Changeset";
@@ -32,7 +32,6 @@ import { SkipChangeset } from "./decorators/Changeset";
   ],
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
-@Fix
 class Revision extends ParanoidModel<
   InferAttributes<Revision>,
   Partial<InferCreationAttributes<Revision>>
@@ -47,7 +46,7 @@ class Revision extends ParanoidModel<
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   editorVersion: string | null;
 
@@ -56,7 +55,7 @@ class Revision extends ParanoidModel<
     max: DocumentValidation.maxTitleLength,
     msg: `Revision title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   title: string;
 
@@ -65,7 +64,7 @@ class Revision extends ParanoidModel<
     max: RevisionValidation.maxNameLength,
     msg: `Revision name must be ${RevisionValidation.maxNameLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   name: string | null;
 
@@ -86,15 +85,21 @@ class Revision extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** The icon at the time of the revision. */
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   icon: string | null;
 
   /** The color at the time of the revision. */
   @IsHexColor
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   color: string | null;
+
+  /** Metadata about how the revision came to be, such as the authentication type used. */
+  @AllowNull
+  @Column(DataType.JSONB)
+  @SkipChangeset
+  sourceMetadata: SourceMetadata | null;
 
   // associations
 
@@ -115,7 +120,7 @@ class Revision extends ParanoidModel<
   /** Array of user IDs who collaborated on this revision */
   @Column(DataType.ARRAY(DataType.UUID))
   @SkipChangeset
-  collaboratorIds: string[] = [];
+  collaboratorIds: string[];
 
   /**
    * Get the collaborators for this revision.
@@ -201,6 +206,8 @@ class Revision extends ParanoidModel<
     collaboratorIds?: string[]
   ) {
     const revision = this.buildFromDocument(document);
+    const authType = ctx.context.auth?.type;
+    revision.sourceMetadata = authType ? { authType } : null;
 
     if (collaboratorIds) {
       revision.collaboratorIds = collaboratorIds;

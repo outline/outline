@@ -24,6 +24,7 @@ import {
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -68,9 +69,7 @@ router.post(
     } else if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -122,7 +121,7 @@ router.post(
       where = {
         ...where,
         id: {
-          ...((where.id as object) ?? {}),
+          ...(where.id as object),
           [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
         },
       };
@@ -234,12 +233,13 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, externalId, disableMentions } = ctx.input.body;
+    const { name, description, externalId, disableMentions } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
+      description,
       externalId,
       disableMentions,
       teamId: user.teamId,
@@ -389,9 +389,7 @@ router.post(
 
     if (query) {
       userWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 

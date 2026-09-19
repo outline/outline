@@ -1,15 +1,24 @@
 import type { PluginSimple } from "markdown-it";
 import type { InputRule } from "prosemirror-inputrules";
-import type { NodeType, MarkType, Schema } from "prosemirror-model";
+import type { Mark, NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 
 export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
+/** Props passed to the widget rendered by an extension. */
 export type WidgetProps = {
+  /** Whether the editor is displayed right-to-left */
   rtl: boolean;
+  /** Whether the editor is read-only */
   readOnly: boolean | undefined;
+  /** The current editor selection */
   selection?: Selection;
+  /** The marks that will be applied to text typed at the cursor */
+  storedMarks?: readonly Mark[] | null;
+  /** Whether the editor currently holds focus */
+  isEditorFocused: boolean;
 };
 
 export default class Extension<TOptions extends object = object> {
@@ -54,6 +63,15 @@ export default class Extension<TOptions extends object = object> {
    */
   get allowInReadOnly(): boolean {
     return false;
+  }
+
+  /**
+   * Whether a node's React component may be used to render it when generating static HTML on the
+   * server. When false, the node renders from its `toDOM` spec instead — set this when the
+   * component depends on browser behavior or app context unavailable outside the editor.
+   */
+  get allowComponentInStaticHTML(): boolean {
+    return true;
   }
 
   get focusAfterExecution(): boolean {
@@ -107,5 +125,16 @@ export default class Extension<TOptions extends object = object> {
     schema: Schema;
   }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
+  }
+
+  /**
+   * Declares selection toolbar menus contributed by this extension. When
+   * the user selects content or clicks a node, the toolbar evaluates all
+   * registered menus in priority order and displays the first match.
+   *
+   * @returns an array of menu descriptors, or an empty array if this extension does not contribute menus.
+   */
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [];
   }
 }

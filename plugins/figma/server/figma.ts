@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toError } from "@shared/utils/error";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 import { FigmaUtils } from "../shared/FigmaUtils";
@@ -167,13 +168,12 @@ export class Figma {
             description: `Created by ${data.file.creator.handle}`,
             thumbnailUrl: data.file.thumbnail_url,
             faviconUrl: cdnPath("/images/figma.png"),
-            transformedUnfurl: true,
           };
         }
       } catch (err) {
         Logger.error(
           `Error fetching Figma file metadata for integration ${integration.id}`,
-          err
+          toError(err)
         );
       }
     }

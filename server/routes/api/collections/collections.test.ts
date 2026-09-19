@@ -1,14 +1,16 @@
 import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
+import { DeprecationValidation } from "@shared/validations";
 import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
+  buildViewer,
   buildAdmin,
   buildGroup,
   buildCollection,
   buildDocument,
   buildTeam,
 } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, mockTaskSchedule } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -54,6 +56,44 @@ describe("#collections.list", () => {
     expect(body.data[0].archivedAt).toBeTruthy();
     expect(body.data[0].archivedBy).toBeTruthy();
     expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
+  });
+
+  it("should include archived private collections for admin", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", admin, {
+      body: {
+        statusFilter: [CollectionStatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(collection.id);
+    expect(body.policies[0].abilities.restore).toBeTruthy();
+  });
+
+  it("should not include archived private collections for member", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        statusFilter: [CollectionStatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
   });
 
   it("should exclude archived collections", async () => {
@@ -181,6 +221,325 @@ describe("#collections.list", () => {
     const afterArchiveBody = await afterArchiveRes.json();
     expect(afterArchiveRes.status).toEqual(200);
     expect(afterArchiveBody.data).toHaveLength(0);
+  });
+
+  it("should filter by name ignoring case", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      name: "Product Design",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildCollection({
+      name: "Something else",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "name", operator: "contains", value: "DUCT DES" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+    expect(body.pagination.total).toEqual(1);
+  });
+
+  it("should filter by name with the deprecated query param", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      name: "Product Design",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildCollection({
+      name: "Something else",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        query: "duct des",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+  });
+
+  it("should treat wildcards in a name filter literally", async () => {
+    const user = await buildUser();
+    await buildCollection({
+      name: "Engineering",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "name", operator: "contains", value: "%" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
+  });
+
+  it("should exclude archived collections unless the filter targets archivedAt", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      name: "Engineering",
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildCollection({
+      name: "Engineering archive",
+      teamId: user.teamId,
+      userId: user.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [
+          { field: "name", operator: "startsWith", value: "Engineering" },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+  });
+
+  it("should include archived collections when filtering on archivedAt", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/collections.list", admin, {
+      body: {
+        filters: [{ field: "archivedAt", operator: "isNotNull" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+    expect(body.data[0].archivedBy).toBeTruthy();
+    expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
+  });
+
+  it("should combine a name filter with an archivedAt filter", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      name: "Engineering",
+      teamId: team.id,
+      userId: admin.id,
+      archivedAt: new Date(),
+    });
+    await buildCollection({
+      name: "Engineering",
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/collections.list", admin, {
+      body: {
+        filters: [
+          { field: "archivedAt", operator: "isNotNull" },
+          { field: "name", operator: "contains", value: "engineer" },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+  });
+
+  it("should include archived private collections for admin when filtering on archivedAt", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.list", admin, {
+      body: {
+        filters: [{ field: "archivedAt", operator: "isNotNull" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+    expect(body.policies[0].abilities.restore).toBeTruthy();
+  });
+
+  it("should include private collections for admin whenever the filter targets archivedAt", async () => {
+    // Matches the existing `includeListOnly` behavior, which already lets an
+    // admin list private collections they are not a member of.
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+    await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+
+    const res = await server.post("/api/collections.list", admin, {
+      body: {
+        filters: [
+          {
+            operator: "OR",
+            filters: [
+              { field: "archivedAt", operator: "isNotNull" },
+              { field: "archivedAt", operator: "isNull" },
+            ],
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+  });
+
+  it("should not include archived private collections for member when filtering on archivedAt", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "archivedAt", operator: "isNotNull" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
+  });
+
+  it("should filter by createdById", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    await buildCollection({
+      teamId: team.id,
+      userId: other.id,
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "createdById", operator: "eq", value: user.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+  });
+
+  it("should filter private collections by permission", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "permission", operator: "isNull" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(collection.id);
+  });
+
+  it("should not allow filtering on an unknown permission", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "permission", operator: "eq", value: "manage" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow filters combined with deprecated parameters", async () => {
+    const user = await buildUser();
+
+    const withQuery = await server.post("/api/collections.list", user, {
+      body: {
+        query: "test",
+        filters: [{ field: "name", operator: "contains", value: "test" }],
+      },
+    });
+    expect(withQuery.status).toEqual(400);
+
+    const withStatusFilter = await server.post("/api/collections.list", user, {
+      body: {
+        statusFilter: [CollectionStatusFilter.Archived],
+        filters: [{ field: "archivedAt", operator: "isNotNull" }],
+      },
+    });
+    expect(withStatusFilter.status).toEqual(400);
+  });
+
+  it("should not allow filtering on an unknown field", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "deletedAt", operator: "isNotNull" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow pattern matching on a non-text field", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "createdById", operator: "contains", value: "abc" }],
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 
@@ -1241,6 +1600,7 @@ describe("#collections.create", () => {
     expect(body.data.name).toBe("Test");
     expect(body.data.sort.field).toBe("index");
     expect(body.data.sort.direction).toBe("asc");
+    expect(body.data.permission).toBe(null);
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
@@ -1251,6 +1611,23 @@ describe("#collections.create", () => {
       body: {
         name: "Test",
         index: "يونيكود",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("rejects providing both description and data", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.create", user, {
+      body: {
+        name: "Test",
+        description: "Test",
+        data: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Test" }] },
+          ],
+        },
       },
     });
     expect(res.status).toEqual(400);
@@ -1385,7 +1762,300 @@ describe("#collections.create", () => {
   });
 });
 
+describe("#collections.duplicate", () => {
+  const schedule = mockTaskSchedule();
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/collections.duplicate");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should duplicate collection with properties", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      icon: "flame",
+      color: "#FF0000",
+      sharing: false,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).not.toEqual(collection.id);
+    expect(body.data.name).toEqual(collection.name);
+    expect(body.data.icon).toEqual("flame");
+    expect(body.data.color).toEqual("#FF0000");
+    expect(body.data.sharing).toEqual(false);
+    expect(body.data.permission).toEqual(collection.permission);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+  });
+
+  it("should allow overriding the name", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+        name: "Copied collection",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("Copied collection");
+  });
+
+  it("should schedule documents in the collection to be duplicated", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collectionId: body.data.id,
+        originalCollectionId: collection.id,
+        actorId: user.id,
+      })
+    );
+  });
+
+  it("should require read permission on a private collection", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: null,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow members when collection creation is restricted", async () => {
+    const team = await buildTeam({
+      memberCollectionCreate: false,
+    });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow duplicating an archived collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe("#collections.update", () => {
+  describe("deprecatedReason", () => {
+    it.each(["admin", "manager"])(
+      "should let a collection %s save a reason without changing archive attribution",
+      async (role) => {
+        const owner = await buildUser();
+        const editor =
+          role === "admin" ? await buildAdmin({ teamId: owner.teamId }) : owner;
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          archivedAt: new Date(),
+        });
+        const updatedAt = collection.updatedAt.toISOString();
+        const archivedAt = collection.archivedAt?.toISOString();
+        const res = await server.post("/api/collections.update", editor, {
+          body: {
+            id: collection.id,
+            deprecatedReason: "  Replaced by the new collection.  ",
+          },
+        });
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.data.deprecatedReason).toBe(
+          "Replaced by the new collection."
+        );
+        expect(body.data.archivedAt).toBe(archivedAt);
+        expect(body.data.archivedBy.id).toBe(owner.id);
+        expect(body.data.updatedAt).toBe(updatedAt);
+        expect(body.policies[0].abilities.updateDeprecatedReason).toBeTruthy();
+        await collection.reload();
+        expect(collection.deprecatedReason).toBe(
+          "Replaced by the new collection."
+        );
+      }
+    );
+
+    it.each([null, "", "   "])(
+      "should clear the reason with %j",
+      async (value) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: value },
+        });
+        expect(res.status).toBe(200);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["member", "viewer", "other team"])(
+      "should deny edits by a %s without collection management access",
+      async (role) => {
+        const owner = await buildUser();
+        const editor =
+          role === "viewer"
+            ? await buildViewer({ teamId: owner.teamId })
+            : await buildUser(
+                role === "other team" ? {} : { teamId: owner.teamId }
+              );
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/collections.update", editor, {
+          body: { id: collection.id, deprecatedReason: "Changed" },
+        });
+        expect(res.status).toBe(403);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBe("Outdated");
+      }
+    );
+
+    it("should show the reason to readers", async () => {
+      const owner = await buildUser();
+      const reader = await buildViewer({ teamId: owner.teamId });
+      const collection = await buildCollection({
+        userId: owner.id,
+        teamId: owner.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Outdated",
+      });
+      const res = await server.post("/api/collections.info", reader, {
+        body: { id: collection.id },
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe("Outdated");
+      expect(body.policies[0].abilities.updateDeprecatedReason).toBeFalsy();
+    });
+
+    it.each([
+      { name: "Changed" },
+      { description: "Changed" },
+      { permission: null },
+    ])(
+      "should reject updates to other fields with a reason: %j",
+      async (fields) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: "Outdated", ...fields },
+        });
+        expect(res.status).toBe(403);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["active", "deleted"])(
+      "should reject a reason on an %s collection",
+      async (status) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: "Outdated" },
+        });
+        expect(res.status).toBe(403);
+      }
+    );
+
+    it("should validate the reason length", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/collections.update", user, {
+        body: {
+          id: collection.id,
+          deprecatedReason: "x".repeat(
+            DeprecationValidation.maxReasonLength + 1
+          ),
+        },
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("should require authentication", async () => {
     const collection = await buildCollection();
     const res = await server.post("/api/collections.update", {
@@ -1445,6 +2115,50 @@ describe("#collections.update", () => {
 
     expect(collection.description).toBe("Test");
     expect(collection.content).toBeTruthy();
+  });
+
+  it("replaces rendered content when description is updated post-create", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+
+    const createRes = await server.post("/api/collections.create", admin, {
+      headers: { "x-api-version": "3" },
+      body: { name: "Foo", description: "Original" },
+    });
+    const { id } = (await createRes.json()).data;
+
+    const updateRes = await server.post("/api/collections.update", admin, {
+      headers: { "x-api-version": "3" },
+      body: { id, description: "Replaced" },
+    });
+    expect(updateRes.status).toEqual(200);
+
+    const infoRes = await server.post("/api/collections.info", admin, {
+      headers: { "x-api-version": "3" },
+      body: { id },
+    });
+    const content = JSON.stringify((await infoRes.json()).data.data);
+    expect(content).toContain("Replaced");
+    expect(content).not.toContain("Original");
+  });
+
+  it("rejects providing both description and data", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        description: "Test",
+        data: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Test" }] },
+          ],
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("allows editing data", async () => {
@@ -1673,6 +2387,47 @@ describe("#collections.update", () => {
 });
 
 describe("#collections.delete", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should delete with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+      await buildCollection({ teamId: user.teamId });
+      const res = await server.post("/api/collections.delete", user, {
+        body: { id: collection.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await collection.reload({ paranoid: false });
+      expect(collection.deletedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? "Archived reason" : reason?.trim() || null;
+      expect(collection.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before delete", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.delete", user, {
+      body: {
+        id: collection.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await collection.reload();
+    expect(collection.isActive).toBe(true);
+    expect(collection.deprecatedReason).toBeNull();
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.delete");
     const body = await res.json();
@@ -1698,9 +2453,13 @@ describe("#collections.delete", () => {
     const res = await server.post("/api/collections.delete", admin, {
       body: {
         id: collection.id,
+        reason: "No longer needed",
       },
     });
     expect(res.status).toEqual(400);
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(collection.isActive).toBe(true);
   });
 
   it("should delete collection", async () => {
@@ -1712,11 +2471,14 @@ describe("#collections.delete", () => {
     const res = await server.post("/api/collections.delete", admin, {
       body: {
         id: collection.id,
+        reason: "No longer needed",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+    await collection.reload({ paranoid: false });
+    expect(collection.deprecatedReason).toBe("No longer needed");
   });
 
   it("should delete published documents", async () => {
@@ -1785,6 +2547,46 @@ describe("#collections.delete", () => {
 });
 
 describe("#collections.archive", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should archive with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/collections.archive", user, {
+        body: { id: collection.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await collection.reload({ paranoid: false });
+      expect(collection.archivedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? null : reason?.trim() || null;
+      expect(collection.deprecatedReason).toBe(expectedReason);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before archive", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.archive", user, {
+      body: {
+        id: collection.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await collection.reload();
+    expect(collection.isActive).toBe(true);
+    expect(collection.deprecatedReason).toBeNull();
+  });
+
   it("should archive collection", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
@@ -1823,7 +2625,7 @@ describe("#collections.restore", () => {
     const collection = await buildCollection({
       teamId: team.id,
     });
-    await buildDocument({
+    const document = await buildDocument({
       collectionId: collection.id,
       teamId: team.id,
       publishedAt: new Date(),
@@ -1842,6 +2644,8 @@ describe("#collections.restore", () => {
     ]);
     expect(archiveRes.status).toEqual(200);
     expect(archiveBody.data.archivedAt).not.toBe(null);
+    await document.update({ deprecatedReason: "Outdated" });
+    await collection.update({ deprecatedReason: "Collection is outdated" });
     const res = await server.post("/api/collections.restore", admin, {
       body: {
         id: collection.id,
@@ -1850,6 +2654,10 @@ describe("#collections.restore", () => {
     const [, body] = await Promise.all([collection.reload(), res.json()]);
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(body.data.deprecatedReason).toBeNull();
     expect(collection.documentStructure).not.toBe(null);
   });
 

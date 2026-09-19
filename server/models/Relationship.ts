@@ -9,7 +9,6 @@ import {
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 
 export enum RelationshipType {
   Backlink = "backlink",
@@ -17,7 +16,6 @@ export enum RelationshipType {
 }
 
 @Table({ tableName: "relationships", modelName: "relationship" })
-@Fix
 class Relationship extends IdModel<
   InferAttributes<Relationship>,
   Partial<InferCreationAttributes<Relationship>>
@@ -72,7 +70,7 @@ class Relationship extends IdModel<
     const documents = await Document.findByIds(
       relationships.map((relationship) => relationship.reverseDocumentId),
       {
-        attributes: ["id"],
+        attributes: ["id", "createdById"],
         userId: user.id,
         includeState: false,
         includeViews: false,

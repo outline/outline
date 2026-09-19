@@ -2,11 +2,14 @@ import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { HeadingPrefixStyle } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
   beforeAll(() => {
-    vi.useFakeTimers();
+    // Fake only Date (for a deterministic system time); leave real timers so
+    // toHTML's React effect flush, which awaits setTimeout, is not deadlocked.
+    vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
   });
 
@@ -86,6 +89,42 @@ describe("DocumentHelper", () => {
       const result = await DocumentHelper.toJSON(document);
       expect(result === document.content).toBe(true);
     });
+
+    it("should remove marks and replace internal urls together", async () => {
+      const document = await buildDocument({
+        text: "link",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "link",
+                  marks: [
+                    {
+                      type: "comment",
+                      attrs: { id: "comment-123", userId: "user-123" },
+                    },
+                    { type: "link", attrs: { href: "/doc/internal-123" } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      const result = await DocumentHelper.toJSON(document, {
+        removeMarks: ["comment"],
+        internalUrlBase: "/s/share-123",
+      });
+
+      const marks = result.content?.[0].content?.[0].marks;
+      expect(marks?.map((mark) => mark.type)).toEqual(["link"]);
+      expect(marks?.[0].attrs?.href).toBe("/s/share-123/doc/internal-123");
+    });
   });
 
   describe("toHTML", () => {
@@ -126,6 +165,69 @@ describe("DocumentHelper", () => {
       expect(result).not.toMatch(/<script[^>]*nonce="/);
     });
 
+    it("should render math and include the KaTeX stylesheet", async () => {
+      const document = await buildDocument({
+        text: "Inline $E=mc^2$ and block:\n\n$$\n\\frac{1}{2}\n$$\n",
+      });
+      const result = await DocumentHelper.toHTML(document);
+      expect(result).toContain('class="katex"');
+      expect(result).toContain("katex.min.css");
+    });
+
+    it("should not include the KaTeX stylesheet without math", async () => {
+      const document = await buildDocument({
+        text: "This is a test paragraph",
+      });
+      const result = await DocumentHelper.toHTML(document);
+      expect(result).not.toContain("katex.min.css");
+    });
+
+    it("should number headings according to the document preference", async () => {
+      const document = await buildDocument({
+        text: "# One\n\n## Two\n\n# Three",
+        preferences: { headingPrefix: HeadingPrefixStyle.Numeric },
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain('data-heading-prefix="1"');
+      expect(result).toContain('data-heading-prefix="1.1"');
+      expect(result).toContain('data-heading-prefix="2"');
+    });
+
+    it("should not number headings without the document preference", async () => {
+      const document = await buildDocument({
+        text: "# One\n\n## Two",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).not.toContain("data-heading-prefix");
+    });
+
+    it("should number headings of a revision from its document", async () => {
+      const document = await buildDocument({
+        text: "# One\n\n## Two",
+        preferences: { headingPrefix: HeadingPrefixStyle.Numeric },
+      });
+      const revision = new Revision({
+        documentId: document.id,
+        title: document.title,
+        text: document.text,
+      });
+      const result = await DocumentHelper.toHTML(revision, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain('data-heading-prefix="1"');
+      expect(result).toContain('data-heading-prefix="1.1"');
+    });
+
     it("should render diff classes when changes provided", async () => {
       const doc1 = await buildDocument({ text: "Hello world" });
       const doc2 = await buildDocument({ text: "Hello modified world" });
@@ -143,6 +245,123 @@ describe("DocumentHelper", () => {
         changes: changeset!.changes,
       });
 
+      expect(result).toContain(EditorStyleHelper.diffInsertion);
+    });
+
+    it("should render a notice through its React component with icon", async () => {
+      const document = await buildDocument({
+        text: ":::info\nHeads up\n:::",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      // Rendered via the React component NodeView, not the plain toDOM spec.
+      expect(result).toContain("component-container_notice");
+      // The icon moved into the React component (#13109); it must reappear.
+      expect(result).toMatch(/class="icon"[^>]*>\s*<svg/);
+      // The content hole is preserved and holds the child text.
+      expect(result).toMatch(/class="content"[\s\S]*Heads up/);
+    });
+
+    it("should render an embed through its React component as an iframe", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "embed",
+              attrs: {
+                href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+              },
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain("<iframe");
+      expect(result).toContain("youtube.com/embed/dQw4w9WgXcQ");
+    });
+
+    it("should render mentions with toDOM", async () => {
+      const document = await buildDocument({
+        text: `@[Alan Kay](mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64)`,
+      });
+
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      // Mention's component depends on stores/router, so it opts out of
+      // component rendering and emits its toDOM markup directly.
+      expect(result).toContain('data-type="user"');
+      expect(result).toContain("Alan Kay");
+      expect(result).not.toContain("component-mention");
+    });
+
+    it("should include component styles unless styles are disabled", async () => {
+      const document = await buildDocument({
+        text: ":::info\nStyled\n:::",
+      });
+
+      const withStyles = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+      });
+      expect(withStyles).toMatch(/<style[^>]*data-styled/);
+
+      const withoutStyles = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+      expect(withoutStyles).not.toContain("data-styled");
+    });
+
+    it("should isolate concurrent exports", async () => {
+      const first = await buildDocument({ text: "First unique alpha content" });
+      const second = await buildDocument({
+        text: "Second unique beta content",
+      });
+
+      const [firstResult, secondResult] = await Promise.all([
+        DocumentHelper.toHTML(first, {
+          includeTitle: false,
+          includeStyles: false,
+        }),
+        DocumentHelper.toHTML(second, {
+          includeTitle: false,
+          includeStyles: false,
+        }),
+      ]);
+
+      expect(firstResult).toContain("First unique alpha content");
+      expect(firstResult).not.toContain("beta");
+      expect(secondResult).toContain("Second unique beta content");
+      expect(secondResult).not.toContain("alpha");
+    });
+
+    it("should render diff decorations on component nodes", async () => {
+      const doc1 = await buildDocument({ text: ":::info\nHello\n:::" });
+      const doc2 = await buildDocument({ text: ":::info\nHello world\n:::" });
+
+      const changeset = ChangesetHelper.getChangeset(
+        doc2.content,
+        doc1.content
+      );
+      expect(changeset).not.toBeNull();
+
+      const result = await DocumentHelper.toHTML(doc2, {
+        includeTitle: false,
+        includeStyles: false,
+        changes: changeset!.changes,
+      });
+
+      expect(result).toContain("component-container_notice");
       expect(result).toContain(EditorStyleHelper.diffInsertion);
     });
   });
@@ -342,6 +561,78 @@ This is a [test paragraph](https://example.net)`,
   });
 
   describe("toMarkdown", () => {
+    it("should preserve smart quotes rather than flattening them", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "the cat’s “meow”" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("the cat’s “meow”");
+    });
+
+    it("should not crash serializing a table with no rows", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "before" }] },
+            { type: "table", content: [] },
+            { type: "paragraph", content: [{ type: "text", text: "after" }] },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("before\n\nafter");
+    });
+
+    it("should not escape standalone square brackets", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "one [two] three" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("one [two] three");
+    });
+
+    it("should escape literal inline-link syntax with nested brackets", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "nested [a[b]c](url) link" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Escaped so it is not re-parsed into a link on round-trip.
+      expect(result).toBe("nested \\[a\\[b]c](url) link");
+    });
+
     it("should export bullet lists inside table cells with br tags", async () => {
       // Create a document with a table containing a bullet list in a cell
       // This tests the renderList inTable handling
@@ -635,6 +926,187 @@ This is a [test paragraph](https://example.net)`,
       expect(result).toContain("[x] done");
     });
 
+    it("should export code fences inside table cells on a single line", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "code_fence",
+                          attrs: { language: "abap" },
+                          content: [
+                            { type: "text", text: "a | b\nc \\ d\nline 2" },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Code fences inside tables should use <br> tags rather than literal
+      // newlines that would break the table row structure, with pipes and
+      // backslashes escaped so the content cannot break out of the column.
+      expect(result).toContain(
+        "```abap<br>a \\| b<br>c \\\\ d<br>line 2<br>```"
+      );
+      // The fence content must not introduce raw newlines inside the table.
+      expect(result).not.toMatch(/```abap\n/);
+    });
+
+    it("should export math blocks inside table cells on a single line", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "math_block",
+                          content: [
+                            { type: "text", text: "a | b\n\\frac{1}{2}" },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Math blocks inside tables should use <br> tags rather than literal
+      // newlines that would break the table row structure, with pipes and
+      // backslashes escaped so the content cannot break out of the column.
+      expect(result).toContain("$$<br>a \\| b<br>\\\\frac{1}{2}<br>$$");
+      // The block content must not introduce raw newlines inside the table.
+      expect(result).not.toMatch(/\$\$\n/);
+    });
+
+    it("should export notice blocks inside table cells on a single line", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "container_notice",
+                          attrs: { style: "warning" },
+                          content: [
+                            {
+                              type: "paragraph",
+                              content: [{ type: "text", text: "First | line" }],
+                            },
+                            {
+                              type: "paragraph",
+                              content: [{ type: "text", text: "Second line" }],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Notice blocks inside tables should use <br> tags rather than literal
+      // newlines that would break the table row structure, with pipes escaped
+      // so the content cannot break out of the column.
+      expect(result).toContain(
+        ":::warning<br>First \\| line<br><br>Second line<br><br>:::"
+      );
+      // The notice must not introduce raw newlines inside the table.
+      expect(result).not.toMatch(/:::warning\n/);
+    });
+
     it("should include collection title by default", async () => {
       const collection = await buildCollection({
         name: "Test Collection",
@@ -752,6 +1224,113 @@ In a cell
 
 
 `);
+    });
+  });
+
+  describe("getAnchorContent", () => {
+    it("should return the section content for a matching heading anchor", async () => {
+      const document = await buildDocument({
+        text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.
+
+More install detail.
+
+## Usage
+
+Usage instructions here.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(
+        document,
+        "h-installation"
+      );
+      expect(result).toBe(
+        `## Installation
+
+Install instructions here.
+
+More install detail.`
+      );
+    });
+
+    it("should accept an anchor with a leading hash", async () => {
+      const document = await buildDocument({
+        text: `## Installation
+
+Install instructions here.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(
+        document,
+        "#h-installation"
+      );
+      expect(result).toBe(
+        `## Installation
+
+Install instructions here.`
+      );
+    });
+
+    it("should stop at the next heading of the same or higher level", async () => {
+      const document = await buildDocument({
+        text: `## Section
+
+Section body.
+
+### Subsection
+
+Subsection body.
+
+## Other
+
+Other body.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-section");
+      expect(result).toBe(
+        `## Section
+
+Section body.
+
+### Subsection
+
+Subsection body.`
+      );
+    });
+
+    it("should resolve anchors for duplicate headings", async () => {
+      const document = await buildDocument({
+        text: `## Notes
+
+First notes.
+
+## Notes
+
+Second notes.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-notes-1");
+      expect(result).toBe(
+        `## Notes
+
+Second notes.`
+      );
+    });
+
+    it("should return undefined when no heading matches", async () => {
+      const document = await buildDocument({
+        text: `## Installation
+
+Install instructions here.`,
+      });
+
+      expect(
+        DocumentHelper.getAnchorContent(document, "h-missing")
+      ).toBeUndefined();
+      expect(DocumentHelper.getAnchorContent(document, "")).toBeUndefined();
     });
   });
 });

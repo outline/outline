@@ -37,7 +37,7 @@ export default function multipart({
       );
     }
 
-    ctx.input = { ...(ctx.input ?? {}), file };
+    ctx.input = { ...ctx.input, file };
     return next();
   };
 }

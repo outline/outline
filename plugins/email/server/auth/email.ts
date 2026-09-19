@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { errToString } from "@shared/utils/error";
 import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
@@ -14,6 +15,7 @@ import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
+import { getTokenFromCookie } from "@server/utils/csrf";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import { getTeamFromContext } from "@server/utils/passport";
 import * as T from "./schema";
@@ -111,7 +113,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   // and spending the token before the user clicks on it. Instead we redirect
   // to the same URL with the follow query param added from the client side.
   if (!follow) {
-    const csrfToken = ctx.cookies.get(CSRF.cookieName);
+    const csrfToken = getTokenFromCookie(ctx);
 
     // Parse the current URL to extract existing query parameters
     const url = new URL(ctx.request.href);
@@ -161,8 +163,11 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
       return;
     }
   } catch (err) {
-    Logger.debug("authentication", err);
-    return ctx.redirect(`/?notice=auth-error&description=${err.message}`);
+    const message = errToString(err);
+    Logger.debug("authentication", message);
+    return ctx.redirect(
+      `/?notice=auth-error&description=${encodeURIComponent(message)}`
+    );
   }
 
   if (!user) {
@@ -208,17 +213,14 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     client,
   });
 };
-router.get(
+router.register(
   "email.callback",
-  rateLimiter(RateLimiterStrategy.FivePerMinute),
-  validate(T.EmailCallbackSchema),
-  emailCallback
-);
-router.post(
-  "email.callback",
-  rateLimiter(RateLimiterStrategy.FivePerMinute),
-  validate(T.EmailCallbackSchema),
-  emailCallback
+  ["get", "post"],
+  [
+    rateLimiter(RateLimiterStrategy.FivePerMinute),
+    validate(T.EmailCallbackSchema),
+    emailCallback,
+  ]
 );
 
 export default router;

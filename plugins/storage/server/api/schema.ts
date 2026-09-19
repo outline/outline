@@ -9,8 +9,9 @@ export const FilesCreateSchema = z.object({
       .string()
       .refine(ValidateKey.isValid, { message: ValidateKey.message })
       .transform(ValidateKey.sanitize),
+    sig: z.string().optional(),
   }),
-  file: z.custom<formidable.File>(),
+  file: z.custom<formidable.File>().optional(),
 });
 
 export type FilesCreateReq = z.infer<typeof FilesCreateSchema>;

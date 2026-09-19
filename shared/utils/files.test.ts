@@ -82,4 +82,22 @@ describe("getFileNameFromUrl", () => {
     ).toBe("file.txt");
     expect(getFileNameFromUrl("https://example.com/")).toBe("");
   });
+
+  it("decodes percent-encoded filenames", () => {
+    expect(getFileNameFromUrl("https://example.com/My%20Report.pdf")).toBe(
+      "My Report.pdf"
+    );
+    expect(getFileNameFromUrl("https://example.com/caf%C3%A9%20menu.png")).toBe(
+      "café menu.png"
+    );
+    expect(
+      getFileNameFromUrl("https://example.com/report%20final.pdf?v=2#top")
+    ).toBe("report final.pdf");
+  });
+
+  it("falls back to the raw filename on malformed encoding", () => {
+    expect(getFileNameFromUrl("https://example.com/bad%name.txt")).toBe(
+      "bad%name.txt"
+    );
+  });
 });

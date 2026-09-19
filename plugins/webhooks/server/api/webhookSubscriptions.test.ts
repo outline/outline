@@ -1,3 +1,4 @@
+import env from "@server/env";
 import {
   buildAdmin,
   buildUser,
@@ -167,6 +168,39 @@ describe("#webhookSubscriptions.create", () => {
     expect(webhook.secret).toEqual(secret);
     expect(webhook.enabled).toEqual(true);
   });
+
+  it("should reject http urls when cloud hosted", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
+
+    const user = await buildAdmin();
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
+      body: {
+        name: "Test webhook",
+        url: "http://www.example.com",
+        events: ["comments"],
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow http urls when not cloud hosted", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(false);
+
+    const user = await buildAdmin();
+    const url = "http://www.example.com";
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
+      body: {
+        name: "Test webhook",
+        url,
+        events: ["comments"],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.url).toEqual(url);
+  });
 });
 
 describe("#webhookSubscriptions.update", () => {
@@ -220,6 +254,31 @@ describe("#webhookSubscriptions.update", () => {
     expect(webhook.url).toEqual(url);
     expect(webhook.events).toEqual(events);
     expect(webhook.enabled).toEqual(true);
+  });
+
+  it("should update a webhook subscription without a signing secret", async () => {
+    const user = await buildAdmin();
+    const name = "Updated webhook name";
+    const existingWebhook = await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      secret: null,
+    });
+
+    const res = await server.post("/api/webhookSubscriptions.update", user, {
+      body: {
+        id: existingWebhook.id,
+        name,
+        url: existingWebhook.url,
+        events: existingWebhook.events,
+        secret: null,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual(name);
+    expect(body.data.secret).toBeNull();
   });
 
   it("should activate a disabled webhook subscription when it's updated", async () => {

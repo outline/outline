@@ -1,8 +1,13 @@
 import { randomUUID } from "node:crypto";
 import * as Y from "yjs";
-import { TextEditMode } from "@shared/types";
+import {
+  TextEditMode,
+  type ProsemirrorData,
+  type ProsemirrorMark,
+} from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
-import { Event } from "@server/models";
+import { type Document, Event } from "@server/models";
+import { parser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { buildDocument, buildUser } from "@server/test/factories";
@@ -392,6 +397,22 @@ describe("documentUpdater", () => {
   });
 
   describe("patch", () => {
+    const listItem = (text: string, marks?: ProsemirrorMark[]) => ({
+      type: "list_item",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text, ...(marks && { marks }) }],
+        },
+      ],
+    });
+
+    /** The serialized markdown line of a document that contains the needle. */
+    const lineContaining = async (doc: Document, needle: string) =>
+      (await DocumentHelper.toMarkdown(doc, { includeTitle: false }))
+        .split("\n")
+        .find((line) => line.includes(needle))!;
+
     it("should patch specific text in document content", async () => {
       const user = await buildUser();
       let document = await buildDocument({
@@ -415,6 +436,40 @@ describe("documentUpdater", () => {
       expect(content[1]).toMatchObject({
         type: "paragraph",
         content: [{ type: "text", text: "This is a test" }],
+      });
+    });
+
+    it("should patch text retrieved via toMarkdown containing smart quotes and brackets", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "the cat’s “meow” [loud]" }],
+            },
+          ],
+        },
+      });
+
+      // findText is the exact text a client receives from retrieval.
+      const findText = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(findText).toBe("the cat’s “meow” [loud]");
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "quiet",
+        TextEditMode.Patch,
+        findText
+      );
+
+      expect(result.content!.content![0]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "quiet" }],
       });
     });
 
@@ -565,11 +620,6 @@ describe("documentUpdater", () => {
         })
       );
 
-      const listItem = (text: string) => ({
-        type: "list_item",
-        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
-      });
-
       expect(document.content).toMatchObject({
         type: "doc",
         content: [
@@ -583,6 +633,437 @@ describe("documentUpdater", () => {
           },
         ],
       });
+    });
+
+    it("should append new blocks after a table when patching the last row", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "## Sizes\n\n| Quantity | Value |\n|---|---|\n| alpha | 1 |\n| beta | 2 |\n| gamma | 3 |\n",
+      });
+
+      const lastRow = await lineContaining(document, "gamma");
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: `${lastRow}\n\n## New\n\nbody text`,
+          findText: lastRow,
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      const content = document.content as ProsemirrorData;
+      expect(content.content?.map((n) => n.type)).toEqual([
+        "heading",
+        "table",
+        "heading",
+        "paragraph",
+      ]);
+      expect(content.content?.[1].content).toHaveLength(4);
+      expect(document.text).toContain("gamma");
+      expect(document.text).toContain("## New");
+      expect(document.text).toContain("body text");
+    });
+
+    it("should not drop later rows when patching a middle table row with new blocks", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "| Quantity | Value |\n|---|---|\n| alpha | 1 |\n| beta | 2 |\n| gamma | 3 |\n",
+      });
+
+      const middleRow = await lineContaining(document, "beta");
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: `${middleRow}\n\n## New`,
+          findText: middleRow,
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.text).toContain("beta");
+      expect(document.text).toContain("## New");
+      expect(document.text).toContain("gamma");
+    });
+
+    it("should keep list items when the replacement uses a different bullet marker", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "* alpha\n* beta\n* gamma",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "- beta EDITED",
+          findText: "* beta",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "bullet_list",
+            content: [
+              listItem("alpha"),
+              listItem("beta EDITED"),
+              listItem("gamma"),
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should keep later blockquote paragraphs when one is replaced with plain text", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "> alpha\n>\n> beta\n>\n> gamma\n\n## Notes",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "beta EDITED",
+          findText: "> beta",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.text).toContain("alpha");
+      expect(document.text).toContain("beta EDITED");
+      expect(document.text).toContain("gamma");
+      expect(document.text).toContain("## Notes");
+    });
+
+    it("should preserve comment marks on earlier rows when appending a row", async () => {
+      const user = await buildUser();
+      const commentId = randomUUID();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "| A | B |\n|---|---|\n| one | 1 |\n| two | 2 |",
+      });
+
+      // Attach a comment mark to the first body row cell text
+      const content = document.content as ProsemirrorData;
+      const table = content.content![0];
+      const firstRow = table.content![1];
+      const cellPara = firstRow.content![0].content![0];
+      cellPara.content![0].marks = [
+        { type: "comment", attrs: { id: commentId, userId: user.id } },
+      ];
+      document.content = content;
+      document.changed("content", true);
+      await document.save();
+
+      const lastRow = await lineContaining(document, "two");
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: `${lastRow}\n${lastRow.replace("two", "three").replace("2", "3")}`,
+          findText: lastRow,
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      const result = document.content as ProsemirrorData;
+      const resultTable = result.content![0];
+      expect(resultTable.type).toBe("table");
+      expect(resultTable.content).toHaveLength(4);
+      const resultCellPara = resultTable.content![1].content![0].content![0];
+      expect(resultCellPara.content![0].marks).toMatchObject([
+        { type: "comment", attrs: { id: commentId, userId: user.id } },
+      ]);
+      expect(document.text).toContain("three");
+    });
+
+    it("should preserve comment marks on both neighbours when editing a middle item and adding another", async () => {
+      const user = await buildUser();
+      const commentId = randomUUID();
+      const commentMark = {
+        type: "comment",
+        attrs: { id: commentId, userId: user.id },
+      };
+      let document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "bullet_list",
+              content: [
+                listItem("alpha", [commentMark]),
+                listItem("beta"),
+                listItem("gamma", [commentMark]),
+              ],
+            },
+          ],
+        },
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "* beta EDITED\n* delta",
+          findText: "* beta",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "bullet_list",
+            content: [
+              listItem("alpha", [commentMark]),
+              listItem("beta EDITED"),
+              listItem("delta"),
+              listItem("gamma", [commentMark]),
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should preserve comment marks on later items when removing an earlier item", async () => {
+      const user = await buildUser();
+      const commentId = randomUUID();
+      const commentMark = {
+        type: "comment",
+        attrs: { id: commentId, userId: user.id },
+      };
+      let document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "bullet_list",
+              content: [
+                listItem("alpha"),
+                listItem("beta"),
+                listItem("gamma", [commentMark]),
+              ],
+            },
+          ],
+        },
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "",
+          findText: "* alpha\n",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "bullet_list",
+            content: [listItem("beta"), listItem("gamma", [commentMark])],
+          },
+        ],
+      });
+    });
+
+    it("should replace a whole list with a paragraph", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "# Title\n\n* only item\n\nafter",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "plain text now",
+          findText: "* only item",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      const content = document.content as ProsemirrorData;
+      expect(content.content?.map((n) => n.type)).toEqual([
+        "heading",
+        "paragraph",
+        "paragraph",
+      ]);
+      expect(document.text).toContain("plain text now");
+      expect(document.text).not.toContain("only item");
+      expect(document.text).toContain("after");
+    });
+
+    it("should keep all items when a bullet item is changed to an ordered item", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "* alpha\n* beta\n* gamma",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "1. beta EDITED",
+          findText: "* beta",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      const content = document.content as ProsemirrorData;
+      expect(content.content?.map((n) => n.type)).toEqual([
+        "bullet_list",
+        "ordered_list",
+        "bullet_list",
+      ]);
+      expect(document.text).toContain("alpha");
+      expect(document.text).toContain("beta EDITED");
+      expect(document.text).toContain("gamma");
+    });
+
+    it("should keep one ordered list when the replacement uses a different delimiter", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "1. one\n2. two\n3. three",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "2) two EDITED",
+          findText: "2. two",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "ordered_list",
+            attrs: { order: 1 },
+            content: [
+              listItem("one"),
+              listItem("two EDITED"),
+              listItem("three"),
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should not join adjacent ordered lists with different list styles", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "a. alpha",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "a. alpha\n1) numeric",
+          findText: "a. alpha",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "ordered_list",
+            attrs: { listStyle: "lower-alpha" },
+            content: [listItem("alpha")],
+          },
+          {
+            type: "ordered_list",
+            attrs: { listStyle: "number" },
+            content: [listItem("numeric")],
+          },
+        ],
+      });
+    });
+
+    it("should keep nested items when a nested bullet marker changes", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "* alpha\n  * one\n  * two\n  * three\n* beta",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "  - two EDITED",
+          findText: "  * two",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "bullet_list",
+            content: [
+              {
+                type: "list_item",
+                content: [
+                  { type: "paragraph" },
+                  {
+                    type: "bullet_list",
+                    content: [
+                      listItem("one"),
+                      listItem("two EDITED"),
+                      listItem("three"),
+                    ],
+                  },
+                ],
+              },
+              listItem("beta"),
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should append a new section after a blockquote that ends the document", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "> alpha\n>\n> beta",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "> beta\n\n## New\n\nbody",
+          findText: "> beta",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      const content = document.content as ProsemirrorData;
+      expect(content.content?.map((n) => n.type)).toEqual([
+        "blockquote",
+        "heading",
+        "paragraph",
+      ]);
+      expect(content.content?.[0].content).toHaveLength(2);
+      expect(document.text).toContain("## New");
+      expect(document.text).toContain("body");
     });
 
     it("should preserve comment marks on untouched blocks when patching", async () => {
@@ -1358,6 +1839,130 @@ describe("documentUpdater", () => {
       expect(blockquote.content![1]).toEqual(secondPara);
     });
 
+    it("should preserve a blockquote containing a table when patching a later link", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+      const fillerParagraphs: ProsemirrorData[] = Array.from(
+        { length: 242 },
+        (_, index) => ({
+          type: "paragraph",
+          content: [{ type: "text", text: `Quoted paragraph ${index + 1}` }],
+        })
+      );
+
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Before quote" }],
+          },
+          {
+            type: "blockquote",
+            content: [
+              {
+                type: "heading",
+                attrs: { level: 1 },
+                content: [{ type: "text", text: "Quoted source" }],
+              },
+              {
+                type: "table",
+                content: [
+                  {
+                    type: "tr",
+                    content: [
+                      {
+                        type: "th",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Key" }],
+                          },
+                        ],
+                      },
+                      {
+                        type: "th",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Value" }],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    type: "tr",
+                    content: [
+                      {
+                        type: "td",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Alpha" }],
+                          },
+                        ],
+                      },
+                      {
+                        type: "td",
+                        content: [
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "Keep this row" }],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ...fillerParagraphs,
+              {
+                type: "paragraph",
+                content: [
+                  { type: "text", text: "See " },
+                  {
+                    type: "text",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "https://example.com/reference" },
+                      },
+                    ],
+                    text: "Reference",
+                  },
+                  { type: "text", text: "." },
+                ],
+              },
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Tail sentinel." }],
+              },
+            ],
+          },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "After quote" }],
+          },
+        ],
+      };
+      await document.save();
+
+      const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+      const expected = structuredClone(beforeDoc);
+      expected.content[1].content[244].content[1].marks[0].attrs.href =
+        "https://example.com/reference#h-target";
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "> See [Reference](https://example.com/reference#h-target).",
+        TextEditMode.Patch,
+        "> See [Reference](https://example.com/reference)."
+      );
+
+      expect(result.content).toEqual(expected);
+    });
+
     it("should always patch the first occurrence when findText appears multiple times", async () => {
       const user = await buildUser();
       let document = await buildDocument({
@@ -1480,6 +2085,83 @@ describe("documentUpdater", () => {
       expect(list.content![1].content![0].content![0].text).toEqual(
         "Second item"
       );
+    });
+
+    it("should apply a link when wrapping existing table cell text", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      document.content = parser
+        .parse("| Name | Notes |\n|------|-------|\n| Alpha | see |\n")
+        .toJSON();
+      await document.save();
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "[see](https://example.com/docs)",
+        TextEditMode.Patch,
+        "see"
+      );
+
+      // The cell text is unchanged but should now carry a link mark — it must
+      // not be silently dropped during the merge.
+      const cellText =
+        result.content!.content![0].content![1].content![1].content![0]
+          .content![0];
+      expect(cellText.text).toEqual("see");
+      expect(cellText.marks).toEqual([
+        expect.objectContaining({
+          type: "link",
+          attrs: expect.objectContaining({ href: "https://example.com/docs" }),
+        }),
+      ]);
+    });
+
+    it("should preserve other table cells when adding a link to one cell", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      document.content = parser
+        .parse(
+          "| Name | Notes |\n|------|-------|\n| Alpha | see |\n| Beta | other |\n"
+        )
+        .toJSON();
+      await document.save();
+
+      // Capture the untouched (Beta) row BEFORE patching so we can assert its
+      // structure and attrs are preserved exactly, not just its text.
+      const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+      const untouchedRow = beforeDoc.content[0].content[2];
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "see [docs](https://example.com/d)",
+        TextEditMode.Patch,
+        "see"
+      );
+
+      // The patched cell gained the link
+      expect(result.text).toContain("[docs](https://example.com/d)");
+      // The untouched row node must remain identical
+      expect(result.content!.content![0].content![2]).toEqual(untouchedRow);
+    });
+
+    it("should apply a mark when wrapping existing list item text", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      document.content = parser.parse("- clickme\n- other\n").toJSON();
+      await document.save();
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "[clickme](https://example.com)",
+        TextEditMode.Patch,
+        "clickme"
+      );
+
+      expect(result.text).toContain("[clickme](https://example.com)");
+      expect(result.text).toContain("other");
     });
   });
 });

@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { setResource, addTags } from "@server/logging/tracer";
@@ -26,8 +27,18 @@ export default async function init() {
         spanName: "process",
         isRoot: true,
       })(async function (job) {
-        const event = job.data as Event;
+        const event = job.data as Event | undefined;
         let err;
+
+        // Bull can hand us an orphaned job whose hash was already deleted by
+        // removeOnComplete/removeOnFail (data deserializes to `{}`). Discard it
+        // rather than crashing.
+        if (!event?.name) {
+          Logger.warn("Discarding malformed job in globalEventQueue", {
+            data: job.data,
+          });
+          return;
+        }
 
         setResource(`Event.${event.name}`);
 
@@ -57,12 +68,19 @@ export default async function init() {
               ProcessorClass.applicableEvents.includes(event.name) ||
               ProcessorClass.applicableEvents.includes("*")
             ) {
-              await processorEventQueue().add({ event, name });
+              // A processor may optionally opt out of an event before a job is
+              // created, avoiding the cost of an empty job.
+              if (
+                !ProcessorClass.shouldQueue ||
+                (await ProcessorClass.shouldQueue(event))
+              ) {
+                await processorEventQueue().add({ event, name });
+              }
             }
           } catch (error) {
             Logger.error(
               `Error adding ${event.name} to ${name} queue`,
-              error,
+              toError(error),
               event
             );
             err = error;
@@ -88,7 +106,18 @@ export default async function init() {
         spanName: "process",
         isRoot: true,
       })(async function (job) {
-        const { event, name } = job.data;
+        const { event, name } = job.data ?? {};
+
+        // Bull can hand us an orphaned job whose hash was already deleted by
+        // removeOnComplete/removeOnFail (data deserializes to `{}`). Discard it
+        // rather than crashing.
+        if (!event || !name) {
+          Logger.warn("Discarding malformed job in processorEventQueue", {
+            data: job.data,
+          });
+          return;
+        }
+
         const ProcessorClass = processors[name];
 
         setResource(`Processor.${name}`);
@@ -118,7 +147,7 @@ export default async function init() {
 
             Logger.error(
               `Error processing ${event.name} in ${name}`,
-              err,
+              toError(err),
               event
             );
             throw err;
@@ -164,7 +193,7 @@ export default async function init() {
             await task.onFailed(props).catch(); // suppress exception from 'onFailed'.
           }
 
-          Logger.error(`Error processing task in ${name}`, err, props);
+          Logger.error(`Error processing task in ${name}`, toError(err), props);
           throw err;
         }
       })

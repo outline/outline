@@ -28,7 +28,11 @@ import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
-import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import {
+  getBaseDomain,
+  parseDomain,
+  RESERVED_SUBDOMAINS,
+} from "@shared/utils/domains";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
@@ -44,7 +48,6 @@ import Share from "./Share";
 import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -74,7 +77,6 @@ const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
   },
 }))
 @Table({ tableName: "teams", modelName: "team" })
-@Fix
 class Team extends ParanoidModel<
   InferAttributes<Team>,
   Partial<InferCreationAttributes<Team>>
@@ -85,7 +87,7 @@ class Team extends ParanoidModel<
     max: TeamValidation.maxNameLength,
     msg: `Team name must be between 1 and ${TeamValidation.maxNameLength} characters`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @AllowNull
@@ -117,7 +119,7 @@ class Team extends ParanoidModel<
     args: [RESERVED_SUBDOMAINS],
     msg: "You chose a restricted word, please try another.",
   })
-  @Column
+  @Column(DataType.STRING)
   subdomain: string | null;
 
   @Unique
@@ -126,7 +128,7 @@ class Team extends ParanoidModel<
     msg: `domain must be ${TeamValidation.maxDomainLength} characters or less`,
   })
   @IsFQDN
-  @Column
+  @Column(DataType.STRING)
   domain: string | null;
 
   @IsUUID(4)
@@ -183,34 +185,34 @@ class Team extends ParanoidModel<
   }
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   sharing: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   inviteRequired: boolean;
 
   @Column(DataType.JSONB)
   signupQueryParams: { [key: string]: string } | null;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   guestSignin: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   passkeysEnabled: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   documentEmbeds: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   memberCollectionCreate: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   memberTeamCreate: boolean;
 
   @Default(UserRole.Member)
@@ -237,14 +239,14 @@ class Team extends ParanoidModel<
   preferences: TeamPreferences | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   suspendedAt: Date | null;
 
   @Column(DataType.JSONB)
   flags: { [key in TeamFlag]?: number } | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 
@@ -285,6 +287,20 @@ class Team extends ParanoidModel<
 
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
+  }
+
+  /**
+   * Returns whether the given url points at this team's installation, taking
+   * into account custom domains and hosted subdomains.
+   *
+   * @param url The url to check.
+   * @returns True if the url belongs to this team.
+   */
+  public isTeamUrl(url: string): boolean {
+    if (!url) {
+      return false;
+    }
+    return parseDomain(url).host === parseDomain(this.url).host;
   }
 
   /**
@@ -408,7 +424,7 @@ class Team extends ParanoidModel<
     });
   };
 
-  public collectionIds = async function (paranoid = true) {
+  public collectionIds = async (paranoid = true) => {
     const models = await Collection.findAll({
       attributes: ["id"],
       where: {

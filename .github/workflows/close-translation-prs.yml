@@ -1,0 +1,68 @@
+name: Auto Close Translation PRs
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+    paths:
+      - "shared/i18n/locales/**"
+
+jobs:
+  close-translation-prs:
+    if: github.event.pull_request.user.login != 'outline-translations'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Close PRs that only modify generated translation files
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+
+            // Maintainers may legitimately need to touch these files, e.g.
+            // when renaming keys or removing a language.
+            const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+            if (trustedAssociations.includes(pr.author_association)) {
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+
+            // Only act when every changed file is a generated locale file, so
+            // PRs that include translation changes alongside code changes are
+            // left for human review.
+            const isGeneratedTranslationFile = (file) =>
+              file.filename.startsWith('shared/i18n/locales/');
+
+            if (files.length === 0 || !files.every(isGeneratedTranslationFile)) {
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pr.number,
+              body: [
+                'Thanks for taking the time to contribute! Unfortunately direct changes to the files in `shared/i18n/locales` cannot be accepted – these files are machine generated and synced from our translation platform, so any edits here would be overwritten.',
+                '',
+                'If you would like to improve a translation, please contribute it through [Crowdin](https://translate.getoutline.com/) instead – see the [translation guide](https://github.com/outline/outline/blob/main/docs/TRANSLATION.md) for how to get started. Approved translations are pulled into the codebase automatically.',
+                '',
+                'This PR has been closed automatically.'
+              ].join('\n')
+            });
+
+            await github.rest.pulls.update({
+              owner,
+              repo,
+              pull_number: pr.number,
+              state: 'closed'
+            });

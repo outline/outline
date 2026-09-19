@@ -1,7 +1,7 @@
 import invariant from "invariant";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
-import { allow } from "./cancan";
+import { allow, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
@@ -45,6 +45,24 @@ allow(User, "read", Collection, (user, collection) => {
 
   return true;
 });
+
+allow(User, "duplicate", Collection, (actor, collection) =>
+  and(
+    !!collection?.isActive,
+    can(actor, "read", collection),
+    can(actor, "createCollection", actor.team)
+  )
+);
+
+allow(User, "download", Collection, (actor, collection) =>
+  and(
+    can(actor, "read", collection),
+    or(
+      and(!actor.isGuest, !actor.isViewer),
+      !!actor.team.getPreference(TeamPreference.ViewersCanExport)
+    )
+  )
+);
 
 allow(
   User,
@@ -158,10 +176,12 @@ allow(
         includesMembership(collection, [CollectionPermission.Admin]),
         and(
           collection?.templateManagement === CollectionPermission.ReadWrite,
-          !user.isViewer,
           !user.isGuest,
           or(
-            collection?.permission === CollectionPermission.ReadWrite,
+            and(
+              collection?.permission === CollectionPermission.ReadWrite,
+              !user.isViewer
+            ),
             includesMembership(collection, [
               CollectionPermission.ReadWrite,
               CollectionPermission.Admin,
@@ -172,10 +192,22 @@ allow(
     )
 );
 
-allow(User, ["update", "export", "archive"], Collection, (user, collection) =>
+allow(User, ["update", "archive"], Collection, (user, collection) =>
   and(
     !!collection,
     !!collection?.isActive,
+    or(
+      isTeamAdmin(user, collection),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
+
+allow(User, "export", Collection, (user, collection) =>
+  and(
+    !!collection,
+    !!collection?.isActive,
+    can(user, "download", collection),
     or(
       isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
@@ -202,6 +234,16 @@ allow(User, "restore", Collection, (user, collection) =>
       isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
+  )
+);
+
+allow(User, "updateDeprecatedReason", Collection, (actor, collection) =>
+  and(
+    !!collection?.archivedAt,
+    !collection?.deletedAt,
+    isTeamModel(actor, collection),
+    isTeamMutable(actor),
+    can(actor, "restore", collection)
   )
 );
 

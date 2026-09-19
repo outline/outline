@@ -6,6 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { parseEmail } from "@shared/utils/email";
 import { UserValidation } from "@shared/validations";
@@ -66,7 +67,7 @@ function Invite({ onSubmit }: Props) {
           toast.message(t("Those email addresses are already invited"));
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }
@@ -74,14 +75,20 @@ function Invite({ onSubmit }: Props) {
     [onSubmit, invites, role, t, users]
   );
 
-  const handleChange = React.useCallback((ev, index: number) => {
-    setInvites((prevInvites) => {
-      const newInvites = [...prevInvites];
-      newInvites[index][ev.target.name as keyof InviteRequest] =
-        ev.target.value;
-      return newInvites;
-    });
-  }, []);
+  const handleChange = React.useCallback(
+    (
+      ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+      index: number
+    ) => {
+      setInvites((prevInvites) => {
+        const newInvites = [...prevInvites];
+        newInvites[index][ev.target.name as keyof InviteRequest] =
+          ev.target.value;
+        return newInvites;
+      });
+    },
+    []
+  );
 
   const handleAdd = React.useCallback(() => {
     if (invites.length >= UserValidation.maxInvitesPerRequest) {

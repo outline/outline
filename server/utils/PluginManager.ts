@@ -7,11 +7,19 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
-import type { UnfurlSignature, UninstallSignature } from "@server/types";
+import type {
+  MentionSignature,
+  UnfurlSignature,
+  UninstallSignature,
+} from "@server/types";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
 import type { GroupSyncProvider } from "./GroupSyncProvider";
 import type { BaseSearchProvider } from "./BaseSearchProvider";
 
+/**
+ * The priority of a plugin, used to determine the order in which plugins of
+ * the same type are evaluated. Lower values are higher priority.
+ */
 export enum PluginPriority {
   VeryHigh = 0,
   High = 100,
@@ -30,6 +38,7 @@ export enum Hook {
   IssueProvider = "issueProvider",
   Processor = "processor",
   SearchProvider = "searchProvider",
+  MentionProvider = "mentionProvider",
   Task = "task",
   UnfurlProvider = "unfurl",
   Uninstall = "uninstall",
@@ -46,6 +55,7 @@ type PluginValueMap = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: typeof BaseEmail<any>;
   [Hook.IssueProvider]: BaseIssueProvider;
+  [Hook.MentionProvider]: MentionSignature;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.SearchProvider]: BaseSearchProvider;
   [Hook.Task]: typeof BaseTask<object>;
@@ -133,7 +143,9 @@ export class PluginManager {
   }
 
   /**
-   * Load plugin server components (anything in the `/server/` directory of a plugin will be loaded)
+   * Load plugin server components. Each plugin registers itself from a single
+   * `server/index` entry point, which imports any other modules it needs, so
+   * only the entry point is loaded here.
    */
   public static loadPlugins() {
     if (this.loaded) {
@@ -142,10 +154,20 @@ export class PluginManager {
     const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 
     glob
-      .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
-      .forEach((filePath: string) =>
-        require(path.join(process.cwd(), filePath))
-      );
+      .sync(path.join(rootDir, "plugins/*/server/index.[jt]s"))
+      .forEach((filePath: string) => {
+        try {
+          // oxlint-disable-next-line typescript/no-require-imports -- path is only known at runtime
+          require(path.join(process.cwd(), filePath));
+        } catch (err) {
+          // Isolate failures so a single broken plugin cannot prevent the rest
+          // of the application from starting.
+          Logger.error(
+            `Failed to load plugin at ${filePath}`,
+            err instanceof Error ? err : new Error(String(err))
+          );
+        }
+      });
     this.loaded = true;
   }
 

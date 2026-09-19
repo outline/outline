@@ -1,7 +1,7 @@
 import "prosemirror-view";
 
 declare module "prosemirror-view" {
-  import { ResolvedPos } from "prosemirror-model";
+  import { ResolvedPos, Slice } from "prosemirror-model";
   import { EditorView } from "prosemirror-view";
 
   export function __parseFromClipboard(
@@ -10,5 +10,5 @@ declare module "prosemirror-view" {
     html: string | null,
     plainText: boolean,
     $context: ResolvedPos
-  );
+  ): Slice | null;
 }

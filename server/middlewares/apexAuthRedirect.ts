@@ -1,4 +1,5 @@
 import type { Next } from "koa";
+import { toError } from "@shared/utils/error";
 import { parseDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
@@ -39,14 +40,17 @@ export default function apexAuthRedirect<T>({
       try {
         const team = await Team.findByPk(teamId, {
           attributes: ["id", "domain", "subdomain"],
-          rejectOnEmpty: true,
         });
+
+        if (!team) {
+          return ctx.redirect(getErrorPath(ctx));
+        }
 
         return parseDomain(ctx.host).teamSubdomain === team.subdomain
           ? ctx.redirect("/")
           : ctx.redirectOnClient(getRedirectPath(ctx, team));
       } catch (err) {
-        Logger.error("Error fetching team", err);
+        Logger.error("Error fetching team", toError(err));
         return ctx.redirect(getErrorPath(ctx));
       }
     } else {

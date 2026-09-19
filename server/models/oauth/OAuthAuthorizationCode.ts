@@ -1,4 +1,3 @@
-import { Matches } from "class-validator";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -13,7 +12,7 @@ import env from "@server/env";
 import User from "@server/models/User";
 import IdModel from "@server/models/base/IdModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
-import Fix from "@server/models/decorators/Fix";
+import IsScope from "@server/models/validators/IsScope";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 
@@ -22,7 +21,6 @@ import OAuthClient from "./OAuthClient";
   modelName: "oauth_authorization_code",
   updatedAt: false,
 })
-@Fix
 class OAuthAuthorizationCode extends IdModel<
   InferAttributes<OAuthAuthorizationCode>,
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>
@@ -36,15 +34,15 @@ class OAuthAuthorizationCode extends IdModel<
   /** A recognizable prefix for authorization codes. */
   public static authorizationCodePrefix = "ol_ac_";
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   authorizationCodeHash: string;
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   codeChallenge?: string;
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   codeChallengeMethod?: string;
 
@@ -57,14 +55,12 @@ class OAuthAuthorizationCode extends IdModel<
   grantId: string | null;
 
   /** A list of scopes that this authorization code has access to */
-  @Matches(/[/.\w\s]*/, {
-    each: true,
-  })
+  @IsScope
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];
 
   @Length({ max: OAuthClientValidation.maxRedirectUriLength })
-  @Column
+  @Column(DataType.STRING)
   redirectUri: string;
 
   @Column(DataType.DATE)
@@ -87,7 +83,8 @@ class OAuthAuthorizationCode extends IdModel<
   userId: string;
 
   /**
-   * Finds an OAuthAuthorizationCode by the given code.
+   * Finds an OAuthAuthorizationCode by the given code. Use `consume` to claim
+   * the code before a token is issued from it.
    *
    * @param input The code to search for
    * @returns The OAuthAuthentication if found
@@ -106,6 +103,24 @@ class OAuthAuthorizationCode extends IdModel<
         },
       ],
     });
+  }
+
+  /**
+   * Deletes the authorization code with the given code, so that it can only be
+   * exchanged once. The delete is atomic, so concurrent attempts to exchange one
+   * code result in a single successful caller.
+   *
+   * @param input The code to consume
+   * @returns True if this call consumed the code
+   */
+  public static async consume(input: string) {
+    const count = await this.destroy({
+      where: {
+        authorizationCodeHash: hash(input),
+      },
+    });
+
+    return count > 0;
   }
 }
 

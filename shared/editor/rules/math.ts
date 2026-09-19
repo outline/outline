@@ -4,7 +4,7 @@ import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
 
 export const REGEX_INLINE_MATH_DOLLARS = /\$\$(.+)\$\$$/;
 
-export const REGEX_BLOCK_MATH_DOLLARS = /\$\$\$\s+$/;
+export const REGEX_BLOCK_MATH_DOLLARS = /^\$\$\$\s+$/;
 
 const inlineMathDelimiter = "$";
 const blockMathDelimiter = "$$";
@@ -61,7 +61,7 @@ function mathInline(state: StateInline, silent: boolean): boolean {
   // we have found an opening delimiter already
   const start = state.pos + inlineMathDelimiter.length;
   match = start;
-  while ((match = state.src.indexOf(inlineMathDelimiter, match)) !== 1) {
+  while ((match = state.src.indexOf(inlineMathDelimiter, match)) !== -1) {
     // found potential delimeter, look for escapes, pos will point to
     // first non escape when complete
     pos = match - 1;
@@ -151,7 +151,7 @@ function mathDisplay(
     found = true;
   }
 
-  for (next = start; !found; ) {
+  for (next = start; !found;) {
     next++;
 
     if (next >= end) {
@@ -166,7 +166,10 @@ function mathDisplay(
       break;
     }
 
-    if (state.src.slice(pos, max).trim().slice(-3) === blockMathDelimiter) {
+    if (
+      state.src.slice(pos, max).trim().slice(-blockMathDelimiter.length) ===
+      blockMathDelimiter
+    ) {
       lastPos = state.src.slice(0, max).lastIndexOf(blockMathDelimiter);
       lastLine = state.src.slice(pos, lastPos);
       found = true;

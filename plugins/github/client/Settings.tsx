@@ -18,6 +18,7 @@ import Time from "~/components/Time";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { isTruthyQueryValue } from "~/utils/urls";
 import GitHubIcon from "./Icon";
 import { GitHubConnectButton } from "./components/GitHubButton";
 
@@ -57,7 +58,7 @@ function GitHub() {
           </Trans>
         </Notice>
       )}
-      {installRequest === "true" && (
+      {isTruthyQueryValue(installRequest) && (
         <Notice>
           <Trans>
             The owner of GitHub account has been requested to install the{" "}

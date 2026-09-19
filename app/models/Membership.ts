@@ -3,11 +3,15 @@ import type { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
 import User from "./User";
 import Model from "./base/Model";
-import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 
 class Membership extends Model {
   static modelName = "Membership";
+
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   userId: string;
 
@@ -21,13 +25,6 @@ class Membership extends Model {
 
   @observable
   permission: CollectionPermission;
-
-  // hooks
-
-  @AfterRemove
-  public static removeFromPolicies(model: Membership) {
-    model.store.rootStore.policies.removeForMembership(model.id);
-  }
 }
 
 export default Membership;

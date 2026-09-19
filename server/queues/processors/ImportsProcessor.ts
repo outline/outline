@@ -23,7 +23,9 @@ import {
   ImportTaskState,
   MentionType,
 } from "@shared/types";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
+import { UrlHelper } from "@shared/utils/UrlHelper";
+import { errToString } from "@shared/utils/error";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
@@ -58,8 +60,10 @@ export default abstract class ImportsProcessor<
    * @param event The import event
    */
   public async perform(event: ImportEvent) {
+    let sourceAttachment: Attachment | null = null;
+
     try {
-      await sequelize.transaction(async (transaction) => {
+      sourceAttachment = await sequelize.transaction(async (transaction) => {
         const importModel = await Import.findByPk<Import<T>>(event.modelId, {
           rejectOnEmpty: true,
           paranoid: false,
@@ -72,19 +76,23 @@ export default abstract class ImportsProcessor<
           importModel.state === ImportState.Errored ||
           importModel.state === ImportState.Canceled
         ) {
-          return;
+          return null;
         }
 
         switch (event.name) {
           case "imports.create":
-            return this.onCreation(importModel, transaction);
+            await this.onCreation(importModel, transaction);
+            return null;
 
           case "imports.processed":
             return this.onProcessed(importModel, transaction);
 
           case "imports.delete":
-            return this.onDeletion(importModel, event, transaction);
+            await this.onDeletion(importModel, event, transaction);
+            return null;
         }
+
+        return null;
       });
     } catch (err) {
       if (event.name !== "imports.delete" && err instanceof Error) {
@@ -97,6 +105,21 @@ export default abstract class ImportsProcessor<
       }
 
       throw err; // throw error for retry.
+    }
+
+    if (!sourceAttachment) {
+      return;
+    }
+
+    try {
+      await sourceAttachment.destroy();
+    } catch (err) {
+      Logger.warn("Failed to delete source attachment after import", {
+        attachmentId: sourceAttachment.id,
+        importId: event.modelId,
+        message: errToString(err),
+        teamId: event.teamId,
+      });
     }
   }
 
@@ -166,9 +189,12 @@ export default abstract class ImportsProcessor<
    *
    * @param importModel Import model associated with the event.
    * @param transaction Sequelize transaction.
-   * @returns Promise that resolves when mapping and persistence is completed.
+   * @returns Source attachment to delete after the transaction commits.
    */
-  private async onProcessed(importModel: Import<T>, transaction: Transaction) {
+  private async onProcessed(
+    importModel: Import<T>,
+    transaction: Transaction
+  ): Promise<Attachment | null> {
     try {
       const { collections } = await this.createCollectionsAndDocuments({
         importModel,
@@ -202,7 +228,9 @@ export default abstract class ImportsProcessor<
         await collection.save({ silent: true, transaction });
       }
 
+      const storageKey = importModel.scratch?.storageKey;
       importModel.state = ImportState.Completed;
+      importModel.scratch = null;
       importModel.error = null; // unset any error from previous attempts.
       await importModel.saveWithCtx(
         createContext({
@@ -210,6 +238,18 @@ export default abstract class ImportsProcessor<
           transaction,
         })
       );
+
+      if (storageKey) {
+        return Attachment.findOne({
+          where: {
+            key: storageKey,
+            teamId: importModel.teamId,
+          },
+          transaction,
+        });
+      }
+
+      return null;
     } catch (err) {
       if (err instanceof UniqueConstraintError) {
         Logger.error(
@@ -251,7 +291,7 @@ export default abstract class ImportsProcessor<
 
     const collections = await Collection.findAll({
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       where: {
         teamId: importModel.teamId,
         apiImportId: importModel.id,
@@ -307,6 +347,42 @@ export default abstract class ImportsProcessor<
 
     let collectionIdx = firstCollection?.index ?? null;
 
+    // Pre-pass: allocate new urlIds for every collection and document in this
+    // import so internal link hrefs in document content can be rewritten to
+    // point at the new paths during persistence. The map is keyed by the old
+    // urlId from the export, which is what appears in `/doc/<slug>-<urlId>`
+    // and `/collection/<slug>-<urlId>` link hrefs.
+    const urlIdMap: Record<string, { urlId: string; title: string }> = {};
+
+    await ImportTask.findAllInBatches<ImportTask<T>>(
+      {
+        where: { importId: importModel.id },
+        order: [
+          ["createdAt", "ASC"],
+          ["id", "ASC"],
+        ],
+        batchLimit: 5,
+        transaction,
+      },
+      async (importTasks) => {
+        for (const importTask of importTasks) {
+          for (const output of importTask.output ?? []) {
+            if (!output.urlId || urlIdMap[output.urlId]) {
+              continue;
+            }
+            const isCollection = !!importInput[output.externalId];
+            const allocated = isCollection
+              ? await this.preserveCollectionUrlId(output.urlId, transaction)
+              : await this.preserveDocumentUrlId(output.urlId, transaction);
+            urlIdMap[output.urlId] = {
+              urlId: allocated,
+              title: output.title,
+            };
+          }
+        }
+      }
+    );
+
     await ImportTask.findAllInBatches<ImportTask<T>>(
       {
         where: { importId: importModel.id },
@@ -353,11 +429,12 @@ export default abstract class ImportsProcessor<
               transaction,
             });
 
-            const transformedContent = await this.updateMentionsAndAttachments({
+            const transformedContent = await this.rewriteReferences({
               content: output.content,
               attachments,
               importInput,
               idMap,
+              urlIdMap,
               actorId: importModel.createdById,
               teamId: importModel.teamId,
             });
@@ -388,10 +465,9 @@ export default abstract class ImportsProcessor<
                 createdByName: output.author,
               };
 
-              const urlId = await this.preserveCollectionUrlId(
-                output.urlId,
-                transaction
-              );
+              const urlId = output.urlId
+                ? urlIdMap[output.urlId]?.urlId
+                : undefined;
 
               const collection = Collection.build({
                 id: internalId,
@@ -439,10 +515,9 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
-            const urlId = await this.preserveDocumentUrlId(
-              output.urlId,
-              transaction
-            );
+            const urlId = output.urlId
+              ? urlIdMap[output.urlId]?.urlId
+              : undefined;
 
             const defaults = {
               title: output.title,
@@ -519,19 +594,25 @@ export default abstract class ImportsProcessor<
   }
 
   /**
-   * Transform the mentions and attachments in ProseMirrorDoc to their internal references.
+   * Rewrite the mentions, attachments, and internal document/collection link
+   * marks in a ProseMirrorDoc so they resolve against the imported models
+   * rather than the source export.
    *
    * @param content ProseMirrorDoc that represents collection (or) document content.
    * @param attachments Array of attachment models created for the import.
    * @param idMap Map of internalId to externalId.
+   * @param urlIdMap Map of old urlId to the newly allocated urlId and title,
+   *   used to rewrite `/doc/<slug>-<urlId>` and `/collection/<slug>-<urlId>`
+   *   link hrefs.
    * @param importInput Contains the root externalId and associated info which were used to create the import.
    * @param actorId ID of the user who created the import.
    * @returns Updated ProseMirrorDoc.
    */
-  private async updateMentionsAndAttachments({
+  private async rewriteReferences({
     content,
     attachments,
     idMap,
+    urlIdMap,
     importInput,
     actorId,
     teamId,
@@ -539,6 +620,7 @@ export default abstract class ImportsProcessor<
     content: ProsemirrorDoc;
     attachments: Attachment[];
     idMap: Record<string, string>;
+    urlIdMap: Record<string, { urlId: string; title: string }>;
     // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
@@ -551,6 +633,7 @@ export default abstract class ImportsProcessor<
 
     const attachmentsMap = keyBy(attachments, "id");
     const doc = ProsemirrorHelper.toProsemirror(content);
+    const linkMarkType = schema.marks.link;
 
     const transformMentionNode = async (node: Node): Promise<Node> => {
       const json = node.toJSON() as ProsemirrorData;
@@ -581,6 +664,55 @@ export default abstract class ImportsProcessor<
       return Node.fromJSON(schema, json);
     };
 
+    const rewriteInternalLinkHref = (href: string): string => {
+      const docMatch = /^\/doc\/([^/?#]+)(.*)$/.exec(href);
+      if (docMatch) {
+        const slugMatch = UrlHelper.SLUG_URL_REGEX.exec(docMatch[1]);
+        const mapped = slugMatch ? urlIdMap[slugMatch[1]] : undefined;
+        if (mapped) {
+          return (
+            Document.getPath({ title: mapped.title, urlId: mapped.urlId }) +
+            docMatch[2]
+          );
+        }
+      }
+      const collectionMatch = /^\/collection\/([^/?#]+)(.*)$/.exec(href);
+      if (collectionMatch) {
+        const slugMatch = UrlHelper.SLUG_URL_REGEX.exec(collectionMatch[1]);
+        const mapped = slugMatch ? urlIdMap[slugMatch[1]] : undefined;
+        if (mapped) {
+          return (
+            Collection.getPath({ name: mapped.title, urlId: mapped.urlId }) +
+            collectionMatch[2]
+          );
+        }
+      }
+      return href;
+    };
+
+    const transformLinkMarks = (node: Node): Node => {
+      if (!node.marks.length) {
+        return node;
+      }
+      let changed = false;
+      const newMarks = node.marks.map((mark) => {
+        if (mark.type !== linkMarkType) {
+          return mark;
+        }
+        const href = mark.attrs.href as string | undefined;
+        if (!href) {
+          return mark;
+        }
+        const newHref = rewriteInternalLinkHref(href);
+        if (newHref === href) {
+          return mark;
+        }
+        changed = true;
+        return linkMarkType.create({ ...mark.attrs, href: newHref });
+      });
+      return changed ? node.mark(newMarks) : node;
+    };
+
     const transformFragment = async (fragment: Fragment): Promise<Fragment> => {
       const nodePromises: Promise<Node>[] = [];
 
@@ -592,7 +724,7 @@ export default abstract class ImportsProcessor<
         } else {
           nodePromises.push(
             transformFragment(node.content).then((transformedContent) =>
-              node.copy(transformedContent)
+              transformLinkMarks(node.copy(transformedContent))
             )
           );
         }
@@ -703,20 +835,16 @@ export default abstract class ImportsProcessor<
 
   /**
    * Honors a urlId from a document export if it does not collide with an
-   * existing Document, otherwise generates a fresh one. Returns `undefined`
-   * when no urlId is supplied (so the model's default applies).
+   * existing Document, otherwise generates a fresh one.
    *
    * @param sourceUrlId The urlId requested by the importer.
    * @param transaction Active sequelize transaction.
-   * @returns A urlId to use, or undefined to fall through to the default.
+   * @returns A urlId to use.
    */
   private async preserveDocumentUrlId(
-    sourceUrlId: string | undefined,
+    sourceUrlId: string,
     transaction: Transaction
-  ): Promise<string | undefined> {
-    if (!sourceUrlId) {
-      return undefined;
-    }
+  ): Promise<string> {
     const existing = await Document.unscoped().findOne({
       attributes: ["id"],
       paranoid: false,
@@ -728,20 +856,16 @@ export default abstract class ImportsProcessor<
 
   /**
    * Honors a urlId from a collection export if it does not collide with an
-   * existing Collection, otherwise generates a fresh one. Returns `undefined`
-   * when no urlId is supplied (so the model's default applies).
+   * existing Collection, otherwise generates a fresh one.
    *
    * @param sourceUrlId The urlId requested by the importer.
    * @param transaction Active sequelize transaction.
-   * @returns A urlId to use, or undefined to fall through to the default.
+   * @returns A urlId to use.
    */
   private async preserveCollectionUrlId(
-    sourceUrlId: string | undefined,
+    sourceUrlId: string,
     transaction: Transaction
-  ): Promise<string | undefined> {
-    if (!sourceUrlId) {
-      return undefined;
-    }
+  ): Promise<string> {
     const existing = await Collection.unscoped().findOne({
       attributes: ["id"],
       paranoid: false,

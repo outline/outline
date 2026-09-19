@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "./useStores";
 
@@ -13,13 +13,15 @@ export function usePinnedDocuments(urlId: UrlId, collectionId?: string) {
     0
   );
 
-  function getPins() {
-    return urlId === "home"
-      ? pins.home
-      : collectionId
-        ? pins.inCollection(collectionId)
-        : [];
-  }
+  const getPins = useCallback(
+    () =>
+      urlId === "home"
+        ? pins.home
+        : collectionId
+          ? pins.inCollection(collectionId)
+          : [],
+    [urlId, collectionId, pins]
+  );
 
   useEffect(() => {
     void pins
@@ -27,7 +29,7 @@ export function usePinnedDocuments(urlId: UrlId, collectionId?: string) {
       .then(() => {
         setPinsCacheCount(getPins().length);
       });
-  }, [collectionId, pins]);
+  }, [urlId, collectionId, pins, getPins, setPinsCacheCount]);
 
   return {
     count: pinsCacheCount,

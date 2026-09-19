@@ -6,6 +6,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Squircle from "@shared/components/Squircle";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import type Collection from "~/models/Collection";
@@ -30,12 +31,11 @@ type Props = {
   collection: Collection;
   /** The existing share model, if any. */
   share: Share | null | undefined;
+  /** Ref to the container element. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function InnerPublicAccess(
-  { collection, share }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function InnerPublicAccess({ collection, share, ref }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const theme = useTheme();
@@ -71,7 +71,7 @@ function InnerPublicAccess(
           }
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setCreating(false);
       }
@@ -100,7 +100,8 @@ function InnerPublicAccess(
                 urlId: isEmpty(val) ? null : val,
               });
             } catch (err) {
-              if (err.message.includes("must be unique")) {
+              const message = errToString(err);
+              if (message.includes("must be unique")) {
                 setValidationError(t("Sorry, this link has already been used"));
               }
             }
@@ -183,4 +184,4 @@ function InnerPublicAccess(
   );
 }
 
-export const PublicAccess = observer(React.forwardRef(InnerPublicAccess));
+export const PublicAccess = observer(InnerPublicAccess);

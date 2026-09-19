@@ -24,6 +24,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: existing.name,
       email: newEmail,
+      emailVerified: true,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       authentication: {
@@ -42,6 +43,30 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(false);
   });
 
+  it("should not update existing user email on re-login when unverified", async () => {
+    const existing = await buildUser();
+    const originalEmail = existing.email;
+    const authentications = await existing.$get("authentications");
+    const existingAuth = authentications[0];
+    const result = await userProvisioner(ctx, {
+      name: existing.name,
+      email: "victim@example.com",
+      emailVerified: false,
+      avatarUrl: existing.avatarUrl,
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: existingAuth.authenticationProviderId,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    expect(result.user.email).toEqual(originalEmail);
+
+    await existing.reload();
+    expect(existing.email).toEqual(originalEmail);
+  });
+
   it("should add authentication provider to existing users", async () => {
     const team = await buildTeam({ inviteRequired: true });
     const teamAuthProviders = await team.$get("authenticationProviders");
@@ -57,6 +82,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: existing.name,
       email,
+      emailVerified: true,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       authentication: {
@@ -77,6 +103,34 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(false);
   });
 
+  it("should not match an existing user by email when email is unverified", async () => {
+    const team = await buildTeam();
+    const teamAuthProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = teamAuthProviders[0];
+
+    const email = "mynam@email.com";
+    await buildUser({
+      email,
+      teamId: team.id,
+      authentications: [],
+    });
+
+    await expect(
+      userProvisioner(ctx, {
+        name: "Imposter",
+        email,
+        emailVerified: false,
+        teamId: team.id,
+        authentication: {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      })
+    ).rejects.toThrow("has not been verified by");
+  });
+
   it("should add authentication provider to invited users", async () => {
     const team = await buildTeam({ inviteRequired: true });
     const teamAuthProviders = await team.$get("authenticationProviders");
@@ -91,6 +145,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: existing.name,
       email,
+      emailVerified: true,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       authentication: {
@@ -170,6 +225,41 @@ describe("userProvisioner", () => {
     );
     expect(authentication?.accessToken).toEqual("123");
     expect(isNewUser).toEqual(false);
+  });
+
+  it("should not match an existing authentication from a different provider", async () => {
+    const existing = await buildUser();
+    const authentications = await existing.$get("authentications");
+    const existingAuth = authentications[0];
+    const originalProviderId = existingAuth.authenticationProviderId;
+
+    // A second provider of a different type, where the attacker is able to
+    // present the same external identifier as the existing user.
+    const otherAuthProvider = await AuthenticationProvider.create({
+      name: "oidc",
+      providerId: randomString(32),
+      teamId: existing.teamId,
+    });
+
+    const { user, isNewUser } = await userProvisioner(ctx, {
+      name: "Attacker",
+      email: "attacker@example.com",
+      emailVerified: false,
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: otherAuthProvider.id,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(isNewUser).toEqual(true);
+    expect(user.id).not.toEqual(existing.id);
+
+    await existingAuth.reload();
+    expect(existingAuth.authenticationProviderId).toEqual(originalProviderId);
+    expect(existingAuth.accessToken).not.toEqual("123");
   });
 
   it("should create a new user", async () => {
@@ -264,6 +354,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: invite.name,
       email: "invite@ExamPle.com",
+      emailVerified: true,
       teamId: invite.teamId,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
@@ -295,6 +386,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: invite.name,
       email: "external@ExamPle.com", // ensure that email is case insensistive
+      emailVerified: true,
       teamId: invite.teamId,
     });
     const { user, authentication, isNewUser } = result;
@@ -340,6 +432,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: faker.person.fullName(),
       email,
+      emailVerified: true,
       teamId: team.id,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
@@ -357,6 +450,36 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
+  it("should reject an unverified email when the team has allowed domains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const domain = faker.internet.domainName();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: domain,
+      createdById: admin.id,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    const email = faker.internet.email({ provider: domain });
+
+    await expect(
+      userProvisioner(ctx, {
+        name: faker.person.fullName(),
+        email,
+        emailVerified: false,
+        teamId: team.id,
+        authentication: {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: "fake-service-id",
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      })
+    ).rejects.toThrow("has not been verified by");
+  });
+
   it("should create a user from allowed domain with emailMatchOnly", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
@@ -372,6 +495,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: "Test Name",
       email,
+      emailVerified: true,
       teamId: team.id,
     });
     const { user, authentication, isNewUser } = result;
@@ -408,6 +532,7 @@ describe("userProvisioner", () => {
       userProvisioner(ctx, {
         name: "Bad Domain User",
         email: faker.internet.email(),
+        emailVerified: true,
         teamId: team.id,
         authentication: {
           authenticationProviderId: authenticationProvider.id,

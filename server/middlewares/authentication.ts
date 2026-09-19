@@ -1,5 +1,6 @@
 import type { Next } from "koa";
 import { capitalize } from "es-toolkit/compat";
+import httpErrors from "http-errors";
 import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import tracer, {
@@ -9,21 +10,35 @@ import tracer, {
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
 import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
-import { getUserForJWT } from "@server/utils/jwt";
+import { getJWTPayload, getUserForJWT } from "@server/utils/jwt";
 import {
   AuthenticationError,
   AuthorizationError,
   UserSuspendedError,
 } from "../errors";
 
-type AuthenticationOptions = {
+type BaseAuthenticationOptions = {
   /** Role required to access the route. */
   role?: UserRole;
   /** Type of authentication required to access the route. */
   type?: AuthenticationType | AuthenticationType[];
-  /** Authentication is parsed, but optional. */
-  optional?: boolean;
 };
+
+type AuthenticationOptions =
+  | (BaseAuthenticationOptions & {
+      /** Authentication is required. */
+      optional?: false;
+      skip?: never;
+    })
+  | (BaseAuthenticationOptions & {
+      /** Authentication is parsed, but optional. */
+      optional: true;
+      /**
+       * Returns true when the request is authorized by other means, in which
+       * case any credentials on the request are ignored rather than parsed.
+       */
+      skip?: (ctx: AppContext) => boolean;
+    });
 
 type AuthTransport = "cookie" | "header" | "body" | "query";
 
@@ -36,6 +51,11 @@ type AuthInput = {
 
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
+    if (options.skip?.(ctx)) {
+      ctx.state.auth = {};
+      return next();
+    }
+
     try {
       const { type, token, user, service, scope } =
         await validateAuthentication(ctx, options);
@@ -64,7 +84,9 @@ export default function auth(options: AuthenticationOptions = {}) {
         );
       }
     } catch (err) {
-      if (options.optional) {
+      // Credentials that are valid but insufficient are always surfaced,
+      // otherwise the request would be silently downgraded to anonymous.
+      if (options.optional && !(err instanceof httpErrors.Forbidden)) {
         ctx.state.auth = {};
       } else {
         throw err;
@@ -240,6 +262,19 @@ async function validateAuthentication(
     scope = apiKey.scope ?? ["*"];
     await apiKey.updateActiveAt();
   } else {
+    // Session tokens are long-lived, so keep them out of transports that end up
+    // in browser history, referrers, and request logs. Short-lived single-use
+    // tokens such as transfer are still accepted from anywhere.
+    if (transport !== "cookie" && transport !== "header") {
+      const payload = getJWTPayload(token);
+
+      if (payload.type === "session") {
+        throw AuthenticationError(
+          "Session token must be passed in the cookie or Authorization header"
+        );
+      }
+    }
+
     type = AuthenticationType.APP;
     const result = await getUserForJWT(token);
     user = result.user;

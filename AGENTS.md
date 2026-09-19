@@ -9,7 +9,7 @@ There is a web client which is fully responsive and works on mobile devices.
 - **`shared/`** - Shared TypeScript types, utilities, and editor components
 - **`plugins/`** - Plugin system for extending functionality
 - **`public/`** - Static assets served directly
-- **Various config files** - TypeScript, Vite, Vitest, Prettier, Oxlint configurations
+- **Various config files** - TypeScript, Vite, Vitest, oxfmt, Oxlint configurations
 
 Refer to /docs/ARCHITECTURE.md for detailed architecture documentation.
 
@@ -33,7 +33,7 @@ You're an expert in the following areas:
 - Critical – Do not create new markdown (.md) files.
 - Use early returns for readability.
 - Emphasize type safety and static analysis.
-- Follow consistent Prettier formatting.
+- Follow consistent oxfmt formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
 - Do not add translation strings manually; they will be extracted automatically from the codebase.
 
@@ -168,6 +168,7 @@ yarn test:shared   # All shared code tests
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.
+- Server tests share a module registry between files. A server test that uses `vi.mock` or `vi.resetModules` must start with `// @vitest-isolate true` so it runs isolated.
 - Do not create new test directories
 - Mock external dependencies appropriately in **mocks** folder.
 - Aim for high code coverage but focus on critical paths.
@@ -175,7 +176,7 @@ yarn test:shared   # All shared code tests
 ## Code Quality
 
 - Use Oxlint for linting: `yarn lint`
-- Format code with Prettier: `yarn format`
+- Format code with oxfmt: `yarn format`
 - Check types with TypeScript: `yarn tsc`
 - Pre-commit hooks run automatically via Husky.
 - Fix linting issues before committing.

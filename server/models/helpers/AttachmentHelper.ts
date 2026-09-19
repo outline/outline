@@ -1,6 +1,9 @@
 import { addHours } from "date-fns";
 import { AttachmentPreset } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
+import Logger from "@server/logging/Logger";
+import type Attachment from "@server/models/Attachment";
 import { ValidateKey } from "@server/validation";
 import { AttachmentValidation } from "@shared/validations";
 
@@ -112,6 +115,27 @@ export default class AttachmentHelper {
       case AttachmentPreset.DocumentAttachment:
       default:
         return env.FILE_STORAGE_UPLOAD_MAX_SIZE;
+    }
+  }
+
+  /**
+   * Read the contents of an attachment from storage. An attachment that cannot
+   * be read is treated as empty so that a single missing file does not fail the
+   * export it is part of.
+   *
+   * @param attachment The attachment to read
+   * @returns The contents of the attachment.
+   */
+  static async readBuffer(attachment: Attachment): Promise<Buffer> {
+    try {
+      return await attachment.buffer;
+    } catch (err) {
+      Logger.warn(`Failed to read attachment from storage`, {
+        attachmentId: attachment.id,
+        teamId: attachment.teamId,
+        error: errToString(err),
+      });
+      return Buffer.from("");
     }
   }
 }

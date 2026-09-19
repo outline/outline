@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { errToString } from "@shared/utils/error";
 import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -41,13 +42,17 @@ const LoadingState = observer(function LoadingState() {
   const { id } = useParams<{ id: string }>();
   const { oauthClients } = useStores();
   const oauthClient = oauthClients.get(id);
-  const { request } = useRequest(() => oauthClients.fetch(id));
+  const fetchOAuthClient = useCallback(
+    () => oauthClients.fetch(id),
+    [oauthClients, id]
+  );
+  const { request } = useRequest(fetchOAuthClient);
 
   useEffect(() => {
     if (!oauthClient) {
       void request();
     }
-  }, [oauthClient]);
+  }, [oauthClient, request]);
 
   if (!oauthClient) {
     return <LoadingIndicator />;
@@ -103,7 +108,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             : t("Application updated")
         );
       } catch (error) {
-        toast.error(error.message);
+        toast.error(errToString(error));
       }
     },
     [oauthClient, t]
@@ -115,7 +120,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
         await oauthClient.rotateClientSecret();
         toast.success(t("Client secret rotated"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     };
 

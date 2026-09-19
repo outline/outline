@@ -23,11 +23,14 @@ import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
 import { isCurrency, parseCurrency } from "../../utils/currency";
 import { parseDate } from "../../utils/date";
+import { isIPv4Address, parseIPv4 } from "../../utils/ip";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
   getAllSelectedColumns,
   getCellsInColumn,
   getCellsInRow,
+  getCellsInSelectedColumns,
+  getCellsInSelectedRows,
   isHeaderEnabled,
   isTableSelected,
   getWidthFromDom,
@@ -61,8 +64,40 @@ function restoreColumnSelection(
     const map = TableMap.get(table);
     const pos = map.positionAt(0, columnIndex, table);
     const $pos = tr.doc.resolve(tableStart + pos);
-    tr.setSelection(ColumnSelection.colSelection($pos));
+    tr.setSelection(ColumnSelection.colSelection($pos, $pos, columnIndex));
   }
+}
+
+/**
+ * A command that places a text cursor at the start of the cell at the given row
+ * and column index within the table that begins at the given position. Used
+ * after inserting a row or column so that the selection lands inside the newly
+ * inserted cell rather than the shifted neighbouring one.
+ *
+ * @param tableStart The position inside the table (after the table node).
+ * @param rowIndex The row index of the target cell.
+ * @param columnIndex The column index of the target cell.
+ * @returns The command.
+ */
+function setCursorInCell(
+  tableStart: number,
+  rowIndex: number,
+  columnIndex: number
+): Command {
+  return (state, dispatch) => {
+    const table = state.doc.nodeAt(tableStart - 1);
+    if (!table) {
+      return false;
+    }
+    const map = TableMap.get(table);
+    if (rowIndex >= map.height || columnIndex >= map.width) {
+      return false;
+    }
+    const pos = map.positionAt(rowIndex, columnIndex, table);
+    const $pos = state.doc.resolve(tableStart + pos + 1);
+    dispatch?.(state.tr.setSelection(TextSelection.near($pos)));
+    return true;
+  };
 }
 
 export function createTable({
@@ -366,92 +401,95 @@ export function sortTable({
       // column data before sort
       const columnData = rows.map(getCellContent);
 
-      // determine sorting type: date, currency, number, or text
+      // determine sorting type: date, currency, IP address, number, or text
       let compareAsDate = false;
       let compareAsCurrency = false;
+      let compareAsIP = false;
       let compareAsNumber = false;
 
       const nonEmptyCells = columnData
         .map((content) => content.trim())
         .filter((content): content is string => content.length > 0);
       if (nonEmptyCells.length > 0) {
-        // check if all non-empty cells are valid dates
+        // Dates require every cell to match; `every` short-circuits on the first
+        // miss, so the expensive date parsing is skipped for non-date columns.
         compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
 
-        // if not dates, check if cells are currency values
-        // treat as currency if at least 50% of non-empty cells look like currency values
         if (!compareAsDate) {
-          const currencyCells = nonEmptyCells.filter((cell) =>
-            isCurrency(cell)
-          );
-          const currencyRatio = currencyCells.length / nonEmptyCells.length;
-          compareAsCurrency = currencyCells.length >= 2 && currencyRatio >= 0.5;
-        }
+          // Tally the remaining candidate types in a single pass. The checks are
+          // mutually exclusive and ordered by priority — IP must come before the
+          // number check, as IPs would otherwise be parsed as truncated numbers.
+          let currencyCount = 0;
+          let ipCount = 0;
+          let numberCount = 0;
+          for (const cell of nonEmptyCells) {
+            if (isCurrency(cell)) {
+              currencyCount++;
+            } else if (isIPv4Address(cell)) {
+              ipCount++;
+            } else if (!isNaN(parseFloat(cell))) {
+              numberCount++;
+            }
+          }
 
-        // if not currency, check if cells are numbers (same logic)
-        if (!compareAsDate && !compareAsCurrency) {
-          const numberCells = nonEmptyCells.filter(
-            (cell) => !isNaN(parseFloat(cell))
-          );
-          const numberRatio = numberCells.length / nonEmptyCells.length;
-          compareAsNumber = numberCells.length >= 2 && numberRatio >= 0.5;
+          // Treat as a type if at least 2 cells match and they form a majority.
+          const isMajority = (count: number) =>
+            count >= 2 && count / nonEmptyCells.length >= 0.5;
+          if (isMajority(currencyCount)) {
+            compareAsCurrency = true;
+          } else if (isMajority(ipCount)) {
+            compareAsIP = true;
+          } else if (isMajority(numberCount)) {
+            compareAsNumber = true;
+          }
         }
       }
 
-      // sort rows based on column at index
-      rows.sort((a, b) => {
-        const aContent = getCellContent(a);
-        const bContent = getCellContent(b);
-
-        // empty cells always go to the end
-        if (!aContent) {
-          return bContent ? 1 : 0;
+      // Extracts a comparable value for the detected column type. Returns null
+      // for empty or non-matching cells, which always sort to the end.
+      const getSortValue = (content: string): number | string | null => {
+        if (!content) {
+          return null;
         }
-        if (!bContent) {
+        if (compareAsDate) {
+          return parseDate(content)?.getTime() ?? null;
+        }
+        if (compareAsCurrency) {
+          return parseCurrency(content);
+        }
+        if (compareAsIP) {
+          return parseIPv4(content);
+        }
+        if (compareAsNumber) {
+          const num = parseFloat(content);
+          return isNaN(num) ? null : num;
+        }
+        return content;
+      };
+
+      // Sort rows based on column at index. The comparator is direction-aware
+      // rather than reversing afterwards, so the sort stays stable in both
+      // directions — equal cells keep their prior order, which lets sorts be
+      // chained to build a multi-key order (e.g. sort by IP, then by VLAN).
+      const directionMultiplier = direction === "desc" ? -1 : 1;
+      rows.sort((a, b) => {
+        const aValue = getSortValue(getCellContent(a));
+        const bValue = getSortValue(getCellContent(b));
+
+        // empty or non-matching cells always go to the end, regardless of direction
+        if (aValue === null) {
+          return bValue === null ? 0 : 1;
+        }
+        if (bValue === null) {
           return -1;
         }
 
-        if (compareAsDate) {
-          const aDate = parseDate(aContent);
-          const bDate = parseDate(bContent);
-          // non-date cells go to the end (like empty cells)
-          if (!aDate) {
-            return bDate ? 1 : 0;
-          }
-          if (!bDate) {
-            return -1;
-          }
-          return aDate.getTime() - bDate.getTime();
-        } else if (compareAsCurrency) {
-          const aValue = parseCurrency(aContent);
-          const bValue = parseCurrency(bContent);
-          // non-currency cells go to the end (like empty cells)
-          if (aValue === null) {
-            return bValue !== null ? 1 : 0;
-          }
-          if (bValue === null) {
-            return -1;
-          }
-          return aValue - bValue;
-        } else if (compareAsNumber) {
-          const aNum = parseFloat(aContent);
-          const bNum = parseFloat(bContent);
-          // non-number cells go to the end (like empty cells)
-          if (isNaN(aNum)) {
-            return !isNaN(bNum) ? 1 : 0;
-          }
-          if (isNaN(bNum)) {
-            return -1;
-          }
-          return aNum - bNum;
-        } else {
-          return aContent.localeCompare(bContent);
-        }
+        const result =
+          typeof aValue === "string"
+            ? aValue.localeCompare(bValue as string)
+            : aValue - (bValue as number);
+        return directionMultiplier * result;
       });
-
-      if (direction === "desc") {
-        rows.reverse();
-      }
 
       // check if column data changed, if not then do not replace table
       if (columnData.join() === rows.map(getCellContent).join()) {
@@ -522,7 +560,7 @@ export function addRowBefore({ index }: { index?: number }): Command {
       (s, d) =>
         !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
       headerSpecialCase ? toggleHeader("row") : undefined,
-      collapseSelection()
+      setCursorInCell(rect.tableStart, position, 0)
     )(state, dispatch);
 
     return true;
@@ -588,7 +626,61 @@ export function addColumnBefore({ index }: { index?: number }): Command {
       headerSpecialCase ? toggleHeader("column") : undefined,
       (s, d) => !!d?.(addColumn(s.tr, rect, position)),
       headerSpecialCase ? toggleHeader("column") : undefined,
-      collapseSelection()
+      setCursorInCell(rect.tableStart, 0, position)
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
+/**
+ * A command that adds a row after the given index (or the current selection),
+ * copying alignment from the row above and placing the cursor in the new row.
+ *
+ * @param index The index of the row to add after, if undefined the current selection is used
+ * @returns The command
+ */
+export function addRowAfter({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const position = index !== undefined ? index + 1 : rect.bottom;
+
+    // Copy alignment from the row above the insertion point.
+    const copyFromRow = position - 1;
+
+    chainTransactions(
+      (s, d) =>
+        !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
+      setCursorInCell(rect.tableStart, position, 0)
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
+/**
+ * A command that adds a column after the given index (or the current selection),
+ * placing the cursor in the new column.
+ *
+ * @param index The index of the column to add after, if undefined the current selection is used
+ * @returns The command
+ */
+export function addColumnAfter({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const position = index !== undefined ? index + 1 : rect.right;
+
+    chainTransactions(
+      (s, d) => !!d?.(addColumn(s.tr, rect, position)),
+      setCursorInCell(rect.tableStart, 0, position)
     )(state, dispatch);
 
     return true;
@@ -666,7 +758,10 @@ export function setColumnAttr({
 
     if (dispatch) {
       const rect = selectedRect(state);
-      const cells = getCellsInColumn(index)(state) || [];
+      // Apply to every selected column so that aligning a span of columns – or a
+      // column whose header cell spans multiple columns – affects all of them,
+      // not just the first.
+      const cells = getCellsInSelectedColumns(state, index);
       let tr = state.tr;
       cells.forEach((pos) => {
         const node = state.doc.nodeAt(pos);
@@ -677,6 +772,53 @@ export function setColumnAttr({
       });
 
       restoreColumnSelection(tr, rect.tableStart, index);
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
+ * Set row attributes. Passed attributes will be merged with existing.
+ *
+ * Note: Cell alignment is a per-cell attribute, so aligning a row cannot be
+ * represented in the markdown serialization of the table (which only supports
+ * per-column alignment) – it is preserved in the collaborative document.
+ *
+ * @param attrs The attributes to set
+ * @returns The command
+ */
+export function setRowAttr({
+  index,
+  alignment,
+}: {
+  index: number;
+  alignment: string;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const rect = selectedRect(state);
+      // Apply to every selected row so that aligning a span of rows – or a row
+      // whose cell spans multiple rows – affects all of them, not just the first.
+      const cells = getCellsInSelectedRows(state, index);
+      let tr = state.tr;
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        tr = tr.setNodeMarkup(pos, undefined, {
+          ...node?.attrs,
+          alignment,
+        });
+      });
+
+      // Preserve the original row selection after aligning.
+      const pos = rect.map.positionAt(index, 0, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(RowSelection.rowSelection($pos, $pos, index));
+
       dispatch(tr);
     }
     return true;
@@ -710,34 +852,98 @@ export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
   };
 }
 
+/**
+ * Select a row in the table.
+ *
+ * @param index The index of the row to select.
+ * @param expand Whether to extend the existing selection to include every row
+ * between its anchor and the given row.
+ * @returns A command that selects the row.
+ */
 export function selectRow(index: number, expand = false): Command {
   return (state: EditorState, dispatch): boolean => {
     if (dispatch) {
       const rect = selectedRect(state);
       const pos = rect.map.positionAt(index, 0, rect.table);
       const $pos = state.doc.resolve(rect.tableStart + pos);
-      const rowSelection =
-        expand && state.selection instanceof CellSelection
-          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos, index)
-          : RowSelection.rowSelection($pos, $pos, index);
-      dispatch(state.tr.setSelection(rowSelection));
+      const { selection } = state;
+      const expandFrom =
+        expand && selection instanceof CellSelection ? selection : undefined;
+
+      if (expandFrom) {
+        // Keep the anchor where the selection started so that the rows between
+        // it and the clicked row are all included.
+        const anchorIndex =
+          expandFrom instanceof RowSelection
+            ? expandFrom.anchorIndex
+            : rect.map.findCell(expandFrom.$anchorCell.pos - rect.tableStart)
+                .top;
+
+        dispatch(
+          state.tr.setSelection(
+            RowSelection.rowSelection(
+              expandFrom.$anchorCell,
+              $pos,
+              anchorIndex,
+              index
+            )
+          )
+        );
+        return true;
+      }
+
+      dispatch(
+        state.tr.setSelection(RowSelection.rowSelection($pos, $pos, index))
+      );
       return true;
     }
     return false;
   };
 }
 
+/**
+ * Select a column in the table.
+ *
+ * @param index The index of the column to select.
+ * @param expand Whether to extend the existing selection to include every
+ * column between its anchor and the given column.
+ * @returns A command that selects the column.
+ */
 export function selectColumn(index: number, expand = false): Command {
   return (state, dispatch): boolean => {
     if (dispatch) {
       const rect = selectedRect(state);
       const pos = rect.map.positionAt(0, index, rect.table);
       const $pos = state.doc.resolve(rect.tableStart + pos);
-      const colSelection =
-        expand && state.selection instanceof CellSelection
-          ? ColumnSelection.colSelection(state.selection.$anchorCell, $pos)
-          : ColumnSelection.colSelection($pos);
-      dispatch(state.tr.setSelection(colSelection));
+      const { selection } = state;
+      const expandFrom =
+        expand && selection instanceof CellSelection ? selection : undefined;
+
+      if (expandFrom) {
+        // Keep the anchor where the selection started so that the columns
+        // between it and the clicked column are all included.
+        const anchorIndex =
+          expandFrom instanceof ColumnSelection
+            ? expandFrom.anchorIndex
+            : rect.map.findCell(expandFrom.$anchorCell.pos - rect.tableStart)
+                .left;
+
+        dispatch(
+          state.tr.setSelection(
+            ColumnSelection.colSelection(
+              expandFrom.$anchorCell,
+              $pos,
+              anchorIndex,
+              index
+            )
+          )
+        );
+        return true;
+      }
+
+      dispatch(
+        state.tr.setSelection(ColumnSelection.colSelection($pos, $pos, index))
+      );
       return true;
     }
     return false;
@@ -1071,7 +1277,9 @@ export function toggleRowBackground({
     }
 
     if (dispatch) {
-      const cells = getCellsInRow(rowIndex)(state) || [];
+      // Apply to every selected row so that coloring a span of rows – or a row
+      // whose cell spans multiple rows – affects all of them, not just the first.
+      const cells = getCellsInSelectedRows(state, rowIndex);
       let tr = state.tr;
 
       cells.forEach((pos) => {
@@ -1125,7 +1333,10 @@ export function toggleColumnBackground({
 
     if (dispatch) {
       const rect = selectedRect(state);
-      const cells = getCellsInColumn(colIndex)(state) || [];
+      // Apply to every selected column so that coloring a span of columns – or a
+      // column whose header cell spans multiple columns – affects all of them,
+      // not just the first.
+      const cells = getCellsInSelectedColumns(state, colIndex);
       let tr = state.tr;
 
       cells.forEach((pos) => {

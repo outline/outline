@@ -2,8 +2,9 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Button from "~/components/Button";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { CSVHelper } from "@shared/utils/csv";
-import download from "~/utils/download";
+import { download } from "~/utils/download";
 import useStores from "~/hooks/useStores";
 import usePolicy from "~/hooks/usePolicy";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -12,15 +13,14 @@ type Props = {
   /** Request parameters for filtering users */
   reqParams: {
     query?: string;
-    filter?: string;
-    role?: string;
+    filters?: Filter[];
     sort?: string;
     direction?: "ASC" | "DESC";
   };
 };
 
 /**
- * A button that exports all members to a CSV file.
+ * A button that exports all users to a CSV file.
  */
 export function ExportCSV({ reqParams }: Props) {
   const { t } = useTranslation();
@@ -60,10 +60,10 @@ export function ExportCSV({ reqParams }: Props) {
       const csv = CSVHelper.convertToCSV(csvData, headers);
 
       // Trigger download
-      download(csv, "members.csv", "text/csv");
-      toast.success(t("Members exported successfully"));
+      download(csv, "users.csv", "text/csv");
+      toast.success(t("Users exported successfully"));
     } catch {
-      toast.error(t("Failed to export members"));
+      toast.error(t("Failed to export users"));
     } finally {
       setIsExporting(false);
     }

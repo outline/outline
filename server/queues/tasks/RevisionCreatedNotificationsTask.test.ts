@@ -1,3 +1,4 @@
+import { subSeconds } from "date-fns";
 import {
   MentionType,
   NotificationEventType,
@@ -31,7 +32,7 @@ beforeEach(async () => {
 
 function updateDocumentText(document: Document, text: string) {
   document.content = parser.parse(text)?.toJSON();
-  document.updatedAt = new Date();
+  document.setDataValue("updatedAt", new Date());
   return document;
 }
 
@@ -83,6 +84,12 @@ describe("revisions.create", () => {
     );
     document.collaboratorIds = [user.id, collaborator.id];
     await document.save();
+
+    // Backdate the update so the view is recorded strictly after it.
+    await document.update(
+      { updatedAt: subSeconds(new Date(), 60) },
+      { silent: true }
+    );
 
     await View.create({
       userId: collaborator.id,
@@ -484,6 +491,12 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id];
     await document.save();
 
+    // Backdate the update so the view is recorded strictly after it.
+    await document.update(
+      { updatedAt: subSeconds(new Date(), 60) },
+      { silent: true }
+    );
+
     await View.create({
       userId: collaborator.id,
       documentId: document.id,
@@ -556,7 +569,7 @@ describe("revisions.create", () => {
         ],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -623,7 +636,7 @@ describe("revisions.create", () => {
         ],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -661,7 +674,7 @@ describe("revisions.create", () => {
         content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -714,7 +727,7 @@ describe("revisions.create", () => {
         content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -780,7 +793,7 @@ describe("revisions.create", () => {
         ],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(

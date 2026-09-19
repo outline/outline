@@ -1,13 +1,19 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import type User from "~/models/User";
+import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import ImageInput from "~/scenes/Settings/components/ImageInput";
+import { performBatch } from "~/actions/definitions/common";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
 
@@ -16,18 +22,23 @@ type Props = {
   onSubmit: () => void;
 };
 
+type BulkProps = {
+  users: User[];
+  onSubmit: () => void;
+};
+
 export function UserChangeRoleDialog({
-  user,
+  users,
   role,
   onSubmit,
-}: Props & {
+}: BulkProps & {
   role: UserRole;
 }) {
   const { t } = useTranslation();
-  const { users } = useStores();
+  const { users: usersStore } = useStores();
 
   const handleSubmit = async () => {
-    await users.updateRole(user, role);
+    await performBatch(users, (user) => usersStore.updateRole(user, role));
     onSubmit();
   };
 
@@ -46,20 +57,25 @@ export function UserChangeRoleDialog({
 
   return (
     <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
-      {t("Are you sure you want to make {{ userName }} a {{ role }}?", {
-        role,
-        userName: user.name,
-      })}{" "}
+      {users.length === 1
+        ? t("Are you sure you want to make {{ userName }} a {{ role }}?", {
+            role,
+            userName: users[0].name,
+          })
+        : t("Are you sure you want to make {{ count }} user a {{ role }}?", {
+            role,
+            count: users.length,
+          })}{" "}
       {accessNote}
     </ConfirmationDialog>
   );
 }
 
-export function UserDeleteDialog({ user, onSubmit }: Props) {
+export function UserDeleteDialog({ users, onSubmit }: BulkProps) {
   const { t } = useTranslation();
 
   const handleSubmit = async () => {
-    await user.delete();
+    await performBatch(users, (user) => user.delete());
     onSubmit();
   };
 
@@ -70,22 +86,29 @@ export function UserDeleteDialog({ user, onSubmit }: Props) {
       savingText={`${t("Deleting")}…`}
       danger
     >
-      {t(
-        "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.",
-        {
-          userName: user.name,
-        }
-      )}
+      {users.length === 1
+        ? t(
+            "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
+            {
+              userName: users[0].name,
+            }
+          )
+        : t(
+            "Are you sure you want to permanently delete {{ count }} user? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending them instead.",
+            {
+              count: users.length,
+            }
+          )}
     </ConfirmationDialog>
   );
 }
 
-export function UserSuspendDialog({ user, onSubmit }: Props) {
+export function UserSuspendDialog({ users, onSubmit }: BulkProps) {
   const { t } = useTranslation();
-  const { users } = useStores();
+  const { users: usersStore } = useStores();
 
   const handleSubmit = async () => {
-    await users.suspend(user);
+    await performBatch(users, (user) => usersStore.suspend(user));
     onSubmit();
   };
 
@@ -95,12 +118,19 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
       savingText={`${t("Saving")}…`}
       danger
     >
-      {t(
-        "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.",
-        {
-          userName: user.name,
-        }
-      )}
+      {users.length === 1
+        ? t(
+            "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.",
+            {
+              userName: users[0].name,
+            }
+          )
+        : t(
+            "Are you sure you want to suspend {{ count }} user? Suspended users will be prevented from logging in.",
+            {
+              count: users.length,
+            }
+          )}
     </ConfirmationDialog>
   );
 }
@@ -142,6 +172,48 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
   );
 }
 
+export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
+  user,
+  onSubmit,
+}: Props) {
+  const { t } = useTranslation();
+
+  const handleAvatarChange = async (avatarUrl: string | null) => {
+    try {
+      await user.save({ avatarUrl });
+      toast.success(t("Profile picture updated"));
+    } catch (err) {
+      toast.error(errToString(err));
+    }
+  };
+
+  const handleAvatarError = (error: string | null | undefined) => {
+    toast.error(error || t("Unable to upload new profile picture"));
+  };
+
+  return (
+    <Flex column gap={16}>
+      <Flex justify="center">
+        <ImageInput
+          alt={t("Profile picture")}
+          onSuccess={handleAvatarChange}
+          onError={handleAvatarError}
+          model={user}
+          showRemoveOption={false}
+        />
+      </Flex>
+      <Flex justify="flex-end" gap={8}>
+        {user.avatarUrl && (
+          <Button onClick={() => handleAvatarChange(null)} neutral>
+            {t("Remove")}
+          </Button>
+        )}
+        <Button onClick={onSubmit}>{t("Done")}</Button>
+      </Flex>
+    </Flex>
+  );
+});
+
 export function UserChangeEmailDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
   const actor = useCurrentUser();
@@ -159,7 +231,7 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       );
       return true;
     } catch (err) {
-      setError(err.message);
+      setError(errToString(err));
       return false;
     }
   };

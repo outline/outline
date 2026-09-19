@@ -15,15 +15,14 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
+import { errToId } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
-@Fix
 class UserAuthentication extends IdModel<
   InferAttributes<UserAuthentication>,
   Partial<InferCreationAttributes<UserAuthentication>>
@@ -39,7 +38,7 @@ class UserAuthentication extends IdModel<
   @Encrypted
   refreshToken: string;
 
-  @Column
+  @Column(DataType.STRING)
   providerId: string;
 
   @Column(DataType.DATE)
@@ -124,7 +123,7 @@ class UserAuthentication extends IdModel<
 
       return true;
     } catch (error) {
-      if (error.id === "authentication_required") {
+      if (errToId(error) === "authentication_required") {
         return false;
       }
 

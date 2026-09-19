@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Spinner from "@shared/components/Spinner";
 import {
   FileOperationFormat,
@@ -23,6 +24,12 @@ import isCloudHosted from "~/utils/isCloudHosted";
 type Props = {
   fileOperation: FileOperation;
 };
+
+const TerminalStates = [
+  FileOperationState.Complete,
+  FileOperationState.Error,
+  FileOperationState.Expired,
+];
 
 const FileOperationListItem = ({ fileOperation }: Props) => {
   const { t } = useTranslation();
@@ -50,7 +57,9 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationFormat.JSON]: "JSON",
     [FileOperationFormat.Notion]: "Notion",
     [FileOperationFormat.MarkdownZip]: "Markdown",
+    [FileOperationFormat.OKFZip]: "OKF",
     [FileOperationFormat.HTMLZip]: "HTML",
+    [FileOperationFormat.TextBundleZip]: "TextBundle",
     [FileOperationFormat.PDF]: "PDF",
   };
 
@@ -72,7 +81,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
         toast.success(t("Export deleted"));
       }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     }
   }, [fileOperation, fileOperations, t]);
 
@@ -95,7 +104,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
 
   const showMenu =
     (fileOperation.type === FileOperationType.Export &&
-      fileOperation.state === FileOperationState.Complete) ||
+      TerminalStates.includes(fileOperation.state)) ||
     fileOperation.type === FileOperationType.Import;
 
   const selfHostedHelp = isCloudHosted

@@ -7,6 +7,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer, toFormData } from "@server/test/support";
+import { hash } from "@server/utils/crypto";
 
 const server = getTestServer();
 
@@ -264,6 +265,13 @@ describe("#oauth.token", () => {
       const body1 = await res1.json();
       const auth2RefreshToken = body1.refresh_token;
 
+      // Simulate the rotation having happened outside the reuse interval, so the
+      // replay below is treated as genuine reuse rather than a concurrent refresh.
+      await OAuthAuthentication.update(
+        { deletedAt: new Date(Date.now() - 60 * 1000) },
+        { where: { id: auth1.id }, paranoid: false, silent: true }
+      );
+
       // Create an unrelated authentication
       const otherAuth = await buildOAuthAuthentication({
         user,
@@ -334,6 +342,13 @@ describe("#oauth.token", () => {
         }),
       });
 
+      // Simulate the rotation having happened outside the reuse interval, so the
+      // replay below is treated as genuine reuse rather than a concurrent refresh.
+      await OAuthAuthentication.update(
+        { deletedAt: new Date(Date.now() - 60 * 1000) },
+        { where: { id: auth.id }, paranoid: false, silent: true }
+      );
+
       // Use the OLD refresh token again (reuse detection)
       await server.post("/oauth/token", {
         headers: {
@@ -350,6 +365,139 @@ describe("#oauth.token", () => {
       // The authorization code should be gone
       const foundCode = await OAuthAuthorizationCode.findByPk(code.id);
       expect(foundCode).toBeNull();
+    });
+
+    it("should not revoke the grant when a rotated refresh token is replayed within the reuse interval", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({
+        teamId: user.teamId,
+        clientType: "confidential",
+      });
+      const grantId = crypto.randomUUID();
+
+      const auth1 = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+        oauthClientId: client.id,
+        grantId,
+      });
+
+      // Use the refresh token once (rotation)
+      const res1 = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth1.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+      expect(res1.status).toEqual(200);
+      const body1 = await res1.json();
+      const auth2RefreshToken = body1.refresh_token;
+
+      // Immediately replay the OLD refresh token, as a client issuing concurrent
+      // refresh requests would. This is within the reuse interval.
+      const res2 = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth1.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+
+      // The replay fails, but the grant won by the first request survives.
+      expect(res2.status).toEqual(400);
+      const foundAuth2 =
+        await OAuthAuthentication.findByRefreshToken(auth2RefreshToken);
+      expect(foundAuth2).not.toBeNull();
+    });
+  });
+
+  describe("authorization_code grant", () => {
+    const buildCodeGrant = async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({
+        teamId: user.teamId,
+        clientType: "confidential",
+      });
+      const grantId = crypto.randomUUID();
+      const code = crypto.randomBytes(32).toString("hex");
+
+      await OAuthAuthorizationCode.create({
+        authorizationCodeHash: hash(code),
+        scope: [Scope.Read],
+        redirectUri: client.redirectUris[0],
+        oauthClientId: client.id,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 10000),
+        grantId,
+      });
+
+      const exchange = () =>
+        server.post("/oauth/token", {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: toFormData({
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: client.redirectUris[0],
+            client_id: client.clientId,
+            client_secret: client.clientSecret,
+          }),
+        });
+
+      return { user, client, grantId, exchange };
+    };
+
+    it("should exchange an authorization code for a token", async () => {
+      const { exchange } = await buildCodeGrant();
+
+      const res = await exchange();
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      expect(body.access_token).toBeTruthy();
+      expect(body.refresh_token).toBeTruthy();
+    });
+
+    it("should issue a token to a single request when a code is exchanged concurrently", async () => {
+      const { grantId, exchange } = await buildCodeGrant();
+
+      const results = await Promise.all([exchange(), exchange()]);
+      const statuses = results.map((res) => res.status).sort((a, b) => a - b);
+      expect(statuses).toEqual([200, 400]);
+
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(1);
+    });
+
+    it("should reject a replayed authorization code", async () => {
+      const { grantId, exchange } = await buildCodeGrant();
+
+      const res1 = await exchange();
+      expect(res1.status).toEqual(200);
+
+      const res2 = await exchange();
+      expect(res2.status).toEqual(400);
+
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(1);
     });
   });
 });

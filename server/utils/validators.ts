@@ -107,6 +107,14 @@ export function isDatabaseUrl(
   }
 }
 
+/**
+ * Class-validator decorator that requires another property to be set for the
+ * decorated property to be valid.
+ *
+ * @param property the name of the property that must also be set.
+ * @param validationOptions options passed to the validator.
+ * @returns a property decorator.
+ */
 export function CannotUseWithout(
   property: string,
   validationOptions?: ValidationOptions
@@ -132,6 +140,14 @@ export function CannotUseWithout(
   };
 }
 
+/**
+ * Class-validator decorator that forbids another property from being set when
+ * the decorated property is set.
+ *
+ * @param property the name of the property that cannot be set at the same time.
+ * @param validationOptions options passed to the validator.
+ * @returns a property decorator.
+ */
 export function CannotUseWith(
   property: string,
   validationOptions?: ValidationOptions
@@ -160,6 +176,14 @@ export function CannotUseWith(
   };
 }
 
+/**
+ * Class-validator decorator that forbids any of the given properties from
+ * being set when the decorated property is set.
+ *
+ * @param properties the names of the properties that cannot be set at the same time.
+ * @param validationOptions options passed to the validator.
+ * @returns a property decorator.
+ */
 export function CannotUseWithAny(
   properties: string[],
   validationOptions?: ValidationOptions
@@ -190,6 +214,14 @@ export function CannotUseWithAny(
   };
 }
 
+/**
+ * Class-validator decorator that checks the decorated property matches one of
+ * the allowed values, ignoring case.
+ *
+ * @param allowedValues the values the property may take.
+ * @param validationOptions options passed to the validator.
+ * @returns a property decorator.
+ */
 export function IsInCaseInsensitive(
   allowedValues: string[],
   validationOptions?: ValidationOptions

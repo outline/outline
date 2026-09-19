@@ -59,7 +59,7 @@ function CollectionMenu({
         align={align}
         onOpen={onOpen}
         onClose={onClose}
-        ariaLabel={t("Collection menu")}
+        ariaLabel={t("Collection options")}
       >
         <OverflowMenuButton
           neutral={neutral}

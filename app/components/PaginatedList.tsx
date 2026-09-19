@@ -2,6 +2,7 @@ import { isEqual } from "es-toolkit/compat";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
+import { toError } from "@shared/utils/error";
 import { Pagination } from "@shared/constants";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
@@ -47,10 +48,10 @@ interface Props<
   heading?: React.ReactNode;
 
   /** Content to display when the list is empty */
-  empty?: JSX.Element | null;
+  empty?: React.JSX.Element | null;
 
   /** Optional loading state content */
-  loading?: JSX.Element | null;
+  loading?: React.JSX.Element | null;
 
   /** Array of items to display in the list */
   items?: T[];
@@ -74,7 +75,7 @@ interface Props<
     error: Error;
     /** Function to retry the fetch operation */
     retry: () => void;
-  }) => JSX.Element;
+  }) => React.JSX.Element;
 
   /**
    * Function to render section headings (typically date-based)
@@ -95,7 +96,7 @@ interface Props<
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 
   /** Reference to the list container element */
-  listRef?: React.RefObject<HTMLDivElement>;
+  listRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -119,7 +120,7 @@ const PaginatedList = <T extends PaginatedItem>({
   onEscape,
   listRef,
   ...rest
-}: Props<T>): JSX.Element | null => {
+}: Props<T>): React.JSX.Element | null => {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { t } = useTranslation();
 
@@ -176,7 +177,7 @@ const PaginatedList = <T extends PaginatedItem>({
 
       setIsFetchingInitial(false);
     } catch (err) {
-      setError(err);
+      setError(toError(err));
     } finally {
       // only the most recent fetch should end the loading state
       if (counter >= fetchCounter) {
@@ -216,6 +217,9 @@ const PaginatedList = <T extends PaginatedItem>({
     if (fetch) {
       void fetchResults();
     }
+    // `fetchResults` changes identity as pagination advances, depending on it
+    // here would re-run the initial fetch for every page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetch]);
 
   // Handle updates to fetch or options

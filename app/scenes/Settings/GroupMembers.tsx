@@ -1,6 +1,6 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { GroupIcon, HiddenIcon, PlusIcon } from "outline-icons";
+import { GroupIcon, HiddenIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -20,8 +20,13 @@ import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import Error404 from "~/scenes/Errors/Error404";
 import { createInternalLinkAction } from "~/actions";
+import {
+  addGroupUsers,
+  removeGroupUser,
+} from "~/actions/definitions/groupUsers";
 import { NavigationSection } from "~/actions/sections";
-import usePolicy from "~/hooks/usePolicy";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -29,7 +34,6 @@ import { useTableRequest } from "~/hooks/useTableRequest";
 import type { FetchPageParams, PaginatedResponse } from "~/stores/base/Store";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import GroupMenu from "~/menus/GroupMenu";
-import { AddPeopleToGroupDialog } from "./components/GroupDialogs";
 import GroupPermissionFilter from "./components/GroupPermissionFilter";
 import { GroupMembersTable } from "./components/GroupMembersTable";
 import { StickyFilters } from "./components/StickyFilters";
@@ -68,9 +72,9 @@ const GroupMembersPage = observer(function GroupMembersPage({
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { dialogs, groups, users, groupUsers } = useStores();
+  const { groups, users, groupUsers } = useStores();
   const group = groups.get(groupId)!;
-  const can = usePolicy(group);
+  const currentUser = useCurrentUser();
   const history = useHistory();
   const location = useLocation();
   const params = useQuery();
@@ -171,15 +175,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
     []
   );
 
-  const handleAddPeople = useCallback(() => {
-    dialogs.openModal({
-      title: t(`Add people to {{groupName}}`, {
-        groupName: group.name,
-      }),
-      content: <AddPeopleToGroupDialog group={group} />,
-    });
-  }, [t, group, dialogs]);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load group members"));
@@ -204,76 +199,78 @@ const GroupMembersPage = observer(function GroupMembersPage({
   );
 
   return (
-    <Scene
-      title={group.name}
-      left={<Breadcrumb actions={breadcrumbActions} />}
-      actions={
-        <>
-          {can.update && (
+    <ActionContextProvider value={{ activeModels: [group] }}>
+      <Scene
+        title={group.name}
+        left={<Breadcrumb actions={breadcrumbActions} />}
+        actions={
+          <>
             <Action>
-              <Button
-                type="button"
-                onClick={handleAddPeople}
-                disabled={group.isExternallyManaged}
-                icon={<PlusIcon />}
-              >
+              <ActionContextProvider value={{ activeModels: [currentUser] }}>
+                <Button neutral action={removeGroupUser} hideOnActionDisabled>
+                  {t("Leave group")}
+                </Button>
+              </ActionContextProvider>
+            </Action>
+            <Action>
+              <Button action={addGroupUsers} hideOnActionDisabled>
                 {`${t("Add people")}…`}
               </Button>
             </Action>
+            <Action>
+              <GroupMenu group={group} hideMembers />
+            </Action>
+          </>
+        }
+        wide
+      >
+        <Heading>
+          {group.name}
+          {group.disableMentions && (
+            <>
+              &nbsp;
+              <Tooltip content={t("This group is hidden")}>
+                <HiddenIcon size={32} color={theme.textSecondary} />
+              </Tooltip>
+            </>
           )}
-          <Action>
-            <GroupMenu group={group} hideMembers />
-          </Action>
-        </>
-      }
-      wide
-    >
-      <Heading>
-        {group.name}
-        {group.disableMentions && (
-          <>
-            &nbsp;
-            <Tooltip content={t("This group is hidden")}>
-              <HiddenIcon size={32} color={theme.textSecondary} />
-            </Tooltip>
-          </>
-        )}
-      </Heading>
-      <Text as="p" type="secondary">
-        {group.externalGroup && (
-          <>
-            {t("Synced to {{ provider }}", {
-              provider: group.externalGroup.displayName,
-            })}
-            {group.description && <> &middot; </>}
-          </>
-        )}
-        {group.description || (!group.externalGroup && t("No description"))}
-      </Text>
-      <StickyFilters>
-        <InputSearch
-          value={query}
-          placeholder={`${t("Filter")}…`}
-          onChange={handleSearch}
-        />
-        <LargeGroupPermissionFilter
-          activeKey={reqParams.permission ?? ""}
-          onSelect={handlePermissionFilter}
-        />
-      </StickyFilters>
-      <ConditionalFade animate={!data}>
-        <GroupMembersTable
-          group={group}
-          data={data ?? []}
-          sort={sort}
-          loading={loading}
-          page={{
-            hasNext: !!next,
-            fetchNext: next,
-          }}
-        />
-      </ConditionalFade>
-    </Scene>
+        </Heading>
+        <Text as="p" type="secondary">
+          {group.externalGroup && (
+            <>
+              {t("Synced to {{ provider }}", {
+                provider: group.externalGroup.displayName,
+              })}
+              {group.description && <> &middot; </>}
+            </>
+          )}
+          {group.description || (!group.externalGroup && t("No description"))}
+        </Text>
+        <StickyFilters>
+          <InputSearch
+            value={query}
+            placeholder={`${t("Filter")}…`}
+            onChange={handleSearch}
+          />
+          <LargeGroupPermissionFilter
+            activeKey={reqParams.permission ?? ""}
+            onSelect={handlePermissionFilter}
+          />
+        </StickyFilters>
+        <ConditionalFade animate={!data}>
+          <GroupMembersTable
+            group={group}
+            data={data ?? []}
+            sort={sort}
+            loading={loading}
+            page={{
+              hasNext: !!next,
+              fetchNext: next,
+            }}
+          />
+        </ConditionalFade>
+      </Scene>
+    </ActionContextProvider>
   );
 });
 

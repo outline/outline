@@ -2,16 +2,20 @@ import { RovingTabIndexProvider } from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 
-type Props = React.HTMLAttributes<HTMLDivElement> & {
+type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "children"> & {
   children: () => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
   items: unknown[];
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function ArrowKeyNavigation(
-  { children, onEscape, items, ...rest }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function ArrowKeyNavigation({
+  children,
+  onEscape,
+  items,
+  ref,
+  ...rest
+}: Props) {
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLDivElement>) => {
       if (onEscape) {
@@ -48,4 +52,4 @@ function ArrowKeyNavigation(
   );
 }
 
-export default observer(React.forwardRef(ArrowKeyNavigation));
+export default observer(ArrowKeyNavigation);

@@ -1,5 +1,3 @@
-declare module "sequelize-encrypted";
-
 declare module "styled-components-breakpoint";
 
 declare module "formidable/lib/file";

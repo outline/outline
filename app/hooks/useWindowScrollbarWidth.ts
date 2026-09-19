@@ -14,7 +14,7 @@ export default function useWindowScrollbarWidth(): number | null {
     const htmlElement = document.documentElement;
 
     const measure = () => {
-      const scrollbarWidth = htmlElement.scrollWidth - htmlElement.clientWidth;
+      const scrollbarWidth = window.innerWidth - htmlElement.clientWidth;
       setWidth(scrollbarWidth);
     };
 

@@ -4,12 +4,16 @@ import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
 import User from "./User";
 import Field from "./decorators/Field";
-import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 import NavigableModel from "./base/NavigableModel";
 
 class UserMembership extends NavigableModel {
   static modelName = "UserMembership";
+
+  constructor(fields: Record<string, unknown>, store: UserMembershipsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   /** The sort order of the membership (In users sidebar) */
   @Field
@@ -83,14 +87,7 @@ class UserMembership extends NavigableModel {
       userId: this.userId,
     });
     const index = memberships.indexOf(this);
-    return memberships[index + 1];
-  }
-
-  // hooks
-
-  @AfterRemove
-  public static removeFromPolicies(model: UserMembership) {
-    model.store.rootStore.policies.removeForMembership(model.id);
+    return memberships[index - 1];
   }
 }
 

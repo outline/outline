@@ -19,6 +19,19 @@ export const schema = new Schema({
 });
 
 /**
+ * Markdown parser using the rich extensions and their rule plugins.
+ */
+export const parser = extensionManager.parser({
+  schema,
+  plugins: extensionManager.rulePlugins,
+});
+
+/**
+ * Markdown serializer using the rich extensions.
+ */
+export const serializer = extensionManager.serializer();
+
+/**
  * Creates an editor state with the given document and plugins.
  *
  * @param doc - the document node.
@@ -237,4 +250,36 @@ export function doc(
       >[]
 ) {
   return schema.nodes.doc.create(null, content);
+}
+
+/**
+ * A plain-object representation of a ProseMirror node, as returned by
+ * `Node.toJSON()`.
+ */
+export interface JSONNode {
+  type: string;
+  content?: JSONNode[];
+  attrs?: Record<string, unknown>;
+  text?: string;
+}
+
+/**
+ * Recursively collects all nodes of the given type from a `Node.toJSON()`
+ * tree, including the root node itself.
+ *
+ * @param node - the JSON node to search, may be undefined for convenience.
+ * @param type - the node type name to match.
+ * @returns array of matching nodes in document order.
+ */
+export function findNodes(
+  node: JSONNode | undefined,
+  type: string
+): JSONNode[] {
+  if (!node) {
+    return [];
+  }
+  return [
+    ...(node.type === type ? [node] : []),
+    ...(node.content ?? []).flatMap((child) => findNodes(child, type)),
+  ];
 }

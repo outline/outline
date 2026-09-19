@@ -29,6 +29,9 @@ export const TemplatesListSchema = BaseSchema.extend({
   body: TemplatesSortParamsSchema.extend({
     /** Id of the collection to which the template belongs */
     collectionId: z.string().uuid().optional(),
+
+    /** Search query to filter templates by title */
+    query: z.string().optional(),
   }),
 });
 
@@ -36,13 +39,16 @@ export const TemplatesCreateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
     collectionId: z.string().uuid().optional(),
-    title: z.string().min(1).max(255),
-    data: ProsemirrorSchema(),
+    title: z.string().max(255).optional(),
+    data: ProsemirrorSchema({ allowEmpty: true }).optional(),
     icon: zodIconType().nullish(),
     color: z
       .string()
       .regex(ValidateColor.regex, { message: ValidateColor.message })
       .nullish(),
+
+    /** Whether the template is available to other members, defaults to true */
+    publish: z.boolean().default(true),
   }),
 });
 
@@ -80,7 +86,7 @@ export const TemplatesUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: zodIdType(),
     title: z.string().optional(),
-    data: ProsemirrorSchema().optional(),
+    data: ProsemirrorSchema({ allowEmpty: true }).optional(),
     icon: zodIconType().nullish(),
     color: z
       .string()
@@ -88,6 +94,9 @@ export const TemplatesUpdateSchema = BaseSchema.extend({
       .nullish(),
     fullWidth: z.boolean().optional(),
     collectionId: z.string().uuid().nullish(),
+
+    /** Whether to make a draft template available to other members */
+    publish: z.boolean().optional(),
   }),
 });
 

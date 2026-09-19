@@ -1,4 +1,5 @@
 import { startRegistration } from "@simplewebauthn/browser";
+import { errToString } from "@shared/utils/error";
 import type { JSONObject } from "@shared/types";
 import { observer } from "mobx-react";
 import { KeyIcon, PlusIcon } from "outline-icons";
@@ -78,7 +79,7 @@ function PasskeysSettings() {
       await loadPasskeys();
     } catch (err) {
       toast.error(
-        err.message || t("Failed to register passkey. Please try again.")
+        errToString(err) || t("Failed to register passkey. Please try again.")
       );
     } finally {
       setIsRegistering(false);
@@ -113,7 +114,8 @@ function PasskeysSettings() {
               await loadPasskeys();
             } catch (err) {
               toast.error(
-                err.message || t("Failed to delete passkey. Please try again.")
+                errToString(err) ||
+                  t("Failed to delete passkey. Please try again.")
               );
             }
           }}

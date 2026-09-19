@@ -7,6 +7,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  Is,
   Table,
 } from "sequelize-typescript";
 import { EmojiValidation } from "@shared/validations";
@@ -14,14 +15,11 @@ import { ValidationError } from "@server/errors";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
-import { Matches } from "class-validator";
 import FileStorage from "@server/storage/files";
 import Attachment from "./Attachment";
 
 @Table({ tableName: "emojis", modelName: "emoji" })
-@Fix
 class Emoji extends IdModel<
   InferAttributes<Emoji>,
   Partial<InferCreationAttributes<Emoji>>
@@ -30,9 +28,9 @@ class Emoji extends IdModel<
     max: EmojiValidation.maxNameLength,
     msg: `emoji name must be less than ${EmojiValidation.maxNameLength} characters`,
   })
-  @Matches(EmojiValidation.allowedNameCharacters, {
-    message:
-      "emoji name can only contain lowercase letters, numbers, and underscores",
+  @Is({
+    args: EmojiValidation.allowedNameCharacters,
+    msg: "emoji name can only contain lowercase letters, numbers, and underscores",
   })
   @Column(DataType.STRING)
   name: string;

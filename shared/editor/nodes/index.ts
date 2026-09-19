@@ -1,7 +1,9 @@
+import ColorSwatchPreview from "../extensions/ColorSwatchPreview";
 import DateTime from "../extensions/DateTime";
 import DeleteNearAtom from "../extensions/DeleteNearAtom";
-import HexColorPreview from "../extensions/HexColorPreview";
+import HeadingPrefix from "../extensions/HeadingPrefix";
 import History from "../extensions/History";
+import InputRuleUndo from "../extensions/InputRuleUndo";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
 import type { AnyExtensionClass } from "../lib/types";
@@ -53,6 +55,7 @@ type Nodes = AnyExtensionClass[];
  */
 export const inlineExtensions: Nodes = [
   Doc,
+  InputRuleUndo,
   Paragraph,
   Emoji,
   Text,
@@ -69,7 +72,7 @@ export const inlineExtensions: Nodes = [
   DateTime,
   HardBreak,
   DeleteNearAtom,
-  HexColorPreview,
+  ColorSwatchPreview,
 ];
 
 export const listExtensions: Nodes = [
@@ -93,7 +96,13 @@ export const tableExtensions: Nodes = [
  * The basic set of nodes that are used in the editor. This is used for simple
  * editors that need basic formatting and lists.
  */
-export const basicExtensions: Nodes = [...inlineExtensions, ...listExtensions];
+export const basicExtensions: Nodes = [
+  ...inlineExtensions,
+  ...listExtensions,
+  // Included for its paste handling, which removes copied heading prefixes;
+  // without a headingPrefix option the extension is otherwise inert.
+  HeadingPrefix,
+];
 
 /**
  * The full set of nodes that are used in the editor. This is used for rich
@@ -110,6 +119,7 @@ export const richExtensions: Nodes = [
   Video,
   Notice,
   Heading,
+  HeadingPrefix,
   HorizontalRule,
   Highlight,
   TemplatePlaceholder,
