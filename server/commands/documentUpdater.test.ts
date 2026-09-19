@@ -931,6 +931,71 @@ describe("documentUpdater", () => {
       expect(document.text).toContain("gamma");
     });
 
+    it("should keep one ordered list when the replacement uses a different delimiter", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "1. one\n2. two\n3. three",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "2) two EDITED",
+          findText: "2. two",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "ordered_list",
+            attrs: { order: 1 },
+            content: [
+              listItem("one"),
+              listItem("two EDITED"),
+              listItem("three"),
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should not join adjacent ordered lists with different list styles", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "a. alpha",
+      });
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "a. alpha\n1) numeric",
+          findText: "a. alpha",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "ordered_list",
+            attrs: { listStyle: "lower-alpha" },
+            content: [listItem("alpha")],
+          },
+          {
+            type: "ordered_list",
+            attrs: { listStyle: "number" },
+            content: [listItem("numeric")],
+          },
+        ],
+      });
+    });
+
     it("should keep nested items when a nested bullet marker changes", async () => {
       const user = await buildUser();
       let document = await buildDocument({

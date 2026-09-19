@@ -1,3 +1,4 @@
+import { isEqual, omit } from "es-toolkit/compat";
 import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
@@ -926,24 +927,31 @@ export class DocumentHelper {
   }
 
   /**
-   * Join adjacent lists of the same type into one, at every depth. Markdown
-   * starts a new list when the bullet marker changes, but the serializer
-   * normalizes markers so a marker change inside a patch must not split the
-   * list.
+   * Join adjacent lists of the same kind into one, at every depth. Markdown
+   * starts a new list when the marker or delimiter changes, but the
+   * serializer normalizes both so such a change inside a patch must not split
+   * the list. The start number of a split fragment only continues the
+   * numbering, so it is ignored; lists that differ in any other attr, such
+   * as a numeric list next to an alpha list, are kept separate.
    *
    * @param node The parsed node.
-   * @returns The node with adjacent same-type lists joined.
+   * @returns The node with adjacent matching lists joined.
    */
   private static joinAdjacentLists(node: Node): Node {
     if (node.isTextblock || node.isLeaf) {
       return node;
     }
 
+    const isSameList = (a: Node, b: Node) =>
+      a.type === b.type &&
+      a.type.isInGroup("list") &&
+      isEqual(omit(a.attrs, ["order"]), omit(b.attrs, ["order"]));
+
     const children = DocumentHelper.childrenOf(node).reduce<Node[]>(
       (joined, child) => {
         const current = DocumentHelper.joinAdjacentLists(child);
         const previous = joined[joined.length - 1];
-        if (previous?.type === current.type && current.type.isInGroup("list")) {
+        if (previous && isSameList(previous, current)) {
           joined[joined.length - 1] = previous.copy(
             previous.content.append(current.content)
           );
