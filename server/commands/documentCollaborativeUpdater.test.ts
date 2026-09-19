@@ -201,4 +201,34 @@ describe("documentCollaborativeUpdater", () => {
     expect(scheduled).toHaveBeenCalledOnce();
     ydoc.destroy();
   });
+
+  it("keeps the committed snapshot when scheduling the event fails", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const ydoc = buildYDoc([
+      { type: "paragraph", content: [{ type: "text", text: "Kept edit" }] },
+    ]);
+    vi.spyOn(Event, "schedule").mockRejectedValueOnce(
+      new Error("Queue unavailable")
+    );
+
+    await expect(
+      documentCollaborativeUpdater({
+        documentId: document.id,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      })
+    ).resolves.toBeUndefined();
+
+    await document.reload();
+    expect(document.content?.content?.[0]?.content?.[0]?.text).toBe(
+      "Kept edit"
+    );
+    ydoc.destroy();
+  });
 });

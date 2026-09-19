@@ -4,6 +4,7 @@ import { Node } from "prosemirror-model";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
+import { toError } from "@shared/utils/error";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
@@ -146,21 +147,29 @@ export default async function documentCollaborativeUpdater({
       }
     );
 
+    // The snapshot is durable once this runs. A failed schedule must not fail
+    // the save, as a retry would find the content unchanged and never re-schedule.
     transaction.afterCommit(async () => {
-      await Event.schedule({
-        name: "documents.update",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: lastModifiedById,
-        authType: AuthenticationType.APP,
-        data: {
-          multiplayer: true,
-          title: document.title,
-          done: isLastConnection,
-          collaborators: collaborators.sequence,
-        },
-      });
+      try {
+        await Event.schedule({
+          name: "documents.update",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: lastModifiedById,
+          authType: AuthenticationType.APP,
+          data: {
+            multiplayer: true,
+            title: document.title,
+            done: isLastConnection,
+            collaborators: collaborators.sequence,
+          },
+        });
+      } catch (err) {
+        Logger.error("Unable to schedule document update event", toError(err), {
+          documentId,
+        });
+      }
     });
   });
 }
