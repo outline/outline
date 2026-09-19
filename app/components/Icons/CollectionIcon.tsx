@@ -2,8 +2,8 @@ import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import Icon from "@shared/components/Icon";
-import { colorPalette } from "@shared/constants";
 import type Collection from "~/models/Collection";
+import useColorPalette from "~/hooks/useColorPalette";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -26,6 +26,7 @@ function ResolvedCollectionIcon({
   className,
 }: Props) {
   const { ui } = useStores();
+  const colorPalette = useColorPalette();
 
   if (!collection.icon || collection.icon === "collection") {
     // If the chosen icon color is very dark then we invert it in dark mode

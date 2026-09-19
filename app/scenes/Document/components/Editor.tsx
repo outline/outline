@@ -9,7 +9,6 @@ import type { CommentAnchor } from "@shared/editor/commands/comment";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { getLangFor } from "@shared/utils/language";
 import { DocumentPreference } from "@shared/types";
-import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import type Template from "~/models/Template";
@@ -23,6 +22,7 @@ import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Time from "~/components/Time";
 import { withUIExtensions } from "~/editor/extensions";
+import useColorPalette from "~/hooks/useColorPalette";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useFocusedComment } from "~/hooks/useFocusedComment";
@@ -95,6 +95,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const can = usePolicy(document);
   const commentingEnabled = !!team?.commentingEnabled;
 
+  const colorPalette = useColorPalette();
   const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {

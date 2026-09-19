@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { colorPalette } from "@shared/constants";
 import {
   CommentingAccess,
   EmailDisplay,
@@ -77,6 +78,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         [TeamPreference.MCP]: z.boolean(),
         /** List of disabled embed provider titles. */
         [TeamPreference.DisabledEmbeds]: z.array(z.string()),
+        /** The preset colors offered when choosing an icon color. */
+        [TeamPreference.ColorPalette]: z
+          .array(z.string().regex(/^#[0-9a-fA-F]{6}$/))
+          .length(colorPalette.length),
       })
       .partial()
       .optional(),

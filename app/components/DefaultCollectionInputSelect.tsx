@@ -10,9 +10,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { toError } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
-import { colorPalette } from "@shared/constants";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
+import useColorPalette from "~/hooks/useColorPalette";
 import useStores from "~/hooks/useStores";
 
 type DefaultCollectionInputSelectProps = {
@@ -27,6 +27,7 @@ const DefaultCollectionInputSelect = observer(
   }: DefaultCollectionInputSelectProps) => {
     const { t } = useTranslation();
     const { collections, ui } = useStores();
+    const colorPalette = useColorPalette();
     const [fetching, setFetching] = useState(false);
     const [fetchError, setFetchError] = useState<Error>();
 

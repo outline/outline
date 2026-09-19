@@ -10,12 +10,12 @@ import { s, depths, hover } from "@shared/styles";
 import { cloneDeep } from "es-toolkit/compat";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { colorPalette } from "@shared/constants";
 import Editor from "~/components/Editor";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
+import useColorPalette from "~/hooks/useColorPalette";
 import useIdle from "~/hooks/useIdle";
 import useKeyDown from "~/hooks/useKeyDown";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
@@ -124,6 +124,7 @@ function splitIntoSlides(
  */
 function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const { t } = useTranslation();
+  const colorPalette = useColorPalette();
   const theme = useTheme();
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const containerRef = React.useRef<HTMLDivElement>(null);

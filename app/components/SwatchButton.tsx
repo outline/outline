@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import useColorPalette from "~/hooks/useColorPalette";
 import useMobile from "~/hooks/useMobile";
 import {
   Drawer,
@@ -32,6 +33,8 @@ type SwatchButtonProps = {
   className?: string;
   /** Whether to render the color picker in a modal popover. Defaults to true */
   pickerInModal?: boolean;
+  /** Whether to show the teams color presets. */
+  showPresets?: boolean;
 };
 
 export const SwatchButton: React.FC<SwatchButtonProps> = ({
@@ -42,9 +45,11 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
   onChange,
   className,
   pickerInModal = true,
+  showPresets = true,
 }) => {
   const { t } = useTranslation();
   const isMobile = useMobile();
+  const presets = useColorPalette();
 
   const pickerTrigger = (
     <ColorButton
@@ -60,6 +65,7 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
     <StyledColorPicker
       alpha={false}
       activeColor={pickerColor ?? color}
+      presets={showPresets ? presets : undefined}
       onSelect={(c) => onChange(c)}
     />
   );

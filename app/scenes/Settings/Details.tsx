@@ -24,12 +24,14 @@ import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import useColorPalette from "~/hooks/useColorPalette";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import TeamDelete from "../TeamDelete";
 import { ActionRow } from "./components/ActionRow";
+import { ColorPalette } from "./components/ColorPalette";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
@@ -67,6 +69,9 @@ function Details() {
   const [tocPosition, setTocPosition] = useState(
     team.getPreference(TeamPreference.TocPosition) as TOCPosition
   );
+
+  const initialPalette = useColorPalette();
+  const [palette, setPalette] = useState<string[]>(initialPalette);
 
   const tocPositionOptions: Option[] = React.useMemo(
     () =>
@@ -106,6 +111,7 @@ function Details() {
             publicBranding,
             customTheme,
             tocPosition,
+            colorPalette: palette,
           },
         });
         toast.success(t("Settings saved"));
@@ -122,6 +128,7 @@ function Details() {
       defaultCollectionId,
       publicBranding,
       customTheme,
+      palette,
       t,
     ]
   );
@@ -278,6 +285,15 @@ function Details() {
               onChange={setAccentText}
               flex
             />
+          </SettingRow>
+          <SettingRow
+            label={t("Color palette")}
+            name={TeamPreference.ColorPalette}
+            description={t(
+              "The colors offered when choosing icons and backgrounds. Pick a preset, then adjust any color."
+            )}
+          >
+            <ColorPalette value={palette} onChange={setPalette} />
           </SettingRow>
           {(team.avatarUrl || team.description) && (
             <SettingRow

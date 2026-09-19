@@ -3,7 +3,7 @@ import { getLuminance } from "polished";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useStores from "../hooks/useStores";
-import { IconType } from "../types";
+import { IconType, TeamPreference } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
 import { colorPalette } from "../constants";
 import { determineIconType } from "../utils/icon";
@@ -85,8 +85,10 @@ const SVGIcon = observer(
     className,
     forceColor,
   }: Props) => {
-    const { ui } = useStores();
-    let color = inputColor ?? colorPalette[0];
+    const { ui, auth } = useStores();
+    const palette: string[] =
+      auth?.team?.getPreference(TeamPreference.ColorPalette) || colorPalette;
+    let color = inputColor ?? palette[0];
 
     // If the chosen icon color is very dark then we invert it in dark mode
     if (!forceColor) {
