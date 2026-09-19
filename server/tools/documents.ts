@@ -477,6 +477,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   publish: input.publish !== false,
                   collectionId: collection?.id,
                   parentDocumentId,
+                  personalOwnerId: resolvedPersonalOwnerId,
                   authType: ctx.state.auth.type,
                   ip: ctx.context.ip,
                 })

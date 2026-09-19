@@ -1115,29 +1115,65 @@ describe("delete_document", () => {
 });
 
 describe("create_document - personal", () => {
-  it("creates a personal document owned by the caller", async () => {
+  it.each(["markdown", "html"])(
+    "creates a personal document owned by the caller from %s",
+    async (format) => {
+      const { user, accessToken } = await buildOAuthUser();
+
+      const res = await callMcpTool(server, accessToken, "create_document", {
+        title: "Personal notes",
+        text: format === "html" ? "<p>Hello world</p>" : "Hello world",
+        format,
+        personalOwnerId: "me",
+      });
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+      expect(res?.result?.isError).not.toBe(true);
+      expect(data.success).toBe(true);
+
+      const document = await Document.findByPk(data.id, {
+        rejectOnEmpty: true,
+      });
+      expect(document.collectionId).toBeNull();
+      expect(document.personalOwnerId).toEqual(user.id);
+      expect(document.publishedAt).toBeTruthy();
+
+      const membership = await UserMembership.findOne({
+        where: { documentId: document.id, userId: user.id },
+      });
+      expect(membership).not.toBeNull();
+      expect(membership!.permission).toEqual(DocumentPermission.Admin);
+    }
+  );
+
+  it("creates an HTML child in the shared parent's personal space", async () => {
     const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: owner.id,
+    });
+    await UserMembership.create({
+      documentId: parent.id,
+      userId: user.id,
+      createdById: owner.id,
+      permission: DocumentPermission.ReadWrite,
+    });
 
     const res = await callMcpTool(server, accessToken, "create_document", {
-      title: "Personal notes",
-      text: "Hello world",
-      personalOwnerId: "me",
+      title: "Shared personal child",
+      text: "<p>Hello world</p>",
+      format: "html",
+      parentDocumentId: parent.id,
     });
-    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
     expect(res?.result?.isError).not.toBe(true);
-    expect(data.success).toBe(true);
-
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
     const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.personalOwnerId).toEqual(owner.id);
     expect(document.collectionId).toBeNull();
-    expect(document.personalOwnerId).toEqual(user.id);
     expect(document.publishedAt).toBeTruthy();
-
-    const membership = await UserMembership.findOne({
-      where: { documentId: document.id, userId: user.id },
-    });
-    expect(membership).not.toBeNull();
-    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+    expect(document.text).toContain("Hello world");
   });
 
   it("rejects personalOwnerId combined with collectionId", async () => {

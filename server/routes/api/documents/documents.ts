@@ -1863,7 +1863,7 @@ router.post(
       throw ValidationError("one of attachmentId or file is required");
     }
 
-    const { collection } = await authorizeDocumentCreate(ctx, {
+    const { collection, personalOwnerId } = await authorizeDocumentCreate(ctx, {
       collectionId,
       parentDocumentId,
     });
@@ -1909,6 +1909,7 @@ router.post(
       userId: user.id,
       collectionId: collection?.id,
       parentDocumentId,
+      personalOwnerId,
       publish,
       authType: ctx.state.auth.type,
       ip: ctx.request.ip,
