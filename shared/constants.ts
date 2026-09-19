@@ -56,7 +56,7 @@ export interface ColorPalettePreset {
 /**
  * The built-in color palettes a workspace can choose from.
  *
- * t("Default") t("Desert") t("Ocean") t("Forest") t("Pastel") t("Berry")
+ * t("Default") t("Peach") t("Ocean") t("Forest") t("Pastel") t("Berry")
  */
 export const colorPalettes: ColorPalettePreset[] = [
   {
