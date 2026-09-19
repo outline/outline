@@ -172,6 +172,7 @@
     "koa-send": "5.0.1",
     "koa-sslify": "5.0.1",
     "koa-useragent": "^4.1.0",
+    "lib0": "^0.2.99",
     "mailparser": "^3.9.20",
     "mammoth": "^1.11.0",
     "markdown-it": "^14.3.1",
