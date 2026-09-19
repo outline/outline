@@ -1,11 +1,13 @@
-import type {
-  Connection,
-  Extension,
-  onAwarenessUpdatePayload,
-} from "@hocuspocus/server";
+import type { Extension, beforeHandleMessagePayload } from "@hocuspocus/server";
+import { MessageType } from "@hocuspocus/server";
+import {
+  createDecoder,
+  readVarString,
+  readVarUint,
+  readVarUint8Array,
+} from "lib0/decoding";
 import { AuthorizationFailed } from "@shared/collaboration/CloseEvents";
 import Logger from "@server/logging/Logger";
-import { trace } from "@server/logging/tracing";
 import type { withContext } from "./types";
 
 interface AwarenessUserField {
@@ -17,67 +19,80 @@ interface AwarenessState {
 }
 
 /**
- * Enforces that the `user.id` field in every awareness state matches the
- * authenticated user for the connection that produced the update.
+ * Enforces that awareness updates sent by a client are valid.
  *
- * Clients control their own awareness - when a mismatch is detected the
- * connection is closed, which also removes its awareness states for all
- * other clients.
+ * Clients control their own awareness - the raw message is inspected before it
+ * is applied so a forged state is never broadcast. When a violation is detected
+ * the sending connection is closed.
  */
-@trace()
 export default class AwarenessIdentityExtension implements Extension {
-  async onAwarenessUpdate({
+  async beforeHandleMessage({
     document,
-    added,
-    updated,
-    awareness,
-  }: withContext<onAwarenessUpdatePayload>) {
-    const clientIds = [...added, ...updated];
-    if (clientIds.length === 0) {
+    documentName,
+    socketId,
+    context,
+    update,
+  }: withContext<beforeHandleMessagePayload>) {
+    // The message type is a single-byte varint for all known types.
+    if (update[0] !== MessageType.Awareness) {
       return;
     }
 
-    for (const clientId of clientIds) {
-      const connection = this.findConnectionForClient(document, clientId);
-      if (!connection) {
+    const authUser = context.user;
+    if (!authUser) {
+      return;
+    }
+
+    // For performance, this is kept low-level
+    const decoder = createDecoder(update);
+    readVarUint(decoder);
+    const payload = createDecoder(readVarUint8Array(decoder));
+    const count = readVarUint(payload);
+
+    for (let i = 0; i < count; i++) {
+      const clientId = readVarUint(payload);
+      readVarUint(payload);
+      const encoded = readVarString(payload);
+
+      const owner = this.findClientOwner(document, clientId);
+      if (owner !== undefined && owner !== socketId) {
+        Logger.warn("Awareness update for foreign client, closing connection", {
+          documentName,
+          socketId,
+          clientId,
+          authenticatedUserId: authUser.id,
+        });
+        throw AuthorizationFailed;
+      }
+
+      if (encoded === "null") {
         continue;
       }
 
-      const authUser = connection.context.user;
-      if (!authUser) {
-        continue;
-      }
-
-      const state: AwarenessState | undefined = awareness
-        .getStates()
-        .get(clientId);
+      const state: AwarenessState | null = JSON.parse(encoded);
       const claimedUser = state?.user;
-      if (!claimedUser) {
-        continue;
-      }
-
-      if (claimedUser.id === authUser.id) {
+      if (!claimedUser || claimedUser.id === authUser.id) {
         continue;
       }
 
       Logger.warn("Awareness identity mismatch, closing connection", {
-        documentName: document.name,
+        documentName,
+        socketId,
         clientId,
         claimedUserId: JSON.stringify(claimedUser.id),
         authenticatedUserId: authUser.id,
       });
-
-      connection.close(AuthorizationFailed);
+      throw AuthorizationFailed;
     }
   }
 
-  private findConnectionForClient(
-    document: onAwarenessUpdatePayload["document"],
+  private findClientOwner(
+    document: beforeHandleMessagePayload["document"],
     clientId: number
-  ): withContext<Connection> | undefined {
+  ): string | undefined {
     for (const entry of document.connections.values()) {
       if (entry.clients.has(clientId)) {
-        return entry.connection;
+        return entry.connection.socketId;
       }
     }
     return undefined;
