@@ -285,6 +285,7 @@ const Content = styled.span`
 
   &[data-empty="true"]::before {
     display: inline-block;
+    float: inline-start;
     color: ${s("placeholder")};
     -webkit-text-fill-color: ${s("placeholder")};
     content: attr(data-placeholder);
