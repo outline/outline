@@ -189,7 +189,12 @@ allow(User, "delete", Document, (actor, document) =>
     or(
       can(actor, "unarchive", document),
       can(actor, "update", document),
-      and(!document?.collection, actor.id === document?.createdById)
+      isPersonalOwner(actor, document),
+      and(
+        !document?.collection,
+        !document?.isPersonal,
+        actor.id === document?.createdById
+      )
     )
   )
 );

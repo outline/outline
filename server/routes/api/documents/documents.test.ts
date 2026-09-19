@@ -9398,6 +9398,36 @@ describe("#documents.update - personal", () => {
   });
 });
 
+describe("#documents.delete - personal", () => {
+  it.each([true, false])(
+    "should allow only the owner to delete an unshared personal document (enabled: %s)",
+    async (enabled) => {
+      const team = await buildTeam({
+        preferences: { [TeamPreference.PersonalDocs]: enabled },
+      });
+      const creator = await buildUser({ teamId: team.id });
+      const owner = await buildUser({ teamId: team.id });
+      const document = await buildPersonalDocument({
+        teamId: team.id,
+        userId: creator.id,
+        personalOwnerId: owner.id,
+      });
+
+      const denied = await server.post("/api/documents.delete", creator, {
+        body: { id: document.id },
+      });
+      expect(denied.status).toEqual(403);
+      expect(await Document.findByPk(document.id)).not.toBeNull();
+
+      const allowed = await server.post("/api/documents.delete", owner, {
+        body: { id: document.id },
+      });
+      expect(allowed.status).toEqual(200);
+      expect(await Document.findByPk(document.id)).toBeNull();
+    }
+  );
+});
+
 describe("#documents.remove_user - personal", () => {
   it("should prevent removing the owner from their own personal document", async () => {
     const user = await buildUser();
