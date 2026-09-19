@@ -35,7 +35,7 @@ function DraggableCollectionLink({
   activeDocument,
   belowCollection,
 }: Props) {
-  const activeSidebarContext = useActiveSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const sidebarContext = useSidebarContext();
   const { ui, policies, collections } = useStores();
   const [expanded, setExpanded] = useState(
@@ -103,6 +103,7 @@ function DraggableCollectionLink({
   }, [
     collection.id,
     ui.activeCollectionId,
+    activeDocument?.id,
     sidebarContext,
     activeSidebarContext,
   ]);
