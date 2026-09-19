@@ -162,9 +162,11 @@ export default async function documentUpdater(
   };
 
   if (publish && personalOwnerId) {
-    // Publishing into a personal space detaches the document from any
-    // collection, which the model hook takes care of on save.
+    // Detach before publishing, which otherwise adds the draft to its former
+    // collection's document structure before the save hooks run.
     document.personalOwnerId = personalOwnerId;
+    document.collectionId = null;
+    document.collection = null;
     await document.publish(ctx, { collectionId: null, data: eventData });
   } else if (publish && destCollectionId) {
     if (!document.collectionId) {

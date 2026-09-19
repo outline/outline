@@ -18,6 +18,7 @@ import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
 import {
+  Collection,
   Document,
   View,
   Revision,
@@ -9347,6 +9348,14 @@ describe("#documents.update - personal", () => {
     expect(res.status).toEqual(200);
     expect(body.data.collectionId).toBeNull();
     expect(body.data.personalOwnerId).toEqual(user.id);
+
+    const updatedCollection = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(
+      (updatedCollection.documentStructure ?? []).map((node) => node.id)
+    ).not.toContain(draft.id);
   });
 
   it("should reject personalOwnerId on an already published document", async () => {
