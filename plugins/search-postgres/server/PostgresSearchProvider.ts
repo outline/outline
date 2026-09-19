@@ -681,6 +681,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       where[Op.or].push({
         createdById: model.id,
         collectionId: { [Op.is]: null },
+        personalOwnerId: { [Op.is]: null },
       });
       if (collectionIds.length) {
         where[Op.or].push(

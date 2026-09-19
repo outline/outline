@@ -331,7 +331,7 @@ router.post(
       where[Op.and].push({
         [Op.or]: [
           { collectionId: collectionIds },
-          { collectionId: null, createdById: user.id },
+          { collectionId: null, personalOwnerId: null, createdById: user.id },
           // a document in the user's own personal space carries access on
           // itself, whoever created it
           { personalOwnerId: user.id },

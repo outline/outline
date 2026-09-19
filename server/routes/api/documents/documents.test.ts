@@ -836,6 +836,46 @@ describe("#documents.export", () => {
 });
 
 describe("#documents.list", () => {
+  it("should not expose a document moved to another user's personal space", async () => {
+    const creator = await buildUser();
+    const owner = await buildUser({ teamId: creator.teamId });
+    const collection = await buildCollection({
+      teamId: owner.teamId,
+      userId: owner.id,
+    });
+    const document = await buildDocument({
+      teamId: creator.teamId,
+      userId: creator.id,
+      collectionId: collection.id,
+    });
+
+    const move = await server.post("/api/documents.move", owner, {
+      body: { id: document.id, personalOwnerId: owner.id },
+    });
+    expect(move.status).toEqual(200);
+
+    const info = await server.post("/api/documents.info", creator, {
+      body: { id: document.id },
+    });
+    expect(info.status).toEqual(403);
+
+    const creatorList = await server.post("/api/documents.list", creator, {
+      body: {},
+    });
+    expect(creatorList.status).toEqual(200);
+    const creatorBody = await creatorList.json();
+    expect(creatorBody.data).toEqual([]);
+
+    const ownerList = await server.post("/api/documents.list", owner, {
+      body: {},
+    });
+    expect(ownerList.status).toEqual(200);
+    const ownerBody = await ownerList.json();
+    expect(ownerBody.data).toEqual([
+      expect.objectContaining({ id: document.id }),
+    ]);
+  });
+
   it("should fail for invalid userId", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.list", user, {
