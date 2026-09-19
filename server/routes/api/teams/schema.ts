@@ -7,9 +7,9 @@ import {
   TOCPosition,
   UserRole,
 } from "@shared/types";
-import { validateColorHex } from "@shared/utils/color";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
+import { ValidateColor } from "@server/validation";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
@@ -81,7 +81,11 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         [TeamPreference.DisabledEmbeds]: z.array(z.string()),
         /** The preset colors offered when choosing an icon color. */
         [TeamPreference.ColorPalette]: z
-          .array(z.string().refine(validateColorHex))
+          .array(
+            z
+              .string()
+              .regex(ValidateColor.regex, { message: ValidateColor.message })
+          )
           .length(colorPalette.length),
       })
       .partial()
