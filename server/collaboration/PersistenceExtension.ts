@@ -6,7 +6,9 @@ import type {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
+import { DocumentTooLarge } from "@shared/collaboration/CloseEvents";
 import { toError } from "@shared/utils/error";
+import { DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -92,6 +94,17 @@ export default class PersistenceExtension implements Extension {
         ydoc = ProsemirrorHelper.toYDoc(document.text, fieldName);
       }
       const state = ProsemirrorHelper.toState(ydoc);
+
+      // Rejecting with a close event tells the client why it cannot connect,
+      // rather than the generic authorization failure a thrown error becomes.
+      if (state.length > DocumentValidation.maxStateLength) {
+        Logger.warn("Document state exceeds the maximum size", {
+          documentId,
+          size: state.length,
+        });
+        throw DocumentTooLarge;
+      }
+
       await document.update(
         {
           state,
@@ -175,8 +188,11 @@ export default class PersistenceExtension implements Extension {
 
       this.persistFailureCounts.delete(documentName);
     } catch (err) {
+      const error = toError(err);
+      const isTooLarge = "id" in error && error.id === "document_too_large";
       const failures = (this.persistFailureCounts.get(documentName) ?? 0) + 1;
-      const giveUp = failures >= PersistenceExtension.maxPersistFailures;
+      const giveUp =
+        isTooLarge || failures >= PersistenceExtension.maxPersistFailures;
 
       if (giveUp) {
         // Stop retrying, the error is unlikely to be transient. Further changes
@@ -188,12 +204,20 @@ export default class PersistenceExtension implements Extension {
         this.unsavedDocumentNames.add(documentName);
       }
 
-      Logger.error("Unable to persist document", toError(err), {
+      Logger.error("Unable to persist document", error, {
         documentId,
         userId: context.user?.id,
         failures,
         giveUp,
       });
+
+      // The size limit cannot be resolved by retrying, disconnect clients so
+      // they stop editing and show the document as too large.
+      if (isTooLarge) {
+        document.connections.forEach(({ connection }) =>
+          connection.close(DocumentTooLarge)
+        );
+      }
     }
   }
 }
