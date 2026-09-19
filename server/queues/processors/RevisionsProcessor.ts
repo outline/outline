@@ -28,16 +28,6 @@ export default class RevisionsProcessor extends BaseProcessor {
         });
         const previous = await Revision.findLatest(document.id);
 
-        // we don't create revisions if identical to previous revision, this can happen if a manual
-        // revision was created from another service or user.
-        if (
-          previous &&
-          isEqual(document.content, previous.content) &&
-          document.title === previous.title
-        ) {
-          return;
-        }
-
         // Only read attribution included in a persisted snapshot. API and
         // legacy events have no cutoff and must not consume pending edits.
         const sequence =
@@ -45,6 +35,22 @@ export default class RevisionsProcessor extends BaseProcessor {
             ? event.data.collaborators
             : undefined;
         const key = Document.getCollaboratorKey(event.documentId);
+
+        // we don't create revisions if identical to previous revision, this can happen if a manual
+        // revision was created from another service or user.
+        if (
+          previous &&
+          isEqual(document.content, previous.content) &&
+          document.title === previous.title
+        ) {
+          // The snapshot's edits are already in a revision, so consume their
+          // attribution rather than carry it into the next revision.
+          if (sequence !== undefined) {
+            await Redis.defaultClient.zremrangebyscore(key, "-inf", sequence);
+          }
+          return;
+        }
+
         const collaboratorIds =
           sequence === undefined
             ? []
