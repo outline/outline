@@ -6027,6 +6027,19 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(400);
   });
 
+  it("should not create a document whose collaborative state would be too large", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "title",
+        text: "a".repeat(DocumentValidation.maxStateLength),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(413);
+    expect(body.error).toEqual("document_too_large");
+  });
+
   it("should use template title when doc is created using a template and title is not explicitly passed", async () => {
     const user = await buildUser();
     const template = await buildTemplate({
