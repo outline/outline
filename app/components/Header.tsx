@@ -35,12 +35,10 @@ type Props = {
     | React.ReactNode;
   hasSidebar?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function Header(
-  { left, title, actions, hasSidebar, className }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
   const { ui } = useStores();
   const { t } = useTranslation();
   const { pane, isSplitView } = useSplitView();
@@ -251,4 +249,4 @@ const CloseSplitPaneButton = styled(Button)`
   pointer-events: auto;
 `;
 
-export default observer(React.forwardRef(Header));
+export default observer(Header);

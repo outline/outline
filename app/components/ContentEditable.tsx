@@ -20,6 +20,7 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   autoFocus?: boolean;
   children?: React.ReactNode;
   value: string;
+  ref?: React.Ref<RefHandle>;
 };
 
 export type RefHandle = {
@@ -33,28 +34,26 @@ export type RefHandle = {
  * Defines a content editable component with the same interface as a native
  * HTMLInputElement (or, as close as we can get).
  */
-const ContentEditable = React.forwardRef(function ContentEditable_(
-  {
-    disabled,
-    onChange,
-    onInput,
-    onFocus,
-    onBlur,
-    onKeyDown,
-    onCompositionEnd,
-    value,
-    children,
-    className,
-    maxLength,
-    autoFocus,
-    placeholder,
-    readOnly,
-    dir,
-    onClick,
-    ...rest
-  }: Props,
-  ref: React.RefObject<RefHandle>
-) {
+function ContentEditable({
+  disabled,
+  onChange,
+  onInput,
+  onFocus,
+  onBlur,
+  onKeyDown,
+  onCompositionEnd,
+  value,
+  children,
+  className,
+  maxLength,
+  autoFocus,
+  placeholder,
+  readOnly,
+  dir,
+  onClick,
+  ref,
+  ...rest
+}: Props) {
   const contentRef = React.useRef<HTMLSpanElement>(null);
   const [innerValue, setInnerValue] = React.useState<string>(value);
   const [isEmpty, setIsEmpty] = React.useState(value.length === 0);
@@ -214,7 +213,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       </Content>
     </div>
   );
-});
+}
 
 function isComposing(event: React.SyntheticEvent<HTMLSpanElement>) {
   const native = event.nativeEvent;

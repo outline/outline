@@ -1,13 +1,13 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Helmet } from "react-helmet-async";
 import type { DefaultTheme } from "styled-components";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
+import { FallbackPageTitle } from "~/components/PageTitle";
 import { useRightSidebarContent } from "~/components/RightSidebarContext";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
@@ -23,12 +23,16 @@ type Props = {
   sidebar?: React.ReactNode;
   /** Whether the sidebar can be collapsed, defaults to true. */
   sidebarCanCollapse?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const Layout = React.forwardRef(function Layout_(
-  { title, children, sidebar, sidebarCanCollapse = true }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function Layout({
+  title,
+  children,
+  sidebar,
+  sidebarCanCollapse = true,
+  ref,
+}: Props) {
   const { ui } = useStores();
   const showSidebar = !!sidebar && !ui.sidebarHidden;
   const sidebarCollapsed =
@@ -36,42 +40,40 @@ const Layout = React.forwardRef(function Layout_(
   const sidebarRight = useRightSidebarContent();
 
   return (
-    <Container column auto ref={ref}>
-      <Helmet>
-        <title>{title ? title : env.APP_NAME}</title>
-      </Helmet>
+    <FallbackPageTitle title={title ? title : env.APP_NAME}>
+      <Container column auto ref={ref}>
+        <SkipNavLink />
 
-      <SkipNavLink />
+        {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-      {ui.progressBarVisible && <LoadingIndicatorBar />}
+        <Container auto>
+          {showSidebar && sidebar}
 
-      <Container auto>
-        {showSidebar && sidebar}
+          <SkipNavContent />
+          <Content
+            auto
+            justify="center"
+            role="main"
+            $isResizing={ui.sidebarIsResizing}
+            $sidebarCollapsed={sidebarCollapsed}
+            $hasSidebar={showSidebar}
+            style={
+              sidebarCollapsed
+                ? undefined
+                : {
+                    marginInlineStart: `${ui.sidebarWidth}px`,
+                  }
+            }
+          >
+            {children}
+          </Content>
 
-        <SkipNavContent />
-        <Content
-          auto
-          justify="center"
-          role="main"
-          $isResizing={ui.sidebarIsResizing}
-          $sidebarCollapsed={sidebarCollapsed}
-          $hasSidebar={showSidebar}
-          style={
-            sidebarCollapsed
-              ? undefined
-              : {
-                  marginInlineStart: `${ui.sidebarWidth}px`,
-                }
-          }
-        >
-          {children}
-        </Content>
-
-        <AnimatePresence initial={false}>{sidebarRight}</AnimatePresence>
+          <AnimatePresence initial={false}>{sidebarRight}</AnimatePresence>
+        </Container>
       </Container>
-    </Container>
+    </FallbackPageTitle>
   );
-});
+}
 
 const Container = styled(Flex)`
   background: ${s("background")};

@@ -6,8 +6,8 @@ import {
   useMemo,
   useState,
   type ReactNode,
+  type RefCallback,
 } from "react";
-import type { ConnectDragSource } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { SidebarSection, UserPreference } from "@shared/types";
@@ -25,7 +25,7 @@ import Section from "./Section";
 
 type SidebarSectionContextValue = {
   /** Drag connector so the section header can register as the drag handle. */
-  dragRef: ConnectDragSource;
+  dragRef: RefCallback<HTMLElement>;
   /** Actions offered in the section header's context menu. */
   menuActions: Action[];
 };

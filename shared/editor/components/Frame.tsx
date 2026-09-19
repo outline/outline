@@ -26,16 +26,14 @@ type Props = Omit<
   style?: React.CSSProperties;
   /** The allow policy of the frame */
   allow?: string;
-};
-
-type PropsWithRef = Props & {
-  forwardedRef: React.Ref<HTMLIFrameElement>;
+  /** Ref to the underlying iframe element */
+  ref?: React.Ref<HTMLIFrameElement>;
 };
 
 const Frame = ({
   border,
   style = {},
-  forwardedRef,
+  ref,
   icon,
   title,
   canonicalUrl,
@@ -44,7 +42,7 @@ const Frame = ({
   className = "",
   src,
   ...rest
-}: PropsWithRef) => {
+}: Props) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const mountedRef = useRef(true);
 
@@ -79,7 +77,7 @@ const Frame = ({
     >
       {isLoaded && (
         <Iframe
-          ref={forwardedRef}
+          ref={ref}
           $showBottomBar={showBottomBar}
           sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation"
           allow="fullscreen; encrypted-media; picture-in-picture; clipboard-read; clipboard-write"
@@ -163,6 +161,4 @@ const Bar = styled.div`
   position: relative;
 `;
 
-export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
-  <Frame {...props} forwardedRef={ref} />
-));
+export default Frame;

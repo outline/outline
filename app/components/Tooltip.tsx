@@ -9,7 +9,7 @@ import { useTooltipContext } from "./TooltipContext";
 
 export type Props = {
   /** The content to display in the tooltip. */
-  content?: React.ReactChild | React.ReactChild[];
+  content?: React.ReactNode;
   /** A keyboard shortcut to display next to the content */
   shortcut?: React.ReactNode;
   /** Whether to show the shortcut on a new line */

@@ -58,20 +58,20 @@ type Props = {
   onIconActive?: (icon: IconNode) => void;
   /** Callback when whether the grid has content below the fold changes */
   onOverflowChange?: (hasMoreBelow: boolean) => void;
+  /** Ref to the scrolling container */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const GridTemplate = (
-  {
-    width,
-    height,
-    data,
-    empty,
-    onIconSelect,
-    onIconActive,
-    onOverflowChange,
-  }: Props,
-  ref: React.Ref<HTMLDivElement>
-) => {
+function GridTemplate({
+  width,
+  height,
+  data,
+  empty,
+  onIconSelect,
+  onIconActive,
+  onOverflowChange,
+  ref,
+}: Props) {
   const isMobile = useMobile();
   const buttonSize = isMobile ? BUTTON_SIZE_MOBILE : BUTTON_SIZE_DESKTOP;
   const iconSize = isMobile ? ICON_SIZE_MOBILE : ICON_SIZE_DESKTOP;
@@ -159,7 +159,7 @@ const GridTemplate = (
       onOverflowChange={onOverflowChange}
     />
   );
-};
+}
 
 const CategoryName = styled(Text)`
   grid-column: 1 / -1;
@@ -173,4 +173,4 @@ const Icon = styled.svg`
   transition-delay: var(--delay);
 `;
 
-export default React.forwardRef(GridTemplate);
+export default GridTemplate;

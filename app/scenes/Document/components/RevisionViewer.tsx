@@ -30,6 +30,7 @@ type Props = Omit<EditorProps, "extensions"> & {
   /** Whether to show changes from the previous revision */
   showChanges?: boolean;
   children?: React.ReactNode;
+  ref?: React.Ref<TEditor>;
 };
 
 /**
@@ -41,8 +42,8 @@ type Props = Omit<EditorProps, "extensions"> & {
  *
  * @param props - Component props including the revision to display and current document
  */
-function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
-  const { document, children, revision } = props;
+function RevisionViewer(props: Props) {
+  const { document, children, revision, ref } = props;
   const { revisions } = useStores();
   const { setEditor, setTotalChanges } = useDocumentContext();
   const query = useQuery();
@@ -153,4 +154,4 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   );
 }
 
-export default observer(React.forwardRef(RevisionViewer));
+export default observer(RevisionViewer);

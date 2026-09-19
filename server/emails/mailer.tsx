@@ -30,7 +30,7 @@ type SendMailOptions = {
   /** The plain-text version of the email body. */
   text: string;
   /** The React element rendered to produce the HTML body. */
-  component: JSX.Element;
+  component: React.JSX.Element;
   /** Additional CSS to inject into the head of the email. */
   headCSS?: string;
   /** The URL used to unsubscribe from these emails. */

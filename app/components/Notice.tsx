@@ -6,8 +6,8 @@ import Text from "./Text";
 
 type Props = {
   children?: React.ReactNode;
-  icon?: JSX.Element;
-  description?: JSX.Element;
+  icon?: React.JSX.Element;
+  description?: React.JSX.Element;
   className?: string;
 };
 

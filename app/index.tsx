@@ -9,7 +9,6 @@ import { configure as configureMobx } from "mobx";
 import { StrictMode } from "react";
 import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
-import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
@@ -71,36 +70,34 @@ const commandBarOptions = {
 if (element) {
   const App = () => (
     <StrictMode>
-      <HelmetProvider>
-        <Provider rootStore={stores}>
-          <Analytics>
-            <Router history={history}>
-              <Theme>
-                <ActionContextProvider>
-                  <ErrorBoundary showTitle>
-                    <KBarProvider actions={[]} options={commandBarOptions}>
-                      <LazyPolyfill>
-                        <LazyMotion features={domMax}>
-                          <PageScroll>
-                            <PageTheme />
-                            <ScrollToTop>
-                              <Routes />
-                            </ScrollToTop>
-                            <Toasts />
-                            <Dialogs />
-                            <Presentation />
-                            <Desktop />
-                          </PageScroll>
-                        </LazyMotion>
-                      </LazyPolyfill>
-                    </KBarProvider>
-                  </ErrorBoundary>
-                </ActionContextProvider>
-              </Theme>
-            </Router>
-          </Analytics>
-        </Provider>
-      </HelmetProvider>
+      <Provider rootStore={stores}>
+        <Analytics>
+          <Router history={history}>
+            <Theme>
+              <ActionContextProvider>
+                <ErrorBoundary showTitle>
+                  <KBarProvider actions={[]} options={commandBarOptions}>
+                    <LazyPolyfill>
+                      <LazyMotion features={domMax}>
+                        <PageScroll>
+                          <PageTheme />
+                          <ScrollToTop>
+                            <Routes />
+                          </ScrollToTop>
+                          <Toasts />
+                          <Dialogs />
+                          <Presentation />
+                          <Desktop />
+                        </PageScroll>
+                      </LazyMotion>
+                    </LazyPolyfill>
+                  </KBarProvider>
+                </ErrorBoundary>
+              </ActionContextProvider>
+            </Theme>
+          </Router>
+        </Analytics>
+      </Provider>
     </StrictMode>
   );
 
