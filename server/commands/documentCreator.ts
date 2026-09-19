@@ -190,17 +190,21 @@ export async function authorizeDocumentPublish(
   // A nested document always shares the home of its parent, so the destination
   // is not the caller's to choose.
   if (document.parentDocumentId) {
-    if (collectionId || personalOwnerId) {
-      throw ValidationError(
-        "collectionId and personalOwnerId cannot be used when publishing a nested document, it inherits the location of its parent"
-      );
-    }
-
     const parentDocument = await Document.findByPk(document.parentDocumentId, {
       userId: user.id,
       transaction,
     });
     const home = resolveHome(parentDocument);
+    // The web client includes the draft's existing collection when saving.
+    // Accept it only when it matches the location inherited from the parent.
+    if (
+      personalOwnerId ||
+      (collectionId && collectionId !== home.collectionId)
+    ) {
+      throw ValidationError(
+        "a nested document must be published in the location of its parent"
+      );
+    }
     const collection = home.collectionId
       ? await Collection.findByPk(home.collectionId, {
           userId: user.id,

@@ -6700,6 +6700,42 @@ describe("#documents.update", () => {
     expect(body.data.text).toBe("Updated text");
   });
 
+  it.each([true, false])(
+    "should publish a nested collection draft only to its parent's collection (matching: %s)",
+    async (matching) => {
+      const user = await buildUser();
+      const parent = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const otherCollection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const draft = await buildDraftDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+
+      const res = await server.post("/api/documents.update", user, {
+        body: {
+          id: draft.id,
+          collectionId: matching ? parent.collectionId : otherCollection.id,
+          publish: true,
+        },
+      });
+      expect(res.status).toEqual(matching ? 200 : 400);
+      const updated = await Document.findByPk(draft.id, {
+        rejectOnEmpty: true,
+      });
+      expect(updated.collectionId).toEqual(parent.collectionId);
+      expect(updated.parentDocumentId).toEqual(parent.id);
+      expect(!!updated.publishedAt).toEqual(matching);
+    }
+  );
+
   it("should not allow publishing by another collection's user", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
