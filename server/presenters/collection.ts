@@ -66,6 +66,7 @@ export default async function presentCollection(
     res.permission = collection.permission;
     res.deletedAt = collection.deletedAt;
     res.archivedAt = collection.archivedAt;
+    res.deprecatedReason = collection.deprecatedReason;
     res.archivedBy =
       collection.archivedBy && presentUser(collection.archivedBy);
     res.sourceMetadata = collection.sourceMetadata

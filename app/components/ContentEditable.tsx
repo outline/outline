@@ -57,6 +57,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
 ) {
   const contentRef = React.useRef<HTMLSpanElement>(null);
   const [innerValue, setInnerValue] = React.useState<string>(value);
+  const [isEmpty, setIsEmpty] = React.useState(value.length === 0);
   const lastValue = React.useRef(value);
 
   React.useImperativeHandle(ref, () => ({
@@ -99,6 +100,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       }
 
       let text = event.currentTarget.textContent || "";
+      setIsEmpty(text.length === 0);
       const overLimit =
         !!maxLength && TextHelper.codePointLength(text) > maxLength;
 
@@ -145,8 +147,17 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
   }, [autoFocus, disabled, isVisible, readOnly, contentRef]);
 
   React.useEffect(() => {
-    if (contentRef.current && value !== contentRef.current.textContent) {
-      if (document.activeElement === contentRef.current) {
+    if (!contentRef.current) {
+      return;
+    }
+
+    const isFocused = document.activeElement === contentRef.current;
+    setIsEmpty(
+      isFocused ? !contentRef.current.textContent : value.length === 0
+    );
+
+    if (value !== contentRef.current.textContent) {
+      if (isFocused) {
         // Don't reset content while the user is actively editing. Update
         // lastValue so that the next input or blur event will push the
         // current DOM text back to the model via onChange.
@@ -194,6 +205,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
         onCompositionEnd={wrappedEvent(onCompositionEnd)}
         onPaste={handlePaste}
         data-placeholder={placeholder}
+        data-empty={isEmpty}
         suppressContentEditableWarning
         role={contentEditable ? "textbox" : undefined}
         {...rest}
@@ -266,12 +278,14 @@ const Content = styled.span`
   cursor: text;
   word-break: anywhere;
 
-  &:empty {
+  /* Browsers can leave line breaks behind after all text is deleted. */
+  &[data-empty="true"] {
     display: inline-block;
   }
 
-  &:empty::before {
+  &[data-empty="true"]::before {
     display: inline-block;
+    float: inline-start;
     color: ${s("placeholder")};
     -webkit-text-fill-color: ${s("placeholder")};
     content: attr(data-placeholder);

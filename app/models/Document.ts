@@ -142,6 +142,10 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   title: string;
 
+  /** The reason this document is archived or deleted. */
+  @observable
+  deprecatedReason: string | null = null;
+
   /** The likely language of the document, in ISO 639-1 format.  */
   language: string | undefined;
 
@@ -519,7 +523,14 @@ export default class Document extends ArchivableModel implements Searchable {
     };
   }
 
-  archive = () => this.store.archive(this);
+  /**
+   * Archives the document with an optional reason.
+   *
+   * @param options the archive options.
+   * @returns a promise that resolves when the document is archived.
+   */
+  archive = (options?: { reason?: string }) =>
+    this.store.archive(this, options);
 
   restore = (options?: { revisionId?: string; collectionId?: string }) =>
     this.store.restore(this, options);
