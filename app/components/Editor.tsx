@@ -32,7 +32,7 @@ export type Props = Optional<
   editorStyle?: React.CSSProperties;
 };
 
-function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
+function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   const {
     id,
     onChange,
@@ -45,9 +45,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { shareId } = useShare();
   const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
-  const localRef = React.useRef<SharedEditor>();
+  const localRef = React.useRef<SharedEditor | undefined>(undefined);
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
-  const previousCommentIds = React.useRef<string[]>();
+  const previousCommentIds = React.useRef<string[] | undefined>(undefined);
 
   // Upload progress tracking for delayed toast
   const progressMap = React.useMemo(() => new Map<string, number>(), []);
@@ -265,4 +265,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default observer(React.forwardRef(Editor));
+export default observer(Editor);

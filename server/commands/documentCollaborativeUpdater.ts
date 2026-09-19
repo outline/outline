@@ -31,38 +31,55 @@ export default async function documentCollaborativeUpdater({
   isLastConnection,
   clientVersion,
 }: Props) {
+  const state = Y.encodeStateAsUpdate(ydoc);
+
+  // Round-trip through the schema so the stored JSON is canonical. The raw
+  // y-prosemirror output includes empty `attrs: {}` on every mark, and outputs
+  // properties in a different order - resulting in spurious "edits". The JSON
+  // round-trip additionally drops undefined-valued attrs, which are absent
+  // from previously stored content but present on `Node.toJSON` output.
+  const content = JSON.parse(
+    JSON.stringify(
+      Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default")).toJSON()
+    )
+  ) as ProsemirrorData;
+
+  // extract collaborators from doc user data
+  const pud = new Y.PermanentUserData(ydoc);
+  const pudIds = Array.from(pud.clients.values());
+
   return sequelize.transaction(async (transaction) => {
     await sequelize.query(`SET LOCAL lock_timeout = '15s';`, {
       transaction,
     });
 
-    const document = await Document.unscoped()
-      .scope("withoutState")
-      .findOne({
-        where: {
-          id: documentId,
-        },
-        transaction,
-        lock: {
-          of: Document,
-          level: transaction.LOCK.UPDATE,
-        },
-        rejectOnEmpty: true,
-        paranoid: false,
-      });
+    // Only the columns read below are selected, the deprecated markdown text
+    // and collaborative state can each be megabytes and are not needed here.
+    const document = await Document.unscoped().findOne({
+      attributes: [
+        "id",
+        "title",
+        "content",
+        "collaboratorIds",
+        "collectionId",
+        "deletedAt",
+        "editorVersion",
+        "lastModifiedById",
+        "revisionCount",
+        "teamId",
+      ],
+      where: {
+        id: documentId,
+      },
+      transaction,
+      lock: {
+        of: Document,
+        level: transaction.LOCK.UPDATE,
+      },
+      rejectOnEmpty: true,
+      paranoid: false,
+    });
 
-    const state = Y.encodeStateAsUpdate(ydoc);
-
-    // Round-trip through the schema so the stored JSON is canonical. The raw
-    // y-prosemirror output includes empty `attrs: {}` on every mark, and outputs
-    // properties in a different order - resulting in spurious "edits". The JSON
-    // round-trip additionally drops undefined-valued attrs, which are absent
-    // from previously stored content but present on `Node.toJSON` output.
-    const content = JSON.parse(
-      JSON.stringify(
-        Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default")).toJSON()
-      )
-    ) as ProsemirrorData;
     const isUnchanged = isEqual(document.content, content);
     const isDeleted = !!document.deletedAt;
     const lastModifiedById = isDeleted
@@ -79,9 +96,6 @@ export default async function documentCollaborativeUpdater({
       `Persisting ${documentId}, attributed to ${lastModifiedById}`
     );
 
-    // extract collaborators from doc user data
-    const pud = new Y.PermanentUserData(ydoc);
-    const pudIds = Array.from(pud.clients.values());
     const collaboratorIds = uniq([
       ...(document.collaboratorIds ?? []),
       ...sessionCollaboratorIds,

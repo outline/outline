@@ -1,7 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { useMemo } from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
@@ -10,7 +9,7 @@ import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
 import { createCollection } from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
-import type { DragObject } from "../hooks/useDragAndDrop";
+import { type DragObject, useDropRef } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
@@ -21,6 +20,8 @@ import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
+
+const headerActions = [createCollection];
 
 function Collections() {
   const { documents, auth, collections, policies } = useStores();
@@ -38,7 +39,7 @@ function Collections() {
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
-  ] = useDrop({
+  ] = useDropRef({
     accept: "collection",
     drop: async (item: DragObject) => {
       void collections.move(
@@ -58,7 +59,12 @@ function Collections() {
   return (
     <SidebarContext.Provider value="collections">
       <Flex column>
-        <Header id="collections" title={t("Collections")}>
+        <Header
+          id="collections"
+          title={t("Collections")}
+          actions={headerActions}
+          primaryAction={createCollection}
+        >
           <Relative>
             <PaginatedList<Collection>
               options={params}

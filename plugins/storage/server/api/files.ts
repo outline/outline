@@ -23,6 +23,7 @@ import type LocalStorage from "@server/storage/files/LocalStorage";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
+import { ByteRangeHelper } from "../utils/ByteRangeHelper";
 import * as T from "./schema";
 
 const router = new Router();
@@ -158,7 +159,13 @@ router.get(
     // Handle byte range requests
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
     const stats = await (FileStorage as LocalStorage).stat(key);
-    const range = getByteRange(ctx, stats.size);
+    const range = ByteRangeHelper.parse(ctx.headers.range, stats.size);
+
+    if (range === ByteRangeHelper.unsatisfiable) {
+      ctx.status = 416;
+      ctx.set("Content-Range", `bytes */${stats.size}`);
+      return;
+    }
 
     if (range) {
       ctx.status = 206;
@@ -174,26 +181,6 @@ router.get(
     ctx.body = await FileStorage.getFileStream(key, range);
   }
 );
-
-function getByteRange(
-  ctx: APIContext<T.FilesGetReq>,
-  size: number
-): { start: number; end: number } | undefined {
-  const { range } = ctx.headers;
-  if (!range) {
-    return;
-  }
-
-  const match = range.match(/bytes=(\d+)-(\d+)?/);
-  if (!match) {
-    return;
-  }
-
-  const start = parseInt(match[1], 10);
-  const end = parseInt(match[2], 10) || size - 1;
-
-  return { start, end };
-}
 
 /**
  * Verifies a short-lived signature authorizing an upload to a single key.

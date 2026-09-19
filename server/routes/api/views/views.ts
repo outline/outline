@@ -24,6 +24,7 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "listViews", document);
 
@@ -51,6 +52,7 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "read", document);
 

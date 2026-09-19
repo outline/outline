@@ -1,6 +1,7 @@
-import type { EditorState } from "prosemirror-state";
+import type { EditorState, Transaction } from "prosemirror-state";
 import type { TableRect } from "prosemirror-tables";
 import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
+import { findParentNodeClosestToPos } from "./findParentNode";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
 import type { EditorView } from "prosemirror-view";
@@ -659,3 +660,38 @@ export const hasNodeAttrMarkWithAttrsCellSelection = (
 
   return attrsMatch;
 };
+
+/**
+ * Checks whether the selection change in a transaction can alter table
+ * decorations that depend on the selection: a cell selection on either side,
+ * or the selection moving into, out of, or between tables. Moving the cursor
+ * within one table does not.
+ *
+ * @param tr The transaction.
+ * @param oldState The editor state before the transaction.
+ * @param newState The editor state after the transaction.
+ * @returns true if the selected table or the cell selection changed.
+ */
+export function hasTableSelectionChanged(
+  tr: Transaction,
+  oldState: EditorState,
+  newState: EditorState
+): boolean {
+  if (!tr.selectionSet) {
+    return false;
+  }
+  if (
+    oldState.selection instanceof CellSelection ||
+    newState.selection instanceof CellSelection
+  ) {
+    return true;
+  }
+
+  const isTable = (node: Node) => node.type.spec.tableRole === "table";
+  const before = findParentNodeClosestToPos(oldState.selection.$head, isTable);
+  const after = findParentNodeClosestToPos(newState.selection.$head, isTable);
+  if (!before || !after) {
+    return !!before !== !!after;
+  }
+  return tr.mapping.map(before.pos) !== after.pos;
+}

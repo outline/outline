@@ -10,17 +10,18 @@ const Popover = PopoverPrimitive.Root;
 
 const PopoverAnchor = PopoverPrimitive.Anchor;
 
-const PopoverTrigger = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
->((props, ref) => {
-  const { children, ...rest } = props;
+function PopoverTrigger(
+  props: React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger> & {
+    ref?: React.Ref<React.ComponentRef<typeof PopoverPrimitive.Trigger>>;
+  }
+) {
+  const { ref, children, ...rest } = props;
   return (
     <PopoverPrimitive.Trigger ref={ref} {...rest} asChild>
       {children}
     </PopoverPrimitive.Trigger>
   );
-});
+}
 PopoverTrigger.displayName = PopoverPrimitive.Trigger.displayName;
 
 type ContentProps = {
@@ -34,16 +35,17 @@ type ContentProps = {
   scrollable?: boolean;
   /** Shrink the padding of the popover */
   shrink?: boolean;
+  ref?: React.Ref<React.ComponentRef<typeof PopoverPrimitive.Content>>;
 } & React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>;
 
-const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  ContentProps
->((props, forwardedRef) => {
-  const ref = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content>>();
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+function PopoverContent(props: ContentProps) {
+  const ref = React.useRef<
+    React.ComponentRef<typeof PopoverPrimitive.Content> | undefined
+  >(undefined);
+  const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
   const container = usePortalContext();
   const {
+    ref: forwardedRef,
     width,
     minWidth,
     minHeight,
@@ -92,7 +94,7 @@ const PopoverContent = React.forwardRef<
       </StyledContent>
     </PopoverPrimitive.Portal>
   );
-});
+}
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 type StyledContentProps = {

@@ -1086,6 +1086,8 @@
   "Continue with Email": "ادامه با ایمیل",
   "Continue with {{ authProviderName }}": "با {{ authProviderName }} ادامه دهید",
   "Back to home": "بازگشت به خانه",
+  "Open in Gmail": "باز کردن در جیمیل",
+  "Open in Outlook": "باز کردن در اوت‌لوک",
   "The workspace could not be found": "فضای کاری یافت نشد",
   "To continue, enter your workspace’s subdomain.": "برای ادامه، زیر دامنه فضای کاری خود را وارد کنید.",
   "subdomain": "زیر دامنه",

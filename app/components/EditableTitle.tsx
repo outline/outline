@@ -20,6 +20,7 @@ type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   maxLength?: number;
   /** The default editing state. */
   isEditing?: boolean;
+  ref?: React.Ref<RefHandle>;
 };
 
 export type RefHandle = {
@@ -27,10 +28,15 @@ export type RefHandle = {
   setIsEditing: (isEditing: boolean) => void;
 };
 
-function EditableTitle(
-  { title, onSubmit, canUpdate, onEditing, onCancel, ...rest }: Props,
-  ref: React.RefObject<RefHandle>
-) {
+function EditableTitle({
+  title,
+  onSubmit,
+  canUpdate,
+  onEditing,
+  onCancel,
+  ref,
+  ...rest
+}: Props) {
   const [isEditing, setIsEditing] = React.useState(rest.isEditing || false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
@@ -190,4 +196,4 @@ const Input = styled.input`
   }
 `;
 
-export default React.forwardRef(EditableTitle);
+export default EditableTitle;

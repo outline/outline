@@ -30,24 +30,23 @@ interface Props extends Omit<
   /** Callback when the switch state changes */
   onChange?: (checked: boolean) => void;
   inForm?: boolean;
+  ref?: React.Ref<React.ComponentRef<typeof RadixSwitch.Root>>;
 }
 
-function Switch(
-  {
-    width = 32,
-    height = 18,
-    labelPosition = "left",
-    inForm = true,
-    label,
-    disabled,
-    className,
-    note,
-    checked,
-    onChange,
-    ...props
-  }: Props,
-  ref: React.Ref<React.ElementRef<typeof RadixSwitch.Root>>
-) {
+function Switch({
+  ref,
+  width = 32,
+  height = 18,
+  labelPosition = "left",
+  inForm = true,
+  label,
+  disabled,
+  className,
+  note,
+  checked,
+  onChange,
+  ...props
+}: Props) {
   const handleCheckedChange = React.useCallback(
     (checkedState: boolean) => {
       if (onChange) {
@@ -201,12 +200,12 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   }
 
   [dir="rtl"]
-    &:hover:not(:disabled)[data-state="checked"]
-    ${StyledSwitchThumb} {
+  &:hover:not(:disabled)[data-state="checked"]
+  ${StyledSwitchThumb} {
     transform: translateX(
       ${(props) => -(props.width - props.height - HOVER_EXTRA)}px
     );
   }
 `;
 
-export default React.forwardRef(Switch);
+export default Switch;

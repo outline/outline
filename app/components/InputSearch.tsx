@@ -12,12 +12,10 @@ type Props = InputProps & {
   onFocus?: (event: React.FocusEvent<HTMLInputElement>) => unknown;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
+  ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>;
 };
 
-function InputSearch(
-  props: Props,
-  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
-) {
+function InputSearch(props: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const [isFocused, setIsFocused] = React.useState(false);
@@ -26,6 +24,7 @@ function InputSearch(
     onKeyDown,
     onBlur,
     onFocus,
+    ref,
     ...rest
   } = props;
 
@@ -65,4 +64,4 @@ function InputSearch(
   );
 }
 
-export default React.forwardRef(InputSearch);
+export default InputSearch;

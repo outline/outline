@@ -1,5 +1,5 @@
 import type { DocumentPreferences, TextEditMode } from "@shared/types";
-import { DocumentConflictError } from "@server/errors";
+import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -40,6 +40,8 @@ type Props = {
   personalOwnerId?: string | null;
   /** The ID of the collection to publish the document to */
   collectionId?: string | null;
+  /** The reason the document is archived or deleted. */
+  deprecatedReason?: string | null;
 };
 
 /**
@@ -68,6 +70,7 @@ export default async function documentUpdater(
     publish,
     personalOwnerId,
     collectionId,
+    deprecatedReason,
     done,
   }: Props
 ): Promise<Document> {
@@ -132,6 +135,20 @@ export default async function documentUpdater(
     if (!locked && lastRevision !== undefined) {
       throw DocumentConflictError();
     }
+  }
+
+  if (deprecatedReason !== undefined) {
+    // Reload under the lock so a concurrent restore cannot leave a stale note.
+    await document.reload({ transaction, paranoid: false });
+    if (document.isActive) {
+      throw ValidationError("The document must be archived or deleted");
+    }
+    document.deprecatedReason = deprecatedReason?.trim() || null;
+    // Keep the archive attribution and time shown in the banner unchanged.
+    if (document.changed("deprecatedReason")) {
+      await document.saveWithCtx(ctx, { silent: true });
+    }
+    return document;
   }
 
   const changed = document.changed();

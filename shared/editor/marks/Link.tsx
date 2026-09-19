@@ -144,6 +144,33 @@ export default class Link extends Mark<LinkOptions> {
   }
 
   get plugins() {
+    /**
+     * Returns the anchor element for a mouse event on a link, or undefined if
+     * the event does not target a navigable link.
+     */
+    const getLinkTarget = (event: MouseEvent) => {
+      if (event.button !== 0 && event.button !== 1) {
+        return undefined;
+      }
+
+      // SVG anchors, such as those inside Mermaid diagrams, are handled by
+      // their own extension and have a non-string href.
+      const target =
+        event.target instanceof Element ? event.target.closest("a") : null;
+      if (!(target instanceof HTMLAnchorElement)) {
+        return undefined;
+      }
+
+      if (
+        target.getAttribute("role") === "button" ||
+        target.matches(".component-attachment *")
+      ) {
+        return undefined;
+      }
+
+      return target;
+    };
+
     const handleClick = (view: EditorView, pos: number) => {
       const { doc, tr } = view.state;
       const range = getMarkRange(
@@ -184,60 +211,25 @@ export default class Link extends Mark<LinkOptions> {
             return false;
           },
           mousedown: (view: EditorView, event: MouseEvent) => {
-            const target = (event.target as HTMLElement)?.closest("a");
-            if (
-              !(target instanceof HTMLAnchorElement) ||
-              (event.button !== 0 && event.button !== 1)
-            ) {
+            const target = getLinkTarget(event);
+            if (!target || !view.editable) {
               return false;
             }
 
-            if (
-              target.role === "button" ||
-              target.matches(".component-attachment *")
-            ) {
+            // A linked image is selected by ProseMirror and handled by its
+            // node view while editing.
+            if (event.target instanceof HTMLImageElement) {
               return false;
             }
 
-            // If an image is selected in write mode, disallow navigation to its href
-            const selectedDOMNode = view.nodeDOM(view.state.selection.from);
-            if (
-              view.editable &&
-              selectedDOMNode &&
-              selectedDOMNode instanceof HTMLSpanElement &&
-              selectedDOMNode.classList.contains("component-image") &&
-              event.target instanceof HTMLImageElement &&
-              selectedDOMNode.contains(event.target)
-            ) {
-              return false;
-            }
-
-            // clicking a link while editing should show the link toolbar,
-            // clicking in read-only will navigate
-            if (!view.editable || (view.editable && !view.hasFocus())) {
-              const href =
-                target.href ||
-                (target.parentNode instanceof HTMLAnchorElement
-                  ? target.parentNode.href
-                  : "");
-
-              try {
-                const sanitized = sanitizeUrl(href);
-                if (this.options.onClickLink && sanitized) {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  this.options.onClickLink(sanitized, event);
-                }
-              } catch (_err) {
-                this.editor.props.onNotice?.(
-                  t("Sorry, that type of link is not supported"),
-                  "error"
-                );
-              }
-
+            // Clicking a link while editing but unfocused must not move focus
+            // into the editor, the click handler will navigate instead.
+            if (!view.hasFocus()) {
+              event.preventDefault();
               return true;
             }
 
+            // Clicking a link while editing selects it to show the toolbar.
             const result = view.posAtCoords({
               left: event.clientX,
               top: event.clientY,
@@ -250,31 +242,50 @@ export default class Link extends Mark<LinkOptions> {
 
             return false;
           },
-          click: (_view: EditorView, event: MouseEvent) => {
-            if (
-              !(event.target instanceof HTMLAnchorElement) ||
-              (event.button !== 0 && event.button !== 1)
-            ) {
+          click: (view: EditorView, event: MouseEvent) => {
+            const target = getLinkTarget(event);
+            if (!target) {
               return false;
             }
 
-            if (
-              event.target.role === "button" ||
-              event.target.matches(".component-attachment *")
-            ) {
+            // A linked image opens the lightbox rather than navigating while
+            // editing, the node view handles the click.
+            if (view.editable && event.target instanceof HTMLImageElement) {
+              event.preventDefault();
               return false;
             }
 
-            // Prevent all default click behavior of links, see mousedown above
-            // for custom link handling.
-            if (this.options.onClickLink) {
+            if (view.editable && view.hasFocus()) {
+              // Links are not followed while editing.
               event.stopPropagation();
               event.preventDefault();
+              return false;
             }
 
-            return false;
+            const href = sanitizeUrl(target.href);
+            if (!this.options.onClickLink || !href) {
+              return false;
+            }
+
+            event.stopPropagation();
+            event.preventDefault();
+
+            try {
+              this.options.onClickLink(href, event);
+            } catch (_err) {
+              this.editor.props.onNotice?.(
+                t("Sorry, that type of link is not supported"),
+                "error"
+              );
+            }
+
+            return true;
           },
           keydown: (view: EditorView, event: KeyboardEvent) => {
+            if (!view.editable) {
+              return false;
+            }
+
             if (event.key !== " " && event.key !== "Enter") {
               return false;
             }

@@ -103,7 +103,13 @@ export default ({ mode }: ConfigEnv) =>
               },
             },
             {
-              urlPattern: /api\/files\.get/,
+              // Limited to images, as media and PDFs are loaded with byte range
+              // requests which Safari cannot play back when the response is
+              // served by a service worker.
+              urlPattern: ({ url, request }) =>
+                url.pathname.endsWith("/api/files.get") &&
+                request.destination === "image" &&
+                !request.headers.has("range"),
               handler: "CacheFirst",
               options: {
                 cacheName: "files-cache",
@@ -112,9 +118,8 @@ export default ({ mode }: ConfigEnv) =>
                   maxAgeSeconds: 604800, // 7 days
                 },
                 cacheableResponse: {
-                  statuses: [0, 200, 206], // Include partial content for range requests
+                  statuses: [200],
                 },
-                rangeRequests: true, // Allow range requests for partial content
               },
             },
           ],

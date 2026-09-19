@@ -46,24 +46,7 @@ export function createAction(
     ...definition,
     type: "action",
     variant: "action",
-    perform: definition.perform
-      ? (context) => {
-          // We must use the specific analytics name here as the action name is
-          // translated and potentially contains user strings.
-          if (definition.analyticsName) {
-            Analytics.track("perform_action", definition.analyticsName, {
-              context: context.isButton
-                ? "button"
-                : context.isCommandBar
-                  ? "commandbar"
-                  : context.isMCP
-                    ? "webmcp"
-                    : "contextmenu",
-            });
-          }
-          return definition.perform(context);
-        }
-      : () => {},
+    perform: definition.perform ?? (() => {}),
     id: definition.id ?? uuidv4(),
   };
 }
@@ -182,7 +165,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
-            tooltip: resolve<React.ReactChild>(action.tooltip, context),
+            tooltip: resolve<React.ReactNode>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             shortcut,
@@ -352,6 +335,20 @@ export async function performAction(
       : action.variant === "internal_link"
         ? () => history.push(resolve<LocationDescriptor>(action.to, context))
         : () => window.open(action.url, action.target);
+
+  // We must use the specific analytics name here as the action name is
+  // translated and potentially contains user strings.
+  if (action.analyticsName) {
+    Analytics.track("perform_action", action.analyticsName, {
+      context: context.isButton
+        ? "button"
+        : context.isCommandBar
+          ? "commandbar"
+          : context.isMCP
+            ? "webmcp"
+            : "contextmenu",
+    });
+  }
 
   const result = perform();
 

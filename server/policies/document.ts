@@ -128,7 +128,13 @@ allow(User, "duplicate", Document, (actor, document) =>
     !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
-    can(actor, "createDocument", actor.team)
+    or(
+      can(actor, "createDocument", actor.team),
+      // Guests and viewers are never team-level creators (see createDocument
+      // on Team above), but may duplicate documents they can update - the
+      // destination is still authorized separately in documents.duplicate.
+      can(actor, "update", document)
+    )
   )
 );
 
@@ -251,6 +257,13 @@ allow(
   "restore",
   Revision,
   (document, revision) => document.id === revision?.documentId
+);
+
+allow(User, "updateDeprecatedReason", Document, (actor, document) =>
+  and(
+    isTeamMutable(actor),
+    or(can(actor, "unarchive", document), can(actor, "restore", document))
+  )
 );
 
 allow(User, "unpublish", Document, (user, document) => {

@@ -1086,6 +1086,8 @@
   "Continue with Email": "Lanjutkan dengan Surel",
   "Continue with {{ authProviderName }}": "Lanjutkan dengan {{ authProviderName }}",
   "Back to home": "Kembali ke beranda",
+  "Open in Gmail": "Buka di Gmail",
+  "Open in Outlook": "Buka di Outlook",
   "The workspace could not be found": "The workspace could not be found",
   "To continue, enter your workspace’s subdomain.": "To continue, enter your workspace’s subdomain.",
   "subdomain": "subdomain",

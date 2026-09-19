@@ -28,7 +28,7 @@ export function useTableRequest<T extends { id: string }>({
   reqFn,
   reqParams,
 }: Props<T>): Response<T> {
-  const [total, setTotal] = useState<number>();
+  const [hasNext, setHasNext] = useState(false);
   const [offset, setOffset] = useState({ value: INITIAL_OFFSET });
   const prevParamsRef = useRef(reqParams);
   const sortRef = useRef<ColumnSort>(sort);
@@ -52,14 +52,12 @@ export function useTableRequest<T extends { id: string }>({
     ? orderBy(data, sortRef.current.id, sortRef.current.desc ? "desc" : "asc")
     : undefined;
 
-  const next =
-    !loading && total && sortedData && sortedData.length < total
-      ? nextPage
-      : undefined;
+  const next = !loading && hasNext ? nextPage : undefined;
 
   useEffect(() => {
     if (prevParamsRef.current !== reqParams) {
       prevParamsRef.current = reqParams;
+      setHasNext(false);
       setOffset({ value: INITIAL_OFFSET });
       return;
     }
@@ -73,7 +71,10 @@ export function useTableRequest<T extends { id: string }>({
       }
 
       sortRef.current = sort; // Change sort once we receive a response from server - avoids flicker with stale data.
-      setTotal(response[PAGINATION_SYMBOL]?.total);
+      const pagination = response[PAGINATION_SYMBOL];
+      setHasNext(
+        !!pagination && pagination.offset + response.length < pagination.total
+      );
     };
 
     void handleRequest();

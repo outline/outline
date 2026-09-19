@@ -1,3 +1,4 @@
+import { runInAction } from "mobx";
 import { type JSONObject } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type RootStore from "~/stores/RootStore";
@@ -18,13 +19,14 @@ export default class RevisionsStore extends Store<Revision> {
    * @returns A promise that resolves to the fetched revision.
    */
   async fetch(id: string, options: JSONObject = {}): Promise<Revision> {
-    const documentId = RevisionHelper.documentIdFromLatestId(id);
-    if (documentId) {
-      return this.fetchLatest(documentId);
-    }
-
     const item = this.get(id);
     const force = Boolean(options.force) || (!!item && !item.data);
+
+    const documentId = RevisionHelper.documentIdFromLatestId(id);
+    if (documentId) {
+      return item && !force ? item : this.fetchLatest(documentId);
+    }
+
     return super.fetch(id, { ...options, force });
   }
 
@@ -43,9 +45,29 @@ export default class RevisionsStore extends Store<Revision> {
    * @param documentId - the id of the document to fetch the latest revision for.
    * @returns A promise that resolves to the latest revision for the given document.
    */
-  fetchLatest = async (documentId: string) => {
-    const res = await client.post(`/revisions.info`, { documentId });
-    this.addPolicies(res.policies);
-    return this.add(res.data);
+  fetchLatest = async (documentId: string): Promise<Revision> => {
+    const id = RevisionHelper.latestId(documentId);
+    const inflight = this.requests.get(id);
+    if (inflight) {
+      return inflight;
+    }
+
+    const promise = this.requestLatest(documentId);
+    this.requests.set(id, promise);
+
+    try {
+      return await promise;
+    } finally {
+      this.requests.delete(id);
+    }
   };
+
+  private async requestLatest(documentId: string): Promise<Revision> {
+    const res = await client.post(`/revisions.info`, { documentId });
+
+    return runInAction(() => {
+      this.addPolicies(res.policies);
+      return this.add(res.data);
+    });
+  }
 }

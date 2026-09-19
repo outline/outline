@@ -7,12 +7,10 @@ import Flex from "~/components/Flex";
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   defaultValue: string;
+  ref: React.RefObject<HTMLInputElement | null>;
 }
 
-function SearchInput(
-  { defaultValue, ...rest }: Props,
-  ref: React.RefObject<HTMLInputElement>
-) {
+function SearchInput({ defaultValue, ref, ...rest }: Props) {
   const theme = useTheme();
   const focusInput = React.useCallback(() => {
     ref.current?.focus();
@@ -86,4 +84,4 @@ const StyledIcon = styled(SearchIcon)`
   opacity: 0.7;
 `;
 
-export default React.forwardRef(SearchInput);
+export default SearchInput;

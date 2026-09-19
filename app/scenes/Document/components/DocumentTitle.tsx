@@ -53,27 +53,27 @@ type Props = {
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
   /** Callback called when focus leaves the input */
   onBlur?: React.FocusEventHandler<HTMLSpanElement>;
+  /** Ref to the underlying content editable */
+  ref?: React.Ref<RefHandle>;
 };
 
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const DocumentTitle = React.forwardRef(function DocumentTitle_(
-  {
-    documentId,
-    title,
-    icon,
-    color,
-    readOnly,
-    onChangeTitle,
-    onChangeIcon,
-    onSave,
-    onGoToNextInput,
-    onBlur,
-    placeholder,
-  }: Props,
-  externalRef: React.RefObject<RefHandle>
-) {
+function DocumentTitle({
+  documentId,
+  title,
+  icon,
+  color,
+  readOnly,
+  onChangeTitle,
+  onChangeIcon,
+  onSave,
+  onGoToNextInput,
+  onBlur,
+  placeholder,
+  ref: externalRef,
+}: Props) {
   const { t } = useTranslation();
   const ref = React.useRef<RefHandle>(null);
   const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
@@ -276,7 +276,7 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
       ) : null}
     </Title>
   );
-});
+}
 
 type TitleProps = {
   $containsIcon: boolean;
@@ -292,7 +292,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 8vh;
+  margin-top: var(--document-title-margin-top, 8vh);
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;
@@ -327,7 +327,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
-    margin-top: 6vh;
+    margin-top: var(--document-title-margin-top, 6vh);
     margin-left: 0;
 
     &:hover {

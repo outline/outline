@@ -36,6 +36,29 @@ type DiffOptions = {
 };
 
 export default class Diff extends Extension<DiffOptions> {
+  /**
+   * Count the total number of individual changes in a changeset.
+   *
+   * @param changes the set of changes, or null.
+   * @returns the total count of all inserted, deleted, and modified items.
+   */
+  public static countChanges(
+    changes: readonly ExtendedChange[] | null
+  ): number {
+    if (!changes) {
+      return 0;
+    }
+
+    return changes.reduce(
+      (total, change) =>
+        total +
+        change.inserted.length +
+        change.deleted.length +
+        change.modified.length,
+      0
+    );
+  }
+
   get name() {
     return "diff";
   }
@@ -82,19 +105,7 @@ export default class Diff extends Extension<DiffOptions> {
    * @returns the total count of all inserted, deleted, and modified items.
    */
   public getTotalChangesCount(): number {
-    const { changes } = this.options;
-    if (!changes) {
-      return 0;
-    }
-
-    return changes.reduce(
-      (total, change) =>
-        total +
-        change.inserted.length +
-        change.deleted.length +
-        change.modified.length,
-      0
-    );
+    return Diff.countChanges(this.options.changes);
   }
 
   private goToChange(direction: number): Command {

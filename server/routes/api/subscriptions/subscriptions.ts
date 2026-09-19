@@ -47,6 +47,7 @@ router.post(
       // documentId will be available here
       const document = await Document.findByPk(documentId!, {
         userId: user.id,
+        includeContent: false,
       });
       authorize(user, "read", document);
 
@@ -91,6 +92,7 @@ router.post(
       // documentId will be available here
       const document = await Document.findByPk(documentId!, {
         userId: user.id,
+        includeContent: false,
       });
       authorize(user, "read", document);
 

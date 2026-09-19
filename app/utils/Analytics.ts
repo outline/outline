@@ -7,6 +7,7 @@ export default class Analytics {
    *
    * @param event The event name
    * @param action The action name
+   * @param metadata Additional parameters to attach to the event
    */
   public static track = (
     event: string,
@@ -19,12 +20,8 @@ export default class Analytics {
     }
 
     // GA4
-    if (window.dataLayer) {
-      window.dataLayer.push({
-        event,
-        action,
-        ...metadata,
-      });
+    if (window.gtag) {
+      window.gtag("event", event, { action, ...metadata });
     }
   };
 }

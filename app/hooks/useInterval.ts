@@ -9,7 +9,7 @@ type Callback = () => void;
  * @param delay The delay in milliseconds.
  */
 export default function useInterval(callback: Callback, delay: number) {
-  const savedCallback = useRef<Callback>();
+  const savedCallback = useRef<Callback | undefined>(undefined);
 
   // Remember the latest callback.
   useEffect(() => {

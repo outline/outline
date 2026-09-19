@@ -195,11 +195,12 @@ export default class AuthStore extends Store<Team> {
     };
   }
 
-  @action
   fetchConfig = async () => {
     const res = await client.post("/auth.config");
     invariant(res?.data, "Config not available");
-    this.config = res.data;
+    runInAction(() => {
+      this.config = res.data;
+    });
   };
 
   @action

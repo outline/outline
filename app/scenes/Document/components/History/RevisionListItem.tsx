@@ -1,7 +1,7 @@
 import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -22,8 +22,10 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
+import useClickIntent from "~/hooks/useClickIntent";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { useMenuAction } from "~/hooks/useMenuAction";
+import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
@@ -38,6 +40,7 @@ type Props = {
 
 const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const { t } = useTranslation();
+  const { revisions } = useStores();
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -56,6 +59,12 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     [item.id]
   );
   const contextMenuAction = useMenuAction(actions);
+
+  const handleClickIntent = useCallback(() => {
+    void revisions.fetch(item.id);
+  }, [revisions, item.id]);
+  const { handleMouseEnter, handleMouseLeave } =
+    useClickIntent(handleClickIntent);
 
   // the time component tends to steal focus when clicked
   // ...so forward the focus back to the parent item
@@ -149,6 +158,8 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
               <RevisionMenu document={document} revisionId={item.id} />
             </StyledEventBoundary>
           }
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           ref={ref}
           $menuOpen={menuOpen}
           {...rest}
