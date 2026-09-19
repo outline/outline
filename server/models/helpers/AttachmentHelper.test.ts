@@ -1,3 +1,4 @@
+import { AttachmentPreset } from "@shared/types";
 import AttachmentHelper from "./AttachmentHelper";
 
 describe("AttachmentHelper", () => {
@@ -32,6 +33,17 @@ describe("AttachmentHelper", () => {
       });
 
       expect(key).toEqual("uploads/456/123/test/one.png");
+    });
+  });
+
+  describe("presetToAcl", () => {
+    it("keeps document attachments private while avatars remain public", () => {
+      expect(
+        AttachmentHelper.presetToAcl(AttachmentPreset.DocumentAttachment)
+      ).toBe("private");
+      expect(AttachmentHelper.presetToAcl(AttachmentPreset.Avatar)).toBe(
+        "public-read"
+      );
     });
   });
 });
