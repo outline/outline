@@ -900,7 +900,7 @@ describe("#comments.create", () => {
       await documentCollaborativeUpdater({
         documentId: document.id,
         ydoc,
-        sessionCollaboratorIds: [user.id],
+        collaborators: { ids: [user.id] },
         isLastConnection: true,
         clientVersion: null,
       });

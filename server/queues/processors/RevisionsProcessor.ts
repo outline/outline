@@ -22,11 +22,6 @@ export default class RevisionsProcessor extends BaseProcessor {
           return;
         }
 
-        // Get collaborator IDs since last revision was written.
-        const key = Document.getCollaboratorKey(event.documentId);
-        const collaboratorIds = await Redis.defaultClient.smembers(key);
-        await Redis.defaultClient.del(key);
-
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
           rejectOnEmpty: true,
@@ -43,6 +38,18 @@ export default class RevisionsProcessor extends BaseProcessor {
           return;
         }
 
+        // Only read attribution included in a persisted snapshot. API and
+        // legacy events have no cutoff and must not consume pending edits.
+        const sequence =
+          event.data && "collaborators" in event.data
+            ? event.data.collaborators
+            : undefined;
+        const key = Document.getCollaboratorKey(event.documentId);
+        const collaboratorIds =
+          sequence === undefined
+            ? []
+            : await Redis.defaultClient.zrangebyscore(key, "-inf", sequence);
+
         await new DocumentUpdateTextTask().schedule(event);
 
         const user = await User.findByPk(event.actorId, {
@@ -56,6 +63,11 @@ export default class RevisionsProcessor extends BaseProcessor {
           collaboratorIds,
           document,
         });
+        if (sequence !== undefined) {
+          // A subsequent edit by the same user has a higher score and survives
+          // this cleanup. Leave all attribution intact if revision creation fails.
+          await Redis.defaultClient.zremrangebyscore(key, "-inf", sequence);
+        }
         break;
       }
 

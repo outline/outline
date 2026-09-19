@@ -1,5 +1,6 @@
 import { createContext } from "@server/context";
-import { Revision } from "@server/models";
+import { Document, Revision } from "@server/models";
+import Redis from "@server/storage/redis";
 import { buildDocument, buildUser } from "@server/test/factories";
 import RevisionsProcessor from "./RevisionsProcessor";
 
@@ -35,6 +36,9 @@ describe("documents.update.debounced", () => {
       userId: user.id,
     });
     await Revision.createFromDocument(createContext({ user }), document);
+    const collaborator = await buildUser({ teamId: user.teamId });
+    const key = Document.getCollaboratorKey(document.id);
+    await Redis.defaultClient.zadd(key, 1, collaborator.id);
 
     const processor = new RevisionsProcessor();
     await processor.perform({
@@ -53,5 +57,8 @@ describe("documents.update.debounced", () => {
       },
     });
     expect(amount).toBe(1);
+    expect(await Redis.defaultClient.zrange(key, 0, -1)).toEqual([
+      collaborator.id,
+    ]);
   });
 });
