@@ -376,7 +376,8 @@ export default abstract class APIImportTask<
           node.type.name === "attachment" ? node.attrs.href : node.attrs.src
         );
         const name = String(
-          node.type.name === "image" ? node.attrs.alt : node.attrs.title
+          (node.type.name === "image" ? node.attrs.alt : node.attrs.title) ||
+            node.type.name
         ).trim();
 
         return { url, name: name.length !== 0 ? name : node.type.name };
