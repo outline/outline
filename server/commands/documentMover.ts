@@ -118,10 +118,13 @@ async function documentMover(
 
   // If the collection has changed then we also need to update the properties
   // on all of the documents children to reflect the new collectionId
+  let childDocumentIds: string[] = [];
   if (collectionChanged || personalOwnerChanged) {
     // Efficiently find the ID's of all the documents that are children of
     // the moved document and update in one query
-    const childDocumentIds = await document.findAllChildDocumentIds();
+    childDocumentIds = await document.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
 
     if (personalOwnerId) {
       // The document stays published and keeps its tree, it simply lives in a
@@ -171,23 +174,7 @@ async function documentMover(
       );
     }
 
-    // We must reload from the database to get the relationship data
-    const documents = await Document.findAll({
-      where: {
-        id: childDocumentIds,
-      },
-      transaction,
-    });
-
     document.collection = newCollection;
-    result.documents.push(
-      ...documents.map((doc) => {
-        if (newCollection) {
-          doc.collection = newCollection;
-        }
-        return doc;
-      })
-    );
 
     // If the document was pinned to the collection then we also need to
     // automatically remove the pin to prevent a confusing situation where
@@ -205,15 +192,27 @@ async function documentMover(
     await pin?.destroyWithCtx(ctx);
   }
 
-  result.documents.push(document);
-
   await document.saveWithCtx(ctx, undefined, {
     name: "move",
     data: {
       collectionIds: result.collections.map((c) => c.id),
-      documentIds: result.documents.map((d) => d.id),
+      documentIds: [...childDocumentIds, document.id],
     },
   });
+
+  // The save hooks update descendant locations. Read them afterward so the
+  // response and its policies use the same state that was written to storage.
+  if (childDocumentIds.length) {
+    const children = await Document.findAll({
+      where: { id: childDocumentIds },
+      transaction,
+    });
+    for (const child of children) {
+      child.collection = newCollection;
+    }
+    result.documents.push(...children);
+  }
+  result.documents.push(document);
 
   // we need to send all updated models back to the client
   return result;

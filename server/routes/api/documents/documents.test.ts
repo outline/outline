@@ -9651,6 +9651,16 @@ describe("#documents.move - personal", () => {
       body: { id: parent.id, personalOwnerId: user.id },
     });
     expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.data.documents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: child.id,
+          collectionId: null,
+          personalOwnerId: user.id,
+        }),
+      ])
+    );
 
     await parent.reload();
     await child.reload();
