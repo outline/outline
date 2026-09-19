@@ -9836,6 +9836,51 @@ describe("#documents.move - personal", () => {
     expect(remaining).toBeNull();
   });
 
+  it("should remove descendant owner grants when a personal tree moves into a collection", async () => {
+    const owner = await buildUser();
+    const invited = await buildUser({ teamId: owner.teamId });
+    const collection = await buildCollection({
+      teamId: owner.teamId,
+      userId: invited.id,
+    });
+    const parent = await buildPersonalDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+    });
+    const child = await buildPersonalDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+    });
+    const invitation = await UserMembership.create({
+      documentId: child.id,
+      userId: invited.id,
+      createdById: owner.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const nested = await server.post("/api/documents.move", owner, {
+      body: { id: child.id, parentDocumentId: parent.id },
+    });
+    expect(nested.status).toEqual(200);
+
+    const moved = await server.post("/api/documents.move", owner, {
+      body: { id: parent.id, collectionId: collection.id },
+    });
+    expect(moved.status).toEqual(200);
+    expect(
+      await UserMembership.count({
+        where: { documentId: [parent.id, child.id], userId: owner.id },
+      })
+    ).toEqual(0);
+    expect(await UserMembership.findByPk(invitation.id)).not.toBeNull();
+
+    await collection.update({ permission: null });
+    const denied = await server.post("/api/documents.info", owner, {
+      body: { id: child.id },
+    });
+    expect(denied.status).toEqual(403);
+  });
+
   it("should not allow personalOwnerId with a collectionId", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

@@ -601,18 +601,26 @@ class Document extends ArchivableModel<
 
     const previousOwnerId = model.previous("personalOwnerId");
     if (previousOwnerId && previousOwnerId !== personalOwnerId) {
-      // the sidebar membership would otherwise linger once the document has
-      // left the personal space, keeping its admin grant alive.
-      const membership = await UserMembership.findOne({
+      // Descendants can have their own owner records if they were once roots.
+      // Remove those grants too when the subtree changes location. Children
+      // that keep their personal location when this document becomes a draft
+      // keep their own records.
+      const documentIds =
+        model.collectionId || personalOwnerId
+          ? [model.id, ...childDocumentIds]
+          : [model.id];
+      const memberships = await UserMembership.findAll({
         where: {
-          documentId: model.id,
+          documentId: documentIds,
           userId: previousOwnerId,
           sourceId: null,
         },
         transaction,
       });
       const context: HookContext = { auth: ctx.auth, ip: ctx.ip, transaction };
-      await membership?.destroy(context);
+      for (const membership of memberships) {
+        await membership.destroy(context);
+      }
     }
   }
 
