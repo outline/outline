@@ -86,7 +86,7 @@ const Input = styled(ContentEditable)`
     -webkit-text-fill-color: currentColor;
     white-space: pre-wrap;
 
-    &:empty {
+    &[data-empty="true"] {
       display: block;
     }
   }
