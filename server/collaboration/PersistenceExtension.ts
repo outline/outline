@@ -135,12 +135,10 @@ export default class PersistenceExtension implements Extension {
         ? Redis.defaultClient
             .zaddWithSequence(key, userId, Day.seconds)
             .then((sequence) => ({ userId, sequence }))
-        : Redis.defaultClient
-            .zrevrange(key, 0, 0, "WITHSCORES")
-            .then(([id, sequence]) => ({
-              userId: id,
-              sequence: sequence ? Number(sequence) : undefined,
-            }));
+        : Redis.defaultClient.zlatestWithSequence(key).then((latest) => ({
+            userId: latest?.member,
+            sequence: latest?.sequence,
+          }));
 
       // Updates from Redis have no connection origin. Resolve their editor
       // when received, rather than reading a potentially newer editor at save

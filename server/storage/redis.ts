@@ -161,6 +161,19 @@ export default class RedisAdapter extends Redis {
     return Number(result);
   }
 
+  /**
+   * Read the most recently sequenced member of a sorted set.
+   *
+   * @param key the sorted-set key.
+   * @returns the member and its sequence, or undefined if the set is empty.
+   */
+  public async zlatestWithSequence(
+    key: string
+  ): Promise<{ member: string; sequence: number } | undefined> {
+    const [member, score] = await this.zrevrange(key, 0, 0, "WITHSCORES");
+    return member ? { member, sequence: Number(score) } : undefined;
+  }
+
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
   private static collabClient: RedisAdapter;

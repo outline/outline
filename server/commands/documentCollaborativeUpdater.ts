@@ -147,8 +147,6 @@ export default async function documentCollaborativeUpdater({
       }
     );
 
-    // The snapshot is durable once this runs. A failed schedule must not fail
-    // the save, as a retry would find the content unchanged and never re-schedule.
     transaction.afterCommit(async () => {
       try {
         await Event.schedule({

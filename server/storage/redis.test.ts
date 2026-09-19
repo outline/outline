@@ -44,6 +44,18 @@ describe("RedisAdapter#zaddWithSequence", () => {
     expect(await Redis.defaultClient.ttl(key)).toBeLessThanOrEqual(60);
   });
 
+  it("reads the latest member and its sequence", async () => {
+    expect(await Redis.defaultClient.zlatestWithSequence(key)).toBeUndefined();
+
+    await Redis.defaultClient.zaddWithSequence(key, "a", 60);
+    const sequence = await Redis.defaultClient.zaddWithSequence(key, "b", 60);
+
+    expect(await Redis.defaultClient.zlatestWithSequence(key)).toEqual({
+      member: "b",
+      sequence,
+    });
+  });
+
   it("propagates Redis failures to the caller", async () => {
     vi.spyOn(Redis.defaultClient, "eval").mockRejectedValueOnce(
       new Error("Redis unavailable")

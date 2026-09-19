@@ -28,8 +28,9 @@ export default class RevisionsProcessor extends BaseProcessor {
         });
         const previous = await Revision.findLatest(document.id);
 
-        // Only read attribution included in a persisted snapshot. API and
-        // legacy events have no cutoff and must not consume pending edits.
+        // Only read attribution included in a persisted snapshot. Revisions
+        // created from the API and legacy events have no cutoff and must not
+        // consume pending edits.
         const sequence =
           event.data && "collaborators" in event.data
             ? event.data.collaborators
