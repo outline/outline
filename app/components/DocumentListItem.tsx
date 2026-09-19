@@ -41,6 +41,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -50,10 +51,7 @@ function replaceResultMarks(tag: string) {
   return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
-function DocumentListItem(
-  props: Props,
-  ref: React.RefObject<HTMLAnchorElement | null>
-) {
+function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
@@ -65,8 +63,8 @@ function DocumentListItem(
 
   let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
-  if (ref) {
-    itemRef = ref;
+  if (props.ref) {
+    itemRef = props.ref;
   }
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
@@ -79,6 +77,7 @@ function DocumentListItem(
     showDraft = true,
     highlight,
     context,
+    ref: _ref,
     ...rest
   } = props;
   const queryIsInTitle =
@@ -441,4 +440,4 @@ const ResultContext = styled(Highlight)`
   overflow: hidden;
 `;
 
-export default observer(React.forwardRef(DocumentListItem));
+export default observer(DocumentListItem);

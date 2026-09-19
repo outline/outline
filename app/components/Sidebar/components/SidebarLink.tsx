@@ -39,6 +39,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   /** Ref callback to access the underlying HTML element */
   innerRef?: (ref: HTMLElement | null | undefined) => void;
+  /** Ref to the rendered link element */
+  ref?: React.Ref<HTMLAnchorElement>;
   /** Callback fired when the link is clicked */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
@@ -86,32 +88,30 @@ const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
 };
 
-function SidebarLink(
-  {
-    icon,
-    onClick,
-    onClickIntent,
-    to,
-    label,
-    active,
-    isActiveDrop,
-    isDraft,
-    menu,
-    $showActions,
-    exact,
-    href,
-    depth,
-    className,
-    expanded,
-    onDisclosureClick,
-    disabled,
-    unreadBadge,
-    contextAction,
-    ellipsis = true,
-    ...rest
-  }: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function SidebarLink({
+  icon,
+  onClick,
+  onClickIntent,
+  to,
+  label,
+  active,
+  isActiveDrop,
+  isDraft,
+  menu,
+  $showActions,
+  exact,
+  href,
+  depth,
+  className,
+  expanded,
+  onDisclosureClick,
+  disabled,
+  unreadBadge,
+  contextAction,
+  ellipsis = true,
+  ref,
+  ...rest
+}: Props) {
   const hasDisclosure = expanded !== undefined;
   const { t } = useTranslation();
   const theme = useTheme();
@@ -360,4 +360,4 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   }
 `;
 
-export default React.forwardRef<HTMLAnchorElement, Props>(SidebarLink);
+export default SidebarLink;

@@ -4,12 +4,17 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import { Preview, Title, Info, Card, CardContent } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.Mention], "type">;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Mention], "type"> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
 
-const HoverPreviewMention = React.forwardRef(function HoverPreviewMention_(
-  { avatarUrl, name, lastActive, color }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function HoverPreviewMention({
+  avatarUrl,
+  name,
+  lastActive,
+  color,
+  ref,
+}: Props) {
   return (
     <Preview as="div">
       <Card fadeOut={false} ref={ref}>
@@ -32,6 +37,6 @@ const HoverPreviewMention = React.forwardRef(function HoverPreviewMention_(
       </Card>
     </Preview>
   );
-});
+}
 
 export default HoverPreviewMention;

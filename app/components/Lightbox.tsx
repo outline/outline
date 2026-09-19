@@ -6,11 +6,11 @@ import type {
   ComponentProps,
   HTMLAttributes,
   ReactNode,
+  Ref,
   SyntheticEvent,
 } from "react";
 import {
   createContext,
-  forwardRef,
   useCallback,
   useContext,
   useEffect,
@@ -142,12 +142,16 @@ type ZoomablePannablePinchableProps = {
   panningDisabled: boolean;
   disabled: boolean;
   onClose?: () => void;
+  ref?: Ref<ReactZoomPanPinchRef>;
 };
 
-const ZoomablePannablePinchable = forwardRef<
-  ReactZoomPanPinchRef,
-  ZoomablePannablePinchableProps
->(({ children, panningDisabled, disabled, onClose }, ref) => {
+function ZoomablePannablePinchable({
+  children,
+  panningDisabled,
+  disabled,
+  onClose,
+  ref,
+}: ZoomablePannablePinchableProps) {
   const { isPanning, ...panningHandlers } = usePanning();
   const wrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const scale = wrapperRef.current?.instance.transformState.scale ?? 1;
@@ -208,7 +212,7 @@ const ZoomablePannablePinchable = forwardRef<
       </TransformWrapper>
     </ZoomPanPinchContext.Provider>
   );
-});
+}
 
 function usePanning() {
   const [isPanning, setPanning] = useState(false);
@@ -993,27 +997,26 @@ type ImageProps = {
   onMinZoom: () => void;
   onZoom: () => void;
   onMaxZoom: () => void;
+  ref?: Ref<HTMLImageElement>;
 };
 
-const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
-  {
-    src,
-    alt,
-    onLoading,
-    onLoad,
-    onError,
-    onSwipeRight,
-    onSwipeLeft,
-    onSwipeUp,
-    onSwipeDown,
-    status,
-    animation,
-    onMinZoom,
-    onZoom,
-    onMaxZoom,
-  }: ImageProps,
-  ref
-) {
+function Image({
+  src,
+  alt,
+  onLoading,
+  onLoad,
+  onError,
+  onSwipeRight,
+  onSwipeLeft,
+  onSwipeUp,
+  onSwipeDown,
+  status,
+  animation,
+  onMinZoom,
+  onZoom,
+  onMaxZoom,
+  ref,
+}: ImageProps) {
   const { t } = useTranslation();
 
   const swipeHandlers = useSwipe({
@@ -1091,7 +1094,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
       </Figure>
     </>
   );
-});
+}
 
 const Figure = styled("figure")`
   width: 100%;

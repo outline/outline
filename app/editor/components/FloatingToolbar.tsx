@@ -25,6 +25,7 @@ type Props = {
   children: React.ReactNode;
   width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
+  ref?: React.RefObject<HTMLDivElement | null>;
 };
 
 const defaultPosition = {
@@ -41,7 +42,7 @@ function usePosition({
   active,
   align = "center",
 }: {
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
   active?: boolean;
   align?: Props["align"];
 }) {
@@ -241,10 +242,7 @@ function usePosition({
   };
 }
 
-const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
-  props: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function FloatingToolbar({ ref, ...props }: Props) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
   const raisedClickAt = React.useRef(0);
@@ -353,7 +351,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       </Wrapper>
     </Portal>
   );
-});
+}
 
 type WrapperProps = {
   active?: boolean;

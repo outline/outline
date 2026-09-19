@@ -31,23 +31,23 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** Whether to enable keyboard navigation */
   keyboardNavigation?: boolean;
   enableEllipsis?: boolean;
+  /** Ref to the anchor element */
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
-const ListItem = (
-  {
-    image,
-    title,
-    subtitle,
-    actions,
-    small,
-    border,
-    to,
-    keyboardNavigation,
-    enableEllipsis,
-    ...rest
-  }: Props,
-  ref: React.RefObject<HTMLAnchorElement | null>
-) => {
+function ListItem({
+  image,
+  title,
+  subtitle,
+  actions,
+  small,
+  border,
+  to,
+  keyboardNavigation,
+  enableEllipsis,
+  ref,
+  ...rest
+}: Props) {
   const theme = useTheme();
   const compact = !subtitle;
 
@@ -161,7 +161,7 @@ const ListItem = (
       {content(false)}
     </Wrapper>
   );
-};
+}
 
 const Wrapper = styled.a<{
   $small?: boolean;
@@ -237,4 +237,4 @@ export const Actions = styled(Flex)<{ $selected?: boolean }>`
   color: ${s("textSecondary")};
 `;
 
-export default React.forwardRef(ListItem);
+export default ListItem;

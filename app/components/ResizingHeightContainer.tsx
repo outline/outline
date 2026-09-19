@@ -15,41 +15,42 @@ type Props = {
   config?: TargetAndTransition;
   /** Optional styles. */
   style?: React.CSSProperties;
+  /** Ref to the inner content element. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
  * Automatically animates the height of a container based on it's contents.
  */
-export const ResizingHeightContainer = React.forwardRef<HTMLDivElement, Props>(
-  function ResizingHeightContainer_(props, forwardedRef) {
-    const {
-      hideOverflow,
-      children,
-      config = {
-        transition: {
-          duration: 0.1,
-          ease: "easeInOut",
-        },
+export function ResizingHeightContainer(props: Props) {
+  const {
+    hideOverflow,
+    children,
+    config = {
+      transition: {
+        duration: 0.1,
+        ease: "easeInOut",
       },
-      style,
-    } = props;
+    },
+    style,
+    ref: forwardedRef,
+  } = props;
 
-    const [measureRef, { height }] = useMeasure();
+  const [measureRef, { height }] = useMeasure();
 
-    return (
-      <m.div
-        animate={{
-          ...config,
-          height: Math.round(height),
-        }}
-        style={{
-          ...style,
-          overflow: hideOverflow ? "hidden" : "inherit",
-          position: "relative",
-        }}
-      >
-        <div ref={mergeRefs([measureRef, forwardedRef])}>{children}</div>
-      </m.div>
-    );
-  }
-);
+  return (
+    <m.div
+      animate={{
+        ...config,
+        height: Math.round(height),
+      }}
+      style={{
+        ...style,
+        overflow: hideOverflow ? "hidden" : "inherit",
+        position: "relative",
+      }}
+    >
+      <div ref={mergeRefs([measureRef, forwardedRef])}>{children}</div>
+    </m.div>
+  );
+}

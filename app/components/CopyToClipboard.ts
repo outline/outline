@@ -13,10 +13,11 @@ type Props = {
   children?: React.ReactElement<ChildProps>;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   onCopy?: () => void;
+  ref?: React.Ref<HTMLElement>;
 };
 
-function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
-  const { text, onCopy, children, ...rest } = props;
+function CopyToClipboard(props: Props) {
+  const { text, onCopy, children, ref, ...rest } = props;
 
   const onClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
@@ -55,4 +56,4 @@ function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
   });
 }
 
-export default React.forwardRef(CopyToClipboard);
+export default CopyToClipboard;

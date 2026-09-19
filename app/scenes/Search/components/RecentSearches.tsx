@@ -11,12 +11,10 @@ import RecentSearchListItem from "./RecentSearchListItem";
 type Props = {
   /** Callback when the Escape key is pressed while navigating the list */
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function RecentSearches(
-  { onEscape }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function RecentSearches({ onEscape, ref }: Props) {
   const { searches } = useStores();
   const { t } = useTranslation();
 
@@ -67,4 +65,4 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   margin-top: 8px;
 `;
 
-export default observer(React.forwardRef(RecentSearches));
+export default observer(RecentSearches);

@@ -25,7 +25,7 @@ import { getSafeAreaInsets } from "@shared/utils/browser";
  * @param enabled Whether the behavior should be active.
  */
 export default function useKeyboardStickyOffset(
-  ref: React.RefObject<HTMLElement>,
+  ref: React.RefObject<HTMLElement | null>,
   enabled: boolean
 ) {
   const applied = React.useRef<number | null>(null);

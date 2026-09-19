@@ -3,7 +3,6 @@
  */
 
 import { CheckmarkIcon } from "outline-icons";
-import { forwardRef } from "react";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -12,11 +11,12 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { transparentize } from "polished";
 
-export const SelectItem = forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div">
->((props, ref) => {
-  const { children, ...rest } = props;
+export function SelectItem(
+  props: React.ComponentPropsWithoutRef<"div"> & {
+    ref?: React.Ref<HTMLDivElement>;
+  }
+) {
+  const { ref, children, ...rest } = props;
 
   return (
     <ItemContainer
@@ -30,18 +30,20 @@ export const SelectItem = forwardRef<
       <IconSpacer />
     </ItemContainer>
   );
-});
-SelectItem.displayName = "SelectItem";
+}
 
-export const SelectItemIndicator = forwardRef<
-  HTMLSpanElement,
-  React.ComponentPropsWithoutRef<"span">
->((props, ref) => (
-  <IndicatorContainer ref={ref} {...props}>
-    <CheckmarkIcon />
-  </IndicatorContainer>
-));
-SelectItemIndicator.displayName = "SelectItemIndicator";
+export function SelectItemIndicator({
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<"span"> & {
+  ref?: React.Ref<HTMLSpanElement>;
+}) {
+  return (
+    <IndicatorContainer ref={ref} {...props}>
+      <CheckmarkIcon />
+    </IndicatorContainer>
+  );
+}
 
 const IconSpacer = styled.div`
   width: 24px;

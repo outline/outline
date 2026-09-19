@@ -27,14 +27,13 @@ type InputSelectTriggerProps = {
   placeholder: string;
   /** When provided, overrides the selected value rendered inside the trigger. */
   displayValue?: React.ReactNode;
+  ref?: React.Ref<React.ComponentRef<typeof InputSelectPrimitive.Trigger>>;
 } & TriggerButtonProps &
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Trigger>;
 
-const InputSelectTrigger = React.forwardRef<
-  React.ElementRef<typeof InputSelectPrimitive.Trigger>,
-  InputSelectTriggerProps
->((props, ref) => {
-  const { placeholder, children, nude, displayValue, ...buttonProps } = props;
+function InputSelectTrigger(props: InputSelectTriggerProps) {
+  const { ref, placeholder, children, nude, displayValue, ...buttonProps } =
+    props;
 
   return (
     <InputSelectPrimitive.Trigger ref={ref} asChild>
@@ -47,20 +46,19 @@ const InputSelectTrigger = React.forwardRef<
       </SelectButton>
     </InputSelectPrimitive.Trigger>
   );
-});
+}
 InputSelectTrigger.displayName = InputSelectPrimitive.Trigger.displayName;
 
 /** InputSelect's content - renders the options in a scrollable element. */
 type ContentProps = Omit<
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Content>,
   "position"
->;
+> & {
+  ref?: React.Ref<React.ComponentRef<typeof InputSelectPrimitive.Content>>;
+};
 
-const InputSelectContent = React.forwardRef<
-  React.ElementRef<typeof InputSelectPrimitive.Content>,
-  ContentProps
->((props, ref) => {
-  const { children, ...rest } = props;
+function InputSelectContent(props: ContentProps) {
+  const { ref, children, ...rest } = props;
 
   return (
     <InputSelectPrimitive.Portal>
@@ -71,15 +69,16 @@ const InputSelectContent = React.forwardRef<
       </StyledContent>
     </InputSelectPrimitive.Portal>
   );
-});
+}
 InputSelectContent.displayName = InputSelectPrimitive.Content.displayName;
 
 /** Individual InputSelect option rendered in the menu. */
-const InputSelectItem = React.forwardRef<
-  React.ElementRef<typeof InputSelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Item>
->((props, ref) => {
-  const { children, ...rest } = props;
+function InputSelectItem(
+  props: React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Item> & {
+    ref?: React.Ref<React.ComponentRef<typeof InputSelectPrimitive.Item>>;
+  }
+) {
+  const { ref, children, ...rest } = props;
 
   return (
     <InputSelectPrimitive.Item ref={ref} {...rest} asChild>
@@ -93,18 +92,22 @@ const InputSelectItem = React.forwardRef<
       </SelectItemWrapper>
     </InputSelectPrimitive.Item>
   );
-});
+}
 InputSelectItem.displayName = InputSelectPrimitive.Item.displayName;
 
 /** Horizontal separator rendered between the options. */
-const InputSelectSeparator = React.forwardRef<
-  React.ElementRef<typeof InputSelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Separator>
->((props, ref) => (
-  <InputSelectPrimitive.Separator ref={ref} asChild>
-    <Separator {...props} />
-  </InputSelectPrimitive.Separator>
-));
+function InputSelectSeparator({
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Separator> & {
+  ref?: React.Ref<React.ComponentRef<typeof InputSelectPrimitive.Separator>>;
+}) {
+  return (
+    <InputSelectPrimitive.Separator ref={ref} asChild>
+      <Separator {...props} />
+    </InputSelectPrimitive.Separator>
+  );
+}
 InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;
 
 const Separator = styled.hr`
@@ -112,16 +115,21 @@ const Separator = styled.hr`
 `;
 
 /** Non-selectable heading rendered to group options in the menu. */
-const InputSelectHeading = React.forwardRef<
-  HTMLSpanElement,
-  { children?: React.ReactNode }
->(({ children }, ref) => (
-  <InputSelectPrimitive.Group>
-    <InputSelectPrimitive.Label asChild>
-      <Heading ref={ref}>{children}</Heading>
-    </InputSelectPrimitive.Label>
-  </InputSelectPrimitive.Group>
-));
+function InputSelectHeading({
+  ref,
+  children,
+}: {
+  children?: React.ReactNode;
+  ref?: React.Ref<HTMLSpanElement>;
+}) {
+  return (
+    <InputSelectPrimitive.Group>
+      <InputSelectPrimitive.Label asChild>
+        <Heading ref={ref}>{children}</Heading>
+      </InputSelectPrimitive.Label>
+    </InputSelectPrimitive.Group>
+  );
+}
 InputSelectHeading.displayName = "InputSelectHeading";
 
 const Heading = styled(Text).attrs({

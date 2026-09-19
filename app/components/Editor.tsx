@@ -32,7 +32,7 @@ export type Props = Optional<
   editorStyle?: React.CSSProperties;
 };
 
-function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
+function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   const {
     id,
     onChange,
@@ -265,4 +265,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default observer(React.forwardRef(Editor));
+export default observer(Editor);
