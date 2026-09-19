@@ -9,7 +9,6 @@ import { randomElement } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
-import { colorPalette } from "@shared/constants";
 import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
@@ -21,6 +20,7 @@ import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
+import useColorPalette from "~/hooks/useColorPalette";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
@@ -41,6 +41,7 @@ export type FormData = {
 
 const useIconColor = (collection?: Collection) => {
   const { collections } = useStores();
+  const colorPalette = useColorPalette();
   const hasMultipleCollections = collections.orderedData.length > 1;
   const collectionColors = uniq(
     collections.orderedData.map((c) => c.color).filter(Boolean)

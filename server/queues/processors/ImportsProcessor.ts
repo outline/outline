@@ -23,14 +23,20 @@ import {
   ImportTaskState,
   MentionType,
 } from "@shared/types";
-import { colorPalette } from "@shared/constants";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { errToString } from "@shared/utils/error";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { Attachment, Collection, Document, Import, User } from "@server/models";
+import {
+  Attachment,
+  Collection,
+  Document,
+  Import,
+  Team,
+  User,
+} from "@server/models";
 import type {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
@@ -346,6 +352,10 @@ export default abstract class ImportsProcessor<
     );
 
     let collectionIdx = firstCollection?.index ?? null;
+
+    const colorPalette = await Team.getColorPalette(importModel.teamId, {
+      transaction,
+    });
 
     // Pre-pass: allocate new urlIds for every collection and document in this
     // import so internal link hrefs in document content can be rewritten to

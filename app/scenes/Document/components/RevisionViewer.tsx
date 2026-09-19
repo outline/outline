@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { colorPalette } from "@shared/constants";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type { Props as EditorProps } from "~/components/Editor";
@@ -13,6 +12,7 @@ import Editor from "~/components/Editor";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
+import useColorPalette from "~/hooks/useColorPalette";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { type Editor as TEditor } from "~/editor";
@@ -45,6 +45,7 @@ type Props = Omit<EditorProps, "extensions"> & {
 function RevisionViewer(props: Props) {
   const { document, children, revision, ref } = props;
   const { revisions } = useStores();
+  const colorPalette = useColorPalette();
   const { setEditor, setTotalChanges } = useDocumentContext();
   const query = useQuery();
   const showChanges = props.showChanges ?? query.has("changes");

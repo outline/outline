@@ -28,10 +28,122 @@ export const colorPalette = [
   "#FF825C",
   "#FF5C80",
   "#FFBE0B",
-  "#42DED1",
   "#00D084",
   "#FF4DFA",
   "#2F362F",
+];
+
+/** Identifiers of the built-in color palettes. */
+export enum ColorPaletteId {
+  Default = "default",
+  Peach = "peach",
+  Ocean = "ocean",
+  Forest = "forest",
+  Pastel = "pastel",
+  Berry = "berry",
+}
+
+/** A named set of preset icon colors. */
+export interface ColorPalettePreset {
+  /** The stable identifier of the palette. */
+  id: ColorPaletteId;
+  /** The display name of the palette, passed through translation. */
+  name: string;
+  /** The hex colors in the palette, one per swatch. */
+  colors: string[];
+}
+
+/**
+ * The built-in color palettes a workspace can choose from.
+ *
+ * t("Default") t("Peach") t("Ocean") t("Forest") t("Pastel") t("Berry")
+ */
+export const colorPalettes: ColorPalettePreset[] = [
+  {
+    id: ColorPaletteId.Default,
+    name: "Default",
+    colors: colorPalette,
+  },
+  {
+    id: ColorPaletteId.Peach,
+    name: "Peach",
+    colors: [
+      "#fec5bb",
+      "#fcd5ce",
+      "#fae1dd",
+      "#f8edeb",
+      "#e8e8e4",
+      "#d8e2dc",
+      "#ece4db",
+      "#ffe5d9",
+      "#ffd7ba",
+      "#fec89a",
+    ],
+  },
+  {
+    id: ColorPaletteId.Ocean,
+    name: "Ocean",
+    colors: [
+      "#001219",
+      "#005f73",
+      "#0a9396",
+      "#94d2bd",
+      "#e9d8a6",
+      "#ee9b00",
+      "#ca6702",
+      "#bb3e03",
+      "#ae2012",
+      "#9b2226",
+    ],
+  },
+  {
+    id: ColorPaletteId.Forest,
+    name: "Forest",
+    colors: [
+      "#582f0e",
+      "#7f4f24",
+      "#936639",
+      "#a68a64",
+      "#b6ad90",
+      "#c2c5aa",
+      "#a4ac86",
+      "#656d4a",
+      "#414833",
+      "#333d29",
+    ],
+  },
+  {
+    id: ColorPaletteId.Pastel,
+    name: "Pastel",
+    colors: [
+      "#e2e2df",
+      "#d2d2cf",
+      "#e2cfc4",
+      "#f7d9c4",
+      "#faedcb",
+      "#c9e4de",
+      "#c6def1",
+      "#dbcdf0",
+      "#f2c6de",
+      "#f9c6c9",
+    ],
+  },
+  {
+    id: ColorPaletteId.Berry,
+    name: "Berry",
+    colors: [
+      "#033270",
+      "#1368aa",
+      "#4091c9",
+      "#9dcee2",
+      "#fedfd4",
+      "#f29479",
+      "#f26a4f",
+      "#ef3c2d",
+      "#cb1b16",
+      "#65010c",
+    ],
+  },
 ];
 
 export const Pagination = {
@@ -97,6 +209,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
+  [TeamPreference.ColorPalette]: colorPalette,
 };
 
 export const DocumentPreferenceDefaults: DocumentPreferences = {

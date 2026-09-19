@@ -506,6 +506,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** The preset colors offered when choosing an icon color. */
+  ColorPalette = "colorPalette",
 }
 
 export type TeamPreferences = {
@@ -523,6 +525,7 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.ColorPalette]?: string[];
 };
 
 export enum NavigationNodeType {
