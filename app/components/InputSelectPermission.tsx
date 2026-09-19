@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
@@ -57,6 +57,10 @@ export function InputSelectPermission(props: Props) {
 }
 
 const Select = styled(InputSelect)<{ $shrink?: boolean }>`
-  color: ${s("textSecondary")};
+  ${({ nude }) =>
+    nude &&
+    css`
+      color: ${s("textSecondary")};
+    `}
   ${({ $shrink }) => !$shrink && "margin-bottom: 16px;"}
 `;
