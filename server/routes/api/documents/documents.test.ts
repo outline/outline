@@ -9629,6 +9629,51 @@ describe("#documents.documents - personal", () => {
 });
 
 describe("#documents.move - personal", () => {
+  it("should create a sidebar membership when a personal child moves to the root", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const child = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: parent.id,
+    });
+    const grandchild = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: child.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: child.id, personalOwnerId: user.id },
+    });
+    expect(res.status).toEqual(200);
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: child.id, userId: user.id, sourceId: null },
+      rejectOnEmpty: true,
+    });
+    expect(membership.index).toBeTruthy();
+
+    const list = await server.post("/api/documents.personal", user, {
+      body: {},
+    });
+    const body = await list.json();
+    expect(body.data.memberships).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: membership.id })])
+    );
+
+    const tree = await server.post("/api/documents.documents", user, {
+      body: { id: child.id },
+    });
+    const treeBody = await tree.json();
+    expect(treeBody.data.children).toEqual([
+      expect.objectContaining({ id: grandchild.id }),
+    ]);
+  });
+
   it("should move a published document and its children into the personal space", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

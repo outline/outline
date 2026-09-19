@@ -563,6 +563,20 @@ class Document extends ArchivableModel<
   @AfterCreate
   @AfterUpdate
   static async cascadePersonalOwner(model: Document, ctx: HookContext) {
+    // A child moved to the root needs its own sidebar record even when it
+    // stays in the same personal space.
+    if (
+      model.personalOwnerId &&
+      !model.parentDocumentId &&
+      (model.changed("personalOwnerId") || model.changed("parentDocumentId"))
+    ) {
+      await UserMembership.findOrCreateForPersonalDocument(
+        model,
+        model.personalOwnerId,
+        ctx
+      );
+    }
+
     if (!model.changed("personalOwnerId")) {
       return;
     }
@@ -582,14 +596,6 @@ class Document extends ArchivableModel<
       await this.update(
         { collectionId: model.collectionId ?? null, personalOwnerId },
         { where: { id: childDocumentIds }, transaction, hooks: false }
-      );
-    }
-
-    if (personalOwnerId && !model.parentDocumentId) {
-      await UserMembership.findOrCreateForPersonalDocument(
-        model,
-        personalOwnerId,
-        ctx
       );
     }
 
