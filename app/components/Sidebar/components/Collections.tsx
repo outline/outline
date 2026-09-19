@@ -22,6 +22,8 @@ import SidebarLink from "./SidebarLink";
 import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 
+const headerActions = [createCollection];
+
 function Collections() {
   const { documents, auth, collections, policies } = useStores();
   const { t } = useTranslation();
@@ -58,7 +60,12 @@ function Collections() {
   return (
     <SidebarContext.Provider value="collections">
       <Flex column>
-        <Header id="collections" title={t("Collections")}>
+        <Header
+          id="collections"
+          title={t("Collections")}
+          actions={headerActions}
+          primaryAction={createCollection}
+        >
           <Relative>
             <PaginatedList<Collection>
               options={params}

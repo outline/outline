@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import env from "@server/env";

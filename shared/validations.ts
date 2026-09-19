@@ -68,6 +68,11 @@ export const CommentValidation = {
   maxLength: 1000,
 };
 
+export const DeprecationValidation = {
+  /** The maximum length of an archive or deletion reason. */
+  maxReasonLength: 2000,
+};
+
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,

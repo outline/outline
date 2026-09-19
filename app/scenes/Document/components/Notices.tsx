@@ -4,14 +4,15 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type Document from "~/models/Document";
 import ErrorBoundary from "~/components/ErrorBoundary";
-import Notice from "~/components/Notice";
+import { DeprecationNotice } from "~/components/DeprecationNotice";
+import { DeprecatedReason } from "~/components/DeprecatedReason";
 import Time from "~/components/Time";
 
 /**
  * A notice shown above the document title, for example when the document is
  * archived or deleted.
  */
-export const DocumentNotice = styled(Notice)``;
+export const DocumentNotice = styled(DeprecationNotice)``;
 
 type Props = {
   document: Document;
@@ -58,7 +59,10 @@ export default function Notices({ document }: Props) {
   return (
     <ErrorBoundary>
       {document.archivedAt && !document.deletedAt && (
-        <DocumentNotice icon={<ArchiveIcon />}>
+        <DocumentNotice
+          icon={<ArchiveIcon />}
+          description={<DeprecatedReason key={document.id} model={document} />}
+        >
           {t("Archived by {{userName}}", {
             userName: document.updatedBy?.name ?? t("Unknown"),
           })}
@@ -69,7 +73,12 @@ export default function Notices({ document }: Props) {
       {document.deletedAt && (
         <DocumentNotice
           icon={<TrashIcon />}
-          description={permanentlyDeletedDescription()}
+          description={
+            <>
+              {permanentlyDeletedDescription()}
+              <DeprecatedReason key={document.id} model={document} />
+            </>
+          }
         >
           {t("Deleted by {{userName}}", {
             userName: document.deletedBy?.name ?? t("Unknown"),

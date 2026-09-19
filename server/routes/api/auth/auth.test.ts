@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { Scope } from "@shared/types";

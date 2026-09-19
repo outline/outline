@@ -14,16 +14,19 @@ const server = getTestServer();
 describe("#groups.create", () => {
   it("should create a group", async () => {
     const name = "hello I am a group";
+    const description = "A group description";
     const user = await buildAdmin();
     const res = await server.post("/api/groups.create", user, {
       body: {
         name,
+        description,
         externalId: "123",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual(name);
+    expect(body.data.description).toEqual(description);
     expect(body.data.externalId).toEqual("123");
   });
 });
