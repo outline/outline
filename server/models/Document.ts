@@ -1436,7 +1436,10 @@ class Document extends ArchivableModel<
   // Restore an archived document back to being visible to the team
   restoreTo = async (
     ctx: APIContext,
-    { collectionId }: { collectionId: string }
+    {
+      collectionId,
+      parentDocumentId,
+    }: { collectionId: string; parentDocumentId?: string | null }
   ) => {
     const { transaction } = ctx.state;
     const collection = collectionId
@@ -1447,8 +1450,12 @@ class Document extends ArchivableModel<
         })
       : undefined;
 
-    // check to see if the documents parent hasn't been archived also
-    // If it has then restore the document to the collection root.
+    if (parentDocumentId !== undefined) {
+      this.parentDocumentId = parentDocumentId;
+    }
+
+    // check to see if the documents parent hasn't been archived also, or is
+    // in another collection. If so then restore the document to the root.
     if (this.parentDocumentId) {
       const parent = await (this.constructor as typeof Document).findOne({
         where: {
@@ -1456,7 +1463,11 @@ class Document extends ArchivableModel<
         },
         transaction,
       });
-      if (parent?.isDraft || !parent?.isActive) {
+      if (
+        parent?.isDraft ||
+        !parent?.isActive ||
+        parent.collectionId !== collectionId
+      ) {
         this.parentDocumentId = null;
       }
     }
