@@ -10065,6 +10065,22 @@ describe("personal documents when the preference is disabled", () => {
     expect(policy.abilities.update).toBe(false);
   });
 
+  it("should still list existing personal documents for the sidebar", async () => {
+    const { user, document } = await buildFrozen();
+
+    const res = await server.post("/api/documents.personal", user, {
+      body: {},
+    });
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.data.documents).toEqual([
+      expect.objectContaining({ id: document.id }),
+    ]);
+    expect(body.data.memberships).toEqual([
+      expect.objectContaining({ documentId: document.id, userId: user.id }),
+    ]);
+  });
+
   it("should not allow editing", async () => {
     const { user, document } = await buildFrozen();
 

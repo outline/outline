@@ -33,11 +33,13 @@ import SidebarAction from "./SidebarAction";
 import SidebarContext, { type SidebarContextType } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
-const PersonalDocsList = observer(function PersonalDocsList() {
+function PersonalDocs() {
   const { documents, userMemberships } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
   const user = useCurrentUser();
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
   const [isAddingNew, setIsAddingNew, closeAddingNew] = useBoolean();
   const newTitleRef = useRef<RefHandle>(null);
 
@@ -72,9 +74,10 @@ const PersonalDocsList = observer(function PersonalDocsList() {
         section: DocumentSection,
         icon: <PlusIcon />,
         keywords: "create personal private",
+        visible: !!can.createPersonalDocument,
         perform: setIsAddingNew,
       }),
-    [setIsAddingNew]
+    [can.createPersonalDocument, setIsAddingNew]
   );
   const headerActions = useMemo(() => [newDocAction], [newDocAction]);
 
@@ -126,14 +129,19 @@ const PersonalDocsList = observer(function PersonalDocsList() {
     )
   );
 
+  // Creation can be disabled while existing personal documents remain readable.
+  if (!can.createPersonalDocument && !personal.length) {
+    return null;
+  }
+
   return (
     <SidebarContext.Provider value="personal">
       <Flex column>
         <Header
           id="personal"
           title={t("Personal")}
-          actions={headerActions}
-          primaryAction={newDocAction}
+          actions={can.createPersonalDocument ? headerActions : undefined}
+          primaryAction={can.createPersonalDocument ? newDocAction : undefined}
         >
           <Relative>
             {reorderProps.isDragging && (
@@ -180,7 +188,7 @@ const PersonalDocsList = observer(function PersonalDocsList() {
                 </DelayedMount>
               </Flex>
             )}
-            {isAddingNew && (
+            {isAddingNew && can.createPersonalDocument && (
               <SidebarLink
                 isActive={() => true}
                 depth={0}
@@ -206,15 +214,6 @@ const PersonalDocsList = observer(function PersonalDocsList() {
       </Flex>
     </SidebarContext.Provider>
   );
-});
-
-function PersonalDocs() {
-  const team = useCurrentTeam();
-  const can = usePolicy(team);
-
-  // The list is a child component so that the documents are only requested
-  // when the user is able to have personal documents at all.
-  return can.createPersonalDocument ? <PersonalDocsList /> : null;
 }
 
 export default observer(PersonalDocs);
