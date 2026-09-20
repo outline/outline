@@ -471,7 +471,7 @@ class Document extends ArchivableModel<
    * @returns Redis key for collaborators
    */
   static getCollaboratorKey(documentId: string) {
-    return `collaborators:${documentId}`;
+    return `collaborators:v2:${documentId}`;
   }
 
   static getPath({ title, urlId }: { title: string; urlId: string }) {

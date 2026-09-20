@@ -244,6 +244,8 @@ export type DocumentEvent = BaseEvent<Document> &
         createdAt: string;
         data?: {
           done: boolean;
+          /** The latest collaborator sequence included in the persisted snapshot. */
+          collaborators?: number;
         };
       }
     | {

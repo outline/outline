@@ -15672,6 +15672,7 @@ __metadata:
     koa-send: "npm:5.0.1"
     koa-sslify: "npm:5.0.1"
     koa-useragent: "npm:^4.1.0"
+    lib0: "npm:^0.2.99"
     lint-staged: "npm:^16.4.0"
     mailparser: "npm:^3.9.20"
     mammoth: "npm:^1.11.0"

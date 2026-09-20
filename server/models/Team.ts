@@ -24,6 +24,7 @@ import {
   BeforeCreate,
   IsNumeric,
 } from "sequelize-typescript";
+import slugify from "slugify";
 import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
@@ -596,6 +597,48 @@ class Team extends ParanoidModel<
         },
       })) || (await this.findByPreviousSubdomain(subdomain))
     );
+  }
+
+  /**
+   * Find a subdomain that is not yet in use, derived from the requested value.
+   * A trailing top-level domain is removed and the remainder is slugified,
+   * a numeric suffix is appended until a free subdomain is found.
+   *
+   * @param requested - The preferred subdomain or team name.
+   * @param options - Additional find options to pass to the query.
+   * @returns An available subdomain.
+   */
+  static async findAvailableSubdomain(
+    requested: string,
+    options?: FindOptions<Team>
+  ) {
+    // strip a trailing top-level domain so "acme.com" becomes "acme"
+    const withoutTld = requested.replace(/\s*\.[a-z]{2,}\s*$/i, "");
+
+    // filter subdomain to only valid characters
+    // if there are less than the minimum length, use a default subdomain
+    const normalized = slugify(withoutTld, { lower: true, strict: true });
+    const base =
+      normalized.length < 3 || RESERVED_SUBDOMAINS.includes(normalized)
+        ? "team"
+        : normalized;
+
+    let subdomain = base;
+    let append = 0;
+
+    for (;;) {
+      const existing = await this.findOne({
+        ...options,
+        where: { subdomain },
+        paranoid: false,
+      });
+
+      if (!existing) {
+        return subdomain;
+      }
+
+      subdomain = `${base}${++append}`;
+    }
   }
 
   /**
