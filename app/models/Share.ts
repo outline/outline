@@ -81,6 +81,10 @@ class Share extends Model implements Searchable {
 
   @Field
   @observable
+  allowPublicComments: boolean;
+
+  @Field
+  @observable
   showLastUpdated: boolean;
 
   @Field

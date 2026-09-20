@@ -1,7 +1,8 @@
 import { Op } from "sequelize";
 import { Hour } from "@shared/utils/time";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { traceFunction } from "@server/logging/tracing";
-import type { Document } from "@server/models";
+import { Comment, type Document } from "@server/models";
 import FileOperation from "@server/models/FileOperation";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -24,6 +25,8 @@ type Options = {
   includeCommentCount?: boolean;
   /** Array of backlink document IDs to include in the response. */
   backlinkIds?: string[];
+  /** Whether public inline comment anchors may be included. */
+  allowPublicComments?: boolean;
 };
 
 async function presentDocument(
@@ -38,17 +41,30 @@ async function presentDocument(
 
   const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
 
-  const data = await DocumentHelper.toJSON(
+  let data = await DocumentHelper.toJSON(
     document,
     options.isPublic
       ? {
           signedUrls: Hour.seconds,
           teamId: document.teamId,
-          removeMarks: ["comment"],
+          removeMarks: options.allowPublicComments ? undefined : ["comment"],
           internalUrlBase: `/s/${options.shareId}`,
         }
       : undefined
   );
+
+  if (options.shareId && options.allowPublicComments) {
+    const publicComments = await Comment.unscoped().findAll({
+      attributes: ["id"],
+      where: { documentId: document.id, isPublic: true },
+    });
+    const publicIds = new Set(publicComments.map((comment) => comment.id));
+    data = ProsemirrorHelper.removeMarks(
+      data,
+      (mark) =>
+        mark.type === "comment" && !publicIds.has(String(mark.attrs?.id ?? ""))
+    );
+  }
 
   const text =
     !asData || options?.includeText

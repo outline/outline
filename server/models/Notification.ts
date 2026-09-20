@@ -62,8 +62,11 @@ let baseDomain;
   withActor: {
     include: [
       {
+        // Guest (public visitor) comments have no author, so the actor may
+        // legitimately be null — an inner join would drop the notification
+        // itself, silencing the email to its recipient.
         association: "actor",
-        required: true,
+        required: false,
       },
     ],
   },
@@ -149,12 +152,12 @@ class Notification extends Model<
   userId: string;
 
   @BelongsTo(() => User, "actorId")
-  actor: User;
+  actor: User | null;
 
   @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  actorId: string;
+  actorId: string | null;
 
   @BelongsTo(() => Comment, "commentId")
   comment: Comment;

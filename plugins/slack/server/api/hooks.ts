@@ -104,7 +104,7 @@ router.post(
 
             unfurls[link.url] = {
               title: t(`Comment by {{ author }} on "{{ title }}"`, {
-                author: comment.createdBy.name,
+                author: comment.createdBy?.name ?? comment.guestName ?? "Guest",
                 title: doc.title,
                 ...opts(user),
               }),

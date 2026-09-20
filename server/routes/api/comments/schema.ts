@@ -1,6 +1,7 @@
 import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { CommentStatusFilter } from "@shared/types";
+import { CommentValidation } from "@shared/validations";
 import { commentSchema } from "@server/editor";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 import { zodEmojiType } from "@server/utils/zod";
@@ -35,6 +36,27 @@ export const CommentsCreateSchema = BaseSchema.extend({
 
       /** Create comment under this parent */
       parentCommentId: z.uuid().optional(),
+
+      /** Public share used to authorize a public comment. */
+      shareId: z.string().optional(),
+
+      /** Display name required for comments created without an account. */
+      guestName: z
+        .string()
+        .trim()
+        .min(1)
+        .max(CommentValidation.maxGuestNameLength)
+        .optional(),
+
+      /**
+       * Optional email address a public share visitor may supply to receive
+       * notifications about replies. Only honoured on the public (shareId)
+       * comment path, and only when outgoing email is configured.
+       */
+      guestEmail: z.email().max(255).optional(),
+
+      /** Whether a new thread is visible on a published share. */
+      isPublic: z.boolean().optional(),
 
       /** Create comment with this data */
       data: ProsemirrorSchema({ schema: commentSchema }).optional(),
@@ -110,6 +132,8 @@ export const CommentsListSchema = BaseSchema.extend({
     statusFilter: z.enum(CommentStatusFilter).array().optional(),
     /** Whether to include anchor text, if it exists */
     includeAnchorText: z.boolean().optional(),
+    /** Public share used to authorize listing public comments. */
+    shareId: z.string().optional(),
   }),
 });
 

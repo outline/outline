@@ -11,13 +11,16 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useShare from "@shared/hooks/useShare";
 import { parseDomain } from "@shared/utils/domains";
+import useStores from "~/hooks/useStores";
+import useDocumentSidebar from "~/scenes/Document/hooks/useDocumentSidebar";
 
 type Props = {
   document: DocumentModel;
 };
 
 function SharedDocument({ document }: Props) {
-  const { shareId } = useShare();
+  const { shareId, allowPublicComments } = useShare();
+  const { comments } = useStores();
   const query = useQuery();
   const searchTerm = query.get("q") || undefined;
   const team = useTeamContext() as PublicTeam | undefined;
@@ -36,6 +39,17 @@ function SharedDocument({ document }: Props) {
     ? (team?.tocPosition ?? TOCPosition.Left)
     : false;
   setDocument(document);
+  useDocumentSidebar();
+
+  useEffect(() => {
+    if (allowPublicComments) {
+      void comments.fetchAll({
+        documentId: document.id,
+        limit: 100,
+        direction: "ASC",
+      });
+    }
+  }, [allowPublicComments, comments, document.id]);
 
   // Highlight search term when navigating from search results
   useEffect(() => {

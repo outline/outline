@@ -7,6 +7,7 @@ import type {
 } from "sequelize";
 import {
   DataType,
+  Default,
   BelongsTo,
   BeforeCreate,
   ForeignKey,
@@ -68,11 +69,30 @@ class Comment extends ParanoidModel<
   // associations
 
   @BelongsTo(() => User, "createdById")
-  createdBy: User;
+  createdBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  createdById: string;
+  createdById: string | null;
+
+  @Column(DataType.STRING)
+  guestName: string | null;
+
+  /**
+   * The optional email address a guest supplied to receive notifications
+   * about replies. Never presented to any client — only used server-side to
+   * resolve the `ShareSubscription` for the thread's other guest replies.
+   */
+  @Length({
+    max: 255,
+    msg: "guestEmail must be 255 characters or less",
+  })
+  @Column(DataType.STRING)
+  guestEmail: string | null;
+
+  @Default(false)
+  @Column(DataType.BOOLEAN)
+  isPublic: boolean;
 
   @Column(DataType.DATE)
   resolvedAt: Date | null;
@@ -84,8 +104,14 @@ class Comment extends ParanoidModel<
   @Column(DataType.UUID)
   resolvedById: string | null;
 
+  // Not populated by the default scope (see the removed Document include
+  // above) — routes and tasks must assign this explicitly from a document
+  // they already loaded, before authorizing against it. Null when the
+  // caller could not load the document, e.g. it does not exist or the
+  // requester lacks access to it; policies fall back to `createdBy` in
+  // that case.
   @BelongsTo(() => Document, "documentId")
-  document: Document;
+  document: Document | null;
 
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
@@ -166,12 +192,16 @@ class Comment extends ParanoidModel<
   // A reply created on an already-resolved thread inherits the parent's
   // resolved state so the resolvedAt column alone can answer "is this thread
   // resolved?" — keeping read queries simple and the counter cache index-only.
+  // A reply also has its visibility constrained by the parent: a reply to an
+  // internal thread is always internal, while a reply to a public thread may
+  // be public or internal, defaulting to public when the caller did not
+  // choose a visibility for it.
   @BeforeCreate
   public static async inheritResolvedFromParent(
     model: Comment,
     options: CreateOptions<InferAttributes<Comment>>
   ) {
-    if (!model.parentCommentId || model.resolvedAt) {
+    if (!model.parentCommentId) {
       return;
     }
     const parent = await this.unscoped().findOne({
@@ -191,6 +221,7 @@ class Comment extends ParanoidModel<
       model.resolvedAt = parent.resolvedAt;
       model.resolvedById = parent.resolvedById;
     }
+    model.isPublic = parent.isPublic ? (model.isPublic ?? true) : false;
   }
 
   // When a thread root is resolved or unresolved, propagate the same state to

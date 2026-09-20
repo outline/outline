@@ -14,6 +14,7 @@ import CollectionAddUserNotificationsTask from "../tasks/CollectionAddUserNotifi
 import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
 import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
 import CommentUpdatedNotificationsTask from "../tasks/CommentUpdatedNotificationsTask";
+import PublicCommentNotificationsTask from "../tasks/PublicCommentNotificationsTask";
 import ReactionCreatedNotificationsTask from "../tasks/ReactionCreatedNotificationsTask";
 import ReactionRemovedNotificationsTask from "../tasks/ReactionRemovedNotificationsTask";
 import DocumentAccessRequestNotificationsTask from "../tasks/DocumentAccessRequestNotificationsTask";
@@ -121,6 +122,12 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   async commentCreated(event: CommentEvent) {
     await new CommentCreatedNotificationsTask().schedule(event);
+
+    // Notifies confirmed guest subscribers of the thread by email — kept
+    // entirely separate from the team-facing task above so that a public
+    // (isPublic) comment never reaches an internal-only notification path,
+    // and an internal comment never reaches a public guest subscriber.
+    await new PublicCommentNotificationsTask().schedule(event);
   }
 
   async commentUpdated(event: CommentEvent) {

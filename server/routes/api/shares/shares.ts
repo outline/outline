@@ -2,7 +2,6 @@ import Router from "koa-router";
 import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
-import { randomString } from "@shared/random";
 import { errToId } from "@shared/utils/error";
 import { QueryNotices, TeamPreference } from "@shared/types";
 import {
@@ -10,7 +9,6 @@ import {
   InvalidRequestError,
   NotFoundError,
 } from "@server/errors";
-import ShareSubscriptionConfirmEmail from "@server/emails/templates/ShareSubscriptionConfirmEmail";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -23,7 +21,6 @@ import {
   Collection,
   ShareSubscription,
 } from "@server/models";
-import ShareSubscriptionHelper from "@server/models/helpers/ShareSubscriptionHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentShare,
@@ -43,6 +40,7 @@ import {
   loadPublicShare,
   loadShareWithParent,
 } from "@server/commands/shareLoader";
+import shareSubscriptionCreator from "@server/commands/shareSubscriptionCreator";
 import shareDomains from "@server/middlewares/shareDomains";
 import env from "@server/env";
 import { safeEqual } from "@server/utils/crypto";
@@ -94,6 +92,7 @@ router.post(
               isPublic: cannot(user, "read", document),
               shareId: share.id,
               includeUpdatedAt: share.showLastUpdated,
+              allowPublicComments: share.allowPublicComments,
             })
           : Promise.resolve(null),
       ]);
@@ -275,6 +274,7 @@ router.post(
       includeChildDocuments,
       allowIndexing,
       allowSubscriptions,
+      allowPublicComments,
       showLastUpdated,
       showTOC,
     } = ctx.input.body;
@@ -319,6 +319,7 @@ router.post(
         includeChildDocuments: published || includeChildDocuments,
         allowIndexing,
         allowSubscriptions,
+        allowPublicComments,
         showLastUpdated,
         showTOC,
         urlId,
@@ -360,6 +361,7 @@ router.post(
       urlId,
       allowIndexing,
       allowSubscriptions,
+      allowPublicComments,
       showLastUpdated,
       showTOC,
       title,
@@ -396,6 +398,9 @@ router.post(
     }
     if (allowSubscriptions !== undefined) {
       share.allowSubscriptions = allowSubscriptions;
+    }
+    if (allowPublicComments !== undefined) {
+      share.allowPublicComments = allowPublicComments;
     }
     if (showLastUpdated !== undefined) {
       share.showLastUpdated = showLastUpdated;
@@ -488,7 +493,7 @@ router.post(
     const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
     // Validate the share exists and is published
-    const { share, document } = await loadPublicShare({
+    const { share } = await loadPublicShare({
       id: shareId,
       documentId,
       teamId: team?.id,
@@ -498,66 +503,13 @@ router.post(
       throw InvalidRequestError("Subscriptions are not enabled for this share");
     }
 
-    const emailFingerprint = ShareSubscription.normalizeEmailFingerprint(email);
-
-    const existing = await ShareSubscription.findOne({
-      where: { shareId: share.id, documentId, emailFingerprint },
+    await shareSubscriptionCreator({
+      share,
+      documentId,
+      email,
+      ip: ctx.request.ip,
       transaction,
-      lock: transaction.LOCK.UPDATE,
     });
-
-    let subscription: ShareSubscription;
-
-    if (existing) {
-      // Already confirmed and active — return success silently
-      if (existing.isConfirmed && !existing.isUnsubscribed) {
-        ctx.body = { success: true };
-        return;
-      }
-
-      // Unsubscribed — allow re-subscribe with new confirmation
-      if (existing.isUnsubscribed) {
-        existing.unsubscribedAt = null;
-        existing.confirmedAt = null;
-        existing.lastNotifiedAt = null;
-        existing.secret = randomString(32);
-        existing.email = email;
-        await existing.save({ transaction });
-      } else if (!existing.canResendConfirmation) {
-        // Confirmation was sent recently, not yet confirmed — don't spam
-        ctx.body = { success: true };
-        return;
-      } else {
-        // Expired or stale unconfirmed — regenerate
-        existing.secret = randomString(32);
-        existing.email = email;
-        await existing.save({ transaction });
-      }
-
-      subscription = existing;
-    } else {
-      subscription = await ShareSubscription.create(
-        {
-          shareId: share.id,
-          documentId,
-          email,
-          emailFingerprint,
-          secret: randomString(32),
-          ipAddress: ctx.request.ip,
-        },
-        { transaction }
-      );
-    }
-
-    const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);
-    const usePublicBranding =
-      share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
-    await new ShareSubscriptionConfirmEmail({
-      to: email,
-      documentTitle: document?.titleWithDefault ?? "",
-      confirmUrl,
-      teamName: usePublicBranding ? share.team?.name : undefined,
-    }).schedule();
 
     ctx.body = { success: true };
   }

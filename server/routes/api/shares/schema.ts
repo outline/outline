@@ -57,6 +57,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
     allowSubscriptions: z.boolean().optional(),
+    allowPublicComments: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
     showTOC: z.boolean().optional(),
     title: z.string().max(ShareValidation.maxTitleLength).nullish(),
@@ -87,6 +88,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       published: z.boolean().prefault(false),
       allowIndexing: z.boolean().optional(),
       allowSubscriptions: z.boolean().optional(),
+      allowPublicComments: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
       urlId: z

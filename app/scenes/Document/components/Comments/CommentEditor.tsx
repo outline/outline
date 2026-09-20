@@ -17,6 +17,7 @@ import PreventTab from "~/editor/extensions/PreventTab";
 import SmartText from "~/editor/extensions/SmartText";
 import UpArrowAtStart from "~/editor/extensions/UpArrowAtStart";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useShare from "@shared/hooks/useShare";
 
 const extensions = [
   ...withComments(basicExtensions),
@@ -35,6 +36,13 @@ const extensions = [
   Keys,
 ];
 
+const publicExtensions = extensions.filter(
+  (extension) =>
+    extension !== MentionMenuExtension &&
+    extension !== DocumentMenuExtension &&
+    extension !== PasteHandler
+);
+
 type CommentEditorProps = EditorProps & {
   /** Callback when user presses up arrow at the start of the editor */
   onUpArrowAtStart?: () => void;
@@ -44,8 +52,15 @@ type CommentEditorProps = EditorProps & {
 const CommentEditor = ({ ref, ...props }: CommentEditorProps) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
 
+  const { isShare } = useShare();
+
   return (
-    <Editor extensions={extensions} userId={user?.id} {...props} ref={ref} />
+    <Editor
+      extensions={isShare ? publicExtensions : extensions}
+      userId={user?.id}
+      {...props}
+      ref={ref}
+    />
   );
 };
 
