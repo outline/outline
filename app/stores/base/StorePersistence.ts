@@ -62,11 +62,11 @@ export default class StorePersistence<T extends Model> {
         this.store.add(this.store.model.fromPersisted<T>(record));
       }
     } catch (err) {
-      this.disabled = true;
-      Logger.warn("Failed to hydrate store from IndexedDB", {
-        database: this.name,
-        error: err,
-      });
+      // A closed connection is transient, a later write reopens the database.
+      if (!isConnectionClosedError(err)) {
+        this.disabled = true;
+      }
+      this.report("Failed to hydrate store from IndexedDB", err);
     } finally {
       this.hydrating = false;
     }
@@ -115,10 +115,7 @@ export default class StorePersistence<T extends Model> {
         return promisifyTransaction(objectStore.transaction);
       });
     } catch (err) {
-      Logger.warn("Failed to write store to IndexedDB", {
-        database: this.name,
-        error: err,
-      });
+      this.report("Failed to write store to IndexedDB", err);
     }
   };
 
@@ -129,21 +126,27 @@ export default class StorePersistence<T extends Model> {
    */
   public clear = async (): Promise<void> => {
     this.dirty.clear();
+    this.scheduleFlush.cancel();
 
     if (this.disabled) {
       return;
     }
 
+    // The database is deleted rather than emptied through a transaction, as a
+    // deletion cannot fail against a connection the browser has closed.
+    this.close();
+
     try {
-      await this.transaction("readwrite", (objectStore) => {
-        objectStore.clear();
-        return promisifyTransaction(objectStore.transaction);
+      await new Promise<void>((resolve, reject) => {
+        const request = window.indexedDB.deleteDatabase(this.name);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        // Another tab holds a connection, which it closes in response to the
+        // versionchange event, and the deletion completes without us.
+        request.onblocked = () => resolve();
       });
     } catch (err) {
-      Logger.warn("Failed to clear persisted store in IndexedDB", {
-        database: this.name,
-        error: err,
-      });
+      this.report("Failed to clear persisted store in IndexedDB", err);
     }
   };
 
@@ -256,6 +259,25 @@ export default class StorePersistence<T extends Model> {
     }
     this.connection = undefined;
     this.database = undefined;
+  };
+
+  /**
+   * Logs an operation that failed against the database. The browser closes
+   * connections at times the page does not control, such as when the tab is
+   * frozen or discarded, so those failures are expected and are not reported.
+   *
+   * @param message a description of the operation that failed.
+   * @param err the error that was thrown.
+   */
+  private report = (message: string, err: unknown) => {
+    const extra = { database: this.name, error: err };
+
+    if (isConnectionClosedError(err)) {
+      Logger.debug("store", message, extra);
+      return;
+    }
+
+    Logger.warn(message, extra);
   };
 
   private scheduleFlush = debounce(() => void this.flush(), FLUSH_DELAY_MS);

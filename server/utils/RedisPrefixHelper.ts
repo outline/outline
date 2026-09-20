@@ -24,14 +24,14 @@ export class RedisPrefixHelper {
 
   /**
    * Gets key against which the collaborators of a multiplayer editing session
-   * are stored, shared by all entity types. Stored as a list ordered from
-   * oldest to most recent editor, so the tail is the last collaborator to edit.
+   * are stored, shared by all entity types. Stored as a sorted set scored by
+   * edit sequence, so the highest scoring member is the last to edit.
    *
    * @param id The ID of the entity being edited.
    * @returns the cache key string.
    */
   public static getCollaboratorsKey(id: string) {
-    return `session-collaborators:${id}`;
+    return `collaborators:v2:${id}`;
   }
 
   /**

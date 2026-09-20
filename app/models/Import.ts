@@ -10,6 +10,11 @@ import Relation from "./decorators/Relation";
 class Import extends Model {
   static modelName = "Import";
 
+  constructor(fields: Record<string, unknown>, store: ImportsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   store: ImportsStore;
 
   /** The name of the import. */

@@ -1,5 +1,5 @@
 import { isEqual } from "es-toolkit/compat";
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import type { FunctionComponent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -27,6 +27,7 @@ export class NodeViewRenderer<T extends object> implements PortalRenderer {
     props: T
   ) {
     this.props = props;
+    makeObservable(this);
   }
 
   @computed

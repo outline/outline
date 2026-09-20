@@ -18,12 +18,16 @@ type Props = {
   thumbnailUrl: string;
   /** Some description about the link provider */
   description: string;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const HoverPreviewLink = React.forwardRef(function HoverPreviewLink_(
-  { url, thumbnailUrl, title, description }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function HoverPreviewLink({
+  url,
+  thumbnailUrl,
+  title,
+  description,
+  ref,
+}: Props) {
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column ref={ref}>
@@ -39,6 +43,6 @@ const HoverPreviewLink = React.forwardRef(function HoverPreviewLink_(
       </Flex>
     </Preview>
   );
-});
+}
 
 export default HoverPreviewLink;

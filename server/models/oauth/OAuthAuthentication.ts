@@ -1,4 +1,3 @@
-import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import type {
   FindOptions,
@@ -19,6 +18,7 @@ import env from "@server/env";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
+import IsScope from "@server/models/validators/IsScope";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
@@ -81,10 +81,7 @@ class OAuthAuthentication extends ParanoidModel<
   grantId: string | null;
 
   /** A list of scopes that this authentication has access to */
-  @Matches(AuthenticationHelper.scopeGrammarRegex, {
-    each: true,
-    message: "Scope must be a valid API scope",
-  })
+  @IsScope
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];
 
@@ -148,7 +145,9 @@ class OAuthAuthentication extends ParanoidModel<
     // MCP endpoint access is allowed if the token has any valid scope.
     // Fine-grained scope enforcement happens at the tool level.
     if (path.startsWith("/mcp")) {
-      return this.scope.length > 0;
+      return this.scope.some((scope) =>
+        AuthenticationHelper.isValidScope(scope)
+      );
     }
 
     return AuthenticationHelper.canAccess(path, this.scope);

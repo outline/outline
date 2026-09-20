@@ -259,8 +259,6 @@ export default abstract class APIImportTask<
     await sequelize.transaction(async (transaction) => {
       const associatedImport = importTask.import;
       associatedImport.state = ImportState.Processed;
-      // Release any cross-phase scratch state — the import is done with it.
-      associatedImport.scratch = null;
       await associatedImport.saveWithCtx(
         createContext({
           user: associatedImport.createdBy,
@@ -378,7 +376,8 @@ export default abstract class APIImportTask<
           node.type.name === "attachment" ? node.attrs.href : node.attrs.src
         );
         const name = String(
-          node.type.name === "image" ? node.attrs.alt : node.attrs.title
+          (node.type.name === "image" ? node.attrs.alt : node.attrs.title) ||
+            node.type.name
         ).trim();
 
         return { url, name: name.length !== 0 ? name : node.type.name };

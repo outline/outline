@@ -12,6 +12,11 @@ import type { Searchable } from "./interfaces/Searchable";
 class Share extends Model implements Searchable {
   static modelName = "Share";
 
+  constructor(fields: Record<string, unknown>, store: SharesStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   store: SharesStore;
 
   @Field
@@ -61,7 +66,7 @@ class Share extends Model implements Searchable {
   documentUrl: string;
 
   @observable
-  lastAccessedAt: string | null | undefined;
+  lastAccessedAt: string | null | undefined = undefined;
 
   @observable
   url: string;

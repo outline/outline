@@ -1,6 +1,13 @@
 import invariant from "invariant";
-import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
-import { observable, action, computed, runInAction } from "mobx";
+import { compact, omitBy, orderBy } from "es-toolkit/compat";
+import {
+  action,
+  computed,
+  makeObservable,
+  observable,
+  override,
+  runInAction,
+} from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   AttachmentPreset,
@@ -51,7 +58,7 @@ export default class DocumentsStore extends Store<Document> {
   similar: Map<string, string[]> = new Map();
 
   @observable
-  movingDocumentId: string | null | undefined;
+  movingDocumentId: string | null | undefined = undefined;
 
   importFileTypes: string[] = [
     ".md",
@@ -83,6 +90,7 @@ export default class DocumentsStore extends Store<Document> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
+    makeObservable(this);
   }
 
   @computed
@@ -92,7 +100,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
+    return this.orderedData.filter((d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -116,15 +124,14 @@ export default class DocumentsStore extends Store<Document> {
 
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, (d) => d.createdBy?.id === userId),
+      this.all.filter((d) => d.createdBy?.id === userId),
       "updatedAt",
       "desc"
     );
   }
 
   inCollection(collectionId: string): Document[] {
-    return filter(
-      this.all,
+    return this.all.filter(
       (document) => document.collectionId === collectionId
     );
   }
@@ -143,12 +150,11 @@ export default class DocumentsStore extends Store<Document> {
           document.isArchived &&
           !document.isDeleted;
 
-    return filter(this.orderedData, filterCond);
+    return this.orderedData.filter(filterCond);
   }
 
   unarchivedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.orderedData,
+    return this.orderedData.filter(
       (document) =>
         document.collectionId === collectionId &&
         !document.isArchived &&
@@ -157,8 +163,7 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   publishedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.all,
+    return this.all.filter(
       (document) =>
         document.collectionId === collectionId && !!document.publishedAt
     );
@@ -248,16 +253,14 @@ export default class DocumentsStore extends Store<Document> {
     );
 
     if (options.userId) {
-      deleted = filter(
-        deleted,
+      deleted = deleted.filter(
         (document) => document.deletedBy?.id === options.userId
       );
     }
 
     if (options.dateFilter) {
       const cutoff = subtractDate(new Date(), options.dateFilter);
-      deleted = filter(
-        deleted,
+      deleted = deleted.filter(
         (document) =>
           !!document.deletedAt && new Date(document.deletedAt) >= cutoff
       );
@@ -277,14 +280,12 @@ export default class DocumentsStore extends Store<Document> {
       collectionId?: string;
     } = {}
   ): Document[] => {
-    let drafts = filter(
-      orderBy(this.all, "updatedAt", "desc"),
+    let drafts = orderBy(this.all, "updatedAt", "desc").filter(
       (doc) => !doc.publishedAt
     );
 
     if (options.dateFilter) {
-      drafts = filter(
-        drafts,
+      drafts = drafts.filter(
         (draft) =>
           new Date(draft.updatedAt) >=
           subtractDate(new Date(), options.dateFilter || "year")
@@ -292,9 +293,9 @@ export default class DocumentsStore extends Store<Document> {
     }
 
     if (options.collectionId) {
-      drafts = filter(drafts, {
-        collectionId: options.collectionId,
-      });
+      drafts = drafts.filter(
+        (draft) => draft.collectionId === options.collectionId
+      );
     }
 
     return drafts;
@@ -312,7 +313,7 @@ export default class DocumentsStore extends Store<Document> {
     const res = await client.post("/relationships.list", { documentId });
     invariant(res?.data, "Relationships not available");
 
-    runInAction("DocumentsStore#fetchRelationships", () => {
+    runInAction(() => {
       res.data.documents.forEach(this.add);
       this.addPolicies(res.policies);
 
@@ -357,32 +358,17 @@ export default class DocumentsStore extends Store<Document> {
     });
     invariant(res?.data, "Document list not available");
 
-    runInAction("DocumentsStore#fetchChildDocuments", () => {
+    runInAction(() => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
   };
 
-  @action
   fetchNamedPage = async (
     request = "list",
     options: FetchPageParams | undefined
-  ): Promise<Document[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/documents.${request}`, options);
-      invariant(res?.data, "Document list not available");
-      return runInAction("DocumentsStore#fetchNamedPage", () => {
-        const documents = res.data.map(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return documents;
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  ): Promise<Document[]> =>
+    this.fetchPaginated(`/documents.${request}`, options);
 
   @action
   fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
@@ -460,7 +446,7 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    runInAction("DocumentsStore#searchTitles", () => {
+    runInAction(() => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
@@ -491,7 +477,7 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    runInAction("DocumentsStore#search", () => {
+    runInAction(() => {
       res.data.forEach((result: SearchResult) => this.add(result.document));
       this.addPolicies(res.policies);
     });
@@ -638,7 +624,7 @@ export default class DocumentsStore extends Store<Document> {
     return this.add(res.data);
   };
 
-  @action
+  @override
   async delete(
     document: Document,
     options?: {
@@ -678,12 +664,20 @@ export default class DocumentsStore extends Store<Document> {
     }
   }
 
+  /**
+   * Archives a document and updates its local state.
+   *
+   * @param document the document to archive.
+   * @param options the archive options.
+   * @returns a promise that resolves when local state is updated.
+   */
   @action
-  archive = async (document: Document) => {
+  archive = async (document: Document, options: { reason?: string } = {}) => {
     const res = await client.post("/documents.archive", {
       id: document.id,
+      reason: options.reason,
     });
-    runInAction("Document#archive", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       document.updateData(res.data);
       this.addPolicies(res.policies);
@@ -707,7 +701,7 @@ export default class DocumentsStore extends Store<Document> {
       revisionId: options.revisionId,
       collectionId: options.collectionId,
     });
-    runInAction("Document#restore", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       document.updateData(res.data);
       this.addPolicies(res.policies);
@@ -730,7 +724,7 @@ export default class DocumentsStore extends Store<Document> {
       ...options,
     });
 
-    runInAction("Document#unpublish", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       // unpublishing could sometimes detach the document from the collection.
       // so, get the collection id before data is updated.

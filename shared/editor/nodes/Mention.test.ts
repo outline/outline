@@ -22,7 +22,7 @@ const serializeMention = (
 
 describe("Mention serialization", () => {
   describe("markdown leaving Outline", () => {
-    it("serializes an issue mention as a link to the external url", () => {
+    it("serializes an issue mention as an @ prefixed link to the external url", () => {
       expect(
         serializeMention(
           {
@@ -33,11 +33,11 @@ describe("Mention serialization", () => {
           { commonMark: true }
         )
       ).toBe(
-        "[Epic 1: Control plane Helm chart](https://github.com/acme/infra/issues/2)"
+        "@[Epic 1: Control plane Helm chart](https://github.com/acme/infra/issues/2)"
       );
     });
 
-    it("serializes a pull request mention as a link to the external url", () => {
+    it("serializes a pull request mention as an @ prefixed link to the external url", () => {
       expect(
         serializeMention(
           {
@@ -47,10 +47,10 @@ describe("Mention serialization", () => {
           },
           { commonMark: true }
         )
-      ).toBe("[Add Helm chart](https://github.com/acme/infra/pull/42)");
+      ).toBe("@[Add Helm chart](https://github.com/acme/infra/pull/42)");
     });
 
-    it("serializes a project mention as a link to the external url", () => {
+    it("serializes a project mention as an @ prefixed link to the external url", () => {
       expect(
         serializeMention(
           {
@@ -60,7 +60,20 @@ describe("Mention serialization", () => {
           },
           { commonMark: true }
         )
-      ).toBe("[Q3 Roadmap](https://github.com/orgs/acme/projects/7)");
+      ).toBe("@[Q3 Roadmap](https://github.com/orgs/acme/projects/7)");
+    });
+
+    it("serializes a url mention as an @ prefixed link", () => {
+      expect(
+        serializeMention(
+          {
+            type: MentionType.URL,
+            label: "Example",
+            href: "https://example.com/page",
+          },
+          { commonMark: true }
+        )
+      ).toBe("@[Example](https://example.com/page)");
     });
 
     it("sanitizes an unsafe url", () => {

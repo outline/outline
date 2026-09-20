@@ -10,7 +10,7 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -380,6 +380,13 @@ export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
 
 export const DocumentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** The reason the document is archived or deleted. */
+    deprecatedReason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+
     /** Doc title to be updated */
     title: z.string().optional(),
 
@@ -493,13 +500,26 @@ export const DocumentsMoveSchema = BaseSchema.extend({
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
 export const DocumentsArchiveSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for archiving the document. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type DocumentsArchiveReq = z.infer<typeof DocumentsArchiveSchema>;
 
 export const DocumentsDeleteSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** The reason for deleting the document. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
     /** Whether to permanently delete the doc as opposed to soft-delete */
     permanent: z.boolean().optional(),
   }),

@@ -4,6 +4,7 @@ import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {
   Identifier,
   Transaction,
+  DestroyOptions,
   FindOptions,
   NonNullFindOptions,
   InferAttributes,
@@ -59,11 +60,15 @@ import {
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
-import { CollectionValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DeprecationValidation,
+} from "@shared/validations";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
+import { LockHelper } from "@server/storage/LockHelper";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
@@ -244,6 +249,11 @@ class Collection extends ParanoidModel<
   })
   @Column(DataType.STRING)
   description: string | null;
+
+  /** The reason this collection is archived. */
+  @Length({ max: DeprecationValidation.maxReasonLength })
+  @Column(DataType.TEXT)
+  deprecatedReason: string | null;
 
   /**
    * The content of the collection as JSON, this is a snapshot at the last time the state was saved.
@@ -458,7 +468,13 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeDestroy
-  static async checkLastCollection(model: Collection) {
+  static async checkLastCollection(model: Collection, options: DestroyOptions) {
+    await LockHelper.acquire(
+      model.sequelize,
+      `collections:${model.teamId}`,
+      options.transaction
+    );
+
     const total = await this.count({
       where: {
         teamId: model.teamId,
@@ -915,6 +931,39 @@ class Collection extends ParanoidModel<
       }
     );
 
+    return this;
+  };
+
+  /**
+   * Updates the reason for archiving the collection.
+   *
+   * @param ctx the API context, including the acting user and transaction.
+   * @param reason the reason to save, or null to clear it.
+   * @returns the updated collection.
+   * @throws ValidationError if the collection is no longer archived.
+   */
+  updateDeprecatedReason = async (ctx: APIContext, reason: string | null) => {
+    const { transaction } = ctx.state;
+
+    if (transaction) {
+      await Collection.unscoped().findOne({
+        attributes: ["id"],
+        where: { id: this.id },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
+      });
+    }
+
+    await this.reload({ transaction });
+    if (!this.archivedAt || this.deletedAt) {
+      throw ValidationError("The collection must be archived");
+    }
+
+    this.deprecatedReason = reason?.trim() || null;
+    if (this.changed("deprecatedReason")) {
+      await this.saveWithCtx(ctx, { silent: true });
+    }
     return this;
   };
 

@@ -69,7 +69,7 @@ const FilterOptions = ({
     : "";
 
   const renderItem = React.useCallback(
-    (option) => {
+    (option: TFilterOption) => {
       const handleClick = () => {
         onSelect(option.key);
         setOpen(false);

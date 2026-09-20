@@ -48,6 +48,7 @@ import MembershipPreview from "./components/MembershipPreview";
 import Navigation, { CollectionTab } from "./components/Navigation";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
+import { CollectionMeta } from "./components/CollectionMeta";
 import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -185,6 +186,7 @@ const CollectionScene = observer(function CollectionScene_() {
             collection={collection}
             isEditing={isEditRoute || !user?.separateEditMode}
           />
+          <CollectionMeta collection={collection} />
 
           <PinnedDocuments
             pins={pins}

@@ -121,7 +121,7 @@ function BlockMenu(props: Props) {
     return [...baseItems, { name: "separator" } as MenuItem, templateMenuItem];
   }, [t, elementRef, templateMenuItem]);
 
-  const renderMenuItem = useCallback(
+  const renderMenuItem = useCallback<SuggestionsMenuProps["renderMenuItem"]>(
     (item, _index, options) => (
       <SuggestionsMenuItem
         {...options}

@@ -13,12 +13,12 @@ import {
   AllowNull,
   DefaultScope,
   BeforeCreate,
+  IsIn,
 } from "sequelize-typescript";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import { IsIn } from "class-validator";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 

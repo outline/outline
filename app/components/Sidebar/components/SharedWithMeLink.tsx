@@ -2,6 +2,7 @@ import fractionalIndex from "fractional-index";
 import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
+import type { match } from "react-router";
 import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type GroupMembership from "~/models/GroupMembership";
@@ -140,8 +141,10 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     useDropToReorderUserMembership(getIndex);
 
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) =>
-      !!match && location.state?.sidebarContext === sidebarContext,
+    (
+      match: match | null,
+      location: Location<{ sidebarContext?: SidebarContextType }>
+    ) => !!match && location.state?.sidebarContext === sidebarContext,
     [sidebarContext]
   );
 

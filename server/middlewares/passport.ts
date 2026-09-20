@@ -92,7 +92,11 @@ export default function createMiddleware(providerName: string) {
 
             // form a URL object with the err.redirectPath and replace the host
             const reqProtocol =
-              oauthState?.client === Client.Desktop ? "outline" : ctx.protocol;
+              oauthState?.client === Client.Desktop
+                ? env.isDevelopment
+                  ? "outline-dev"
+                  : "outline"
+                : ctx.protocol;
 
             const requestHost = await getValidatedHost(
               oauthState?.host ?? ctx.hostname

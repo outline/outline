@@ -29,7 +29,7 @@ import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import useStores from "~/hooks/useStores";
-import { compressImage } from "~/utils/compressImage";
+import { ImageHelper } from "~/utils/ImageHelper";
 import { uploadFile } from "~/utils/files";
 import {
   Popover,
@@ -90,7 +90,7 @@ function ShareSettingsPopover({ share, children }: Props) {
 
       setIsUploading(true);
       try {
-        const compressed = await compressImage(file, {
+        const compressed = await ImageHelper.compress(file, {
           maxHeight: 512,
           maxWidth: 512,
         });

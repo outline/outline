@@ -22,6 +22,9 @@ type ComponentViewConstructor = {
 };
 
 export default class ComponentView {
+  /** The class name applied to the editable content element of every node view. */
+  static readonly contentClassName = "component-content";
+
   /** The React component to render. */
   component: FunctionComponent<ComponentProps>;
   /** The editor instance. */
@@ -76,6 +79,10 @@ export default class ComponentView {
       this.contentDOM = document.createElement(
         node.type.spec.inline ? "span" : "div"
       );
+      // Chrome unwraps an attribute-less div that is the only child of its
+      // parent when a deletion empties a block inside it, which orphans the
+      // content from ProseMirror. Any attribute prevents this.
+      this.contentDOM.className = ComponentView.contentClassName;
     }
 
     this.className = `component-${node.type.name}`;
@@ -164,12 +171,15 @@ export default class ComponentView {
    */
   handleContentRef = (element: HTMLElement | null) => {
     if (
-      element &&
-      this.contentDOM &&
-      element !== this.contentDOM.parentElement
+      !element ||
+      !this.contentDOM ||
+      element === this.contentDOM.parentElement
     ) {
-      element.appendChild(this.contentDOM);
+      return;
     }
+
+    element.appendChild(this.contentDOM);
+    this.syncSelection();
   };
 
   stopEvent(event: Event) {
@@ -210,5 +220,26 @@ export default class ComponentView {
       decorations: this.decorations,
       contentRef: this.handleContentRef,
     } as ComponentProps;
+  }
+
+  /**
+   * Re-apply the editor selection to the DOM once the content is mounted. React
+   * mounts the content after ProseMirror has already synced the selection, so a
+   * selection inside a freshly created node lands on a detached element and the
+   * browser leaves the caret after the node instead.
+   */
+  private syncSelection() {
+    const { view } = this;
+    if (!this.dom || !view.hasFocus()) {
+      return;
+    }
+
+    const pos = this.getPos();
+    const { from, to } = view.state.selection;
+    if (from <= pos || to >= pos + this.node.nodeSize) {
+      return;
+    }
+
+    view.focus();
   }
 }

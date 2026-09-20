@@ -101,6 +101,9 @@ export const uploadFile = async (
         for (const [key, value] of Object.entries(
           data.headers as Record<string, string>
         )) {
+          if (isForbiddenRequestHeader(key)) {
+            continue;
+          }
           xhr.setRequestHeader(key, value);
         }
       }
@@ -144,6 +147,54 @@ export const uploadFile = async (
 };
 
 export { dataUrlToBlob };
+
+/**
+ * Header names the browser controls itself - it silently ignores an attempt to
+ * set one and logs an error to the console.
+ *
+ * @see https://fetch.spec.whatwg.org/#forbidden-request-header
+ */
+const forbiddenRequestHeaders = [
+  "accept-charset",
+  "accept-encoding",
+  "access-control-request-headers",
+  "access-control-request-method",
+  "connection",
+  "content-length",
+  "cookie",
+  "cookie2",
+  "date",
+  "dnt",
+  "expect",
+  "host",
+  "keep-alive",
+  "origin",
+  "referer",
+  "set-cookie",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "via",
+];
+
+const forbiddenRequestHeaderPrefixes = ["proxy-", "sec-"];
+
+/**
+ * Checks whether the browser refuses to let a header be set on a request.
+ *
+ * @param name the header name to check.
+ * @returns true if the header cannot be set.
+ */
+const isForbiddenRequestHeader = (name: string): boolean => {
+  const lowercased = name.toLowerCase();
+  return (
+    forbiddenRequestHeaders.includes(lowercased) ||
+    forbiddenRequestHeaderPrefixes.some((prefix) =>
+      lowercased.startsWith(prefix)
+    )
+  );
+};
 
 const CHAR_FORWARD_SLASH = 47; /* / */
 const CHAR_DOT = 46; /* . */

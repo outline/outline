@@ -19,29 +19,28 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
   flex?: boolean;
   /** Custom overflow style */
   overflow?: string;
+  /** Ref to the scrollable div element */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
  * A scrollable container component with optional shadow indicators and custom scrollbar styling.
  *
  * @param props - component properties.
- * @param ref - forwarded ref to the scrollable div element.
  * @returns the scrollable container element.
  */
-function Scrollable(
-  {
-    shadow,
-    topShadow,
-    bottomShadow,
-    hiddenScrollbars,
-    fadeTo,
-    flex,
-    overflow,
-    children,
-    ...rest
-  }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function Scrollable({
+  shadow,
+  topShadow,
+  bottomShadow,
+  hiddenScrollbars,
+  fadeTo,
+  flex,
+  overflow,
+  children,
+  ref,
+  ...rest
+}: Props) {
   const localRef = React.useRef<HTMLDivElement>(null);
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
@@ -172,4 +171,4 @@ const Wrapper = styled.div<{
   ${(props) => props.$hiddenScrollbars && hideScrollbars()}
 `;
 
-export default observer(React.forwardRef(Scrollable));
+export default observer(Scrollable);

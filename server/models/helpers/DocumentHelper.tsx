@@ -1,3 +1,4 @@
+import { isEqual, omit } from "es-toolkit/compat";
 import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
@@ -11,7 +12,7 @@ import headingToSlug from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
-import { IconType, TextEditMode } from "@shared/types";
+import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -348,6 +349,15 @@ export class DocumentHelper {
     options?: HTMLOptions
   ) {
     const node = DocumentHelper.toProsemirror(model);
+    // Heading numbering is a preference of the document, which a revision
+    // inherits from the document it belongs to.
+    const document =
+      model instanceof Document
+        ? model
+        : model instanceof Revision
+          ? await model.$get("document")
+          : null;
+
     let output = await ProsemirrorHelper.toHTML(node, {
       title:
         options?.includeTitle !== false
@@ -362,6 +372,7 @@ export class DocumentHelper {
       baseUrl: options?.baseUrl,
       changes: options?.changes,
       cspNonce: options?.cspNonce,
+      headingPrefix: document?.getPreference(DocumentPreference.HeadingPrefix),
     });
 
     addTags({
@@ -371,9 +382,7 @@ export class DocumentHelper {
 
     if (options?.signedUrls) {
       const teamId =
-        model instanceof Collection || model instanceof Document
-          ? model.teamId
-          : (await model.$get("document"))?.teamId;
+        model instanceof Collection ? model.teamId : document?.teamId;
 
       if (!teamId) {
         return output;
@@ -841,31 +850,36 @@ export class DocumentHelper {
       return undefined;
     }
 
-    const patchedBlock = DocumentHelper.patchNode(blockNode, patch);
+    const patchedBlocks = DocumentHelper.patchNode(blockNode, patch);
 
-    if (!patchedBlock) {
+    if (!patchedBlocks) {
       return undefined;
     }
 
     const before = existingDoc.content.cut(0, pmFrom);
     const after = existingDoc.content.cut(pmTo);
-    return existingDoc.copy(
-      before.append(Fragment.from(patchedBlock)).append(after)
-    );
+    return existingDoc.copy(before.append(patchedBlocks).append(after));
   }
 
   /**
    * Recursively patch a single node. For textblocks, performs an inline
-   * replacement. For container nodes, serializes children to find which
-   * child contains the match, patches that child, and preserves siblings.
+   * replacement. For container nodes, re-parses the container markdown with
+   * the modification applied and preserves rich content in unchanged
+   * children. The replacement may split the container or introduce blocks
+   * that cannot live inside it, so the result is a fragment of one or more
+   * top-level blocks.
    *
    * @param node The node to patch.
    * @param patch The patch context.
-   * @returns The patched node, or undefined to fall back.
+   * @returns The blocks that replace the node, or undefined to fall back.
    */
-  private static patchNode(node: Node, patch: PatchContext): Node | undefined {
+  private static patchNode(
+    node: Node,
+    patch: PatchContext
+  ): Fragment | undefined {
     if (node.isTextblock) {
-      return DocumentHelper.tryInlinePatch(node, patch);
+      const patched = DocumentHelper.tryInlinePatch(node, patch);
+      return patched ? Fragment.from(patched) : undefined;
     }
 
     const {
@@ -889,23 +903,90 @@ export class DocumentHelper {
       replacementText +
       containerMd.slice(localEnd);
 
-    const parsed = parser.parse(modifiedMd.replace(/^\n+/, ""));
-    const newContainer = DocumentHelper.findChildOfType(parsed, node.type);
+    const parsed = DocumentHelper.joinAdjacentLists(
+      parser.parse(modifiedMd.replace(/^\n+/, ""))
+    );
+    const blocks = DocumentHelper.childrenOf(parsed);
+    const containerIndex = blocks.findIndex(
+      (child) => child.type === node.type
+    );
 
-    if (!newContainer) {
+    // The container itself is gone, there is no rich content to preserve so
+    // the plain region re-parse in the caller is sufficient.
+    if (containerIndex === -1) {
       return undefined;
     }
 
     // Parse the original (unmodified) container markdown to get a round-trip
     // baseline. This lets mergeNodes distinguish attrs that were intentionally
     // changed by the modification from attrs lost during markdown round-trip.
-    const originalParsed = parser.parse(containerMd.replace(/^\n+/, ""));
+    const originalParsed = DocumentHelper.joinAdjacentLists(
+      parser.parse(containerMd.replace(/^\n+/, ""))
+    );
     const roundTripped = DocumentHelper.findChildOfType(
       originalParsed,
       node.type
     );
 
-    return DocumentHelper.mergeNodes(node, newContainer, roundTripped);
+    blocks[containerIndex] = DocumentHelper.mergeNodes(
+      node,
+      blocks[containerIndex],
+      roundTripped
+    );
+
+    return Fragment.from(blocks);
+  }
+
+  /**
+   * Join adjacent lists of the same kind into one, at every depth. Markdown
+   * starts a new list when the marker or delimiter changes, but the
+   * serializer normalizes both so such a change inside a patch must not split
+   * the list. The start number of a split fragment only continues the
+   * numbering, so it is ignored; lists that differ in any other attr, such
+   * as a numeric list next to an alpha list, are kept separate.
+   *
+   * @param node The parsed node.
+   * @returns The node with adjacent matching lists joined.
+   */
+  private static joinAdjacentLists(node: Node): Node {
+    if (node.isTextblock || node.isLeaf) {
+      return node;
+    }
+
+    const isSameList = (a: Node, b: Node) =>
+      a.type === b.type &&
+      a.type.isInGroup("list") &&
+      isEqual(omit(a.attrs, ["order"]), omit(b.attrs, ["order"]));
+
+    const children = DocumentHelper.childrenOf(node).reduce<Node[]>(
+      (joined, child) => {
+        const current = DocumentHelper.joinAdjacentLists(child);
+        const previous = joined[joined.length - 1];
+        if (previous && isSameList(previous, current)) {
+          joined[joined.length - 1] = previous.copy(
+            previous.content.append(current.content)
+          );
+        } else {
+          joined.push(current);
+        }
+        return joined;
+      },
+      []
+    );
+
+    return node.copy(Fragment.from(children));
+  }
+
+  /**
+   * Collect the direct children of a node into an array.
+   *
+   * @param node The parent node.
+   * @returns The child nodes in document order.
+   */
+  private static childrenOf(node: Node): Node[] {
+    const children: Node[] = [];
+    node.forEach((child: Node) => children.push(child));
+    return children;
   }
 
   /**
@@ -916,13 +997,7 @@ export class DocumentHelper {
    * @returns The first matching child, or undefined.
    */
   private static findChildOfType(doc: Node, type: NodeType): Node | undefined {
-    let result: Node | undefined;
-    doc.forEach((child: Node) => {
-      if (child.type === type && !result) {
-        result = child;
-      }
-    });
-    return result;
+    return DocumentHelper.childrenOf(doc).find((child) => child.type === type);
   }
 
   /**
@@ -930,6 +1005,9 @@ export class DocumentHelper {
    * content is unchanged are kept from the original (preserving attributes
    * that cannot be represented in markdown, such as comment marks or
    * highlight colors). Children whose content changed use the updated version.
+   * Children may have been added or removed; the runs at the start and end
+   * that match the round-trip baseline anchor the merge so only the changed
+   * middle is compared pairwise.
    *
    * @param original The original node with rich content to preserve.
    * @param updated The re-parsed node with the modification applied.
@@ -946,16 +1024,76 @@ export class DocumentHelper {
       return updated;
     }
 
-    const oldChildren: Node[] = [];
-    const newChildren: Node[] = [];
-    const rtChildren: Node[] = [];
-    original.forEach((child: Node) => oldChildren.push(child));
-    updated.forEach((child: Node) => newChildren.push(child));
-    roundTripped?.forEach((child: Node) => rtChildren.push(child));
+    const oldChildren = DocumentHelper.childrenOf(original);
+    const newChildren = DocumentHelper.childrenOf(updated);
+    const rtChildren = roundTripped
+      ? DocumentHelper.childrenOf(roundTripped)
+      : [];
 
-    // If structure changed significantly, use the fully re-parsed version.
+    // Children that equal the round-trip baseline were not touched by the
+    // patch. Only align on them when the baseline mirrors the original.
+    const maxShared =
+      rtChildren.length === oldChildren.length
+        ? Math.min(oldChildren.length, newChildren.length)
+        : 0;
+
+    let prefix = 0;
+    while (prefix < maxShared && newChildren[prefix].eq(rtChildren[prefix])) {
+      prefix++;
+    }
+
+    let suffix = 0;
+    while (
+      suffix < maxShared - prefix &&
+      newChildren[newChildren.length - 1 - suffix].eq(
+        rtChildren[rtChildren.length - 1 - suffix]
+      )
+    ) {
+      suffix++;
+    }
+
+    const merged = [
+      ...oldChildren.slice(0, prefix),
+      ...DocumentHelper.mergeChildren(
+        oldChildren.slice(prefix, oldChildren.length - suffix),
+        newChildren.slice(prefix, newChildren.length - suffix),
+        rtChildren.slice(prefix, rtChildren.length - suffix)
+      ),
+      ...oldChildren.slice(oldChildren.length - suffix),
+    ];
+
+    // Merge container attrs so markdown-driven changes (e.g. ordered list
+    // order/listStyle) are applied while preserving non-markdown attrs.
+    const mergedAttrs = DocumentHelper.mergeAttrs(
+      original,
+      updated,
+      roundTripped
+    );
+
+    return original.type.create(
+      mergedAttrs,
+      Fragment.from(merged),
+      original.marks
+    );
+  }
+
+  /**
+   * Merge two child lists pairwise. When the lists differ in length or a
+   * pair differs in type there is no positional correspondence, so the
+   * re-parsed children are used as-is.
+   *
+   * @param oldChildren The original children with rich content to preserve.
+   * @param newChildren The re-parsed children with the modification applied.
+   * @param rtChildren The original children after a markdown round-trip.
+   * @returns The merged children.
+   */
+  private static mergeChildren(
+    oldChildren: Node[],
+    newChildren: Node[],
+    rtChildren: Node[]
+  ): Node[] {
     if (oldChildren.length !== newChildren.length) {
-      return updated;
+      return newChildren;
     }
 
     const merged: Node[] = [];
@@ -965,7 +1103,7 @@ export class DocumentHelper {
       const rtChild = rtChildren[i];
 
       if (oldChild.type !== newChild.type) {
-        return updated;
+        return newChildren;
       }
 
       const textSame = oldChild.textContent === newChild.textContent;
@@ -1004,19 +1142,7 @@ export class DocumentHelper {
       }
     }
 
-    // Merge container attrs so markdown-driven changes (e.g. ordered list
-    // order/listStyle) are applied while preserving non-markdown attrs.
-    const mergedAttrs = DocumentHelper.mergeAttrs(
-      original,
-      updated,
-      roundTripped
-    );
-
-    return original.type.create(
-      mergedAttrs,
-      Fragment.from(merged),
-      original.marks
-    );
+    return merged;
   }
 
   /**

@@ -1,12 +1,13 @@
 import invariant from "invariant";
-import { action, runInAction, computed } from "mobx";
+import { action, makeObservable, override, runInAction } from "mobx";
 import UserMembership from "~/models/UserMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
+import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
-import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
+import { type PaginatedResponse, RPCAction } from "./base/Store";
 
-export default class UserMembershipsStore extends Store<UserMembership> {
+export default class UserMembershipsStore extends IndexedStore<UserMembership> {
   actions = [
     RPCAction.List,
     RPCAction.Create,
@@ -14,8 +15,11 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     RPCAction.Update,
   ];
 
+  responseKey = "memberships";
+
   constructor(rootStore: RootStore) {
     super(rootStore, UserMembership);
+    makeObservable(this);
   }
 
   /**
@@ -23,56 +27,28 @@ export default class UserMembershipsStore extends Store<UserMembership> {
    *
    * @param id the ID of the membership to remove.
    */
-  @action
+  @override
   remove(id: string, options?: { permanent?: boolean }): void {
     super.remove(id, options);
     this.rootStore.policies.removeForMembership(id);
   }
 
-  @action
-  fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/userMemberships.list`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(`UserMembershipsStore#fetchPage`, () => {
-        res.data.documents.forEach(this.rootStore.documents.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return res.data.memberships.map(this.add);
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  fetchPage = async (
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<UserMembership>> =>
+    this.fetchPaginated("/userMemberships.list", params, [
+      this.rootStore.documents,
+    ]);
 
   @action
   fetchDocumentMemberships = async (
     params: (PaginationParams & { id: string }) | undefined
-  ): Promise<UserMembership[]> => {
-    this.isFetching = true;
+  ): Promise<PaginatedResponse<UserMembership>> =>
+    this.fetchPaginated("/documents.memberships", params, [
+      this.rootStore.users,
+    ]);
 
-    try {
-      const res = await client.post(`/documents.memberships`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(`MembershipsStore#fetchDocmentMemberships`, () => {
-        res.data.users.forEach(this.rootStore.users.add);
-
-        const response = res.data.memberships.map(this.add);
-        this.isLoaded = true;
-
-        response[PAGINATION_SYMBOL] = res.pagination;
-        return response;
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
-
-  @action
+  @override
   async create({ documentId, userId, permission }: Partial<UserMembership>) {
     const res = await client.post("/documents.add_user", {
       id: documentId,
@@ -80,7 +56,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       permission,
     });
 
-    return runInAction(`UserMembershipsStore#create`, () => {
+    return runInAction(() => {
       invariant(res?.data, "Membership data should be available");
       res.data.users.forEach(this.rootStore.users.add);
 
@@ -89,26 +65,13 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     });
   }
 
-  @action
+  @override
   async delete({ documentId, userId }: UserMembership) {
     await client.post("/documents.remove_user", {
       id: documentId,
       userId,
     });
     this.removeAll({ userId, documentId });
-  }
-
-  @computed
-  get orderedData(): UserMembership[] {
-    const memberships = Array.from(this.data.values());
-
-    return memberships.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
-      }
-
-      return a.index < b.index ? -1 : 1;
-    });
   }
 
   /**

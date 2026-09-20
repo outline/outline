@@ -12,6 +12,11 @@ import NavigableModel from "./base/NavigableModel";
 class GroupMembership extends NavigableModel {
   static modelName = "GroupMembership";
 
+  constructor(fields: Record<string, unknown>, store: NavigableModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The group ID that this membership is granted to. */
   groupId: string;
 

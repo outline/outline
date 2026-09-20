@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import useQuery from "~/hooks/useQuery";
+import Desktop from "~/utils/Desktop";
 import { SigningIn } from "./Login/components/SigningIn";
 
 const DesktopRedirect = () => {
@@ -11,7 +12,7 @@ const DesktopRedirect = () => {
   useEffect(() => {
     if (token) {
       window.open(
-        `outline://${window.location.host}/auth/redirect?token=${token}`,
+        `${Desktop.protocol}://${window.location.host}/auth/redirect?token=${token}`,
         "_self"
       );
 

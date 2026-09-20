@@ -29,7 +29,7 @@ export type MenuItemButton = {
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
-  tooltip?: React.ReactChild;
+  tooltip?: React.ReactNode;
   shortcut?: string[];
 };
 
@@ -108,6 +108,10 @@ export type ActionContext = {
   isMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
+  /** True when the action runs as a WebMCP tool invoked by an agent. */
+  isMCP?: boolean;
+  /** Arguments supplied by an agent when the action runs as a WebMCP tool. */
+  mcpArgs?: Record<string, unknown>;
   sidebarContext?: SidebarContextType;
 
   // Legacy (backward compatibility) - returns primary active model's ID
@@ -154,14 +158,17 @@ type BaseAction = {
   selected?: ((context: ActionContext) => boolean) | boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;
   disabled?: ((context: ActionContext) => boolean) | boolean;
+  /** Configuration for exposing the action as a WebMCP tool. */
+  mcp?: {
+    /** JSON Schema describing the tool arguments, passed as `mcpArgs`. */
+    inputSchema?: Record<string, unknown>;
+  };
 };
 
 export type Action = BaseAction & {
   variant: "action";
   dangerous?: boolean;
-  tooltip?:
-    | ((context: ActionContext) => React.ReactChild | undefined)
-    | React.ReactChild;
+  tooltip?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   perform: (context: ActionContext) => unknown;
 };
 
@@ -331,9 +338,9 @@ export type Permission = {
 
 // TODO: Can we make this type driven by the @Field decorator
 export type Properties<C> = {
-  [Property in keyof C as C[Property] extends JSONValue
-    ? Property
-    : never]?: C[Property];
+  [
+    Property in keyof C as C[Property] extends JSONValue ? Property : never
+  ]?: C[Property];
 };
 
 export enum CommentSortType {

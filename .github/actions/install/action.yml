@@ -1,8 +1,15 @@
 name: Install
 description: Set up Node.js, Corepack, and install dependencies with yarn cache
+# The Blacksmith condition must match the runner selection in workflows/ci.yml.
 runs:
   using: composite
   steps:
+    - name: Mount Node.js toolcache
+      if: ${{ github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+      uses: useblacksmith/stickydisk@94697d49e77d0dd78b77deb85ad3de63a28b4b8a # v1.7.1
+      with:
+        key: ${{ github.repository }}-node-toolcache
+        path: /opt/hostedtoolcache/node
     - name: Enable Corepack
       shell: bash
       run: corepack enable
@@ -10,7 +17,20 @@ runs:
       uses: actions/setup-node@v5
       with:
         node-version: 26.x
-        cache: "yarn"
+        # Blacksmith jobs persist the yarn cache on a sticky disk instead.
+        package-manager-cache: ${{ !(github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) }}
+    - name: Mount yarn cache
+      if: ${{ github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+      uses: useblacksmith/stickydisk@94697d49e77d0dd78b77deb85ad3de63a28b4b8a # v1.7.1
+      with:
+        key: ${{ github.repository }}-yarn-cache
+        path: ~/.yarn/berry/cache
+    - name: Mount node_modules
+      if: ${{ github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+      uses: useblacksmith/stickydisk@94697d49e77d0dd78b77deb85ad3de63a28b4b8a # v1.7.1
+      with:
+        key: ${{ github.repository }}-node-modules
+        path: ./node_modules
     - name: Install dependencies
       shell: bash
       run: yarn install --immutable

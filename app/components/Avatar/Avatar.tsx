@@ -49,16 +49,16 @@ export type AvatarProps = {
   showTooltip?: boolean;
   /** Whether to show a profile card on hover for users, defaults to true */
   showHoverCard?: boolean;
+  /** Ref to the outer element */
+  ref?: React.Ref<HTMLDivElement>;
 } & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "onClick" | "className" | "style"
 >;
 
-const Avatar = React.forwardRef(function Avatar_(
-  props: AvatarProps,
-  ref: React.Ref<HTMLDivElement>
-) {
+function Avatar(props: AvatarProps) {
   const {
+    ref,
     model,
     style,
     variant = AvatarVariant.Round,
@@ -111,7 +111,7 @@ const Avatar = React.forwardRef(function Avatar_(
   ) : (
     content
   );
-});
+}
 
 const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   position: relative;

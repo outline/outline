@@ -16,6 +16,18 @@
         "no-restricted-imports": [
           "error",
           {
+            "paths": [
+              {
+                "name": "prosemirror-tables",
+                "importNames": [
+                  "addRowBefore",
+                  "addRowAfter",
+                  "addColumnBefore",
+                  "addColumnAfter"
+                ],
+                "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              }
+            ],
             "patterns": [
               {
                 "group": ["mime-types"],

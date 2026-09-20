@@ -74,6 +74,7 @@ router.post(
 
     const anchorDocument = await Document.findByPk(anchorId, {
       userId: user.id,
+      includeContent: false,
       rejectOnEmpty: true,
     });
     authorize(user, "read", anchorDocument);

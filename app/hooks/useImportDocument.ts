@@ -23,7 +23,7 @@ export default function useImportDocument(
   const { t } = useTranslation();
   const history = useHistory();
   const handleFiles = useCallback(
-    async (files = []) => {
+    async (files: File[] = []) => {
       if (importingLock) {
         return;
       }

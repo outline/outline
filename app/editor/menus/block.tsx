@@ -45,7 +45,7 @@ const Img = styled(Image)`
 
 export default function blockMenuItems(
   t: TFunction,
-  documentRef: React.RefObject<HTMLDivElement>
+  documentRef: React.RefObject<HTMLDivElement | null>
 ): MenuItem[] {
   const documentWidth = documentRef.current?.clientWidth ?? 0;
 

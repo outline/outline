@@ -45,13 +45,13 @@ type Props = {
 const VERTICAL_PADDING = 6;
 const HORIZONTAL_PADDING = 24;
 
-const innerElementType = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(function innerElementType(
-  { style, ...rest }: React.HTMLAttributes<HTMLDivElement>,
-  ref
-) {
+function innerElementType({
+  style,
+  ref,
+  ...rest
+}: React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.Ref<HTMLDivElement>;
+}) {
   return (
     <div
       ref={ref}
@@ -62,7 +62,7 @@ const innerElementType = React.forwardRef<
       {...rest}
     />
   );
-});
+}
 
 function DocumentExplorer({
   onSubmit,

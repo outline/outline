@@ -2,6 +2,7 @@ import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { HeadingPrefixStyle } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
@@ -179,6 +180,52 @@ describe("DocumentHelper", () => {
       });
       const result = await DocumentHelper.toHTML(document);
       expect(result).not.toContain("katex.min.css");
+    });
+
+    it("should number headings according to the document preference", async () => {
+      const document = await buildDocument({
+        text: "# One\n\n## Two\n\n# Three",
+        preferences: { headingPrefix: HeadingPrefixStyle.Numeric },
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain('data-heading-prefix="1"');
+      expect(result).toContain('data-heading-prefix="1.1"');
+      expect(result).toContain('data-heading-prefix="2"');
+    });
+
+    it("should not number headings without the document preference", async () => {
+      const document = await buildDocument({
+        text: "# One\n\n## Two",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).not.toContain("data-heading-prefix");
+    });
+
+    it("should number headings of a revision from its document", async () => {
+      const document = await buildDocument({
+        text: "# One\n\n## Two",
+        preferences: { headingPrefix: HeadingPrefixStyle.Numeric },
+      });
+      const revision = new Revision({
+        documentId: document.id,
+        title: document.title,
+        text: document.text,
+      });
+      const result = await DocumentHelper.toHTML(revision, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain('data-heading-prefix="1"');
+      expect(result).toContain('data-heading-prefix="1.1"');
     });
 
     it("should render diff classes when changes provided", async () => {

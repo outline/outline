@@ -2,7 +2,7 @@ import type {
   onStoreDocumentPayload,
   onLoadDocumentPayload,
   afterLoadDocumentPayload,
-  onChangePayload,
+  Connection,
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
@@ -10,6 +10,7 @@ import {
   MultiplayerEntityType,
   parseMultiplayerName,
 } from "@shared/collaboration/EntityName";
+import { Day } from "@shared/utils/time";
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -34,6 +35,9 @@ export default class PersistenceExtension implements Extension {
   /** The number of consecutive persistence failures, keyed by document name. */
   private persistFailureCounts = new Map<string, number>();
 
+  /** Attribution captured synchronously with each document update. */
+  private lastEditors = new WeakMap<Y.Doc, Promise<CollaborativeEdit>>();
+
   async onLoadDocument({
     documentName,
     ...data
@@ -54,6 +58,12 @@ export default class PersistenceExtension implements Extension {
     return this.loadDocument(id, fieldName);
   }
 
+  /**
+   * Track edits and their authenticated origin before asynchronous hooks run.
+   *
+   * @param data the loaded collaborative document.
+   * @returns a promise resolving when tracking is installed.
+   */
   async afterLoadDocument({
     documentName,
     document,
@@ -61,31 +71,45 @@ export default class PersistenceExtension implements Extension {
     // Track changes from the ydoc itself rather than the onChange hook, which
     // runs behind other extensions in an async chain and so may not have
     // recorded the change by the time the document is stored on disconnect.
-    document.on("update", () => {
+    const { id } = parseMultiplayerName(documentName);
+    document.on("update", (_update: Uint8Array, origin?: Connection) => {
       this.unsavedDocumentNames.add(documentName);
+      const context:
+        | withContext<afterLoadDocumentPayload>["context"]
+        | undefined = origin?.context;
+      const userId = context?.user?.id;
+      const key = RedisPrefixHelper.getCollaboratorsKey(id);
+      const editor = userId
+        ? Redis.defaultClient
+            .zaddWithSequence(key, userId, Day.seconds)
+            .then((sequence) => ({ userId, sequence }))
+        : Redis.defaultClient.zlatestWithSequence(key).then((latest) => ({
+            userId: latest?.member,
+            sequence: latest?.sequence,
+          }));
+
+      // Updates from Redis have no connection origin. Resolve their editor
+      // when received, rather than reading a potentially newer editor at save
+      // time or retaining the previous local editor.
+      this.lastEditors.set(
+        document,
+        editor.catch((err) => {
+          Logger.warn("Unable to track document editor", {
+            documentId: id,
+            message: toError(err).message,
+          });
+          return { userId };
+        })
+      );
     });
   }
 
-  async onChange({ context, documentName }: withContext<onChangePayload>) {
-    const { id } = parseMultiplayerName(documentName);
-
-    if (context.user) {
-      Logger.debug(
-        "multiplayer",
-        `${context.user.name} changed ${documentName}`
-      );
-
-      // Track collaborators as an ordered list so the most recent editor can be
-      // attributed reliably. Move the user to the tail to keep it deduped.
-      const key = RedisPrefixHelper.getCollaboratorsKey(id);
-      await Redis.defaultClient
-        .multi()
-        .lrem(key, 0, context.user.id)
-        .rpush(key, context.user.id)
-        .exec();
-    }
-  }
-
+  /**
+   * Persist the pending entity snapshot with its editing user.
+   *
+   * @param data the document and connection requesting persistence.
+   * @returns a promise resolving when the persistence attempt completes.
+   */
   async onStoreDocument({
     document,
     context,
@@ -104,13 +128,27 @@ export default class PersistenceExtension implements Extension {
       return;
     }
 
+    // Capture both the content and local author before yielding. New edits
+    // received during Redis or database I/O belong to a subsequent save.
+    const snapshot = new Y.Doc();
+    Y.applyUpdate(snapshot, Y.encodeStateAsUpdate(document));
+    const editor = this.lastEditors.get(document);
+    const key = RedisPrefixHelper.getCollaboratorsKey(id);
+    let edit: CollaborativeEdit | undefined;
+
     // Collaborators are used for attribution only, failure to load them must
     // not prevent the entity itself from being persisted.
-    const key = RedisPrefixHelper.getCollaboratorsKey(id);
     let sessionCollaboratorIds: string[] = [];
 
     try {
-      sessionCollaboratorIds = await Redis.defaultClient.lrange(key, 0, -1);
+      edit = await editor;
+      if (edit?.sequence !== undefined) {
+        sessionCollaboratorIds = await Redis.defaultClient.zrangebyscore(
+          key,
+          "-inf",
+          edit.sequence
+        );
+      }
     } catch (err) {
       Logger.warn("Unable to load collaborators", {
         documentId: id,
@@ -118,26 +156,39 @@ export default class PersistenceExtension implements Extension {
       });
     }
 
+    // Keep the captured editor last even if Redis failed, revision cleanup
+    // removed their entry, or a later edit moved it beyond this snapshot's sequence.
+    const editingUserId = edit?.userId;
+    if (editingUserId) {
+      sessionCollaboratorIds = [
+        ...sessionCollaboratorIds.filter((userId) => userId !== editingUserId),
+        editingUserId,
+      ];
+    }
+
     try {
       if (type === MultiplayerEntityType.Collection) {
         await collectionCollaborativeUpdater({
           collectionId: id,
-          ydoc: document,
+          ydoc: snapshot,
           sessionCollaboratorIds,
           isLastConnection: clientsCount === 0,
         });
 
-        // Collections have no revision pipeline to clear the collaborators list
-        // (documents are cleared by RevisionsProcessor), so clear it here once
-        // the last client disconnects to avoid stale IDs lingering in Redis.
+        // Collections have no revision pipeline to consume the collaborators
+        // (documents are consumed by RevisionsProcessor), so clear them here
+        // once the last client disconnects to avoid stale IDs in Redis.
         if (clientsCount === 0) {
           await Redis.defaultClient.del(key);
         }
       } else {
         await documentCollaborativeUpdater({
           documentId: id,
-          ydoc: document,
-          sessionCollaboratorIds,
+          ydoc: snapshot,
+          collaborators: {
+            ids: sessionCollaboratorIds,
+            sequence: edit?.sequence,
+          },
           isLastConnection: clientsCount === 0,
           clientVersion,
         });
@@ -164,6 +215,8 @@ export default class PersistenceExtension implements Extension {
         failures,
         giveUp,
       });
+    } finally {
+      snapshot.destroy();
     }
   }
 
@@ -321,4 +374,9 @@ export default class PersistenceExtension implements Extension {
       return ydoc;
     });
   }
+}
+
+interface CollaborativeEdit {
+  userId?: string;
+  sequence?: number;
 }

@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Helmet } from "react-helmet-async";
 import { Trans } from "react-i18next";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import Heading from "~/components/Heading";
@@ -18,18 +17,16 @@ function Zapier() {
   return (
     <IntegrationScene title="Zapier" icon={<ZapierIcon />}>
       <Heading>Zapier</Heading>
-      <Helmet>
-        <script
-          type="module"
-          src="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.esm.js"
-          key="zapier-js"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.css"
-          key="zapier-styles"
-        />
-      </Helmet>
+      <script
+        type="module"
+        async
+        src="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.esm.js"
+      />
+      <link
+        rel="stylesheet"
+        precedence="default"
+        href="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.css"
+      />
       <Text as="p" type="secondary">
         <Trans>
           Zapier is a platform that allows {{ appName }} to easily integrate

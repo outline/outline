@@ -39,6 +39,7 @@ import AuthenticationProvider from "./components/AuthenticationProvider";
 import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
+import { EmailInboxButtons } from "./components/EmailInboxButtons";
 import { Notices } from "./components/Notices";
 import { PasskeyAuthenticationProvider } from "./components/PasskeyAuthenticationProvider";
 import { SigningIn } from "./components/SigningIn";
@@ -95,15 +96,18 @@ function Login({ children, onBack }: Props) {
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
   }, []);
-  const handleEmailSuccess = React.useCallback((email) => {
+  const handleEmailSuccess = React.useCallback((email: string) => {
     setEmailLinkSentTo(email);
   }, []);
 
-  const handleGoSubdomain = React.useCallback(async (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.target));
-    await navigateToSubdomain(data.subdomain as string);
-  }, []);
+  const handleGoSubdomain = React.useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.currentTarget));
+      await navigateToSubdomain(data.subdomain as string);
+    },
+    []
+  );
 
   React.useEffect(() => {
     auth.fetchConfig().catch(setError);
@@ -310,6 +314,7 @@ function Login({ children, onBack }: Props) {
                 />
               </Note>
               <br />
+              <EmailInboxButtons email={emailLinkSentTo} />
             </>
           )}
           <ButtonLarge onClick={handleReset} fullwidth neutral>

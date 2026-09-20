@@ -13,37 +13,56 @@ import {
   Description,
 } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type">;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type"> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
 
-const HoverPreviewDocument = React.forwardRef(function HoverPreviewDocument_(
-  { url, id, title, summary, lastActivityByViewer }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function HoverPreviewDocument({
+  url,
+  id,
+  title,
+  summary,
+  lastActivityByViewer,
+  ref,
+}: Props) {
+  const parsedUrl = new URL(url, window.location.href);
+  const content = (
+    <Card ref={ref}>
+      <CardContent>
+        <ErrorBoundary showTitle={false} reloadOnChunkMissing={false}>
+          <Flex column gap={2}>
+            <Title>{title}</Title>
+            {lastActivityByViewer && <Info>{lastActivityByViewer}</Info>}
+            <Description as="div">
+              <React.Suspense fallback={<div />}>
+                <Editor
+                  key={id}
+                  extensions={richExtensions}
+                  defaultValue={summary}
+                  embedsDisabled
+                  readOnly
+                />
+              </React.Suspense>
+            </Description>
+          </Flex>
+        </ErrorBoundary>
+      </CardContent>
+    </Card>
+  );
+
+  if (parsedUrl.origin !== window.location.origin) {
+    return (
+      <Preview as="a" href={url}>
+        {content}
+      </Preview>
+    );
+  }
+
   return (
-    <Preview to={url}>
-      <Card ref={ref}>
-        <CardContent>
-          <ErrorBoundary showTitle={false} reloadOnChunkMissing={false}>
-            <Flex column gap={2}>
-              <Title>{title}</Title>
-              {lastActivityByViewer && <Info>{lastActivityByViewer}</Info>}
-              <Description as="div">
-                <React.Suspense fallback={<div />}>
-                  <Editor
-                    key={id}
-                    extensions={richExtensions}
-                    defaultValue={summary}
-                    embedsDisabled
-                    readOnly
-                  />
-                </React.Suspense>
-              </Description>
-            </Flex>
-          </ErrorBoundary>
-        </CardContent>
-      </Card>
+    <Preview to={`${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`}>
+      {content}
     </Preview>
   );
-});
+}
 
 export default HoverPreviewDocument;

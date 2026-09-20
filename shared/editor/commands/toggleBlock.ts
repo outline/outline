@@ -72,16 +72,16 @@ export const deleteSelectionPreservingBody: Command = (state, dispatch) => {
 export const joinForwardPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!isSelectionAtEndOfToggleBlockHead(state)) {
+  if (!$cursor || !isSelectionAtEndOfToggleBlockHead(state)) {
     return false;
   }
 
-  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  const toggleBlock = $cursor.node($cursor.depth - 1);
   if (!isToggleBlockFolded(state, toggleBlock)) {
     return false;
   }
 
-  const pos = $cursor!.before($cursor!.depth - 1);
+  const pos = $cursor.before($cursor.depth - 1);
 
   const { tr: tr1, body } = detachToggleBlockBody(pos, state.tr);
   let tr = liftChildrenOfNodeAt(pos, tr1);
@@ -152,16 +152,16 @@ export const joinBackwardWithToggleblock: Command = chainCommands(
 export const selectNodeForwardPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!isSelectionAtEndOfToggleBlockHead(state)) {
+  if (!$cursor || !isSelectionAtEndOfToggleBlockHead(state)) {
     return false;
   }
 
-  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  const toggleBlock = $cursor.node($cursor.depth - 1);
   if (!isToggleBlockFolded(state, toggleBlock)) {
     return false;
   }
 
-  const pos = $cursor!.before($cursor!.depth - 1);
+  const pos = $cursor.before($cursor.depth - 1);
   const { tr: tr1, body } = detachToggleBlockBody(pos, state.tr);
   let tr = selectNodeForwardTr(tr1);
   tr = attachToggleBlockBody(pos, body, tr);
@@ -243,7 +243,7 @@ export const indentBlock: Command = (state, dispatch) => {
 };
 
 export const toggleBlock: Command = (state, dispatch) => {
-  const { $cursor } = state.selection as TextSelection;
+  const { $from } = state.selection;
   if (!isSelectionInToggleBlock(state)) {
     return false;
   }
@@ -254,13 +254,13 @@ export const toggleBlock: Command = (state, dispatch) => {
   }
 
   const isToggle = isToggleBlock(state);
-  const toggle = nearest(ancestors($cursor!).filter(isToggle));
+  const toggle = nearest(ancestors($from).filter(isToggle));
   if (!toggle) {
     return false;
   }
 
-  const d = getToggleBlockDepth($cursor!, toggle);
-  const pos = $cursor!.before(d);
+  const d = getToggleBlockDepth($from, toggle);
+  const pos = $from.before(d);
   const isFolded = isToggleBlockFolded(state, toggle);
 
   dispatch?.(
@@ -464,28 +464,28 @@ export const exitToggleBlockOnEmptyParagraph: Command = (state, dispatch) => {
 export const splitBlockPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!isSelectionInMiddleOfToggleBlockHead(state)) {
+  if (!$cursor || !isSelectionInMiddleOfToggleBlockHead(state)) {
     return false;
   }
 
-  const toggle = $cursor!.node($cursor!.depth - 1);
+  const toggle = $cursor.node($cursor.depth - 1);
   if (!isToggleBlockFolded(state, toggle)) {
     return false;
   }
 
   let tr = state.tr;
   tr = tr.insert(
-    $cursor!.after(-1),
+    $cursor.after(-1),
     toggle.firstChild!.type.create(
       undefined,
-      tr.doc.slice($cursor!.pos, $cursor!.end()).content
+      tr.doc.slice($cursor.pos, $cursor.end()).content
     )
   );
-  tr = wrapNodeAt($cursor!.after(-1), toggle.type, { id: v4() }, tr);
+  tr = wrapNodeAt($cursor.after(-1), toggle.type, { id: v4() }, tr);
   tr = tr.setSelection(
-    TextSelection.near(tr.doc.resolve($cursor!.after(-1)), 1)
+    TextSelection.near(tr.doc.resolve($cursor.after(-1)), 1)
   );
-  tr = tr.delete($cursor!.pos, $cursor!.end());
+  tr = tr.delete($cursor.pos, $cursor.end());
   dispatch?.(tr);
   return true;
 };

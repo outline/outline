@@ -620,7 +620,14 @@ router.post(
       sharing,
       commenting,
       templateManagement,
+      deprecatedReason,
     } = ctx.input.body;
+
+    const updatingDeprecatedReason =
+      deprecatedReason !== undefined &&
+      Object.keys(ctx.input.body).every(
+        (key) => key === "id" || key === "deprecatedReason"
+      );
 
     const { user } = ctx.state.auth;
     const collection = await Collection.findByPk(id, {
@@ -628,9 +635,24 @@ router.post(
       // required so that edits to the description are synced to any active
       // collaborative editing session.
       includeState: description !== undefined || data !== undefined,
+      includeArchivedBy: updatingDeprecatedReason,
       transaction,
     });
-    authorize(user, "update", collection);
+    authorize(
+      user,
+      updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
+      collection
+    );
+
+    if (deprecatedReason !== undefined) {
+      authorize(user, "updateDeprecatedReason", collection);
+      await collection.updateDeprecatedReason(ctx, deprecatedReason);
+      ctx.body = {
+        data: await presentCollection(ctx, collection),
+        policies: presentPolicies(user, [collection]),
+      };
+      return;
+    }
 
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.
@@ -856,7 +878,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsDeleteReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {
@@ -865,6 +887,10 @@ router.post(
     });
 
     authorize(user, "delete", collection);
+
+    if (reason !== undefined) {
+      collection.deprecatedReason = reason || null;
+    }
 
     await collection.destroyWithCtx(ctx);
 
@@ -881,7 +907,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsArchiveReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {
@@ -891,6 +917,10 @@ router.post(
     });
 
     authorize(user, "archive", collection);
+
+    if (reason !== undefined) {
+      collection.deprecatedReason = reason || null;
+    }
 
     await collection.archiveWithCtx(ctx);
 
@@ -924,6 +954,7 @@ router.post(
       {
         lastModifiedById: user.id,
         archivedAt: null,
+        deprecatedReason: null,
       },
       {
         where: {
@@ -937,6 +968,8 @@ router.post(
 
     collection.archivedAt = null;
     collection.archivedById = null;
+    collection.deprecatedReason = null;
+    collection.changed("deprecatedReason", true);
     collection = await collection.saveWithCtx(ctx, undefined, {
       name: "restore",
     });

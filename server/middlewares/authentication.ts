@@ -17,14 +17,28 @@ import {
   UserSuspendedError,
 } from "../errors";
 
-type AuthenticationOptions = {
+type BaseAuthenticationOptions = {
   /** Role required to access the route. */
   role?: UserRole;
   /** Type of authentication required to access the route. */
   type?: AuthenticationType | AuthenticationType[];
-  /** Authentication is parsed, but optional. */
-  optional?: boolean;
 };
+
+type AuthenticationOptions =
+  | (BaseAuthenticationOptions & {
+      /** Authentication is required. */
+      optional?: false;
+      skip?: never;
+    })
+  | (BaseAuthenticationOptions & {
+      /** Authentication is parsed, but optional. */
+      optional: true;
+      /**
+       * Returns true when the request is authorized by other means, in which
+       * case any credentials on the request are ignored rather than parsed.
+       */
+      skip?: (ctx: AppContext) => boolean;
+    });
 
 type AuthTransport = "cookie" | "header" | "body" | "query";
 
@@ -37,6 +51,11 @@ type AuthInput = {
 
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
+    if (options.skip?.(ctx)) {
+      ctx.state.auth = {};
+      return next();
+    }
+
     try {
       const { type, token, user, service, scope } =
         await validateAuthentication(ctx, options);

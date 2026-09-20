@@ -192,10 +192,11 @@ export interface Props extends Omit<
 }
 
 function Input(
-  props: Props,
-  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+  props: Props & { ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement> }
 ) {
-  const internalRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>();
+  const internalRef = React.useRef<
+    HTMLInputElement | HTMLTextAreaElement | undefined
+  >(undefined);
   const [focused, setFocused] = React.useState(false);
   const [charCount, setCharCount] = React.useState(() => {
     if (typeof props.value === "string") {
@@ -282,6 +283,7 @@ function Input(
     onChange,
     onRequestSubmit,
     children,
+    ref,
     ...rest
   } = props;
 
@@ -322,7 +324,7 @@ function Input(
             <NativeTextarea
               ref={mergeRefs([
                 internalRef,
-                ref as React.RefObject<HTMLTextAreaElement>,
+                ref as React.Ref<HTMLTextAreaElement>,
               ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
@@ -340,10 +342,7 @@ function Input(
             />
           ) : (
             <NativeInput
-              ref={mergeRefs([
-                internalRef,
-                ref as React.RefObject<HTMLInputElement>,
-              ])}
+              ref={mergeRefs([internalRef, ref as React.Ref<HTMLInputElement>])}
               onBlur={handleBlur}
               onFocus={handleFocus}
               hasIcon={!!icon}
@@ -384,4 +383,4 @@ export const TextWrapper = styled.span`
   margin-top: -16px;
 `;
 
-export default React.forwardRef(Input);
+export default Input;

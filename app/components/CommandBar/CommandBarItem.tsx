@@ -14,6 +14,7 @@ type Props = {
   action: CommandBarActionImpl;
   active: boolean;
   currentRootActionId: string | null | undefined;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -24,10 +25,7 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
-function CommandBarItem(
-  { action, active, currentRootActionId }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function CommandBarItem({ action, active, currentRootActionId, ref }: Props) {
   const theme = useTheme();
   const ancestors = React.useMemo(() => {
     if (!currentRootActionId || !action.ancestors) {
@@ -168,4 +166,4 @@ const ForwardIcon = styled(BackIcon)`
   flex-shrink: 0;
 `;
 
-export default React.forwardRef<HTMLDivElement, Props>(CommandBarItem);
+export default CommandBarItem;

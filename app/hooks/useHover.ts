@@ -3,7 +3,7 @@ import useUnmount from "./useUnmount";
 
 type Props = {
   /** Ref to the element that needs to be observed. */
-  ref: React.RefObject<HTMLElement>;
+  ref: React.RefObject<HTMLElement | null>;
   /** Duration to wait until it's considered as a hover event. */
   duration: number;
 };
@@ -15,7 +15,7 @@ type Props = {
  */
 const useHover = ({ ref, duration }: Props): boolean => {
   const [hovered, setHovered] = React.useState(false);
-  const timer = React.useRef<number>();
+  const timer = React.useRef<number | undefined>(undefined);
 
   const onMouseEnter = React.useCallback(() => {
     if (timer.current) {
@@ -38,10 +38,18 @@ const useHover = ({ ref, duration }: Props): boolean => {
   });
 
   React.useEffect(() => {
-    if (ref.current) {
-      ref.current.onmouseenter = onMouseEnter;
-      ref.current.onmouseleave = onMouseLeave;
+    const element = ref.current;
+    if (!element) {
+      return;
     }
+
+    element.addEventListener("mouseenter", onMouseEnter);
+    element.addEventListener("mouseleave", onMouseLeave);
+
+    return () => {
+      element.removeEventListener("mouseenter", onMouseEnter);
+      element.removeEventListener("mouseleave", onMouseLeave);
+    };
   }, [ref, onMouseEnter, onMouseLeave]);
 
   return hovered;

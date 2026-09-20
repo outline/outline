@@ -17,6 +17,8 @@ type Props = {
   items: MenuItem[];
   /** Whether the text direction is right-to-left. */
   rtl: boolean;
+  /** Ref to the track element. */
+  ref?: React.RefObject<HTMLDivElement | null>;
 };
 
 type TrackRect = {
@@ -81,10 +83,7 @@ function sameRect(a: TrackRect | null, b: TrackRect | null) {
  * @param rtl - whether the document is right-to-left.
  * @returns the sticky block toolbar.
  */
-const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
-  { items, rtl }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function StickyBlockToolbar({ items, rtl, ref }: Props) {
   const { view } = useEditor();
   const trackRef = ref || React.createRef<HTMLDivElement>();
   const [rect, setRect] = React.useState<TrackRect | null>(null);
@@ -161,7 +160,7 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
       </Track>
     </Portal>
   );
-});
+}
 
 const Track = styled.div<{ $rtl: boolean }>`
   position: absolute;

@@ -11,8 +11,7 @@ export default abstract class NavigableModel extends Model {
   documentId?: string;
 
   @observable
-  node?: NavigationNode;
-
+  node?: NavigationNode = undefined;
   /**
    * Fetches the child documents structure from the server.
    */
@@ -33,7 +32,7 @@ export default abstract class NavigableModel extends Model {
       this.isFetching = true;
       const res = await client.post(options.path, options.params);
 
-      runInAction(`${NavigableModel.modelName}#fetchDocuments`, () => {
+      runInAction(() => {
         this.node = res.data;
       });
     } finally {

@@ -8,6 +8,11 @@ import type AuthenticationProvidersStore from "~/stores/AuthenticationProvidersS
 class AuthenticationProvider extends Model {
   static modelName = "AuthenticationProvider";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   displayName: string;
 
   name: string;
@@ -27,7 +32,7 @@ class AuthenticationProvider extends Model {
 
   @Field
   @observable
-  settings: AuthenticationProviderSettings | undefined;
+  settings: AuthenticationProviderSettings | undefined = undefined;
 
   @computed
   get isActive() {

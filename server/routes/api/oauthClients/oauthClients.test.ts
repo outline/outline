@@ -285,6 +285,25 @@ describe("oauthClients.create", () => {
     expect(body.data.name).toEqual("Test Client");
     expect(body.data.redirectUris).toEqual(["https://example.com/callback"]);
   });
+
+  it("should reject duplicate redirect uris", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/oauthClients.create", admin, {
+      body: {
+        name: "Test Client",
+        redirectUris: [
+          "https://example.com/callback",
+          "https://example.com/callback",
+        ],
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toContain("Must not contain duplicate urls");
+  });
 });
 
 describe("oauthclients.update", () => {

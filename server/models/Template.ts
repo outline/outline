@@ -1,4 +1,4 @@
-import { isUUID } from "class-validator";
+import isUUID from "validator/lib/isUUID";
 import type {
   Identifier,
   InferAttributes,
