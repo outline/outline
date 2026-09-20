@@ -1,6 +1,4 @@
 import type { InferCreationAttributes } from "sequelize";
-import slugify from "slugify";
-import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { traceFunction } from "@server/logging/tracing";
 import { Team } from "@server/models";
 import type { APIContext } from "@server/types";
@@ -31,7 +29,9 @@ async function teamCreator(
     avatarUrl = null;
   }
 
-  const availableSubdomain = await findAvailableSubdomain(ctx, subdomain);
+  const availableSubdomain = await Team.findAvailableSubdomain(subdomain, {
+    transaction: ctx.state.transaction,
+  });
   return await Team.createWithCtx(
     ctx,
     {
@@ -45,43 +45,6 @@ async function teamCreator(
       include: ["authenticationProviders"],
     }
   );
-}
-
-async function findAvailableSubdomain(
-  ctx: APIContext,
-  requestedSubdomain: string
-) {
-  // filter subdomain to only valid characters
-  // if there are less than the minimum length, use a default subdomain
-  const normalizedSubdomain = slugify(requestedSubdomain, {
-    lower: true,
-    strict: true,
-  });
-  const baseSubdomain =
-    normalizedSubdomain.length < 3 ||
-    RESERVED_SUBDOMAINS.includes(normalizedSubdomain)
-      ? "team"
-      : normalizedSubdomain;
-
-  let subdomain = baseSubdomain;
-  let append = 0;
-
-  for (;;) {
-    const existing = await Team.findOne({
-      where: { subdomain },
-      paranoid: false,
-      transaction: ctx.state.transaction,
-    });
-
-    if (existing) {
-      // subdomain was invalid or already used, try another
-      subdomain = `${baseSubdomain}${++append}`;
-    } else {
-      break;
-    }
-  }
-
-  return subdomain;
 }
 
 export default traceFunction({
