@@ -51,9 +51,12 @@ async function findAvailableSubdomain(
   ctx: APIContext,
   requestedSubdomain: string
 ) {
+  // strip a trailing top-level domain so "acme.com" becomes "acme"
+  const withoutTld = requestedSubdomain.replace(/\s*\.[a-z]{2,}\s*$/i, "");
+
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
-  const normalizedSubdomain = slugify(requestedSubdomain, {
+  const normalizedSubdomain = slugify(withoutTld, {
     lower: true,
     strict: true,
   });
