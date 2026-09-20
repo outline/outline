@@ -4,7 +4,7 @@
   "plugins": ["oxc", "eslint", "typescript", "react"],
   "overrides": [
     {
-      "files": ["**/*.{jsx,tsx}"],
+      "files": ["**/*.{js,jsx,ts,tsx}"],
       "rules": {
         "no-restricted-globals": [
           "error",
@@ -17,6 +17,11 @@
           "error",
           {
             "paths": [
+              {
+                "name": "~/editor",
+                "allowTypeImports": true,
+                "message": "Import AsyncEditor from ~/components/AsyncEditor instead. A direct import pulls the editor into the importing chunk and bypasses the shared preload."
+              },
               {
                 "name": "prosemirror-tables",
                 "importNames": [

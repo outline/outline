@@ -438,7 +438,7 @@ function StarredLink({ star }: Props) {
 
   const handlePrefetch = React.useCallback(() => {
     if (documentId) {
-      void Scenes.Document.preload();
+      Scenes.preloadEditor();
       void documents.prefetchDocument(documentId);
       const document = documents.get(documentId);
       const documentCollection = document?.collectionId
