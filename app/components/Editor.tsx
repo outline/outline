@@ -8,6 +8,7 @@ import type { Optional } from "utility-types";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import AsyncEditor from "~/components/AsyncEditor";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
@@ -17,10 +18,7 @@ import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import { uploadFile, uploadFileFromUrl } from "~/utils/files";
-import lazyWithRetry from "~/utils/lazyWithRetry";
 import useShare from "@shared/hooks/useShare";
-
-const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,
@@ -235,7 +233,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
           // React 18 would hide mounted ancestors and destroy their effects,
           // re-running provider setup and ref callbacks in a loop.
           <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
-            <LazyLoadedEditor
+            <AsyncEditor
               key={props.extensions?.length || 0}
               ref={mergeRefs([ref, localRef, handleRefChanged])}
               uploadFile={handleUploadFile}

@@ -1,4 +1,6 @@
+import AsyncEditor from "~/components/AsyncEditor";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
+import AsyncMultiplayerEditor from "~/scenes/Document/components/AsyncMultiplayerEditor";
 
 /**
  * Lazy-loaded scenes for the authenticated routes. Defined separately from the
@@ -21,6 +23,6 @@ export const Trash = lazy(() => import("~/scenes/Trash"));
  */
 export function preloadEditor() {
   void Document.preload();
-  void import("~/scenes/Document/components/MultiplayerEditor");
-  void import("~/editor");
+  void AsyncMultiplayerEditor.preload();
+  void AsyncEditor.preload();
 }
