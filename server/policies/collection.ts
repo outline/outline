@@ -237,6 +237,16 @@ allow(User, "restore", Collection, (user, collection) =>
   )
 );
 
+allow(User, "updateDeprecatedReason", Collection, (actor, collection) =>
+  and(
+    !!collection?.archivedAt,
+    !collection?.deletedAt,
+    isTeamModel(actor, collection),
+    isTeamMutable(actor),
+    can(actor, "restore", collection)
+  )
+);
+
 function includesMembership(
   collection: Collection | null,
   permissions: CollectionPermission[]

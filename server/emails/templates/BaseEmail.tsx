@@ -281,7 +281,7 @@ export default abstract class BaseEmail<
    * @param props Props in email constructor
    * @returns A JSX element
    */
-  protected abstract render(props: S & T): JSX.Element;
+  protected abstract render(props: S & T): React.JSX.Element;
 
   /**
    * Optionally returns a replyTo email to override the default.

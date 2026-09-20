@@ -29,7 +29,7 @@ export type MenuItemButton = {
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
-  tooltip?: React.ReactChild;
+  tooltip?: React.ReactNode;
   shortcut?: string[];
 };
 
@@ -168,9 +168,7 @@ type BaseAction = {
 export type Action = BaseAction & {
   variant: "action";
   dangerous?: boolean;
-  tooltip?:
-    | ((context: ActionContext) => React.ReactChild | undefined)
-    | React.ReactChild;
+  tooltip?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   perform: (context: ActionContext) => unknown;
 };
 
@@ -340,9 +338,9 @@ export type Permission = {
 
 // TODO: Can we make this type driven by the @Field decorator
 export type Properties<C> = {
-  [Property in keyof C as C[Property] extends JSONValue
-    ? Property
-    : never]?: C[Property];
+  [
+    Property in keyof C as C[Property] extends JSONValue ? Property : never
+  ]?: C[Property];
 };
 
 export enum CommentSortType {

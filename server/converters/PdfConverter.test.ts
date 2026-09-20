@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { PdfConverter } from "./PdfConverter";
 
 const processPdf = vi.hoisted(() => vi.fn());

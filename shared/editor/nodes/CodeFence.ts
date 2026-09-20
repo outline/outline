@@ -64,6 +64,12 @@ const COLLAPSE_HEIGHT_RATIO = 0.5;
 /** Approximate rendered line height of a code block, in pixels. */
 const CODE_LINE_HEIGHT = 20;
 
+/**
+ * Fraction of the document text above which a code block is not
+ * auto-collapsed, as collapsing it would hide most of the document.
+ */
+const AUTO_COLLAPSE_MAX_DOC_RATIO = 0.5;
+
 const collapseKey = new PluginKey<CollapseState>("collapse-code-block");
 
 /**
@@ -140,6 +146,32 @@ function findTallBlocks(doc: ProsemirrorNode): Set<number> {
     }
   }
   return tall;
+}
+
+/**
+ * Find the tall code blocks that should start collapsed. A block that makes
+ * up the majority of the document text is left expanded.
+ *
+ * @param doc - the document to scan.
+ * @param tallBlocks - positions of tall code blocks in the document.
+ * @returns set of positions of code blocks to auto-collapse.
+ */
+function findAutoCollapsedBlocks(
+  doc: ProsemirrorNode,
+  tallBlocks: Set<number>
+): Set<number> {
+  const docLength = doc.textContent.length;
+  const collapsed = new Set<number>();
+  for (const pos of tallBlocks) {
+    const node = doc.nodeAt(pos);
+    if (!node || !isCode(node)) {
+      continue;
+    }
+    if (node.textContent.length <= docLength * AUTO_COLLAPSE_MAX_DOC_RATIO) {
+      collapsed.add(pos);
+    }
+  }
+  return collapsed;
 }
 
 /**
@@ -445,7 +477,11 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         state: {
           init: (_config, state) => {
             const tallBlocks = findTallBlocks(state.doc);
-            return build(state.doc, tallBlocks, new Set(tallBlocks));
+            return build(
+              state.doc,
+              tallBlocks,
+              findAutoCollapsedBlocks(state.doc, tallBlocks)
+            );
           },
           apply: (tr, prev, oldState, newState) => {
             const meta = tr.getMeta(collapseKey);
@@ -479,6 +515,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
               const isRemote = isRemoteTransaction(tr, newState);
+              const autoCollapsedBlocks = isRemote
+                ? findAutoCollapsedBlocks(newState.doc, tallBlocks)
+                : new Set<number>();
               const previousBlockDecorations: Decoration[] = [];
               for (const pos of prev.tallBlocks) {
                 const node = oldState.doc.nodeAt(pos);
@@ -521,9 +560,11 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               }
 
               for (const pos of tallBlocks) {
-                if (isRemote && !mappedTallBlocks.has(pos)) {
-                  // Newly tall blocks start collapsed on load
-                  collapsedBlocks.add(pos);
+                if (!mappedTallBlocks.has(pos)) {
+                  // Newly tall blocks start collapsed only on load/remote sync
+                  if (autoCollapsedBlocks.has(pos)) {
+                    collapsedBlocks.add(pos);
+                  }
                 } else if (mappedCollapsedBlocks.has(pos)) {
                   // Preserve previous collapsed state
                   collapsedBlocks.add(pos);

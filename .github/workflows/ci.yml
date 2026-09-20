@@ -18,8 +18,12 @@ env:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    # Blacksmith runners are only available to the outline organization, and are
+    # not used for pull requests from forks so that fork-controlled code cannot
+    # write to the shared sticky disks. Keep in sync with actions/install.
+    runs-on: ${{ (github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
     outputs:
+      runner: ${{ (github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
       code: ${{ steps.filter.outputs.code }}
       config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
@@ -60,7 +64,7 @@ jobs:
   lint:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -79,7 +83,7 @@ jobs:
   types:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -88,7 +92,7 @@ jobs:
   audit:
     needs: changes
     if: ${{ needs.changes.outputs.deps == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
@@ -97,7 +101,7 @@ jobs:
   test:
     needs: changes
     if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     strategy:
       matrix:
         test-group: [app, shared]
@@ -109,37 +113,30 @@ jobs:
   test-server:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:14.2
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: outline_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    runs-on: ${{ needs.changes.outputs.runner }}
     strategy:
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
 
     steps:
       - uses: actions/checkout@v5
+      # The runner image ships with PostgreSQL preinstalled, starting it is much
+      # faster than pulling and initializing a service container.
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          until pg_isready -h localhost; do sleep 1; done
+          sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'password';"
+          sudo -u postgres createdb outline_test
       - uses: ./.github/actions/install
       - run: yarn sequelize db:migrate
       - name: Run server tests
-        run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4
+        run: yarn test:server --maxWorkers=4 --shard=${{ matrix.shard }}/6
 
   bundle-size:
     needs: changes
     if: ${{ (needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true') && github.repository == 'outline/outline' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.changes.outputs.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install

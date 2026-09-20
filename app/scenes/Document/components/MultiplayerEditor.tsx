@@ -6,9 +6,8 @@ import {
   useLayoutEffect,
   useMemo,
   useEffect,
-  forwardRef,
   useRef,
-  type ForwardedRef,
+  type Ref,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -44,12 +43,10 @@ import { sleep } from "@shared/utils/timers";
 type Props = EditorProps & {
   id: string;
   onSynced?: () => Promise<void>;
+  ref?: Ref<SharedEditor>;
 };
 
-function MultiplayerEditor(
-  { onSynced, ...props }: Props,
-  ref: ForwardedRef<SharedEditor>
-) {
+function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -417,4 +414,4 @@ function hasContent(value: Props["defaultValue"]): boolean {
   return !ProsemirrorDataHelper.isEmpty(value);
 }
 
-export default forwardRef<SharedEditor, Props>(MultiplayerEditor);
+export default MultiplayerEditor;

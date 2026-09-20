@@ -30,12 +30,21 @@ type Props = Pick<
   | "state"
   | "targetDate"
   | "description"
->;
+> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
 
-const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
-  { url, name, color, lead, labels, state, description, targetDate }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function HoverPreviewProject({
+  url,
+  name,
+  color,
+  lead,
+  labels,
+  state,
+  description,
+  targetDate,
+  ref,
+}: Props) {
   const { t } = useTranslation();
 
   return (
@@ -116,7 +125,7 @@ const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
       </Flex>
     </Preview>
   );
-});
+}
 
 const StyledSquircle = styled(Squircle)`
   flex-shrink: 0;

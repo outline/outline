@@ -6,6 +6,7 @@ import {
   CollectionStatusFilter,
   FileOperationFormat,
 } from "@shared/types";
+import { DeprecationValidation } from "@shared/validations";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
@@ -191,6 +192,12 @@ export type CollectionsExportAllReq = z.infer<
 
 export const CollectionsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** The reason the collection is archived. */
+    deprecatedReason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
     name: z.string().optional(),
     description: z.string().nullish(),
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
@@ -261,13 +268,27 @@ export const CollectionsListSchema = BaseSchema.extend({
 export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
 
 export const CollectionsDeleteSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for deleting the collection. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type CollectionsDeleteReq = z.infer<typeof CollectionsDeleteSchema>;
 
 export const CollectionsArchiveSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for archiving the collection. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type CollectionsArchiveReq = z.infer<typeof CollectionsArchiveSchema>;

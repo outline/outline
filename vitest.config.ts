@@ -1,6 +1,8 @@
+import fs from "node:fs";
 import path from "node:path";
+import { globSync } from "glob";
 import swc from "unplugin-swc";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // SSL_CERT_FILE is OpenSSL's CA bundle variable and may be present in the
 // host environment running the tests; clear it so it is not resolved into
@@ -54,6 +56,38 @@ const aliasesAsArray = Object.entries(aliases).map(([find, replacement]) => ({
 
 const fileMockAlias = { find: /\.(gif|ttf|eot|svg)$/, replacement: fileMock };
 
+const serverTestFiles = [
+  "server/**/*.test.{ts,tsx}",
+  "plugins/**/*.test.{ts,tsx}",
+];
+
+// Server tests share a module registry between files in a worker. A file that
+// mocks or resets modules must opt out with this marker in its header so it
+// runs isolated.
+const ISOLATED_MARKER = "@vitest-isolate true";
+
+const isolatedServerTestFiles = globSync(serverTestFiles, {
+  cwd: __dirname,
+  posix: true,
+}).filter((file) => {
+  const header = fs
+    .readFileSync(path.join(__dirname, file), "utf8")
+    .slice(0, 512);
+  return header.includes(ISOLATED_MARKER);
+});
+
+const serverTestConfig = {
+  globals: true,
+  environment: "node" as const,
+  setupFiles: [
+    "./__mocks__/console.js",
+    "./server/test/setupMocks.ts",
+    "./server/test/setup.ts",
+  ],
+  globalSetup: ["./server/test/globalTeardown.ts"],
+  fileParallelism: true,
+};
+
 export default defineConfig({
   ...sharedConfig,
   test: {
@@ -65,17 +99,19 @@ export default defineConfig({
       {
         ...sharedConfig,
         test: {
+          ...serverTestConfig,
           name: "server",
-          globals: true,
-          environment: "node",
-          include: ["server/**/*.test.{ts,tsx}", "plugins/**/*.test.{ts,tsx}"],
-          setupFiles: [
-            "./__mocks__/console.js",
-            "./server/test/setupMocks.ts",
-            "./server/test/setup.ts",
-          ],
-          globalSetup: ["./server/test/globalTeardown.ts"],
-          fileParallelism: true,
+          include: isolatedServerTestFiles,
+        },
+      },
+      {
+        ...sharedConfig,
+        test: {
+          ...serverTestConfig,
+          name: "server-shared",
+          include: serverTestFiles,
+          exclude: [...configDefaults.exclude, ...isolatedServerTestFiles],
+          isolate: false,
         },
       },
       {

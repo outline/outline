@@ -285,7 +285,7 @@ const codeBlockStyle = (props: Props) => css`
 
 const diffStyle = (props: Props) => css`
   .${EditorStyleHelper.diffNodeInsertion},
-    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
   .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -311,19 +311,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeInsertion}.math-node,
-    ul.${EditorStyleHelper.diffNodeInsertion},
-    li.${EditorStyleHelper.diffNodeInsertion} {
+  .${EditorStyleHelper.diffNodeInsertion}.math-node,
+  ul.${EditorStyleHelper.diffNodeInsertion},
+  li.${EditorStyleHelper.diffNodeInsertion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeInsertion},
-    th.${EditorStyleHelper.diffNodeInsertion} {
+  th.${EditorStyleHelper.diffNodeInsertion} {
     border-color: ${props.theme.textDiffInsertedBackground};
   }
 
   .${EditorStyleHelper.diffNodeDeletion},
-    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
   .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
@@ -353,19 +353,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeDeletion}.math-node,
-    ul.${EditorStyleHelper.diffNodeDeletion},
-    li.${EditorStyleHelper.diffNodeDeletion} {
+  .${EditorStyleHelper.diffNodeDeletion}.math-node,
+  ul.${EditorStyleHelper.diffNodeDeletion},
+  li.${EditorStyleHelper.diffNodeDeletion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeDeletion},
-    th.${EditorStyleHelper.diffNodeDeletion} {
+  th.${EditorStyleHelper.diffNodeDeletion} {
     border-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .${EditorStyleHelper.diffNodeModification},
-    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification}:not([class^="component-"]),
   .${EditorStyleHelper.diffModification} > * {
     color: ${props.theme.text};
     background-color: ${transparentize(0.7, "#FFA500")};
@@ -392,14 +392,14 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeModification}[class*="component-"],
-    .${EditorStyleHelper.diffNodeModification}.math-node,
-    ul.${EditorStyleHelper.diffNodeModification},
-    li.${EditorStyleHelper.diffNodeModification} {
+  .${EditorStyleHelper.diffNodeModification}.math-node,
+  ul.${EditorStyleHelper.diffNodeModification},
+  li.${EditorStyleHelper.diffNodeModification} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeModification},
-    th.${EditorStyleHelper.diffNodeModification} {
+  th.${EditorStyleHelper.diffNodeModification} {
     border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;

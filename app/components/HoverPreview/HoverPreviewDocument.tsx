@@ -13,12 +13,18 @@ import {
   Description,
 } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type">;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type"> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
 
-const HoverPreviewDocument = React.forwardRef(function HoverPreviewDocument_(
-  { url, id, title, summary, lastActivityByViewer }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function HoverPreviewDocument({
+  url,
+  id,
+  title,
+  summary,
+  lastActivityByViewer,
+  ref,
+}: Props) {
   const parsedUrl = new URL(url, window.location.href);
   const content = (
     <Card ref={ref}>
@@ -57,6 +63,6 @@ const HoverPreviewDocument = React.forwardRef(function HoverPreviewDocument_(
       {content}
     </Preview>
   );
-});
+}
 
 export default HoverPreviewDocument;

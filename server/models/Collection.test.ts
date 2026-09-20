@@ -17,6 +17,29 @@ beforeEach(() => {
   vi.resetAllMocks();
 });
 
+describe("#updateDeprecatedReason", () => {
+  it("should reject a reason when a stale collection has already been restored", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+      archivedAt: new Date(),
+    });
+    await Collection.update(
+      { archivedAt: null },
+      { where: { id: collection.id } }
+    );
+
+    await expect(
+      withAPIContext(user, (ctx) =>
+        collection.updateDeprecatedReason(ctx, "Outdated")
+      )
+    ).rejects.toThrow("The collection must be archived");
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+  });
+});
+
 describe("#url", () => {
   it("should return correct url for the collection", () => {
     const collection = new Collection({

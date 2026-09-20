@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import type { Mock } from "vitest";
 import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";

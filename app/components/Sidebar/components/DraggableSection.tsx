@@ -1,10 +1,21 @@
 import { observer } from "mobx-react";
-import { createContext, useEffect, useState, type ReactNode } from "react";
-import type { ConnectDragSource } from "react-dnd";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+  type RefCallback,
+} from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { SidebarSection, UserPreference } from "@shared/types";
+import { createAction } from "~/actions";
+import { NavigationSection } from "~/actions/sections";
+import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import type { Action } from "~/types";
 import {
   useDragSidebarSection,
   useDropToReorderSidebarSection,
@@ -12,11 +23,19 @@ import {
 import DropCursor from "./DropCursor";
 import Section from "./Section";
 
+type SidebarSectionContextValue = {
+  /** Drag connector so the section header can register as the drag handle. */
+  dragRef: RefCallback<HTMLElement>;
+  /** Actions offered in the section header's context menu. */
+  menuActions: Action[];
+};
+
 /**
- * Carries the drag connector for a sidebar section so the section header can
- * register itself as the drag handle.
+ * Carries the drag connector and the context menu actions for a sidebar
+ * section to its header.
  */
-export const SectionDragContext = createContext<ConnectDragSource | null>(null);
+export const SidebarSectionContext =
+  createContext<SidebarSectionContextValue | null>(null);
 
 /**
  * Normalizes a persisted sidebar section order — unknown values and
@@ -64,6 +83,16 @@ export function moveSidebarSection(
   return result.every((s, i) => s === order[i]) ? undefined : result;
 }
 
+/**
+ * Type guard for sidebar section identifiers.
+ *
+ * @param value The value to check.
+ * @returns true if the value names a sidebar section.
+ */
+function isSidebarSection(value: string): value is SidebarSection {
+  return Object.values<string>(SidebarSection).includes(value);
+}
+
 type Props = {
   /** The section being rendered. */
   section: SidebarSection;
@@ -89,6 +118,82 @@ function DraggableSection({ section, children }: Props) {
     user.getPreference(UserPreference.SidebarSectionOrder, [])
   );
 
+  const [wrapper, setWrapper] = useState<HTMLDivElement | null>(null);
+
+  // Hidden sections are collapsed with CSS, so the nearest visible neighbour
+  // is read from the DOM rather than from the persisted order.
+  const findVisibleSibling = useCallback(
+    (direction: "previous" | "next"): SidebarSection | undefined => {
+      let element =
+        direction === "previous"
+          ? wrapper?.previousElementSibling
+          : wrapper?.nextElementSibling;
+
+      while (element instanceof HTMLElement) {
+        const sibling = element.dataset.section;
+        if (
+          sibling &&
+          isSidebarSection(sibling) &&
+          getComputedStyle(element).display !== "none"
+        ) {
+          return sibling;
+        }
+        element =
+          direction === "previous"
+            ? element.previousElementSibling
+            : element.nextElementSibling;
+      }
+
+      return undefined;
+    },
+    [wrapper]
+  );
+
+  const handleMove = useCallback(
+    (direction: "previous" | "next") => {
+      const target = findVisibleSibling(direction);
+      if (!target) {
+        return;
+      }
+
+      const newOrder = moveSidebarSection(
+        normalizeSidebarSectionOrder(
+          user.getPreference(UserPreference.SidebarSectionOrder, [])
+        ),
+        section,
+        direction === "previous" ? "before" : "after",
+        target
+      );
+      if (newOrder) {
+        user.setPreference(UserPreference.SidebarSectionOrder, newOrder);
+        void user.save();
+      }
+    },
+    [findVisibleSibling, section, user]
+  );
+
+  const menuActions = useMemo(
+    () => [
+      createAction({
+        name: ({ t }) => t("Move up"),
+        analyticsName: "Move sidebar section up",
+        section: NavigationSection,
+        icon: <ArrowUpIcon />,
+        visible: () => !!findVisibleSibling("previous"),
+        perform: () => handleMove("previous"),
+      }),
+      createAction({
+        name: ({ t }) => t("Move down"),
+        analyticsName: "Move sidebar section down",
+        section: NavigationSection,
+        icon: <ArrowDownIcon />,
+        visible: () => !!findVisibleSibling("next"),
+        perform: () => handleMove("next"),
+      }),
+    ],
+    [findVisibleSibling, handleMove]
+  );
+
   const [{ isDragging }, dragRef] = useDragSidebarSection(
     section,
     titles[section]
@@ -106,8 +211,13 @@ function DraggableSection({ section, children }: Props) {
   const showCursors = useDeferredFlag(bottomProps.isDragging);
   const isDraggingDeferred = useDeferredFlag(isDragging);
 
+  const contextValue = useMemo(
+    () => ({ dragRef, menuActions }),
+    [dragRef, menuActions]
+  );
+
   return (
-    <SectionWrapper>
+    <SectionWrapper ref={setWrapper} data-section={section}>
       {showCursors && (
         <TopDropCursor
           isActiveDrop={topProps.isOverCursor}
@@ -116,9 +226,9 @@ function DraggableSection({ section, children }: Props) {
         />
       )}
       <Draggable $isDragging={isDraggingDeferred}>
-        <SectionDragContext.Provider value={dragRef}>
+        <SidebarSectionContext.Provider value={contextValue}>
           {children}
-        </SectionDragContext.Provider>
+        </SidebarSectionContext.Provider>
       </Draggable>
       {showCursors && (
         <SectionDropCursor

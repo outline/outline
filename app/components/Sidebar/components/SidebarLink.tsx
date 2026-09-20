@@ -2,16 +2,19 @@ import type { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import EventBoundary from "@shared/components/EventBoundary";
 import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
-import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import type { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
+import {
+  SidebarActions,
+  hoveredOrMenuOpen,
+  revealActionsOnHover,
+} from "./SidebarActions";
 import type { ActionFactory, ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
@@ -36,6 +39,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   /** Ref callback to access the underlying HTML element */
   innerRef?: (ref: HTMLElement | null | undefined) => void;
+  /** Ref to the rendered link element */
+  ref?: React.Ref<HTMLAnchorElement>;
   /** Callback fired when the link is clicked */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
@@ -83,32 +88,30 @@ const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
 };
 
-function SidebarLink(
-  {
-    icon,
-    onClick,
-    onClickIntent,
-    to,
-    label,
-    active,
-    isActiveDrop,
-    isDraft,
-    menu,
-    $showActions,
-    exact,
-    href,
-    depth,
-    className,
-    expanded,
-    onDisclosureClick,
-    disabled,
-    unreadBadge,
-    contextAction,
-    ellipsis = true,
-    ...rest
-  }: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function SidebarLink({
+  icon,
+  onClick,
+  onClickIntent,
+  to,
+  label,
+  active,
+  isActiveDrop,
+  isDraft,
+  menu,
+  $showActions,
+  exact,
+  href,
+  depth,
+  className,
+  expanded,
+  onDisclosureClick,
+  disabled,
+  unreadBadge,
+  contextAction,
+  ellipsis = true,
+  ref,
+  ...rest
+}: Props) {
   const hasDisclosure = expanded !== undefined;
   const { t } = useTranslation();
   const theme = useTheme();
@@ -177,7 +180,9 @@ function SidebarLink(
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
-      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
+      {menu && (
+        <SidebarActions $showActions={$showActions}>{menu}</SidebarActions>
+      )}
     </>
   );
 
@@ -245,38 +250,6 @@ const Content = styled.span`
   min-width: 0;
 `;
 
-const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
-  display: inline-flex;
-  visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
-
-  [data-drag-active] & {
-    display: none;
-  }
-
-  position: absolute;
-  top: 3px;
-  inset-inline-end: 4px;
-  gap: 4px;
-  color: ${s("textTertiary")};
-  transition: opacity 50ms;
-  height: 24px;
-  background: var(--background);
-
-  svg {
-    color: ${s("textSecondary")};
-    fill: currentColor;
-    opacity: 0.5;
-  }
-
-  &:hover {
-    visibility: visible;
-
-    svg {
-      opacity: 0.75;
-    }
-  }
-`;
-
 const HiddenDisclosure = styled(Disclosure)`
   position: inherit;
   inset-inline-start: initial;
@@ -290,13 +263,11 @@ const Link = styled(NavLink)<{
   $isDraft?: boolean;
   $disabled?: boolean;
 }>`
-  &:hover,
-  &:active,
-  &:has([data-state="open"]) {
+  ${hoveredOrMenuOpen} {
     --background: ${s("sidebarHoverBackground")};
   }
 
-  &[aria-current="page"] ${Actions} {
+  &[aria-current="page"] ${SidebarActions} {
     --background: ${s("sidebarActiveBackground")};
   }
 
@@ -364,32 +335,12 @@ const Link = styled(NavLink)<{
     font-size: 14px;
   `}
 
+  ${revealActionsOnHover}
+
   @media (hover: hover) {
-    &:hover ${Actions},
-    &:active ${Actions},
-    &:has([data-state="open"]) ${Actions} {
-      visibility: visible;
-
-      svg {
-        opacity: 0.75;
-      }
-    }
-
-    &:hover,
-    &:has([data-state="open"]) {
+    ${hoveredOrMenuOpen} {
       color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
-    }
-  }
-
-  & ${Actions} {
-    ${NudeButton} {
-      background: transparent;
-
-      &:hover,
-      &[aria-expanded="true"] {
-        background: ${s("sidebarControlHoverBackground")};
-      }
     }
   }
 `;
@@ -409,4 +360,4 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   }
 `;
 
-export default React.forwardRef<HTMLAnchorElement, Props>(SidebarLink);
+export default SidebarLink;

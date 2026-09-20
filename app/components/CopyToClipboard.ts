@@ -3,15 +3,21 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import env from "~/env";
 
-type Props = {
-  text: string;
-  children?: React.ReactElement;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  onCopy?: () => void;
+type ChildProps = {
+  onClick?: React.MouseEventHandler<HTMLElement>;
+  ref?: React.Ref<HTMLElement>;
 };
 
-function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
-  const { text, onCopy, children, ...rest } = props;
+type Props = {
+  text: string;
+  children?: React.ReactElement<ChildProps>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onCopy?: () => void;
+  ref?: React.Ref<HTMLElement>;
+};
+
+function CopyToClipboard(props: Props) {
+  const { text, onCopy, children, ref, ...rest } = props;
 
   const onClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
@@ -45,12 +51,9 @@ function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
 
   return React.cloneElement(elem, {
     ...rest,
-    ref:
-      "ref" in elem
-        ? mergeRefs([elem.ref as React.MutableRefObject<HTMLElement>, ref])
-        : ref,
+    ref: elem.props.ref ? mergeRefs([elem.props.ref, ref]) : ref,
     onClick,
   });
 }
 
-export default React.forwardRef(CopyToClipboard);
+export default CopyToClipboard;

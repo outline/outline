@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +31,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 type Props = {
   document: Document;
@@ -44,6 +41,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -53,10 +51,7 @@ function replaceResultMarks(tag: string) {
   return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
-function DocumentListItem(
-  props: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
@@ -66,14 +61,13 @@ function DocumentListItem(
   const selection = useModelSelection();
   const iconRef = React.useRef<HTMLDivElement>(null);
 
-  let itemRef: React.Ref<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
-  if (ref) {
-    itemRef = ref;
+  if (props.ref) {
+    itemRef = props.ref;
   }
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
-  useFocusEffect(focused, itemRef);
 
   const {
     document,
@@ -83,6 +77,7 @@ function DocumentListItem(
     showDraft = true,
     highlight,
     context,
+    ref: _ref,
     ...rest
   } = props;
   const queryIsInTitle =
@@ -445,4 +440,4 @@ const ResultContext = styled(Highlight)`
   overflow: hidden;
 `;
 
-export default observer(React.forwardRef(DocumentListItem));
+export default observer(DocumentListItem);

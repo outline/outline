@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { UserHoverCard } from "~/components/UserHoverCard";
 import User from "~/models/User";
 import type { AvatarProps } from "./Avatar";
@@ -9,10 +8,12 @@ import Avatar from "./Avatar";
  * An avatar that additionally displays a profile card on hover when the model
  * it represents is a user.
  */
-const AvatarWithHoverCard = React.forwardRef(function AvatarWithHoverCard_(
-  { showTooltip, showHoverCard = true, ...props }: AvatarProps,
-  ref: React.Ref<HTMLDivElement>
-) {
+function AvatarWithHoverCard({
+  showTooltip,
+  showHoverCard = true,
+  ref,
+  ...props
+}: AvatarProps) {
   const { model } = props;
 
   if (!showHoverCard || !(model instanceof User)) {
@@ -24,6 +25,6 @@ const AvatarWithHoverCard = React.forwardRef(function AvatarWithHoverCard_(
       <Avatar ref={ref} {...props} />
     </UserHoverCard>
   );
-});
+}
 
 export default observer(AvatarWithHoverCard);

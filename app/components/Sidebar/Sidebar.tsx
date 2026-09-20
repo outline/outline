@@ -39,18 +39,18 @@ type Props = {
   className?: string;
   /** Content to render inside the sidebar. */
   children: React.ReactNode;
+  /** Ref to the sidebar container. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
-  {
-    children,
-    hidden = false,
-    canCollapse = true,
-    showAccountMenu = true,
-    className,
-  }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function Sidebar({
+  children,
+  hidden = false,
+  canCollapse = true,
+  showAccountMenu = true,
+  className,
+  ref,
+}: Props) {
   const [isCollapsing, setCollapsing] = React.useState(false);
   const { t } = useTranslation();
   const theme = useTheme();
@@ -322,7 +322,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
       {ui.mobileSidebarVisible && <Backdrop onClick={handleCloseSidebar} />}
     </TooltipProvider>
   );
-});
+}
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
