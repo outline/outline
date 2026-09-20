@@ -70,7 +70,7 @@ const CODE_LINE_HEIGHT = 20;
  */
 const AUTO_COLLAPSE_MAX_DOC_RATIO = 0.5;
 
-export const collapseKey = new PluginKey<CollapseState>("collapse-code-block");
+const collapseKey = new PluginKey<CollapseState>("collapse-code-block");
 
 /**
  * Reduce a language attribute or fence info string to a single safe token, so
@@ -561,7 +561,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
               for (const pos of tallBlocks) {
                 if (!mappedTallBlocks.has(pos)) {
-                  // Newly tall blocks start collapsed on load
+                  // Newly tall blocks start collapsed only on load/remote sync
                   if (autoCollapsedBlocks.has(pos)) {
                     collapsedBlocks.add(pos);
                   }
