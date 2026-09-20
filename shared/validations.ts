@@ -65,7 +65,7 @@ export const CollectionValidation = {
 
 export const CommentValidation = {
   /** The maximum length of a comment */
-  maxLength: 1000,
+  maxLength: 10_000,
 };
 
 export const DeprecationValidation = {
