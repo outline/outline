@@ -1,10 +1,14 @@
 import { Node } from "prosemirror-model";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import { schema } from "@server/editor";
+import { createContext } from "@server/context";
+import { Document, Event, Revision } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import documentCollaborativeUpdater from "./documentCollaborativeUpdater";
 
 describe("documentCollaborativeUpdater", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   const buildYDoc = (content: object[]) => {
     const doc = Node.fromJSON(schema, { type: "doc", content });
     return prosemirrorToYDoc(doc, "default");
@@ -33,7 +37,7 @@ describe("documentCollaborativeUpdater", () => {
     await documentCollaborativeUpdater({
       documentId: document.id,
       ydoc,
-      sessionCollaboratorIds: [user.id],
+      collaborators: { ids: [user.id] },
       isLastConnection: true,
       clientVersion: null,
     });
@@ -69,7 +73,7 @@ describe("documentCollaborativeUpdater", () => {
     await documentCollaborativeUpdater({
       documentId: document.id,
       ydoc,
-      sessionCollaboratorIds: [collaborator.id],
+      collaborators: { ids: [collaborator.id] },
       isLastConnection: true,
       clientVersion: "2.0.0",
     });
@@ -110,12 +114,121 @@ describe("documentCollaborativeUpdater", () => {
     await documentCollaborativeUpdater({
       documentId: document.id,
       ydoc,
-      sessionCollaboratorIds: [user.id],
+      collaborators: { ids: [user.id] },
       isLastConnection: true,
       clientVersion: null,
     });
 
     await document.reload();
     expect(document.updatedAt).toEqual(updatedAt);
+  });
+
+  it.each(["single", "multiple"])(
+    "uses the last collaborator for attribution with %s collaborators",
+    async (scenario) => {
+      const userA = await buildUser();
+      const userB = await buildUser({ teamId: userA.teamId });
+      const document = await buildDocument({
+        teamId: userA.teamId,
+        userId: userA.id,
+      });
+      await Revision.createFromDocument(
+        createContext({ user: userA }),
+        document
+      );
+      const ydoc = buildYDoc([
+        { type: "paragraph", content: [{ type: "text", text: "B's edit" }] },
+      ]);
+
+      await documentCollaborativeUpdater({
+        documentId: document.id,
+        ydoc,
+        collaborators: {
+          ids: scenario === "single" ? [userB.id] : [userA.id, userB.id],
+        },
+        isLastConnection: true,
+        clientVersion: null,
+      });
+      await document.reload();
+      const revision = await Revision.createFromDocument(
+        createContext({ user: userA }),
+        document
+      );
+
+      expect(document.lastModifiedById).toBe(userB.id);
+      expect(document.collaboratorIds).toContain(userB.id);
+      expect(revision.userId).toBe(userB.id);
+      expect(revision.content?.content?.[0]?.content?.[0]?.text).toBe(
+        "B's edit"
+      );
+      ydoc.destroy();
+    }
+  );
+
+  it("schedules revision processing after the snapshot has committed", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const ydoc = buildYDoc([
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Committed edit" }],
+      },
+    ]);
+    const schedule = Event.schedule.bind(Event);
+    const scheduled = vi
+      .spyOn(Event, "schedule")
+      .mockImplementationOnce(async (event) => {
+        const saved = await Document.findByPk(document.id, {
+          rejectOnEmpty: true,
+        });
+        expect(saved.content?.content?.[0]?.content?.[0]?.text).toBe(
+          "Committed edit"
+        );
+        expect(event.data?.collaborators).toBe(42);
+        return schedule(event);
+      });
+
+    await documentCollaborativeUpdater({
+      documentId: document.id,
+      ydoc,
+      collaborators: { ids: [user.id], sequence: 42 },
+      isLastConnection: true,
+      clientVersion: null,
+    });
+    expect(scheduled).toHaveBeenCalledOnce();
+    ydoc.destroy();
+  });
+
+  it("keeps the committed snapshot when scheduling the event fails", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const ydoc = buildYDoc([
+      { type: "paragraph", content: [{ type: "text", text: "Kept edit" }] },
+    ]);
+    vi.spyOn(Event, "schedule").mockRejectedValueOnce(
+      new Error("Queue unavailable")
+    );
+
+    await expect(
+      documentCollaborativeUpdater({
+        documentId: document.id,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      })
+    ).resolves.toBeUndefined();
+
+    await document.reload();
+    expect(document.content?.content?.[0]?.content?.[0]?.text).toBe(
+      "Kept edit"
+    );
+    ydoc.destroy();
   });
 });
