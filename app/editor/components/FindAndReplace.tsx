@@ -445,13 +445,17 @@ export default function FindAndReplace({
       </PopoverTrigger>
       <PopoverContent
         aria-label={t("Find and replace")}
-        width={isMobile ? window.innerWidth - 32 : 0}
+        width={0}
         minWidth={isMobile ? undefined : 420}
         scrollable={false}
         onEscapeKeyDown={handleEscape}
         onPointerDownOutside={(ev) => ev.preventDefault()}
         onFocusOutside={(ev) => ev.preventDefault()}
-        style={{ marginRight: 16, marginTop: 60 }}
+        style={{
+          marginRight: 16,
+          marginTop: 60,
+          width: isMobile ? "calc(100vw - 32px)" : undefined,
+        }}
       >
         <Content column>
           <Flex gap={4}>
