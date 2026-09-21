@@ -168,11 +168,12 @@ describe("#save", () => {
   });
 
   it("should index text whose search vector exceeds the tsvector limit", async () => {
-    const document = await buildDocument({ title: "Unique tokens" });
+    const document = await buildDocument({ title: "Original" });
     const tokens: string[] = [];
     for (let i = 0; i < 40_000; i++) {
       tokens.push(createHash("md5").update(String(i)).digest("hex"));
     }
+    document.title = "Unique tokens";
     document.text = tokens.join(" ");
     await document.save();
 
@@ -181,6 +182,7 @@ describe("#save", () => {
       { replacements: { id: document.id }, type: QueryTypes.SELECT }
     );
     expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
     expect(rows.searchVector).toContain(tokens[0]);
   });
 });
