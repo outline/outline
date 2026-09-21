@@ -15,13 +15,11 @@ import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
+import { getAttachmentPreview } from "../lib/attachmentPreview";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { resolvePDFDimensions } from "../lib/pdf";
-import { isPDFAttachment } from "../queries/isPDFAttachment";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
-import PdfViewer from "../components/PDF";
 
 export default class Attachment extends Node {
   get name() {
@@ -101,7 +99,8 @@ export default class Attachment extends Node {
   handleChangeSize =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     ({ width }: { width: number; height?: number }) => {
-      if (!node.attrs.preview) {
+      const preview = getAttachmentPreview(node);
+      if (!node.attrs.preview || !preview) {
         return;
       }
 
@@ -110,7 +109,7 @@ export default class Attachment extends Node {
 
       const pos = getPos();
       const $pos = doc.resolve(pos);
-      const dimensions = resolvePDFDimensions(width);
+      const dimensions = preview.resolveDimensions(width);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeAttachment"](dimensions);
@@ -119,6 +118,7 @@ export default class Attachment extends Node {
   component = (props: ComponentProps) => {
     const { embedsDisabled } = this.editor.props;
     const { isSelected, isEditable, node } = props;
+    const preview = getAttachmentPreview(node);
     const context = node.attrs.href ? (
       bytesToHumanReadable(node.attrs.size || "0")
     ) : (
@@ -127,15 +127,21 @@ export default class Attachment extends Node {
       </>
     );
 
-    return node.attrs.preview && !embedsDisabled && isPDFAttachment(node) ? (
-      <PdfViewer
-        icon={<FileExtension title={node.attrs.title} />}
-        title={node.attrs.title}
-        context={context}
-        onChangeSize={this.handleChangeSize(props)}
-        {...props}
-      />
-    ) : (
+    if (node.attrs.preview && !embedsDisabled && preview) {
+      const PreviewComponent = preview.component;
+
+      return (
+        <PreviewComponent
+          icon={<FileExtension title={node.attrs.title} />}
+          title={node.attrs.title}
+          context={context}
+          onChangeSize={this.handleChangeSize(props)}
+          {...props}
+        />
+      );
+    }
+
+    return (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
@@ -184,8 +190,9 @@ export default class Attachment extends Node {
           throw new Error("uploadFile prop is required to replace attachments");
         }
 
-        const accept = isPDFAttachment(node)
-          ? ".pdf"
+        const preview = getAttachmentPreview(node);
+        const accept = preview
+          ? preview.accept
           : node.type.name === "attachment"
             ? "*"
             : null;
@@ -243,7 +250,7 @@ export default class Attachment extends Node {
         }
         const { node } = state.selection;
 
-        if (!isPDFAttachment(node)) {
+        if (!getAttachmentPreview(node)) {
           return false;
         }
 
