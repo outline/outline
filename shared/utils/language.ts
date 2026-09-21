@@ -90,4 +90,7 @@ const scriptsWithLang = new Set([
   "he", // Hebrew
   "am", // Amharic
   "mn", // Mongolian
+  "zh", // Chinese
+  "ja", // Japanese
+  "ko", // Korean
 ]);
