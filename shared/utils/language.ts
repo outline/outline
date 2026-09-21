@@ -91,3 +91,53 @@ const scriptsWithLang = new Set([
   "am", // Amharic
   "mn", // Mongolian
 ]);
+
+/**
+ * Returns the ISO 639-3 macrolanguage for an individual language that has no
+ * ISO 639-1 code of its own, so that it can be mapped to the macrolanguage's
+ * ISO 639-1 code instead. For example franc detects Chinese as `cmn` (Mandarin),
+ * which has no two-letter code, while its macrolanguage `zho` maps to `zh`.
+ *
+ * @param language the language code in ISO 639-3 format.
+ * @return the macrolanguage code in ISO 639-3 format, or undefined.
+ */
+export function getMacrolanguage(language: string): string | undefined {
+  return macrolanguages[language];
+}
+
+/**
+ * Individual languages that language detection can return which have no
+ * ISO 639-1 code, mapped to their ISO 639-3 macrolanguage. Source: the ISO 639-3
+ * macrolanguage mappings published by SIL International.
+ */
+const macrolanguages: Record<string, string> = {
+  als: "sqi", // Tosk Albanian → Albanian
+  arb: "ara", // Standard Arabic → Arabic
+  ayr: "aym", // Central Aymara → Aymara
+  azj: "aze", // North Azerbaijani → Azerbaijani
+  ckb: "kur", // Central Kurdish → Kurdish
+  cmn: "zho", // Mandarin Chinese → Chinese
+  ekk: "est", // Standard Estonian → Estonian
+  fuf: "ful", // Pular → Fulah
+  fuv: "ful", // Nigerian Fulfulde → Fulah
+  khk: "mon", // Halh Mongolian → Mongolian
+  knc: "kau", // Central Kanuri → Kanuri
+  kng: "kon", // Koongo → Kongo
+  koi: "kom", // Komi-Permyak → Komi
+  lvs: "lav", // Standard Latvian → Latvian
+  min: "msa", // Minangkabau → Malay (macrolanguage)
+  npi: "nep", // Nepali (individual language) → Nepali (macrolanguage)
+  pbu: "pus", // Northern Pashto → Pushto
+  pes: "fas", // Iranian Persian → Persian
+  plt: "mlg", // Plateau Malagasy → Malagasy
+  prs: "fas", // Dari → Persian
+  qug: "que", // Chimborazo Highland Quichua → Quechua
+  quy: "que", // Ayacucho Quechua → Quechua
+  quz: "que", // Cusco Quechua → Quechua
+  src: "srd", // Logudorese Sardinian → Sardinian
+  swh: "swa", // Swahili (individual language) → Swahili (macrolanguage)
+  uzn: "uzb", // Northern Uzbek → Uzbek
+  ydd: "yid", // Eastern Yiddish → Yiddish
+  zlm: "msa", // Malay (individual language) → Malay (macrolanguage)
+  zyb: "zha", // Yongbei Zhuang → Zhuang
+};

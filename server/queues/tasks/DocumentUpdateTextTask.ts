@@ -3,6 +3,7 @@ import { schema, serializer } from "@server/editor";
 import { Document } from "@server/models";
 import type { DocumentEvent } from "@server/types";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { getMacrolanguage } from "@shared/utils/language";
 import { BaseTask } from "./base/BaseTask";
 
 export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
@@ -25,7 +26,13 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
     const language = franc(DocumentHelper.toPlainText(document), {
       minLength: 50,
     });
-    document.language = iso6393To1[language];
+
+    // franc returns individual languages such as `cmn` (Mandarin) that have no
+    // ISO 639-1 code of their own, so fall back to the macrolanguage (`zho`).
+    const macrolanguage = getMacrolanguage(language);
+    document.language =
+      iso6393To1[language] ??
+      (macrolanguage ? iso6393To1[macrolanguage] : undefined);
 
     await document.save({ silent: true });
   }

@@ -1,4 +1,9 @@
-import { formatNumber, getLangFor, getSupportedLanguage } from "./language";
+import {
+  formatNumber,
+  getLangFor,
+  getMacrolanguage,
+  getSupportedLanguage,
+} from "./language";
 
 describe("formatNumber", () => {
   it("formats a number with the specified locale", () => {
@@ -37,5 +42,17 @@ describe("getLangFor", () => {
   it("ignores other or empty languages", () => {
     expect(getLangFor("en")).toBeUndefined();
     expect(getLangFor(null)).toBeUndefined();
+  });
+});
+
+describe("getMacrolanguage", () => {
+  it("returns the macrolanguage of an individual language", () => {
+    expect(getMacrolanguage("cmn")).toEqual("zho");
+    expect(getMacrolanguage("arb")).toEqual("ara");
+  });
+
+  it("ignores languages that are not part of a macrolanguage", () => {
+    expect(getMacrolanguage("eng")).toBeUndefined();
+    expect(getMacrolanguage("und")).toBeUndefined();
   });
 });
