@@ -43,6 +43,14 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const isMobile = useMobile();
   const panel = ui.getRightSidebar(pane);
 
+  // The store clears the panel before the sidebar has animated closed, so the
+  // last panel stays visible until the content unmounts.
+  const [lastPanel, setLastPanel] = React.useState(panel);
+  if (panel && panel !== lastPanel) {
+    setLastPanel(panel);
+  }
+  const visiblePanel = panel ?? lastPanel;
+
   const fallback = (
     <SidebarLayout title={<PlaceholderText width={100} />}>
       {null}
@@ -54,12 +62,12 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   // reactions of observer components, are disposed while a panel is hidden.
   const inner = (
     <Route path={`/doc/${matchDocumentSlug}`}>
-      <React.Activity mode={panel === "comments" ? "visible" : "hidden"}>
+      <React.Activity mode={visiblePanel === "comments" ? "visible" : "hidden"}>
         <React.Suspense fallback={fallback}>
           <DocumentComments />
         </React.Suspense>
       </React.Activity>
-      <React.Activity mode={panel === "history" ? "visible" : "hidden"}>
+      <React.Activity mode={visiblePanel === "history" ? "visible" : "hidden"}>
         <React.Suspense fallback={fallback}>
           <DocumentHistory />
         </React.Suspense>
