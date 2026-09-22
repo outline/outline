@@ -1,4 +1,4 @@
-import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
@@ -60,16 +60,20 @@ export default function usePersistedState<T extends Primitive | object>(
   defaultValue: T,
   options?: Options
 ): [T, Dispatch<SetStateAction<T>>] {
-  // Capture the default once so inline defaults don't destabilise snapshots.
-  const defaultValueRef = useRef(defaultValue);
+  // Keep the default stable across rerenders of the same key so inline
+  // defaults don't destabilise snapshots, but refresh it when the key changes
+  // in case a new default is derived for the new key.
+  const [keyForDefault, setKeyForDefault] = useState(key);
+  const [keyDefault, setKeyDefault] = useState(defaultValue);
+  if (keyForDefault !== key) {
+    setKeyForDefault(key);
+    setKeyDefault(defaultValue);
+  }
   const listen = options?.listen;
 
   const read = useCallback(
-    () =>
-      isBrowser
-        ? ((Storage.get(key) ?? defaultValueRef.current) as T)
-        : defaultValueRef.current,
-    [key]
+    () => (isBrowser ? ((Storage.get(key) ?? keyDefault) as T) : keyDefault),
+    [key, keyDefault]
   );
 
   // Cache the last value so getSnapshot returns a stable reference while the
@@ -91,7 +95,7 @@ export default function usePersistedState<T extends Primitive | object>(
     return cache.current.value;
   }, [key, read]);
 
-  const getServerSnapshot = useCallback(() => defaultValueRef.current, []);
+  const getServerSnapshot = useCallback(() => keyDefault, [keyDefault]);
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
