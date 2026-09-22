@@ -532,6 +532,11 @@ const textStyle = () => css`
     p {
       line-height: 1.8;
     }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
   }
 `;
 
