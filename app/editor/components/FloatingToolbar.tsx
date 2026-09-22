@@ -2,7 +2,6 @@ import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
-import { createPortal } from "react-dom";
 import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -314,16 +313,17 @@ function FloatingToolbar({ ref, ...props }: Props) {
     if (isMobileToolbarVisible) {
       // Vertical position (above the keyboard) is owned entirely by
       // useKeyboardStickyOffset, which writes the transform directly.
-      return createPortal(
-        <MobileWrapper
-          ref={menuRef}
-          onMouseDown={handleMouseDown}
-          onPointerUp={handlePointerUp}
-          onClickCapture={handleClickCapture}
-        >
-          <MobileBackground>{props.children}</MobileBackground>
-        </MobileWrapper>,
-        document.body
+      return (
+        <Portal toBody>
+          <MobileWrapper
+            ref={menuRef}
+            onMouseDown={handleMouseDown}
+            onPointerUp={handlePointerUp}
+            onClickCapture={handleClickCapture}
+          >
+            <MobileBackground>{props.children}</MobileBackground>
+          </MobileWrapper>
+        </Portal>
       );
     }
 

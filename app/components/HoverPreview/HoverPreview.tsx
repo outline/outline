@@ -116,7 +116,7 @@ const HoverPreviewDesktop = observer(
     }
 
     return (
-      <Portal>
+      <Portal toBody>
         <Position top={cardTop} left={cardLeft} aria-hidden>
           {isVisible ? (
             <Animate
