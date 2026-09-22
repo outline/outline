@@ -14438,23 +14438,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it@npm:^14.0.0":
-  version: 14.3.1
-  resolution: "markdown-it@npm:14.3.1"
-  dependencies:
-    argparse: "npm:^2.0.1"
-    entities: "npm:^4.5.0"
-    linkify-it: "npm:^5.0.2"
-    mdurl: "npm:^2.0.0"
-    punycode.js: "npm:^2.3.1"
-    uc.micro: "npm:^2.1.0"
-  bin:
-    markdown-it: bin/markdown-it.mjs
-  checksum: 10c0/806f0f5f29f1ddd9fd465f905c1f2c54d64af9023095792dd5364e5807f77454f427ee75d66083b432d0900e21836f0fff940f94f5fc93c41b2f78970469874e
-  languageName: node
-  linkType: hard
-
-"markdown-it@npm:^14.3.2":
+"markdown-it@npm:^14.0.0, markdown-it@npm:^14.3.2":
   version: 14.3.2
   resolution: "markdown-it@npm:14.3.2"
   dependencies:
@@ -15752,7 +15736,7 @@ __metadata:
     react-hook-form: "npm:^7.85.0"
     react-i18next: "npm:^12.3.1"
     react-is: "npm:^19.2.8"
-    react-merge-refs: "npm:^2.1.1"
+    react-merge-refs: "npm:^3.0.2"
     react-portal: "npm:^4.3.0"
     react-refresh: "npm:^0.18.0"
     react-remove-scroll: "npm:^2.7.2"
@@ -17362,10 +17346,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-merge-refs@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "react-merge-refs@npm:2.1.1"
-  checksum: 10c0/b68cbc4ea51fd96f77247733388738630769d928f32958e63262ce43dff10c6b20f18a0483c6a640a1ffba48f32be26059d4ee9711881cacc63297b01311c8f6
+"react-merge-refs@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "react-merge-refs@npm:3.0.2"
+  peerDependencies:
+    react: ">=16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  peerDependenciesMeta:
+    react:
+      optional: true
+  checksum: 10c0/520911aa7269cd2feab7dde8189d0b6a640765c1ee279b1712891ad871c2e90284578e23cdef32ba07f6e44df206ba12e998fd1634dc37358d1563d49f50eb93
   languageName: node
   linkType: hard
 

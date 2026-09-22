@@ -43,7 +43,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   const { shareId } = useShare();
   const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
-  const localRef = React.useRef<SharedEditor | undefined>(undefined);
+  const localRef = React.useRef<SharedEditor | null>(null);
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousCommentIds = React.useRef<string[] | undefined>(undefined);
 
