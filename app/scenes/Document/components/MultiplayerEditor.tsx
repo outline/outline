@@ -26,7 +26,6 @@ import MultiplayerExtension from "~/editor/extensions/Multiplayer";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
-import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
@@ -64,7 +63,6 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
   const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
-  const isMounted = useIsMounted();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -157,9 +155,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     const showCursorNames = () => {
       setShowCursorNames(true);
       setTimeout(() => {
-        if (isMounted()) {
-          setShowCursorNames(false);
-        }
+        setShowCursorNames(false);
       }, 2000);
       provider.off("awarenessChange", showCursorNames);
     };
@@ -261,7 +257,6 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     presence,
     ydoc,
     currentUser.id,
-    isMounted,
     auth,
   ]);
 

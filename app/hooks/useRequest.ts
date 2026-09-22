@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react";
-import useIsMounted from "./useIsMounted";
 
 type RequestResponse<T> = {
   /** The return value of the request function. */
@@ -25,7 +24,6 @@ export default function useRequest<T = unknown>(
   requestFn: () => Promise<T>,
   makeRequestOnMount = false
 ): RequestResponse<T> {
-  const isMounted = useIsMounted();
   const [data, setData] = useState<T>();
   const [loading, setLoading] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
@@ -35,25 +33,18 @@ export default function useRequest<T = unknown>(
     setLoading(true);
     try {
       const response = await requestFn();
-
-      if (isMounted()) {
-        setData(response);
-        setError(undefined);
-        setLoaded(true);
-      }
+      setData(response);
+      setError(undefined);
+      setLoaded(true);
       return response;
     } catch (err) {
-      if (isMounted()) {
-        setError(err);
-      }
+      setError(err);
     } finally {
-      if (isMounted()) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
 
     return undefined;
-  }, [requestFn, isMounted]);
+  }, [requestFn]);
 
   useEffect(() => {
     if (makeRequestOnMount) {

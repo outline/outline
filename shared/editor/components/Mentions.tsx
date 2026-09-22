@@ -22,7 +22,6 @@ import { IssueStatusIcon } from "../../components/IssueStatusIcon";
 import { PullRequestIcon } from "../../components/PullRequestIcon";
 import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
-import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
 import {
@@ -192,7 +191,6 @@ type IssueUrlProps = ComponentProps & {
 
 export const MentionURL = (props: IssueUrlProps) => {
   const { unfurls } = useStores();
-  const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
@@ -212,11 +210,15 @@ export const MentionURL = (props: IssueUrlProps) => {
       return;
     }
 
+    // The node view may be destroyed before the fetch resolves, in which case
+    // the editor transaction in onChangeUnfurl must not be dispatched.
+    let cancelled = false;
+
     const fetchUnfurl = async () => {
       try {
         const unfurlModel = await unfurls.fetchUnfurl({ url });
 
-        if (!isMounted()) {
+        if (cancelled) {
           return;
         }
 
@@ -245,14 +247,16 @@ export const MentionURL = (props: IssueUrlProps) => {
           data,
         });
       } finally {
-        if (isMounted()) {
-          setLoaded(true);
-        }
+        setLoaded(true);
       }
     };
 
     void fetchUnfurl();
-  }, [unfurls, url, node, isMounted, onChangeUnfurl]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [unfurls, url, node, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -286,7 +290,6 @@ export const MentionURL = (props: IssueUrlProps) => {
 
 export const MentionIssue = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
-  const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
@@ -300,10 +303,14 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
+    // The node view may be destroyed before the fetch resolves, in which case
+    // the editor transaction in onChangeUnfurl must not be dispatched.
+    let cancelled = false;
+
     const fetchIssue = async () => {
       const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
 
-      if (!isMounted()) {
+      if (cancelled) {
         return;
       }
 
@@ -318,7 +325,11 @@ export const MentionIssue = observer((props: IssuePrProps) => {
     };
 
     void fetchIssue();
-  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [unfurls, attrs.href, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -372,7 +383,6 @@ type ProjectProps = ComponentProps & {
 
 export const MentionProject = observer((props: ProjectProps) => {
   const { unfurls } = useStores();
-  const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current;
 
@@ -386,10 +396,14 @@ export const MentionProject = observer((props: ProjectProps) => {
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
+    // The node view may be destroyed before the fetch resolves, in which case
+    // the editor transaction in onChangeUnfurl must not be dispatched.
+    let cancelled = false;
+
     const fetchProject = async () => {
       const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
 
-      if (!isMounted()) {
+      if (cancelled) {
         return;
       }
 
@@ -404,7 +418,11 @@ export const MentionProject = observer((props: ProjectProps) => {
     };
 
     void fetchProject();
-  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [unfurls, attrs.href, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -449,7 +467,6 @@ export const MentionProject = observer((props: ProjectProps) => {
 
 export const MentionPullRequest = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
-  const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
@@ -463,10 +480,14 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
+    // The node view may be destroyed before the fetch resolves, in which case
+    // the editor transaction in onChangeUnfurl must not be dispatched.
+    let cancelled = false;
+
     const fetchPR = async () => {
       const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
 
-      if (!isMounted()) {
+      if (cancelled) {
         return;
       }
 
@@ -481,7 +502,11 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
     };
 
     void fetchPR();
-  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [unfurls, attrs.href, onChangeUnfurl]);
 
   const sharedProps = {
     className: cn(className, {
