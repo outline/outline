@@ -25,19 +25,80 @@ export function isStaleChunkError(error: unknown): boolean {
 }
 
 /**
+ * A promise that carries the status fields React's `use` hook reads, so a
+ * fulfilled load can be unwrapped synchronously without suspending.
+ */
+type TrackedPromise<T> = Promise<T> &
+  (
+    | React.PendingReactPromise<T>
+    | React.FulfilledReactPromise<T>
+    | React.RejectedReactPromise<T>
+  );
+
+export type LazyComponent<T extends React.ComponentType<any>> = React.FC<
+  React.ComponentPropsWithRef<T>
+> & {
+  /**
+   * Starts loading the chunk. Once the returned promise settles, rendering
+   * the component no longer suspends.
+   */
+  preload: () => ComponentPromise<T>;
+};
+
+/**
  * Lazy load a component with automatic retry on failure.
+ *
+ * Unlike `React.lazy`, a component whose chunk has already loaded renders
+ * synchronously instead of suspending. This matters because React throttles
+ * the reveal of a resolved Suspense boundary for up to 300ms after the fallback
+ * was shown, which delays content that is otherwise ready to paint.
  *
  * @param component A function that returns a promise of a component.
  * @param retries The number of retries, defaults to 3.
  * @param interval The interval between retries in milliseconds, defaults to 1000.
- * @returns A lazy component.
+ * @returns A lazy component with a `preload` method.
  */
 export default function lazyWithRetry<T extends React.ComponentType<any>>(
   component: () => ComponentPromise<T>,
   retries?: number,
   interval?: number
-): React.LazyExoticComponent<T> {
-  return React.lazy(() => retry(component, retries, interval));
+): LazyComponent<T> {
+  let promise: TrackedPromise<{ default: T }> | undefined;
+
+  const preload = () => {
+    if (!promise) {
+      const pending = retry(component, retries, interval) as TrackedPromise<{
+        default: T;
+      }>;
+      pending.status = "pending";
+      void pending.then(
+        (module) => {
+          const fulfilled = pending as React.FulfilledReactPromise<{
+            default: T;
+          }>;
+          fulfilled.status = "fulfilled";
+          fulfilled.value = module;
+        },
+        (reason) => {
+          const rejected = pending as React.RejectedReactPromise<{
+            default: T;
+          }>;
+          rejected.status = "rejected";
+          rejected.reason = reason;
+        }
+      );
+      promise = pending;
+    }
+    return promise;
+  };
+
+  const Lazy = (props: React.ComponentPropsWithRef<T>) => {
+    const { default: Component } = React.use(preload());
+    return <Component {...props} />;
+  };
+  Lazy.displayName = "Lazy";
+
+  return Object.assign(Lazy, { preload });
 }
 
 function retry<T extends React.ComponentType<any>>(

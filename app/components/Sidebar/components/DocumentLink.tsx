@@ -24,7 +24,7 @@ import useOnScreen from "~/hooks/useOnScreen";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import * as Scenes from "~/routes/scenes";
+import { preloadEditor } from "~/routes/scenes";
 import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragDocument,
@@ -276,7 +276,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   }, [expansion, node.id]);
 
   const handlePrefetch = React.useCallback(() => {
-    void Scenes.Document.preload();
+    preloadEditor();
     void prefetchDocument?.(node.id);
   }, [prefetchDocument, node]);
 

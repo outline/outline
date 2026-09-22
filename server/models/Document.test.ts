@@ -1,4 +1,5 @@
-import { EmptyResultError, Op } from "sequelize";
+import { createHash } from "node:crypto";
+import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
@@ -185,6 +186,25 @@ describe("#save", () => {
     await expect(document.save()).rejects.toMatchObject({
       id: "document_too_large",
     });
+  });
+
+  it("should index text whose search vector exceeds the tsvector limit", async () => {
+    const document = await buildDocument({ title: "Original" });
+    const tokens: string[] = [];
+    for (let i = 0; i < 40_000; i++) {
+      tokens.push(createHash("md5").update(String(i)).digest("hex"));
+    }
+    document.title = "Unique tokens";
+    document.text = tokens.join(" ");
+    await document.save();
+
+    const [rows] = await sequelize.query<{ searchVector: string }>(
+      `SELECT "searchVector" FROM documents WHERE id = :id`,
+      { replacements: { id: document.id }, type: QueryTypes.SELECT }
+    );
+    expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
+    expect(rows.searchVector).toContain(tokens[0]);
   });
 });
 

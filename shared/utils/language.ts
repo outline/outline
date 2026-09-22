@@ -1,3 +1,4 @@
+import { iso6393To1 as iso6393To1Map } from "iso-639-3/iso6393-to-1.js";
 import { languages } from "../i18n";
 import { unicodeBCP47toCLDR, unicodeCLDRtoBCP47 } from "./date";
 
@@ -91,3 +92,55 @@ const scriptsWithLang = new Set([
   "am", // Amharic
   "mn", // Mongolian
 ]);
+
+/**
+ * Converts an ISO 639-3 language code to ISO 639-1. Individual languages that
+ * have no ISO 639-1 code of their own, such as `cmn` (Mandarin), fall back to
+ * the code of their macrolanguage, `zho` → `zh`.
+ *
+ * @param language the language code in ISO 639-3 format.
+ * @return the language code in ISO 639-1 format, or undefined.
+ */
+export function iso6393To1(language: string): string | undefined {
+  const macrolanguage = macrolanguages[language];
+  return (
+    iso6393To1Map[language] ??
+    (macrolanguage ? iso6393To1Map[macrolanguage] : undefined)
+  );
+}
+
+/**
+ * Individual languages without an ISO 639-1 code, mapped to their ISO 639-3
+ * macrolanguage. Limited to languages that language detection can return.
+ */
+const macrolanguages: Record<string, string> = {
+  als: "sqi", // Tosk Albanian → Albanian
+  arb: "ara", // Standard Arabic → Arabic
+  ayr: "aym", // Central Aymara → Aymara
+  azj: "aze", // North Azerbaijani → Azerbaijani
+  ckb: "kur", // Central Kurdish → Kurdish
+  cmn: "zho", // Mandarin Chinese → Chinese
+  ekk: "est", // Standard Estonian → Estonian
+  fuf: "ful", // Pular → Fulah
+  fuv: "ful", // Nigerian Fulfulde → Fulah
+  khk: "mon", // Halh Mongolian → Mongolian
+  knc: "kau", // Central Kanuri → Kanuri
+  kng: "kon", // Koongo → Kongo
+  koi: "kom", // Komi-Permyak → Komi
+  lvs: "lav", // Standard Latvian → Latvian
+  min: "msa", // Minangkabau → Malay
+  npi: "nep", // Nepali → Nepali
+  pbu: "pus", // Northern Pashto → Pashto
+  pes: "fas", // Iranian Persian → Persian
+  plt: "mlg", // Plateau Malagasy → Malagasy
+  prs: "fas", // Dari → Persian
+  qug: "que", // Chimborazo Highland Quichua → Quechua
+  quy: "que", // Ayacucho Quechua → Quechua
+  quz: "que", // Cusco Quechua → Quechua
+  src: "srd", // Logudorese Sardinian → Sardinian
+  swh: "swa", // Swahili → Swahili
+  uzn: "uzb", // Northern Uzbek → Uzbek
+  ydd: "yid", // Eastern Yiddish → Yiddish
+  zlm: "msa", // Malay → Malay
+  zyb: "zha", // Yongbei Zhuang → Zhuang
+};
