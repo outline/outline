@@ -390,9 +390,10 @@ class Document extends ArchivableModel<
   text: string;
 
   /** The likely language of the content, in ISO 639-1 format. */
+  @AllowNull
   @Length({ max: 2, msg: "language must be an ISO 639-1 code" })
   @Column(DataType.STRING(2))
-  language: string;
+  language: string | null;
 
   /**
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.
