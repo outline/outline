@@ -2,7 +2,6 @@ import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
-import { Portal as ReactPortal } from "react-portal";
 import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -315,7 +314,7 @@ function FloatingToolbar({ ref, ...props }: Props) {
       // Vertical position (above the keyboard) is owned entirely by
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
-        <ReactPortal>
+        <Portal toBody>
           <MobileWrapper
             ref={menuRef}
             onMouseDown={handleMouseDown}
@@ -324,7 +323,7 @@ function FloatingToolbar({ ref, ...props }: Props) {
           >
             <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
-        </ReactPortal>
+        </Portal>
       );
     }
 
