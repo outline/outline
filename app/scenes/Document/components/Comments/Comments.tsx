@@ -104,10 +104,17 @@ function Comments() {
     }
   };
 
+  // Scroll to the bottom on first display and when the sort or resolved filter
+  // changes. The key skips the re-run that happens when a hidden panel becomes
+  // visible again, so that the scroll position is kept.
+  const scrollKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    // Handles: 1. on refresh 2. when switching sort setting
     const readyToDisplay = Boolean(document && isEditorInitialized);
+    const key = `${document?.id}:${readyToDisplay}:${sortOption.type}:${viewingResolved}`;
+    const changed = scrollKeyRef.current !== key;
+    scrollKeyRef.current = key;
     if (
+      changed &&
       readyToDisplay &&
       sortOption.type === CommentSortType.MostRecent &&
       !viewingResolved

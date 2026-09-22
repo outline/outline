@@ -43,18 +43,27 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const isMobile = useMobile();
   const panel = ui.getRightSidebar(pane);
 
+  const fallback = (
+    <SidebarLayout title={<PlaceholderText width={100} />}>
+      {null}
+    </SidebarLayout>
+  );
+
+  // Both panels stay mounted so that switching between them keeps their state
+  // and does not re-suspend on the lazy chunk. Effects, and with them the MobX
+  // reactions of observer components, are disposed while a panel is hidden.
   const inner = (
     <Route path={`/doc/${matchDocumentSlug}`}>
-      <React.Suspense
-        fallback={
-          <SidebarLayout title={<PlaceholderText width={100} />}>
-            {null}
-          </SidebarLayout>
-        }
-      >
-        {panel === "comments" && <DocumentComments />}
-        {panel === "history" && <DocumentHistory />}
-      </React.Suspense>
+      <React.Activity mode={panel === "comments" ? "visible" : "hidden"}>
+        <React.Suspense fallback={fallback}>
+          <DocumentComments />
+        </React.Suspense>
+      </React.Activity>
+      <React.Activity mode={panel === "history" ? "visible" : "hidden"}>
+        <React.Suspense fallback={fallback}>
+          <DocumentHistory />
+        </React.Suspense>
+      </React.Activity>
     </Route>
   );
 
