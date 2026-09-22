@@ -1,10 +1,10 @@
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import { UnfurlResourceType } from "@shared/types";
+import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";

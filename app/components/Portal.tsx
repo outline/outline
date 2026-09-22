@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Portal as ReactPortal } from "react-portal";
+import { createPortal } from "react-dom";
 
 /**
  * A React context that provides a dom node for portals to be rendered into.
@@ -19,5 +19,5 @@ export const usePortalContext = () => React.useContext(PortalContext);
  */
 export function Portal(props: { children: React.ReactNode }) {
   const node = React.useContext(PortalContext);
-  return <ReactPortal node={node}>{props.children}</ReactPortal>;
+  return createPortal(props.children, node ?? document.body);
 }
