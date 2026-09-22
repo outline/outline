@@ -523,6 +523,21 @@ const textStyle = () => css`
       margin-bottom: 0.8em;
     }
   }
+
+  /* East Asian scripts */
+  :lang(zh),  /* Chinese */
+    :lang(ja),  /* Japanese */
+    :lang(ko) {
+    /* Korean */
+    p {
+      line-height: 1.8;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
 `;
 
 const style = (props: Props) => css`

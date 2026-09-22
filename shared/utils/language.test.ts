@@ -37,6 +37,7 @@ describe("getSupportedLanguage", () => {
 describe("getLangFor", () => {
   it("returns languages that need special text styling", () => {
     expect(getLangFor("fa")).toEqual("fa");
+    expect(getLangFor("zh")).toEqual("zh");
   });
 
   it("ignores other or empty languages", () => {
