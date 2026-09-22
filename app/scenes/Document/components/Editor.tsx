@@ -265,7 +265,6 @@ function DocumentEditor(props: Props) {
         <EditorComponent
           ref={mergeRefs([ref, editorRef, handleRefChanged])}
           lang={getLangFor(document.language)}
-          autoFocus={!!document.title && !props.defaultValue}
           placeholder={t("Type '/' to insert, or start writing…")}
           scrollTo={decodeURIComponentSafe(location.hash)}
           readOnly={readOnly}

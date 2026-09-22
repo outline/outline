@@ -474,7 +474,7 @@ function DocumentScene({
                       readOnly={readOnly}
                       canUpdate={abilities.update}
                       canComment={abilities.comment}
-                      autoFocus={document.createdAt === document.updatedAt}
+                      autoFocus={document.isJustCreated}
                     >
                       <ReferencesWrapper>
                         <References document={document} />
