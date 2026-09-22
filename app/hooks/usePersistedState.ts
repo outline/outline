@@ -1,20 +1,39 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
 import { isBrowser } from "@shared/utils/browser";
-import Logger from "~/utils/Logger";
-import useEventListener from "./useEventListener";
-import usePrevious from "./usePrevious";
 
 type Options = {
   /* Whether to listen and react to changes in the value from other tabs */
   listen?: boolean;
 };
 
+// Same-tab subscribers, keyed by storage key. The native "storage" event only
+// fires in other tabs, so this notifies hooks mounted in the current tab.
+const localListeners = new Map<string, Set<() => void>>();
+
+function subscribeLocal(key: string, callback: () => void) {
+  let set = localListeners.get(key);
+  if (!set) {
+    set = new Set();
+    localListeners.set(key, set);
+  }
+  set.add(callback);
+  return () => {
+    set.delete(callback);
+    if (set.size === 0) {
+      localListeners.delete(key);
+    }
+  };
+}
+
+function emitLocal(key: string) {
+  localListeners.get(key)?.forEach((callback) => callback());
+}
+
 /**
- * Set a value in local storage and emit storage event to trigger render of any
- * listening mounted components.
+ * Set a value in local storage and notify any listening mounted components.
  *
  * @param key Key to store value under
  * @param value Value to store
@@ -24,9 +43,7 @@ export function setPersistedState<T extends Primitive | object>(
   value: T
 ) {
   Storage.set(key, value);
-  window.dispatchEvent(
-    new StorageEvent("storage", { key, newValue: JSON.stringify(value) })
-  );
+  emitLocal(key);
 }
 
 /**
@@ -43,58 +60,73 @@ export default function usePersistedState<T extends Primitive | object>(
   defaultValue: T,
   options?: Options
 ): [T, Dispatch<SetStateAction<T>>] {
-  const previousKey = usePrevious(key);
-  const [storedValue, setStoredValue] = useState(() => {
-    if (!isBrowser) {
-      return defaultValue;
+  // Capture the default once so inline defaults don't destabilise snapshots.
+  const defaultValueRef = useRef(defaultValue);
+  const listen = options?.listen;
+
+  const read = useCallback(
+    () =>
+      isBrowser
+        ? ((Storage.get(key) ?? defaultValueRef.current) as T)
+        : defaultValueRef.current,
+    [key]
+  );
+
+  // Cache the last value so getSnapshot returns a stable reference while the
+  // serialized value is unchanged, which useSyncExternalStore requires.
+  const cache = useRef<{ key: string; serialized: string; value: T } | null>(
+    null
+  );
+
+  const getSnapshot = useCallback(() => {
+    const value = read();
+    const serialized = JSON.stringify(value);
+    if (
+      !cache.current ||
+      cache.current.key !== key ||
+      cache.current.serialized !== serialized
+    ) {
+      cache.current = { key, serialized, value };
     }
-    return Storage.get(key) ?? defaultValue;
-  });
+    return cache.current.value;
+  }, [key, read]);
 
-  // Mirrors the latest state so functional updates can be computed without
-  // capturing `storedValue` in the setter's closure, keeping its identity
-  // stable and safe to use in dependency arrays.
-  const storedValueRef = useRef<T>(storedValue);
+  const getServerSnapshot = useCallback(() => defaultValueRef.current, []);
 
-  const updateStoredValue = useCallback((value: T) => {
-    storedValueRef.current = value;
-    setStoredValue(value);
-  }, []);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const unsubscribeLocal = subscribeLocal(key, onStoreChange);
+      if (listen === false) {
+        return unsubscribeLocal;
+      }
+      // Cross-tab changes arrive as native storage events.
+      const onStorage = (event: StorageEvent) => {
+        if (event.key === key || event.key === null) {
+          onStoreChange();
+        }
+      };
+      window.addEventListener("storage", onStorage);
+      return () => {
+        unsubscribeLocal();
+        window.removeEventListener("storage", onStorage);
+      };
+    },
+    [key, listen]
+  );
+
+  const storedValue = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
   const setValue = useCallback(
     (value: SetStateAction<T>) => {
-      const valueToStore =
-        value instanceof Function ? value(storedValueRef.current) : value;
-      updateStoredValue(valueToStore);
-      Storage.set(key, valueToStore);
+      const valueToStore = value instanceof Function ? value(read()) : value;
+      setPersistedState(key, valueToStore);
     },
-    [key, updateStoredValue]
+    [key, read]
   );
-
-  // Sync state when key changes
-  useEffect(() => {
-    if (previousKey !== undefined && previousKey !== key) {
-      updateStoredValue(Storage.get(key) ?? defaultValue);
-    }
-  }, [previousKey, key, defaultValue, updateStoredValue]);
-
-  // Listen to the key changing in other tabs so we can keep UI in sync
-  useEventListener("storage", (event: StorageEvent) => {
-    if (options?.listen === false || event.key !== key) {
-      return;
-    }
-    if (event.newValue === null) {
-      updateStoredValue(defaultValue);
-      return;
-    }
-    try {
-      updateStoredValue(JSON.parse(event.newValue));
-    } catch (error) {
-      // Another tab or unrelated code may have written a value under this key
-      // that is not valid JSON – never let that crash the listener.
-      Logger.debug("misc", "Failed to parse persisted state", { error });
-    }
-  });
 
   return [storedValue, setValue];
 }
