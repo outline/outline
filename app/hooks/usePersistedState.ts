@@ -84,7 +84,7 @@ export default function usePersistedState<T extends Primitive | object>(
 
   const getSnapshot = useCallback(() => {
     const value = read();
-    const serialized = JSON.stringify(value);
+    const serialized = JSON.stringify(value) ?? "undefined";
     if (
       !cache.current ||
       cache.current.key !== key ||
