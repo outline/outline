@@ -229,7 +229,7 @@
     "react-hook-form": "^7.85.0",
     "react-i18next": "^12.3.1",
     "react-is": "^19.2.8",
-    "react-merge-refs": "^2.1.1",
+    "react-merge-refs": "^3.0.2",
     "react-remove-scroll": "^2.7.2",
     "react-router-dom": "^5.3.4",
     "react-use-measure": "^2.1.7",
