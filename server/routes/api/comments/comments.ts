@@ -290,17 +290,6 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    const text = ctx.input.body.text
-      ? await TextHelper.replaceImagesWithAttachments(
-          ctx,
-          ctx.input.body.text,
-          user
-        )
-      : undefined;
-    const data = text
-      ? commentParser.parse(text).toJSON()
-      : ctx.input.body.data;
-
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
@@ -315,6 +304,17 @@ router.post(
     });
     authorize(user, "update", comment);
     authorize(user, "comment", document);
+
+    const text = ctx.input.body.text
+      ? await TextHelper.replaceImagesWithAttachments(
+          ctx,
+          ctx.input.body.text,
+          user
+        )
+      : undefined;
+    const data = text
+      ? commentParser.parse(text).toJSON()
+      : ctx.input.body.data;
 
     let newMentionIds: string[] = [];
 
