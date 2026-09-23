@@ -342,10 +342,10 @@ function CommentForm({
 
   return (
     <m.form
-      ref={formRef}
-      onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
       {...presence}
       {...rest}
+      ref={formRef}
+      onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
     >
       <VisuallyHidden.Root>
         <input
