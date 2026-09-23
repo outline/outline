@@ -95,7 +95,10 @@ describe("documentUpdater", () => {
       })
     );
 
-    expect(notifyUpdateSpy).toHaveBeenCalledWith(document.id, user.id);
+    expect(notifyUpdateSpy).toHaveBeenCalledWith(
+      `document.${document.id}`,
+      user.id
+    );
     notifyUpdateSpy.mockRestore();
   });
 

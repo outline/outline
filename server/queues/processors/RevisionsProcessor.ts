@@ -3,6 +3,7 @@ import Redis from "@server/storage/redis";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
 import type { DocumentEvent, RevisionEvent, Event } from "@server/types";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import DocumentUpdateTextTask from "../tasks/DocumentUpdateTextTask";
 import BaseProcessor from "./BaseProcessor";
 
@@ -35,7 +36,7 @@ export default class RevisionsProcessor extends BaseProcessor {
           event.data && "collaborators" in event.data
             ? event.data.collaborators
             : undefined;
-        const key = Document.getCollaboratorKey(event.documentId);
+        const key = RedisPrefixHelper.getCollaboratorsKey(event.documentId);
 
         // we don't create revisions if identical to previous revision, this can happen if a manual
         // revision was created from another service or user.

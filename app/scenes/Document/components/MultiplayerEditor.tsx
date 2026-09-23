@@ -14,6 +14,10 @@ import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import {
+  MultiplayerEntityType,
+  toMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -41,11 +45,18 @@ import { sleep } from "@shared/utils/timers";
 
 type Props = EditorProps & {
   id: string;
+  /** The type of entity being edited, defaults to document. */
+  entityType?: MultiplayerEntityType;
   onSynced?: () => Promise<void>;
   ref?: Ref<SharedEditor>;
 };
 
-function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
+function MultiplayerEditor({
+  onSynced,
+  entityType = MultiplayerEntityType.Document,
+  ref,
+  ...props
+}: Props) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -73,7 +84,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     // callbacks below do not update state afterwards.
     let isActive = true;
     const debug = env.ENVIRONMENT === "development";
-    const name = `document.${documentId}`;
+    const name = toMultiplayerName(entityType, documentId);
     const localProvider =
       typeof indexedDB !== "undefined"
         ? new IndexeddbPersistence(name, ydoc)
@@ -252,6 +263,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     history,
     t,
     documentId,
+    entityType,
     ui,
     documentContext,
     presence,

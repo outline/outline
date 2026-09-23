@@ -1,7 +1,8 @@
 import { createContext } from "@server/context";
-import { Document, Revision } from "@server/models";
+import { Revision } from "@server/models";
 import Redis from "@server/storage/redis";
 import { buildDocument, buildUser } from "@server/test/factories";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import RevisionsProcessor from "./RevisionsProcessor";
 
 const ip = "127.0.0.1";
@@ -37,7 +38,7 @@ describe("documents.update.debounced", () => {
     });
     await Revision.createFromDocument(createContext({ user }), document);
     const collaborator = await buildUser({ teamId: user.teamId });
-    const key = Document.getCollaboratorKey(document.id);
+    const key = RedisPrefixHelper.getCollaboratorsKey(document.id);
     await Redis.defaultClient.zadd(key, 1, collaborator.id);
 
     const processor = new RevisionsProcessor();
@@ -71,7 +72,7 @@ describe("documents.update.debounced", () => {
     await Revision.createFromDocument(createContext({ user }), document);
     const included = await buildUser({ teamId: user.teamId });
     const later = await buildUser({ teamId: user.teamId });
-    const key = Document.getCollaboratorKey(document.id);
+    const key = RedisPrefixHelper.getCollaboratorsKey(document.id);
     await Redis.defaultClient.zadd(key, 1, included.id);
     await Redis.defaultClient.zadd(key, 2, later.id);
 

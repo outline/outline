@@ -61,6 +61,9 @@ export const CollectionValidation = {
 
   /** The maximum length of the collection name */
   maxNameLength: 100,
+
+  /** The maximum size of the collaborative description state */
+  maxStateLength: 1500 * 1024,
 };
 
 export const CommentValidation = {
