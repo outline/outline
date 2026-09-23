@@ -123,11 +123,14 @@ const Image = (props: Props) => {
     window.open(sanitizedSrc, "_blank");
   }, [sanitizedSrc]);
 
+  const aspectRatio =
+    width && height && !error ? `${width} / ${height}` : "auto";
+
   const widthStyle = isFullWidth
-    ? { width: "var(--container-width)" }
+    ? { width: "var(--container-width)", aspectRatio }
     : width
-      ? { ["--image-width"]: `${width}px` }
-      : { width: "auto" };
+      ? { ["--image-width"]: `${width}px`, aspectRatio }
+      : { width: "auto", aspectRatio };
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
