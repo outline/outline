@@ -637,7 +637,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .enum(TextEditMode)
             .optional()
             .describe(
-              'How to apply the text update. "replace" (default) replaces the entire document content. "append" adds text to the end. "prepend" adds text to the beginning. "patch" finds the exact markdown specified in findText and replaces only that portion, preserving the rest of the document including any rich formatting that cannot be represented in markdown.'
+              'Required when text is provided. How to apply the text update. "replace" replaces the entire document content. "append" adds text to the end. "prepend" adds text to the beginning. "patch" finds the exact markdown specified in findText and replaces only that portion, preserving the rest of the document including any rich formatting that cannot be represented in markdown.'
             ),
           findText: optionalString().describe(
             'Required when editMode is "patch". The exact markdown substring to find in the document. This should be copied verbatim from the document\'s existing markdown content. The first occurrence will be replaced with the text parameter. Can span multiple blocks (paragraphs, headings, etc).'
@@ -675,6 +675,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("update_document", async (input, context) => {
         try {
+          if (input.text !== undefined && !input.editMode) {
+            return error(
+              'editMode is required when text is provided. Use "patch" to edit part of the document, "append" or "prepend" to add content, or "replace" to overwrite the entire document.'
+            );
+          }
+
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
