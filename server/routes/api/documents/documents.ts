@@ -15,8 +15,6 @@ import { type NavigationNode } from "@shared/types";
 import {
   ExportContentType,
   FileOperationFormat,
-  FileOperationState,
-  FileOperationType,
   StatusFilter,
   UserRole,
 } from "@shared/types";
@@ -983,24 +981,10 @@ router.post(
         );
       }
 
-      const fileOperation = await FileOperation.createWithCtx(ctx, {
-        type: FileOperationType.Export,
-        state: FileOperationState.Creating,
+      const fileOperation = await FileOperation.createExport(ctx, {
+        document,
         format,
-        key: FileOperation.getExportKey({
-          name: document.titleWithDefault,
-          teamId: document.teamId,
-          format,
-        }),
-        url: null,
-        size: 0,
-        documentId: document.id,
-        userId: user.id,
-        teamId: document.teamId,
       });
-
-      fileOperation.user = user;
-      fileOperation.document = document;
 
       ctx.body = {
         success: true,

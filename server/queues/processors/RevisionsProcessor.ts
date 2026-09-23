@@ -1,7 +1,8 @@
 import isEqual from "fast-deep-equal";
+import { createContext } from "@server/context";
 import Redis from "@server/storage/redis";
-import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import type { DocumentEvent, RevisionEvent, Event } from "@server/types";
 import DocumentUpdateTextTask from "../tasks/DocumentUpdateTextTask";
 import BaseProcessor from "./BaseProcessor";
@@ -64,12 +65,18 @@ export default class RevisionsProcessor extends BaseProcessor {
           rejectOnEmpty: true,
         });
 
-        await revisionCreator({
-          event,
-          user,
-          collaboratorIds,
-          document,
-        });
+        await sequelize.transaction((transaction) =>
+          Revision.createFromDocument(
+            createContext({
+              user,
+              authType: event.authType,
+              ip: event.ip,
+              transaction,
+            }),
+            document,
+            collaboratorIds
+          )
+        );
         if (sequence !== undefined) {
           // A subsequent edit by the same user has a higher score and survives
           // this cleanup. Leave all attribution intact if revision creation fails.
