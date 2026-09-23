@@ -77,6 +77,8 @@ function DocumentExplorer({
   const theme = useTheme();
 
   const [searchTerm, setSearchTerm] = React.useState<string>();
+  // Defer filtering so typing in the search input stays responsive.
+  const deferredSearchTerm = React.useDeferredValue(searchTerm);
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
       if (!defaultValue) {
@@ -143,8 +145,8 @@ function DocumentExplorer({
         : [item];
     }
 
-    return searchTerm
-      ? searchIndex.search(searchTerm)
+    return deferredSearchTerm
+      ? searchIndex.search(deferredSearchTerm)
       : items.flatMap(includeDescendants);
   }
 
@@ -307,7 +309,7 @@ function DocumentExplorer({
           .join(" / ");
       }
 
-      return searchTerm ? (
+      return deferredSearchTerm ? (
         <DocumentExplorerSearchResult
           selected={isSelected(index)}
           active={activeNode === index}
@@ -381,13 +383,13 @@ function DocumentExplorer({
         break;
       }
       case "ArrowLeft": {
-        if (!searchTerm && isExpanded(activeNode)) {
+        if (!deferredSearchTerm && isExpanded(activeNode)) {
           toggleCollapse(activeNode);
         }
         break;
       }
       case "ArrowRight": {
-        if (!searchTerm) {
+        if (!deferredSearchTerm) {
           toggleCollapse(activeNode);
           // let the nodes re-render first and then scroll
           setTimeout(() => scrollNodeIntoView(activeNode), 0);

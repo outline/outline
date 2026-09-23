@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 /**
  * Helper to remove plumbing involved with adding and removing an event listener
@@ -15,12 +15,8 @@ export default function useEventListener<T extends EventListener>(
   element: Window | VisualViewport | Node | null = window,
   options: AddEventListenerOptions = {}
 ) {
-  const savedHandler = useRef<T | undefined>(undefined);
   const { capture, passive, once } = options;
-
-  useEffect(() => {
-    savedHandler.current = handler;
-  }, [handler]);
+  const onEvent = useEffectEvent((event: Event) => handler(event));
 
   useEffect(() => {
     const isSupported = element && element.addEventListener;
@@ -28,8 +24,7 @@ export default function useEventListener<T extends EventListener>(
       return;
     }
 
-    const eventListener: EventListener = (event) =>
-      savedHandler.current?.(event);
+    const eventListener: EventListener = (event) => onEvent(event);
 
     const opts = { capture, passive, once };
     element.addEventListener(eventName, eventListener, opts);

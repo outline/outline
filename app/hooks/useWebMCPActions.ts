@@ -43,22 +43,21 @@ export default function useWebMCPActions(
     snakeCase(action.analyticsName ?? "")
   );
 
-  // Refs keep `execute` callbacks working against the latest context and
-  // action list without re-registering tools on every render.
-  const contextRef = React.useRef(context);
-  contextRef.current = context;
-  const performableRef = React.useRef(performable);
-  performableRef.current = performable;
+  // Effect events keep `execute` callbacks working against the latest context
+  // and action list without re-registering tools on every render.
+  const getContext = React.useEffectEvent(() => context);
+  const getPerformable = React.useEffectEvent(() => performable);
 
   React.useEffect(() => {
-    if (!enabled || performableRef.current.length === 0) {
+    const performableActions = getPerformable();
+    if (!enabled || performableActions.length === 0) {
       return;
     }
 
     const controller = new AbortController();
 
-    for (const action of performableRef.current) {
-      const ctx = contextRef.current;
+    for (const action of performableActions) {
+      const ctx = getContext();
       const name = snakeCase(action.analyticsName ?? "");
       const title = resolve<React.ReactNode>(action.name, ctx);
       const description =
@@ -77,7 +76,7 @@ export default function useWebMCPActions(
           execute: async (args) => {
             try {
               const result = await performAction(action, {
-                ...contextRef.current,
+                ...getContext(),
                 mcpArgs: args,
               });
               return {

@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useMemo,
   useEffect,
+  useEffectEvent,
   useRef,
   type Ref,
 } from "react";
@@ -288,13 +289,12 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
-  // Read through a ref so the callback runs once per sync, not per identity.
-  const onSyncedRef = useRef(onSynced);
-  onSyncedRef.current = onSynced;
+  // Run the callback once per sync, not per identity change.
+  const onSyncedEvent = useEffectEvent(() => onSynced?.());
 
   useEffect(() => {
     if ((!hasLocalPersistence || isLocalSynced) && isRemoteSynced) {
-      void onSyncedRef.current?.();
+      void onSyncedEvent();
     }
   }, [hasLocalPersistence, isLocalSynced, isRemoteSynced]);
 

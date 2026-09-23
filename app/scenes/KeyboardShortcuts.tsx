@@ -1,5 +1,12 @@
 import type * as React from "react";
-import { useMemo, useState, useCallback, memo, Fragment } from "react";
+import {
+  useMemo,
+  useState,
+  useCallback,
+  useDeferredValue,
+  memo,
+  Fragment,
+} from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -396,7 +403,9 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
     [t]
   );
   const [searchTerm, setSearchTerm] = useState(defaultQuery);
-  const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
+  // Defer filtering so typing in the search input stays responsive.
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const normalizedSearchTerm = deferredSearchTerm.toLocaleLowerCase();
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setSearchTerm(event.target.value);
@@ -429,7 +438,7 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         const titleMatches = category.title
           .toLocaleLowerCase()
           .includes(normalizedSearchTerm);
-        const filtered = searchTerm
+        const filtered = deferredSearchTerm
           ? titleMatches
             ? category.items
             : category.items.filter((item) =>
