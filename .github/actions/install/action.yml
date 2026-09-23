@@ -13,10 +13,10 @@ runs:
     - name: Enable Corepack
       shell: bash
       run: corepack enable
-    - name: Use Node.js 26.x
+    - name: Use a supported Node.js version
       uses: actions/setup-node@v5
       with:
-        node-version: 26.x
+        node-version-file: package.json
         # Blacksmith jobs persist the yarn cache on a sticky disk instead.
         package-manager-cache: ${{ !(github.repository_owner == 'outline' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) }}
     - name: Mount yarn cache
