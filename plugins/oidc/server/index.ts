@@ -3,6 +3,7 @@ import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./auth/oidc";
 import env from "./env";
+import { OIDCGroupSyncProvider } from "./GroupSyncProvider";
 
 // Check if OIDC is enabled with either manual configuration or issuer URL
 const hasManualConfig = !!(
@@ -29,6 +30,11 @@ if (enabled) {
       type: Hook.AuthProvider,
       value: { router, id: config.id },
       name: env.OIDC_DISPLAY_NAME || config.name,
+    },
+    {
+      ...config,
+      type: Hook.GroupSyncProvider,
+      value: { id: config.id, provider: OIDCGroupSyncProvider },
     },
   ]);
   Logger.info("plugins", "OIDC plugin registered");
