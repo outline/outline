@@ -86,7 +86,12 @@ export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
 export const CommentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Update comment with this data */
-    data: ProsemirrorSchema({ schema: commentSchema }),
+    data: ProsemirrorSchema({ schema: commentSchema }).optional(),
+
+    /** Update comment with this text */
+    text: z.string().optional(),
+  }).refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
+    error: "One of data or text is required",
   }),
 });
 
