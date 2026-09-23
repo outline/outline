@@ -2383,6 +2383,48 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
+  describe("restoreCommentMarks", () => {
+    it("restores a missing range when another range of the same comment remains", () => {
+      const commentMark = {
+        type: "comment",
+        attrs: {
+          id: "comment-1",
+          userId: "user-1",
+          draft: false,
+          resolved: false,
+        },
+      };
+      const paragraph = (text: string, marked: boolean) => ({
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text,
+            ...(marked ? { marks: [commentMark] } : {}),
+          },
+        ],
+      });
+      const previous = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          paragraph("First range", true),
+          paragraph("Second range", true),
+        ],
+      });
+      const next = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          paragraph("First range", true),
+          paragraph("Second range", false),
+        ],
+      });
+
+      const restored = ProsemirrorHelper.restoreCommentMarks(previous, next);
+
+      expect(restored.toJSON()).toEqual(previous.toJSON());
+    });
+  });
+
   describe("#applyCommentMarkByNode", () => {
     const buildDocState = (content: object[]) => {
       const doc = Node.fromJSON(schema, { type: "doc", content });

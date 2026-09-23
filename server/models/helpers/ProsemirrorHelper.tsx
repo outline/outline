@@ -1521,18 +1521,9 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return next;
     }
 
-    const existing = new Set(
-      ProsemirrorHelper.getCommentAnchors(next).map(
-        (anchor) => anchor.mark.attrs.id
-      )
-    );
     const tr = new Transform(next);
 
     for (const { mark, text, prefix, suffix } of anchors) {
-      if (existing.has(mark.attrs.id)) {
-        continue;
-      }
-
       const range =
         ProsemirrorHelper.findTextRange(next, text, { prefix, suffix }) ??
         ProsemirrorHelper.findTextRange(next, text, { prefix }) ??
