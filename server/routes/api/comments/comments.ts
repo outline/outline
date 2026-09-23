@@ -286,9 +286,20 @@ router.post(
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
-    const { id, data } = ctx.input.body;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
+
+    const text = ctx.input.body.text
+      ? await TextHelper.replaceImagesWithAttachments(
+          ctx,
+          ctx.input.body.text,
+          user
+        )
+      : undefined;
+    const data = text
+      ? commentParser.parse(text).toJSON()
+      : ctx.input.body.data;
 
     const comment = await Comment.findByPk(id, {
       transaction,
