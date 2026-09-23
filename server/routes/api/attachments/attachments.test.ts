@@ -4,6 +4,7 @@ import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import env from "@server/env";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
+import FileStorage from "@server/storage/files";
 import {
   buildUser,
   buildAdmin,
@@ -165,6 +166,52 @@ describe("#attachments.create", () => {
         },
       });
       expect(res.status).toEqual(200);
+    });
+
+    it("should create a private document attachment when S3 object ACLs are disabled", async () => {
+      const originalAcl = env.AWS_S3_ACL;
+      const originalMethod = env.AWS_S3_UPLOAD_METHOD;
+      env.AWS_S3_ACL = "";
+      env.AWS_S3_UPLOAD_METHOD = "post";
+
+      try {
+        const user = await buildUser();
+        const document = await buildDocument({
+          teamId: user.teamId,
+          userId: user.id,
+        });
+
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.png",
+            contentType: "image/png",
+            size: 1000,
+            documentId: document.id,
+            preset: AttachmentPreset.DocumentAttachment,
+          },
+        });
+
+        expect(res.status).toEqual(200);
+        const body = await res.json();
+        const attachment = await Attachment.findByPk(body.data.attachment.id, {
+          rejectOnEmpty: true,
+        });
+
+        expect(attachment.acl).toBe("private");
+        expect(body.data.mode).toBe("post");
+        expect(body.data.form).not.toHaveProperty("acl");
+        expect(body.data.form).not.toHaveProperty("ACL");
+        expect(FileStorage.getPresignedPost).toHaveBeenCalledWith(
+          expect.anything(),
+          attachment.key,
+          "private",
+          expect.any(Number),
+          "image/png"
+        );
+      } finally {
+        env.AWS_S3_ACL = originalAcl;
+        env.AWS_S3_UPLOAD_METHOD = originalMethod;
+      }
     });
 
     it("should return PUT data when AWS_S3_UPLOAD_METHOD is put", async () => {

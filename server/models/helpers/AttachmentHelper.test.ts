@@ -1,6 +1,35 @@
+import { AttachmentPreset } from "@shared/types";
+import env from "@server/env";
 import AttachmentHelper from "./AttachmentHelper";
 
 describe("AttachmentHelper", () => {
+  describe("presetToAcl", () => {
+    const originalAcl = env.AWS_S3_ACL;
+
+    afterEach(() => {
+      env.AWS_S3_ACL = originalAcl;
+    });
+
+    it("uses a private attachment ACL when provider object ACLs are disabled", () => {
+      env.AWS_S3_ACL = "";
+
+      expect(
+        AttachmentHelper.presetToAcl(AttachmentPreset.DocumentAttachment)
+      ).toBe("private");
+      expect(AttachmentHelper.presetToAcl(AttachmentPreset.Avatar)).toBe(
+        "public-read"
+      );
+    });
+
+    it("preserves an explicitly configured attachment ACL", () => {
+      env.AWS_S3_ACL = "public-read";
+
+      expect(
+        AttachmentHelper.presetToAcl(AttachmentPreset.DocumentAttachment)
+      ).toBe("public-read");
+    });
+  });
+
   describe("getKey", () => {
     it("should return the correct key for a private attachment", () => {
       const key = AttachmentHelper.getKey({
