@@ -1,14 +1,19 @@
 import { createContext } from "@server/context";
-import { Document, Revision } from "@server/models";
+import { Document, Event, Revision } from "@server/models";
 import Redis from "@server/storage/redis";
 import { buildDocument, buildUser } from "@server/test/factories";
+import { AuthenticationType } from "@server/types";
 import RevisionsProcessor from "./RevisionsProcessor";
 
 const ip = "127.0.0.1";
 
 describe("documents.update.debounced", () => {
   test("should create a revision", async () => {
-    const document = await buildDocument();
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
 
     const processor = new RevisionsProcessor();
     await processor.perform({
@@ -19,14 +24,24 @@ describe("documents.update.debounced", () => {
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
       data: { done: true },
+      authType: AuthenticationType.APP,
       ip,
     });
-    const amount = await Revision.count({
+    const revision = await Revision.findOne({
       where: {
         documentId: document.id,
       },
+      rejectOnEmpty: true,
     });
-    expect(amount).toBe(1);
+    const event = await Event.findLatest({ teamId: document.teamId });
+
+    expect(revision.documentId).toBe(document.id);
+    expect(revision.userId).toBe(document.createdById);
+    expect(revision.createdAt).toEqual(document.updatedAt);
+    expect(revision.sourceMetadata?.authType).toBe(AuthenticationType.APP);
+    expect(event?.name).toBe("revisions.create");
+    expect(event?.modelId).toBe(revision.id);
+    expect(event?.authType).toBe(AuthenticationType.APP);
   });
 
   test("should not create a revision if identical to previous", async () => {

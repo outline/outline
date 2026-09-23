@@ -7,6 +7,7 @@ import {
   CollectionPermission,
   DocumentPermission,
   ExportContentType,
+  FileOperationFormat,
   HeadingPrefixStyle,
   StatusFilter,
   UserRole,
@@ -23,6 +24,7 @@ import {
   UserMembership,
   SearchQuery,
   Event,
+  FileOperation,
   GroupMembership,
   Relationship,
 } from "@server/models";
@@ -614,6 +616,34 @@ describe("#documents.info", () => {
 describe("#documents.export", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("should create a file operation for a document export with children", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: "Nested Export",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.export", user, {
+      body: { id: document.id, includeChildDocuments: true },
+      headers: { accept: "text/markdown" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.fileOperation.name).toBe(document.title);
+    expect(body.data.fileOperation.state).toBe("creating");
+
+    const fileOperation = await FileOperation.findByPk(
+      body.data.fileOperation.id,
+      { rejectOnEmpty: true }
+    );
+    expect(fileOperation.documentId).toBe(document.id);
+    expect(fileOperation.teamId).toBe(document.teamId);
+    expect(fileOperation.format).toBe(FileOperationFormat.MarkdownZip);
+    expect(fileOperation.options).toBeNull();
   });
 
   it("should return published document", async () => {
