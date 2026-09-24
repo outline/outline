@@ -59,6 +59,11 @@ export async function parseXlsx(data: ArrayBuffer): Promise<PreviewSheet[]> {
       const builder = new SheetBuilder();
 
       sheet.eachRow({ includeEmpty: false }, (row) => {
+        if (builder.count > maxPreviewRows) {
+          builder.add([]);
+          return;
+        }
+
         const cells: string[] = [];
         row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
           cells[columnNumber - 1] = cell.text;
