@@ -2,6 +2,7 @@ import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import env from "@server/env";
 import { AttachmentValidation } from "@shared/validations";
@@ -256,7 +257,9 @@ router.post(
       url,
     });
 
-    const response = await job.finished();
+    const response = await job.finished().catch((err) => {
+      throw InvalidRequestError(errToString(err));
+    });
     if ("error" in response) {
       throw InvalidRequestError(response.error);
     }

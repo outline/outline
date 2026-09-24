@@ -2,6 +2,7 @@
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import env from "@server/env";
+import FileStorage from "@server/storage/files";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
@@ -469,6 +470,30 @@ describe("#attachments.create", () => {
         expect(res.status).toEqual(403);
       }
     );
+  });
+});
+
+describe("#attachments.createFromUrl", () => {
+  it("should return an invalid request when the upload task fails", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    vi.mocked(FileStorage.storeFromUrl).mockResolvedValue(undefined);
+
+    const res = await server.post("/api/attachments.createFromUrl", user, {
+      body: {
+        url: "https://example.com/file.png",
+        documentId: document.id,
+        preset: AttachmentPreset.DocumentAttachment,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Failed to upload attachment from URL");
   });
 });
 
