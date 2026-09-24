@@ -9,6 +9,7 @@ import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import { FallbackPageTitle } from "~/components/PageTitle";
 import { useRightSidebarContent } from "~/components/RightSidebarContext";
+import { SidebarCollapsedProvider } from "~/components/SidebarCollapsedContext";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
 import env from "~/env";
@@ -41,36 +42,38 @@ function Layout({
 
   return (
     <FallbackPageTitle title={title ? title : env.APP_NAME}>
-      <Container column auto ref={ref}>
-        <SkipNavLink />
+      <SidebarCollapsedProvider value={showSidebar && sidebarCollapsed}>
+        <Container column auto ref={ref}>
+          <SkipNavLink />
 
-        {ui.progressBarVisible && <LoadingIndicatorBar />}
+          {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-        <Container auto>
-          {showSidebar && sidebar}
+          <Container auto>
+            {showSidebar && sidebar}
 
-          <SkipNavContent />
-          <Content
-            auto
-            justify="center"
-            role="main"
-            $isResizing={ui.sidebarIsResizing}
-            $sidebarCollapsed={sidebarCollapsed}
-            $hasSidebar={showSidebar}
-            style={
-              sidebarCollapsed
-                ? undefined
-                : {
-                    marginInlineStart: `${ui.sidebarWidth}px`,
-                  }
-            }
-          >
-            {children}
-          </Content>
+            <SkipNavContent />
+            <Content
+              auto
+              justify="center"
+              role="main"
+              $isResizing={ui.sidebarIsResizing}
+              $sidebarCollapsed={sidebarCollapsed}
+              $hasSidebar={showSidebar}
+              style={
+                sidebarCollapsed
+                  ? undefined
+                  : {
+                      marginInlineStart: `${ui.sidebarWidth}px`,
+                    }
+              }
+            >
+              {children}
+            </Content>
 
-          <AnimatePresence initial={false}>{sidebarRight}</AnimatePresence>
+            <AnimatePresence initial={false}>{sidebarRight}</AnimatePresence>
+          </Container>
         </Container>
-      </Container>
+      </SidebarCollapsedProvider>
     </FallbackPageTitle>
   );
 }
