@@ -14,7 +14,7 @@ import useMobile from "~/hooks/useMobile";
 import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import { preventDefault } from "~/utils/events";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const SharePopover = lazyWithRetry(
   () => import("~/components/Sharing/Collection/SharePopover")

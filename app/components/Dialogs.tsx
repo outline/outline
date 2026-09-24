@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { Suspense } from "react";
 import useStores from "~/hooks/useStores";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { DialogProvider } from "./DialogContext";
 
 const Guide = lazyWithRetry(() => import("~/components/Guide"));

@@ -13,7 +13,7 @@ import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { ContextMenu } from "../Menu/ContextMenu";
 import {
   notificationMarkReadActionFactory,

@@ -13,7 +13,7 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
-import { staleChunkErrorPattern } from "./lazyWithRetry";
+import { staleChunkErrorPattern } from "@shared/utils/lazyWithRetry";
 
 /**
  * Initializes the Sentry error tracking client for the browser.

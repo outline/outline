@@ -1,4 +1,4 @@
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 /**
  * The editor core is the largest chunk in the app and is kept out of the
