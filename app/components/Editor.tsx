@@ -218,6 +218,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
             $rtl={props.dir === "rtl"}
             grow={props.grow}
             style={props.style}
+            className={props.className}
             editorStyle={props.editorStyle}
             commenting={!!props.onClickCommentMark}
             lang={props.lang}
