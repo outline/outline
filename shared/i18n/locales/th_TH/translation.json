@@ -1906,5 +1906,17 @@
   "Add content": "Add content",
   "Tomorrow": "Tomorrow",
   "Group admin": "Group admin",
-  "Member": "สมาชิก"
+  "Member": "สมาชิก",
+  "Reason saved": "บันทึกเหตุผลแล้ว",
+  "The reason could not be saved. Please try again.": "ไม่สามารถบันทึกเหตุผลได้ โปรดลองอีกครั้ง",
+  "Reason for archiving or deleting": "เหตุผลในการเก็บถาวรหรือลบ",
+  "Add a reason": "เพิ่มเหตุผล",
+  "Reason (optional)": "เหตุผล (ไม่บังคับ)",
+  "Download complete": "ดาวน์โหลดเสร็จสมบูรณ์",
+  "Show in Finder": "แสดงใน Finder",
+  "Show in Explorer": "แสดงใน Explorer",
+  "Show in folder": "แสดงในโฟลเดอร์",
+  "Section options": "ตัวเลือกส่วน",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "การเปลี่ยนแปลงของคุณยังไม่ได้ซิงค์ แต่ถูกบันทึกไว้บนอุปกรณ์นี้\nคุณแน่ใจหรือไม่ว่าต้องการออก?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "การเปลี่ยนแปลงของคุณยังไม่ได้ซิงค์และจะสูญหาย\nคุณแน่ใจหรือไม่ว่าต้องการออก?"
 }

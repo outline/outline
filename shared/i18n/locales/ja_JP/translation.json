@@ -1906,5 +1906,17 @@
   "Add content": "コンテンツを追加",
   "Tomorrow": "明日",
   "Group admin": "グループ管理者",
-  "Member": "メンバー"
+  "Member": "メンバー",
+  "Reason saved": "理由を保存しました",
+  "The reason could not be saved. Please try again.": "理由を保存できませんでした。もう一度お試しください。",
+  "Reason for archiving or deleting": "アーカイブまたは削除の理由",
+  "Add a reason": "理由を追加",
+  "Reason (optional)": "理由(任意)",
+  "Download complete": "ダウンロードが完了しました",
+  "Show in Finder": "Finderで表示",
+  "Show in Explorer": "エクスプローラーで表示",
+  "Show in folder": "フォルダーで表示",
+  "Section options": "セクションのオプション",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "変更はまだ同期されていませんが、このデバイスに保存されています。\n本当にページを離れますか?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "変更はまだ同期されておらず、失われます。\n本当にページを離れますか?"
 }

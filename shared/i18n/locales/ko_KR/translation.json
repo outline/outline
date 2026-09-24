@@ -1906,5 +1906,17 @@
   "Add content": "콘텐츠 추가",
   "Tomorrow": "내일",
   "Group admin": "그룹 관리",
-  "Member": "멤버"
+  "Member": "멤버",
+  "Reason saved": "사유가 저장되었습니다",
+  "The reason could not be saved. Please try again.": "사유를 저장할 수 없습니다. 다시 시도해 주세요.",
+  "Reason for archiving or deleting": "보관 또는 삭제 사유",
+  "Add a reason": "사유 추가",
+  "Reason (optional)": "사유 (선택 사항)",
+  "Download complete": "다운로드 완료",
+  "Show in Finder": "Finder에서 보기",
+  "Show in Explorer": "탐색기에서 보기",
+  "Show in folder": "폴더에서 보기",
+  "Section options": "섹션 옵션",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "변경 사항이 아직 동기화되지 않았으며 이 기기에만 저장되어 있습니다.\n정말 나가시겠습니까?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "변경 사항이 아직 동기화되지 않았으며 손실됩니다.\n정말 나가시겠습니까?"
 }

@@ -1906,5 +1906,17 @@
   "Add content": "Add content",
   "Tomorrow": "Tomorrow",
   "Group admin": "Group admin",
-  "Member": "Thành viên"
+  "Member": "Thành viên",
+  "Reason saved": "Đã lưu lý do",
+  "The reason could not be saved. Please try again.": "Không thể lưu lý do. Vui lòng thử lại.",
+  "Reason for archiving or deleting": "Lý do lưu trữ hoặc xóa",
+  "Add a reason": "Thêm lý do",
+  "Reason (optional)": "Lý do (không bắt buộc)",
+  "Download complete": "Tải xuống hoàn tất",
+  "Show in Finder": "Hiện trong Finder",
+  "Show in Explorer": "Hiện trong Explorer",
+  "Show in folder": "Hiện trong thư mục",
+  "Section options": "Tùy chọn mục",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "Các thay đổi của bạn chưa được đồng bộ, chúng đã được lưu trên thiết bị này.\nBạn có chắc muốn rời đi không?",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "Các thay đổi của bạn chưa được đồng bộ và sẽ bị mất.\nBạn có chắc muốn rời đi không?"
 }

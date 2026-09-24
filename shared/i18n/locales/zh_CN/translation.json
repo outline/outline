@@ -1906,5 +1906,17 @@
   "Add content": "添加内容",
   "Tomorrow": "明天",
   "Group admin": "群组管理员",
-  "Member": "成员"
+  "Member": "成员",
+  "Reason saved": "原因已保存",
+  "The reason could not be saved. Please try again.": "原因保存失败，请重试。",
+  "Reason for archiving or deleting": "归档或删除的原因",
+  "Add a reason": "添加原因",
+  "Reason (optional)": "原因（可选）",
+  "Download complete": "下载完成",
+  "Show in Finder": "在 Finder 中显示",
+  "Show in Explorer": "在资源管理器中显示",
+  "Show in folder": "在文件夹中显示",
+  "Section options": "分区选项",
+  "Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?": "你的更改尚未同步，已保存在此设备上。\n确定要离开吗？",
+  "Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?": "你的更改尚未同步，将会丢失。\n确定要离开吗？"
 }
