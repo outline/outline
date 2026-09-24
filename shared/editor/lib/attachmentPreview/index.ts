@@ -1,6 +1,5 @@
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import { csvPreview } from "./csv";
-import { docxPreview } from "./docx";
 import { pdfPreview } from "./pdf";
 import type { AttachmentPreviewProvider } from "./types";
 import { xlsxPreview } from "./xlsx";
@@ -13,11 +12,12 @@ export type {
 
 /**
  * All registered attachment preview providers. Providers are matched in order,
- * so any provider with a broad match should be added last.
+ * so any provider with a broad match should be added last. Only register a
+ * provider once it can render its file type, since matching a node enables the
+ * preview toggle and replaces the attachment widget when toggled.
  */
 const attachmentPreviews: AttachmentPreviewProvider[] = [
   pdfPreview,
-  docxPreview,
   csvPreview,
   xlsxPreview,
 ];
