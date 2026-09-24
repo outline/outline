@@ -17,26 +17,24 @@ export interface PreviewSheet {
   totalRows: number;
 }
 
-/** Converts a downloaded attachment into the sheets of a tabular preview. */
-export type SheetParser = (response: Response) => Promise<PreviewSheet[]>;
+/** Converts the contents of a downloaded attachment into preview sheets. */
+export type SheetParser = (data: ArrayBuffer) => Promise<PreviewSheet[]>;
 
 /**
  * Parses a delimiter separated file (CSV, TSV) into a single preview sheet.
  * The delimiter is detected automatically. The parser is loaded on demand so
  * it stays out of the main bundle.
  *
- * @param response - the downloaded attachment.
+ * @param data - the contents of the attachment.
  * @returns a list containing the one sheet of the file.
  */
-export async function parseCsv(response: Response): Promise<PreviewSheet[]> {
-  const [{ parse }, text] = await Promise.all([
-    import("papaparse"),
-    response.text(),
-  ]);
+export async function parseCsv(data: ArrayBuffer): Promise<PreviewSheet[]> {
+  const { parse } = await import("papaparse");
+  const text = new TextDecoder().decode(data);
 
   const builder = new SheetBuilder();
-  const { data } = parse<string[]>(text, { skipEmptyLines: "greedy" });
-  data.forEach((cells) => builder.add(cells));
+  const { data: rows } = parse<string[]>(text, { skipEmptyLines: "greedy" });
+  rows.forEach((cells) => builder.add(cells));
 
   return [builder.build("")];
 }
@@ -46,17 +44,14 @@ export async function parseCsv(response: Response): Promise<PreviewSheet[]> {
  * sheets, using the formatted text of each cell. The parser is loaded on
  * demand so it stays out of the main bundle.
  *
- * @param response - the downloaded attachment.
+ * @param data - the contents of the attachment.
  * @returns the visible sheets of the workbook, in workbook order.
  */
-export async function parseXlsx(response: Response): Promise<PreviewSheet[]> {
-  const [{ Workbook }, buffer] = await Promise.all([
-    import("exceljs"),
-    response.arrayBuffer(),
-  ]);
+export async function parseXlsx(data: ArrayBuffer): Promise<PreviewSheet[]> {
+  const { Workbook } = await import("exceljs");
 
   const workbook = new Workbook();
-  await workbook.xlsx.load(buffer);
+  await workbook.xlsx.load(data);
 
   return workbook.worksheets
     .filter((sheet) => sheet.state === "visible")

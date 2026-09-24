@@ -32,11 +32,15 @@ export function SpreadsheetPreview(props: Props) {
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const tooLarge = (node.attrs.size ?? 0) > maxPreviewFileSize;
-  const { sheets, error } = useAttachmentSheets(
-    tooLarge ? undefined : node.attrs.href,
+  // skip the download when the stored size is already over the limit, the
+  // hook enforces the limit again on the bytes received
+  const knownTooLarge = (node.attrs.size ?? 0) > maxPreviewFileSize;
+  const loaded = useAttachmentSheets(
+    knownTooLarge ? undefined : node.attrs.href,
     parse
   );
+  const { sheets, error } = loaded;
+  const tooLarge = knownTooLarge || loaded.tooLarge;
   const sheet = sheets?.[Math.min(activeIndex, sheets.length - 1)];
 
   const renderBody = () => {
