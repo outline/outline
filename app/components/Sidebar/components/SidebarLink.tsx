@@ -115,6 +115,7 @@ function SidebarLink({
   const hasDisclosure = expanded !== undefined;
   const { t } = useTranslation();
   const theme = useTheme();
+  const [isInteractive, setIsInteractive] = React.useState(false);
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
@@ -161,26 +162,40 @@ function SidebarLink({
     [onDisclosureClick, hasDisclosure]
   );
 
+  const handleFocusCapture = (event: React.FocusEvent<HTMLElement>) => {
+    if (event.target === event.currentTarget) {
+      setIsInteractive(true);
+    }
+  };
+
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
+
+  const content = (
+    <Content>
+      {hasDisclosure && (
+        <DisclosureComponent
+          expanded={expanded}
+          onClick={handleDisclosureClick}
+          onMouseDown={stopPropagation}
+          tabIndex={-1}
+        />
+      )}
+      {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
+      <Label $ellipsis={ellipsis}>{label}</Label>
+      {unreadBadge && <UnreadBadge style={unreadStyle} />}
+    </Content>
+  );
 
   const innerContent = (
     <>
-      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
-        <Content>
-          {hasDisclosure && (
-            <DisclosureComponent
-              expanded={expanded}
-              onClick={handleDisclosureClick}
-              onMouseDown={stopPropagation}
-              tabIndex={-1}
-            />
-          )}
-          {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
-          <Label $ellipsis={ellipsis}>{label}</Label>
-          {unreadBadge && <UnreadBadge style={unreadStyle} />}
-        </Content>
-      </ContextMenu>
-      {menu && (
+      {isInteractive ? (
+        <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+          {content}
+        </ContextMenu>
+      ) : (
+        content
+      )}
+      {isInteractive && menu && (
         <SidebarActions $showActions={$showActions}>{menu}</SidebarActions>
       )}
     </>
@@ -196,6 +211,8 @@ function SidebarLink({
         style={active ? activeStyle : style}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
+        onPointerEnter={() => setIsInteractive(true)}
+        onFocusCapture={handleFocusCapture}
         onMouseLeave={handleMouseLeave}
         onDragEnter={handleMouseEnter}
         href={href}
@@ -218,6 +235,8 @@ function SidebarLink({
       onClick={handleClick}
       onActiveClick={handleDisclosureClick}
       onMouseEnter={handleMouseEnter}
+      onPointerEnter={() => setIsInteractive(true)}
+      onFocusCapture={handleFocusCapture}
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
       exact={exact !== false}

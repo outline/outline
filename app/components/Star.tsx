@@ -22,9 +22,18 @@ type Props = {
   size?: number;
   /** Color override for the star */
   color?: string;
+  /** Defer the tooltip until the containing row is interactive. */
+  tooltipDisabled?: boolean;
 };
 
-function Star({ size, document, collection, color, ...rest }: Props) {
+function Star({
+  size,
+  document,
+  collection,
+  color,
+  tooltipDisabled,
+  ...rest
+}: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -44,10 +53,16 @@ function Star({ size, document, collection, color, ...rest }: Props) {
     >
       <NudeButton
         hideOnActionDisabled
-        tooltip={{
-          content: target.isStarred ? t("Unstar document") : t("Star document"),
-          delay: 500,
-        }}
+        tooltip={
+          tooltipDisabled
+            ? undefined
+            : {
+                content: target.isStarred
+                  ? t("Unstar document")
+                  : t("Star document"),
+                delay: 500,
+              }
+        }
         action={
           collection
             ? collection.isStarred

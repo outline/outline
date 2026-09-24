@@ -14,11 +14,24 @@ export type Props = {
 
 const LocaleTime: React.FC<Props> = ({ children, ...rest }: Props) => {
   const { tooltipContent, content } = useLocaleTime(rest);
+  const [isInteractive, setIsInteractive] = React.useState(false);
 
-  return (
+  const time = (
+    <time
+      dateTime={rest.dateTime}
+      onPointerEnter={() => setIsInteractive(true)}
+      onFocus={() => setIsInteractive(true)}
+    >
+      {children || content}
+    </time>
+  );
+
+  return isInteractive ? (
     <Tooltip content={tooltipContent} placement="bottom">
-      <time dateTime={rest.dateTime}>{children || content}</time>
+      {time}
     </Tooltip>
+  ) : (
+    time
   );
 };
 
