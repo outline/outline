@@ -1,5 +1,5 @@
 import type { Schema } from "prosemirror-model";
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import type { ProsemirrorData } from "../types";
@@ -597,36 +597,23 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Returns the paragraphs from the data if there are only plain paragraphs
-   * without any formatting. Otherwise returns undefined.
+   * Returns true when the predicate holds for every node in the data,
+   * including the root and all descendants.
    *
-   * @param data The ProsemirrorData object or ProsemirrorNode
-   * @returns An array of paragraph nodes or undefined
+   * @param data The ProsemirrorData object to walk
+   * @param predicate The predicate to test each node against
+   * @returns true when every node passes the predicate
    */
-  static getPlainParagraphs(data: ProsemirrorData | Node) {
-    // Convert ProsemirrorNode to JSON if needed
-    const jsonData =
-      data instanceof Node ? (data.toJSON() as ProsemirrorData) : data;
-
-    const paragraphs: ProsemirrorData[] = [];
-    if (!jsonData.content) {
-      return paragraphs;
+  static everyNode(
+    data: ProsemirrorData,
+    predicate: (node: ProsemirrorData) => boolean
+  ): boolean {
+    if (!predicate(data)) {
+      return false;
     }
 
-    for (const node of jsonData.content) {
-      if (
-        node.type === "paragraph" &&
-        (!node.content ||
-          !node.content.some(
-            (item) =>
-              item.type !== "text" || (item.marks && item.marks.length > 0)
-          ))
-      ) {
-        paragraphs.push(node);
-      } else {
-        return undefined;
-      }
-    }
-    return paragraphs;
+    return (data.content ?? []).every(
+      (node) => !!node && ProsemirrorHelper.everyNode(node, predicate)
+    );
   }
 }
