@@ -15,11 +15,25 @@ interface AttachmentSheets {
   tooLarge: boolean;
 }
 
+/** The result of loading one attachment, tagged with the url it came from. */
+interface LoadResult extends AttachmentSheets {
+  href: string;
+}
+
+/** Returned while an attachment is loading, or when there is nothing to load. */
+const pending: AttachmentSheets = {
+  sheets: undefined,
+  error: false,
+  tooLarge: false,
+};
+
 /**
  * Downloads an attachment and parses it into sheets for a tabular preview.
  * The size limit is enforced on the bytes received, so it also applies to
  * attachments whose stored size is missing or wrong. The request is cancelled
- * when the component unmounts or the attachment changes.
+ * when the component unmounts or the attachment changes, and a result is only
+ * returned for the url it was loaded from, so a replaced attachment never shows
+ * the previous file's contents.
  *
  * @param href - the attachment url, undefined to skip loading.
  * @param parse - converts the downloaded attachment into sheets.
@@ -29,21 +43,17 @@ export default function useAttachmentSheets(
   href: string | undefined,
   parse: SheetParser
 ): AttachmentSheets {
-  const [state, setState] = useState<AttachmentSheets>({
-    sheets: undefined,
-    error: false,
-    tooLarge: false,
-  });
+  const [result, setResult] = useState<LoadResult>();
 
   useEffect(() => {
     const url = sanitizeUrl(href);
-    if (!url) {
+    if (!href || !url) {
       return;
     }
 
     const controller = new AbortController();
 
-    async function load(source: string) {
+    async function load(source: string, key: string) {
       try {
         const response = await fetch(source, { signal: controller.signal });
         if (!response.ok) {
@@ -53,22 +63,32 @@ export default function useAttachmentSheets(
         const data = await readWithLimit(response, maxPreviewFileSize);
         const sheets = await parse(data);
         if (!controller.signal.aborted) {
-          setState({ sheets, error: false, tooLarge: false });
+          setResult({ href: key, sheets, error: false, tooLarge: false });
         }
       } catch (err) {
         if (!controller.signal.aborted) {
           const tooLarge = err instanceof FileTooLargeError;
-          setState({ sheets: undefined, error: !tooLarge, tooLarge });
+          setResult({
+            href: key,
+            sheets: undefined,
+            error: !tooLarge,
+            tooLarge,
+          });
         }
       }
     }
 
-    void load(url);
+    void load(url, href);
 
     return () => controller.abort();
   }, [href, parse]);
 
-  return state;
+  // ignore a result that belongs to a different attachment than the current one
+  if (!result || result.href !== href) {
+    return pending;
+  }
+
+  return result;
 }
 
 /** Thrown when a downloaded attachment exceeds the preview size limit. */
