@@ -8,7 +8,7 @@ import {
   override,
   runInAction,
 } from "mobx";
-import { computedFn } from "mobx-utils";
+import { computedFn, now } from "mobx-utils";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   AttachmentPreset,
@@ -859,7 +859,7 @@ export default class DocumentsStore extends Store<Document> {
       }
 
       if (dateFilter) {
-        const cutoff = subtractDate(new Date(), dateFilter);
+        const cutoff = subtractDate(new Date(now(60000)), dateFilter);
         deleted = deleted.filter(
           (document) =>
             !!document.deletedAt && new Date(document.deletedAt) >= cutoff
@@ -881,7 +881,7 @@ export default class DocumentsStore extends Store<Document> {
       );
 
       if (dateFilter) {
-        const cutoff = subtractDate(new Date(), dateFilter);
+        const cutoff = subtractDate(new Date(now(60000)), dateFilter);
         drafts = drafts.filter((draft) => new Date(draft.updatedAt) >= cutoff);
       }
 
