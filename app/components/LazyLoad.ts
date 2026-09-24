@@ -1,6 +1,6 @@
 import * as React from "react";
-import type { LazyComponent as LazyComponentType } from "~/utils/lazyWithRetry";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import type { LazyComponent as LazyComponentType } from "@shared/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 // oxlint-disable no-explicit-any -- ComponentType<any> is the standard React pattern for generic component constraints
 export interface LazyComponent<T extends React.ComponentType<any>> {

@@ -1,7 +1,7 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import type { Props as TableProps, RowData } from "./Table";
 
 const Table = lazyWithRetry(() => import("~/components/Table"));

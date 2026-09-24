@@ -10,7 +10,7 @@ import PlaceholderText from "~/components/PlaceholderText";
 import { useSplitView } from "~/components/SplitView/context";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import {
   documentPath,
   matchDocumentHistory,

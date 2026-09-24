@@ -14,7 +14,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { isStaleChunkError } from "~/utils/lazyWithRetry";
+import { isStaleChunkError } from "@shared/utils/lazyWithRetry";
 import Storage from "@shared/utils/Storage";
 import { deleteAllDatabases } from "~/utils/developer";
 import Flex from "./Flex";

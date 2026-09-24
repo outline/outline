@@ -32,6 +32,7 @@ import {
 } from "../../types";
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
+import lazyWithRetry from "../../utils/lazyWithRetry";
 import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
 
@@ -552,7 +553,7 @@ type DateProps = ComponentProps & {
 // Loaded lazily so its browser-only dependencies (Radix, react-day-picker)
 // don't enter the editor schema's static import graph, which is also used on
 // the server.
-const DateMentionPicker = React.lazy(() => import("./DateMentionPicker"));
+const DateMentionPicker = lazyWithRetry(() => import("./DateMentionPicker"));
 
 export const MentionDate = observer(function MentionDate_(props: DateProps) {
   const { isSelected, isEditable, node, onChangeDate } = props;

@@ -14,7 +14,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import useKeyboardShortcutsQuery from "~/hooks/useKeyboardShortcutsQuery";
-import lazy from "~/utils/lazyWithRetry";
+import lazy from "@shared/utils/lazyWithRetry";
 import * as Scenes from "./scenes";
 import {
   archivePath,

@@ -45,7 +45,7 @@ import { PasskeyAuthenticationProvider } from "./components/PasskeyAuthenticatio
 import { SigningIn } from "./components/SigningIn";
 import { SwitchHostButton } from "./components/SwitchHostButton";
 import { navigateToSubdomain } from "./urls";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { getRedirectUrl } from "~/utils/urls";
 
 const WorkspaceSetup = lazyWithRetry(
