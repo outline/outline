@@ -29,6 +29,7 @@ import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { AttachmentPreset } from "@shared/types";
 import { UserFlag } from "@server/models/User";
+import { getEmailVerified } from "./getEmailVerified";
 
 const router = new Router();
 const scopes: string[] = [];
@@ -149,31 +150,15 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const user =
           context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
-        // The mail and userPrincipalName values come from the directory via the
-        // Graph API and are owned by the organization, so an email sourced from
-        // them is inherently trusted. Microsoft's mutable `email` token claim is
-        // only trusted when a verification claim confirms it — xms_edov for
-        // workforce tenants, or the standard email_verified claim in External ID
-        // / OIDC scenarios.
-        // https://learn.microsoft.com/en-us/entra/identity-platform/reference-claims-customization
-        const directoryEmails = [
-          profileResponse.mail,
-          profileResponse.userPrincipalName,
-        ]
-          .filter(Boolean)
-          .map((value) => value.toLowerCase());
-
-        const verificationClaims = [
-          profile.xms_edov,
-          profile.email_verified,
-        ].filter((claim) => claim !== undefined);
-        const emailVerified =
-          directoryEmails.includes(email.toLowerCase()) ||
-          (verificationClaims.length
-            ? verificationClaims.some(
-                (claim) => claim === true || claim === "true"
-              )
-            : undefined);
+        const emailVerified = getEmailVerified(
+          email,
+          {
+            email: profile.email,
+            xms_edov: profile.xms_edov,
+            email_verified: profile.email_verified,
+          },
+          profileResponse.userPrincipalName
+        );
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
