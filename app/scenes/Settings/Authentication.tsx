@@ -15,6 +15,7 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
+import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -47,22 +48,19 @@ function Authentication() {
     }
   }, [loading, providers, request]);
 
+  const groupSyncResult = useConsumeQueryParam("groupSync");
+
   React.useEffect(() => {
-    const url = new URL(window.location.href);
-    const result = url.searchParams.get("groupSync");
-    if (!result) {
+    if (!groupSyncResult) {
       return;
     }
 
-    if (result === "connected") {
+    if (groupSyncResult === "connected") {
       toast.success(t("Group sync connected"));
     } else {
       toast.error(t("Could not connect group sync"));
     }
-
-    url.searchParams.delete("groupSync");
-    window.history.replaceState(window.history.state, "", url.toString());
-  }, [t]);
+  }, [groupSyncResult, t]);
 
   const handleGuestSigninChange = React.useCallback(
     async (checked: boolean) => {
