@@ -23,6 +23,8 @@ class AuthenticationProvider extends Model {
 
   groupSyncUsesClaim: boolean;
 
+  groupSyncRequiresSetup: boolean;
+
   @observable
   isConnected: boolean;
 

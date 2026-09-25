@@ -39,6 +39,14 @@ export type AuthenticationProvidersUpdateReq = z.infer<
   typeof AuthenticationProvidersUpdateSchema
 >;
 
+export const AuthenticationProvidersStartGroupSyncSchema = BaseSchema.extend({
+  body: z.object({ id: z.uuid() }),
+});
+
+export type AuthenticationProvidersStartGroupSyncReq = z.infer<
+  typeof AuthenticationProvidersStartGroupSyncSchema
+>;
+
 export const AuthenticationProvidersDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** Authentication Provider Id */
