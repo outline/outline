@@ -48,10 +48,6 @@ type Props = {
 export default abstract class APIImportTask<
   T extends ImportableIntegrationService,
 > extends BaseTask<Props> {
-  protected jobId({ importTaskId }: Props) {
-    return `api-import:${importTaskId}`;
-  }
-
   /**
    * Run the import task.
    *
