@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { Op, Transaction } from "sequelize";
-import type { FindOptions, WhereOptions } from "sequelize";
+import { Transaction } from "sequelize";
 import { sequelize } from "@server/storage/database";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CommentStatusFilter } from "@shared/types";
@@ -107,97 +106,29 @@ export function commentTools(server: McpServer, scopes: string[]) {
         ) => {
           try {
             const user = getActorFromContext(extra);
-            const effectiveOffset = offset ?? 0;
-            const effectiveLimit = limit ?? 25;
 
-            const statusQuery: WhereOptions<Comment>[] = [];
-            if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
-              statusQuery.push({ resolvedById: { [Op.not]: null } });
-            }
-            if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
-              statusQuery.push({ resolvedById: null });
-            }
-
-            const and: WhereOptions<Comment>[] = [];
+            let document: Document | null = null;
             if (documentId) {
-              and.push({ documentId });
-            }
-            if (parentCommentId) {
-              and.push({ parentCommentId });
-            }
-            if (statusQuery.length) {
-              and.push({ [Op.or]: statusQuery });
-            }
-            const where: WhereOptions<Comment> = {
-              [Op.and]: and,
-            };
-
-            const params: FindOptions<Comment> = {
-              where,
-              order: [["createdAt", "DESC"]],
-              offset: effectiveOffset,
-              limit: effectiveLimit,
-            };
-
-            let comments: Comment[];
-
-            if (documentId) {
-              const document = await Document.findByPk(documentId, {
+              document = await Document.findByPk(documentId, {
                 userId: user.id,
               });
               authorize(user, "read", document);
-
-              comments = await Comment.findAll(params);
-              comments.forEach((comment) => (comment.document = document!));
-            } else {
-              let collectionIds: string | string[];
-              if (collectionId) {
-                const collection = await Collection.findByPk(collectionId, {
-                  userId: user.id,
-                });
-                authorize(user, "read", collection);
-                collectionIds = collectionId;
-              } else {
-                collectionIds = await user.collectionIds();
-              }
-
-              comments = await Comment.findAll({
-                include: [
-                  {
-                    // The document is joined only to filter by access, so
-                    // neither its columns nor its default associations are
-                    // loaded.
-                    model: Document.scope("published"),
-                    required: true,
-                    attributes: [],
-                    where: {
-                      teamId: user.teamId,
-                      collectionId: collectionIds,
-                    },
-                  },
-                ],
-                ...params,
+            } else if (collectionId) {
+              const collection = await Collection.findByPk(collectionId, {
+                userId: user.id,
               });
-
-              // Load each document once so comments on the same document
-              // share an instance, and with it the parsed comment marks.
-              const documents = await Document.scope("withoutState").findAll({
-                where: {
-                  id: [
-                    ...new Set(comments.map((comment) => comment.documentId)),
-                  ],
-                },
-              });
-              const documentsById = new Map(
-                documents.map((doc) => [doc.id, doc])
-              );
-              comments.forEach((comment) => {
-                const document = documentsById.get(comment.documentId);
-                if (document) {
-                  comment.document = document;
-                }
-              });
+              authorize(user, "read", collection);
             }
+
+            const { comments } = await Comment.findAllForUser(user, {
+              document,
+              collectionId,
+              parentCommentId,
+              statusFilter,
+              includeDocuments: true,
+              offset: offset ?? 0,
+              limit: limit ?? 25,
+            });
 
             return success(
               comments.map((comment) => presentCommentWithText(comment))

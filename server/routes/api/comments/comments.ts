@@ -1,9 +1,7 @@
 import Router from "koa-router";
 import { difference } from "es-toolkit/compat";
-import type { FindOptions, WhereOptions } from "sequelize";
-import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { CommentStatusFilter, MentionType, IconType } from "@shared/types";
+import { MentionType, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { commentParser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
@@ -178,96 +176,33 @@ router.post(
       includeAnchorText,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const statusQuery = [];
 
-    if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
-      statusQuery.push({ resolvedById: { [Op.not]: null } });
-    }
-    if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
-      statusQuery.push({ resolvedById: null });
-    }
-
-    const where: WhereOptions<Comment> = {
-      [Op.and]: [],
-    };
+    let document: Document | null = null;
     if (documentId) {
-      // @ts-expect-error ignore
-      where[Op.and].push({ documentId });
-    }
-    if (parentCommentId) {
-      // @ts-expect-error ignore
-      where[Op.and].push({ parentCommentId });
-    }
-    if (statusQuery.length) {
-      // @ts-expect-error ignore
-      where[Op.and].push({ [Op.or]: statusQuery });
-    }
-
-    const params: FindOptions<Comment> = {
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    };
-
-    let comments: Comment[], total: number;
-    if (documentId) {
-      const document = await Document.findByPk(documentId, {
+      document = await Document.findByPk(documentId, {
         userId: user.id,
         // The body is only needed to resolve anchor text for each comment.
         includeContent: !!includeAnchorText,
       });
       authorize(user, "read", document);
-      [comments, total] = await Promise.all([
-        Comment.findAll(params),
-        Comment.count({ where }),
-      ]);
-      comments.forEach((comment) => (comment.document = document));
-    } else {
-      let collectionIds: string | string[];
-      if (collectionId) {
-        const collection = await Collection.findByPk(collectionId, {
-          userId: user.id,
-        });
-        authorize(user, "read", collection);
-        collectionIds = collectionId;
-      } else {
-        collectionIds = await user.collectionIds();
-      }
-
-      // The document is joined only to filter by access, so neither its
-      // columns nor its default associations are loaded.
-      const include = [
-        {
-          model: Document.scope("published"),
-          required: true,
-          attributes: [],
-          where: {
-            teamId: user.teamId,
-            collectionId: collectionIds,
-          },
-        },
-      ];
-      [comments, total] = await Promise.all([
-        Comment.findAll({ include, ...params }),
-        Comment.count({ include, where }),
-      ]);
-
-      if (includeAnchorText) {
-        const documents = await Document.scope("withoutState").findAll({
-          where: {
-            id: [...new Set(comments.map((comment) => comment.documentId))],
-          },
-        });
-        const documentsById = new Map(documents.map((doc) => [doc.id, doc]));
-        comments.forEach((comment) => {
-          const document = documentsById.get(comment.documentId);
-          if (document) {
-            comment.document = document;
-          }
-        });
-      }
+    } else if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "read", collection);
     }
+
+    const { comments, total } = await Comment.findAllForUser(user, {
+      document,
+      collectionId,
+      parentCommentId,
+      statusFilter,
+      includeDocuments: includeAnchorText,
+      sort,
+      direction,
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
