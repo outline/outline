@@ -9,6 +9,10 @@ type Props = {
 };
 
 export default class ValidateSSOAccessTask extends BaseTask<Props> {
+  protected jobId({ userId }: Props) {
+    return `validate-sso:${userId}`;
+  }
+
   public async perform({ userId }: Props) {
     await MutexLock.using(
       `validateSSO:${userId}`,

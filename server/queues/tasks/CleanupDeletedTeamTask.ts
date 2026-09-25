@@ -8,6 +8,10 @@ type Props = {
 };
 
 export default class CleanupDeletedTeamTask extends BaseTask<Props> {
+  protected jobId({ teamId }: Props) {
+    return `cleanup-team:${teamId}`;
+  }
+
   public async perform({ teamId }: Props) {
     const team = await Team.findByPk(teamId, {
       paranoid: false,

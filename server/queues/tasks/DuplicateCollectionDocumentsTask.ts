@@ -18,6 +18,10 @@ type Props = {
 };
 
 export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
+  protected jobId({ collectionId }: Props) {
+    return `duplicate-collection:${collectionId}`;
+  }
+
   async perform(props: Props) {
     const [collection, original, actor] = await Promise.all([
       Collection.findByPk(props.collectionId),

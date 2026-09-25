@@ -16,6 +16,10 @@ type Props = {
  * dynamically registered OAuth clients in a team.
  */
 export default class RevokeDynamicOAuthClientsTask extends BaseTask<Props> {
+  protected jobId({ teamId }: Props) {
+    return `revoke-dynamic-oauth-clients:${teamId}`;
+  }
+
   public async perform({ teamId }: Props) {
     const clients = await OAuthClient.findAll({
       attributes: ["id"],
