@@ -1,5 +1,6 @@
 import type { Group, User } from "@server/models";
 import { AuthenticationProvider, Event, ExternalGroup } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildUser,
   buildAdmin,
@@ -633,15 +634,57 @@ describe("#groups.add_user", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
     const res = await server.post("/api/groups.add_user", user, {
       body: {
         id: group.id,
         userId: user.id,
       },
     });
+    const body = await res.json();
     const users = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
+    await group.reload();
+    expect(group.updatedAt.getTime()).toBeGreaterThan(
+      previousUpdatedAt.getTime()
+    );
+    expect(body.data.groups[0].updatedAt).toBe(group.updatedAt.toISOString());
+  });
+
+  it("should not update the group when the user is already a member", async () => {
+    const user = await buildAdmin();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      groupId: group.id,
+      teamId: group.teamId,
+      userId: user.id,
+    });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
+
+    const res = await server.post("/api/groups.add_user", user, {
+      body: { id: group.id, userId: user.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await group.reload();
+    expect(group.updatedAt).toEqual(previousUpdatedAt);
   });
 
   it("should add user to group as admin", async () => {
@@ -720,6 +763,15 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
     const users = await group.$get("users");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/groups.remove_user", user, {
@@ -728,9 +780,15 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
+    const body = await res.json();
     const users1 = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users1.length).toEqual(0);
+    await group.reload();
+    expect(group.updatedAt.getTime()).toBeGreaterThan(
+      previousUpdatedAt.getTime()
+    );
+    expect(body.data.groups[0].updatedAt).toBe(group.updatedAt.toISOString());
   });
 
   it("should require authentication", async () => {
