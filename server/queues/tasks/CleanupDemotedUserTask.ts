@@ -13,6 +13,10 @@ type Props = {
  * currently this is done by destroying associated Api Keys and disabling webhooks.
  */
 export default class CleanupDemotedUserTask extends BaseTask<Props> {
+  protected jobId({ userId }: Props) {
+    return `cleanup-demoted-user:${userId}`;
+  }
+
   public async perform(props: Props) {
     const user = await User.scope("withTeam").findByPk(props.userId);
 

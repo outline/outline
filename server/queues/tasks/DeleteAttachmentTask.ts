@@ -7,6 +7,10 @@ type Props = {
 };
 
 export default class DeleteAttachmentTask extends BaseTask<Props> {
+  protected jobId({ attachmentId }: Props) {
+    return `delete-attachment:${attachmentId}`;
+  }
+
   public async perform({ attachmentId, teamId }: Props) {
     const attachment = await Attachment.findOne({
       where: {
