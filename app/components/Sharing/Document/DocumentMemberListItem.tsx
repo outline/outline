@@ -86,10 +86,7 @@ const DocumentMemberListItem = ({
         membership?.sourceId ? (
           <Trans>
             Has access through{" "}
-            <MaybeLink
-              // @ts-expect-error to prop does not exist on React.Fragment
-              to={membership.source?.document?.path ?? ""}
-            >
+            <MaybeLink to={membership.source?.document?.path ?? ""}>
               parent
             </MaybeLink>
           </Trans>
