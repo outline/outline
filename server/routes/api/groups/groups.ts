@@ -473,7 +473,7 @@ router.post(
 
     const userPermission = permission;
 
-    const [groupUser] = await GroupUser.findOrCreateWithCtx(
+    const [groupUser, created] = await GroupUser.findOrCreateWithCtx(
       ctx,
       {
         where: {
@@ -494,6 +494,10 @@ router.post(
       groupUser.permission !== userPermission
     ) {
       await groupUser.updateWithCtx(ctx, { permission: userPermission });
+    }
+
+    if (created) {
+      await group.reload({ transaction });
     }
 
     groupUser.user = user;
@@ -552,7 +556,10 @@ router.post(
       lock: transaction.LOCK.UPDATE,
     });
 
-    await groupUser?.destroyWithCtx(ctx, { name: "remove_user" });
+    if (groupUser) {
+      await groupUser.destroyWithCtx(ctx, { name: "remove_user" });
+      await group.reload({ transaction });
+    }
 
     ctx.body = {
       data: {
