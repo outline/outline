@@ -814,18 +814,13 @@ router.post(
     }
 
     const [collections, total] = await Promise.all([
-      Collection.scope(
-        includeArchived
-          ? [
-              {
-                method: ["withMembership", user.id],
-              },
-              "withArchivedBy",
-            ]
-          : {
-              method: ["withMembership", user.id],
-            }
-      ).findAll({
+      Collection.scope([
+        // Named scopes replace the default scope, so it must be applied
+        // explicitly to keep the documentStructure column out of the result.
+        "defaultScope",
+        { method: ["withMembership", user.id] },
+        ...(includeArchived ? ["withArchivedBy"] : []),
+      ]).findAll({
         where,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),
