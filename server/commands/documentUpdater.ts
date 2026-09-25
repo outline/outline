@@ -150,6 +150,7 @@ export default async function documentUpdater(
 
   const changed = document.changed();
   const eventData = done !== undefined ? { done } : undefined;
+  const { collection } = document;
 
   const event = {
     name: "documents.update",
@@ -175,9 +176,17 @@ export default async function documentUpdater(
     });
   }
 
-  return await Document.findByPk(document.id, {
-    userId: user.id,
-    rejectOnEmpty: true,
-    transaction,
-  });
+  // Publishing can move the document to another collection, and the save
+  // hooks that maintain the collection structure replace the loaded
+  // collection with one that has no membership data. Reload in those cases
+  // so that policies stay accurate.
+  if (publish || document.collection !== collection) {
+    return await Document.findByPk(document.id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+  }
+
+  return document;
 }
