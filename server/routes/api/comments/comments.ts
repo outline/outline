@@ -235,11 +235,11 @@ router.post(
         collectionIds = await user.collectionIds();
       }
 
-      // The document is joined only to filter by access, its columns are not
-      // needed so they are excluded from the result rows.
+      // The document is joined only to filter by access, so neither its
+      // columns nor its default associations are loaded.
       const include = [
         {
-          model: Document,
+          model: Document.scope("published"),
           required: true,
           attributes: [],
           where: {

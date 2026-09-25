@@ -149,40 +149,53 @@ export function commentTools(server: McpServer, scopes: string[]) {
 
               comments = await Comment.findAll(params);
               comments.forEach((comment) => (comment.document = document!));
-            } else if (collectionId) {
-              const collection = await Collection.findByPk(collectionId, {
-                userId: user.id,
-              });
-              authorize(user, "read", collection);
-
-              comments = await Comment.findAll({
-                include: [
-                  {
-                    model: Document,
-                    required: true,
-                    where: {
-                      teamId: user.teamId,
-                      collectionId,
-                    },
-                  },
-                ],
-                ...params,
-              });
             } else {
-              const accessibleCollectionIds = await user.collectionIds();
+              let collectionIds: string | string[];
+              if (collectionId) {
+                const collection = await Collection.findByPk(collectionId, {
+                  userId: user.id,
+                });
+                authorize(user, "read", collection);
+                collectionIds = collectionId;
+              } else {
+                collectionIds = await user.collectionIds();
+              }
 
               comments = await Comment.findAll({
                 include: [
                   {
-                    model: Document,
+                    // The document is joined only to filter by access, so
+                    // neither its columns nor its default associations are
+                    // loaded.
+                    model: Document.scope("published"),
                     required: true,
+                    attributes: [],
                     where: {
                       teamId: user.teamId,
-                      collectionId: { [Op.in]: accessibleCollectionIds },
+                      collectionId: collectionIds,
                     },
                   },
                 ],
                 ...params,
+              });
+
+              // Load each document once so comments on the same document
+              // share an instance, and with it the parsed comment marks.
+              const documents = await Document.scope("withoutState").findAll({
+                where: {
+                  id: [
+                    ...new Set(comments.map((comment) => comment.documentId)),
+                  ],
+                },
+              });
+              const documentsById = new Map(
+                documents.map((doc) => [doc.id, doc])
+              );
+              comments.forEach((comment) => {
+                const document = documentsById.get(comment.documentId);
+                if (document) {
+                  comment.document = document;
+                }
               });
             }
 

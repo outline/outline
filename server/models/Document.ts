@@ -124,6 +124,20 @@ interface QueryGeneratorWithWhere {
   ): string;
 }
 
+// Documents that are visible by default: published, not a template, and not
+// created as part of a trial.
+const publishedWhere: WhereOptions<Document> = {
+  publishedAt: {
+    [Op.ne]: null,
+  },
+  sourceMetadata: {
+    trial: {
+      [Op.is]: null,
+    },
+  },
+  template: false,
+};
+
 @DefaultScope(() => ({
   include: [
     {
@@ -137,23 +151,16 @@ interface QueryGeneratorWithWhere {
       paranoid: false,
     },
   ],
-  where: {
-    publishedAt: {
-      [Op.ne]: null,
-    },
-    sourceMetadata: {
-      trial: {
-        [Op.is]: null,
-      },
-    },
-    template: false,
-  },
+  where: publishedWhere,
   attributes: {
     exclude: ["state"],
     include: [stateIfContentEmpty],
   },
 }))
 @Scopes(() => ({
+  published: {
+    where: publishedWhere,
+  },
   withoutState: {
     attributes: {
       exclude: ["state"],
