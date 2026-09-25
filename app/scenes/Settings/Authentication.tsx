@@ -47,6 +47,23 @@ function Authentication() {
     }
   }, [loading, providers, request]);
 
+  React.useEffect(() => {
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get("azureGroupSync");
+    if (!result) {
+      return;
+    }
+
+    if (result === "connected") {
+      toast.success(t("Group sync connected"));
+    } else {
+      toast.error(t("Could not connect group sync"));
+    }
+
+    url.searchParams.delete("azureGroupSync");
+    window.history.replaceState(window.history.state, "", url.toString());
+  }, [t]);
+
   const handleGuestSigninChange = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -109,6 +126,15 @@ function Authentication() {
       if (checked) {
         void (async () => {
           try {
+            if (provider.name === "azure") {
+              const result = await client.post<{ data: { url: string } }>(
+                "/authenticationProviders.startGroupSync",
+                { id: provider.id }
+              );
+              window.location.href = result.data.url;
+              return;
+            }
+
             await provider.save({
               settings: {
                 ...provider.settings,
@@ -227,10 +253,17 @@ function Authentication() {
             <SettingRow
               label={t("Group sync")}
               name={`groupSync-${provider.name}`}
-              description={t(
-                "Sync group memberships from {{ authProvider }} on each sign-in",
-                { authProvider: provider.displayName }
-              )}
+              description={
+                provider.name === "azure" &&
+                !provider.settings?.groupSyncEnabled
+                  ? t(
+                      "A Microsoft Entra administrator must approve group access for this workspace"
+                    )
+                  : t(
+                      "Sync group memberships from {{ authProvider }} on each sign-in",
+                      { authProvider: provider.displayName }
+                    )
+              }
               border={
                 !(
                   provider.settings?.groupSyncEnabled &&
@@ -238,11 +271,23 @@ function Authentication() {
                 )
               }
             >
-              <Switch
-                id={`groupSync-${provider.name}`}
-                checked={provider.settings?.groupSyncEnabled ?? false}
-                onChange={(checked) => handleToggleGroupSync(provider, checked)}
-              />
+              {provider.name === "azure" &&
+              !provider.settings?.groupSyncEnabled ? (
+                <Button
+                  onClick={() => handleToggleGroupSync(provider, true)}
+                  neutral
+                >
+                  {t("Set up group sync")}
+                </Button>
+              ) : (
+                <Switch
+                  id={`groupSync-${provider.name}`}
+                  checked={provider.settings?.groupSyncEnabled ?? false}
+                  onChange={(checked) =>
+                    handleToggleGroupSync(provider, checked)
+                  }
+                />
+              )}
             </SettingRow>
           )}
           {provider.isActive &&

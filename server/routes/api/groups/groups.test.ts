@@ -179,6 +179,68 @@ describe("#groups.update", () => {
       expect(body).toMatchSnapshot();
     });
   });
+
+  describe("externally synced group", () => {
+    let user: User;
+    let group: Group;
+
+    beforeEach(async () => {
+      user = await buildAdmin();
+      group = await buildGroup({
+        teamId: user.teamId,
+        name: "Synced",
+        description: "Synced description",
+      });
+      const authProvider = (await AuthenticationProvider.findOne({
+        where: { teamId: user.teamId },
+      }))!;
+      await ExternalGroup.create({
+        externalId: "ext-1",
+        name: group.name,
+        groupId: group.id,
+        authenticationProviderId: authProvider.id,
+        teamId: user.teamId,
+      });
+    });
+
+    it("does not allow changing the name", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          name: "Renamed",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body.message).toContain("name of a group synced");
+    });
+
+    it("does not allow changing the description", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          description: "Changed description",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body.message).toContain("description of a group synced");
+    });
+
+    it("allows updating other fields when name and description are unchanged", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          disableMentions: true,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.disableMentions).toEqual(true);
+    });
+  });
 });
 
 describe("#groups.list", () => {

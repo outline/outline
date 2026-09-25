@@ -83,6 +83,77 @@ describe("groupsSyncer", () => {
     expect(externalGroup!.name).toEqual("Platform Engineering");
   });
 
+  it("should sync group description from the external provider", async () => {
+    const user = await buildUser();
+    const team = await user.$get("team")!;
+    const authenticationProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+
+    await sequelize.transaction(async (transaction) =>
+      groupsSyncer(createContext({ user, transaction, ip }), {
+        user,
+        team: team!,
+        authenticationProvider,
+        externalGroups: [
+          {
+            id: "ext-1",
+            name: "Engineering",
+            description: "  All engineers  ",
+          },
+        ],
+      })
+    );
+
+    const group = await Group.findOne({
+      where: { teamId: user.teamId, name: "Engineering" },
+    });
+    expect(group!.description).toEqual("All engineers");
+
+    // Second sync with updated description
+    await sequelize.transaction(async (transaction) =>
+      groupsSyncer(createContext({ user, transaction, ip }), {
+        user,
+        team: team!,
+        authenticationProvider,
+        externalGroups: [
+          { id: "ext-1", name: "Engineering", description: "Platform team" },
+        ],
+      })
+    );
+
+    await group!.reload();
+    expect(group!.description).toEqual("Platform team");
+
+    // Provider reports no description: existing value is preserved
+    await sequelize.transaction(async (transaction) =>
+      groupsSyncer(createContext({ user, transaction, ip }), {
+        user,
+        team: team!,
+        authenticationProvider,
+        externalGroups: [{ id: "ext-1", name: "Engineering" }],
+      })
+    );
+
+    await group!.reload();
+    expect(group!.description).toEqual("Platform team");
+
+    // Provider explicitly clears the description
+    await sequelize.transaction(async (transaction) =>
+      groupsSyncer(createContext({ user, transaction, ip }), {
+        user,
+        team: team!,
+        authenticationProvider,
+        externalGroups: [
+          { id: "ext-1", name: "Engineering", description: null },
+        ],
+      })
+    );
+
+    await group!.reload();
+    expect(group!.description).toEqual("");
+  });
+
   it("should remove memberships when user is no longer in external group", async () => {
     const user = await buildUser();
     const team = await user.$get("team")!;

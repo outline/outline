@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import { GroupValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import type { AuthenticationProvider } from "@server/models";
 import { ExternalGroup, Group, GroupUser } from "@server/models";
@@ -66,6 +67,8 @@ async function groupsSyncer(
       transaction,
     });
 
+    const description = normalizeDescription(eg.description);
+
     // Update name if changed, and always update lastSyncedAt
     if (!created) {
       const updates: Partial<{ name: string; lastSyncedAt: Date }> = {
@@ -73,24 +76,38 @@ async function groupsSyncer(
       };
       if (externalGroup.name !== eg.name) {
         updates.name = eg.name;
+      }
+      await externalGroup.update(updates, { transaction });
 
-        // Also update the linked internal Group name
-        if (externalGroup.groupId) {
-          const group = await Group.findByPk(externalGroup.groupId, {
-            transaction,
-          });
-          if (group) {
-            await group.update({ name: eg.name }, { transaction });
+      // Keep the linked internal Group's name and description in sync
+      if (externalGroup.groupId) {
+        const group = await Group.findByPk(externalGroup.groupId, {
+          transaction,
+        });
+        if (group) {
+          const groupUpdates: Partial<{ name: string; description: string }> =
+            {};
+          if (group.name !== eg.name) {
+            groupUpdates.name = eg.name;
+          }
+          if (
+            description !== undefined &&
+            (group.description ?? "") !== description
+          ) {
+            groupUpdates.description = description;
+          }
+          if (Object.keys(groupUpdates).length > 0) {
+            await group.update(groupUpdates, { transaction });
           }
         }
       }
-      await externalGroup.update(updates, { transaction });
     }
 
     // Auto-create internal Group if one doesn't exist yet
     if (!externalGroup.groupId) {
       const group = await Group.createWithCtx(ctx, {
         name: eg.name,
+        description: description ?? "",
         teamId: team.id,
         createdById: user.id,
       });
@@ -157,6 +174,24 @@ async function groupsSyncer(
   );
 
   return result;
+}
+
+/**
+ * Normalizes a provider-reported description so it can be stored on a Group.
+ *
+ * @param description - the description reported by the external provider.
+ * @returns the trimmed and truncated description, or undefined when the
+ * provider did not report one.
+ */
+function normalizeDescription(
+  description: string | null | undefined
+): string | undefined {
+  if (description === undefined) {
+    return undefined;
+  }
+  return (description ?? "")
+    .trim()
+    .slice(0, GroupValidation.maxDescriptionLength);
 }
 
 export default groupsSyncer;

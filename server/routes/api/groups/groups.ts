@@ -286,14 +286,23 @@ router.post(
     });
     authorize(user, "update", group);
 
-    if (
-      group.externalGroups?.length &&
-      ctx.input.body.name !== undefined &&
-      ctx.input.body.name !== group.name
-    ) {
-      throw ValidationError(
-        "The name of a group synced from an external provider cannot be changed"
-      );
+    if (group.externalGroups?.length) {
+      const { name, description } = ctx.input.body;
+
+      if (name !== undefined && name !== group.name) {
+        throw ValidationError(
+          "The name of a group synced from an external provider cannot be changed"
+        );
+      }
+
+      if (
+        description !== undefined &&
+        description !== (group.description ?? "")
+      ) {
+        throw ValidationError(
+          "The description of a group synced from an external provider cannot be changed"
+        );
+      }
     }
 
     await group.updateWithCtx(ctx, ctx.input.body);
