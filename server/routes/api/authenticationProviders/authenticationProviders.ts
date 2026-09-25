@@ -196,6 +196,7 @@ router.post(
           isConnected: false,
           groupSyncSupported: !!groupSyncProvider,
           groupSyncUsesClaim: groupSyncProvider?.useGroupClaim ?? false,
+          groupSyncRequiresSetup: !!groupSyncProvider?.startGroupSync,
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })

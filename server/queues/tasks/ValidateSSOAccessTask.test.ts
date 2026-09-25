@@ -30,9 +30,10 @@ describe("ValidateSSOAccessTask", () => {
 
     expect(schedule).toHaveBeenCalledTimes(1);
     expect(schedule.mock.instances[0]).toBeInstanceOf(SyncUserGroupsTask);
-    expect(schedule).toHaveBeenCalledWith({
-      userAuthenticationId: authentication.id,
-    });
+    expect(schedule).toHaveBeenCalledWith(
+      { userAuthenticationId: authentication.id },
+      { jobId: `sync-user-groups:${authentication.id}` }
+    );
   });
 
   it("should not schedule a group sync when validation was skipped as recent", async () => {

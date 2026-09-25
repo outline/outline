@@ -70,7 +70,12 @@ describe("accountProvisioner", () => {
         (_, index) =>
           schedule.mock.instances[index] instanceof SyncUserGroupsTask
       );
-      expect(calls).toEqual([[{ userAuthenticationId: authentication.id }]]);
+      expect(calls).toEqual([
+        [
+          { userAuthenticationId: authentication.id },
+          { jobId: `sync-user-groups:${authentication.id}` },
+        ],
+      ]);
     });
 
     it("should not schedule a group sync when disabled for the provider", async () => {

@@ -49,7 +49,7 @@ function Authentication() {
 
   React.useEffect(() => {
     const url = new URL(window.location.href);
-    const result = url.searchParams.get("azureGroupSync");
+    const result = url.searchParams.get("groupSync");
     if (!result) {
       return;
     }
@@ -60,7 +60,7 @@ function Authentication() {
       toast.error(t("Could not connect group sync"));
     }
 
-    url.searchParams.delete("azureGroupSync");
+    url.searchParams.delete("groupSync");
     window.history.replaceState(window.history.state, "", url.toString());
   }, [t]);
 
@@ -126,7 +126,7 @@ function Authentication() {
       if (checked) {
         void (async () => {
           try {
-            if (provider.name === "azure") {
+            if (provider.groupSyncRequiresSetup) {
               const result = await client.post<{ data: { url: string } }>(
                 "/authenticationProviders.startGroupSync",
                 { id: provider.id }
@@ -254,10 +254,11 @@ function Authentication() {
               label={t("Group sync")}
               name={`groupSync-${provider.name}`}
               description={
-                provider.name === "azure" &&
+                provider.groupSyncRequiresSetup &&
                 !provider.settings?.groupSyncEnabled
                   ? t(
-                      "A Microsoft Entra administrator must approve group access for this workspace"
+                      "An administrator of {{ authProvider }} must approve group access for this workspace",
+                      { authProvider: provider.displayName }
                     )
                   : t(
                       "Sync group memberships from {{ authProvider }} on each sign-in",
@@ -271,7 +272,7 @@ function Authentication() {
                 )
               }
             >
-              {provider.name === "azure" &&
+              {provider.groupSyncRequiresSetup &&
               !provider.settings?.groupSyncEnabled ? (
                 <Button
                   onClick={() => handleToggleGroupSync(provider, true)}

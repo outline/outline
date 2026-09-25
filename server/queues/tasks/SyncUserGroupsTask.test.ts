@@ -6,6 +6,7 @@ import {
   UserAuthentication,
 } from "@server/models";
 import { buildUser } from "@server/test/factories";
+import { mockTaskSchedule } from "@server/test/support";
 import { PluginManager } from "@server/utils/PluginManager";
 import SyncUserGroupsTask from "./SyncUserGroupsTask";
 
@@ -35,8 +36,23 @@ async function setup() {
 }
 
 describe("SyncUserGroupsTask", () => {
+  const schedule = mockTaskSchedule();
+
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("should schedule with a job id unique to the user authentication", async () => {
+    const { authentication } = await setup();
+
+    await new SyncUserGroupsTask().schedule({
+      userAuthenticationId: authentication.id,
+    });
+
+    expect(schedule).toHaveBeenCalledWith(
+      { userAuthenticationId: authentication.id },
+      { jobId: `sync-user-groups:${authentication.id}` }
+    );
   });
 
   it("should sync groups using the stored access token", async () => {

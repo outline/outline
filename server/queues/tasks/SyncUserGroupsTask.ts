@@ -1,3 +1,4 @@
+import type { JobOptions } from "bull";
 import groupsSyncer from "@server/commands/groupsSyncer";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
@@ -24,6 +25,21 @@ type Props = {
  * sync.
  */
 export default class SyncUserGroupsTask extends BaseTask<Props> {
+  /**
+   * Schedules the task with a job id derived from the user authentication so
+   * that only one sync per authentication is queued at a time.
+   *
+   * @param props Properties to be used by the task
+   * @param options Job options such as priority and retry strategy, as defined by Bull.
+   * @returns A promise that resolves once the job is placed on the task queue
+   */
+  public schedule(props: Props, options?: JobOptions) {
+    return super.schedule(props, {
+      ...options,
+      jobId: `sync-user-groups:${props.userAuthenticationId}`,
+    });
+  }
+
   public async perform({ userAuthenticationId }: Props) {
     const authentication = await UserAuthentication.findByPk(
       userAuthenticationId,
