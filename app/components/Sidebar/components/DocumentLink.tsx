@@ -1,6 +1,7 @@
 import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useMergeRefs } from "react-merge-refs";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
 import { useHistory } from "react-router-dom";
@@ -154,7 +155,8 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
     () => ({ root: scrollRoot, rootMargin: ROOT_MARGIN }),
     [scrollRoot]
   );
-  const isOnScreen = useOnScreen(placeholderRef, observerOptions);
+  const [onScreenRef, isOnScreen] = useOnScreen(observerOptions);
+  const mergedRef = useMergeRefs<HTMLDivElement>([placeholderRef, onScreenRef]);
   const isDragActive = useIsDragActive();
   const [mounted, setMounted] = React.useState(false);
 
@@ -189,7 +191,7 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
 
   return (
     <>
-      <div ref={placeholderRef} style={{ minHeight: ROW_HEIGHT }}>
+      <div ref={mergedRef} style={{ minHeight: ROW_HEIGHT }}>
         {mounted ? (
           <DocumentLinkInner {...props} hasChildren={nodeChildren.length > 0} />
         ) : null}
