@@ -5,7 +5,6 @@ import type { FindOptions, WhereOptions } from "sequelize";
 import { sequelize } from "@server/storage/database";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CommentStatusFilter } from "@shared/types";
-import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { commentParser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -29,16 +28,11 @@ import { ValidationError } from "@server/errors";
  * ProseMirror JSON, which is omitted from the response.
  *
  * @param comment - the comment model instance.
- * @param commentMarks - optional precomputed comment marks to avoid reparsing.
  * @returns the presented comment with a markdown `text` field.
  */
-function presentCommentWithText(
-  comment: Comment,
-  commentMarks?: CommentMark[]
-) {
+function presentCommentWithText(comment: Comment) {
   const { data: _data, ...presented } = presentComment(comment, {
     includeAnchorText: true,
-    commentMarks,
   });
   return {
     ...presented,
@@ -192,26 +186,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
               });
             }
 
-            // Precompute comment marks per document to avoid reparsing
-            // the same document for every comment.
-            const marksCache = new Map<string, CommentMark[]>();
-            const presented = comments.map((comment) => {
-              const doc = comment.document;
-              let marks: CommentMark[] | undefined;
-              if (doc) {
-                if (!marksCache.has(doc.id)) {
-                  marksCache.set(
-                    doc.id,
-                    ProsemirrorHelper.getComments(
-                      DocumentHelper.toProsemirror(doc)
-                    )
-                  );
-                }
-                marks = marksCache.get(doc.id);
-              }
-              return presentCommentWithText(comment, marks);
-            });
-            return success(presented);
+            return success(
+              comments.map((comment) => presentCommentWithText(comment))
+            );
           } catch (err) {
             return error(err);
           }

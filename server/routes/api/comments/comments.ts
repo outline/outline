@@ -60,8 +60,9 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
-      // We only need to load the state binary if applying a comment mark
+      // The content and state are only needed when applying a comment mark
       includeState: anchored,
+      includeContent: anchored,
     });
     authorize(user, "comment", document);
 
@@ -145,6 +146,8 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      // The body is only needed to resolve the anchor text.
+      includeContent: !!includeAnchorText,
     });
     authorize(user, "read", comment);
     authorize(user, "read", document);
@@ -207,7 +210,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     };
 
-    let comments, total;
+    let comments: Comment[], total: number;
     if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
@@ -220,53 +223,50 @@ router.post(
         Comment.count({ where }),
       ]);
       comments.forEach((comment) => (comment.document = document));
-    } else if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-      });
-      authorize(user, "read", collection);
-      const include = [
-        {
-          model: Document,
-          required: true,
-          where: {
-            teamId: user.teamId,
-            collectionId,
-          },
-        },
-      ];
-      [comments, total] = await Promise.all([
-        Comment.findAll({
-          include,
-          ...params,
-        }),
-        Comment.count({
-          include,
-          where,
-        }),
-      ]);
     } else {
-      const accessibleCollectionIds = await user.collectionIds();
+      let collectionIds: string | string[];
+      if (collectionId) {
+        const collection = await Collection.findByPk(collectionId, {
+          userId: user.id,
+        });
+        authorize(user, "read", collection);
+        collectionIds = collectionId;
+      } else {
+        collectionIds = await user.collectionIds();
+      }
+
+      // The document is joined only to filter by access, its columns are not
+      // needed so they are excluded from the result rows.
       const include = [
         {
           model: Document,
           required: true,
+          attributes: [],
           where: {
             teamId: user.teamId,
-            collectionId: { [Op.in]: accessibleCollectionIds },
+            collectionId: collectionIds,
           },
         },
       ];
       [comments, total] = await Promise.all([
-        Comment.findAll({
-          include,
-          ...params,
-        }),
-        Comment.count({
-          include,
-          where,
-        }),
+        Comment.findAll({ include, ...params }),
+        Comment.count({ include, where }),
       ]);
+
+      if (includeAnchorText) {
+        const documents = await Document.scope("withoutState").findAll({
+          where: {
+            id: [...new Set(comments.map((comment) => comment.documentId))],
+          },
+        });
+        const documentsById = new Map(documents.map((doc) => [doc.id, doc]));
+        comments.forEach((comment) => {
+          const document = documentsById.get(comment.documentId);
+          if (document) {
+            comment.document = document;
+          }
+        });
+      }
     }
 
     ctx.body = {
@@ -301,6 +301,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
+      includeContent: false,
     });
     authorize(user, "update", comment);
     authorize(user, "comment", document);
@@ -375,6 +376,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "delete", comment);
     authorize(user, "comment", document);
@@ -408,6 +410,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "resolve", comment);
     authorize(user, "update", document);
@@ -443,6 +446,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "unresolve", comment);
     authorize(user, "update", document);
@@ -480,6 +484,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
+      includeContent: false,
     });
 
     authorize(user, "comment", document);
@@ -535,6 +540,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
+      includeContent: false,
     });
 
     authorize(user, "comment", document);
