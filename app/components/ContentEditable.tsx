@@ -1,5 +1,6 @@
 import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
+import { useMergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { TextHelper } from "@shared/utils/TextHelper";
@@ -137,7 +138,8 @@ function ContentEditable({
   // case the component may be rendered with display: none. React 18 may solve
   // this in the future by delaying useEffect hooks:
   // https://github.com/facebook/react/issues/14536#issuecomment-861980492
-  const isVisible = useOnScreen(contentRef);
+  const [onScreenRef, isVisible] = useOnScreen();
+  const mergedRef = useMergeRefs([contentRef, onScreenRef]);
 
   React.useEffect(() => {
     if (autoFocus && isVisible && !disabled && !readOnly) {
@@ -195,7 +197,7 @@ function ContentEditable({
     <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
       {children}
       <Content
-        ref={contentRef}
+        ref={mergedRef}
         contentEditable={contentEditable}
         onInput={wrappedEvent(onInput)}
         onFocus={wrappedEvent(onFocus)}

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   DragActiveProvider,
   SidebarScrollProvider,
@@ -66,15 +66,9 @@ function AppSidebar() {
     }
   }, [documents, collections, user.isViewer]);
 
-  // Scrollable reads ref.current internally for its shadow/ResizeObserver
-  // logic, so we must pass an object ref — a callback ref would leave those
-  // reads undefined. We mirror the attached node into state so the
-  // SidebarScrollProvider can re-render descendants with the scroll element.
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // Hold the scroll element in state so the SidebarScrollProvider can
+  // re-render descendants with it.
   const [scrollArea, setScrollArea] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setScrollArea(scrollRef.current);
-  }, []);
 
   const sectionOrder = normalizeSidebarSectionOrder(
     user.getPreference(UserPreference.SidebarSectionOrder, [])
@@ -139,7 +133,7 @@ function AppSidebar() {
             {can.createDocument && <DraftsLink />}
           </Section>
         </Overflow>
-        <Scrollable flex shadow ref={scrollRef}>
+        <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
             {sectionOrder.map((section) => (
               <DraggableSection key={section} section={section}>
