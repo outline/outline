@@ -1,3 +1,6 @@
+import type { MockInstance } from "vitest";
+import { Plan } from "@shared/types";
+import { Team } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
@@ -10,6 +13,18 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#events.list", () => {
+  let planSpy: MockInstance<() => Plan>;
+
+  beforeEach(() => {
+    planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    planSpy.mockRestore();
+  });
+
   it("should only return activity events", async () => {
     const user = await buildUser();
     const admin = await buildAdmin({ teamId: user.teamId });
@@ -362,6 +377,17 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
+  });
+
+  it("should require the audit log entitlement", async () => {
+    planSpy.mockReturnValue(Plan.Community);
+    const admin = await buildAdmin();
+    const res = await server.post("/api/events.list", admin, {
+      body: {
+        auditLog: true,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should require authorization for audit events", async () => {
