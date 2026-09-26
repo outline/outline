@@ -5,7 +5,7 @@ import type Group from "~/models/Group";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import Folder from "./Folder";
 import Relative from "./Relative";
-import SharedWithMeLink from "./SharedWithMeLink";
+import DocumentMembershipLink from "./DocumentMembershipLink";
 import SidebarContext, { groupSidebarContext } from "./SidebarContext";
 import SidebarDisclosureContext, {
   useSidebarDisclosureState,
@@ -58,7 +58,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
         <SidebarDisclosureContext.Provider value={disclosureEvent}>
           <Folder expanded={expanded}>
             {group.documentMemberships.map((membership) => (
-              <SharedWithMeLink
+              <DocumentMembershipLink
                 key={membership.id}
                 membership={membership}
                 depth={2}

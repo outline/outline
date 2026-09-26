@@ -43,8 +43,9 @@ const DocumentMemberListItem = ({
     [onRemove, onUpdate]
   );
 
-  // Access inherited from a parent document cannot be removed here.
-  const canRemove = !membership?.sourceId;
+  // Access inherited from a parent document cannot be removed here, and a
+  // row without a remove or leave handler offers no way out.
+  const canRemove = !membership?.sourceId && !!(onRemove || onLeave);
 
   const permissions: Permission[] = [
     {

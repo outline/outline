@@ -9,6 +9,7 @@ import {
   buildDocument,
   buildDraftDocument,
   buildNotification,
+  buildPersonalDocument,
   buildTeam,
   buildUser,
 } from "@server/test/factories";
@@ -38,6 +39,38 @@ describe("RevokeUserNotificationsTask", () => {
     });
 
     expect(await Notification.findByPk(notification.id)).toBeNull();
+  });
+
+  it("should revoke notifications for a personal document the user was removed from", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildPersonalDocument({
+      teamId: team.id,
+      userId: owner.id,
+    });
+    const notification = await buildNotification({
+      teamId: team.id,
+      userId: user.id,
+      documentId: document.id,
+    });
+    const ownerNotification = await buildNotification({
+      teamId: team.id,
+      userId: owner.id,
+      documentId: document.id,
+    });
+
+    await new RevokeUserNotificationsTask().perform({
+      userId: user.id,
+      documentId: document.id,
+    });
+    await new RevokeUserNotificationsTask().perform({
+      userId: owner.id,
+      documentId: document.id,
+    });
+
+    expect(await Notification.findByPk(notification.id)).toBeNull();
+    expect(await Notification.findByPk(ownerNotification.id)).not.toBeNull();
   });
 
   it("should retain notifications when the user can still read the document", async () => {
