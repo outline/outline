@@ -85,8 +85,14 @@ async function groupsSyncer(
           transaction,
         });
         if (group) {
-          const groupUpdates: Partial<{ name: string; description: string }> =
-            {};
+          const groupUpdates: Partial<{
+            name: string;
+            description: string;
+            externalId: string;
+          }> = {};
+          if (group.externalId !== eg.id) {
+            groupUpdates.externalId = eg.id;
+          }
           if (group.name !== eg.name) {
             groupUpdates.name = eg.name;
           }
@@ -108,6 +114,7 @@ async function groupsSyncer(
       const group = await Group.createWithCtx(ctx, {
         name: eg.name,
         description: description ?? "",
+        externalId: eg.id,
         teamId: team.id,
         createdById: user.id,
       });

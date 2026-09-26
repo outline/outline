@@ -3,6 +3,40 @@ import { sequelize } from "@server/storage/database";
 import { buildGroup, buildGroupUser, buildUser } from "@server/test/factories";
 
 describe("Group", () => {
+  describe("isUniqueNameInTeam", () => {
+    it("rejects a name already used in the team, ignoring case", async () => {
+      const group = await buildGroup({ name: "Engineering" });
+
+      await expect(
+        buildGroup({ teamId: group.teamId, name: "engineering" })
+      ).rejects.toThrow("The name of this group is already in use");
+    });
+
+    it("allows the same name for groups with different externalIds", async () => {
+      const user = await buildUser();
+      await buildGroup({
+        teamId: user.teamId,
+        name: "All Company",
+        externalId: "ext-1",
+      });
+
+      const second = await buildGroup({
+        teamId: user.teamId,
+        name: "All Company",
+        externalId: "ext-2",
+      });
+      expect(second.name).toEqual("All Company");
+
+      await expect(
+        buildGroup({
+          teamId: user.teamId,
+          name: "all company",
+          externalId: "ext-2",
+        })
+      ).rejects.toThrow("The name of this group is already in use");
+    });
+  });
+
   describe("updatedAt", () => {
     const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
 

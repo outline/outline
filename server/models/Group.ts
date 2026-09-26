@@ -1,5 +1,5 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -38,16 +38,22 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   tableName: "groups",
   modelName: "group",
   validate: {
+    // Group names must be unique within the team, ignoring case. Groups synced
+    // from an external provider are scoped by their externalId, since providers
+    // can legitimately report several groups with the same name.
     async isUniqueNameInTeam(this: Group) {
       const foundItem = await Group.findOne({
+        attributes: ["id"],
         where: {
           teamId: this.teamId,
-          name: {
-            [Op.iLike]: this.name,
-          },
+          externalId: this.externalId ?? null,
           id: {
             [Op.not]: this.id,
           },
+          [Op.and]: Sequelize.where(
+            Sequelize.fn("lower", Sequelize.col("name")),
+            (this.name ?? "").toLowerCase()
+          ),
         },
       });
 
