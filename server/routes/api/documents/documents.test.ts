@@ -5706,6 +5706,193 @@ describe("#documents.restore", () => {
     expect(body.data.archivedAt).toEqual(null);
   });
 
+  it("should restore archived document under a new parent document", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).toEqual(null);
+    expect(body.data.parentDocumentId).toEqual(parent.id);
+    expect(body.data.collectionId).toEqual(collection.id);
+
+    await collection.reload();
+    const node = collection.getDocumentTree(document.id);
+    expect(node?.id).toEqual(document.id);
+    expect(collection.documentStructure?.[0].id).toEqual(parent.id);
+    expect(collection.documentStructure?.[0].children[0].id).toEqual(
+      document.id
+    );
+  });
+
+  it("should restore trashed document to the root of a collection with null parent", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        parentDocumentId: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.parentDocumentId).toEqual(null);
+
+    await collection.reload();
+    expect(collection.documentStructure?.map((node) => node.id)).toContain(
+      document.id
+    );
+  });
+
+  it("should fail to restore under a parent in a different collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: otherCollection.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail to restore under a draft parent", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail to restore under one of its own children", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: child.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail to restore under a parent the user cannot update", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const privateCollection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: privateCollection.id,
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should restore the document to a previous version", async () => {
     const user = await buildUser();
     const document = await buildDocument({

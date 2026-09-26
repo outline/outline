@@ -6,7 +6,6 @@ import {
   restoreDocument,
   unsubscribeDocument,
   subscribeDocument,
-  restoreDocumentToCollection,
   starDocument,
   unstarDocument,
   editDocument,
@@ -74,7 +73,6 @@ export function useDocumentMenuAction({
     () =>
       createRootMenuAction([
         restoreDocument,
-        restoreDocumentToCollection,
         starDocument,
         unstarDocument,
         subscribeDocument,
