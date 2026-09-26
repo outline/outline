@@ -242,6 +242,7 @@ function DataLoader({ match, children }: Props) {
             documentId: document.id,
             limit: 100,
             direction: "ASC",
+            force: true,
           });
         }
 

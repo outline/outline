@@ -1,5 +1,5 @@
 import { DocumentIcon } from "outline-icons";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
@@ -37,6 +37,12 @@ export function useTemplateMenuActions({
   const { documents, templates: templatesStore } = useStores();
   const { t } = useTranslation();
   const document = documents.get(documentId);
+
+  useEffect(() => {
+    if (onSelectTemplate) {
+      void templatesStore.fetchAll();
+    }
+  }, [onSelectTemplate, templatesStore]);
 
   const templateToAction = useCallback(
     (template: Template): Action =>

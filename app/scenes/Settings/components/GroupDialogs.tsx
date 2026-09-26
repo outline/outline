@@ -306,7 +306,7 @@ export const AddPeopleToGroupDialog = observer(function ({
 
   const { loading } = useRequest(
     React.useCallback(
-      () => groupUsers.fetchAll({ id: group.id }),
+      () => groupUsers.fetchAll({ id: group.id, force: true }),
       [groupUsers, group]
     ),
     true

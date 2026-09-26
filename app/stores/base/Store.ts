@@ -60,6 +60,11 @@ export type PaginatedResponse<T> = T[] & {
 // oxlint-disable-next-line no-explicit-any
 export type FetchPageParams = PaginationParams & Record<string, any>;
 
+export type FetchAllParams = FetchPageParams & {
+  /** Fetch again even if the same params have already been fetched. */
+  force?: boolean;
+};
+
 /**
  * A store that related models found in an API response can be added to.
  */
@@ -133,6 +138,7 @@ export default abstract class Store<T extends Model> {
   @action
   clear() {
     this.data.clear();
+    this.fetchAllRequests.clear();
     void this.persistence?.clear();
   }
 
@@ -527,12 +533,34 @@ export default abstract class Store<T extends Model> {
     return this.fetchPaginated(`/${this.apiEndpoint}.list`, params);
   };
 
+  /**
+   * Fetches every page of the list endpoint. Repeat calls with the same params
+   * return the result of the first call, pass `force` to fetch again.
+   *
+   * @param params the request parameters.
+   * @returns all fetched items.
+   */
   @action
-  fetchAll = async (
-    // oxlint-disable-next-line no-explicit-any
-    params?: Record<string, any>
+  fetchAll = async (params?: FetchAllParams): Promise<PaginatedResponse<T>> => {
+    const { force, ...rest } = params ?? {};
+    const key = JSON.stringify(rest);
+    const existing = this.fetchAllRequests.get(key);
+    if (existing && !force) {
+      return existing;
+    }
+
+    const promise = this.fetchAllPages(rest).catch((err) => {
+      this.fetchAllRequests.delete(key);
+      throw err;
+    });
+    this.fetchAllRequests.set(key, promise);
+    return promise;
+  };
+
+  private fetchAllPages = async (
+    params: FetchPageParams
   ): Promise<PaginatedResponse<T>> => {
-    const limit = params?.limit ?? Pagination.defaultLimit;
+    const limit = params.limit ?? Pagination.defaultLimit;
     const response = await this.fetchPage({ ...params, limit });
 
     invariant(
@@ -553,7 +581,7 @@ export default abstract class Store<T extends Model> {
       ...(fetchPages.length ? await Promise.all(fetchPages) : []),
     ]);
 
-    if (params?.withRelations) {
+    if (params.withRelations) {
       await Promise.all(
         this.orderedData.map((integration) => integration.loadRelations())
       );
@@ -635,4 +663,7 @@ export default abstract class Store<T extends Model> {
       });
     }
   }
+
+  /** Results of `fetchAll` calls keyed by their params. */
+  private fetchAllRequests = new Map<string, Promise<PaginatedResponse<T>>>();
 }

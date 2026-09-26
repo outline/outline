@@ -748,7 +748,7 @@ function useUserHandlers() {
       if (event.id === auth.user?.id) {
         documents.all.forEach((document) => policies.remove(document.id));
         try {
-          await collections.fetchAll();
+          await collections.fetchAll({ force: true });
         } catch (err) {
           Logger.error(
             "Failed to fetch collections after role change",
