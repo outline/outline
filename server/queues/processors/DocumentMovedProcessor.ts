@@ -17,6 +17,12 @@ export default class DocumentMovedProcessor extends BaseProcessor {
         return;
       }
 
+      const childDocumentIds = await document.findAllChildDocumentIds(
+        undefined,
+        { transaction }
+      );
+      const documentIds = [document.id, ...childDocumentIds];
+
       // If there are any sourced memberships for this document, we need to go to the source
       // memberships and recalculate the membership for the user or group.
       const [parentDocumentUserMemberships, parentDocumentGroupMemberships] =
@@ -38,8 +44,23 @@ export default class DocumentMovedProcessor extends BaseProcessor {
             : [],
         ]);
 
-      await this.destroyUserMemberships(document, transaction);
-      await this.destroyGroupMemberships(document, transaction);
+      // Memberships granted directly on the moved document or any of its
+      // children are kept, but the sourced memberships they created on
+      // children are destroyed below along with the inherited ones, so they
+      // must be recreated.
+      const [ownUserMemberships, ownGroupMemberships] = await Promise.all([
+        UserMembership.findAll({
+          where: { sourceId: null, documentId: documentIds },
+          transaction,
+        }),
+        GroupMembership.findAll({
+          where: { sourceId: null, documentId: documentIds },
+          transaction,
+        }),
+      ]);
+
+      await this.destroyUserMemberships(documentIds, transaction);
+      await this.destroyGroupMemberships(documentIds, transaction);
 
       await this.recalculateUserMemberships(
         parentDocumentUserMemberships,
@@ -51,38 +72,33 @@ export default class DocumentMovedProcessor extends BaseProcessor {
         transaction,
         document.id
       );
+
+      await this.recalculateUserMemberships(ownUserMemberships, transaction);
+      await this.recalculateGroupMemberships(ownGroupMemberships, transaction);
     });
   }
 
   private async destroyUserMemberships(
-    document: Document,
+    documentIds: string[],
     transaction: Transaction
   ) {
-    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
-
     await UserMembership.destroy({
       where: {
         sourceId: { [Op.ne]: null },
-        documentId: [...childDocumentIds, document.id],
+        documentId: documentIds,
       },
       transaction,
     });
   }
 
   private async destroyGroupMemberships(
-    document: Document,
+    documentIds: string[],
     transaction: Transaction
   ) {
-    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
-
     await GroupMembership.destroy({
       where: {
         sourceId: { [Op.ne]: null },
-        documentId: [...childDocumentIds, document.id],
+        documentId: documentIds,
       },
       transaction,
     });
