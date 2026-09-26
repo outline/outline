@@ -15,6 +15,7 @@ import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
+import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
@@ -77,6 +78,33 @@ type HTMLOptions = {
 
 @trace()
 export class DocumentHelper {
+  /**
+   * Returns all of the comment marks in the document. Results are memoized
+   * against the document body so that repeated calls for the same content do
+   * not reparse the document.
+   *
+   * @param document The document to read comment marks from
+   * @returns The comment marks in the document
+   */
+  static getCommentMarks(document: Document | Revision): CommentMark[] {
+    const key =
+      document.content ?? ("state" in document ? document.state : undefined);
+    if (!key) {
+      return ProsemirrorHelper.getComments(
+        DocumentHelper.toProsemirror(document)
+      );
+    }
+
+    let marks = DocumentHelper.commentMarksCache.get(key);
+    if (!marks) {
+      marks = ProsemirrorHelper.getComments(
+        DocumentHelper.toProsemirror(document)
+      );
+      DocumentHelper.commentMarksCache.set(key, marks);
+    }
+    return marks;
+  }
+
   /**
    * Returns the document as a Prosemirror Node. This method uses the derived content if available
    * then the collaborative state, otherwise it falls back to Markdown. Results are memoized
@@ -1404,4 +1432,7 @@ export class DocumentHelper {
 
   /** Prosemirror nodes memoized against the content or state they were parsed from. */
   private static prosemirrorCache = new WeakMap<object, Node>();
+
+  /** Comment marks memoized against the document body they were parsed from. */
+  private static commentMarksCache = new WeakMap<object, CommentMark[]>();
 }

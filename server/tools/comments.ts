@@ -1,11 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { Op, Transaction } from "sequelize";
-import type { FindOptions, WhereOptions } from "sequelize";
+import { Transaction } from "sequelize";
 import { sequelize } from "@server/storage/database";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CommentStatusFilter } from "@shared/types";
-import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { commentParser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -29,16 +27,11 @@ import { ValidationError } from "@server/errors";
  * ProseMirror JSON, which is omitted from the response.
  *
  * @param comment - the comment model instance.
- * @param commentMarks - optional precomputed comment marks to avoid reparsing.
  * @returns the presented comment with a markdown `text` field.
  */
-function presentCommentWithText(
-  comment: Comment,
-  commentMarks?: CommentMark[]
-) {
+function presentCommentWithText(comment: Comment) {
   const { data: _data, ...presented } = presentComment(comment, {
     includeAnchorText: true,
-    commentMarks,
   });
   return {
     ...presented,
@@ -113,105 +106,33 @@ export function commentTools(server: McpServer, scopes: string[]) {
         ) => {
           try {
             const user = getActorFromContext(extra);
-            const effectiveOffset = offset ?? 0;
-            const effectiveLimit = limit ?? 25;
 
-            const statusQuery: WhereOptions<Comment>[] = [];
-            if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
-              statusQuery.push({ resolvedById: { [Op.not]: null } });
-            }
-            if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
-              statusQuery.push({ resolvedById: null });
-            }
-
-            const and: WhereOptions<Comment>[] = [];
+            let document: Document | null = null;
             if (documentId) {
-              and.push({ documentId });
-            }
-            if (parentCommentId) {
-              and.push({ parentCommentId });
-            }
-            if (statusQuery.length) {
-              and.push({ [Op.or]: statusQuery });
-            }
-            const where: WhereOptions<Comment> = {
-              [Op.and]: and,
-            };
-
-            const params: FindOptions<Comment> = {
-              where,
-              order: [["createdAt", "DESC"]],
-              offset: effectiveOffset,
-              limit: effectiveLimit,
-            };
-
-            let comments: Comment[];
-
-            if (documentId) {
-              const document = await Document.findByPk(documentId, {
+              document = await Document.findByPk(documentId, {
                 userId: user.id,
               });
               authorize(user, "read", document);
-
-              comments = await Comment.findAll(params);
-              comments.forEach((comment) => (comment.document = document!));
             } else if (collectionId) {
               const collection = await Collection.findByPk(collectionId, {
                 userId: user.id,
               });
               authorize(user, "read", collection);
-
-              comments = await Comment.findAll({
-                include: [
-                  {
-                    model: Document,
-                    required: true,
-                    where: {
-                      teamId: user.teamId,
-                      collectionId,
-                    },
-                  },
-                ],
-                ...params,
-              });
-            } else {
-              const accessibleCollectionIds = await user.collectionIds();
-
-              comments = await Comment.findAll({
-                include: [
-                  {
-                    model: Document,
-                    required: true,
-                    where: {
-                      teamId: user.teamId,
-                      collectionId: { [Op.in]: accessibleCollectionIds },
-                    },
-                  },
-                ],
-                ...params,
-              });
             }
 
-            // Precompute comment marks per document to avoid reparsing
-            // the same document for every comment.
-            const marksCache = new Map<string, CommentMark[]>();
-            const presented = comments.map((comment) => {
-              const doc = comment.document;
-              let marks: CommentMark[] | undefined;
-              if (doc) {
-                if (!marksCache.has(doc.id)) {
-                  marksCache.set(
-                    doc.id,
-                    ProsemirrorHelper.getComments(
-                      DocumentHelper.toProsemirror(doc)
-                    )
-                  );
-                }
-                marks = marksCache.get(doc.id);
-              }
-              return presentCommentWithText(comment, marks);
+            const { comments } = await Comment.findAllForUser(user, {
+              document,
+              collectionId,
+              parentCommentId,
+              statusFilter,
+              includeDocuments: true,
+              offset: offset ?? 0,
+              limit: limit ?? 25,
             });
-            return success(presented);
+
+            return success(
+              comments.map((comment) => presentCommentWithText(comment))
+            );
           } catch (err) {
             return error(err);
           }
