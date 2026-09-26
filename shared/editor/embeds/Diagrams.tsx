@@ -7,7 +7,7 @@ function Diagrams({ matches, ...props }: Props) {
   const { embed } = props;
   const embedUrl = matches[0];
   const params = new URL(embedUrl).searchParams;
-  const titlePrefix = embed.settings?.url ? "Draw.io" : "Diagrams.net";
+  const titlePrefix = embed.installationUrl ? "Draw.io" : "Diagrams.net";
   const title = params.get("title")
     ? `${titlePrefix} (${params.get("title")})`
     : titlePrefix;
