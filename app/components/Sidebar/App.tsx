@@ -59,7 +59,7 @@ function AppSidebar() {
   }, [history]);
 
   useEffect(() => {
-    void collections.fetchAll();
+    void collections.fetchAllIfNeeded();
 
     if (!user.isViewer) {
       void documents.fetchDrafts();

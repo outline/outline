@@ -133,6 +133,7 @@ export default abstract class Store<T extends Model> {
   @action
   clear() {
     this.data.clear();
+    this.fetchAllResults.clear();
     void this.persistence?.clear();
   }
 
@@ -252,9 +253,13 @@ export default abstract class Store<T extends Model> {
       const newModel: T = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
       this.persistence?.persist(newModel.id);
+      this.fetchAllResults.clear();
       return newModel;
     }
 
+    if (!this.data.has(item.id)) {
+      this.fetchAllResults.clear();
+    }
     this.data.set(item.id, item);
     this.persistence?.persist(item.id);
     return item;
@@ -315,6 +320,7 @@ export default abstract class Store<T extends Model> {
     }
 
     LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
+    this.fetchAllResults.clear();
 
     // Persists the soft-deleted model, or removes the persisted record if the
     // model was hard-deleted from the store.
@@ -527,12 +533,17 @@ export default abstract class Store<T extends Model> {
     return this.fetchPaginated(`/${this.apiEndpoint}.list`, params);
   };
 
+  /**
+   * Fetches every page of the list endpoint.
+   *
+   * @param params the request parameters.
+   * @returns all fetched items.
+   */
   @action
   fetchAll = async (
-    // oxlint-disable-next-line no-explicit-any
-    params?: Record<string, any>
+    params: FetchPageParams = {}
   ): Promise<PaginatedResponse<T>> => {
-    const limit = params?.limit ?? Pagination.defaultLimit;
+    const limit = params.limit ?? Pagination.defaultLimit;
     const response = await this.fetchPage({ ...params, limit });
 
     invariant(
@@ -553,14 +564,29 @@ export default abstract class Store<T extends Model> {
       ...(fetchPages.length ? await Promise.all(fetchPages) : []),
     ]);
 
-    if (params?.withRelations) {
+    if (params.withRelations) {
       await Promise.all(
         this.orderedData.map((integration) => integration.loadRelations())
       );
     }
 
+    this.fetchAllResults.set(JSON.stringify(params), results);
     return results;
   };
+
+  /**
+   * Fetches every page of the list endpoint unless the same params were
+   * fetched before and no model has been added to or removed from the store
+   * since. Use for reference lists that are loaded on mount.
+   *
+   * @param params the request parameters.
+   * @returns all fetched items.
+   */
+  fetchAllIfNeeded = async (
+    params: FetchPageParams = {}
+  ): Promise<PaginatedResponse<T>> =>
+    this.fetchAllResults.get(JSON.stringify(params)) ??
+    (await this.fetchAll(params));
 
   @computed
   get orderedData(): T[] {
@@ -635,4 +661,7 @@ export default abstract class Store<T extends Model> {
       });
     }
   }
+
+  /** Results of `fetchAll` calls keyed by their params, see `fetchAllIfNeeded`. */
+  private fetchAllResults = new Map<string, PaginatedResponse<T>>();
 }

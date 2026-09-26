@@ -32,7 +32,7 @@ function GitHub() {
   const githubAppName = env.GITHUB_APP_NAME;
 
   React.useEffect(() => {
-    void integrations.fetchAll({
+    void integrations.fetchAllIfNeeded({
       service: IntegrationService.GitHub,
       withRelations: true,
     });
