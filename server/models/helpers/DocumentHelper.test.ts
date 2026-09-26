@@ -4,6 +4,7 @@ import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { HeadingPrefixStyle } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
+import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
 describe("DocumentHelper", () => {
   beforeAll(() => {
@@ -80,6 +81,54 @@ describe("DocumentHelper", () => {
         ],
         type: "doc",
       });
+    });
+  });
+
+  describe("toProsemirror", () => {
+    const linkContent = () => ({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "link",
+              marks: [{ type: "link", attrs: { href: "/doc/internal-123" } }],
+            },
+          ],
+        },
+      ],
+    });
+
+    it("should memoize the node for the same content", async () => {
+      const document = await buildDocument({ content: linkContent() });
+      const node = DocumentHelper.toProsemirror(document);
+
+      expect(DocumentHelper.toProsemirror(document)).toBe(node);
+    });
+
+    it("should parse again when the content is replaced", async () => {
+      const document = await buildDocument({ content: linkContent() });
+      const node = DocumentHelper.toProsemirror(document);
+      document.content = linkContent();
+
+      expect(DocumentHelper.toProsemirror(document)).not.toBe(node);
+    });
+
+    it("should not be changed by transforms of its JSON", async () => {
+      const document = await buildDocument({ content: linkContent() });
+      const node = DocumentHelper.toProsemirror(document);
+
+      ProsemirrorHelper.replaceInternalUrls(node, "/s/share-123");
+      ProsemirrorHelper.replaceDocumentReferences(
+        node,
+        new Map([["internal-123", { id: "other", path: "/doc/other" }]])
+      );
+
+      const text =
+        DocumentHelper.toProsemirror(document).firstChild?.firstChild;
+      expect(text?.marks[0].attrs.href).toBe("/doc/internal-123");
     });
   });
 

@@ -407,6 +407,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     function replaceDocumentReferencesInner(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (
         node.type === "mention" &&
         node.attrs?.type === MentionType.Document &&
@@ -414,7 +415,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       ) {
         const replacement = documents.get(node.attrs.modelId);
         if (replacement) {
-          node.attrs.modelId = replacement.id;
+          node.attrs = { ...node.attrs, modelId: replacement.id };
         }
       }
 
@@ -428,7 +429,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             node.text = href;
           }
 
-          mark.attrs.href = href;
+          mark.attrs = { ...mark.attrs, href };
         }
       });
 
@@ -468,15 +469,16 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     function replaceInternalUrlsInner(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (typeof node.attrs?.href === "string") {
-        node.attrs.href = replaceUrl(node.attrs.href);
+        node.attrs = { ...node.attrs, href: replaceUrl(node.attrs.href) };
       } else if (node.marks) {
         node.marks.forEach((mark) => {
           if (
             typeof mark.attrs?.href === "string" &&
             isInternalUrl(mark.attrs?.href)
           ) {
-            mark.attrs.href = replaceUrl(mark.attrs.href);
+            mark.attrs = { ...mark.attrs, href: replaceUrl(mark.attrs.href) };
           }
         });
       }
@@ -561,14 +563,24 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     function replaceAttachmentUrls(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (node.attrs?.src) {
-        node.attrs.src = getMapping(node.attrs.src as string);
+        node.attrs = {
+          ...node.attrs,
+          src: getMapping(node.attrs.src as string),
+        };
       } else if (node.attrs?.href) {
-        node.attrs.href = getMapping(node.attrs.href as string);
+        node.attrs = {
+          ...node.attrs,
+          href: getMapping(node.attrs.href as string),
+        };
       } else if (node.marks) {
         node.marks.forEach((mark) => {
           if (mark.attrs?.href) {
-            mark.attrs.href = getMapping(mark.attrs.href as string);
+            mark.attrs = {
+              ...mark.attrs,
+              href: getMapping(mark.attrs.href as string),
+            };
           }
         });
       }
