@@ -2,6 +2,7 @@ import { action, computed, makeObservable, observable } from "mobx";
 import type { PropsWithChildren } from "react";
 import { createContext, useContext, useMemo } from "react";
 import type { Node } from "prosemirror-model";
+import { DocumentTooLarge } from "@shared/collaboration/CloseEvents";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type { Heading } from "@shared/utils/ProsemirrorHelper";
 import type { TextStats } from "~/hooks/useTextStats";
@@ -42,6 +43,10 @@ class DocumentContext {
   @observable
   multiplayerErrorCode?: number = undefined;
 
+  /** Whether the collaboration server refused the document because it exceeds the size limit */
+  @observable
+  isTooLarge = false;
+
   /** Whether there are local edits the collaboration server has not confirmed */
   @observable
   hasUnsyncedChanges = false;
@@ -73,6 +78,7 @@ class DocumentContext {
     // Reset the focused comment when navigating between documents
     if (this.document && this.document.id !== document.id) {
       this.focusedCommentId = null;
+      this.isTooLarge = false;
     }
     this.document = document;
     this.updateState();
@@ -103,6 +109,12 @@ class DocumentContext {
   setMultiplayerStatus = (status: ConnectionStatus, errorCode?: number) => {
     this.multiplayerStatus = status;
     this.multiplayerErrorCode = errorCode;
+
+    // Kept once set, the status is cleared when the collaborative editor is
+    // replaced by a read-only view of the stored content.
+    if (errorCode === DocumentTooLarge.code) {
+      this.isTooLarge = true;
+    }
   };
 
   @action

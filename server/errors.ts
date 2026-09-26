@@ -141,6 +141,15 @@ export function ValidationError(message = "Validation failed") {
   });
 }
 
+export function DocumentTooLargeError(
+  message = "The document is too large, please reduce the length and try again"
+) {
+  return httpErrors(413, message, {
+    id: "document_too_large",
+    isReportable: false,
+  });
+}
+
 export function IncorrectEditionError(
   message = "Functionality not available in this edition"
 ) {

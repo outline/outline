@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
+import { DocumentValidation } from "@shared/validations";
 import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {
@@ -165,6 +166,26 @@ describe("#save", () => {
     document.title = "test";
     await document.save();
     expect(document.previousTitles.length).toBe(3);
+  });
+
+  it("should reject content whose collaborative state would be too large", async () => {
+    const document = await buildDocument();
+    const text = "a".repeat(DocumentValidation.maxStateLength);
+    document.content = parser.parse(text).toJSON();
+    document.text = text;
+
+    await expect(document.save()).rejects.toMatchObject({
+      id: "document_too_large",
+    });
+  });
+
+  it("should reject state over the maximum size", async () => {
+    const document = await buildDocument();
+    document.state = Buffer.alloc(DocumentValidation.maxStateLength + 1);
+
+    await expect(document.save()).rejects.toMatchObject({
+      id: "document_too_large",
+    });
   });
 
   it("should index text whose search vector exceeds the tsvector limit", async () => {
