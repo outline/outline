@@ -620,6 +620,7 @@ describe("update_document", () => {
       id: document.id,
       title: "Updated Title",
       text: "Updated content",
+      editMode: "replace",
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
@@ -630,6 +631,33 @@ describe("update_document", () => {
 
     await document.reload();
     expect(document.text).toContain("Updated content");
+  });
+
+  it("errors when text is provided without editMode", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "original text",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: "Updated content",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "editMode is required when text is provided"
+    );
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.text).toEqual("original text");
   });
 
   it("returns the resulting content when patching", async () => {
