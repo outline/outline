@@ -13,7 +13,7 @@ export interface ConvertResult {
   text: string;
   /** The document content as Prosemirror. */
   doc: Node;
-  /** The extracted title (from H1 heading if present). */
+  /** The extracted title (from frontmatter or H1 heading if present). */
   title: string;
   /** The extracted emoji/icon from start of document. */
   icon?: string;
@@ -48,12 +48,29 @@ export class DocumentConverter extends BaseConverter {
   ): Promise<ConvertResult> {
     const { extractTitle = true } = options;
     let doc: Node;
+    let title = "";
+    let icon: string | undefined;
 
     // Route to appropriate conversion method
     const html = await this.convertToHtml(content, fileName, mimeType);
     if (html !== undefined) {
       doc = await this.htmlToProsemirror(html);
     } else {
+      // A title in YAML frontmatter is authoritative over any heading. The
+      // prefix check avoids stringifying binary buffers (e.g. pdf, textpack).
+      const hasFrontmatterPrefix =
+        typeof content === "string"
+          ? content.startsWith("---\n")
+          : content.subarray(0, 4).toString("utf8") === "---\n";
+      if (hasFrontmatterPrefix) {
+        const frontmatter = this.parseFrontmatter(this.bufferToString(content));
+        if (typeof frontmatter?.title === "string" && frontmatter.title) {
+          const { emoji, rest } = splitLeadingEmoji(frontmatter.title);
+          title = rest;
+          icon = emoji;
+        }
+      }
+
       const markdown = await this.convertToMarkdown(
         content,
         fileName,
@@ -63,9 +80,7 @@ export class DocumentConverter extends BaseConverter {
     }
 
     // Extract title from first H1 heading
-    let title = "";
-    let icon: string | undefined;
-    if (extractTitle) {
+    if (!title && extractTitle) {
       const headings = ProsemirrorHelper.getHeadings(doc);
       if (headings.length > 0 && headings[0].level === 1) {
         // An emoji leading the title becomes the document's icon, matching how
