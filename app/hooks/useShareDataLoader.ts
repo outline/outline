@@ -48,14 +48,14 @@ export default function useShareDataLoader(params: Params) {
           id: doc.id,
           limit: Pagination.defaultLimit,
         }),
-        groupMemberships.fetchAll({ documentId: doc.id, force: true })
+        groupMemberships.fetchAll({ documentId: doc.id })
       );
     } else {
       const col = params.collection;
       promises.push(
         shares.fetchOne({ collectionId: col.id }),
-        memberships.fetchAll({ id: col.id, force: true }),
-        groupMemberships.fetchAll({ collectionId: col.id, force: true })
+        memberships.fetchAll({ id: col.id }),
+        groupMemberships.fetchAll({ collectionId: col.id })
       );
     }
 

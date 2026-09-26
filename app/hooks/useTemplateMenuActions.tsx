@@ -40,7 +40,7 @@ export function useTemplateMenuActions({
 
   useEffect(() => {
     if (onSelectTemplate) {
-      void templatesStore.fetchAll();
+      void templatesStore.fetchAllIfNeeded();
     }
   }, [onSelectTemplate, templatesStore]);
 

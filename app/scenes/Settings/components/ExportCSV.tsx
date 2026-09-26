@@ -35,7 +35,6 @@ export function ExportCSV({ reqParams }: Props) {
       const allUsers = await users.fetchAll({
         ...reqParams,
         limit: 100,
-        force: true,
       });
 
       // Convert to CSV format with formatted dates

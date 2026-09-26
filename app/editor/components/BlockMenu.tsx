@@ -32,7 +32,7 @@ function useTemplateMenuItem(isActive: boolean): MenuItem | undefined {
 
   useEffect(() => {
     if (isActive && user) {
-      void templatesStore.fetchAll();
+      void templatesStore.fetchAllIfNeeded();
     }
   }, [isActive, user, templatesStore]);
 

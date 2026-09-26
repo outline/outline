@@ -34,7 +34,7 @@ function Slack() {
   const error = query.get("error");
 
   React.useEffect(() => {
-    void collections.fetchAll();
+    void collections.fetchAllIfNeeded();
   }, [collections, integrations]);
 
   const commandIntegration = integrations.find({

@@ -20,7 +20,7 @@ const useTemplatesAction = () => {
   // Templates are only needed once the command bar is opened.
   useEffect(() => {
     if (showing) {
-      void templates.fetchAll();
+      void templates.fetchAllIfNeeded();
     }
   }, [showing, templates]);
 

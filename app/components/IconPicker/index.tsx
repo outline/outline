@@ -173,7 +173,7 @@ const IconPicker = ({
 
   React.useEffect(() => {
     if (open) {
-      void emojis.fetchAll();
+      void emojis.fetchAllIfNeeded();
     }
   }, [open, emojis]);
 

@@ -29,7 +29,7 @@ function Linear() {
   const appName = env.APP_NAME;
 
   React.useEffect(() => {
-    void integrations.fetchAll({
+    void integrations.fetchAllIfNeeded({
       service: IntegrationService.Linear,
       withRelations: true,
     });
