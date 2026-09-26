@@ -9,7 +9,7 @@ import Heading from "~/components/Heading";
 import ContentEditable from "~/components/ContentEditable";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type Collection from "~/models/Collection";
-import { colorPalette } from "@shared/constants";
+import useColorPalette from "~/hooks/useColorPalette";
 import usePolicy from "~/hooks/usePolicy";
 import { observer } from "mobx-react";
 import lazyWithRetry from "@shared/utils/lazyWithRetry";
@@ -44,6 +44,8 @@ export const Header = observer(function Header_({
     },
     [collection]
   );
+
+  const colorPalette = useColorPalette();
 
   const fallbackIcon = collection ? (
     <CollectionIcon collection={collection} size={40} expanded />

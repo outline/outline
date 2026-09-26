@@ -409,7 +409,7 @@ const IconWrapper = styled.span`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 24px;
+  min-width: 24px;
   height: 24px;
   margin-inline-start: -4px;
   margin-inline-end: 4px;

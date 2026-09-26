@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { colorPalette, colorPalettes } from "@shared/constants";
+import { TeamPreference } from "@shared/types";
 import { Team } from "@server/models";
 import {
   buildTeam,
@@ -47,6 +49,28 @@ describe("Team", () => {
     it("should return null for unregistered domain", async () => {
       const result = await Team.findByDomain("unknown.example.com");
       expect(result).toBeNull();
+    });
+  });
+
+  describe("getColorPalette", () => {
+    it("should return the default palette when none is set", async () => {
+      const team = await buildTeam();
+      const result = await Team.getColorPalette(team.id);
+      expect(result).toEqual(colorPalette);
+    });
+
+    it("should return the team's palette when set", async () => {
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.ColorPalette, colorPalettes[1].colors);
+      await team.save();
+
+      const result = await Team.getColorPalette(team.id);
+      expect(result).toEqual(colorPalettes[1].colors);
+    });
+
+    it("should return the default palette for an unknown team", async () => {
+      const result = await Team.getColorPalette(randomUUID());
+      expect(result).toEqual(colorPalette);
     });
   });
 
