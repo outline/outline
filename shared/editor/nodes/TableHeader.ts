@@ -4,15 +4,25 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import { isInTable, moveTableColumn, TableMap } from "prosemirror-tables";
+import {
+  isInTable,
+  moveTableColumn,
+  selectedRect,
+  TableMap,
+} from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
 import { isMobile } from "../../utils/browser";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import {
   getCellAttrs,
+  getCellSpan,
+  getColumnSizes,
   isValidCellAlignment,
   isValidCellMarks,
   setCellAttrs,
+  setSpanPosition,
+  trackSpanPosition,
+  untrackSpanPosition,
 } from "../lib/table";
 import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
@@ -255,22 +265,33 @@ export default class TableHeader extends Node {
   }
 
   get plugins() {
-    function buildAddColumnDecoration(pos: number, index: number) {
+    function buildAddColumnDecoration(
+      pos: number,
+      index: number,
+      offset = 0,
+      sizes: number[] = [1],
+      spanKey = ""
+    ) {
       const className = cn(EditorStyleHelper.tableAddColumn, {
         first: index === 0,
       });
 
       return Decoration.widget(
         pos + 1,
-        () => {
+        (view, getPos) => {
           const plus = document.createElement("a");
           plus.role = "button";
           plus.className = className;
           plus.dataset.index = index.toString();
+          setSpanPosition(plus, offset, sizes);
+          if (sizes.length > 1) {
+            trackSpanPosition(plus, view, getPos, "column", offset);
+          }
           return plus;
         },
         {
-          key: cn(className, index),
+          key: cn(className, index, spanKey),
+          destroy: untrackSpanPosition,
         }
       );
     }
@@ -306,28 +327,44 @@ export default class TableHeader extends Node {
 
       const { doc } = state;
       const decorations: Decoration[] = [];
-      const cols = getCellsInRow(0)(state);
+      if (isInTable(state)) {
+        const { map, table, tableStart } = selectedRect(state);
 
-      if (cols) {
-        cols.forEach((pos, index) => {
+        // Each column gets a grip in the first row. A cell that spans several
+        // columns holds one grip for each of them.
+        for (let index = 0; index < map.width; index++) {
+          const cellPos = map.map[index];
+          const span = getCellSpan(map, 0, index, "column");
+          const pos = tableStart + cellPos;
+          const offset = index - span.start;
+          const cell = table.nodeAt(cellPos);
+          const sizes = getColumnSizes(cell, span.end - span.start);
+          // Resizing a column changes the stored widths, so the widgets are
+          // rebuilt and measure the new layout.
+          const spanKey = `${offset}/${sizes.length}/${cell?.attrs.colwidth}`;
           const className = cn(EditorStyleHelper.tableGripColumn, {
             selected: isColumnSelected(index)(state) || isTableSelected(state),
             first: index === 0,
-            last: index === cols.length - 1,
+            last: index === map.width - 1,
           });
 
           decorations.push(
             Decoration.widget(
               pos + 1,
-              () => {
+              (view, getPos) => {
                 const grip = document.createElement("a");
                 grip.role = "button";
                 grip.className = className;
                 grip.dataset.index = index.toString();
+                setSpanPosition(grip, offset, sizes);
+                if (sizes.length > 1) {
+                  trackSpanPosition(grip, view, getPos, "column", offset);
+                }
                 return grip;
               },
               {
-                key: cn(className, index),
+                key: cn(className, index, spanKey),
+                destroy: untrackSpanPosition,
               }
             )
           );
@@ -339,9 +376,11 @@ export default class TableHeader extends Node {
               decorations.push(buildAddColumnDecoration(pos, index));
             }
 
-            decorations.push(buildAddColumnDecoration(pos, index + 1));
+            decorations.push(
+              buildAddColumnDecoration(pos, index + 1, offset, sizes, spanKey)
+            );
           }
-        });
+        }
       }
 
       return DecorationSet.create(doc, decorations);

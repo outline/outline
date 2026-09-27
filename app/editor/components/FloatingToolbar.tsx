@@ -14,9 +14,13 @@ import useKeyboardStickyOffset from "~/hooks/useKeyboardStickyOffset";
 import useMobile from "~/hooks/useMobile";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
-import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
-import { RowSelection } from "@shared/editor/selection/RowSelection";
-import { isTableSelected } from "@shared/editor/queries/table";
+import {
+  getColumnBounds,
+  getColumnIndex,
+  getRowBounds,
+  getRowIndex,
+  isTableSelected,
+} from "@shared/editor/queries/table";
 
 type Props = {
   align?: "start" | "end" | "center";
@@ -125,10 +129,8 @@ function usePosition({
   }
 
   // tables are an oddity, and need their own positioning logic
-  const isColSelection =
-    selection instanceof ColumnSelection && selection.isColSelection();
-  const isRowSelection =
-    selection instanceof RowSelection && selection.isRowSelection();
+  const colIndex = getColumnIndex(view.state);
+  const rowIndex = getRowIndex(view.state);
 
   if (isTableSelected(view.state)) {
     const rect = selectedRect(view.state);
@@ -137,26 +139,16 @@ function usePosition({
     selectionBounds.top = bounds.top - 16;
     selectionBounds.left = bounds.left - 10;
     selectionBounds.right = bounds.left - 10;
-  } else if (isColSelection) {
-    const rect = selectedRect(view.state);
-    const table = view.domAtPos(rect.tableStart);
-    const element = (table.node as HTMLElement).querySelector(
-      `tr > *:nth-child(${rect.left + 1})`
-    );
-    if (element instanceof HTMLElement) {
-      const bounds = element.getBoundingClientRect();
+  } else if (colIndex !== undefined) {
+    const bounds = getColumnBounds(view, colIndex);
+    if (bounds) {
       selectionBounds.top = bounds.top - 16;
       selectionBounds.left = bounds.left;
       selectionBounds.right = bounds.right;
     }
-  } else if (isRowSelection) {
-    const rect = selectedRect(view.state);
-    const table = view.domAtPos(rect.tableStart);
-    const element = (table.node as HTMLElement).querySelector(
-      `tr:nth-child(${rect.top + 1}) > *`
-    );
-    if (element instanceof HTMLElement) {
-      const bounds = element.getBoundingClientRect();
+  } else if (rowIndex !== undefined) {
+    const bounds = getRowBounds(view, rowIndex);
+    if (bounds) {
       selectionBounds.top = bounds.top;
       selectionBounds.left = bounds.left - 10;
       selectionBounds.right = bounds.left - 10;
@@ -233,8 +225,8 @@ function usePosition({
     maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
     blockSelection: !!(
       codeBlock ||
-      isColSelection ||
-      isRowSelection ||
+      colIndex !== undefined ||
+      rowIndex !== undefined ||
       noticeBlock
     ),
     visible: true,

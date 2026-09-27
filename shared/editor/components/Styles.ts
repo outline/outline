@@ -2224,7 +2224,7 @@ table {
   }
 
   .${EditorStyleHelper.tableAddRow} {
-    bottom: -1px;
+    bottom: calc(var(--span-end, 0%) - 1px);
     left: -16px;
     width: 0;
     height: 2px;
@@ -2270,7 +2270,7 @@ table {
 
   .${EditorStyleHelper.tableAddColumn} {
     top: -16px;
-    right: -1px;
+    right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
     z-index: 1;
@@ -2323,8 +2323,8 @@ table {
       cursor: grab;
       position: absolute;
       top: -16px;
-      left: 0;
-      width: 100%;
+      left: var(--span-start, 0);
+      width: var(--span-size, 100%);
       height: 12px;
       background: ${props.theme.divider};
       display: ${props.readOnly ? "none" : "block"};
@@ -2341,14 +2341,13 @@ table {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
     }
+    &.last::after {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGripRow} {
@@ -2357,8 +2356,8 @@ table {
       cursor: grab;
       position: absolute;
       left: -16px;
-      top: 0;
-      height: 100%;
+      top: var(--span-start, 0);
+      height: var(--span-size, 100%);
       width: 12px;
       background: ${props.theme.divider};
       border-color: ${props.theme.background};
@@ -2376,14 +2375,13 @@ table {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
     }
+    &.last::after {
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGrip} {
