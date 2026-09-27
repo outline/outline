@@ -26,6 +26,9 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
     "documents.remove_group",
     "documents.move",
     "documents.unpublish",
+    "documents.archive",
+    "documents.delete",
+    "documents.permanent_delete",
     "groups.add_user",
     "groups.remove_user",
     "groups.delete",
@@ -92,8 +95,12 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
           documentIds: event.data.documentIds,
         });
 
-      // A published document became a draft, visible only to its author.
+      // A published document became a draft, visible only to its author, or
+      // the document left the active state and is no longer writable.
       case "documents.unpublish":
+      case "documents.archive":
+      case "documents.delete":
+      case "documents.permanent_delete":
         return AuthenticationExtension.invalidate({
           documentIds: [event.documentId],
         });
