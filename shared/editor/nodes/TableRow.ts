@@ -3,6 +3,7 @@ import type { EditorState } from "prosemirror-state";
 import { isInTable, moveTableRow, selectedRect } from "prosemirror-tables";
 import Node from "./Node";
 import { cn } from "../styles/utils";
+import { setSpanPosition } from "../lib/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
@@ -227,7 +228,12 @@ export default class TableRow extends Node {
       },
     });
 
-    function buildAddRowDecoration(pos: number, index: number) {
+    function buildAddRowDecoration(
+      pos: number,
+      index: number,
+      offset = 0,
+      sizes: number[] = [1]
+    ) {
       const className = cn(EditorStyleHelper.tableAddRow, {
         first: index === 0,
       });
@@ -239,10 +245,11 @@ export default class TableRow extends Node {
           plus.role = "button";
           plus.className = className;
           plus.dataset.index = index.toString();
+          setSpanPosition(plus, offset, sizes);
           return plus;
         },
         {
-          key: cn(className, index),
+          key: cn(className, index, `${offset}/${sizes.length}`),
         }
       );
     }
@@ -264,37 +271,21 @@ export default class TableRow extends Node {
 
             const { doc } = state;
             const decorations: Decoration[] = [];
-            const rows = getRowsInTable(state);
+            if (isInTable(state)) {
+              const { map, tableStart } = selectedRect(state);
 
-            if (rows && rows.length > 0 && isInTable(state)) {
-              const rect = selectedRect(state);
-              const firstColumnCells = new Map<number, number>();
-
-              // Map each visual row index to its first column cell position
-              for (let row = 0; row < rect.map.height; row++) {
-                const cellPos =
-                  rect.tableStart + rect.map.map[row * rect.map.width];
-                firstColumnCells.set(row, cellPos);
-              }
-
-              rows.forEach((pos, visualIndex) => {
-                const index = visualIndex;
-
-                // Check if this row's first column is part of a merged cell from above
-                const currentFirstCellPos = firstColumnCells.get(visualIndex);
-                let isFirstColumnMerged = false;
-
-                for (let prevRow = 0; prevRow < visualIndex; prevRow++) {
-                  if (firstColumnCells.get(prevRow) === currentFirstCellPos) {
-                    isFirstColumnMerged = true;
-                    break;
-                  }
-                }
-
-                // Skip decorations for rows where first column is merged from above
-                if (isFirstColumnMerged) {
-                  return;
-                }
+              // Each row gets a grip in the first column. A cell that spans
+              // several rows holds one grip for each of them.
+              for (let index = 0; index < map.height; index++) {
+                const cellPos = map.map[index * map.width];
+                const cellRect = map.findCell(cellPos);
+                const pos = tableStart + cellPos;
+                const offset = index - cellRect.top;
+                const sizes = Array.from(
+                  { length: cellRect.bottom - cellRect.top },
+                  () => 1
+                );
+                const spanKey = `${offset}/${sizes.length}`;
 
                 if (index === 0) {
                   const className = cn(EditorStyleHelper.tableGrip, {
@@ -321,7 +312,7 @@ export default class TableRow extends Node {
                   selected:
                     isRowSelected(index)(state) || isTableSelected(state),
                   first: index === 0,
-                  last: visualIndex === rows.length - 1,
+                  last: index === map.height - 1,
                 });
 
                 decorations.push(
@@ -332,10 +323,11 @@ export default class TableRow extends Node {
                       grip.role = "button";
                       grip.className = className;
                       grip.dataset.index = index.toString();
+                      setSpanPosition(grip, offset, sizes);
                       return grip;
                     },
                     {
-                      key: cn(className, index),
+                      key: cn(className, index, spanKey),
                     }
                   )
                 );
@@ -347,17 +339,11 @@ export default class TableRow extends Node {
                     decorations.push(buildAddRowDecoration(pos, index));
                   }
 
-                  // Calculate the rowspan of the first column cell to determine the
-                  // correct index for the "add row after" button. When cells are
-                  // merged vertically, we need to insert after all merged rows.
-                  const firstCellNode =
-                    currentFirstCellPos !== undefined
-                      ? doc.nodeAt(currentFirstCellPos)
-                      : null;
-                  const rowspan = firstCellNode?.attrs.rowspan ?? 1;
-                  decorations.push(buildAddRowDecoration(pos, index + rowspan));
+                  decorations.push(
+                    buildAddRowDecoration(pos, index + 1, offset, sizes)
+                  );
                 }
-              });
+              }
             }
 
             return DecorationSet.create(doc, decorations);

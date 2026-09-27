@@ -179,3 +179,50 @@ export function setCellAttrs(node: Node): Attrs {
 
   return attrs;
 }
+
+/**
+ * Position a table grip or insert button on one of the rows or columns that a
+ * merged cell spans. The position is set with CSS custom properties that are
+ * percentages of the cell size.
+ *
+ * @param element The element to position.
+ * @param offset The index of the row or column within the cell.
+ * @param sizes The relative size of each row or column that the cell spans.
+ */
+export function setSpanPosition(
+  element: HTMLElement,
+  offset: number,
+  sizes: number[]
+): void {
+  if (sizes.length < 2) {
+    return;
+  }
+
+  const total = sizes.reduce((sum, size) => sum + size, 0);
+  const start = sizes.slice(0, offset).reduce((sum, size) => sum + size, 0);
+  const end = start + sizes[offset];
+
+  element.style.setProperty("--span-start", `${(start / total) * 100}%`);
+  element.style.setProperty("--span-size", `${(sizes[offset] / total) * 100}%`);
+  element.style.setProperty("--span-end", `${100 - (end / total) * 100}%`);
+}
+
+/**
+ * Get the relative width of each column that a cell spans, using the stored
+ * column widths when they are available.
+ *
+ * @param node The cell node.
+ * @param colspan The number of columns that the cell spans.
+ * @returns The relative width of each spanned column.
+ */
+export function getColumnSizes(node: Node | null, colspan: number): number[] {
+  const colwidth: unknown = node?.attrs.colwidth;
+  if (
+    Array.isArray(colwidth) &&
+    colwidth.length === colspan &&
+    colwidth.every((width) => typeof width === "number" && width > 0)
+  ) {
+    return colwidth;
+  }
+  return Array.from({ length: colspan }, () => 1);
+}
