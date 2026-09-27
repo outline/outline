@@ -1063,6 +1063,11 @@ img.ProseMirror-separator {
   display: none;
 }
 
+// Let paragraphs of floated images collapse so consecutive floats line up
+p:has(> .component-image > .image-left-50, > .component-image > .image-right-50) {
+  min-height: 0;
+}
+
 .${EditorStyleHelper.imageCaption} {
   border: 0;
   display: block;
