@@ -870,7 +870,7 @@ export enum Plan {
   Legacy = "legacy",
 }
 
-/** Features that are only available on some plans. */
+/** Features that are potentially gated by entitlements. */
 export enum PlanFeature {
   /** Access to the workspace audit log. */
   AuditLog = "auditLog",
@@ -878,6 +878,8 @@ export enum PlanFeature {
   AdvancedSecurity = "advancedSecurity",
   /** Inviting guest users. */
   Guests = "guests",
+  /** Synchronization of groups with an external IDP */
+  GroupSync = "groupSync",
   /** Integrations that are not included in every plan. */
   PremiumIntegrations = "premiumIntegrations",
   /** Management of API keys across the workspace. */
@@ -888,4 +890,6 @@ export enum PlanFeature {
   AIAnswers = "aiAnswers",
   /** Serving the workspace from a custom domain. */
   CustomDomain = "customDomain",
+  /** SAML authentication provider */
+  SAML = "saml",
 }
