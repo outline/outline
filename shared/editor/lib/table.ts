@@ -1,5 +1,6 @@
 import type { Attrs, Node, Schema } from "prosemirror-model";
-import type { MutableAttrs } from "prosemirror-tables";
+import { TableMap, type MutableAttrs } from "prosemirror-tables";
+import type { EditorView } from "prosemirror-view";
 import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
 import type { TableLayout, NodeAttrMark } from "../types";
@@ -208,6 +209,63 @@ export function setSpanPosition(
 }
 
 /**
+ * Keep a table grip or insert button positioned on one of the rows or columns
+ * that a merged cell spans, by measuring the rendered rows or columns whenever
+ * the table or cell is resized.
+ *
+ * @param element The element to position, placed at the start of the cell.
+ * @param view The editor view.
+ * @param getPos A function that returns the position of the element.
+ * @param axis Whether the cell spans rows or columns.
+ * @param offset The index of the row or column within the cell.
+ */
+export function trackSpanPosition(
+  element: HTMLElement,
+  view: EditorView,
+  getPos: () => number | undefined,
+  axis: "row" | "column",
+  offset: number
+): void {
+  if (typeof ResizeObserver === "undefined") {
+    return;
+  }
+
+  const observer = new ResizeObserver(() => {
+    const pos = getPos();
+    const sizes =
+      pos === undefined ? undefined : measureSpan(view, pos - 1, axis);
+    if (sizes) {
+      setSpanPosition(element, offset, sizes);
+    }
+  });
+
+  // The element is not in the document until the widget is mounted.
+  const frame = requestAnimationFrame(() => {
+    const cell = element.closest("td, th");
+    const table = cell?.closest("table");
+    if (cell && table) {
+      observer.observe(cell);
+      observer.observe(table);
+    }
+  });
+
+  spanTrackers.set(element, () => {
+    cancelAnimationFrame(frame);
+    observer.disconnect();
+  });
+}
+
+/**
+ * Stop keeping an element positioned, see trackSpanPosition.
+ *
+ * @param element The positioned element.
+ */
+export function untrackSpanPosition(element: globalThis.Node): void {
+  spanTrackers.get(element)?.();
+  spanTrackers.delete(element);
+}
+
+/**
  * Get the relative width of each column that a cell spans, using the stored
  * column widths when they are available.
  *
@@ -225,4 +283,68 @@ export function getColumnSizes(node: Node | null, colspan: number): number[] {
     return colwidth;
   }
   return Array.from({ length: colspan }, () => 1);
+}
+
+const spanTrackers = new WeakMap<globalThis.Node, () => void>();
+
+/**
+ * Measure the rendered size of each row or column that a cell spans.
+ *
+ * @param view The editor view.
+ * @param cellPos The position of the cell.
+ * @param axis Whether to measure rows or columns.
+ * @returns The size of each spanned row or column, or undefined if one of them
+ * cannot be measured.
+ */
+function measureSpan(
+  view: EditorView,
+  cellPos: number,
+  axis: "row" | "column"
+): number[] | undefined {
+  const $cell = view.state.doc.resolve(cellPos);
+  const table = $cell.node(-1);
+  if (table?.type.spec.tableRole !== "table") {
+    return undefined;
+  }
+
+  const tableStart = $cell.start(-1);
+  const map = TableMap.get(table);
+  const rect = map.findCell(cellPos - tableStart);
+  const sizes: number[] = [];
+
+  if (axis === "row") {
+    let rowPos = tableStart;
+    for (let row = 0; row < rect.bottom; row++) {
+      if (row >= rect.top) {
+        const dom = view.nodeDOM(rowPos);
+        if (!(dom instanceof HTMLElement)) {
+          return undefined;
+        }
+        sizes.push(dom.getBoundingClientRect().height);
+      }
+      rowPos += table.child(row).nodeSize;
+    }
+  } else {
+    for (let col = rect.left; col < rect.right; col++) {
+      // Measure a cell that only covers this column.
+      let width: number | undefined;
+      for (let row = 0; row < map.height && width === undefined; row++) {
+        const pos = map.map[row * map.width + col];
+        const { left, right } = map.findCell(pos);
+        const dom =
+          left === col && right === col + 1
+            ? view.nodeDOM(tableStart + pos)
+            : undefined;
+        if (dom instanceof HTMLElement) {
+          width = dom.getBoundingClientRect().width;
+        }
+      }
+      if (width === undefined) {
+        return undefined;
+      }
+      sizes.push(width);
+    }
+  }
+
+  return sizes.every((size) => size > 0) ? sizes : undefined;
 }

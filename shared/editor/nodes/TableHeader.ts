@@ -20,6 +20,8 @@ import {
   isValidCellMarks,
   setCellAttrs,
   setSpanPosition,
+  trackSpanPosition,
+  untrackSpanPosition,
 } from "../lib/table";
 import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
@@ -266,7 +268,8 @@ export default class TableHeader extends Node {
       pos: number,
       index: number,
       offset = 0,
-      sizes: number[] = [1]
+      sizes: number[] = [1],
+      spanKey = ""
     ) {
       const className = cn(EditorStyleHelper.tableAddColumn, {
         first: index === 0,
@@ -274,16 +277,20 @@ export default class TableHeader extends Node {
 
       return Decoration.widget(
         pos + 1,
-        () => {
+        (view, getPos) => {
           const plus = document.createElement("a");
           plus.role = "button";
           plus.className = className;
           plus.dataset.index = index.toString();
           setSpanPosition(plus, offset, sizes);
+          if (sizes.length > 1) {
+            trackSpanPosition(plus, view, getPos, "column", offset);
+          }
           return plus;
         },
         {
-          key: cn(className, index, `${offset}/${sizes.join(",")}`),
+          key: cn(className, index, spanKey),
+          destroy: untrackSpanPosition,
         }
       );
     }
@@ -329,11 +336,11 @@ export default class TableHeader extends Node {
           const cellRect = map.findCell(cellPos);
           const pos = tableStart + cellPos;
           const offset = index - cellRect.left;
-          const sizes = getColumnSizes(
-            table.nodeAt(cellPos),
-            cellRect.right - cellRect.left
-          );
-          const spanKey = `${offset}/${sizes.join(",")}`;
+          const cell = table.nodeAt(cellPos);
+          const sizes = getColumnSizes(cell, cellRect.right - cellRect.left);
+          // Resizing a column changes the stored widths, so the widgets are
+          // rebuilt and measure the new layout.
+          const spanKey = `${offset}/${sizes.length}/${cell?.attrs.colwidth}`;
           const className = cn(EditorStyleHelper.tableGripColumn, {
             selected: isColumnSelected(index)(state) || isTableSelected(state),
             first: index === 0,
@@ -343,16 +350,20 @@ export default class TableHeader extends Node {
           decorations.push(
             Decoration.widget(
               pos + 1,
-              () => {
+              (view, getPos) => {
                 const grip = document.createElement("a");
                 grip.role = "button";
                 grip.className = className;
                 grip.dataset.index = index.toString();
                 setSpanPosition(grip, offset, sizes);
+                if (sizes.length > 1) {
+                  trackSpanPosition(grip, view, getPos, "column", offset);
+                }
                 return grip;
               },
               {
                 key: cn(className, index, spanKey),
+                destroy: untrackSpanPosition,
               }
             )
           );
@@ -365,7 +376,7 @@ export default class TableHeader extends Node {
             }
 
             decorations.push(
-              buildAddColumnDecoration(pos, index + 1, offset, sizes)
+              buildAddColumnDecoration(pos, index + 1, offset, sizes, spanKey)
             );
           }
         }

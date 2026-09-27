@@ -3,7 +3,11 @@ import type { EditorState } from "prosemirror-state";
 import { isInTable, moveTableRow, selectedRect } from "prosemirror-tables";
 import Node from "./Node";
 import { cn } from "../styles/utils";
-import { setSpanPosition } from "../lib/table";
+import {
+  setSpanPosition,
+  trackSpanPosition,
+  untrackSpanPosition,
+} from "../lib/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
@@ -240,16 +244,20 @@ export default class TableRow extends Node {
 
       return Decoration.widget(
         pos + 1,
-        () => {
+        (view, getPos) => {
           const plus = document.createElement("a");
           plus.role = "button";
           plus.className = className;
           plus.dataset.index = index.toString();
           setSpanPosition(plus, offset, sizes);
+          if (sizes.length > 1) {
+            trackSpanPosition(plus, view, getPos, "row", offset);
+          }
           return plus;
         },
         {
           key: cn(className, index, `${offset}/${sizes.length}`),
+          destroy: untrackSpanPosition,
         }
       );
     }
@@ -318,16 +326,20 @@ export default class TableRow extends Node {
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
-                    () => {
+                    (view, getPos) => {
                       const grip = document.createElement("a");
                       grip.role = "button";
                       grip.className = className;
                       grip.dataset.index = index.toString();
                       setSpanPosition(grip, offset, sizes);
+                      if (sizes.length > 1) {
+                        trackSpanPosition(grip, view, getPos, "row", offset);
+                      }
                       return grip;
                     },
                     {
                       key: cn(className, index, spanKey),
+                      destroy: untrackSpanPosition,
                     }
                   )
                 );
