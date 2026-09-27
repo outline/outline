@@ -3,6 +3,7 @@ import { type Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { CellSelection, inSameTable, TableMap } from "prosemirror-tables";
 import type { Mappable } from "prosemirror-transform";
+import { getCellsStartingInRow } from "../lib/table";
 
 export class RowSelection extends CellSelection {
   constructor(
@@ -93,28 +94,14 @@ export class RowSelection extends CellSelection {
 
     // Anchor on cells that start in the selected rows where possible, as a
     // cell spanning from a row above would widen the selection to that row.
-    const startingIn = (row: number) => {
-      const cells: number[] = [];
-      for (let col = 0; col < map.width; col++) {
-        const index = row * map.width + col;
-        const pos = map.map[index];
-        const startsInRow = row === 0 || map.map[index - map.width] !== pos;
-        const isRepeat = col > 0 && map.map[index - 1] === pos;
-        if (startsInRow && !isRepeat) {
-          cells.push(pos);
-        }
-      }
-      return cells;
-    };
-    const $anchorCell = doc.resolve(
-      tableStart +
-        (startingIn(anchorIndex)[0] ?? map.map[anchorIndex * map.width])
-    );
-    const $headCell = doc.resolve(
-      tableStart +
-        (startingIn(headIndex).at(-1) ??
-          map.map[headIndex * map.width + map.width - 1])
-    );
+    const anchorPos =
+      getCellsStartingInRow(map, anchorIndex)[0] ??
+      map.map[anchorIndex * map.width];
+    const headPos =
+      getCellsStartingInRow(map, headIndex).at(-1) ??
+      map.map[(headIndex + 1) * map.width - 1];
+    const $anchorCell = doc.resolve(tableStart + anchorPos);
+    const $headCell = doc.resolve(tableStart + headPos);
     return new RowSelection($anchorCell, $headCell, anchorIndex, headIndex);
   }
 }

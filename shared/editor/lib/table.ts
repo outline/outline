@@ -210,8 +210,7 @@ export function setSpanPosition(
 
 /**
  * Get the rows or columns spanned by the cell that covers the given row and
- * column. Compares neighbouring entries in the table map, which avoids the
- * scan of the whole map in TableMap.findCell.
+ * column.
  *
  * @param map The table map.
  * @param row A row covered by the cell.
@@ -241,6 +240,44 @@ export function getCellSpan(
     end++;
   }
   return { start, end };
+}
+
+/**
+ * Get the cells that start in a row, skipping cells that span into it from a
+ * row above.
+ *
+ * @param map The table map.
+ * @param row The index of the row.
+ * @returns The positions of the cells relative to the table start, in order.
+ */
+export function getCellsStartingInRow(map: TableMap, row: number): number[] {
+  const cells: number[] = [];
+  for (let col = 0; col < map.width;) {
+    if (getCellSpan(map, row, col, "row").start === row) {
+      cells.push(map.map[row * map.width + col]);
+    }
+    col = getCellSpan(map, row, col, "column").end;
+  }
+  return cells;
+}
+
+/**
+ * Get the cells that start in a column, skipping cells that span into it from
+ * a column before.
+ *
+ * @param map The table map.
+ * @param col The index of the column.
+ * @returns The positions of the cells relative to the table start, in order.
+ */
+export function getCellsStartingInColumn(map: TableMap, col: number): number[] {
+  const cells: number[] = [];
+  for (let row = 0; row < map.height;) {
+    if (getCellSpan(map, row, col, "column").start === col) {
+      cells.push(map.map[row * map.width + col]);
+    }
+    row = getCellSpan(map, row, col, "row").end;
+  }
+  return cells;
 }
 
 /**

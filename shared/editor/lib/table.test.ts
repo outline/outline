@@ -4,6 +4,8 @@ import { doc, table, td, tr } from "@shared/test/editor";
 import {
   getCellAttrs,
   getCellSpan,
+  getCellsStartingInColumn,
+  getCellsStartingInRow,
   isValidCellAlignment,
   isValidCellMarks,
 } from "./table";
@@ -227,5 +229,16 @@ describe("getCellSpan", () => {
   it("returns the columns spanned by a cell", () => {
     expect(getCellSpan(map, 0, 2, "column")).toEqual({ start: 1, end: 3 });
     expect(getCellSpan(map, 1, 2, "column")).toEqual({ start: 2, end: 3 });
+  });
+
+  it("returns the cells that start in a row or column", () => {
+    const cell = (row: number, col: number) => map.map[row * map.width + col];
+    expect(getCellsStartingInRow(map, 1)).toEqual([cell(1, 1), cell(1, 2)]);
+    expect(getCellsStartingInColumn(map, 1)).toEqual([
+      cell(0, 1),
+      cell(1, 1),
+      cell(2, 1),
+    ]);
+    expect(getCellsStartingInColumn(map, 2)).toEqual([cell(1, 2), cell(2, 2)]);
   });
 });
