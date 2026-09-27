@@ -325,8 +325,8 @@ export function isMultipleCellSelection(state: EditorState): boolean {
 
 /**
  * Check if the selected cells can be merged into a single cell. A row or
- * column selection can only be merged when no cell spans beyond the selected
- * rows or columns.
+ * column selection can only be merged when it covers every cell in the
+ * selected rows or columns, and no cell spans beyond them.
  *
  * @param state The editor state
  * @returns Boolean indicating if the selected cells can be merged
@@ -338,17 +338,21 @@ export function canMergeCells(state: EditorState): boolean {
 
   const { selection } = state;
   if (selection instanceof RowSelection) {
-    const { top, bottom } = selectedRect(state);
+    const { top, bottom, left, right, map } = selectedRect(state);
     return (
       top === Math.min(selection.anchorIndex, selection.headIndex) &&
-      bottom === Math.max(selection.anchorIndex, selection.headIndex) + 1
+      bottom === Math.max(selection.anchorIndex, selection.headIndex) + 1 &&
+      left === 0 &&
+      right === map.width
     );
   }
   if (selection instanceof ColumnSelection) {
-    const { left, right } = selectedRect(state);
+    const { top, bottom, left, right, map } = selectedRect(state);
     return (
       left === Math.min(selection.anchorIndex, selection.headIndex) &&
-      right === Math.max(selection.anchorIndex, selection.headIndex) + 1
+      right === Math.max(selection.anchorIndex, selection.headIndex) + 1 &&
+      top === 0 &&
+      bottom === map.height
     );
   }
 

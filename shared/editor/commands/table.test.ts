@@ -197,13 +197,29 @@ describe("merged cells", () => {
     ]);
     const state = createEditorStateWithSelection(testDoc, 4);
     expect(canMergeCells(run(state, selectRow(0)))).toBe(false);
+    expect(canMergeCells(run(state, selectRow(1)))).toBe(false);
+    expect(
+      canMergeCells(run(run(state, selectRow(1)), selectRow(2, true)))
+    ).toBe(false);
 
-    const merged = run(run(state, selectRow(1)), mergeCellsAndCollapse());
+    const merged = run(run(state, selectRow(2)), mergeCellsAndCollapse());
     expect(getCells(merged)).toEqual([
       ["M:2", "a1", "a2"],
-      ["b1b2"],
-      ["c0", "c1", "c2"],
+      ["b1", "b2"],
+      ["c0c1c2"],
     ]);
+  });
+
+  it("only merges a column when no cell spans beyond it", () => {
+    const testDoc = doc([
+      table([
+        tr([td("M", { colspan: 2 }), td("a2")]),
+        tr([td("b0"), td("b1"), td("b2")]),
+      ]),
+    ]);
+    const state = createEditorStateWithSelection(testDoc, 4);
+    expect(canMergeCells(run(state, selectColumn(1)))).toBe(false);
+    expect(canMergeCells(run(state, selectColumn(2)))).toBe(true);
   });
 
   it("keeps repeated content once when merging cells", () => {
