@@ -209,6 +209,41 @@ export function setSpanPosition(
 }
 
 /**
+ * Get the rows or columns spanned by the cell that covers the given row and
+ * column. Compares neighbouring entries in the table map, which avoids the
+ * scan of the whole map in TableMap.findCell.
+ *
+ * @param map The table map.
+ * @param row A row covered by the cell.
+ * @param col A column covered by the cell.
+ * @param axis Whether to get the spanned rows or columns.
+ * @returns The first spanned index, and the index after the last one.
+ */
+export function getCellSpan(
+  map: TableMap,
+  row: number,
+  col: number,
+  axis: "row" | "column"
+): { start: number; end: number } {
+  const pos = map.map[row * map.width + col];
+  const at = (index: number) =>
+    axis === "row"
+      ? map.map[index * map.width + col]
+      : map.map[row * map.width + index];
+  const length = axis === "row" ? map.height : map.width;
+
+  let start = axis === "row" ? row : col;
+  let end = start + 1;
+  while (start > 0 && at(start - 1) === pos) {
+    start--;
+  }
+  while (end < length && at(end) === pos) {
+    end++;
+  }
+  return { start, end };
+}
+
+/**
  * Keep a table grip or insert button positioned on one of the rows or columns
  * that a merged cell spans, by measuring the rendered rows or columns whenever
  * the table or cell is resized.
@@ -309,13 +344,29 @@ function measureSpan(
 
   const tableStart = $cell.start(-1);
   const map = TableMap.get(table);
-  const rect = map.findCell(cellPos - tableStart);
+
+  // The cell is in the first column when it spans rows, and in the first row
+  // when it spans columns.
+  const length = axis === "row" ? map.height : map.width;
+  const stride = axis === "row" ? map.width : 1;
+  let index = 0;
+  while (index < length && map.map[index * stride] !== cellPos - tableStart) {
+    index++;
+  }
+  if (index === length) {
+    return undefined;
+  }
+
+  const span =
+    axis === "row"
+      ? getCellSpan(map, index, 0, "row")
+      : getCellSpan(map, 0, index, "column");
   const sizes: number[] = [];
 
   if (axis === "row") {
     let rowPos = tableStart;
-    for (let row = 0; row < rect.bottom; row++) {
-      if (row >= rect.top) {
+    for (let row = 0; row < span.end; row++) {
+      if (row >= span.start) {
         const dom = view.nodeDOM(rowPos);
         if (!(dom instanceof HTMLElement)) {
           return undefined;
@@ -325,15 +376,14 @@ function measureSpan(
       rowPos += table.child(row).nodeSize;
     }
   } else {
-    for (let col = rect.left; col < rect.right; col++) {
+    for (let col = span.start; col < span.end; col++) {
       // Measure a cell that only covers this column.
       let width: number | undefined;
       for (let row = 0; row < map.height && width === undefined; row++) {
-        const pos = map.map[row * map.width + col];
-        const { left, right } = map.findCell(pos);
+        const { start, end } = getCellSpan(map, row, col, "column");
         const dom =
-          left === col && right === col + 1
-            ? view.nodeDOM(tableStart + pos)
+          start === col && end === col + 1
+            ? view.nodeDOM(tableStart + map.map[row * map.width + col])
             : undefined;
         if (dom instanceof HTMLElement) {
           width = dom.getBoundingClientRect().width;

@@ -6,6 +6,7 @@ import {
   mergeCells,
   selectedRect,
 } from "prosemirror-tables";
+import { getCellSpan } from "../lib/table";
 import { findParentNodeClosestToPos } from "./findParentNode";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
@@ -601,8 +602,8 @@ export function getColumnBounds(
   }
 
   for (let row = 0; row < map.height; row++) {
-    const cellRect = map.findCell(map.map[row * map.width + index]);
-    if (cellRect.right - cellRect.left === 1) {
+    const { start, end } = getCellSpan(map, row, index, "column");
+    if (end - start === 1) {
       const bounds = measure(row);
       if (bounds) {
         return new DOMRect(bounds.left, first.top, bounds.width, first.height);

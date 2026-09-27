@@ -15,6 +15,7 @@ import { isMobile } from "../../utils/browser";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import {
   getCellAttrs,
+  getCellSpan,
   getColumnSizes,
   isValidCellAlignment,
   isValidCellMarks,
@@ -333,11 +334,11 @@ export default class TableHeader extends Node {
         // columns holds one grip for each of them.
         for (let index = 0; index < map.width; index++) {
           const cellPos = map.map[index];
-          const cellRect = map.findCell(cellPos);
+          const span = getCellSpan(map, 0, index, "column");
           const pos = tableStart + cellPos;
-          const offset = index - cellRect.left;
+          const offset = index - span.start;
           const cell = table.nodeAt(cellPos);
-          const sizes = getColumnSizes(cell, cellRect.right - cellRect.left);
+          const sizes = getColumnSizes(cell, span.end - span.start);
           // Resizing a column changes the stored widths, so the widgets are
           // rebuilt and measure the new layout.
           const spanKey = `${offset}/${sizes.length}/${cell?.attrs.colwidth}`;

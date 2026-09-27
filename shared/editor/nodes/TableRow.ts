@@ -4,6 +4,7 @@ import { isInTable, moveTableRow, selectedRect } from "prosemirror-tables";
 import Node from "./Node";
 import { cn } from "../styles/utils";
 import {
+  getCellSpan,
   setSpanPosition,
   trackSpanPosition,
   untrackSpanPosition,
@@ -286,11 +287,11 @@ export default class TableRow extends Node {
               // several rows holds one grip for each of them.
               for (let index = 0; index < map.height; index++) {
                 const cellPos = map.map[index * map.width];
-                const cellRect = map.findCell(cellPos);
+                const span = getCellSpan(map, index, 0, "row");
                 const pos = tableStart + cellPos;
-                const offset = index - cellRect.top;
+                const offset = index - span.start;
                 const sizes = Array.from(
-                  { length: cellRect.bottom - cellRect.top },
+                  { length: span.end - span.start },
                   () => 1
                 );
                 const spanKey = `${offset}/${sizes.length}`;

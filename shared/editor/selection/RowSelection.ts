@@ -96,8 +96,11 @@ export class RowSelection extends CellSelection {
     const startingIn = (row: number) => {
       const cells: number[] = [];
       for (let col = 0; col < map.width; col++) {
-        const pos = map.map[row * map.width + col];
-        if (map.findCell(pos).top === row && !cells.includes(pos)) {
+        const index = row * map.width + col;
+        const pos = map.map[index];
+        const startsInRow = row === 0 || map.map[index - map.width] !== pos;
+        const isRepeat = col > 0 && map.map[index - 1] === pos;
+        if (startsInRow && !isRepeat) {
           cells.push(pos);
         }
       }
