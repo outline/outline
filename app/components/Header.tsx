@@ -5,7 +5,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import styled from "styled-components";
+import styled, { type DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT } from "@shared/constants";
@@ -194,18 +194,9 @@ const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
   z-index: ${depths.header};
   position: sticky;
-  background: ${s("background")};
-
-  ${(props) =>
-    props.$passThrough
-      ? `
-      background: transparent;
-      pointer-events: none;
-      `
-      : `
-      background: ${transparentize(0.2, props.theme.background)};
-      backdrop-filter: blur(20px);
-      `};
+  background: ${(props) =>
+    props.$passThrough ? "transparent" : props.theme.background};
+  ${(props) => props.$passThrough && `pointer-events: none;`}
 
   padding: 12px 16px;
   transform: translate3d(0, 0, 0);
@@ -218,15 +209,6 @@ const Wrapper = styled(Flex)<WrapperProps>`
     ${fadeOnDesktopBackgrounded()}
   }
 
-  @supports (backdrop-filter: blur(20px)) {
-    ${(props) =>
-      !props.$passThrough &&
-      `
-      backdrop-filter: blur(20px);
-      background: ${transparentize(0.2, props.theme.background)};
-      `}
-  }
-
   @media print {
     display: none;
   }
@@ -234,6 +216,14 @@ const Wrapper = styled(Flex)<WrapperProps>`
   ${breakpoint("tablet")`
     padding: 12px;
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
+
+    // Translucent blur is limited to larger screens as iOS blurs the header contents otherwise.
+    ${(props: WrapperProps & { theme: DefaultTheme }) =>
+      !props.$passThrough &&
+      `
+      background: ${transparentize(0.2, props.theme.background)};
+      backdrop-filter: blur(20px);
+      `}
     `};
 `;
 
