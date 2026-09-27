@@ -2,6 +2,10 @@ import { Plan, PlanFeature } from "../types";
 
 /**
  * Describes the features that are included in each plan.
+ *
+ * IMPORTANT NOTICE: Bypassing or modifying license controls is a breach of
+ * the license agreement, and will automatically terminate your rights under
+ * the license for the current and all other versions.
  */
 export class PlanHelper {
   /** Plans that can be chosen, ordered from lowest to highest. */
