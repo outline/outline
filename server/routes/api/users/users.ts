@@ -397,6 +397,9 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
     name = "promote";
     authorize(actor, "promote", user);
   }
+  if (role === UserRole.Guest) {
+    authorize(actor, "addGuest", actor.team);
+  }
 
   await user.updateWithCtx(ctx, { role }, { name });
   const includeDetails = !!can(actor, "readDetails", user);

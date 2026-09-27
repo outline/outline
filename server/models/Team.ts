@@ -27,13 +27,14 @@ import {
 import slugify from "slugify";
 import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import type { TeamPreferences } from "@shared/types";
+import type { Plan, PlanFeature, TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
 import {
   getBaseDomain,
   parseDomain,
   RESERVED_SUBDOMAINS,
 } from "@shared/utils/domains";
+import { PlanHelper } from "@shared/utils/PlanHelper";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
@@ -262,6 +263,20 @@ class Team extends ParanoidModel<
    */
   get isSuspended(): boolean {
     return !!this.suspendedAt;
+  }
+
+  /**
+   * Returns the plan that the team is on.
+   */
+  get plan(): Plan {
+    return PlanHelper.defaultPlan;
+  }
+
+  /**
+   * Returns the features that the team is entitled to use.
+   */
+  get entitlements(): PlanFeature[] {
+    return PlanHelper.getFeatures(this.plan);
   }
 
   /**
