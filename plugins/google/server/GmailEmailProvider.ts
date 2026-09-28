@@ -1,15 +1,12 @@
 import addressparser from "addressparser";
 import JWT from "jsonwebtoken";
-import type MailMessage from "nodemailer/lib/mailer/mail-message";
+import type MimeNode from "nodemailer/lib/mime-node";
 import {
   type AccessToken,
   AccessTokenCache,
   fetchAccessToken,
 } from "@server/emails/providers/AccessTokenCache";
-import {
-  BaseEmailProvider,
-  type SentMessageInfo,
-} from "@server/emails/providers/BaseEmailProvider";
+import { BaseEmailProvider } from "@server/emails/providers/BaseEmailProvider";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { decodePem } from "@server/utils/crypto";
@@ -41,10 +38,8 @@ export class GmailEmailProvider extends BaseEmailProvider {
   // before delivery, so the header must survive into the MIME output.
   protected keepBcc = true;
 
-  protected async sendMessage(
-    mail: MailMessage<SentMessageInfo>
-  ): Promise<void> {
-    const from = mail.message.getEnvelope().from;
+  protected async sendMessage(message: MimeNode): Promise<void> {
+    const from = message.getEnvelope().from;
 
     // The mailbox to impersonate is resolved from configuration rather than
     // the message, because the message's own from address can vary per
@@ -73,7 +68,7 @@ export class GmailEmailProvider extends BaseEmailProvider {
       );
     }
 
-    const message = await this.getMimeMessage(mail);
+    const mime = await this.getMimeMessage(message);
     // The mailbox is identified by the token's subject, so addressing "me"
     // cannot disagree with the account being impersonated.
     const accessToken = await this.tokens.get(mailbox);
@@ -86,7 +81,7 @@ export class GmailEmailProvider extends BaseEmailProvider {
       },
       // Gmail expects the message web-safe encoded rather than as standard
       // base64, so that it survives being carried in a JSON string.
-      body: JSON.stringify({ raw: message.toString("base64url") }),
+      body: JSON.stringify({ raw: mime.toString("base64url") }),
     });
 
     await this.assertOk(response, "Gmail could not send the message");

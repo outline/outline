@@ -1,10 +1,9 @@
 import type * as AwsSES from "@aws-sdk/client-sesv2";
 import type { SESv2Client } from "@aws-sdk/client-sesv2";
-import type MailMessage from "nodemailer/lib/mailer/mail-message";
+import type MimeNode from "nodemailer/lib/mime-node";
 import {
   BaseEmailProvider,
   type EmailTags,
-  type SentMessageInfo,
   sesTagHeaders,
 } from "@server/emails/providers/BaseEmailProvider";
 import env from "./env";
@@ -35,16 +34,14 @@ export class SESEmailProvider extends BaseEmailProvider {
     return sesTagHeaders(tags);
   }
 
-  protected async sendMessage(
-    mail: MailMessage<SentMessageInfo>
-  ): Promise<void> {
-    const envelope = mail.message.getEnvelope();
-    const message = await this.getMimeMessage(mail);
+  protected async sendMessage(message: MimeNode): Promise<void> {
+    const envelope = message.getEnvelope();
+    const mime = await this.getMimeMessage(message);
     const { sdk, client } = await this.getSES();
 
     await client.send(
       new sdk.SendEmailCommand({
-        Content: { Raw: { Data: message } },
+        Content: { Raw: { Data: mime } },
         // Supplied explicitly so that the envelope, rather than the message
         // headers, decides who the message is actually delivered to.
         FromEmailAddress: envelope.from || undefined,

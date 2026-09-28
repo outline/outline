@@ -1,14 +1,11 @@
 import addressparser from "addressparser";
-import type MailMessage from "nodemailer/lib/mailer/mail-message";
+import type MimeNode from "nodemailer/lib/mime-node";
 import {
   type AccessToken,
   AccessTokenCache,
   fetchAccessToken,
 } from "@server/emails/providers/AccessTokenCache";
-import {
-  BaseEmailProvider,
-  type SentMessageInfo,
-} from "@server/emails/providers/BaseEmailProvider";
+import { BaseEmailProvider } from "@server/emails/providers/BaseEmailProvider";
 import { InternalError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import env from "./env";
@@ -39,9 +36,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
   // before delivery, so the header must survive into the MIME output.
   protected keepBcc = true;
 
-  protected async sendMessage(
-    mail: MailMessage<SentMessageInfo>
-  ): Promise<void> {
+  protected async sendMessage(message: MimeNode): Promise<void> {
     // Graph identifies the sending mailbox in the path. It is resolved from
     // configuration rather than the message, because the message's own from
     // address can vary per message – it is randomized for authentication
@@ -51,7 +46,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
       (env.SMTP_FROM_EMAIL
         ? addressparser(env.SMTP_FROM_EMAIL)[0]?.address
         : undefined) ||
-      mail.message.getEnvelope().from;
+      message.getEnvelope().from;
 
     if (!mailbox) {
       throw InternalError(
@@ -59,7 +54,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
       );
     }
 
-    const message = await this.getMimeMessage(mail);
+    const mime = await this.getMimeMessage(message);
     const accessToken = await this.tokens.get(
       env.AZURE_MAIL_TENANT_ID ?? "common"
     );
@@ -76,7 +71,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
           // a JSON message resource.
           "Content-Type": "text/plain",
         },
-        body: message.toString("base64"),
+        body: mime.toString("base64"),
       }
     );
 

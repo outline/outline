@@ -1,7 +1,6 @@
-import type MailMessage from "nodemailer/lib/mailer/mail-message";
 import env from "@server/env";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
-import { BaseEmailProvider, type SentMessageInfo } from "./BaseEmailProvider";
+import { BaseEmailProvider } from "./BaseEmailProvider";
 import { EmailProviderManager } from "./EmailProviderManager";
 
 class TestEmailProvider extends BaseEmailProvider {
@@ -9,7 +8,7 @@ class TestEmailProvider extends BaseEmailProvider {
 
   name = "Test Provider";
 
-  protected sendMessage(_mail: MailMessage<SentMessageInfo>): Promise<void> {
+  protected sendMessage(): Promise<void> {
     return Promise.resolve();
   }
 }

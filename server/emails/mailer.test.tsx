@@ -1,4 +1,4 @@
-import type MailMessage from "nodemailer/lib/mailer/mail-message";
+import type MimeNode from "nodemailer/lib/mime-node";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
@@ -6,7 +6,6 @@ import { Mailer } from "./mailer";
 import {
   BaseEmailProvider,
   type EmailTags,
-  type SentMessageInfo,
 } from "./providers/BaseEmailProvider";
 
 /** A provider that records the message it was handed, rather than sending it. */
@@ -23,13 +22,11 @@ class CapturingEmailProvider extends BaseEmailProvider {
     return { "X-Test-Tag": tags.template };
   }
 
-  protected async sendMessage(
-    mail: MailMessage<SentMessageInfo>
-  ): Promise<void> {
+  protected async sendMessage(message: MimeNode): Promise<void> {
     if (this.failure) {
       throw this.failure;
     }
-    this.mime = (await this.getMimeMessage(mail)).toString("utf-8");
+    this.mime = (await this.getMimeMessage(message)).toString("utf-8");
   }
 }
 

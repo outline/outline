@@ -1,5 +1,5 @@
-import type { Transport } from "nodemailer";
-import type MailMessage from "nodemailer/lib/mailer/mail-message";
+import type { SentMessageInfo, Transport } from "nodemailer";
+import type { MailMessage } from "nodemailer/lib/mailer";
 import type MimeNode from "nodemailer/lib/mime-node";
 import { toError } from "@shared/utils/error";
 import { InternalError } from "@server/errors";
@@ -10,19 +10,6 @@ export interface EmailTags {
   category: string;
   /** The specific template name, e.g. "InviteEmail". */
   template: string;
-}
-
-/**
- * The result of a send, returned to Nodemailer and surfaced as the resolved
- * value of `transporter.sendMail`.
- */
-export interface SentMessageInfo {
-  /** The envelope the message was sent with. */
-  envelope: MimeNode.Envelope;
-  /** The Message-ID header of the message. */
-  messageId: string;
-  /** The id of the provider that handled the message. */
-  provider: string;
 }
 
 /**
@@ -60,7 +47,7 @@ export function sesTagHeaders(tags: EmailTags): Record<string, string> {
  * passed to `nodemailer.createTransport`, and are registered under
  * `Hook.EmailProvider` to become selectable with the `EMAIL_PROVIDER` env var.
  */
-export abstract class BaseEmailProvider implements Transport<SentMessageInfo> {
+export abstract class BaseEmailProvider implements Transport {
   /** Unique identifier for this provider, matched against `EMAIL_PROVIDER`. */
   abstract id: string;
 
@@ -78,14 +65,27 @@ export abstract class BaseEmailProvider implements Transport<SentMessageInfo> {
    * @param callback Called with the result of the send, or an error on failure.
    */
   public send(
-    mail: MailMessage<SentMessageInfo>,
-    callback: (err: Error | null, info: SentMessageInfo) => void
+    mail: MailMessage,
+    callback: (err: Error | null, info?: SentMessageInfo) => void
   ): void {
-    mail.message.keepBcc = this.keepBcc;
+    const { message } = mail;
 
-    this.sendMessage(mail).then(
-      () => callback(null, this.getSentMessageInfo(mail)),
-      (err: unknown) => callback(toError(err), this.getSentMessageInfo(mail))
+    // Nodemailer compiles the message before handing it to a transport, so
+    // this is unreachable in practice – it satisfies the nullable type.
+    if (!message) {
+      callback(InternalError("Email was not compiled before sending"));
+      return;
+    }
+
+    message.keepBcc = this.keepBcc;
+
+    this.sendMessage(message, mail).then(
+      () =>
+        callback(null, {
+          envelope: message.getEnvelope(),
+          messageId: message.messageId(),
+        }),
+      (err: unknown) => callback(toError(err))
     );
   }
 
@@ -116,10 +116,13 @@ export abstract class BaseEmailProvider implements Transport<SentMessageInfo> {
    * Deliver an assembled message. Implementations throw on failure, and the
    * error is passed back to the caller so the email queue can retry.
    *
-   * @param mail The message to send.
+   * @param message The compiled message, for its envelope and MIME output.
+   * @param mail The message being sent, for providers that need the original
+   * structured fields rather than the MIME document.
    */
   protected abstract sendMessage(
-    mail: MailMessage<SentMessageInfo>
+    message: MimeNode,
+    mail: MailMessage
   ): Promise<void>;
 
   /**
@@ -144,15 +147,13 @@ export abstract class BaseEmailProvider implements Transport<SentMessageInfo> {
   /**
    * Serializes a message to a complete RFC 5322 MIME document.
    *
-   * @param mail The message to serialize.
+   * @param message The compiled message to serialize.
    * @returns The encoded message.
    */
-  protected getMimeMessage(
-    mail: MailMessage<SentMessageInfo>
-  ): Promise<Buffer> {
+  protected getMimeMessage(message: MimeNode): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const stream = mail.message.createReadStream();
+      const stream = message.createReadStream();
 
       stream.on("data", (chunk: Buffer | string) =>
         chunks.push(Buffer.from(chunk))
@@ -160,15 +161,5 @@ export abstract class BaseEmailProvider implements Transport<SentMessageInfo> {
       stream.once("error", reject);
       stream.once("end", () => resolve(Buffer.concat(chunks)));
     });
-  }
-
-  private getSentMessageInfo(
-    mail: MailMessage<SentMessageInfo>
-  ): SentMessageInfo {
-    return {
-      envelope: mail.message.getEnvelope(),
-      messageId: mail.message.messageId(),
-      provider: this.id,
-    };
   }
 }

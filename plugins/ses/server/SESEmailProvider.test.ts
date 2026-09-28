@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import nodemailer from "nodemailer";
 import env from "./env";
 import { SESEmailProvider } from "./SESEmailProvider";
