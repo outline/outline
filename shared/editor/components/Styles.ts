@@ -285,7 +285,7 @@ const codeBlockStyle = (props: Props) => css`
 
 const diffStyle = (props: Props) => css`
   .${EditorStyleHelper.diffNodeInsertion},
-    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
   .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -311,19 +311,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeInsertion}.math-node,
-    ul.${EditorStyleHelper.diffNodeInsertion},
-    li.${EditorStyleHelper.diffNodeInsertion} {
+  .${EditorStyleHelper.diffNodeInsertion}.math-node,
+  ul.${EditorStyleHelper.diffNodeInsertion},
+  li.${EditorStyleHelper.diffNodeInsertion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeInsertion},
-    th.${EditorStyleHelper.diffNodeInsertion} {
+  th.${EditorStyleHelper.diffNodeInsertion} {
     border-color: ${props.theme.textDiffInsertedBackground};
   }
 
   .${EditorStyleHelper.diffNodeDeletion},
-    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
   .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
@@ -353,19 +353,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeDeletion}.math-node,
-    ul.${EditorStyleHelper.diffNodeDeletion},
-    li.${EditorStyleHelper.diffNodeDeletion} {
+  .${EditorStyleHelper.diffNodeDeletion}.math-node,
+  ul.${EditorStyleHelper.diffNodeDeletion},
+  li.${EditorStyleHelper.diffNodeDeletion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeDeletion},
-    th.${EditorStyleHelper.diffNodeDeletion} {
+  th.${EditorStyleHelper.diffNodeDeletion} {
     border-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .${EditorStyleHelper.diffNodeModification},
-    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification}:not([class^="component-"]),
   .${EditorStyleHelper.diffModification} > * {
     color: ${props.theme.text};
     background-color: ${transparentize(0.7, "#FFA500")};
@@ -392,14 +392,14 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeModification}[class*="component-"],
-    .${EditorStyleHelper.diffNodeModification}.math-node,
-    ul.${EditorStyleHelper.diffNodeModification},
-    li.${EditorStyleHelper.diffNodeModification} {
+  .${EditorStyleHelper.diffNodeModification}.math-node,
+  ul.${EditorStyleHelper.diffNodeModification},
+  li.${EditorStyleHelper.diffNodeModification} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeModification},
-    th.${EditorStyleHelper.diffNodeModification} {
+  th.${EditorStyleHelper.diffNodeModification} {
     border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;
@@ -523,6 +523,21 @@ const textStyle = () => css`
       margin-bottom: 0.8em;
     }
   }
+
+  /* East Asian scripts */
+  :lang(zh),  /* Chinese */
+    :lang(ja),  /* Japanese */
+    :lang(ko) {
+    /* Korean */
+    p {
+      line-height: 1.8;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
 `;
 
 const style = (props: Props) => css`
@@ -545,6 +560,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
+  color: ${props.theme.text};
   border-radius: 8px;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -560,25 +576,35 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
-  /* Long labels are truncated so a mention never wraps onto a second line. */
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
-    white-space: nowrap;
-  }
-
-  /* Only the label truncates; icons and trailing identifiers stay whole. */
+  /* Keep icons at their intended size when the mention wraps. */
   &::before,
   svg,
-  img,
-  span ~ span {
+  img {
     flex-shrink: 0;
+  }
+
+  /* External resource titles stay on one line, while internal mentions can
+     wrap to fit constrained containers such as table cells. */
+  &[data-type="issue"],
+  &[data-type="pull_request"],
+  &[data-type="project"],
+  &[data-type="url"] {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+      white-space: nowrap;
+    }
+
+    /* Only the label truncates; trailing identifiers stay whole. */
+    span ~ span {
+      flex-shrink: 0;
+    }
   }
 
   &:${hover} {
@@ -2198,7 +2224,7 @@ table {
   }
 
   .${EditorStyleHelper.tableAddRow} {
-    bottom: -1px;
+    bottom: calc(var(--span-end, 0%) - 1px);
     left: -16px;
     width: 0;
     height: 2px;
@@ -2244,7 +2270,7 @@ table {
 
   .${EditorStyleHelper.tableAddColumn} {
     top: -16px;
-    right: -1px;
+    right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
     z-index: 1;
@@ -2297,8 +2323,8 @@ table {
       cursor: grab;
       position: absolute;
       top: -16px;
-      left: 0;
-      width: 100%;
+      left: var(--span-start, 0);
+      width: var(--span-size, 100%);
       height: 12px;
       background: ${props.theme.divider};
       display: ${props.readOnly ? "none" : "block"};
@@ -2315,14 +2341,13 @@ table {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
     }
+    &.last::after {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGripRow} {
@@ -2331,8 +2356,8 @@ table {
       cursor: grab;
       position: absolute;
       left: -16px;
-      top: 0;
-      height: 100%;
+      top: var(--span-start, 0);
+      height: var(--span-size, 100%);
       width: 12px;
       background: ${props.theme.divider};
       border-color: ${props.theme.background};
@@ -2350,14 +2375,13 @@ table {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
     }
+    &.last::after {
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGrip} {
@@ -2744,15 +2768,20 @@ li > .${EditorStyleHelper.toggleBlock} {
     &:dir(ltr) {
       --rotate-by: -90deg;
     }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
-      display: none;
-    }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
-      display: unset;
+    /* Folded content is always included when printing */
+    @media not print {
+      > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
+        display: none;
+      }
+      > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
+        display: unset;
+      }
+      > .${EditorStyleHelper.toggleBlockButton} svg {
+        transform: rotate(var(--rotate-by));
+      }
     }
     > .${EditorStyleHelper.toggleBlockButton} {
       svg {
-        transform: rotate(var(--rotate-by));
         pointer-events: none;
       }
       opacity: 1;

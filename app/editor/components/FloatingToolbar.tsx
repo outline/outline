@@ -2,7 +2,6 @@ import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
-import { Portal as ReactPortal } from "react-portal";
 import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -15,9 +14,13 @@ import useKeyboardStickyOffset from "~/hooks/useKeyboardStickyOffset";
 import useMobile from "~/hooks/useMobile";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
-import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
-import { RowSelection } from "@shared/editor/selection/RowSelection";
-import { isTableSelected } from "@shared/editor/queries/table";
+import {
+  getColumnBounds,
+  getColumnIndex,
+  getRowBounds,
+  getRowIndex,
+  isTableSelected,
+} from "@shared/editor/queries/table";
 
 type Props = {
   align?: "start" | "end" | "center";
@@ -25,6 +28,7 @@ type Props = {
   children: React.ReactNode;
   width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
+  ref?: React.RefObject<HTMLDivElement | null>;
 };
 
 const defaultPosition = {
@@ -41,7 +45,7 @@ function usePosition({
   active,
   align = "center",
 }: {
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
   active?: boolean;
   align?: Props["align"];
 }) {
@@ -125,10 +129,8 @@ function usePosition({
   }
 
   // tables are an oddity, and need their own positioning logic
-  const isColSelection =
-    selection instanceof ColumnSelection && selection.isColSelection();
-  const isRowSelection =
-    selection instanceof RowSelection && selection.isRowSelection();
+  const colIndex = getColumnIndex(view.state);
+  const rowIndex = getRowIndex(view.state);
 
   if (isTableSelected(view.state)) {
     const rect = selectedRect(view.state);
@@ -137,26 +139,16 @@ function usePosition({
     selectionBounds.top = bounds.top - 16;
     selectionBounds.left = bounds.left - 10;
     selectionBounds.right = bounds.left - 10;
-  } else if (isColSelection) {
-    const rect = selectedRect(view.state);
-    const table = view.domAtPos(rect.tableStart);
-    const element = (table.node as HTMLElement).querySelector(
-      `tr > *:nth-child(${rect.left + 1})`
-    );
-    if (element instanceof HTMLElement) {
-      const bounds = element.getBoundingClientRect();
+  } else if (colIndex !== undefined) {
+    const bounds = getColumnBounds(view, colIndex);
+    if (bounds) {
       selectionBounds.top = bounds.top - 16;
       selectionBounds.left = bounds.left;
       selectionBounds.right = bounds.right;
     }
-  } else if (isRowSelection) {
-    const rect = selectedRect(view.state);
-    const table = view.domAtPos(rect.tableStart);
-    const element = (table.node as HTMLElement).querySelector(
-      `tr:nth-child(${rect.top + 1}) > *`
-    );
-    if (element instanceof HTMLElement) {
-      const bounds = element.getBoundingClientRect();
+  } else if (rowIndex !== undefined) {
+    const bounds = getRowBounds(view, rowIndex);
+    if (bounds) {
       selectionBounds.top = bounds.top;
       selectionBounds.left = bounds.left - 10;
       selectionBounds.right = bounds.left - 10;
@@ -233,18 +225,15 @@ function usePosition({
     maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
     blockSelection: !!(
       codeBlock ||
-      isColSelection ||
-      isRowSelection ||
+      colIndex !== undefined ||
+      rowIndex !== undefined ||
       noticeBlock
     ),
     visible: true,
   };
 }
 
-const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
-  props: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function FloatingToolbar({ ref, ...props }: Props) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
   const raisedClickAt = React.useRef(0);
@@ -317,7 +306,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       // Vertical position (above the keyboard) is owned entirely by
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
-        <ReactPortal>
+        <Portal toBody>
           <MobileWrapper
             ref={menuRef}
             onMouseDown={handleMouseDown}
@@ -326,7 +315,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
           >
             <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
-        </ReactPortal>
+        </Portal>
       );
     }
 
@@ -353,7 +342,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       </Wrapper>
     </Portal>
   );
-});
+}
 
 type WrapperProps = {
   active?: boolean;

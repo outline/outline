@@ -1,10 +1,10 @@
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import { UnfurlResourceType } from "@shared/types";
+import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
@@ -44,7 +44,9 @@ const HoverPreviewDesktop = observer(
   ({ element, unfurlId, dataLoading, onClose }: Props) => {
     const { unfurls } = useStores();
     const [isVisible, setVisible] = React.useState(false);
-    const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
+    const timerClose = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+      undefined
+    );
     const cardRef = React.useRef<HTMLDivElement | null>(null);
     const { cardLeft, cardTop, pointerLeft, pointerTop, pointerDir } =
       useHoverPosition({
@@ -114,7 +116,7 @@ const HoverPreviewDesktop = observer(
     }
 
     return (
-      <Portal>
+      <Portal toBody>
         <Position top={cardTop} left={cardLeft} aria-hidden>
           {isVisible ? (
             <Animate
@@ -248,7 +250,7 @@ function useHoverPosition({
   element,
   isVisible,
 }: {
-  cardRef: React.RefObject<HTMLDivElement>;
+  cardRef: React.RefObject<HTMLDivElement | null>;
   element: HTMLElement | null;
   isVisible: boolean;
 }) {

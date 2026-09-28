@@ -13,7 +13,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import type { MenuItem } from "@shared/editor/types";
 import { toastNotice } from "~/editor/toastNotice";
-import { s } from "@shared/styles";
+import { hideScrollbars, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import {
@@ -90,7 +90,7 @@ function useSuggestionsMenuAria({
   // Stable ids for the WAI-ARIA editable-combobox-with-listbox pattern. The
   // editor keeps real DOM focus while the active option is exposed virtually
   // via aria-activedescendant (see effect below).
-  const instanceIdRef = React.useRef<number>();
+  const instanceIdRef = React.useRef<number | undefined>(undefined);
   if (instanceIdRef.current === undefined) {
     instanceIdRef.current = menuInstanceCounter++;
   }
@@ -217,7 +217,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const [submenu, setSubmenu] = React.useState<SubmenuState | null>(null);
   const itemRefs = React.useRef<Map<number, HTMLElement>>(new Map());
   const submenuContentRef = React.useRef<HTMLDivElement>(null);
-  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   // Stores the caret bounding rect, snapshotted when the menu opens
   const caretRectRef = React.useRef(new DOMRect());
@@ -378,36 +380,45 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   );
 
   const handleClickItem = React.useCallback(
-    (item) => {
+    (item: MenuItem | EmbedDescriptor) => {
       if (item.disabled) {
         return;
       }
 
       props.onSelect?.(item);
 
+      const attrs = typeof item.attrs === "function" ? undefined : item.attrs;
+
       switch (item.name) {
-        case "link":
+        case "link": {
           insertNode({
-            ...item,
+            ...(item as MenuItem),
             name: "mention",
           });
+          const mention = attrs as
+            | { label?: string; modelId?: string; nested?: boolean }
+            | undefined;
           void editorProps.onCreateLink?.(
             {
-              title: item.attrs.label,
-              id: item.attrs.modelId,
+              title: mention?.label,
+              id: mention?.modelId,
             },
-            !!item.attrs.nested
+            !!mention?.nested
           );
           return;
+        }
         case "image":
           return triggerFilePick(
             AttachmentValidation.imageContentTypes.join(", "),
-            item.attrs
+            attrs
           );
         case "video":
-          return triggerFilePick("video/*", item.attrs);
+          return triggerFilePick("video/*", attrs);
         case "attachment":
-          return triggerFilePick(item.attrs?.accept ?? "*", item.attrs);
+          return triggerFilePick(
+            (attrs?.accept as string | undefined) ?? "*",
+            attrs
+          );
         case "embed":
           return triggerLinkInput(item);
         default:
@@ -1260,12 +1271,15 @@ const bouncyFadeIn = keyframes`
 `;
 
 const BouncyPopoverContent = styled(PopoverContent)`
+  ${hideScrollbars()}
+
   &[data-state="open"] {
     animation: ${bouncyFadeIn} 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 `;
 
 const SubmenuPopoverContent = styled(PopoverContent)`
+  ${hideScrollbars()}
   max-height: min(324px, var(--radix-popover-content-available-height));
 `;
 

@@ -19,7 +19,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const TeamMenu: React.FC = ({ children }: Props) => {
+const TeamMenu: React.FC<Props> = ({ children }: Props) => {
   const { t } = useTranslation();
   const context = useActionContext({ isMenu: true });
 

@@ -5,7 +5,7 @@ import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { DocumentPermission } from "@shared/types";
+import { DocumentPermission, UserRole } from "@shared/types";
 import type Document from "~/models/Document";
 import Group from "~/models/Group";
 import User from "~/models/User";
@@ -49,6 +49,8 @@ function SharePopover({
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
+  const teamCan = usePolicy(team);
+  const inviteRole = teamCan.addGuest ? UserRole.Guest : team.defaultUserRole;
   const { shares } = useStores();
   const share = shares.getByDocumentId(document.id);
   const sharedParent = shares.getByDocumentParents(document);
@@ -154,7 +156,7 @@ function SharePopover({
                   {
                     email: idOrEmail,
                     name: idOrEmail,
-                    role: team.defaultUserRole,
+                    role: inviteRole,
                   },
                 ]);
                 user = response[0];
@@ -247,13 +249,13 @@ function SharePopover({
       pendingIds,
       permission,
       t,
-      team.defaultUserRole,
+      inviteRole,
       users,
     ]
   );
 
   const handleQuery = React.useCallback(
-    (event) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       showPicker();
       setQuery(event.target.value);
     },

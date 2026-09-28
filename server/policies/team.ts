@@ -1,3 +1,4 @@
+import { PlanFeature } from "@shared/types";
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
 import {
@@ -7,6 +8,7 @@ import {
   isTeamModel,
   isTeamMutable,
   or,
+  teamHasEntitlement,
 } from "./utils";
 
 allow(User, "read", Team, isTeamModel);
@@ -41,11 +43,19 @@ allow(User, "createTeam", Team, (actor, team) =>
 
 allow(User, "update", Team, isTeamAdmin);
 
-allow(User, ["delete", "audit"], Team, (actor, team) =>
+allow(User, "delete", Team, (actor, team) =>
   and(
     //
     isCloudHosted(),
     isTeamAdmin(actor, team)
+  )
+);
+
+allow(User, "audit", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    teamHasEntitlement(team, PlanFeature.AuditLog)
   )
 );
 

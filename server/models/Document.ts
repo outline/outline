@@ -42,7 +42,6 @@ import {
   AfterUpdate,
   IsFloat,
 } from "sequelize-typescript";
-import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   DocumentPermission,
@@ -57,7 +56,7 @@ import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -125,6 +124,20 @@ interface QueryGeneratorWithWhere {
   ): string;
 }
 
+// Documents that are visible by default: published, not a template, and not
+// created as part of a trial.
+const publishedWhere: WhereOptions<Document> = {
+  publishedAt: {
+    [Op.ne]: null,
+  },
+  sourceMetadata: {
+    trial: {
+      [Op.is]: null,
+    },
+  },
+  template: false,
+};
+
 @DefaultScope(() => ({
   include: [
     {
@@ -138,23 +151,16 @@ interface QueryGeneratorWithWhere {
       paranoid: false,
     },
   ],
-  where: {
-    publishedAt: {
-      [Op.ne]: null,
-    },
-    sourceMetadata: {
-      trial: {
-        [Op.is]: null,
-      },
-    },
-    template: false,
-  },
+  where: publishedWhere,
   attributes: {
     exclude: ["state"],
     include: [stateIfContentEmpty],
   },
 }))
 @Scopes(() => ({
+  published: {
+    where: publishedWhere,
+  },
   withoutState: {
     attributes: {
       exclude: ["state"],
@@ -331,6 +337,11 @@ class Document extends ArchivableModel<
   @SkipChangeset
   summary: string;
 
+  /** The reason this document is archived or deleted. */
+  @Length({ max: DeprecationValidation.maxReasonLength })
+  @Column(DataType.TEXT)
+  deprecatedReason: string | null;
+
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[];
 
@@ -386,9 +397,10 @@ class Document extends ArchivableModel<
   text: string;
 
   /** The likely language of the content, in ISO 639-1 format. */
+  @AllowNull
+  @Length({ max: 2, msg: "language must be an ISO 639-1 code" })
   @Column(DataType.STRING(2))
-  @MaxLength(2)
-  language: string;
+  language: string | null;
 
   /**
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.
@@ -467,7 +479,7 @@ class Document extends ArchivableModel<
    * @returns Redis key for collaborators
    */
   static getCollaboratorKey(documentId: string) {
-    return `collaborators:${documentId}`;
+    return `collaborators:v2:${documentId}`;
   }
 
   static getPath({ title, urlId }: { title: string; urlId: string }) {
@@ -1215,6 +1227,46 @@ class Document extends ArchivableModel<
     return rows.map((row) => row.id);
   };
 
+  /**
+   * Calculate all parent document ids for this document by recursively
+   * following parentDocumentId references in one query.
+   *
+   * @param options the query options.
+   * @returns a promise that resolves to parent document ids, nearest first.
+   */
+  findAllParentDocumentIds = async (
+    options?: FindOptions<Document>
+  ): Promise<string[]> => {
+    if (!this.parentDocumentId) {
+      return [];
+    }
+
+    const paranoid = options?.paranoid ?? true;
+    const rows = await this.sequelize!.query<{ id: string }>(
+      `
+      WITH RECURSIVE parents AS (
+        SELECT documents.id, documents."parentDocumentId", 1 AS depth
+        FROM documents
+        WHERE documents.id = :parentDocumentId
+          ${paranoid ? 'AND documents."deletedAt" IS NULL' : ""}
+        UNION ALL
+        SELECT documents.id, documents."parentDocumentId", parents.depth + 1
+        FROM documents
+        INNER JOIN parents ON documents.id = parents."parentDocumentId"
+        ${paranoid ? 'WHERE documents."deletedAt" IS NULL' : ""}
+      )
+      SELECT id FROM parents ORDER BY depth
+      `,
+      {
+        replacements: { parentDocumentId: this.parentDocumentId },
+        transaction: options?.transaction,
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    return rows.map((row) => row.id);
+  };
+
   publish = async (
     ctx: APIContext,
     {
@@ -1426,6 +1478,8 @@ class Document extends ArchivableModel<
 
     if (this.deletedAt) {
       await this.restore({ transaction });
+      this.deprecatedReason = null;
+      this.changed("deprecatedReason", true);
       this.collectionId = collectionId;
       await this.saveWithCtx(ctx, undefined, { name: "restore" });
     }
@@ -1559,6 +1613,8 @@ class Document extends ArchivableModel<
       for (const child of childDocuments) {
         await restoreChildren(child.id);
         child.archivedAt = null;
+        child.deprecatedReason = null;
+        child.changed("deprecatedReason", true);
         child.lastModifiedById = user.id;
         child.updatedBy = user;
         child.collectionId = collectionId;
@@ -1568,6 +1624,8 @@ class Document extends ArchivableModel<
 
     await restoreChildren(this.id);
     this.archivedAt = null;
+    this.deprecatedReason = null;
+    this.changed("deprecatedReason", true);
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.collectionId = collectionId;

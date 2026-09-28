@@ -1,6 +1,6 @@
-import { addDays } from "date-fns";
+import { addDays, differenceInSeconds } from "date-fns";
 import i18n from "i18next";
-import { computed, observable } from "mobx";
+import { computed, observable, override } from "mobx";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { isRTL } from "@shared/utils/rtl";
@@ -16,6 +16,11 @@ import type { Searchable } from "./interfaces/Searchable";
 
 export default class Template extends ParanoidModel implements Searchable {
   static modelName = "Template";
+
+  constructor(fields: Record<string, unknown>, store: TemplatesStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   store: TemplatesStore;
 
@@ -38,8 +43,7 @@ export default class Template extends ParanoidModel implements Searchable {
    */
   @Field
   @observable
-  collectionId?: string | null;
-
+  collectionId?: string | null = undefined;
   /**
    * The collection that this template belongs to.
    */
@@ -58,15 +62,13 @@ export default class Template extends ParanoidModel implements Searchable {
    */
   @Field
   @observable
-  icon?: string | null;
-
+  icon?: string | null = undefined;
   /**
    * The color to use for the template icon.
    */
   @Field
   @observable
-  color?: string | null;
-
+  color?: string | null = undefined;
   /**
    * Whether the template layout is displayed full page width.
    */
@@ -79,7 +81,7 @@ export default class Template extends ParanoidModel implements Searchable {
    */
   @Field
   @observable
-  language: string | undefined;
+  language: string | undefined = undefined;
 
   @Relation(() => User)
   createdBy: User | undefined;
@@ -95,7 +97,7 @@ export default class Template extends ParanoidModel implements Searchable {
    * of the workspace.
    */
   @observable
-  publishedAt: string | undefined;
+  publishedAt: string | undefined = undefined;
 
   /**
    * Publishes the template, making it available to other members of the
@@ -104,6 +106,15 @@ export default class Template extends ParanoidModel implements Searchable {
    * @returns a promise that resolves when the template has been published.
    */
   publish = () => this.save(undefined, { publish: true });
+
+  /**
+   * Whether the template was created moments ago.
+   *
+   * @returns true if the template was created within the last ten seconds.
+   */
+  get isJustCreated(): boolean {
+    return differenceInSeconds(new Date(), new Date(this.createdAt)) < 10;
+  }
 
   /**
    * Returns the direction of the template text, either "rtl" or "ltr"
@@ -131,7 +142,7 @@ export default class Template extends ParanoidModel implements Searchable {
     return `${settingsPath("templates")}/${slugifiedTitle}-${this.urlId}`;
   }
 
-  @computed
+  @override
   get isDeleted(): boolean {
     return !!this.deletedAt;
   }

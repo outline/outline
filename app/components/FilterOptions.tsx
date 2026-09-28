@@ -63,13 +63,15 @@ const FilterOptions = ({
     selectedKeys.includes(option.key)
   );
   const [query, setQuery] = React.useState("");
+  // Defer filtering so typing in the search input stays responsive.
+  const deferredQuery = React.useDeferredValue(query);
 
   const selectedLabel = selectedItems.length
     ? selectedItems.map((selected) => selected.label).join(", ")
     : "";
 
   const renderItem = React.useCallback(
-    (option) => {
+    (option: TFilterOption) => {
       const handleClick = () => {
         onSelect(option.key);
         setOpen(false);
@@ -118,9 +120,9 @@ const FilterOptions = ({
   );
 
   const filteredOptions = React.useMemo(() => {
-    const normalizedQuery = deburr(query.toLowerCase());
+    const normalizedQuery = deburr(deferredQuery.toLowerCase());
 
-    const filtered = query
+    const filtered = deferredQuery
       ? options.filter((option) =>
           deburr(option.label).toLowerCase().includes(normalizedQuery)
         )
@@ -140,7 +142,7 @@ const FilterOptions = ({
 
       // If both have the same selection state and there's a query,
       // sort options starting with query first
-      if (query) {
+      if (deferredQuery) {
         const aStartsWith = deburr(a.label)
           .toLowerCase()
           .startsWith(normalizedQuery);
@@ -158,7 +160,7 @@ const FilterOptions = ({
 
       return 0;
     });
-  }, [options, query, selectedKeys]);
+  }, [options, deferredQuery, selectedKeys]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {

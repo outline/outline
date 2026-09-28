@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import { m } from "framer-motion";
 import type { LocationDescriptor } from "history";
 import { isEqual } from "es-toolkit/compat";
@@ -19,6 +20,8 @@ interface BaseProps {
    */
   exactQueryString?: boolean;
   children?: React.ReactNode;
+  /** Ref to the underlying button, only attached in button mode. */
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
 interface LinkProps extends BaseProps {
@@ -94,7 +97,7 @@ const Active = styled(m.div)`
   background: ${s("textSecondary")};
 `;
 
-const transition = {
+const transition: Transition = {
   type: "spring",
   stiffness: 500,
   damping: 30,
@@ -112,10 +115,7 @@ const horizontalOnly = (transform: Record<string, string>, generated: string) =>
  * matched against the current location, or as a button in controlled mode.
  * A forwarded ref is only attached in button mode.
  */
-export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
-  props: Props,
-  ref
-) {
+export function Tab(props: Props) {
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
@@ -125,6 +125,7 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
   // Button mode - controlled by onClick and active props (no `to` prop)
   if ("active" in props && !("to" in props)) {
     const {
+      ref,
       active,
       exact: _exact,
       exactQueryString: _exactQueryString,
@@ -147,7 +148,7 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
   }
 
   // Link mode - controlled by react-router
-  const { to, ...rest } = props as LinkProps;
+  const { to, ref: _ref, ...rest } = props as LinkProps;
   return (
     <TabLink
       {...rest}
@@ -175,4 +176,4 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
       )}
     </TabLink>
   );
-});
+}

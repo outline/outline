@@ -14,20 +14,11 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
       return;
     }
 
-    // Collect the document's ID and all ancestor IDs by walking up the tree.
-    // A subscription scoped to any of these documents covers the updated one.
-    const scopeIds: string[] = [document.id];
-    let parentId = document.parentDocumentId;
-    while (parentId) {
-      scopeIds.push(parentId);
-      const parent = await Document.findByPk(parentId, {
-        attributes: ["id", "parentDocumentId"],
-      });
-      if (!parent) {
-        break;
-      }
-      parentId = parent.parentDocumentId;
-    }
+    // A subscription scoped to this document or any ancestor covers the update.
+    const scopeIds = [
+      document.id,
+      ...(await document.findAllParentDocumentIds()),
+    ];
 
     // Find all active subscriptions scoped to this document or any ancestor,
     // joined to a published share that allows subscriptions.

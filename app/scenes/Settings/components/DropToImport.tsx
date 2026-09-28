@@ -26,7 +26,7 @@ import { EmptySelectValue } from "~/types";
 import { uploadFile } from "~/utils/files";
 
 type Props = {
-  children: JSX.Element;
+  children: React.JSX.Element;
   /** The importable service to create an import for. */
   service: ImportableIntegrationService;
   disabled?: boolean;

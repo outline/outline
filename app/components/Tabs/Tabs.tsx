@@ -69,12 +69,12 @@ type Props = {
  * multiple tab bars on screen at once don't share the "underline" layoutId and
  * animate between each other. Only needed when composing `Tab` outside of `Tabs`.
  */
-export const TabsGroup: React.FC = ({ children }: Props) => {
+export const TabsGroup: React.FC<Props> = ({ children }: Props) => {
   const layoutGroupId = React.useMemo(() => uniqueId("tabs-"), []);
   return <LayoutGroup id={layoutGroupId}>{children}</LayoutGroup>;
 };
 
-export const Tabs: React.FC = ({ children }: Props) => {
+export const Tabs: React.FC<Props> = ({ children }: Props) => {
   const ref = React.useRef<HTMLElement>(null);
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();

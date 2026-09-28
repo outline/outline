@@ -148,6 +148,19 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   });
 }
 
+/**
+ * Builds a random team subdomain that is unique across parallel test files.
+ *
+ * @returns a valid, unique subdomain string.
+ */
+export function buildSubdomain() {
+  return `${faker.word.noun().toLowerCase()}-${randomString({
+    length: 8,
+    charset: "alphanumeric",
+    capitalization: "lowercase",
+  })}`;
+}
+
 export function buildTeam(
   overrides: Omit<Partial<Team>, "authenticationProviders"> & {
     authenticationProviders?: Partial<AuthenticationProvider>[];
@@ -961,7 +974,7 @@ export function buildMention(overrides: {
     attrs: {
       id: overrides.id ?? randomUUID(),
       type: overrides.type ?? MentionType.User,
-      label: overrides.label ?? faker.name.fullName(),
+      label: overrides.label ?? faker.person.fullName(),
       modelId: overrides.modelId,
       actorId: overrides.actorId,
     },

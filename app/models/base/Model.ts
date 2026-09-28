@@ -1,5 +1,5 @@
 import { isEqual, pick } from "es-toolkit/compat";
-import { observable, action, toJS } from "mobx";
+import { action, makeObservable, observable, toJS } from "mobx";
 import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import type { PartialExcept } from "~/types";
@@ -7,6 +7,45 @@ import Logger from "~/utils/Logger";
 import { getFieldsForModel, getFieldsForModelClass } from "../decorators/Field";
 import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
+
+/**
+ * MobX records decorator annotations on the prototype under a symbol with this
+ * description.
+ */
+const storedAnnotationsDescription = "mobx-stored-annotations";
+
+/**
+ * Returns the keys of every decorated member on a model, including those
+ * inherited from base classes. The nearest record on the prototype chain
+ * already includes the parents' annotations, so the search stops there.
+ *
+ * With `useDefineForClassFields: false` a field declared without an initializer
+ * never exists on the instance, so MobX cannot annotate it. This helper, and
+ * the pre-definition in `initialize`, can be removed if that compiler option
+ * is enabled.
+ *
+ * @param target the model to inspect.
+ * @returns the keys annotated with a MobX decorator.
+ */
+function getAnnotatedKeysForModel(target: Model): (string | symbol)[] {
+  let prototype = Object.getPrototypeOf(target);
+
+  while (prototype && prototype !== Object.prototype) {
+    const symbol = Object.getOwnPropertySymbols(prototype).find(
+      (candidate) => candidate.description === storedAnnotationsDescription
+    );
+    if (symbol) {
+      const annotations: Record<string | symbol, unknown> = Reflect.get(
+        prototype,
+        symbol
+      );
+      return Reflect.ownKeys(annotations);
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  return [];
+}
 
 export default abstract class Model {
   static modelName: string;
@@ -30,10 +69,10 @@ export default abstract class Model {
   id: string;
 
   @observable
-  isSaving: boolean;
+  isSaving = false;
 
   @observable
-  isNew: boolean;
+  isNew = false;
 
   @observable
   createdAt: string;
@@ -43,10 +82,40 @@ export default abstract class Model {
 
   store: Store<Model>;
 
-  constructor(fields: Record<string, unknown>, store: Store<Model>) {
+  constructor(_fields: Record<string, unknown>, store: Store<Model>) {
     this.store = store;
+  }
+
+  /**
+   * Applies the initial data and makes the instance observable.
+   *
+   * Call this from the constructor of the most-derived class. MobX can only
+   * annotate fields that already exist on the instance, and a subclass's fields
+   * do not exist until its own constructor has run.
+   *
+   * @param fields the data to construct the model with.
+   */
+  protected initialize(fields: Record<string, unknown>) {
+    const declared = [
+      ...getFieldsForModel(this),
+      ...getAnnotatedKeysForModel(this),
+    ];
+    for (const field of declared) {
+      if (field in this) {
+        continue;
+      }
+
+      Object.defineProperty(this, field, {
+        configurable: true,
+        enumerable: true,
+        value: undefined,
+        writable: true,
+      });
+    }
+
     this.updateData(fields);
     this.isNew = !this.id;
+    makeObservable(this);
     this.initialized = true;
   }
 
@@ -155,6 +224,7 @@ export default abstract class Model {
     }
 
     const previousAttributes = this.toAPI();
+    let addedKeys = false;
 
     for (const key in data) {
       try {
@@ -166,11 +236,20 @@ export default abstract class Model {
         if (isEqual(toJS(this[key]), data[key])) {
           continue;
         }
+        // A field declared without a default does not exist until it is first
+        // assigned, so MobX could not annotate it when the model was created.
+        addedKeys ||= !(key in this);
         // @ts-expect-error TODO
         this[key] = data[key];
       } catch (error) {
         Logger.warn(`Error setting ${key} on model`, { error });
       }
+    }
+
+    // Annotate any field that this payload introduced. Re-annotating a field
+    // that is already observable is a no-op.
+    if (addedKeys && this.initialized) {
+      makeObservable(this);
     }
 
     this.isNew = false;

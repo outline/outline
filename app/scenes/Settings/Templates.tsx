@@ -2,6 +2,7 @@ import type { ColumnSort } from "@tanstack/react-table";
 import { deburr } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
+import type * as React from "react";
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -88,10 +89,13 @@ function Templates() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = useCallback((event) => {
-    const { value } = event.target;
-    setQuery(value);
-  }, []);
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      setQuery(value);
+    },
+    []
+  );
 
   useEffect(() => {
     if (error) {

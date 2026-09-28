@@ -67,7 +67,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   // navigation does not invalidate the context value. Action perform/visible
   // callbacks see the current location at call time via history.location,
   // which react-router updates on every navigation.
-  const history = useHistory();
+  const history = useHistory<{ sidebarContext?: SidebarContextType }>();
 
   const {
     activeModels: valueModels,
@@ -174,7 +174,6 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       ...(isMenu !== undefined ? { isMenu } : {}),
       ...(isCommandBar !== undefined ? { isCommandBar } : {}),
       ...(isButton !== undefined ? { isButton } : {}),
-      ...(sidebarContext !== undefined ? { sidebarContext } : {}),
       ...(event !== undefined ? { event } : {}),
       activeCollectionId,
       activeDocumentId,
@@ -189,6 +188,18 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     // location without invalidating this memo on navigation.
     Object.defineProperty(result, "location", {
       get: () => history.location,
+      enumerable: true,
+      configurable: true,
+    });
+
+    // The sidebar context is carried in location state, so fall back to the
+    // current location when no ancestor provider supplies one. A getter for the
+    // same reason as `location` above.
+    Object.defineProperty(result, "sidebarContext", {
+      get: () =>
+        sidebarContext ??
+        parentContext?.sidebarContext ??
+        history.location.state?.sidebarContext,
       enumerable: true,
       configurable: true,
     });

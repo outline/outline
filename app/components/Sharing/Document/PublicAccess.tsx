@@ -41,12 +41,11 @@ type Props = {
   /** Ref to the Copy Link button */
   copyButtonRef?: React.RefObject<HTMLButtonElement>;
   onRequestClose?: () => void;
+  /** Ref to the container element. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function PublicAccess(
-  { document, share, sharedParent }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function PublicAccess({ document, share, sharedParent, ref }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const theme = useTheme();
@@ -234,4 +233,4 @@ function PublicAccess(
   );
 }
 
-export default observer(React.forwardRef(PublicAccess));
+export default observer(PublicAccess);

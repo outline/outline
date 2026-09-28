@@ -1,5 +1,5 @@
 import type { LocationDescriptor } from "history";
-import { observer, useObserver } from "mobx-react";
+import { observer } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,7 +38,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const { pane } = useSplitView();
   const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
-  const documentViews = useObserver(() => views.inDocument(document.id));
+  const documentViews = views.inDocument(document.id);
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = useRef(totalViewers > 0);

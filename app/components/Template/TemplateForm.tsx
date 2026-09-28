@@ -194,7 +194,7 @@ export const TemplateForm = observer(function TemplateForm_({
           onChange={handleChange}
           readOnly={readOnly}
           canUpdate={can.update}
-          autoFocus={template.createdAt === template.updatedAt}
+          autoFocus={template.isJustCreated}
           template
         />
       </React.Suspense>

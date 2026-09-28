@@ -3,6 +3,7 @@ import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import type { match } from "react-router";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { type NavigationNode, UserPreference } from "@shared/types";
@@ -174,7 +175,10 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   });
 
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) => {
+    (
+      match: match | null,
+      location: Location<{ sidebarContext?: SidebarContextType }>
+    ) => {
       if (location.state?.sidebarContext !== sidebarContext) {
         return false;
       }
@@ -434,7 +438,7 @@ function StarredLink({ star }: Props) {
 
   const handlePrefetch = React.useCallback(() => {
     if (documentId) {
-      void Scenes.Document.preload();
+      Scenes.preloadEditor();
       void documents.prefetchDocument(documentId);
       const document = documents.get(documentId);
       const documentCollection = document?.collectionId

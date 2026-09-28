@@ -83,12 +83,16 @@ type Props = {
    * ancestors are shown. If less than or equal to 0, no items are shown.
    */
   maxDepth?: number;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function DocumentBreadcrumb(
-  { document, children, onlyText, maxDepth }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function DocumentBreadcrumb({
+  document,
+  children,
+  onlyText,
+  maxDepth,
+  ref,
+}: Props) {
   const { collections } = useStores();
   const { t } = useTranslation();
   const sidebarContext = useLocationSidebarContext();
@@ -334,4 +338,4 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.5;
 `;
 
-export default observer(React.forwardRef(DocumentBreadcrumb));
+export default observer(DocumentBreadcrumb);

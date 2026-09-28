@@ -3,6 +3,7 @@ import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
 import type Document from "~/models/Document";
 import env from "~/env";
+import Desktop from "~/utils/Desktop";
 
 /**
  * Returns the path to the home screen.
@@ -320,14 +321,14 @@ export function urlify(
 }
 
 /**
- * Converts a path to a desktop app URL using the outline:// protocol.
+ * Converts a path to a desktop app URL using the desktop app's custom protocol.
  *
  * @param path The path to convert.
  * @param origin Optional origin to use instead of `window.location.origin`.
  * @returns The desktop app URL.
  */
 export function desktopify(path: string, origin?: string): string {
-  return urlify(path, origin).replace(/^https?:\/\//, "outline://");
+  return urlify(path, origin).replace(/^https?:\/\//, `${Desktop.protocol}://`);
 }
 
 /** Route matcher for a collection slug. */

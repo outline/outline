@@ -6,6 +6,7 @@ import validate from "@server/middlewares/validate";
 import { View, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
+import { AuthenticationType } from "@server/types";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
@@ -23,6 +24,7 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "listViews", document);
 
@@ -41,7 +43,7 @@ router.post(
 router.post(
   "views.create",
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.ViewsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.ViewsCreateReq>) => {
@@ -50,6 +52,7 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "read", document);
 

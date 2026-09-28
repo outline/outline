@@ -1,4 +1,3 @@
-import { filter, find, map } from "es-toolkit/compat";
 import type { Node, ResolvedPos } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
@@ -15,12 +14,18 @@ type Config = Array<{
     parent: Node | null;
     /** Current editor state */
     state: EditorState;
-    /** Text content of the document */
-    textContent: string;
+    /** Whether the document has no text content, evaluated lazily */
+    isDocEmpty: boolean;
   }) => boolean;
   /** Placeholder text */
   text: string;
 }>;
+
+/**
+ * The largest content size of a node that any placeholder condition can match.
+ * Conditions only ever target empty textblocks or a lone "/" character.
+ */
+const MAX_CANDIDATE_SIZE = 1;
 
 export class PlaceholderPlugin extends Plugin {
   /**
@@ -58,44 +63,62 @@ export class PlaceholderPlugin extends Plugin {
     config: Config,
     nodeTypes: string[]
   ) {
-    const paras: Array<{
-      node: Node;
-      $start: ResolvedPos;
-      parent: Node | null;
-    }> = [];
+    const decorations: Decoration[] = [];
+    let isDocEmpty: boolean | undefined;
+
     state.doc.descendants((node, pos, parent) => {
-      if (nodeTypes.includes(node.type.name)) {
-        paras.push({ node, $start: state.doc.resolve(pos + 1), parent });
+      if (!nodeTypes.includes(node.type.name)) {
+        return true;
+      }
+      if (node.content.size > MAX_CANDIDATE_SIZE) {
         return false;
       }
-      return true;
-    });
 
-    const textContent = state.doc.textContent;
-    const decorations: Decoration[] = filter(
-      map(paras, (para) => {
-        const condMet = find(config, (conf) =>
-          conf.condition({
-            node: para.node,
-            $start: para.$start,
-            parent: para.parent,
-            state,
-            textContent,
+      const $start = state.doc.resolve(pos + 1);
+      const args = {
+        node,
+        $start,
+        parent,
+        state,
+        get isDocEmpty() {
+          isDocEmpty ??= isEmpty(state.doc);
+          return isDocEmpty;
+        },
+      };
+      const condMet = config.find((conf) => conf.condition(args));
+
+      if (condMet) {
+        decorations.push(
+          Decoration.node(pos, pos + node.nodeSize, {
+            class: "placeholder",
+            "data-empty-text": condMet.text,
           })
         );
-        return condMet
-          ? Decoration.node(
-              para.$start.pos - 1,
-              para.$start.pos - 1 + para.node.nodeSize,
-              {
-                class: "placeholder",
-                "data-empty-text": condMet.text,
-              }
-            )
-          : undefined;
-      }),
-      (decoration) => decoration !== undefined
-    );
+      }
+      return false;
+    });
+
     return DecorationSet.create(state.doc, decorations);
   }
+}
+
+/**
+ * Whether the document has no text content. Equivalent to checking that
+ * `doc.textContent` is empty, but stops at the first text-producing node
+ * instead of building a string of the whole document.
+ */
+function isEmpty(doc: Node): boolean {
+  let empty = true;
+  doc.descendants((node) => {
+    if (!empty) {
+      return false;
+    }
+    if (node.isText) {
+      empty = !node.text;
+    } else if (node.isLeaf && node.type.spec.leafText) {
+      empty = !node.type.spec.leafText(node);
+    }
+    return empty;
+  });
+  return empty;
 }

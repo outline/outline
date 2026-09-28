@@ -1,4 +1,4 @@
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import type { PropsWithChildren } from "react";
 import { createContext, useContext, useMemo } from "react";
 import type { Node } from "prosemirror-model";
@@ -8,13 +8,19 @@ import type { TextStats } from "~/hooks/useTextStats";
 import { getTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import type { Editor } from "~/editor";
+import type { ConnectionStatus } from "~/utils/multiplayer/CollaborationProvider";
 
 class DocumentContext {
   /** The current document */
   document?: Document;
 
   /** The editor instance for this document */
-  editor?: Editor;
+  @observable.ref
+  editor: Editor | undefined = undefined;
+
+  /** The total number of changes in the currently viewed revision diff */
+  @observable
+  totalChanges: number = 0;
 
   /** The ID of the currently focused comment, or null if no comment is focused */
   @observable
@@ -27,6 +33,26 @@ class DocumentContext {
   /** The headings in the document */
   @observable
   headings: Heading[] = [];
+
+  /** The connection status of the collaboration provider */
+  @observable
+  multiplayerStatus: ConnectionStatus | undefined = undefined;
+
+  /** The close code of the collaboration connection, when it was closed with an error */
+  @observable
+  multiplayerErrorCode?: number = undefined;
+
+  /** Whether there are local edits the collaboration server has not confirmed */
+  @observable
+  hasUnsyncedChanges = false;
+
+  /** Whether edits are also stored in the browser, so they survive a reload */
+  @observable
+  hasLocalPersistence = true;
+
+  constructor() {
+    makeObservable(this);
+  }
 
   @computed
   get hasHeadings() {
@@ -64,8 +90,28 @@ class DocumentContext {
   };
 
   @action
+  setTotalChanges = (totalChanges: number) => {
+    this.totalChanges = totalChanges;
+  };
+
+  @action
   setFocusedCommentId = (commentId: string | null) => {
     this.focusedCommentId = commentId;
+  };
+
+  @action
+  setMultiplayerStatus = (status: ConnectionStatus, errorCode?: number) => {
+    this.multiplayerStatus = status;
+    this.multiplayerErrorCode = errorCode;
+  };
+
+  @action
+  setMultiplayerSyncState = (
+    hasUnsyncedChanges: boolean,
+    hasLocalPersistence: boolean
+  ) => {
+    this.hasUnsyncedChanges = hasUnsyncedChanges;
+    this.hasLocalPersistence = hasLocalPersistence;
   };
 
   @action
@@ -77,7 +123,7 @@ class DocumentContext {
 
   /** The ProseMirror document currently held by the editor */
   @observable.ref
-  private editorDoc: Node | undefined;
+  private editorDoc: Node | undefined = undefined;
 
   private updateHeadings() {
     const currHeadings = this.editor?.getHeadings() ?? [];

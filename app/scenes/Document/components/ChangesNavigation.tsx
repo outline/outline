@@ -6,32 +6,24 @@ import { CaretDownIcon, CaretUpIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Button from "~/components/Button";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Tooltip from "~/components/Tooltip";
-import { type Editor } from "~/editor";
 import useQuery from "~/hooks/useQuery";
-import type Revision from "~/models/Revision";
 
-type Props = {
-  revision: Revision;
-  editorRef: React.RefObject<Editor>;
-};
-
-export const ChangesNavigation = observer(function ChangesNavigation_({
-  editorRef,
-}: Props) {
+export const ChangesNavigation = observer(function ChangesNavigation_() {
   const { t } = useTranslation();
   const query = useQuery();
-  const showChanges = query.get("changes");
+  const showChanges = query.has("changes");
+  const { editor, totalChanges } = useDocumentContext();
 
   if (!showChanges) {
     return null;
   }
 
-  const diffExtension = editorRef.current?.extensions.extensions.find(
+  const diffExtension = editor?.extensions.extensions.find(
     (ext) => ext instanceof Diff
   ) as Diff | undefined;
   const currentChangeIndex = diffExtension?.getCurrentChangeIndex() ?? -1;
-  const totalChanges = diffExtension?.getTotalChangesCount() ?? 0;
 
   return (
     <>
@@ -50,14 +42,16 @@ export const ChangesNavigation = observer(function ChangesNavigation_({
           <Tooltip content={t("Previous change")} placement="bottom">
             <NavigationButton
               icon={<CaretUpIcon />}
-              onClick={() => editorRef.current?.commands.prevChange()}
+              onClick={() => editor?.commands.prevChange()}
+              disabled={!diffExtension}
               aria-label={t("Previous change")}
             />
           </Tooltip>
           <Tooltip content={t("Next change")} placement="bottom">
             <NavigationButton
               icon={<CaretDownIcon />}
-              onClick={() => editorRef.current?.commands.nextChange()}
+              onClick={() => editor?.commands.nextChange()}
+              disabled={!diffExtension}
               aria-label={t("Next change")}
             />
           </Tooltip>

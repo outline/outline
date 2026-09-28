@@ -24,12 +24,7 @@ export function getTestServer() {
   onerror(app);
   const server = new TestServer(app);
 
-  const disconnect = async () => {
-    await sequelize.close();
-    return server.close();
-  };
-
-  afterAll(disconnect);
+  afterAll(() => server.close());
 
   return server;
 }

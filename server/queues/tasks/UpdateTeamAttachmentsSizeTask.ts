@@ -11,6 +11,10 @@ type Props = {
  * A task that updates the team stats.
  */
 export default class UpdateTeamAttachmentsSizeTask extends BaseTask<Props> {
+  protected jobId({ teamId }: Props) {
+    return `update-team-attachments-size:${teamId}`;
+  }
+
   public async perform({ teamId }: Props) {
     const sizeInBytes = await Attachment.getTotalSizeForTeam(
       sequelizeReadOnly,

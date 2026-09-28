@@ -10,6 +10,7 @@ import {
 
 const plainTextCache = new LRUCache<{ updatedAt: string; text: string }>({
   max: 100,
+  storage: "memory",
 });
 
 /**
@@ -89,7 +90,7 @@ export interface UseSearchIndex {
  * @returns the current results and functions to feed or reset the index.
  */
 export function useSearchIndex(query: string): UseSearchIndex {
-  const indexRef = useRef<SearchIndex>();
+  const indexRef = useRef<SearchIndex | undefined>(undefined);
   if (!indexRef.current) {
     indexRef.current = new SearchIndex();
   }

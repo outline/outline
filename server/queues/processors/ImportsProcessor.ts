@@ -25,6 +25,7 @@ import {
 } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { errToString } from "@shared/utils/error";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
@@ -59,8 +60,10 @@ export default abstract class ImportsProcessor<
    * @param event The import event
    */
   public async perform(event: ImportEvent) {
+    let sourceAttachment: Attachment | null = null;
+
     try {
-      await sequelize.transaction(async (transaction) => {
+      sourceAttachment = await sequelize.transaction(async (transaction) => {
         const importModel = await Import.findByPk<Import<T>>(event.modelId, {
           rejectOnEmpty: true,
           paranoid: false,
@@ -73,19 +76,23 @@ export default abstract class ImportsProcessor<
           importModel.state === ImportState.Errored ||
           importModel.state === ImportState.Canceled
         ) {
-          return;
+          return null;
         }
 
         switch (event.name) {
           case "imports.create":
-            return this.onCreation(importModel, transaction);
+            await this.onCreation(importModel, transaction);
+            return null;
 
           case "imports.processed":
             return this.onProcessed(importModel, transaction);
 
           case "imports.delete":
-            return this.onDeletion(importModel, event, transaction);
+            await this.onDeletion(importModel, event, transaction);
+            return null;
         }
+
+        return null;
       });
     } catch (err) {
       if (event.name !== "imports.delete" && err instanceof Error) {
@@ -98,6 +105,21 @@ export default abstract class ImportsProcessor<
       }
 
       throw err; // throw error for retry.
+    }
+
+    if (!sourceAttachment) {
+      return;
+    }
+
+    try {
+      await sourceAttachment.destroy();
+    } catch (err) {
+      Logger.warn("Failed to delete source attachment after import", {
+        attachmentId: sourceAttachment.id,
+        importId: event.modelId,
+        message: errToString(err),
+        teamId: event.teamId,
+      });
     }
   }
 
@@ -167,9 +189,12 @@ export default abstract class ImportsProcessor<
    *
    * @param importModel Import model associated with the event.
    * @param transaction Sequelize transaction.
-   * @returns Promise that resolves when mapping and persistence is completed.
+   * @returns Source attachment to delete after the transaction commits.
    */
-  private async onProcessed(importModel: Import<T>, transaction: Transaction) {
+  private async onProcessed(
+    importModel: Import<T>,
+    transaction: Transaction
+  ): Promise<Attachment | null> {
     try {
       const { collections } = await this.createCollectionsAndDocuments({
         importModel,
@@ -203,7 +228,9 @@ export default abstract class ImportsProcessor<
         await collection.save({ silent: true, transaction });
       }
 
+      const storageKey = importModel.scratch?.storageKey;
       importModel.state = ImportState.Completed;
+      importModel.scratch = null;
       importModel.error = null; // unset any error from previous attempts.
       await importModel.saveWithCtx(
         createContext({
@@ -211,6 +238,18 @@ export default abstract class ImportsProcessor<
           transaction,
         })
       );
+
+      if (storageKey) {
+        return Attachment.findOne({
+          where: {
+            key: storageKey,
+            teamId: importModel.teamId,
+          },
+          transaction,
+        });
+      }
+
+      return null;
     } catch (err) {
       if (err instanceof UniqueConstraintError) {
         Logger.error(

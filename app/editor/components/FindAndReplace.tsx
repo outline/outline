@@ -3,6 +3,7 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   CaseSensitiveIcon,
+  CloseIcon,
   RegexIcon,
   ReplaceIcon,
 } from "outline-icons";
@@ -24,12 +25,14 @@ import {
 } from "~/components/primitives/Popover";
 import { useClearSearchHighlight } from "~/hooks/useClearSearchHighlight";
 import useKeyDown from "~/hooks/useKeyDown";
+import useMobile from "~/hooks/useMobile";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
 import { HStack } from "~/components/primitives/HStack";
 
 type KeyboardShortcutsProps = {
   open: boolean;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
@@ -37,6 +40,7 @@ type KeyboardShortcutsProps = {
 
 function useKeyboardShortcuts({
   open,
+  inputRef,
   handleOpen,
   handleCaseSensitive,
   handleRegex,
@@ -45,8 +49,8 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
-      !open &&
       ev.code === "KeyF" &&
+      (!open || ev.altKey || document.activeElement !== inputRef.current) &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
@@ -102,12 +106,13 @@ export default function FindAndReplace({
 }: Props) {
   const editor = useEditor();
   const [localOpen, setLocalOpen] = React.useState(open);
-  const selectionRef = React.useRef<string | undefined>();
+  const selectionRef = React.useRef<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const theme = useTheme();
   const clearSearchHighlight = useClearSearchHighlight();
+  const isMobile = useMobile();
   const [showReplace, setShowReplace] = React.useState(false);
   const [caseSensitive, setCaseSensitive] = React.useState(false);
   const [regexEnabled, setRegex] = React.useState(false);
@@ -272,7 +277,7 @@ export default function FindAndReplace({
   );
 
   const handleReplace = React.useCallback(
-    (ev) => {
+    (ev: React.SyntheticEvent) => {
       if (readOnly) {
         return;
       }
@@ -283,7 +288,7 @@ export default function FindAndReplace({
   );
 
   const handleReplaceAll = React.useCallback(
-    (ev) => {
+    (ev: React.SyntheticEvent) => {
       if (readOnly) {
         return;
       }
@@ -318,8 +323,23 @@ export default function FindAndReplace({
     [handleReplace]
   );
 
+  const handleEscape = React.useCallback(
+    (ev: KeyboardEvent) => {
+      if (!searchTerm) {
+        return;
+      }
+
+      ev.preventDefault();
+      debouncedFind.cancel();
+      setSearchTerm("");
+      editor.commands.clearSearch();
+    },
+    [debouncedFind, editor.commands, searchTerm]
+  );
+
   useKeyboardShortcuts({
     open: localOpen,
+    inputRef,
     handleOpen,
     handleCaseSensitive,
     handleRegex,
@@ -367,7 +387,7 @@ export default function FindAndReplace({
   }, [localOpen]);
 
   const disabled = totalResults === 0;
-  const navigation = (
+  const controls = (
     <>
       <Tooltip
         content={t("Previous match")}
@@ -397,6 +417,20 @@ export default function FindAndReplace({
           <CaretDownIcon />
         </ButtonLarge>
       </Tooltip>
+      {!readOnly && (
+        <Tooltip
+          content={t("Replace options")}
+          shortcut={`${altDisplay}+${metaDisplay}+f`}
+          placement="bottom"
+        >
+          <ButtonLarge onClick={handleMore} aria-label={t("Replace options")}>
+            <ReplaceIcon color={theme.textSecondary} />
+          </ButtonLarge>
+        </Tooltip>
+      )}
+      <Results>
+        {totalResults > 0 ? currentIndex + 1 : 0} / {totalResults}
+      </Results>
     </>
   );
 
@@ -412,14 +446,16 @@ export default function FindAndReplace({
       <PopoverContent
         aria-label={t("Find and replace")}
         width={0}
-        minWidth={420}
+        minWidth={isMobile ? undefined : 420}
         scrollable={false}
-        onPointerDownOutside={() => setLocalOpen(false)}
-        onFocusOutside={(event) => {
-          event.preventDefault();
-          inputRef.current?.focus();
+        onEscapeKeyDown={handleEscape}
+        onPointerDownOutside={(ev) => ev.preventDefault()}
+        onFocusOutside={(ev) => ev.preventDefault()}
+        style={{
+          marginRight: 16,
+          marginTop: 60,
+          width: isMobile ? "calc(100vw - 32px)" : undefined,
         }}
-        style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>
           <Flex gap={4}>
@@ -462,28 +498,22 @@ export default function FindAndReplace({
                 </Tooltip>
               </SearchModifiers>
             </StyledInput>
-            {navigation}
-            {!readOnly && (
-              <Tooltip
-                content={t("Replace options")}
-                shortcut={`${altDisplay}+${metaDisplay}+f`}
-                placement="bottom"
-              >
-                <ButtonLarge
-                  onClick={handleMore}
-                  aria-label={t("Replace options")}
-                >
-                  <ReplaceIcon color={theme.textSecondary} />
-                </ButtonLarge>
-              </Tooltip>
-            )}
-            <Results>
-              {totalResults > 0 ? currentIndex + 1 : 0} / {totalResults}
-            </Results>
+            {!isMobile && controls}
           </Flex>
+          {isMobile && (
+            <ControlsRow gap={4} align="center">
+              {controls}
+              <CloseButton
+                onClick={() => setLocalOpen(false)}
+                aria-label={t("Close")}
+              >
+                <CloseIcon color={theme.textSecondary} />
+              </CloseButton>
+            </ControlsRow>
+          )}
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
-              <HStack align="flex-start">
+              <HStack align="flex-start" wrap={isMobile}>
                 <StyledInput
                   maxLength={255}
                   value={replaceTerm}
@@ -549,6 +579,14 @@ const ButtonSmall = styled(NudeButton)`
 const ButtonLarge = styled(ButtonSmall)`
   width: 32px;
   height: 32px;
+`;
+
+const CloseButton = styled(ButtonLarge)`
+  margin-left: auto;
+`;
+
+const ControlsRow = styled(Flex)`
+  margin: -8px 0 16px;
 `;
 
 const Content = styled(Flex)`

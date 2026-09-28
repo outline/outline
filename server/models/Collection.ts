@@ -55,7 +55,10 @@ import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
-import { CollectionValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DeprecationValidation,
+} from "@shared/validations";
 import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
@@ -232,6 +235,11 @@ class Collection extends ParanoidModel<
   })
   @Column(DataType.STRING)
   description: string | null;
+
+  /** The reason this collection is archived. */
+  @Length({ max: DeprecationValidation.maxReasonLength })
+  @Column(DataType.TEXT)
+  deprecatedReason: string | null;
 
   /**
    * The content of the collection as JSON, this is a snapshot at the last time the state was saved.
@@ -865,6 +873,39 @@ class Collection extends ParanoidModel<
       }
     );
 
+    return this;
+  };
+
+  /**
+   * Updates the reason for archiving the collection.
+   *
+   * @param ctx the API context, including the acting user and transaction.
+   * @param reason the reason to save, or null to clear it.
+   * @returns the updated collection.
+   * @throws ValidationError if the collection is no longer archived.
+   */
+  updateDeprecatedReason = async (ctx: APIContext, reason: string | null) => {
+    const { transaction } = ctx.state;
+
+    if (transaction) {
+      await Collection.unscoped().findOne({
+        attributes: ["id"],
+        where: { id: this.id },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
+      });
+    }
+
+    await this.reload({ transaction });
+    if (!this.archivedAt || this.deletedAt) {
+      throw ValidationError("The collection must be archived");
+    }
+
+    this.deprecatedReason = reason?.trim() || null;
+    if (this.changed("deprecatedReason")) {
+      await this.saveWithCtx(ctx, { silent: true });
+    }
     return this;
   };
 

@@ -46,6 +46,7 @@ const useRecentDocumentActions = (count = recentDocumentCount) => {
           name: item.titleWithDefault,
           analyticsName: "Recently viewed document",
           section: RecentSection,
+          visible: ({ isMCP }) => !isMCP,
           description: documentBreadcrumbText(item, t),
           icon: item.icon ? (
             <Icon

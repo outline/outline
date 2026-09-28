@@ -12,7 +12,7 @@ import usePrevious from "./usePrevious";
 type Actions = (ActionVariant | ActionGroup | ActionSeparator)[];
 
 export function useMenuAction(actions: Actions) {
-  const rootActionRef = useRef<ActionWithChildren>();
+  const rootActionRef = useRef<ActionWithChildren | undefined>(undefined);
   const prevActions = usePrevious(actions);
 
   if (!rootActionRef.current) {

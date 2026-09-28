@@ -20,6 +20,7 @@ import {
 } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { DeprecationValidation } from "@shared/validations";
 import {
   error,
   success,
@@ -788,37 +789,52 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to true to archive the document instead of deleting it. Archived documents remain searchable in the archive view."
             ),
+          reason: z
+            .string()
+            .trim()
+            .max(DeprecationValidation.maxReasonLength)
+            .nullish()
+            .describe(
+              "A plain text reason for archiving or deleting the document. Omit to keep the existing reason, or use null or an empty string to clear it."
+            ),
         },
       },
-      withTracing("delete_document", async ({ id, archive }, context) => {
-        try {
-          const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+      withTracing(
+        "delete_document",
+        async ({ id, archive, reason }, context) => {
+          try {
+            const ctx = buildAPIContext(context);
+            const { user } = ctx.state.auth;
 
-          await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            await sequelize.transaction(async (transaction) => {
+              ctx.state.transaction = transaction;
+              ctx.context.transaction = transaction;
 
-            const document = await Document.findByPk(id, {
-              userId: user.id,
-              rejectOnEmpty: true,
-              transaction,
+              const document = await Document.findByPk(id, {
+                userId: user.id,
+                rejectOnEmpty: true,
+                transaction,
+              });
+
+              authorize(user, archive ? "archive" : "delete", document);
+
+              if (reason !== undefined) {
+                document.deprecatedReason = reason || null;
+              }
+
+              if (archive) {
+                await document.archiveWithCtx(ctx);
+              } else {
+                await document.destroyWithCtx(ctx);
+              }
             });
 
-            if (archive) {
-              authorize(user, "archive", document);
-              await document.archiveWithCtx(ctx);
-            } else {
-              authorize(user, "delete", document);
-              await document.destroyWithCtx(ctx);
-            }
-          });
-
-          return success({ success: true });
-        } catch (message) {
-          return error(message);
+            return success({ success: true });
+          } catch (message) {
+            return error(message);
+          }
         }
-      })
+      )
     );
   }
 

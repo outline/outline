@@ -73,12 +73,6 @@ function SharedDocumentHeader({ document }: Props) {
 
   const showContents = ui.tocVisible !== false;
 
-  useEffect(() => {
-    if (isMobile && showContents) {
-      ui.set({ tocVisible: false });
-    }
-  }, [isMobile, showContents, ui]);
-
   useKeyDown(
     (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
     handleToggle,

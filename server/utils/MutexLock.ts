@@ -110,6 +110,37 @@ export class MutexLock {
   }
 
   /**
+   * Execute a routine in the context of an auto-extending lock, without
+   * waiting when the lock is already held elsewhere. Use this for long
+   * routines that must never run concurrently but can be skipped.
+   *
+   * @param resource The resource to lock.
+   * @param timeout The initial lock duration in milliseconds (auto-extended while running).
+   * @param routine The async routine to execute while holding the lock.
+   * @returns A promise that resolves with the routine's return value, or
+   * undefined if the lock was held elsewhere and the routine did not run.
+   */
+  public static async tryUsing<T>(
+    resource: string,
+    timeout: number,
+    routine: (signal: RedlockAbortSignal) => Promise<T>
+  ): Promise<T | undefined> {
+    try {
+      return await this.lock.using(
+        [resource],
+        timeout,
+        { retryCount: 0 },
+        routine
+      );
+    } catch (err) {
+      if (err instanceof ExecutionError || err instanceof ResourceLockedError) {
+        return undefined;
+      }
+      throw err;
+    }
+  }
+
+  /**
    * Safely release a lock. Releasing is best-effort – a lock that has already
    * expired or been taken over by another process cannot be released, and that
    * is not an error for the caller.

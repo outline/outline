@@ -1,4 +1,5 @@
-import { EmptyResultError, Op } from "sequelize";
+import { createHash } from "node:crypto";
+import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import { parser } from "@server/editor";
@@ -15,12 +16,45 @@ import {
   buildGuestUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
   vi.resetAllMocks();
+});
+
+describe("#restoreTo", () => {
+  it.each(["archived", "deleted"])(
+    "should clear a reason saved after an %s document was loaded",
+    async (status) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+        archivedAt: status === "archived" ? new Date() : null,
+        deletedAt: status === "deleted" ? new Date() : null,
+      });
+
+      // Simulate another request saving a reason after the restore loaded its model.
+      await Document.update(
+        { deprecatedReason: "Outdated" },
+        { where: { id: document.id }, paranoid: false }
+      );
+      await withAPIContext(user, (ctx) =>
+        document.restoreTo(ctx, { collectionId: collection.id })
+      );
+      await document.reload();
+      expect(document.isActive).toBe(true);
+      expect(document.deprecatedReason).toBeNull();
+    }
+  );
 });
 
 describe("#getSummary", () => {
@@ -131,6 +165,25 @@ describe("#save", () => {
     document.title = "test";
     await document.save();
     expect(document.previousTitles.length).toBe(3);
+  });
+
+  it("should index text whose search vector exceeds the tsvector limit", async () => {
+    const document = await buildDocument({ title: "Original" });
+    const tokens: string[] = [];
+    for (let i = 0; i < 40_000; i++) {
+      tokens.push(createHash("md5").update(String(i)).digest("hex"));
+    }
+    document.title = "Unique tokens";
+    document.text = tokens.join(" ");
+    await document.save();
+
+    const [rows] = await sequelize.query<{ searchVector: string }>(
+      `SELECT "searchVector" FROM documents WHERE id = :id`,
+      { replacements: { id: document.id }, type: QueryTypes.SELECT }
+    );
+    expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
+    expect(rows.searchVector).toContain(tokens[0]);
   });
 });
 
@@ -257,6 +310,63 @@ describe("#findAllChildDocumentIds", () => {
     expect(
       await document.findAllChildDocumentIds(undefined, { paranoid: false })
     ).toEqual([child.id]);
+  });
+});
+
+describe("#findAllParentDocumentIds", () => {
+  test("should return empty array if there is no parent", async () => {
+    const document = await buildDocument();
+
+    expect(await document.findAllParentDocumentIds()).toEqual([]);
+  });
+
+  test("should return nested parent document ids in one query", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const grandchild = await buildDocument({
+      parentDocumentId: child.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+
+    const query = sequelize.query.bind(sequelize);
+    const spy = vi.spyOn(sequelize, "query").mockImplementation(query);
+    try {
+      const results = await grandchild.findAllParentDocumentIds();
+
+      expect(results).toEqual([child.id, parent.id]);
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  test("should stop at soft-deleted parents unless paranoid is false", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const grandchild = await buildDocument({
+      parentDocumentId: child.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    await child.destroy();
+
+    expect(await grandchild.findAllParentDocumentIds()).toEqual([]);
+    expect(
+      await grandchild.findAllParentDocumentIds({ paranoid: false })
+    ).toEqual([child.id, parent.id]);
   });
 });
 

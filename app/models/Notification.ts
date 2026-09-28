@@ -28,6 +28,11 @@ export type NotificationFilter =
 class Notification extends Model {
   static modelName = "Notification";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   static filterCategories: Record<NotificationFilter, NotificationEventType[]> =
     {
       all: [],
@@ -81,15 +86,13 @@ class Notification extends Model {
    */
   @Field
   @observable
-  accessRequestId?: string;
-
+  accessRequestId?: string = undefined;
   /**
    * Status of the associated access request.
    */
   @Field
   @observable
-  accessRequestStatus?: string;
-
+  accessRequestStatus?: string = undefined;
   /**
    * The user that triggered the notification.
    */

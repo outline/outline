@@ -15,7 +15,7 @@ type Props = {
   // oxlint-disable-next-line no-explicit-any
   options?: Record<string, any>;
   heading?: React.ReactNode;
-  empty?: JSX.Element;
+  empty?: React.JSX.Element;
   showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;

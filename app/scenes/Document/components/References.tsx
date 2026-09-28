@@ -3,7 +3,9 @@ import { useEffect, useRef, Fragment, useMemo, useState } from "react";
 import { Trans } from "react-i18next";
 import styled from "styled-components";
 import type Document from "~/models/Document";
+import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
 import Fade from "~/components/Fade";
+import { ModelSelectionProvider } from "~/components/ModelSelectionContext";
 import { determineSidebarContext } from "~/components/Sidebar/components/SidebarContext";
 import { Tab, Tabs } from "~/components/Tabs";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -24,7 +26,7 @@ type Props = {
 type TabType = "children" | "backlinks";
 
 function References({ document }: Props) {
-  const { documents } = useStores();
+  const { documents, policies } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const locationSidebarContext = useLocationSidebarContext();
   const { sharedTree, isShare } = useShare();
@@ -43,6 +45,17 @@ function References({ document }: Props) {
 
   const children = useChildren(document, sharedTree);
   const backlinks = useBacklinks(document, sharedTree);
+  // Only updatable children are selectable, so that is what feeds range and
+  // select-all; per-item checkboxes are gated on the same ability.
+  const selectableChildIds = useMemo(
+    () =>
+      isShare
+        ? []
+        : children
+            .filter((node) => policies.abilities(node.id).update)
+            .map((node) => node.id),
+    [isShare, children, policies]
+  );
   const can = usePolicy(document);
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
@@ -107,27 +120,32 @@ function References({ document }: Props) {
           </List>
         )}
         {showChildDocuments && (
-          <List $active={!isBacklinksTab}>
-            {children.map((node) => {
-              // If we have the document in the store already then use it to get the extra
-              // contextual info, otherwise the collection node will do (only has title and id)
-              const document = documents.get(node.id);
-              return (
-                <ReferenceListItem
-                  key={node.id}
-                  document={document || node}
-                  showCollection={false}
+          <ModelSelectionProvider
+            items={selectableChildIds}
+            toolbar={<DocumentSelectionToolbar />}
+          >
+            <List $active={!isBacklinksTab}>
+              {children.map((node) => {
+                // If we have the document in the store already then use it to get the extra
+                // contextual info, otherwise the collection node will do (only has title and id)
+                const document = documents.get(node.id);
+                return (
+                  <ReferenceListItem
+                    key={node.id}
+                    document={document || node}
+                    showCollection={false}
+                    sidebarContext={locationSidebarContext}
+                  />
+                );
+              })}
+              {showNewChildDocument && (
+                <NewChildReferenceListItem
+                  parentDocumentId={document.id}
                   sidebarContext={locationSidebarContext}
                 />
-              );
-            })}
-            {showNewChildDocument && (
-              <NewChildReferenceListItem
-                parentDocumentId={document.id}
-                sidebarContext={locationSidebarContext}
-              />
-            )}
-          </List>
+              )}
+            </List>
+          </ModelSelectionProvider>
         )}
       </Content>
     </Component>

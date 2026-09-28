@@ -453,24 +453,29 @@ export function expandDocumentIdInFilter(
  *
  * @param user the current user.
  * @param filter the filter to authorize.
+ * @param options collections already loaded for the user, used instead of
+ * fetching them again.
  * @throws if the user lacks read access to any referenced collection.
  */
 export async function authorizeFilterFields(
   user: User,
-  filter: Filter
+  filter: Filter,
+  options: { collections?: Collection[] } = {}
 ): Promise<void> {
   const collectionIds = collectEqValues(filter, "collectionId");
   if (collectionIds.length === 0) {
     return;
   }
 
-  const collections = await Promise.all(
-    Array.from(new Set(collectionIds)).map((id) =>
-      Collection.findByPk(id, { userId: user.id })
-    )
+  const loaded = options.collections ?? [];
+  const loadedIds = new Set(loaded.map((collection) => collection.id));
+  const fetched = await Promise.all(
+    Array.from(new Set(collectionIds))
+      .filter((id) => !loadedIds.has(id))
+      .map((id) => Collection.findByPk(id, { userId: user.id }))
   );
 
-  for (const collection of collections) {
+  for (const collection of [...loaded, ...fetched]) {
     authorize(user, "readDocument", collection);
   }
 }

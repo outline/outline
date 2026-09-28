@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
-import { TeamPreference, UserRole } from "@shared/types";
+import { Plan, TeamPreference, UserRole } from "@shared/types";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
-import { TeamDomain } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import {
   buildTeam,
   buildAdmin,
@@ -699,6 +699,32 @@ describe("#users.info", () => {
 });
 
 describe("#users.invite", () => {
+  it("should require the guests entitlement to invite guests", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/users.invite", user, {
+      body: {
+        invites: [{ email: "test@example.com", name: "Test", role: "guest" }],
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should invite guests with the guests entitlement", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const user = await buildAdmin();
+    const res = await server.post("/api/users.invite", user, {
+      body: {
+        invites: [{ email: "test@example.com", name: "Test", role: "guest" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.users[0].role).toEqual(UserRole.Guest);
+  });
+
   it("should return sent invites", async () => {
     const user = await buildAdmin();
     const res = await server.post("/api/users.invite", user, {
@@ -1121,6 +1147,40 @@ describe("#users.updateEmail", () => {
 });
 
 describe("#users.update_role", () => {
+  it("should require the guests entitlement to change role to guest", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.update_role", admin, {
+      body: {
+        id: user.id,
+        role: UserRole.Guest,
+      },
+    });
+    expect(res.status).toEqual(403);
+    expect((await user.reload()).role).toEqual(UserRole.Member);
+  });
+
+  it("should change role to guest with the guests entitlement", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.update_role", admin, {
+      body: {
+        id: user.id,
+        role: UserRole.Guest,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect((await user.reload()).role).toEqual(UserRole.Guest);
+  });
+
   it("should promote", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });

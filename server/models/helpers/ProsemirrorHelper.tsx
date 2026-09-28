@@ -20,6 +20,7 @@ import {
 import * as Y from "yjs";
 import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
+import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import textBetween from "@shared/editor/lib/textBetween";
@@ -27,7 +28,11 @@ import { withTrailingNode } from "@shared/editor/lib/trailingNode";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
-import type { ProsemirrorData, UnfurlResponse } from "@shared/types";
+import type {
+  HeadingPrefixStyle,
+  ProsemirrorData,
+  UnfurlResponse,
+} from "@shared/types";
 import { AttachmentPreset, MentionType } from "@shared/types";
 import {
   attachmentRedirectRegex,
@@ -66,6 +71,8 @@ export type HTMLOptions = {
   changes?: readonly ExtendedChange[];
   /** CSP nonce to apply to injected inline scripts */
   cspNonce?: string;
+  /** The style of prefix displayed before headings (defaults to none) */
+  headingPrefix?: HeadingPrefixStyle;
 };
 
 /** The identifiers of a document that another document's content may link to. */
@@ -400,6 +407,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     function replaceDocumentReferencesInner(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (
         node.type === "mention" &&
         node.attrs?.type === MentionType.Document &&
@@ -407,7 +415,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       ) {
         const replacement = documents.get(node.attrs.modelId);
         if (replacement) {
-          node.attrs.modelId = replacement.id;
+          node.attrs = { ...node.attrs, modelId: replacement.id };
         }
       }
 
@@ -421,7 +429,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             node.text = href;
           }
 
-          mark.attrs.href = href;
+          mark.attrs = { ...mark.attrs, href };
         }
       });
 
@@ -461,15 +469,16 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     function replaceInternalUrlsInner(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (typeof node.attrs?.href === "string") {
-        node.attrs.href = replaceUrl(node.attrs.href);
+        node.attrs = { ...node.attrs, href: replaceUrl(node.attrs.href) };
       } else if (node.marks) {
         node.marks.forEach((mark) => {
           if (
             typeof mark.attrs?.href === "string" &&
             isInternalUrl(mark.attrs?.href)
           ) {
-            mark.attrs.href = replaceUrl(mark.attrs.href);
+            mark.attrs = { ...mark.attrs, href: replaceUrl(mark.attrs.href) };
           }
         });
       }
@@ -554,14 +563,24 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     function replaceAttachmentUrls(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (node.attrs?.src) {
-        node.attrs.src = getMapping(node.attrs.src as string);
+        node.attrs = {
+          ...node.attrs,
+          src: getMapping(node.attrs.src as string),
+        };
       } else if (node.attrs?.href) {
-        node.attrs.href = getMapping(node.attrs.href as string);
+        node.attrs = {
+          ...node.attrs,
+          href: getMapping(node.attrs.href as string),
+        };
       } else if (node.marks) {
         node.marks.forEach((mark) => {
           if (mark.attrs?.href) {
-            mark.attrs.href = getMapping(mark.attrs.href as string);
+            mark.attrs = {
+              ...mark.attrs,
+              href: getMapping(mark.attrs.href as string),
+            };
           }
         });
       }
@@ -769,6 +788,16 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         // (e.g. Frame's iframe) commit before serialization, then rewriting.
         await this.flushReactEffects();
 
+        // The heading prefix is a decoration in the editor, which the export
+        // renders without, so the labels are added to the output directly.
+        if (options?.headingPrefix) {
+          HeadingPrefixHelper.applyToDOM(
+            target as HTMLElement,
+            node,
+            options.headingPrefix
+          );
+        }
+
         // Components may render editable regions, such as captions, but the
         // exported document is static.
         for (const el of doc.querySelectorAll('[contenteditable="true"]')) {
@@ -870,6 +899,9 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         } catch (err) {
           Logger.error("Error destroying ProseMirror view", toError(err));
         }
+        // Unmounting schedules a final passive-effect flush; run it while the
+        // globals are still patched or React reads an undefined `window`.
+        await this.flushReactEffects();
         try {
           dom.window.close();
         } catch (_err) {

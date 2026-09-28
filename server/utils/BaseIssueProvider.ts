@@ -19,8 +19,11 @@ export abstract class BaseIssueProvider {
   abstract handleWebhook({
     payload,
     headers,
+    teamId,
   }: {
     payload: Record<string, unknown>;
     headers: Record<string, unknown>;
+    /** The authorized team, or null for a provider-wide webhook secret. */
+    teamId: string | null;
   }): Promise<void>;
 }

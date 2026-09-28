@@ -6,7 +6,7 @@ import {
   p,
   schema,
 } from "@shared/test/editor";
-import { checkboxListInputRule } from "./listInputRule";
+import { checkboxListInputRule, listWrappingInputRule } from "./listInputRule";
 
 const { bullet_list, ordered_list, list_item, checkbox_list, checkbox_item } =
   schema.nodes;
@@ -80,6 +80,48 @@ const rule = checkboxListInputRule(
   checkbox_list,
   checkbox_item
 );
+
+const bulletRule = listWrappingInputRule(/^\s*([-+*])\s$/, bullet_list);
+const orderedRule = listWrappingInputRule(
+  /^(\d+)\.\s$/,
+  ordered_list,
+  (match) => ({ order: Number(match[1]), listStyle: "number" })
+);
+
+describe("listWrappingInputRule", () => {
+  it("exits a list when the same marker is typed into an empty item", () => {
+    const testDoc = doc([bullet_list.create(null, [li([p("*")])])]);
+
+    const result = typeTrigger(bulletRule, testDoc, "*", " ");
+
+    expect(result.doc.childCount).toBe(1);
+    expect(result.doc.firstChild?.type.name).toBe("paragraph");
+    expect(result.doc.textContent).toBe("");
+  });
+
+  it("converts a list when a different marker is typed into an empty item", () => {
+    const testDoc = doc([bullet_list.create(null, [li([p("1.")])])]);
+
+    const result = typeTrigger(orderedRule, testDoc, "1.", " ");
+
+    expect(result.doc.childCount).toBe(1);
+    expect(result.doc.firstChild?.type.name).toBe("ordered_list");
+    expect(result.doc.firstChild?.firstChild?.type.name).toBe("list_item");
+    expect(result.doc.textContent).toBe("");
+  });
+
+  it("allows a nested list after content in the parent item", () => {
+    const testDoc = doc([
+      bullet_list.create(null, [li([p("parent"), p("*")])]),
+    ]);
+
+    const result = typeTrigger(bulletRule, testDoc, "*", " ");
+
+    const item = result.doc.firstChild?.firstChild;
+    expect(item?.child(0).textContent).toBe("parent");
+    expect(item?.child(1).type.name).toBe("bullet_list");
+  });
+});
 
 describe("checkboxListInputRule", () => {
   it("converts a plain bullet list to a checklist", () => {

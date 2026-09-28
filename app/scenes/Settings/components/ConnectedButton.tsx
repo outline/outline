@@ -7,7 +7,7 @@ import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 
-type Props = ButtonProps<HTMLButtonElement> & {
+type Props = ButtonProps<"button"> & {
   confirmationMessage: React.ReactNode;
   onClick: () => Promise<void> | void;
 };

@@ -145,10 +145,16 @@ describe("BaseStorage", () => {
   describe("storeFromUrl", () => {
     let storage: MockStorage;
 
+    const originalMaxSize = env.FILE_STORAGE_UPLOAD_MAX_SIZE;
+
     beforeEach(() => {
       storage = new MockStorage();
       storage.storedFiles = [];
       env.FILE_STORAGE_UPLOAD_MAX_SIZE = 500;
+    });
+
+    afterEach(() => {
+      env.FILE_STORAGE_UPLOAD_MAX_SIZE = originalMaxSize;
     });
 
     describe("base64 URL size validation", () => {

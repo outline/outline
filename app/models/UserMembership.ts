@@ -10,6 +10,11 @@ import NavigableModel from "./base/NavigableModel";
 class UserMembership extends NavigableModel {
   static modelName = "UserMembership";
 
+  constructor(fields: Record<string, unknown>, store: UserMembershipsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The sort order of the membership (In users sidebar) */
   @Field
   @observable
@@ -82,7 +87,7 @@ class UserMembership extends NavigableModel {
       userId: this.userId,
     });
     const index = memberships.indexOf(this);
-    return memberships[index + 1];
+    return memberships[index - 1];
   }
 }
 
