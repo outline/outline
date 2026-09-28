@@ -8802,10 +8802,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chrono-node@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "chrono-node@npm:2.9.1"
-  checksum: 10c0/2408e4a404ea3e7e8226daae75cdbc4621bc66065d596574440d0f81a7c456c166ca212c9e1c329e653c716300289498794fece2102f9365bfd33bd1a4b24473
+"chrono-node@npm:^2.10.1":
+  version: 2.10.1
+  resolution: "chrono-node@npm:2.10.1"
+  checksum: 10c0/bb3a7259b8fd5b8657486db0482c352e2a5959000042a0962660474a438c3ffc90a85ad807bea4b0bc23f319a5e92362d0394ed093c6291c737612d3990dcd00
   languageName: node
   linkType: hard
 
@@ -15603,7 +15603,7 @@ __metadata:
     async-sema: "npm:^3.1.1"
     browserslist-to-esbuild: "npm:^1.2.0"
     bull: "npm:^4.16.5"
-    chrono-node: "npm:^2.9.1"
+    chrono-node: "npm:^2.10.1"
     class-validator: "npm:^0.15.1"
     command-score: "npm:^0.1.2"
     compressorjs: "npm:^1.3.0"
