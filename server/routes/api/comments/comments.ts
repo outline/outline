@@ -1,9 +1,7 @@
 import Router from "koa-router";
 import { difference } from "es-toolkit/compat";
-import type { FindOptions, WhereOptions } from "sequelize";
-import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { CommentStatusFilter, MentionType, IconType } from "@shared/types";
+import { MentionType, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { commentParser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
@@ -60,8 +58,9 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
-      // We only need to load the state binary if applying a comment mark
+      // The content and state are only needed when applying a comment mark
       includeState: anchored,
+      includeContent: anchored,
     });
     authorize(user, "comment", document);
 
@@ -145,6 +144,8 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      // The body is only needed to resolve the anchor text.
+      includeContent: !!includeAnchorText,
     });
     authorize(user, "read", comment);
     authorize(user, "read", document);
@@ -175,99 +176,33 @@ router.post(
       includeAnchorText,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const statusQuery = [];
 
-    if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
-      statusQuery.push({ resolvedById: { [Op.not]: null } });
-    }
-    if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
-      statusQuery.push({ resolvedById: null });
-    }
-
-    const where: WhereOptions<Comment> = {
-      [Op.and]: [],
-    };
+    let document: Document | null = null;
     if (documentId) {
-      // @ts-expect-error ignore
-      where[Op.and].push({ documentId });
-    }
-    if (parentCommentId) {
-      // @ts-expect-error ignore
-      where[Op.and].push({ parentCommentId });
-    }
-    if (statusQuery.length) {
-      // @ts-expect-error ignore
-      where[Op.and].push({ [Op.or]: statusQuery });
-    }
-
-    const params: FindOptions<Comment> = {
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    };
-
-    let comments, total;
-    if (documentId) {
-      const document = await Document.findByPk(documentId, {
+      document = await Document.findByPk(documentId, {
         userId: user.id,
         // The body is only needed to resolve anchor text for each comment.
         includeContent: !!includeAnchorText,
       });
       authorize(user, "read", document);
-      [comments, total] = await Promise.all([
-        Comment.findAll(params),
-        Comment.count({ where }),
-      ]);
-      comments.forEach((comment) => (comment.document = document));
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "read", collection);
-      const include = [
-        {
-          model: Document,
-          required: true,
-          where: {
-            teamId: user.teamId,
-            collectionId,
-          },
-        },
-      ];
-      [comments, total] = await Promise.all([
-        Comment.findAll({
-          include,
-          ...params,
-        }),
-        Comment.count({
-          include,
-          where,
-        }),
-      ]);
-    } else {
-      const accessibleCollectionIds = await user.collectionIds();
-      const include = [
-        {
-          model: Document,
-          required: true,
-          where: {
-            teamId: user.teamId,
-            collectionId: { [Op.in]: accessibleCollectionIds },
-          },
-        },
-      ];
-      [comments, total] = await Promise.all([
-        Comment.findAll({
-          include,
-          ...params,
-        }),
-        Comment.count({
-          include,
-          where,
-        }),
-      ]);
     }
+
+    const { comments, total } = await Comment.findAllForUser(user, {
+      document,
+      collectionId,
+      parentCommentId,
+      statusFilter,
+      includeDocuments: includeAnchorText,
+      sort,
+      direction,
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -301,6 +236,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
+      includeContent: false,
     });
     authorize(user, "update", comment);
     authorize(user, "comment", document);
@@ -375,6 +311,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "delete", comment);
     authorize(user, "comment", document);
@@ -408,6 +345,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "resolve", comment);
     authorize(user, "update", document);
@@ -443,6 +381,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      includeContent: false,
     });
     authorize(user, "unresolve", comment);
     authorize(user, "update", document);
@@ -480,6 +419,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
+      includeContent: false,
     });
 
     authorize(user, "comment", document);
@@ -535,6 +475,7 @@ router.post(
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
+      includeContent: false,
     });
 
     authorize(user, "comment", document);

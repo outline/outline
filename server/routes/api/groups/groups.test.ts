@@ -1,5 +1,6 @@
 import type { Group, User } from "@server/models";
 import { AuthenticationProvider, Event, ExternalGroup } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildUser,
   buildAdmin,
@@ -176,6 +177,68 @@ describe("#groups.update", () => {
       const body = await res.json();
       expect(res.status).toEqual(400);
       expect(body).toMatchSnapshot();
+    });
+  });
+
+  describe("externally synced group", () => {
+    let user: User;
+    let group: Group;
+
+    beforeEach(async () => {
+      user = await buildAdmin();
+      group = await buildGroup({
+        teamId: user.teamId,
+        name: "Synced",
+        description: "Synced description",
+      });
+      const authProvider = (await AuthenticationProvider.findOne({
+        where: { teamId: user.teamId },
+      }))!;
+      await ExternalGroup.create({
+        externalId: "ext-1",
+        name: group.name,
+        groupId: group.id,
+        authenticationProviderId: authProvider.id,
+        teamId: user.teamId,
+      });
+    });
+
+    it("does not allow changing the name", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          name: "Renamed",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body.message).toContain("name of a group synced");
+    });
+
+    it("does not allow changing the description", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          description: "Changed description",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body.message).toContain("description of a group synced");
+    });
+
+    it("allows updating other fields when name and description are unchanged", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          disableMentions: true,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.disableMentions).toEqual(true);
     });
   });
 });
@@ -633,15 +696,57 @@ describe("#groups.add_user", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
     const res = await server.post("/api/groups.add_user", user, {
       body: {
         id: group.id,
         userId: user.id,
       },
     });
+    const body = await res.json();
     const users = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
+    await group.reload();
+    expect(group.updatedAt.getTime()).toBeGreaterThan(
+      previousUpdatedAt.getTime()
+    );
+    expect(body.data.groups[0].updatedAt).toBe(group.updatedAt.toISOString());
+  });
+
+  it("should not update the group when the user is already a member", async () => {
+    const user = await buildAdmin();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      groupId: group.id,
+      teamId: group.teamId,
+      userId: user.id,
+    });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
+
+    const res = await server.post("/api/groups.add_user", user, {
+      body: { id: group.id, userId: user.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await group.reload();
+    expect(group.updatedAt).toEqual(previousUpdatedAt);
   });
 
   it("should add user to group as admin", async () => {
@@ -720,6 +825,15 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
     const users = await group.$get("users");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/groups.remove_user", user, {
@@ -728,9 +842,15 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
+    const body = await res.json();
     const users1 = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users1.length).toEqual(0);
+    await group.reload();
+    expect(group.updatedAt.getTime()).toBeGreaterThan(
+      previousUpdatedAt.getTime()
+    );
+    expect(body.data.groups[0].updatedAt).toBe(group.updatedAt.toISOString());
   });
 
   it("should require authentication", async () => {

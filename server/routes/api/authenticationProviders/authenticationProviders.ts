@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { UserRole } from "@shared/types";
 import env from "@server/env";
+import { InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -52,6 +53,23 @@ router.post(
 
     authorize(user, "update", authenticationProvider);
 
+    if (
+      settings?.groupSyncEnabled === true &&
+      !authenticationProvider.settings?.groupSyncEnabled
+    ) {
+      const groupSyncProvider = PluginManager.getGroupSyncProvider(
+        authenticationProvider.name
+      );
+      if (!groupSyncProvider) {
+        throw InvalidRequestError(
+          "Group sync is not available for this provider"
+        );
+      }
+      if (groupSyncProvider.startGroupSync) {
+        throw InvalidRequestError("Set up group sync with admin consent");
+      }
+    }
+
     if (isEnabled !== undefined) {
       const enabled = !!isEnabled;
 
@@ -74,6 +92,42 @@ router.post(
     ctx.body = {
       data: presentAuthenticationProvider(authenticationProvider),
       policies: presentPolicies(user, [authenticationProvider]),
+    };
+  }
+);
+
+router.post(
+  "authenticationProviders.startGroupSync",
+  auth({ role: UserRole.Admin }),
+  validate(T.AuthenticationProvidersStartGroupSyncSchema),
+  async (ctx: APIContext<T.AuthenticationProvidersStartGroupSyncReq>) => {
+    const { user } = ctx.state.auth;
+    const authenticationProvider = await AuthenticationProvider.findByPk(
+      ctx.input.body.id
+    );
+    authorize(user, "update", authenticationProvider);
+
+    const groupSyncProvider = PluginManager.getGroupSyncProvider(
+      authenticationProvider.name
+    );
+    if (!authenticationProvider.enabled || !authenticationProvider.providerId) {
+      throw InvalidRequestError(
+        "Authentication provider must be connected first"
+      );
+    }
+    if (!groupSyncProvider?.startGroupSync) {
+      throw InvalidRequestError(
+        "Group sync setup is not available for this provider"
+      );
+    }
+
+    ctx.body = {
+      data: {
+        url: await groupSyncProvider.startGroupSync(
+          authenticationProvider,
+          user
+        ),
+      },
     };
   }
 );
@@ -142,6 +196,7 @@ router.post(
           isConnected: false,
           groupSyncSupported: !!groupSyncProvider,
           groupSyncUsesClaim: groupSyncProvider?.useGroupClaim ?? false,
+          groupSyncRequiresSetup: !!groupSyncProvider?.startGroupSync,
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })

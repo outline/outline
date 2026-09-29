@@ -19,8 +19,8 @@ export class MutexLock {
     (
       _resource: string,
       _timeout: number,
-      routine: (signal: never) => unknown
-    ) => routine(undefined as never)
+      routine: (signal: { aborted: boolean }) => unknown
+    ) => routine({ aborted: false })
   );
 
   /**
@@ -30,8 +30,8 @@ export class MutexLock {
     (
       _resource: string,
       _timeout: number,
-      routine: (signal: never) => unknown
-    ) => routine(undefined as never)
+      routine: (signal: { aborted: boolean }) => unknown
+    ) => routine({ aborted: false })
   );
 
   /**

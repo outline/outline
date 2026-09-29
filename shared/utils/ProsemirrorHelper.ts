@@ -63,13 +63,17 @@ export class ProsemirrorHelper {
     const markSet = new Set(marks);
 
     function removeMarksInner(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (node.marks) {
         node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
       }
       if (node.attrs?.marks) {
-        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
-          (mark) => !markSet.has(mark.type)
-        );
+        node.attrs = {
+          ...node.attrs,
+          marks: (node.attrs.marks as { type: string }[])?.filter(
+            (mark) => !markSet.has(mark.type)
+          ),
+        };
       }
       if (node.content) {
         node.content.forEach(removeMarksInner);

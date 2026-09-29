@@ -15,6 +15,7 @@ import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
+import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
@@ -78,8 +79,36 @@ type HTMLOptions = {
 @trace()
 export class DocumentHelper {
   /**
+   * Returns all of the comment marks in the document. Results are memoized
+   * against the document body so that repeated calls for the same content do
+   * not reparse the document.
+   *
+   * @param document The document to read comment marks from
+   * @returns The comment marks in the document
+   */
+  static getCommentMarks(document: Document | Revision): CommentMark[] {
+    const key =
+      document.content ?? ("state" in document ? document.state : undefined);
+    if (!key) {
+      return ProsemirrorHelper.getComments(
+        DocumentHelper.toProsemirror(document)
+      );
+    }
+
+    let marks = DocumentHelper.commentMarksCache.get(key);
+    if (!marks) {
+      marks = ProsemirrorHelper.getComments(
+        DocumentHelper.toProsemirror(document)
+      );
+      DocumentHelper.commentMarksCache.set(key, marks);
+    }
+    return marks;
+  }
+
+  /**
    * Returns the document as a Prosemirror Node. This method uses the derived content if available
-   * then the collaborative state, otherwise it falls back to Markdown.
+   * then the collaborative state, otherwise it falls back to Markdown. Results are memoized
+   * against the content or state they were parsed from, so the returned node must not be mutated.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
@@ -87,21 +116,33 @@ export class DocumentHelper {
   static toProsemirror(
     document: Document | Revision | Collection | ProsemirrorData
   ) {
-    if ("type" in document && document.type === "doc") {
-      return Node.fromJSON(schema, document);
-    }
-    if ("content" in document && document.content) {
-      return Node.fromJSON(schema, document.content);
-    }
-    if ("state" in document && document.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, document.state);
-      return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    const source =
+      "type" in document && document.type === "doc"
+        ? document
+        : "content" in document && document.content
+          ? document.content
+          : "state" in document && document.state
+            ? document.state
+            : undefined;
+
+    if (!source) {
+      const text =
+        document instanceof Collection ? document.description : document.text;
+      return parser.parse(text ?? "") || Node.fromJSON(schema, {});
     }
 
-    const text =
-      document instanceof Collection ? document.description : document.text;
-    return parser.parse(text ?? "") || Node.fromJSON(schema, {});
+    let node = DocumentHelper.prosemirrorCache.get(source);
+    if (!node) {
+      if (source instanceof Uint8Array) {
+        const ydoc = new Y.Doc();
+        Y.applyUpdate(ydoc, source);
+        node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+      } else {
+        node = Node.fromJSON(schema, source);
+      }
+      DocumentHelper.prosemirrorCache.set(source, node);
+    }
+    return node;
   }
 
   /**
@@ -1388,4 +1429,10 @@ export class DocumentHelper {
       return orderA - orderB;
     });
   }
+
+  /** Prosemirror nodes memoized against the content or state they were parsed from. */
+  private static prosemirrorCache = new WeakMap<object, Node>();
+
+  /** Comment marks memoized against the document body they were parsed from. */
+  private static commentMarksCache = new WeakMap<object, CommentMark[]>();
 }

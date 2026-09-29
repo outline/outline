@@ -19,14 +19,15 @@ function parseRootMargin(
 }
 
 /**
- * Hook to return if a given ref is visible on screen.
+ * Hook to track whether an element is visible on screen.
  *
- * @returns boolean if the node is visible
+ * @param options - intersection observer options.
+ * @returns a tuple of a ref callback to attach to the element and a boolean
+ * that is true when the element is visible.
  */
 export default function useOnScreen(
-  ref: React.RefObject<HTMLElement | null>,
   options?: IntersectionObserverInit
-) {
+): [React.RefCallback<HTMLElement>, boolean] {
   const root = options?.root;
   const rootMargin = options?.rootMargin;
   const threshold = Array.isArray(options?.threshold)
@@ -35,47 +36,47 @@ export default function useOnScreen(
 
   const [isIntersecting, setIntersecting] = React.useState(!isSupported);
 
-  React.useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) {
-      return undefined;
-    }
+  const ref = React.useCallback(
+    (element: HTMLElement | null) => {
+      if (!element) {
+        return;
+      }
 
-    // Synchronous initial check so the first paint is correct.
-    const [mt, mr, mb, ml] = parseRootMargin(rootMargin);
-    const rect = element.getBoundingClientRect();
-    const rootRect =
-      root instanceof Element
-        ? root.getBoundingClientRect()
-        : {
-            top: 0,
-            left: 0,
-            bottom: window.innerHeight,
-            right: window.innerWidth,
-          };
-    const initialVisible =
-      rect.bottom >= rootRect.top - mt &&
-      rect.top <= rootRect.bottom + mb &&
-      rect.right >= rootRect.left - ml &&
-      rect.left <= rootRect.right + mr;
+      // Synchronous initial check so the first paint is correct.
+      const [mt, mr, mb, ml] = parseRootMargin(rootMargin);
+      const rect = element.getBoundingClientRect();
+      const rootRect =
+        root instanceof Element
+          ? root.getBoundingClientRect()
+          : {
+              top: 0,
+              left: 0,
+              bottom: window.innerHeight,
+              right: window.innerWidth,
+            };
+      const initialVisible =
+        rect.bottom >= rootRect.top - mt &&
+        rect.top <= rootRect.bottom + mb &&
+        rect.right >= rootRect.left - ml &&
+        rect.left <= rootRect.right + mr;
 
-    setIntersecting(initialVisible);
+      setIntersecting(initialVisible);
 
-    if (!isSupported) {
-      return undefined;
-    }
+      if (!isSupported) {
+        return;
+      }
 
-    const observer = new IntersectionObserver(([entry]) => {
-      setIntersecting(entry.isIntersecting);
-    }, options);
-    observer.observe(element);
+      const observer = new IntersectionObserver(([entry]) => {
+        setIntersecting(entry.isIntersecting);
+      }, options);
+      observer.observe(element);
 
-    return () => {
-      observer.unobserve(element);
-    };
+      return () => observer.disconnect();
+    },
     // Re-create when option primitives change; options object identity ignored
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref, root, rootMargin, threshold]);
+    [root, rootMargin, threshold]
+  );
 
-  return isIntersecting;
+  return [ref, isIntersecting];
 }

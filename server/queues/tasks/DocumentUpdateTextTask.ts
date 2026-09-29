@@ -1,5 +1,4 @@
-import { Node } from "prosemirror-model";
-import { schema, serializer } from "@server/editor";
+import { serializer } from "@server/editor";
 import { Document } from "@server/models";
 import type { DocumentEvent } from "@server/types";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -13,8 +12,9 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
       return;
     }
 
-    const node = Node.fromJSON(schema, document.content);
-    document.text = serializer.serialize(node);
+    document.text = serializer.serialize(
+      DocumentHelper.toProsemirror(document)
+    );
 
     // Loaded lazily to keep the language-detection corpus off the startup path —
     // only this worker task needs it.

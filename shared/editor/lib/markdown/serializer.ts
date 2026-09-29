@@ -503,7 +503,11 @@ export class MarkdownSerializerState {
         cellState.inList = this.inList;
         cellState.inTightList = this.inTightList;
 
-        cell.forEach((cellNode) => {
+        cell.forEach((cellNode, _, index) => {
+          if (index > 0) {
+            cellState.append("\n");
+          }
+
           if (
             !(
               cellNode.textContent === "" &&

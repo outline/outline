@@ -15,6 +15,7 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
+import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -46,6 +47,20 @@ function Authentication() {
       void request();
     }
   }, [loading, providers, request]);
+
+  const groupSyncResult = useConsumeQueryParam("groupSync");
+
+  React.useEffect(() => {
+    if (!groupSyncResult) {
+      return;
+    }
+
+    if (groupSyncResult === "connected") {
+      toast.success(t("Group sync connected"));
+    } else {
+      toast.error(t("Could not connect group sync"));
+    }
+  }, [groupSyncResult, t]);
 
   const handleGuestSigninChange = React.useCallback(
     async (checked: boolean) => {
@@ -109,6 +124,15 @@ function Authentication() {
       if (checked) {
         void (async () => {
           try {
+            if (provider.groupSyncRequiresSetup) {
+              const result = await client.post<{ data: { url: string } }>(
+                "/authenticationProviders.startGroupSync",
+                { id: provider.id }
+              );
+              window.location.href = result.data.url;
+              return;
+            }
+
             await provider.save({
               settings: {
                 ...provider.settings,
@@ -227,10 +251,18 @@ function Authentication() {
             <SettingRow
               label={t("Group sync")}
               name={`groupSync-${provider.name}`}
-              description={t(
-                "Sync group memberships from {{ authProvider }} on each sign-in",
-                { authProvider: provider.displayName }
-              )}
+              description={
+                provider.groupSyncRequiresSetup &&
+                !provider.settings?.groupSyncEnabled
+                  ? t(
+                      "An administrator of {{ authProvider }} must approve group access for this workspace",
+                      { authProvider: provider.displayName }
+                    )
+                  : t(
+                      "Sync group memberships from {{ authProvider }} on each sign-in",
+                      { authProvider: provider.displayName }
+                    )
+              }
               border={
                 !(
                   provider.settings?.groupSyncEnabled &&
@@ -238,11 +270,23 @@ function Authentication() {
                 )
               }
             >
-              <Switch
-                id={`groupSync-${provider.name}`}
-                checked={provider.settings?.groupSyncEnabled ?? false}
-                onChange={(checked) => handleToggleGroupSync(provider, checked)}
-              />
+              {provider.groupSyncRequiresSetup &&
+              !provider.settings?.groupSyncEnabled ? (
+                <Button
+                  onClick={() => handleToggleGroupSync(provider, true)}
+                  neutral
+                >
+                  {t("Set up group sync")}
+                </Button>
+              ) : (
+                <Switch
+                  id={`groupSync-${provider.name}`}
+                  checked={provider.settings?.groupSyncEnabled ?? false}
+                  onChange={(checked) =>
+                    handleToggleGroupSync(provider, checked)
+                  }
+                />
+              )}
             </SettingRow>
           )}
           {provider.isActive &&
