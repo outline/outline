@@ -34,6 +34,18 @@ const getBucketOrigin = () => {
   }
 };
 
+const getCloudFrontOrigin = () => {
+  if (!env.AWS_CLOUDFRONT_URL) {
+    return;
+  }
+
+  try {
+    return new URL(env.AWS_CLOUDFRONT_URL).origin;
+  } catch {
+    return;
+  }
+};
+
 interface CSPOptions {
   /** Additional origins to allow as script sources. */
   extraScriptSrc?: string[];
@@ -102,6 +114,11 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   const bucketOrigin = getBucketOrigin();
   if (bucketOrigin) {
     objectSrc.push(bucketOrigin);
+  }
+
+  const cloudFrontOrigin = getCloudFrontOrigin();
+  if (cloudFrontOrigin) {
+    objectSrc.push(cloudFrontOrigin);
   }
 
   return async function cspMiddleware(ctx: Context, next: Next) {
