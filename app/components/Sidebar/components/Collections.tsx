@@ -7,7 +7,11 @@ import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
-import { createCollection } from "~/actions/definitions/collections";
+import {
+  createCollection,
+  sortCollectionsAscending,
+  sortCollectionsDescending,
+} from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
 import { type DragObject, useDropRef } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
@@ -21,7 +25,11 @@ import SidebarLink from "./SidebarLink";
 import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 
-const headerActions = [createCollection];
+const headerActions = [
+  createCollection,
+  sortCollectionsAscending,
+  sortCollectionsDescending,
+];
 
 function Collections() {
   const { documents, auth, collections, policies } = useStores();
@@ -48,6 +56,7 @@ function Collections() {
       );
     },
     canDrop: (item) =>
+      !collections.isSorting &&
       item.id !== orderedCollections[0]?.id &&
       !!policies.abilities(item.id).move,
     collect: (monitor) => ({

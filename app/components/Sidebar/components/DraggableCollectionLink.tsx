@@ -65,6 +65,7 @@ function DraggableCollectionLink({
       );
     },
     canDrop: (item) =>
+      !collections.isSorting &&
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
       !!policies.abilities(item.id).move,
