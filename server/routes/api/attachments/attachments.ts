@@ -257,12 +257,9 @@ router.post(
       url,
     });
 
-    const response = await job.finished().catch((err) => {
+    await job.finished().catch((err) => {
       throw InvalidRequestError(errToString(err));
     });
-    if ("error" in response) {
-      throw InvalidRequestError(response.error);
-    }
 
     await attachment.reload();
 

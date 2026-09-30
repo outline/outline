@@ -1,5 +1,6 @@
 // @vitest-isolate true
 import { randomUUID } from "node:crypto";
+import type { Mock } from "vitest";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import env from "@server/env";
 import FileStorage from "@server/storage/files";
@@ -481,7 +482,7 @@ describe("#attachments.createFromUrl", () => {
       userId: user.id,
     });
 
-    vi.mocked(FileStorage.storeFromUrl).mockResolvedValue(undefined);
+    (FileStorage.storeFromUrl as Mock).mockResolvedValue(undefined);
 
     const res = await server.post("/api/attachments.createFromUrl", user, {
       body: {
