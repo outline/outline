@@ -1,7 +1,7 @@
 import querystring from "node:querystring";
 import { addMonths } from "date-fns";
 import type { Context } from "koa";
-import { pick } from "es-toolkit/compat";
+import { isPlainObject, pick } from "es-toolkit/compat";
 import isUUID from "validator/lib/isUUID";
 import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
@@ -24,7 +24,10 @@ export function getSessionsInCookie(ctx: Context) {
   try {
     const sessionCookie = ctx.cookies.get("sessions") || "";
     const decodedSessionCookie = decodeURIComponent(sessionCookie);
-    return decodedSessionCookie ? JSON.parse(decodedSessionCookie) : {};
+    const sessions = decodedSessionCookie
+      ? JSON.parse(decodedSessionCookie)
+      : {};
+    return isPlainObject(sessions) ? sessions : {};
   } catch (_err) {
     return {};
   }

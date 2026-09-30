@@ -493,18 +493,24 @@ describe("root domain session redirects", () => {
   });
 
   it("should ignore a malformed sessions cookie", async () => {
-    const res = await server.get("/settings/billing", {
-      headers: {
-        Host: host,
-        Cookie: `sessions=${encodeURIComponent(
-          JSON.stringify({
-            "not-a-uuid": { name: "x", url: "https://evil.com" },
-          })
-        )}`,
-      },
-      redirect: "manual",
-    });
+    const cookies = [
+      JSON.stringify({ "not-a-uuid": { name: "x", url: "https://evil.com" } }),
+      "null",
+      '"string"',
+      "[]",
+      "{not json",
+    ];
 
-    expect(res.status).toEqual(200);
+    for (const cookie of cookies) {
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(cookie)}`,
+        },
+        redirect: "manual",
+      });
+
+      expect(res.status).toEqual(200);
+    }
   });
 });
