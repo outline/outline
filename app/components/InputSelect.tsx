@@ -69,6 +69,8 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   label: string;
   /* When true, label is hidden in an accessible manner. */
   labelHidden?: boolean;
+  /* Placeholder shown when no option is selected. Defaults to a string derived from the label. */
+  placeholder?: string;
   /* When true, menu is disabled. */
   disabled?: boolean;
   /* When true, width of the menu trigger is restricted. Otherwise, takes up the full width of parent. */
@@ -91,6 +93,7 @@ export function InputSelect(props: Props) {
     short,
     help,
     displayValue,
+    placeholder: placeholderProp,
     ...triggerProps
   } = props;
 
@@ -102,7 +105,7 @@ export function InputSelect(props: Props) {
 
   const isMobile = useMobile();
 
-  const placeholder = `Select a ${label.toLowerCase()}`;
+  const placeholder = placeholderProp ?? `Select a ${label.toLowerCase()}`;
   const optionsHaveIcon = options.some(
     (opt) => opt.type === "item" && !!opt.icon
   );

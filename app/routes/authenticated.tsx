@@ -22,6 +22,7 @@ import {
   homePath,
   searchPath,
   settingsPath,
+  tagsPath,
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
   trashPath,
@@ -102,6 +103,11 @@ function AuthenticatedRoutes() {
                   component={Scenes.Trash.Component}
                 />
               )}
+              <Route
+                exact
+                path={tagsPath()}
+                component={Scenes.Tags.Component}
+              />
               <Route
                 path={`${homePath()}/:tab?`}
                 component={Scenes.Home.Component}

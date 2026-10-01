@@ -33,6 +33,10 @@ type Props = {
   options: TFilterOption[];
   selectedKeys: (string | null | undefined)[];
   defaultLabel?: string;
+  /** Replaces the selected labels on the trigger, eg. when the selection is shown elsewhere. */
+  label?: string;
+  /** Called when the options open, eg. to load them lazily. */
+  onOpen?: () => void;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
   showFilter?: boolean;
@@ -52,6 +56,8 @@ const FilterOptions = ({
   fetchQuery,
   fetchQueryOptions,
   disclosure = true,
+  label,
+  onOpen,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
@@ -59,6 +65,12 @@ const FilterOptions = ({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = React.useState(false);
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value);
+    if (value) {
+      onOpen?.();
+    }
+  };
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
   );
@@ -67,7 +79,7 @@ const FilterOptions = ({
   const deferredQuery = React.useDeferredValue(query);
 
   const selectedLabel = selectedItems.length
-    ? selectedItems.map((selected) => selected.label).join(", ")
+    ? (label ?? selectedItems.map((selected) => selected.label).join(", "))
     : "";
 
   const renderItem = React.useCallback(
@@ -220,7 +232,7 @@ const FilterOptions = ({
   const trigger = (
     <StyledButton
       className={className}
-      icon={selectedItems[0]?.key && selectedItems[0]?.icon}
+      icon={!label && selectedItems[0]?.key && selectedItems[0]?.icon}
       disclosure={disclosure}
       neutral
     >
@@ -245,7 +257,7 @@ const FilterOptions = ({
   // popover style used by context menus across the app.
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={setOpen}>
+      <Drawer open={open} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent aria-label={defaultLabel} aria-describedby={undefined}>
           <DrawerTitle>{defaultLabel}</DrawerTitle>
@@ -267,7 +279,7 @@ const FilterOptions = ({
 
   return (
     <MenuProvider variant="dropdown">
-      <Menu open={open} onOpenChange={setOpen}>
+      <Menu open={open} onOpenChange={handleOpenChange}>
         <MenuTrigger>{trigger}</MenuTrigger>
         <MenuContent aria-label={defaultLabel} align="start">
           {list}

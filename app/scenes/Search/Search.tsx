@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
+import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
@@ -16,6 +17,7 @@ import type {
   DateFilter as TDateFilter,
 } from "@shared/types";
 import { StatusFilter as TStatusFilter } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
@@ -33,7 +35,9 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
+import { parseSearchQuery } from "~/utils/parseSearchQuery";
 import { searchPath } from "~/utils/routeHelpers";
+import { combineTagIds, resolveFilterTagIds } from "~/utils/tags";
 import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
@@ -42,13 +46,14 @@ import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
+import TagFilter from "./components/TagFilter";
 import UserFilter from "./components/UserFilter";
 import { HStack } from "~/components/primitives/HStack";
 import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches, policies } = useStores();
+  const { documents, searches, policies, tags: tagsStore } = useStores();
   const isMobile = useMobile();
 
   // routing
@@ -68,6 +73,49 @@ function Search() {
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
+  // #tag tokens naming no known tag stay in the text query, eg. "PR #4521".
+  const { cleanQuery, tagNames, unresolvedTagNames } = parseSearchQuery(
+    query ?? "",
+    (name) => !!tagsStore.getByName(name)
+  );
+  const queryTagIds = tagNames
+    .map((name) => tagsStore.getByName(name)?.id)
+    .filter(Boolean) as string[];
+
+  const [allTagsLoaded, setAllTagsLoaded] = React.useState(false);
+  const [tagsLoadFailed, setTagsLoadFailed] = React.useState(false);
+
+  // Tags picked in the filter control, combined with #tag tokens (AND). Ids
+  // matching no tag once tags are loaded are left out of the filters and shown
+  // as removable "Unknown tag" chips. If tags fail to load every id is kept.
+  const { applied: filterTagIds, unknown: unknownTagIds } = resolveFilterTagIds(
+    params.getAll("tagId"),
+    allTagsLoaded && !tagsLoadFailed ? (id) => !!tagsStore.get(id) : undefined
+  );
+  const tagIds = combineTagIds(filterTagIds, queryTagIds);
+  // Keyed on the serialized value so filters keep a stable identity.
+  const tagIdsKey = tagIds.join(",");
+
+  const hasTagTokens = tagNames.length + unresolvedTagNames.length > 0;
+  const needsTags = hasTagTokens || filterTagIds.length > 0;
+
+  React.useEffect(() => {
+    // Only fetch tags when the query contains #tag tokens or tag filters, to
+    // avoid unnecessary API load on every Search mount.
+    if (!needsTags) {
+      return;
+    }
+    void tagsStore
+      .fetchAllIfNeeded()
+      .catch((err) => {
+        setTagsLoadFailed(true);
+        toast.error(errToString(err));
+      })
+      .finally(() => setAllTagsLoaded(true));
+  }, [tagsStore, needsTags]);
+
+  // Tags can only be resolved once all tags are loaded.
+  const isLoadingTags = needsTags && !allTagsLoaded;
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
@@ -86,7 +134,8 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  const isSearchable = !!(query || collectionId || userId);
+  const isSearchable =
+    !isLoadingTags && !!(cleanQuery || collectionId || userId || tagIds.length);
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -94,6 +143,7 @@ function Search() {
     document: !!document,
     collection: !document,
     user: !document || !!(document && query),
+    tag: !document || filterTagIds.length > 0 || unknownTagIds.length > 0,
     documentType: isSearchable,
     date: isSearchable,
     title: !!query && !document,
@@ -118,6 +168,9 @@ function Search() {
         operator: "eq",
         value: documentId,
       });
+    }
+    for (const tagId of tagIdsKey ? tagIdsKey.split(",") : []) {
+      children.push({ field: "tagId", operator: "eq", value: tagId });
     }
     if (dateFilter) {
       const duration = DURATION_BY_DATE_FILTER[dateFilter];
@@ -160,17 +213,17 @@ function Search() {
       return undefined;
     }
     return children;
-  }, [collectionId, userId, documentId, dateFilter, statusFilter]);
+  }, [collectionId, userId, documentId, tagIdsKey, dateFilter, statusFilter]);
 
   const requestParams = React.useMemo(
     () => ({
-      query,
+      query: cleanQuery || undefined,
       titleFilter,
       sort,
       direction,
       filters,
     }),
-    [query, titleFilter, sort, direction, filters]
+    [cleanQuery, titleFilter, sort, direction, filters]
   );
 
   const requestFn = React.useMemo(() => {
@@ -190,6 +243,10 @@ function Search() {
           offset: params?.offset,
           limit: params?.limit,
         };
+        // Title search needs a query, or tags to filter by
+        if (titleFilter && !requestParams.query && !tagIdsKey) {
+          return [] as SearchResult[];
+        }
         return titleFilter
           ? await documents.searchTitles({
               ...requestParams,
@@ -203,7 +260,15 @@ function Search() {
     }
 
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, requestParams, searches, documents, isSearchable]);
+  }, [
+    query,
+    titleFilter,
+    requestParams,
+    searches,
+    documents,
+    isSearchable,
+    tagIdsKey,
+  ]);
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
@@ -242,6 +307,7 @@ function Search() {
     dateFilter?: TDateFilter;
     statusFilter?: TStatusFilter[];
     titleFilter?: boolean | undefined;
+    tagId?: string[];
     sort?: string | undefined;
     direction?: string | undefined;
   }) => {
@@ -325,7 +391,7 @@ function Search() {
       actions={isMobile ? sortInput : null}
     >
       <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
-      {loading && <LoadingIndicator />}
+      {(loading || isLoadingTags) && <LoadingIndicator />}
       <ResultsWrapper column auto>
         <form method="GET" action={searchPath()} onSubmit={preventDefault}>
           <SearchInput
@@ -337,7 +403,7 @@ function Search() {
                 ? t("Search in document")
                 : collectionId
                   ? t("Search in collection")
-                  : t("Search")
+                  : t("Search, or filter with #tag")
             }…`}
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
@@ -364,6 +430,13 @@ function Search() {
                 <UserFilter
                   userId={userId}
                   onSelect={(userId) => handleFilterChange({ userId })}
+                />
+              )}
+              {filterVisibility.tag && (
+                <TagFilter
+                  tagIds={filterTagIds}
+                  unknownTagIds={unknownTagIds}
+                  onSelect={(tagId) => handleFilterChange({ tagId })}
                 />
               )}
               {filterVisibility.documentType && (
@@ -452,7 +525,7 @@ function Search() {
               </ResultList>
             </ModelSelectionProvider>
           </>
-        ) : documentId ? null : (
+        ) : documentId || isLoadingTags ? null : (
           <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
         )}
       </ResultsWrapper>

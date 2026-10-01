@@ -17,6 +17,7 @@ import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
 import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
+import { TagList } from "~/components/TagList";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -24,7 +25,8 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { documentPath } from "~/utils/routeHelpers";
+import { documentPath, searchPath } from "~/utils/routeHelpers";
+import { MaxVisibleTags } from "~/utils/tags";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
 import { useDragDocument } from "./Sidebar/hooks/useDragAndDrop";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -250,6 +252,12 @@ function DocumentListItem(props: Props) {
             showPublished={showPublished}
             showParentDocuments={showParentDocuments}
             showLastViewed
+          />
+          <TagList
+            tags={document.tags}
+            limit={MaxVisibleTags}
+            getPath={(tag) => searchPath({ tagId: tag.id })}
+            compact
           />
         </Content>
       </Flex>
