@@ -1,4 +1,5 @@
 import { compact, concat, uniq, uniqBy } from "es-toolkit/compat";
+import { QueryTypes } from "sequelize";
 import type { Server } from "socket.io";
 import {
   Comment,
@@ -10,6 +11,7 @@ import {
   GroupUser,
   Pin,
   Star,
+  Tag,
   Team,
   Subscription,
   Notification,
@@ -28,6 +30,7 @@ import {
   presentPin,
   presentStar,
   presentSubscription,
+  presentTag,
   presentTeam,
   presentMembership,
   presentUser,
@@ -36,6 +39,7 @@ import {
   presentImport,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
+import { sequelize } from "@server/storage/database";
 import type { Event } from "../../types";
 
 export default class WebsocketsProcessor {
@@ -128,7 +132,9 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const documentToPresent = await presentDocument(undefined, document);
+        const documentToPresent = await presentDocument(undefined, document, {
+          includeTags: false,
+        });
 
         const channels = await this.getDocumentEventChannels(event, document);
 
@@ -220,7 +226,9 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        const data = await presentDocument(undefined, document);
+        const data = await presentDocument(undefined, document, {
+          includeTags: false,
+        });
         const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit(event.name, data);
       }
@@ -614,6 +622,51 @@ export default class WebsocketsProcessor {
           });
       }
 
+      case "tags.create":
+      case "tags.update": {
+        const tag = await Tag.findByPk(event.modelId);
+        if (!tag) {
+          return;
+        }
+        const channels = await this.getTagEventChannels(event, tag);
+        return socketio.to(channels).emit(event.name, presentTag(tag));
+      }
+
+      case "tags.merge": {
+        const tag = await Tag.findByPk(event.modelId);
+        if (!tag) {
+          return;
+        }
+        const channels = await this.getTagEventChannels(event, tag);
+        return socketio.to(channels).emit(event.name, {
+          ...presentTag(tag),
+          sourceId: event.data.sourceId,
+        });
+      }
+
+      case "tags.delete": {
+        return socketio.to(`team-${event.teamId}`).emit(event.name, {
+          modelId: event.modelId,
+        });
+      }
+
+      case "tags.add":
+      case "tags.remove": {
+        const [document, tag] = await Promise.all([
+          Document.findByPk(event.documentId, { paranoid: false }),
+          Tag.findByPk(event.data.tagId),
+        ]);
+        if (!document || (!tag && event.name === "tags.add")) {
+          return;
+        }
+        const channels = await this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit(event.name, {
+          documentId: document.id,
+          tagId: event.data.tagId,
+          tag: tag ? presentTag(tag) : undefined,
+        });
+      }
+
       case "comments.create":
       case "comments.update": {
         const comment = await Comment.findByPk(event.modelId, {
@@ -698,7 +751,9 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const data = await presentNotification(undefined, notification);
+        const data = await presentNotification(undefined, notification, {
+          includeTags: false,
+        });
         return socketio.to(`user-${event.userId}`).emit(event.name, data);
       }
 
@@ -1027,7 +1082,7 @@ export default class WebsocketsProcessor {
 
   private getCollectionEventChannels(
     event: Event,
-    collection: Collection
+    collection: Pick<Collection, "id" | "teamId" | "isPrivate">
   ): string[] {
     const channels = [];
 
@@ -1084,6 +1139,64 @@ export default class WebsocketsProcessor {
 
     for (const membership of groupMemberships) {
       channels.push(`group-${membership.groupId}`);
+    }
+
+    return uniq(channels);
+  }
+
+  /**
+   * Returns the channels for a tag event: the actor, and the audiences of the
+   * non-deleted documents the tag is applied to — as resolved for a document
+   * event, plus the creator of a draft — so that the tag name only reaches
+   * users who could already see it on a document.
+   *
+   * @param event The tag event.
+   * @param tag The tag the event is for.
+   * @returns the channels to broadcast to.
+   */
+  private async getTagEventChannels(event: Event, tag: Tag): Promise<string[]> {
+    const channels = [`user-${event.actorId}`];
+
+    const rows = await sequelize.query<{
+      kind: "collection" | "user" | "group";
+      id: string;
+      teamId: string | null;
+      permission: string | null;
+    }>(
+      `WITH docs AS (
+        SELECT d.id, d."collectionId", d."publishedAt", d."createdById"
+        FROM document_tags dt
+        JOIN documents d ON d.id = dt."documentId"
+        WHERE dt."tagId" = :tagId AND d."deletedAt" IS NULL
+      )
+      SELECT 'collection' AS kind, c.id, c."teamId", c.permission
+      FROM docs JOIN collections c ON c.id = docs."collectionId"
+      WHERE docs."publishedAt" IS NOT NULL AND c."deletedAt" IS NULL
+      UNION
+      SELECT 'user', docs."createdById", NULL::uuid, NULL::varchar
+      FROM docs
+      WHERE docs."publishedAt" IS NULL AND docs."createdById" IS NOT NULL
+      UNION
+      SELECT 'user', up."userId", NULL::uuid, NULL::varchar
+      FROM docs JOIN user_permissions up ON up."documentId" = docs.id
+      UNION
+      SELECT 'group', gp."groupId", NULL::uuid, NULL::varchar
+      FROM docs JOIN group_permissions gp ON gp."documentId" = docs.id`,
+      { type: QueryTypes.SELECT, replacements: { tagId: tag.id } }
+    );
+
+    for (const row of rows) {
+      if (row.kind === "collection") {
+        channels.push(
+          ...this.getCollectionEventChannels(event, {
+            id: row.id,
+            teamId: row.teamId!,
+            isPrivate: !row.permission,
+          })
+        );
+      } else {
+        channels.push(`${row.kind}-${row.id}`);
+      }
     }
 
     return uniq(channels);

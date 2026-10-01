@@ -13,6 +13,7 @@ import {
   Integration,
   Pin,
   Star,
+  Tag,
   Team,
   WebhookDelivery,
   WebhookSubscription,
@@ -36,6 +37,7 @@ import {
   presentIntegration,
   presentPin,
   presentStar,
+  presentTag,
   presentTeam,
   presentUser,
   presentView,
@@ -64,6 +66,7 @@ import type {
   RevisionEvent,
   ShareEvent,
   StarEvent,
+  TagEvent,
   TeamEvent,
   UserEvent,
   ViewEvent,
@@ -314,6 +317,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "passkeys.delete":
         // Ignored
         return;
+      case "tags.create":
+      case "tags.update":
+      case "tags.delete":
+      case "tags.merge":
+      case "tags.add":
+      case "tags.remove":
+        await this.handleTagEvent(subscription, event);
+        return;
       default:
         assertUnreachable(event);
     }
@@ -448,6 +459,30 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.modelId,
         model: model && presentPin(model),
+      },
+    });
+  }
+
+  private async handleTagEvent(
+    subscription: WebhookSubscription,
+    event: TagEvent
+  ): Promise<void> {
+    const isDocumentEvent =
+      event.name === "tags.add" || event.name === "tags.remove";
+    const tagId = isDocumentEvent ? event.data.tagId : event.modelId;
+    const model = await Tag.findByPk(tagId);
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: tagId,
+        // presented without a document count, which depends on the reader
+        model: model && presentTag(model),
+        ...(isDocumentEvent && { documentId: event.documentId }),
+        ...(event.name === "tags.merge" && { sourceId: event.data.sourceId }),
+        // the tag row is gone, so its name is taken from the event
+        ...(event.name === "tags.delete" && { name: event.data?.name }),
       },
     });
   }
@@ -658,6 +693,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
           (await presentDocument(undefined, model, {
             includeData: true,
             includeText: true,
+            includeTags: false,
           })),
       },
     });
@@ -689,6 +725,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
           (await presentDocument(undefined, model.document!, {
             includeData: true,
             includeText: true,
+            includeTags: false,
           })),
         user: model && presentUser(model.user),
       },
@@ -711,7 +748,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
 
     const document =
-      model && (await presentDocument(undefined, model.document!));
+      model &&
+      (await presentDocument(undefined, model.document!, {
+        includeTags: false,
+      }));
 
     await this.sendWebhook({
       event,

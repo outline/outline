@@ -511,4 +511,117 @@ describe("#events.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
   });
+
+  describe("tag events", () => {
+    it("should return tag events in the audit log", async () => {
+      const admin = await buildAdmin();
+
+      let res = await server.post("/api/tags.create", admin, {
+        body: { name: "roadmap" },
+      });
+      expect(res.status).toEqual(200);
+      const tag = (await res.json()).data;
+
+      res = await server.post("/api/tags.update", admin, {
+        body: { id: tag.id, name: "planning" },
+      });
+      expect(res.status).toEqual(200);
+
+      res = await server.post("/api/tags.delete", admin, {
+        body: { id: tag.id },
+      });
+      expect(res.status).toEqual(200);
+
+      res = await server.post("/api/events.list", admin, {
+        body: { auditLog: true },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const tagEvents = body.data.filter(
+        (event: { modelId: string }) => event.modelId === tag.id
+      );
+      expect(tagEvents.map((event: { name: string }) => event.name)).toEqual([
+        "tags.delete",
+        "tags.update",
+        "tags.create",
+      ]);
+      expect(tagEvents[0].data).toEqual({ name: "planning" });
+      expect(tagEvents[1].changes.previous.name).toEqual("roadmap");
+    });
+
+    it("should return a tags.merge event recording the source tag", async () => {
+      const admin = await buildAdmin();
+
+      let res = await server.post("/api/tags.create", admin, {
+        body: { name: "audit-old" },
+      });
+      const source = (await res.json()).data;
+      res = await server.post("/api/tags.create", admin, {
+        body: { name: "audit-new" },
+      });
+      const target = (await res.json()).data;
+
+      res = await server.post("/api/tags.merge", admin, {
+        body: { sourceId: source.id, targetId: target.id },
+      });
+      expect(res.status).toEqual(200);
+
+      res = await server.post("/api/events.list", admin, {
+        body: { auditLog: true },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const mergeEvent = body.data.find(
+        (event: { name: string; modelId: string }) =>
+          event.name === "tags.merge" && event.modelId === target.id
+      );
+
+      expect(mergeEvent).toBeDefined();
+      expect(mergeEvent.data).toEqual({
+        sourceId: source.id,
+        sourceName: "audit-old",
+      });
+    });
+
+    it("should return tag add and remove events in document activity", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
+
+      let res = await server.post("/api/tags.create", user, {
+        body: { name: "backlog" },
+      });
+      const tag = (await res.json()).data;
+
+      res = await server.post("/api/tags.add", user, {
+        body: { tagId: tag.id, documentId: document.id },
+      });
+      expect(res.status).toEqual(200);
+      res = await server.post("/api/tags.remove", user, {
+        body: { tagId: tag.id, documentId: document.id },
+      });
+      expect(res.status).toEqual(200);
+
+      res = await server.post("/api/events.list", user, {
+        body: { documentId: document.id },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const tagEvents = body.data.filter((event: { name: string }) =>
+        event.name.startsWith("tags.")
+      );
+      expect(tagEvents.map((event: { name: string }) => event.name)).toEqual([
+        "tags.remove",
+        "tags.add",
+      ]);
+      expect(tagEvents[0].data).toEqual({ tagId: tag.id });
+    });
+  });
 });

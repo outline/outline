@@ -79,6 +79,14 @@ const WEBHOOK_EVENTS = {
   shares: ["shares.create", "shares.update", "shares.revoke"],
   teams: ["teams.update"],
   pins: ["pins.create", "pins.update", "pins.delete"],
+  tags: [
+    "tags.create",
+    "tags.update",
+    "tags.delete",
+    "tags.merge",
+    "tags.add",
+    "tags.remove",
+  ],
   webhookSubscriptions: [
     "webhookSubscriptions.create",
     "webhookSubscriptions.delete",
