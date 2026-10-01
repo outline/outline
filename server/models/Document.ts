@@ -63,6 +63,7 @@ import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Comment from "./Comment";
+import DocumentTag from "./DocumentTag";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
@@ -749,6 +750,9 @@ class Document extends ArchivableModel<
     where: { resolvedAt: { [Op.is]: null } },
   })
   commentCount: Promise<number>;
+
+  @HasMany(() => DocumentTag, "documentId")
+  documentTags: DocumentTag[];
 
   /**
    * Returns an array of unique userIds that are members of a document

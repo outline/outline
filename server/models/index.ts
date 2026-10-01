@@ -18,6 +18,8 @@ export { default as Document } from "./Document";
 
 export { default as DocumentInsight } from "./DocumentInsight";
 
+export { default as DocumentTag } from "./DocumentTag";
+
 export { default as Event } from "./Event";
 
 export { default as ExternalGroup } from "./ExternalGroup";
@@ -57,6 +59,8 @@ export { default as Share } from "./Share";
 export { default as ShareSubscription } from "./ShareSubscription";
 
 export { default as Star } from "./Star";
+
+export { default as Tag } from "./Tag";
 
 export { default as Team } from "./Team";
 

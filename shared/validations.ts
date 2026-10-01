@@ -151,6 +151,27 @@ export const PinValidation = {
   max: 8,
 };
 
+/**
+ * The characters allowed in a tag name, for use inside a regex character class
+ * with the `u` flag: letters (with combining marks) and digits in any script,
+ * plus hyphens and underscores.
+ */
+const tagNameCharacters = "\\p{L}\\p{M}\\p{N}_-";
+
+export const TagValidation = {
+  /** The maximum length of the tag name */
+  maxNameLength: 100,
+
+  /** The characters allowed in a tag name, see `tagNameCharacters` */
+  nameCharacters: tagNameCharacters,
+
+  /**
+   * A tag name made only of allowed characters, including at least one letter
+   * or digit
+   */
+  nameRegex: new RegExp(`^(?=.*[\\p{L}\\p{N}])[${tagNameCharacters}]+$`, "u"),
+};
+
 export const TeamValidation = {
   /** The maximum number of domains per team on cloud hosted */
   maxDomains: 10,
