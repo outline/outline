@@ -196,6 +196,8 @@ export interface JSONPageImportTaskInputItem {
   createdAt?: string;
   updatedAt?: string;
   publishedAt?: string | null;
+  /** Names of the tags to restore onto the imported document. */
+  tags?: string[];
   /** Map of external attachment id → manifest entry id, scoped to this doc. */
   attachmentIdMap: Record<string, string>;
   children?: JSONPageImportTaskInputItem[];
@@ -236,6 +238,8 @@ export type ImportTaskOutput = {
   createdAt?: Date;
   updatedAt?: Date;
   publishedAt?: Date | null;
+  /** Names of the tags to restore onto the imported document (JSON import only). */
+  tags?: string[];
 }[];
 
 export const IssueSource = z.object({

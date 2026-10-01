@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { MentionType } from "@shared/types";
 import { createContext } from "@server/context";
 import env from "@server/env";
+import { DocumentTag, Tag } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
   buildCollection,
@@ -11,6 +12,18 @@ import {
 import { withAPIContext } from "@server/test/support";
 import { generateUrlId } from "@server/utils/url";
 import documentDuplicator from "./documentDuplicator";
+
+async function tagDocument(
+  document: { id: string; teamId: string },
+  name: string
+) {
+  const [tag] = await Tag.findOrCreate({
+    where: { teamId: document.teamId, name },
+    defaults: { teamId: document.teamId, name },
+  });
+  await DocumentTag.create({ tagId: tag.id, documentId: document.id });
+  return tag;
+}
 
 describe("documentDuplicator", () => {
   it("should duplicate existing document", async () => {
@@ -449,5 +462,109 @@ describe("documentDuplicator", () => {
     // Check child document
     const duplicatedChild = response.find((doc) => doc.parentDocumentId);
     expect(duplicatedChild?.fullWidth).toBe(true);
+  });
+
+  it("should copy tags to the duplicate", async () => {
+    const user = await buildUser();
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await tagDocument(original, "duplicate-tag");
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection: original.collection,
+      })
+    );
+
+    const duplicateTags = await DocumentTag.findAll({
+      where: { documentId: response[0].id },
+      include: [{ model: Tag }],
+    });
+    expect(duplicateTags.map((dt) => dt.tag.name)).toEqual(["duplicate-tag"]);
+  });
+
+  it("should copy tags to child documents when duplicating recursively", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: original.id,
+    });
+    await tagDocument(child, "child-tag");
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection: original.collection,
+        recursive: true,
+      })
+    );
+
+    const duplicatedChild = response.find((doc) => doc.parentDocumentId)!;
+    const duplicateTags = await DocumentTag.findAll({
+      where: { documentId: duplicatedChild.id },
+      include: [{ model: Tag }],
+    });
+    expect(duplicateTags.map((dt) => dt.tag.name)).toEqual(["child-tag"]);
+  });
+
+  it("should look up tags to copy in a single query regardless of document count", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await tagDocument(original, "parent-tag");
+
+    for (let i = 0; i < 3; i++) {
+      const child = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        parentDocumentId: original.id,
+      });
+      await tagDocument(child, `child-tag-${i}`);
+    }
+
+    const queries: string[] = [];
+    const query = sequelize.query.bind(sequelize);
+    const spy = vi
+      .spyOn(sequelize, "query")
+      .mockImplementation((sql, options) => {
+        queries.push(typeof sql === "string" ? sql : sql.query);
+        return query(sql, options);
+      });
+
+    try {
+      await withAPIContext(user, (ctx) =>
+        documentDuplicator(ctx, {
+          document: original,
+          collection: original.collection,
+          recursive: true,
+        })
+      );
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(
+      queries.filter((sql) => /SELECT.*FROM "document_tags"/.test(sql)).length
+    ).toEqual(1);
   });
 });
