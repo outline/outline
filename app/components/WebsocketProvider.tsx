@@ -28,6 +28,7 @@ import type Notification from "~/models/Notification";
 import type Pin from "~/models/Pin";
 import type Star from "~/models/Star";
 import type Subscription from "~/models/Subscription";
+import type Tag from "~/models/Tag";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
 import type UserMembership from "~/models/UserMembership";
@@ -36,8 +37,10 @@ import type {
   PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCommentReactionEvent,
+  WebsocketDocumentTagEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
+  WebsocketTagMergeEvent,
 } from "~/types";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import Logger from "~/utils/Logger";
@@ -827,6 +830,41 @@ function usePinHandlers() {
   };
 }
 
+function useTagHandlers() {
+  const { tags } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("tags.create", (event: PartialExcept<Tag, "id">) => {
+      tags.add(event);
+    });
+
+    socket.on("tags.update", (event: PartialExcept<Tag, "id">) => {
+      // recipients that have not loaded the tag do not need it
+      if (tags.get(event.id)) {
+        tags.add(event);
+      }
+    });
+
+    socket.on("tags.delete", (event: WebsocketEntityDeletedEvent) => {
+      tags.remove(event.modelId);
+    });
+
+    socket.on("tags.merge", ({ sourceId, ...tag }: WebsocketTagMergeEvent) => {
+      tags.applyMerge(tag, sourceId);
+    });
+
+    socket.on("tags.add", (event: WebsocketDocumentTagEvent) => {
+      if (event.tag) {
+        tags.attachToDocument(event.documentId, event.tag);
+      }
+    });
+
+    socket.on("tags.remove", (event: WebsocketDocumentTagEvent) => {
+      tags.detachFromDocument(event.documentId, event.tagId);
+    });
+  };
+}
+
 function useStarHandlers() {
   const { stars } = useStores();
 
@@ -907,6 +945,7 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
   const registerNotificationHandlers = useNotificationHandlers();
   const registerPinHandlers = usePinHandlers();
   const registerStarHandlers = useStarHandlers();
+  const registerTagHandlers = useTagHandlers();
   const registerImportHandlers = useImportHandlers();
 
   useEffect(() => {
@@ -935,6 +974,7 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
       registerNotificationHandlers(currentSocket);
       registerPinHandlers(currentSocket);
       registerStarHandlers(currentSocket);
+      registerTagHandlers(currentSocket);
       registerImportHandlers(currentSocket);
 
       setSocket(currentSocket);
