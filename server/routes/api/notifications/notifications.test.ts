@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { randomElement } from "@shared/random";
 import { NotificationEventType } from "@shared/types";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import { Tag, DocumentTag } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildCollection,
   buildDocument,
@@ -83,6 +85,63 @@ describe("#notifications.list", () => {
     expect(events).toContain(NotificationEventType.UpdateDocument);
     expect(events).toContain(NotificationEventType.CreateComment);
     expect(events).toContain(NotificationEventType.MentionedInComment);
+  });
+
+  it("should load tags for all referenced documents in a single query", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({ teamId: actor.teamId });
+    const collection = await buildCollection({
+      teamId: actor.teamId,
+      createdById: actor.id,
+    });
+
+    for (let i = 0; i < 3; i++) {
+      const document = await buildDocument({
+        teamId: actor.teamId,
+        createdById: actor.id,
+        collectionId: collection.id,
+      });
+      const [tag] = await Tag.findOrCreate({
+        where: { teamId: actor.teamId, name: `notification-tag-${i}` },
+        defaults: { teamId: actor.teamId, name: `notification-tag-${i}` },
+      });
+      await DocumentTag.create({ tagId: tag.id, documentId: document.id });
+      await buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.UpdateDocument,
+        teamId: user.teamId,
+        userId: user.id,
+      });
+    }
+
+    const queries: string[] = [];
+    const query = sequelize.query.bind(sequelize);
+    const spy = vi
+      .spyOn(sequelize, "query")
+      .mockImplementation((sql, options) => {
+        queries.push(typeof sql === "string" ? sql : sql.query);
+        return query(sql, options);
+      });
+
+    let body: { data: { notifications: { document?: { tags: unknown[] } }[] } };
+    try {
+      const res = await server.post("/api/notifications.list", user);
+      body = await res.json();
+      expect(res.status).toBe(200);
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(
+      queries.filter((sql) => /FROM "document_tags"/.test(sql)).length
+    ).toEqual(1);
+    expect(
+      body.data.notifications.every(
+        (n) => Array.isArray(n.document?.tags) && n.document!.tags.length === 1
+      )
+    ).toBe(true);
   });
 
   it("should return notifications filtered by event type", async () => {

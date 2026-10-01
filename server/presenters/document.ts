@@ -1,12 +1,56 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
-import type { Document } from "@server/models";
+import { DocumentTag, Tag, type Document } from "@server/models";
 import FileOperation from "@server/models/FileOperation";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { APIContext } from "@server/types";
+import { presentDocumentTag } from "./tag";
 import presentUser from "./user";
+
+/**
+ * Batch-load presented tags for a set of documents, keyed by document id.
+ * Used so document responses can include each document's tags with a single
+ * extra query, batched by document id, rather than one query per document.
+ * Each document's tags are ordered by name.
+ *
+ * @param documentIds the document ids to load tags for.
+ * @param options.transaction the transaction to read within — required to see
+ * tags written earlier in the same transaction (e.g. by documentDuplicator)
+ * before it commits.
+ * @returns map of document id to its presented tags.
+ */
+export async function loadDocumentTags(
+  documentIds: string[],
+  options: { transaction?: Transaction } = {}
+): Promise<Map<string, ReturnType<typeof presentDocumentTag>[]>> {
+  const tagsByDocumentId = new Map<
+    string,
+    ReturnType<typeof presentDocumentTag>[]
+  >();
+  if (documentIds.length === 0) {
+    return tagsByDocumentId;
+  }
+
+  const documentTags = await DocumentTag.findAll({
+    where: { documentId: { [Op.in]: documentIds } },
+    include: [{ model: Tag }],
+    transaction: options.transaction,
+  });
+
+  for (const documentTag of documentTags) {
+    const tags = tagsByDocumentId.get(documentTag.documentId) ?? [];
+    tags.push(presentDocumentTag(documentTag.tag));
+    tagsByDocumentId.set(documentTag.documentId, tags);
+  }
+
+  for (const tags of tagsByDocumentId.values()) {
+    tags.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  return tagsByDocumentId;
+}
 
 type Options = {
   /** Whether to render the document's public fields. */
@@ -24,6 +68,18 @@ type Options = {
   includeCommentCount?: boolean;
   /** Array of backlink document IDs to include in the response. */
   backlinkIds?: string[];
+  /**
+   * Include the document's tags, defaults to true. Disabled for websocket and
+   * webhook payloads, whose consumers follow the tags.* events instead.
+   */
+  includeTags?: boolean;
+  /**
+   * Pre-resolved presented tags for this document, set by `presentDocuments`
+   * (and the `documents.search` route) to batch-load tags for many documents
+   * in a single query. When omitted, `presentDocument` loads the document's
+   * own tags itself, in a single-document batch.
+   */
+  tags?: ReturnType<typeof presentDocumentTag>[];
 };
 
 async function presentDocument(
@@ -117,6 +173,18 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
+    // Share-link responses never include tags — upstream exposes no
+    // comparable per-document metadata there, so keep them out too.
+    if (!options.shareId && options.includeTags !== false) {
+      res.tags =
+        options.tags ??
+        (
+          await loadDocumentTags([document.id], {
+            transaction: ctx?.state.transaction,
+          })
+        ).get(document.id) ??
+        [];
+    }
     if (document.deletedById) {
       const deletedBy =
         document.deletedBy ??
@@ -163,6 +231,14 @@ export async function presentDocuments(
 ) {
   const opts = { isPublic: false, ...options };
 
+  const tagsByDocumentId =
+    !opts.isPublic && !opts.shareId && opts.includeTags !== false
+      ? await loadDocumentTags(
+          documents.map((doc) => doc.id),
+          { transaction: ctx?.state.transaction }
+        )
+      : new Map<string, ReturnType<typeof presentDocumentTag>[]>();
+
   if (!opts.isPublic) {
     const importIds = documents
       .filter((doc) => doc.sourceMetadata && doc.importId)
@@ -206,6 +282,11 @@ export async function presentDocuments(
   }
 
   return Promise.all(
-    documents.map((document) => presentDocument(ctx, document, opts))
+    documents.map((document) =>
+      presentDocument(ctx, document, {
+        ...opts,
+        tags: tagsByDocumentId.get(document.id) ?? [],
+      })
+    )
   );
 }
