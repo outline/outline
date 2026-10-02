@@ -34,6 +34,7 @@ type KeyboardShortcutsProps = {
   open: boolean;
   inputRef: React.RefObject<HTMLInputElement | null>;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
+  handleClose: () => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
@@ -42,18 +43,24 @@ function useKeyboardShortcuts({
   open,
   inputRef,
   handleOpen,
+  handleClose,
   handleCaseSensitive,
   handleRegex,
 }: KeyboardShortcutsProps) {
-  // Open popover
+  // Toggle popover
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
       ev.code === "KeyF" &&
-      (!open || ev.altKey || document.activeElement !== inputRef.current) &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
+      // Close and fall through to the browser's find when already focused.
+      if (open && !ev.altKey && document.activeElement === inputRef.current) {
+        handleClose();
+        return;
+      }
+
       ev.preventDefault();
       handleOpen({ withReplace: ev.altKey });
     },
@@ -132,6 +139,10 @@ export default function FindAndReplace({
     }
     if ("onFindInPage" in Desktop.bridge) {
       Desktop.bridge.onFindInPage(() => {
+        if (document.activeElement === inputRef.current) {
+          setLocalOpen(false);
+          return;
+        }
         selectionRef.current = window.getSelection()?.toString();
         setLocalOpen(true);
       });
@@ -185,6 +196,8 @@ export default function FindAndReplace({
     },
     [localOpen, readOnly, selectInputText, selectInputReplaceText]
   );
+
+  const handleClose = React.useCallback(() => setLocalOpen(false), []);
 
   const handleMore = React.useCallback(() => {
     setShowReplace((state) => !state);
@@ -341,6 +354,7 @@ export default function FindAndReplace({
     open: localOpen,
     inputRef,
     handleOpen,
+    handleClose,
     handleCaseSensitive,
     handleRegex,
   });
@@ -502,10 +516,7 @@ export default function FindAndReplace({
           {isMobile && (
             <ControlsRow gap={4} align="center">
               {controls}
-              <CloseButton
-                onClick={() => setLocalOpen(false)}
-                aria-label={t("Close")}
-              >
+              <CloseButton onClick={handleClose} aria-label={t("Close")}>
                 <CloseIcon color={theme.textSecondary} />
               </CloseButton>
             </ControlsRow>
