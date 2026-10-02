@@ -37,6 +37,7 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
     "users.demote",
     "users.suspend",
     "users.delete",
+    "users.signout",
   ];
 
   async perform(event: TEvent) {
@@ -127,10 +128,12 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
           collectionId: event.collectionId,
         });
 
-      // The user's role or status changed, which applies to every document.
+      // The user's role, status, or tokens changed, which applies to every
+      // document.
       case "users.demote":
       case "users.suspend":
       case "users.delete":
+      case "users.signout":
         return AuthenticationExtension.invalidate({
           userIds: [event.userId],
         });
