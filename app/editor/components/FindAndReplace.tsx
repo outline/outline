@@ -348,8 +348,8 @@ export default function FindAndReplace({
   const style: React.CSSProperties = React.useMemo(
     () => ({
       position: "fixed",
-      top: 0,
-      right: 0,
+      top: 60,
+      right: 16,
       zIndex: depths.popover,
     }),
     []
@@ -448,12 +448,11 @@ export default function FindAndReplace({
         width={0}
         minWidth={isMobile ? undefined : 420}
         scrollable={false}
+        align="end"
         onEscapeKeyDown={handleEscape}
         onPointerDownOutside={(ev) => ev.preventDefault()}
         onFocusOutside={(ev) => ev.preventDefault()}
         style={{
-          marginRight: 16,
-          marginTop: 60,
           width: isMobile ? "calc(100vw - 32px)" : undefined,
         }}
       >
