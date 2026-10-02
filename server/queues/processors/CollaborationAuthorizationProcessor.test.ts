@@ -163,4 +163,27 @@ describe("CollaborationAuthorizationProcessor", () => {
 
     expect(spy).toHaveBeenCalledWith({ documentIds: ["document-id"] });
   });
+
+  it.each([
+    "users.demote",
+    "users.suspend",
+    "users.delete",
+    "users.signout",
+  ] as const)(
+    "should invalidate all of the user's connections on %s",
+    async (name) => {
+      const spy = invalidate();
+
+      await processor.perform({
+        name,
+        teamId: "team-id",
+        actorId: "actor-id",
+        ip: null,
+        userId: "user-id",
+        data: { name: "User" },
+      });
+
+      expect(spy).toHaveBeenCalledWith({ userIds: ["user-id"] });
+    }
+  );
 });

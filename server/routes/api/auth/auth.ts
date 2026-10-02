@@ -197,6 +197,7 @@ router.post(
       userId: user.id,
       data: {
         name: user.name,
+        reason: "manual",
       },
     });
 
