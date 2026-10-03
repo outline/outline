@@ -56,6 +56,23 @@ class Integration<T = unknown> extends ParanoidModel<
     });
   }
 
+  /**
+   * Load the embed integrations configured for a team.
+   *
+   * @param teamId The team to load integrations for.
+   * @returns the team's embed integrations.
+   */
+  public static async findEmbedIntegrationsForTeam(
+    teamId: string
+  ): Promise<Integration<IntegrationType.Embed>[]> {
+    return this.findAll({
+      where: {
+        teamId,
+        type: IntegrationType.Embed,
+      },
+    });
+  }
+
   @IsIn([Object.values(IntegrationType)])
   @Column(DataType.STRING)
   type: IntegrationType;
