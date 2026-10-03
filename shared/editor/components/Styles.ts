@@ -1063,6 +1063,21 @@ img.ProseMirror-separator {
   display: none;
 }
 
+// Let paragraphs of floated images collapse so consecutive floats line up
+p:has(> .component-image > .image-left-50, > .component-image > .image-right-50) {
+  min-height: 0;
+}
+
+// In static HTML the parser lifts floats out of their paragraph, leaving empty ones
+p:empty:has(+ .image-left-50, + .image-right-50),
+:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak + p:empty {
+  min-height: 0;
+}
+
+:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak {
+  display: none;
+}
+
 .${EditorStyleHelper.imageCaption} {
   border: 0;
   display: block;
