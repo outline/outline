@@ -639,4 +639,232 @@ describe("DocumentMovedProcessor", () => {
     expect(directUserMemberships[0].sourceId).toBeNull();
     expect(directGroupMemberships[0].sourceId).toBeNull();
   });
+
+  it("should recreate sourced permissions from memberships on the moved document", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const childDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: document.id,
+    });
+    const grandChildDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: childDocument.id,
+    });
+
+    // Add user and group directly to the document that will be moved
+    const sourceUserMembership = await UserMembership.create({
+      userId: user2.id,
+      documentId: document.id,
+      createdById: user.id,
+    });
+    const sourceGroupMembership = await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      createdById: user.id,
+    });
+
+    // Trigger move event on the document itself
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    // Direct memberships on the moved document are untouched
+    expect(
+      await UserMembership.count({ where: { documentId: document.id } })
+    ).toBe(1);
+    expect(
+      await GroupMembership.count({ where: { documentId: document.id } })
+    ).toBe(1);
+
+    // Children keep the permissions sourced from the moved document
+    for (const doc of [childDocument, grandChildDocument]) {
+      const userMemberships = await UserMembership.findAll({
+        where: { documentId: doc.id, userId: user2.id },
+      });
+      const groupMemberships = await GroupMembership.findAll({
+        where: { documentId: doc.id, groupId: group.id },
+      });
+      expect(userMemberships.length).toBe(1);
+      expect(groupMemberships.length).toBe(1);
+      expect(userMemberships[0].sourceId).toBe(sourceUserMembership.id);
+      expect(groupMemberships[0].sourceId).toBe(sourceGroupMembership.id);
+    }
+  });
+
+  it("should recreate sourced permissions from memberships on children of the moved document", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const childDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: document.id,
+    });
+    const grandChildDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: childDocument.id,
+    });
+
+    // Add user and group directly to a child of the document that will be moved
+    const sourceUserMembership = await UserMembership.create({
+      userId: user2.id,
+      documentId: childDocument.id,
+      createdById: user.id,
+    });
+    const sourceGroupMembership = await GroupMembership.create({
+      groupId: group.id,
+      documentId: childDocument.id,
+      createdById: user.id,
+    });
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    const userMemberships = await UserMembership.findAll({
+      where: { documentId: grandChildDocument.id, userId: user2.id },
+    });
+    const groupMemberships = await GroupMembership.findAll({
+      where: { documentId: grandChildDocument.id, groupId: group.id },
+    });
+    expect(userMemberships.length).toBe(1);
+    expect(groupMemberships.length).toBe(1);
+    expect(userMemberships[0].sourceId).toBe(sourceUserMembership.id);
+    expect(groupMemberships[0].sourceId).toBe(sourceGroupMembership.id);
+  });
+
+  it("should apply both new parent and own memberships when a document is moved into a new parent", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const user3 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const group2 = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const newParentDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const childDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: document.id,
+    });
+
+    // Add user and group directly to the document that will be moved
+    const ownUserMembership = await UserMembership.create({
+      userId: user2.id,
+      documentId: document.id,
+      createdById: user.id,
+    });
+    const ownGroupMembership = await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      createdById: user.id,
+    });
+
+    // Add different user and group to the new parent document
+    const parentUserMembership = await UserMembership.create({
+      userId: user3.id,
+      documentId: newParentDocument.id,
+      createdById: user.id,
+    });
+    const parentGroupMembership = await GroupMembership.create({
+      groupId: group2.id,
+      documentId: newParentDocument.id,
+      createdById: user.id,
+    });
+
+    // Move the document into the new parent
+    document.parentDocumentId = newParentDocument.id;
+    await document.save();
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    // The moved document and its child inherit from the new parent
+    for (const doc of [document, childDocument]) {
+      const userMemberships = await UserMembership.findAll({
+        where: { documentId: doc.id, userId: user3.id },
+      });
+      const groupMemberships = await GroupMembership.findAll({
+        where: { documentId: doc.id, groupId: group2.id },
+      });
+      expect(userMemberships.length).toBe(1);
+      expect(groupMemberships.length).toBe(1);
+      expect(userMemberships[0].sourceId).toBe(parentUserMembership.id);
+      expect(groupMemberships[0].sourceId).toBe(parentGroupMembership.id);
+    }
+
+    // The child still inherits from the moved document's own memberships
+    const childUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user2.id },
+    });
+    const childGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group.id },
+    });
+    expect(childUserMemberships.length).toBe(1);
+    expect(childGroupMemberships.length).toBe(1);
+    expect(childUserMemberships[0].sourceId).toBe(ownUserMembership.id);
+    expect(childGroupMemberships[0].sourceId).toBe(ownGroupMembership.id);
+  });
 });
