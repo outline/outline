@@ -1,3 +1,4 @@
+import { useDirection } from "@radix-ui/react-direction";
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CloseIcon, MenuIcon, SidebarIcon } from "outline-icons";
@@ -21,6 +22,7 @@ import Tooltip from "~/components/Tooltip";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
@@ -49,6 +51,14 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
   const hasMobileSidebar = hasSidebar && isMobile;
   const hasDesktopSidebar = hasSidebar && !isMobile;
   const [internalMeasureRef, size] = useMeasure();
+  const scrollbarWidth = useWindowScrollbarWidth() ?? 0;
+  const direction = useDirection();
+  // The body spans the full viewport, so a header at the window end extends past the visible area.
+  const isAtWindowEnd =
+    size.width > 0 &&
+    (direction === "rtl"
+      ? size.left <= 1
+      : size.right >= window.innerWidth - 1);
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
   const passThrough = !actions && !left && !title && !isSplitView;
 
@@ -97,6 +107,7 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
         className={className}
         $passThrough={passThrough}
         $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
+        $scrollbarInset={isAtWindowEnd ? scrollbarWidth : undefined}
       >
         {hasDesktopSidebar && (
           <SidebarToggle
@@ -188,7 +199,19 @@ const Actions = styled(Flex)`
 type WrapperProps = {
   $passThrough?: boolean;
   $insetTitleAdjust?: boolean;
+  /** Width of the window scrollbar that the end of the header falls behind. */
+  $scrollbarInset?: number;
 };
+
+/**
+ * Padding for the end of the header that clears the window scrollbar. The
+ * removed-body-scroll-bar-size variable is set while a modal locks the page
+ * scroll, which keeps the padding constant as the scrollbar is removed.
+ */
+const endPadding = (base: number) => (props: WrapperProps) =>
+  props.$scrollbarInset === undefined
+    ? `${base}px`
+    : `calc(${base}px + ${props.$scrollbarInset}px + var(--removed-body-scroll-bar-size, 0px))`;
 
 const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
@@ -208,6 +231,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       `};
 
   padding: 12px 16px;
+  padding-inline-end: ${endPadding(16)};
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;
@@ -233,6 +257,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
 
   ${breakpoint("tablet")`
     padding: 12px;
+    padding-inline-end: ${endPadding(12)};
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
