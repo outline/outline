@@ -1,7 +1,6 @@
 import { traceFunction } from "@server/logging/tracing";
-import { ValidationError } from "@server/errors";
-import { Collection, Revision } from "@server/models";
-import type { Document } from "@server/models";
+import { InvalidRequestError, ValidationError } from "@server/errors";
+import { Collection, Document, Revision } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { assertPresent } from "@server/validation";
@@ -11,6 +10,8 @@ type Props = {
   document: Document;
   /** Destination collection to restore into. Defaults to the original collection. */
   collectionId?: string | null;
+  /** Destination parent document, null for the collection root. Defaults to the original parent. */
+  parentDocumentId?: string | null;
   /** Revision to restore the document's content from, when not archived or deleted. */
   revisionId?: string | null;
 };
@@ -24,17 +25,54 @@ type Props = {
  * @param props - the document and restore options.
  * @returns the restored document.
  * @throws ValidationError if the destination collection is not active.
- * @throws NotFoundError if the given revision does not exist.
+ * @throws InvalidRequestError if the destination parent document is invalid.
+ * @throws NotFoundError if the given revision or parent does not exist.
  */
 async function documentRestorer(
   ctx: APIContext,
-  { document, collectionId, revisionId }: Props
+  { document, collectionId, parentDocumentId, revisionId }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
 
+  const parent = parentDocumentId
+    ? await Document.findByPk(parentDocumentId, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      })
+    : undefined;
+
+  if (parent) {
+    if (parent.id === document.id) {
+      throw InvalidRequestError("Cannot restore document inside itself");
+    }
+
+    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
+      paranoid: false,
+      transaction,
+    });
+    if (childDocumentIds.includes(parent.id)) {
+      throw InvalidRequestError(
+        "Cannot restore document inside one of its own children"
+      );
+    }
+
+    authorize(user, "update", parent);
+
+    if (!parent.publishedAt) {
+      throw InvalidRequestError("Cannot restore document inside a draft");
+    }
+    if (collectionId && parent.collectionId !== collectionId) {
+      throw InvalidRequestError(
+        "Parent document must belong to the destination collection"
+      );
+    }
+  }
+
   const sourceCollectionId = document.collectionId;
-  const destCollectionId = collectionId ?? sourceCollectionId;
+  const destCollectionId =
+    collectionId ?? parent?.collectionId ?? sourceCollectionId;
 
   const srcCollection = sourceCollectionId
     ? await Collection.findByPk(sourceCollectionId, {
@@ -72,13 +110,19 @@ async function documentRestorer(
     authorize(user, "updateDocument", destCollection);
 
     // restore a previously deleted document
-    await document.restoreTo(ctx, { collectionId: destCollection.id });
+    await document.restoreTo(ctx, {
+      collectionId: destCollection.id,
+      parentDocumentId,
+    });
   } else if (document.archivedAt) {
     authorize(user, "unarchive", document);
     authorize(user, "updateDocument", destCollection);
 
     // restore a previously archived document
-    await document.restoreTo(ctx, { collectionId: destCollection.id });
+    await document.restoreTo(ctx, {
+      collectionId: destCollection.id,
+      parentDocumentId,
+    });
   } else if (revisionId) {
     // restore a document to a specific revision
     authorize(user, "update", document);

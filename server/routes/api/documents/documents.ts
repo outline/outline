@@ -1153,7 +1153,7 @@ router.post(
   validate(T.DocumentsRestoreSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
-    const { id, collectionId, revisionId } = ctx.input.body;
+    const { id, collectionId, parentDocumentId, revisionId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const document = await Document.findByPk(id, {
@@ -1163,7 +1163,12 @@ router.post(
       transaction,
     });
 
-    await documentRestorer(ctx, { document, collectionId, revisionId });
+    await documentRestorer(ctx, {
+      document,
+      collectionId,
+      parentDocumentId,
+      revisionId,
+    });
 
     ctx.body = {
       data: await presentDocument(ctx, document),

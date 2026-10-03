@@ -972,6 +972,35 @@ describe("restore_document", () => {
     expect(reloaded?.collectionId).toEqual(destination.id);
   });
 
+  it("restores to the collection root", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+      parentDocumentId: null,
+    });
+    expect(res?.result?.isError).toBeUndefined();
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.parentDocumentId).toBeNull();
+  });
+
   it("fails when the document is not archived or trashed", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

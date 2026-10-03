@@ -277,6 +277,9 @@ export const DocumentsRestoreSchema = BaseSchema.extend({
     /** Id of the collection to which the document belongs */
     collectionId: z.uuid().optional(),
 
+    /** Id of the parent document to restore under, null for the collection root */
+    parentDocumentId: z.uuid().nullish(),
+
     /** Id of document revision */
     revisionId: z.uuid().optional(),
   }),
