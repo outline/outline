@@ -1,3 +1,4 @@
+import { useDirection } from "@radix-ui/react-direction";
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CloseIcon, MenuIcon, SidebarIcon } from "outline-icons";
@@ -51,8 +52,13 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
   const hasDesktopSidebar = hasSidebar && !isMobile;
   const [internalMeasureRef, size] = useMeasure();
   const scrollbarWidth = useWindowScrollbarWidth() ?? 0;
-  // The body spans the full viewport, so a header at the window end sits under the scrollbar.
-  const isAtWindowEnd = size.width > 0 && size.right >= window.innerWidth - 1;
+  const direction = useDirection();
+  // The body spans the full viewport, so a header at the window end extends past the visible area.
+  const isAtWindowEnd =
+    size.width > 0 &&
+    (direction === "rtl"
+      ? size.left <= 1
+      : size.right >= window.innerWidth - 1);
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
   const passThrough = !actions && !left && !title && !isSplitView;
 
@@ -225,7 +231,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       `};
 
   padding: 12px 16px;
-  padding-right: ${endPadding(16)};
+  padding-inline-end: ${endPadding(16)};
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;
@@ -251,7 +257,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
 
   ${breakpoint("tablet")`
     padding: 12px;
-    padding-right: ${endPadding(12)};
+    padding-inline-end: ${endPadding(12)};
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
