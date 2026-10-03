@@ -5,6 +5,7 @@ import type { Node } from "prosemirror-model";
 import { Slice } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
@@ -13,6 +14,7 @@ import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
+import { unwrapListSlice } from "@shared/editor/lib/unwrapListSlice";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isList } from "@shared/editor/queries/isList";
 import type { MenuItem } from "@shared/editor/types";
@@ -63,7 +65,7 @@ export default class PasteHandler extends Extension {
               return false;
             },
           },
-          handlePaste: (view, event: ClipboardEvent) => {
+          handlePaste: (view, event: ClipboardEvent, slice: Slice) => {
             // Do nothing if the document isn't currently editable or there is no clipboard data
             if (!view.editable || !event.clipboardData) {
               return false;
@@ -101,7 +103,7 @@ export default class PasteHandler extends Extension {
               // compatability is to just use the HTML parser, regardless of
               // whether it "looks" like Markdown, see: outline/outline#2416
               if (html?.includes("data-pm-slice")) {
-                return false;
+                return this.pasteIntoList(view, slice);
               }
 
               // If the HTML on the clipboard is from Claude then the best
@@ -319,7 +321,7 @@ export default class PasteHandler extends Extension {
 
             // otherwise use the default HTML parser which will handle all paste
             // "from the web" events
-            return false;
+            return this.pasteIntoList(view, slice);
           },
         },
         state: {
@@ -475,6 +477,40 @@ export default class PasteHandler extends Extension {
       );
     }
   };
+
+  /**
+   * Pastes a slice copied from a list into a list of the same type, so that
+   * the pasted items join the list rather than being nested in the current
+   * item. Other slices are left to the default paste handling.
+   *
+   * @param view The editor view.
+   * @param slice The parsed clipboard content.
+   * @returns True if the paste was handled.
+   */
+  private pasteIntoList(view: EditorView, slice: Slice | undefined) {
+    if (!slice) {
+      return false;
+    }
+
+    const { state } = view;
+    const unwrapped = unwrapListSlice(
+      slice,
+      state.selection.$from,
+      state.schema
+    );
+    if (unwrapped === slice) {
+      return false;
+    }
+
+    view.dispatch(
+      state.tr
+        .replaceSelection(unwrapped)
+        .scrollIntoView()
+        .setMeta("paste", true)
+        .setMeta("uiEvent", "paste")
+    );
+    return true;
+  }
 
   private handleList(listNode: Node) {
     const { view, schema } = this.editor;
