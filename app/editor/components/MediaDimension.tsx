@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
-import { resolvePDFDimensions } from "@shared/editor/lib/pdf";
+import { getAttachmentPreview } from "@shared/editor/lib/attachmentPreview";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
@@ -36,10 +36,12 @@ export function MediaDimension() {
   const nodeType = node.type.name;
   const nodeWidth = node.attrs.width as number | null | undefined;
   const nodeHeight = node.attrs.height as number | null | undefined;
-  const { width, height } =
-    nodeType === "attachment"
-      ? resolvePDFDimensions(nodeWidth, nodeHeight)
-      : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
+  // attachment previews size themselves using the aspect ratio of their file type
+  const preview =
+    nodeType === "attachment" ? getAttachmentPreview(node) : undefined;
+  const { width, height } = preview
+    ? preview.resolveDimensions(nodeWidth, nodeHeight)
+    : { width: nodeWidth ?? 0, height: nodeHeight ?? 0 };
 
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
     width: width ? String(width) : "",
@@ -230,10 +232,9 @@ export function MediaDimension() {
         isDraggingRef.current = isDragging;
       }
 
-      const dimensions =
-        nodeType === "attachment"
-          ? resolvePDFDimensions(newWidth)
-          : { width: newWidth, height: newHeight };
+      const dimensions = preview
+        ? preview.resolveDimensions(newWidth)
+        : { width: newWidth, height: newHeight };
 
       setLocalDimension({
         width: dimensions.width ? String(dimensions.width) : "",
@@ -246,7 +247,7 @@ export function MediaDimension() {
     return () => {
       window.removeEventListener("media-drag-resize", handleDragResize);
     };
-  }, [nodeType]);
+  }, [preview]);
 
   // hacky debounce for checking error.
   useEffect(() => {

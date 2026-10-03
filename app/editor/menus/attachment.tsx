@@ -1,7 +1,8 @@
 import { t } from "i18next";
-import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
+import { TrashIcon, DownloadIcon, ReplaceIcon } from "outline-icons";
+import { NodeSelection } from "prosemirror-state";
+import { getAttachmentPreview } from "@shared/editor/lib/attachmentPreview";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import { isPDFAttachmentActive } from "@shared/editor/queries/isPDFAttachment";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 
 /**
@@ -20,6 +21,14 @@ export default function attachmentMenuItems(ctx: SelectionContext): MenuItem[] {
     preview: true,
   });
 
+  // the preview provider for the selected attachment, if it supports one
+  const { selection } = state;
+  const preview =
+    selection instanceof NodeSelection &&
+    selection.node.type === schema.nodes.attachment
+      ? getAttachmentPreview(selection.node)
+      : undefined;
+
   return [
     {
       name: "replaceAttachment",
@@ -33,10 +42,10 @@ export default function attachmentMenuItems(ctx: SelectionContext): MenuItem[] {
     },
     {
       name: "toggleAttachmentPreview",
-      tooltip: t("Show preview"),
-      icon: <PDFIcon />,
+      tooltip: preview ? preview.label() : t("Show preview"),
+      icon: preview?.icon,
       active: isAttachmentWithPreview,
-      visible: isPDFAttachmentActive(state),
+      visible: !!preview,
     },
     {
       name: "separator",
