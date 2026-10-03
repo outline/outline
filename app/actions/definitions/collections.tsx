@@ -93,30 +93,38 @@ export const createCollection = dialogActionFactory({
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
 });
 
-/** Saves the collections in alphabetical order. */
-export const sortCollectionsAscending = createAction({
-  name: ({ t }) => t("A-Z sort"),
+/** Controls the persistent ordering of collections in the sidebar. */
+export const sortCollections = createActionWithChildren({
+  name: ({ t }) => t("Sort in sidebar"),
   section: CollectionSection,
-  icon: <SortAlphabeticalIcon />,
-  visible: ({ stores }) =>
-    stores.collections.allActive.some(
-      (collection) => stores.policies.abilities(collection.id).move
+  icon: ({ stores }) =>
+    stores.ui.collectionSort === "asc" ? (
+      <SortAlphabeticalIcon />
+    ) : stores.ui.collectionSort === "desc" ? (
+      <SortAlphabeticalReverseIcon />
+    ) : (
+      <SortManualIcon />
     ),
-  disabled: ({ stores }) => stores.collections.isSorting,
-  perform: ({ stores }) => stores.collections.sortAlphabetically("asc"),
-});
-
-/** Saves the collections in reverse alphabetical order. */
-export const sortCollectionsDescending = createAction({
-  name: ({ t }) => t("Z-A sort"),
-  section: CollectionSection,
-  icon: <SortAlphabeticalReverseIcon />,
-  visible: ({ stores }) =>
-    stores.collections.allActive.some(
-      (collection) => stores.policies.abilities(collection.id).move
-    ),
-  disabled: ({ stores }) => stores.collections.isSorting,
-  perform: ({ stores }) => stores.collections.sortAlphabetically("desc"),
+  children: [
+    createAction({
+      name: ({ t }) => t("A-Z sort"),
+      section: CollectionSection,
+      selected: ({ stores }) => stores.ui.collectionSort === "asc",
+      perform: ({ stores }) => stores.ui.set({ collectionSort: "asc" }),
+    }),
+    createAction({
+      name: ({ t }) => t("Z-A sort"),
+      section: CollectionSection,
+      selected: ({ stores }) => stores.ui.collectionSort === "desc",
+      perform: ({ stores }) => stores.ui.set({ collectionSort: "desc" }),
+    }),
+    createAction({
+      name: ({ t }) => t("Manual sort"),
+      section: CollectionSection,
+      selected: ({ stores }) => stores.ui.collectionSort === null,
+      perform: ({ stores }) => stores.ui.set({ collectionSort: null }),
+    }),
+  ],
 });
 
 export const editCollection = createAction({

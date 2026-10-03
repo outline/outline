@@ -1,92 +1,85 @@
-import { vi } from "vitest";
-import fractionalIndex from "fractional-index";
 import stores from "~/stores";
+import UiStore from "./UiStore";
 
-describe("sortAlphabetically", () => {
+const directions: Array<"asc" | "desc"> = ["asc", "desc"];
+
+describe("sidebarCollections", () => {
   beforeEach(() => {
     stores.collections.clear();
+    stores.ui.set({ collectionSort: null });
     stores.collections.add({ id: "z", name: "zoolanders", index: "a" });
     stores.collections.add({ id: "c", name: "Crimson Deserters", index: "b" });
     stores.collections.add({ id: "p", name: "Prod collection", index: "c" });
-    vi.spyOn(stores.collections, "fetchAll").mockResolvedValue([]);
-    vi.spyOn(stores.collections, "move").mockImplementation(
-      async (id, index) => {
-        stores.collections.get(id)?.updateIndex(index);
-      }
-    );
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
     stores.collections.clear();
+    stores.ui.set({ collectionSort: null });
   });
 
-  it("saves either alphabetical direction in the existing index order", async () => {
-    await stores.collections.sortAlphabetically("asc");
-    expect(stores.collections.allActive.map((c) => c.id)).toEqual([
+  it("sorts both directions and restores saved positions in manual mode", () => {
+    stores.ui.set({ collectionSort: "asc" });
+    expect(stores.collections.sidebarCollections.map((c) => c.id)).toEqual([
       "c",
       "p",
       "z",
     ]);
-    await stores.collections.sortAlphabetically("desc");
-    expect(stores.collections.allActive.map((c) => c.id)).toEqual([
+    stores.ui.set({ collectionSort: "desc" });
+    expect(stores.collections.sidebarCollections.map((c) => c.id)).toEqual([
       "z",
       "p",
       "c",
     ]);
-    expect(stores.collections.fetchAll).toHaveBeenCalledTimes(2);
+    stores.ui.set({ collectionSort: null });
+    expect(stores.collections.sidebarCollections.map((c) => c.id)).toEqual([
+      "z",
+      "c",
+      "p",
+    ]);
   });
 
-  it("does not move collections that are already in order", async () => {
-    await stores.collections.sortAlphabetically("asc");
-    vi.mocked(stores.collections.move).mockClear();
-    await stores.collections.sortAlphabetically("asc");
-    expect(stores.collections.move).not.toHaveBeenCalled();
-  });
+  it.each(directions)(
+    "keeps new and renamed collections in %s order",
+    (direction) => {
+      stores.ui.set({ collectionSort: direction });
+      stores.collections.add({ id: "a", name: "Alpha", index: "d" });
+      const expected = ["a", "c", "p", "z"];
+      expect(stores.collections.sidebarCollections.map((c) => c.id)).toEqual(
+        direction === "asc" ? expected : [...expected].reverse()
+      );
+      stores.collections.get("z")?.updateData({ name: "Beta" });
+      const renamed = ["a", "z", "c", "p"];
+      expect(stores.collections.sidebarCollections.map((c) => c.id)).toEqual(
+        direction === "asc" ? renamed : [...renamed].reverse()
+      );
+      expect(stores.collections.allActive.map((c) => c.id)).toEqual([
+        "z",
+        "c",
+        "p",
+        "a",
+      ]);
+    }
+  );
 
-  it("includes collections fetched on demand and excludes archived collections", async () => {
+  it("excludes archived collections", () => {
     stores.collections.add({
       id: "archived",
       name: "AAA",
       index: "d",
       archivedAt: "2026-01-01T00:00:00.000Z",
     });
-    vi.mocked(stores.collections.fetchAll).mockImplementation(async () => {
-      stores.collections.add({ id: "a", name: "Alpha", index: "e" });
-      return [];
-    });
-    await stores.collections.sortAlphabetically("asc");
-    expect(stores.collections.allActive.map((c) => c.id)).toEqual([
-      "a",
+    stores.ui.set({ collectionSort: "asc" });
+    expect(stores.collections.sidebarCollections.map((c) => c.id)).toEqual([
       "c",
       "p",
       "z",
     ]);
-    expect(stores.collections.get("archived")?.index).toBe("d");
   });
 
-  it("allows manual moves after sorting without reapplying alphabetical order", async () => {
-    await stores.collections.sortAlphabetically("asc");
-    await stores.collections.move(
-      "z",
-      fractionalIndex(null, stores.collections.allActive[0].index)
-    );
-    expect(stores.collections.allActive.map((c) => c.id)).toEqual([
-      "z",
-      "c",
-      "p",
-    ]);
-    expect(stores.collections.isSorting).toBe(false);
-  });
-
-  it("stops on failure and clears the sorting flag", async () => {
-    vi.mocked(stores.collections.move).mockRejectedValueOnce(
-      new Error("Move failed")
-    );
-    await expect(stores.collections.sortAlphabetically("asc")).rejects.toThrow(
-      "Move failed"
-    );
-    expect(stores.collections.move).toHaveBeenCalledTimes(1);
-    expect(stores.collections.isSorting).toBe(false);
+  it("restores the selected mode after rehydrating preferences", () => {
+    stores.ui.set({ collectionSort: "desc" });
+    expect(new UiStore(stores).collectionSort).toBe("desc");
+    stores.ui.set({ collectionSort: null });
+    expect(new UiStore(stores).collectionSort).toBeNull();
   });
 });

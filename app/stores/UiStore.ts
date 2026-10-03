@@ -42,10 +42,15 @@ type PersistedData = Pick<
   | "sidebarWidth"
   | "sidebarRightWidth"
   | "sidebarCollapsed"
+  | "collectionSort"
   | "tocVisible"
 >;
 
 class UiStore {
+  /** The selected collection sidebar sort; null preserves manual ordering. */
+  @observable
+  collectionSort: "asc" | "desc" | null = null;
+
   // has the user seen the prompt to change the UI language and actioned it
   @observable
   languagePromptDismissed: boolean | undefined = undefined;
@@ -153,6 +158,7 @@ class UiStore {
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
+    this.collectionSort = data.collectionSort ?? null;
     // Widths are clamped as a drag may have been interrupted while stretched beyond the bounds,
     // or the bounds themselves may have since changed.
     const { sidebarResizeMinWidth: minWidth, sidebarMaxWidth: maxWidth } =
@@ -554,6 +560,7 @@ class UiStore {
     return {
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,
+      collectionSort: this.collectionSort,
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,

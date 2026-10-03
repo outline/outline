@@ -1,14 +1,6 @@
 import invariant from "invariant";
-import fractionalIndex from "fractional-index";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
-import {
-  action,
-  computed,
-  makeObservable,
-  observable,
-  override,
-  runInAction,
-} from "mobx";
+import { action, computed, makeObservable, override, runInAction } from "mobx";
 import naturalSort from "@shared/utils/naturalSort";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import {
@@ -23,10 +15,6 @@ import IndexedStore from "./base/IndexedStore";
 import type RootStore from "./RootStore";
 
 export default class CollectionsStore extends IndexedStore<Collection> {
-  /** Whether a one-time alphabetical reorder is in progress. */
-  @observable
-  isSorting = false;
-
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
     makeObservable(this);
@@ -47,6 +35,20 @@ export default class CollectionsStore extends IndexedStore<Collection> {
   @computed
   get allActive() {
     return this.orderedData.filter((c) => c.isActive);
+  }
+
+  /**
+   * Returns active collections in the selected sidebar order.
+   *
+   * @returns collections sorted by name, or their saved manual positions.
+   */
+  @computed
+  get sidebarCollections(): Collection[] {
+    const direction = this.rootStore.ui.collectionSort;
+    if (!direction) {
+      return this.allActive;
+    }
+    return naturalSort(this.allActive, "name", { direction });
   }
 
   @override
@@ -129,44 +131,6 @@ export default class CollectionsStore extends IndexedStore<Collection> {
 
     if (collection) {
       collection.updateIndex(res.data.index);
-    }
-  };
-
-  /**
-   * Saves an alphabetical collection order using the existing move operation.
-   *
-   * @param direction the alphabetical sort direction.
-   * @returns a promise that resolves when all required moves are saved.
-   * @throws if fetching collections or saving a move fails.
-   */
-  @action
-  sortAlphabetically = async (direction: "asc" | "desc"): Promise<void> => {
-    if (this.isSorting) {
-      return;
-    }
-
-    this.isSorting = true;
-    try {
-      await this.fetchAll();
-      const sorted = naturalSort(this.allActive, "name", { direction });
-      for (const [position, collection] of sorted.entries()) {
-        const current = this.allActive;
-        if (current[position]?.id === collection.id) {
-          continue;
-        }
-
-        await this.move(
-          collection.id,
-          fractionalIndex(
-            current[position - 1]?.index ?? null,
-            current[position]?.index ?? null
-          )
-        );
-      }
-    } finally {
-      runInAction(() => {
-        this.isSorting = false;
-      });
     }
   };
 
