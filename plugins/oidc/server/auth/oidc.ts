@@ -52,6 +52,8 @@ if (hasManualConfig) {
         tokenURL: oidcConfig.token_endpoint,
         userInfoURL: oidcConfig.userinfo_endpoint,
         logoutURL: oidcConfig.end_session_endpoint,
+        jwksURI: oidcConfig.jwks_uri,
+        issuer: oidcConfig.issuer,
         pkce: oidcConfig.code_challenge_methods_supported?.includes("S256"),
       });
 
