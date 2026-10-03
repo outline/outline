@@ -1,11 +1,13 @@
 import { differenceInDays } from "date-fns";
-import { TrashIcon, ArchiveIcon } from "outline-icons";
+import { observer } from "mobx-react";
+import { TrashIcon, ArchiveIcon, WarningIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type Document from "~/models/Document";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { DeprecationNotice } from "~/components/DeprecationNotice";
 import { DeprecatedReason } from "~/components/DeprecatedReason";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Time from "~/components/Time";
 
 /**
@@ -32,8 +34,9 @@ function Days(props: { dateTime: string }) {
   );
 }
 
-export default function Notices({ document }: Props) {
+function Notices({ document }: Props) {
   const { t } = useTranslation();
+  const { isTooLarge } = useDocumentContext();
 
   function permanentlyDeletedDescription() {
     if (!document.permanentlyDeletedAt) {
@@ -58,6 +61,20 @@ export default function Notices({ document }: Props) {
 
   return (
     <ErrorBoundary>
+      {isTooLarge && (
+        <DocumentNotice
+          icon={<WarningIcon />}
+          description={
+            <>
+              {t(
+                "This document has reached the maximum size and can no longer be edited"
+              )}
+            </>
+          }
+        >
+          {t("Document is too large")}
+        </DocumentNotice>
+      )}
       {document.archivedAt && !document.deletedAt && (
         <DocumentNotice
           icon={<ArchiveIcon />}
@@ -90,3 +107,5 @@ export default function Notices({ document }: Props) {
     </ErrorBoundary>
   );
 }
+
+export default observer(Notices);
