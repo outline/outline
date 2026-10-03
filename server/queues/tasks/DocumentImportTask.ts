@@ -28,6 +28,8 @@ type Props = {
   publish?: boolean;
   collectionId?: string | null;
   parentDocumentId?: string | null;
+  /** The personal owner resolved when authorizing the import destination. */
+  personalOwnerId?: string | null;
   authType?: AuthenticationType | null;
   ip?: string;
 };
@@ -73,6 +75,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
     publish,
     collectionId,
     parentDocumentId,
+    personalOwnerId,
     userId,
   }: Props): Promise<DocumentImportTaskResponse> {
     try {
@@ -121,6 +124,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
             publish,
             collectionId,
             parentDocumentId,
+            personalOwnerId,
           }
         )
       );

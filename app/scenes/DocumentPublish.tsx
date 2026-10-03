@@ -5,12 +5,15 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType } from "@shared/types";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
+import usePersonalDocumentsTree from "~/hooks/usePersonalDocumentsTree";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -21,16 +24,20 @@ type Props = {
 function DocumentPublish({ document }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser();
   const collectionTrees = useCollectionTrees();
+  const personalTrees = usePersonalDocumentsTree();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
   const publishOptions = useMemo(
-    () =>
-      collectionTrees.filter((node) =>
+    () => [
+      ...collectionTrees.filter((node) =>
         node.collectionId
           ? policies.get(node.collectionId)?.abilities.createDocument
           : true
       ),
-    [policies, collectionTrees]
+      ...personalTrees,
+    ],
+    [policies, collectionTrees, personalTrees]
   );
 
   const publish = async (path = selectedPath) => {
@@ -40,17 +47,24 @@ function DocumentPublish({ document }: Props) {
     }
 
     try {
-      const { type, id: parentDocumentId } = path;
+      if (path.type === NavigationNodeType.Personal) {
+        await document.save(undefined, {
+          publish: true,
+          personalOwnerId: user.id,
+        });
+      } else {
+        const { type, id: parentDocumentId } = path;
 
-      const collectionId = path.collectionId as string;
+        const collectionId = path.collectionId as string;
 
-      // Also move it under if selected path corresponds to another doc
-      if (type === "document") {
-        await document.move({ collectionId, parentDocumentId });
+        // Also move it under if selected path corresponds to another doc
+        if (type === NavigationNodeType.Document) {
+          await document.move({ collectionId, parentDocumentId });
+        }
+
+        document.collectionId = collectionId;
+        await document.save(undefined, { publish: true });
       }
-
-      document.collectionId = collectionId;
-      await document.save(undefined, { publish: true });
 
       toast.success(t("Document published"));
 

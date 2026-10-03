@@ -675,9 +675,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       if (membershipDocumentIds.length) {
         where[Op.or].push({ id: membershipDocumentIds });
       }
+      // A document in the user's own personal space is reachable from the
+      // column, without depending on a membership record.
+      where[Op.or].push({ personalOwnerId: model.id });
       where[Op.or].push({
         createdById: model.id,
         collectionId: { [Op.is]: null },
+        personalOwnerId: { [Op.is]: null },
       });
       if (collectionIds.length) {
         where[Op.or].push(

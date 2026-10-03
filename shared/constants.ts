@@ -97,6 +97,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
+  [TeamPreference.PersonalDocs]: true,
 };
 
 export const DocumentPreferenceDefaults: DocumentPreferences = {
