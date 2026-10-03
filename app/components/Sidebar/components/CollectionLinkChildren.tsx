@@ -59,8 +59,23 @@ function CollectionLinkChildren({
   useEffect(() => {
     if (!expanded) {
       setShowing(pageSize);
+      return;
     }
-  }, [expanded, pageSize]);
+
+    if (!ui.activeDocumentId || !childDocuments) {
+      return;
+    }
+
+    // The active document may be below a root outside the rendered page.
+    // Include that root so its descendants can expand and scroll into view.
+    const rootId =
+      collection.pathToDocument(ui.activeDocumentId)[0]?.id ??
+      ui.activeDocumentId;
+    const rootIndex = childDocuments.findIndex((node) => node.id === rootId);
+    if (rootIndex >= 0) {
+      setShowing((count) => Math.max(count, rootIndex + 1));
+    }
+  }, [expanded, pageSize, collection, childDocuments, ui.activeDocumentId]);
 
   const showMore = useCallback(() => {
     if (childDocuments && childDocuments.length > showing) {
