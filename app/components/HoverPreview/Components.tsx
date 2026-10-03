@@ -133,3 +133,22 @@ export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
         }`
       : ""}
 `;
+
+export const BreadcrumbContainer = styled.div`
+  font-size: 12px;
+  font-weight: 500;
+  color: ${(props) => props.theme.textTertiary};
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  /* Adds a subtle separator between path items */
+  span:not(:last-child)::after {
+    content: "/";
+    margin: 0 4px;
+    color: ${(props) => props.theme.divider};
+  }
+`;
