@@ -11,6 +11,8 @@ export default {
 
   getPresignedPost: vi.fn().mockReturnValue({}),
 
+  storeFromUrl: vi.fn(),
+
   getPresignedPut: vi
     .fn()
     .mockImplementation(
