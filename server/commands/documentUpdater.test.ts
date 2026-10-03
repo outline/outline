@@ -150,6 +150,185 @@ describe("documentUpdater", () => {
         ],
       });
     });
+
+    const commentMark = (id: string) => ({
+      type: "comment",
+      attrs: { id, userId: id, resolved: false, draft: false },
+    });
+
+    it("should restore comment marks to text that still exists", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+      });
+      const id = randomUUID();
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Please " },
+              { type: "text", marks: [commentMark(id)], text: "review this" },
+              { type: "text", text: " section." },
+            ],
+          },
+        ],
+      };
+      await document.save();
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "# New heading\n\nAn added paragraph.\n\nPlease review this section.",
+          document,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          { type: "heading" },
+          { type: "paragraph" },
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Please " },
+              { type: "text", marks: [commentMark(id)], text: "review this" },
+              { type: "text", text: " section." },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should restore comment marks across formatting changes", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+      });
+      const id = randomUUID();
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Some " },
+              { type: "text", marks: [commentMark(id)], text: "important" },
+              { type: "text", text: " words" },
+            ],
+          },
+        ],
+      };
+      await document.save();
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "Some **important** words",
+          document,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Some " },
+              {
+                type: "text",
+                marks: expect.arrayContaining([
+                  { type: "strong" },
+                  commentMark(id),
+                ]),
+                text: "important",
+              },
+              { type: "text", text: " words" },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should use surrounding text to disambiguate repeated anchors", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+      });
+      const id = randomUUID();
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "First: the same text" }],
+          },
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Second: " },
+              { type: "text", marks: [commentMark(id)], text: "the same text" },
+            ],
+          },
+        ],
+      };
+      await document.save();
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "Intro\n\nFirst: the same text\n\nSecond: the same text",
+          document,
+        })
+      );
+
+      expect(document.content).toMatchObject({
+        type: "doc",
+        content: [
+          { type: "paragraph" },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "First: the same text" }],
+          },
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Second: " },
+              { type: "text", marks: [commentMark(id)], text: "the same text" },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should drop comment marks whose text was removed", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+      });
+      const id = randomUUID();
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", marks: [commentMark(id)], text: "Old text" },
+            ],
+          },
+        ],
+      };
+      await document.save();
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "Completely different",
+          document,
+        })
+      );
+
+      expect(JSON.stringify(document.content)).not.toContain(id);
+    });
   });
 
   describe("append", () => {
