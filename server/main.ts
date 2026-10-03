@@ -17,6 +17,7 @@ import onerror from "./onerror";
 import onupgrade, { rejectUnhandledUpgrades } from "./onupgrade";
 import services from "./services";
 import { sequelize } from "./storage/database";
+import { EmailProviderManager } from "./emails/providers/EmailProviderManager";
 import { getArg } from "./utils/args";
 import { CacheHelper } from "./utils/CacheHelper";
 import { PluginManager } from "./utils/PluginManager";
@@ -37,6 +38,16 @@ import { checkUpdates } from "./utils/updates";
 export async function start(id: number, disconnect: () => void) {
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
+
+  // Fail fast on email misconfiguration. EMAIL_ENABLED advertises email
+  // features from the environment alone, so a provider that never registered
+  // would otherwise surface only as repeated failures in the email queue.
+  try {
+    EmailProviderManager.validate();
+  } catch (err) {
+    Logger.fatal("Invalid EMAIL_PROVIDER configuration", toError(err));
+    return;
+  }
 
   // Clear unfurl cache in development so code changes take effect immediately
   if (env.isDevelopment) {
