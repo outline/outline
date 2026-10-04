@@ -353,20 +353,18 @@ export function toISODate(date: Date): string {
 }
 
 /**
- * Formats a Date into a date and time ISO string with the local UTC offset
- * (yyyy-MM-dd'T'HH:mm±HH:mm). Used as the stored value for time-specific date
- * mentions so that readers in other timezones see the corresponding local time.
+ * Formats a Date into a date and time ISO string (yyyy-MM-dd'T'HH:mm) in the
+ * local timezone. Used as the stored value for time-specific date mentions.
  *
  * @param date The date to format.
  * @returns the date and time ISO string.
  */
 export function toISODateTime(date: Date): string {
-  return format(date, "yyyy-MM-dd'T'HH:mmxxx");
+  return format(date, "yyyy-MM-dd'T'HH:mm");
 }
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-const isoDateTimeRegex =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})?$/;
+const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 /**
  * Whether a date mention's stored ISO value carries a time component.
@@ -380,9 +378,10 @@ export function hasTimeComponent(iso: string): boolean {
 
 /**
  * Parses a date mention's stored ISO string into a Date in the local timezone.
- * Date-only values resolve to local midnight; time-specific values with an
- * offset resolve to the same instant in the viewer's timezone. Legacy datetimes
- * without an offset remain local wall times. Values carrying seconds are rejected.
+ * Accepts both the date-only (yyyy-MM-dd) and time-specific
+ * (yyyy-MM-dd'T'HH:mm) forms, the former resolving to local midnight. Any other
+ * shape – including values carrying seconds or a timezone offset – is rejected
+ * so the local, minute-granular contract cannot be violated.
  *
  * @param iso The stored ISO string.
  * @returns the parsed Date, or null when the string is not a valid value.

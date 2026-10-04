@@ -128,17 +128,6 @@ describe("mention rule", () => {
       expect(mentions[0].modelId).toBe("2024-02-03T13:00");
       expect(mentions[0].label).toBe("February 3rd, 2024 at 1:00 PM");
     });
-
-    it("should parse a date mention with a timezone offset", () => {
-      const result = md.parse(
-        "@[February 3rd, 2024 at 1:00 PM](mention://a1b2c3d4-e5f6-7890-abcd-ef1234567890/date/2024-02-03T13:00+01:00)",
-        {}
-      );
-      const mentions = findMentionTokens(result);
-
-      expect(mentions).toHaveLength(1);
-      expect(mentions[0].modelId).toBe("2024-02-03T13:00+01:00");
-    });
   });
 
   describe("mixed content", () => {
