@@ -28,6 +28,11 @@ describe("IsUrlList", () => {
     await expect(validateUrls(["file:///etc/passwd"])).rejects.toThrow();
   });
 
+  it("should reject urls without a protocol", async () => {
+    await expect(validateUrls(["callback"])).rejects.toThrow();
+    await expect(validateUrls(["example.com/callback"])).rejects.toThrow();
+  });
+
   it("should reject a private-use scheme without a destination", async () => {
     await expect(validateUrls(["myapp:"])).rejects.toThrow();
     await expect(validateUrls(["myapp:/"])).rejects.toThrow();

@@ -34,6 +34,7 @@ export default function IsUrlList({
               !(
                 isURL(url, {
                   require_tld: false,
+                  require_protocol: true,
                   allow_underscores: true,
                 }) || isPrivateUseSchemeUrl(url)
               )
