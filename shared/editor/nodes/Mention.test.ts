@@ -109,6 +109,17 @@ describe("Mention serialization", () => {
   });
 
   describe("markdown staying within Outline", () => {
+    it("preserves a date mention's timezone offset", () => {
+      const dateModelId = "2024-02-03T13:00+01:00";
+      expect(
+        serializeMention({
+          type: MentionType.Date,
+          modelId: dateModelId,
+          label: dateModelId,
+        })
+      ).toContain(`mention://${id}/date/${dateModelId}`);
+    });
+
     it("keeps the mention:// format for an issue mention", () => {
       expect(
         serializeMention({
