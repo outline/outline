@@ -492,6 +492,25 @@ export function dateToReadable(
 }
 
 /**
+ * Formats a time mention for the viewer's locale without displaying its date.
+ *
+ * @param iso The stored local date and time.
+ * @param language The viewer's language preference.
+ * @returns the localized time, or the original string when invalid.
+ */
+export function timeToReadable(
+  iso: string,
+  language?: keyof typeof locales | null
+): string {
+  const date = parseISODate(iso);
+  if (!date || !hasTimeComponent(iso)) {
+    return iso;
+  }
+
+  return format(date, "p", { locale: dateLocale(language) });
+}
+
+/**
  * Formats a date mention's stored ISO value into a relative, localized,
  * human-readable label with increasing granularity. Returns "Today",
  * "Tomorrow" or "Yesterday" where applicable, "January 2nd" within the

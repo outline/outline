@@ -6029,8 +6029,11 @@ describe("#documents.create", () => {
     expect(body.data.title).toEqual(
       TextHelper.replaceTemplateVariables(template.title, user)
     );
-    expect(body.data.text).toEqual(
-      TextHelper.replaceTemplateVariables(text, user)
+    expect(body.data.text).toContain(
+      `This document was created by ${user.name} on `
+    );
+    expect(body.data.text).toMatch(
+      /mention:\/\/[\w-]+\/date\/\d{4}-\d{2}-\d{2}/
     );
   });
 

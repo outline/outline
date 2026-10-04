@@ -21,6 +21,16 @@ const serializeMention = (
 };
 
 describe("Mention serialization", () => {
+  it("serializes a time-only mention as a readable time", () => {
+    expect(
+      serializeMention({
+        type: MentionType.Time,
+        modelId: "2024-02-03T13:05",
+        label: "2024-02-03T13:05",
+      })
+    ).toBe(`@[1:05 PM](mention://${id}/time/2024-02-03T13:05)`);
+  });
+
   describe("markdown leaving Outline", () => {
     it("serializes an issue mention as an @ prefixed link to the external url", () => {
       expect(

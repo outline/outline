@@ -1,4 +1,5 @@
 import { Schema } from "prosemirror-model";
+import { schema as editorSchema, parser, serializer } from "../test/editor";
 import type { ProsemirrorData } from "../types";
 import type { CommentMark } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -50,6 +51,83 @@ const table = (...content: object[]) => ({
 });
 
 describe("ProsemirrorHelper", () => {
+  describe("replaceTemplateVariables", () => {
+    it("keeps a time variable dynamic through Markdown serialization", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "At {time}." }],
+          },
+        ],
+      };
+      const replaced = ProsemirrorHelper.replaceTemplateVariables(data, {
+        name: "Alice",
+        language: "en_GB",
+      });
+      const markdown = serializer.serialize(
+        editorSchema.nodeFromJSON(replaced)
+      );
+      const parsed = parser.parse(markdown);
+
+      expect(markdown).toMatch(
+        /mention:\/\/[\w-]+\/time\/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
+      );
+      expect(parsed.firstChild?.child(1).attrs.type).toBe("time");
+    });
+
+    it("turns document date and time variables into mentions while preserving text", () => {
+      const user = { name: "Alice", language: "en_GB" };
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "By {author}: {date}, {time} and {datetime}.",
+                marks: [{ type: "bold" }],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.replaceTemplateVariables(data, user);
+      const content = result.content?.[0].content;
+
+      expect(content?.map((node) => node.type)).toEqual([
+        "text",
+        "mention",
+        "text",
+        "mention",
+        "text",
+        "mention",
+        "text",
+      ]);
+      expect(content?.[0]).toEqual({
+        type: "text",
+        text: "By Alice: ",
+        marks: [{ type: "bold" }],
+      });
+      expect(content?.[1].attrs).toMatchObject({
+        type: "date",
+        modelId: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      });
+      expect(content?.[3].attrs).toMatchObject({
+        type: "time",
+        modelId: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+      });
+      expect(content?.[5].attrs).toMatchObject({
+        type: "date",
+        modelId: content?.[3].attrs?.modelId,
+      });
+      expect(content?.[6].text).toBe(".");
+    });
+  });
+
   describe("getNodeHash", () => {
     it("returns the same hash regardless of attribute order", () => {
       const a = schema.nodeFromJSON(image({ src: "a.png", alt: "label" }));

@@ -3,6 +3,7 @@ import {
   dateToRelativeReadable,
   hasTimeComponent,
   parseISODate,
+  timeToReadable,
   toISODate,
   toISODateTime,
 } from "./date";
@@ -79,6 +80,17 @@ describe("dateToReadable", () => {
     // must not be mistaken for part of the separator.
     expect(dateToReadable("2020-02-03T13:00", "uk_UA")).toContain(" о ");
     expect(dateToReadable("2020-02-03T13:00", "uk_UA")).not.toContain("р.");
+  });
+});
+
+describe("timeToReadable", () => {
+  it("formats the same time in each reader's locale", () => {
+    expect(timeToReadable("2024-02-03T13:05", "en_US")).toBe("1:05 PM");
+    expect(timeToReadable("2024-02-03T13:05", "en_GB")).toBe("13:05");
+  });
+
+  it("leaves an invalid time unchanged", () => {
+    expect(timeToReadable("invalid", "en_GB")).toBe("invalid");
   });
 });
 

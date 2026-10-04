@@ -133,6 +133,7 @@ export enum MentionType {
   Project = "project",
   URL = "url",
   Date = "date",
+  Time = "time",
 }
 
 export type PublicEnv = {

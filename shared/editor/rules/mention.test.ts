@@ -103,6 +103,18 @@ describe("mention rule", () => {
   });
 
   describe("date format", () => {
+    it("should parse a time-only mention", () => {
+      const result = md.parse(
+        "@[1:05 PM](mention://a1b2c3d4-e5f6-7890-abcd-ef1234567890/time/2024-02-03T13:05)",
+        {}
+      );
+      const mentions = findMentionTokens(result);
+
+      expect(mentions).toHaveLength(1);
+      expect(mentions[0].type).toBe("time");
+      expect(mentions[0].modelId).toBe("2024-02-03T13:05");
+    });
+
     it("should parse a date mention with an ISO date modelId", () => {
       const result = md.parse(
         "@[February 3rd, 2024](mention://a1b2c3d4-e5f6-7890-abcd-ef1234567890/date/2024-02-03)",

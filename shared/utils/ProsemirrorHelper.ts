@@ -4,7 +4,7 @@ import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import type { ProsemirrorData } from "../types";
 import { hashString } from "./string";
-import { TextHelper } from "./TextHelper";
+import { createDateMention } from "./dateMention";
 import env from "../env";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import { isLightboxNode } from "@shared/editor/lib/Lightbox";
@@ -584,14 +584,27 @@ export class ProsemirrorHelper {
    * @returns The content with variables replaced
    */
   static replaceTemplateVariables(data: ProsemirrorData, user: User) {
-    function replace(node: ProsemirrorData) {
-      if (node.type === "text" && node.text) {
-        node.text = TextHelper.replaceTemplateVariables(node.text, user);
-      }
+    const date = new Date();
 
+    function replace(node: ProsemirrorData) {
       if (node.content) {
-        node.content = node.content.filter(Boolean);
-        node.content.forEach(replace);
+        node.content = node.content.filter(Boolean).flatMap((child) => {
+          if (child.type !== "text" || !child.text) {
+            return [replace(child)];
+          }
+
+          const text = child.text.replace(/{author}/g, user.name);
+          const parts = text.split(/(\{(?:datetime|date|time)\})/g);
+
+          return parts.filter(Boolean).map((part) => {
+            const kind = part.slice(1, -1);
+            if (kind === "date" || kind === "time" || kind === "datetime") {
+              return createDateMention(kind, date);
+            }
+
+            return { ...child, text: part };
+          });
+        });
       }
 
       return node;

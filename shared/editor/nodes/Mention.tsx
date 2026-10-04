@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import type { UnfurlResponse } from "../../types";
 import { MentionType, UnfurlResourceType } from "../../types";
-import { dateToReadable } from "../../utils/date";
+import { dateToReadable, timeToReadable } from "../../utils/date";
 import {
   MentionCollection,
   MentionDocument,
@@ -44,9 +44,17 @@ import Node from "./Node";
  */
 function dateMentionLabel(node: ProsemirrorNode): string {
   const modelId = node.attrs.modelId;
-  return typeof modelId === "string"
-    ? dateToReadable(modelId)
-    : node.attrs.label;
+  if (typeof modelId !== "string") {
+    return node.attrs.label;
+  }
+
+  return node.attrs.type === MentionType.Time
+    ? timeToReadable(modelId)
+    : dateToReadable(modelId);
+}
+
+function isDateMention(type: MentionType): boolean {
+  return type === MentionType.Date || type === MentionType.Time;
 }
 
 /**
@@ -89,7 +97,7 @@ export default class Mention extends Node {
       if (node.attrs.type === MentionType.User) {
         return `@${node.attrs.label}`;
       }
-      if (node.attrs.type === MentionType.Date) {
+      if (isDateMention(node.attrs.type)) {
         return dateMentionLabel(node);
       }
       return node.attrs.label;
@@ -151,21 +159,19 @@ export default class Mention extends Node {
         },
       ],
       toDOM: (node) => [
-        node.attrs.type === MentionType.User ||
-        node.attrs.type === MentionType.Date
+        node.attrs.type === MentionType.User || isDateMention(node.attrs.type)
           ? "span"
           : "a",
         {
           // Date mentions are self-contained and have nothing to unfurl, so
           // they opt out of the hover preview behaviour.
-          class:
-            node.attrs.type === MentionType.Date
-              ? node.type.name
-              : `${node.type.name} use-hover-preview`,
+          class: isDateMention(node.attrs.type)
+            ? node.type.name
+            : `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
           href:
             node.attrs.type === MentionType.User ||
-            node.attrs.type === MentionType.Date
+            isDateMention(node.attrs.type)
               ? undefined
               : node.attrs.type === MentionType.Document
                 ? `${env.URL}/doc/${node.attrs.modelId}${
@@ -228,6 +234,7 @@ export default class Mention extends Node {
           />
         );
       case MentionType.Date:
+      case MentionType.Time:
         return (
           <MentionDate {...props} onChangeDate={this.handleChangeDate(props)} />
         );
@@ -388,8 +395,9 @@ export default class Mention extends Node {
     const mId = node.attrs.modelId;
     // Date mentions store a machine-readable value, so the label is derived to
     // keep the serialized output legible outside of the editor.
-    const label =
-      mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
+    const label = isDateMention(mType)
+      ? dateMentionLabel(node)
+      : node.attrs.label;
     const id = node.attrs.id;
 
     // Use regular links for document and collection mentions

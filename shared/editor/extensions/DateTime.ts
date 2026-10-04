@@ -5,6 +5,7 @@ import {
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
 } from "../../utils/date";
+import { createDateMention } from "../../utils/dateMention";
 import Extension from "../lib/Extension";
 
 /**
@@ -15,34 +16,36 @@ export default class DateTime extends Extension {
     return "date_time";
   }
 
-  commands(_options: { schema: Schema }) {
+  commands({ schema }: { schema: Schema }) {
     const { template } = this.editor.props;
 
+    const insertDate =
+      (kind: "date" | "time" | "datetime"): Command =>
+      (state, dispatch) => {
+        if (template || !schema.nodes.mention) {
+          const value = template
+            ? `{${kind}}`
+            : kind === "date"
+              ? getCurrentDateAsString()
+              : kind === "time"
+                ? getCurrentTimeAsString()
+                : getCurrentDateTimeAsString();
+          dispatch?.(state.tr.insertText(value + " "));
+          return true;
+        }
+
+        dispatch?.(
+          state.tr
+            .replaceSelectionWith(schema.nodeFromJSON(createDateMention(kind)))
+            .insertText(" ")
+        );
+        return true;
+      };
+
     return {
-      date: (): Command => (state, dispatch) => {
-        dispatch?.(
-          state.tr.insertText(
-            (template ? "{date}" : getCurrentDateAsString()) + " "
-          )
-        );
-        return true;
-      },
-      time: (): Command => (state, dispatch) => {
-        dispatch?.(
-          state.tr.insertText(
-            (template ? "{time}" : getCurrentTimeAsString()) + " "
-          )
-        );
-        return true;
-      },
-      datetime: (): Command => (state, dispatch) => {
-        dispatch?.(
-          state.tr.insertText(
-            (template ? "{datetime}" : getCurrentDateTimeAsString()) + " "
-          )
-        );
-        return true;
-      },
+      date: () => insertDate("date"),
+      time: () => insertDate("time"),
+      datetime: () => insertDate("datetime"),
     };
   }
 }

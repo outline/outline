@@ -14,6 +14,7 @@ import {
   dateToRelativeReadable,
   hasTimeComponent,
   parseISODate,
+  timeToReadable,
 } from "../../utils/date";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
@@ -26,6 +27,7 @@ import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
 import {
   IntegrationService,
+  MentionType,
   UnfurlResourceType,
   type JSONValue,
   type UnfurlResponse,
@@ -563,8 +565,11 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
 
   const language = auth.user?.language;
   const iso = typeof node.attrs.modelId === "string" ? node.attrs.modelId : "";
-  const display = dateToRelativeReadable(iso, t, language);
-  const selectedDate = parseISODate(iso) ?? undefined;
+  const display =
+    node.attrs.type === MentionType.Time
+      ? timeToReadable(iso, language)
+      : dateToRelativeReadable(iso, t, language);
+  const editable = isEditable && node.attrs.type !== MentionType.Time;
 
   const content = (
     <DateMention
@@ -572,20 +577,20 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      $editable={isEditable}
+      $editable={editable}
     >
       {display}
     </DateMention>
   );
 
-  if (!isEditable) {
+  if (!editable) {
     return content;
   }
 
   return (
     <React.Suspense fallback={content}>
       <DateMentionPicker
-        selectedDate={selectedDate}
+        selectedDate={parseISODate(iso) ?? undefined}
         includeTime={hasTimeComponent(iso)}
         language={language}
         onChange={onChangeDate}

@@ -612,6 +612,10 @@ width: 100%;
     background: ${props.theme.mentionHoverBackground};
   }
 
+  &[data-type="time"]:${hover} {
+    background: ${props.theme.mentionBackground};
+  }
+
   /* Date mentions only open the picker when editable, so no hover affordance
      in read-only mode. */
   ${
@@ -629,7 +633,8 @@ width: 100%;
 
   /* Date mentions are plain text, so they inherit the surrounding font weight
      (e.g. bold when placed inside a heading). */
-  &[data-type="date"] {
+  &[data-type="date"],
+  &[data-type="time"] {
     font-weight: inherit;
   }
 
