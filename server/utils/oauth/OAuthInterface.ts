@@ -14,6 +14,7 @@ import {
   OAuthAuthorizationCode,
 } from "@server/models";
 import { hash, safeEqual } from "@server/utils/crypto";
+import { OAuthHelper } from "./OAuthHelper";
 
 /**
  * The number of seconds during which a rotated refresh token may be replayed
@@ -56,7 +57,7 @@ export const OAuthInterface: RefreshTokenModel &
   > &
   Config = {
   /** Supported grant types */
-  grants: ["authorization_code", "refresh_token"],
+  grants: [...OAuthHelper.grantTypes],
 
   /**
    * Generates a new access token.

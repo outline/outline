@@ -9,13 +9,13 @@ import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
 import { iconNames } from "@shared/utils/IconNames";
 import { NotFoundError } from "@server/errors";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { UserFlag } from "@server/models/User";
 import { AuthenticationType } from "@server/types";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { attachmentTools } from "@server/tools/attachments";
 import { collectionTools } from "@server/tools/collections";
@@ -32,7 +32,7 @@ const router = new Router();
 
 // RFC 9728 / MCP auth spec: 401 responses from the /mcp endpoint must include
 // a WWW-Authenticate header pointing at the OAuth protected resource metadata
-// document so clients can bootstrap the authorization flow via discovery.
+// document, and the scopes to request, so clients can bootstrap authorization.
 app.use(async (ctx, next) => {
   try {
     await next();
@@ -48,12 +48,11 @@ app.use(async (ctx, next) => {
         (k) => k.toLowerCase() === "www-authenticate"
       );
       if (!hasWwwAuth) {
-        const origin = env.isCloudHosted
-          ? ctx.request.URL.origin
-          : new URL(env.URL).origin;
         headersHost.headers = {
           ...existingHeaders,
-          "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
+          "WWW-Authenticate": OAuthHelper.mcpBearerChallenge(
+            OAuthHelper.getIssuer(ctx)
+          ),
         };
       }
     }
@@ -75,11 +74,16 @@ When asked to create a document that follows a template, use the "list_templates
  * Creates a fresh MCP server instance with tools filtered by the OAuth
  * scopes granted to the current token.
  *
+ * @param origin - the origin of this deployment, used for absolute asset URLs.
  * @param scopes - the OAuth scopes granted to the access token.
  * @param guidance - optional workspace guidance to append to default instructions.
  * @returns a configured McpServer ready to be connected to a transport.
  */
-function createMcpServer(scopes: string[], guidance?: string): McpServer {
+function createMcpServer(
+  origin: string,
+  scopes: string[],
+  guidance?: string
+): McpServer {
   const instructions = guidance
     ? `${defaultInstructions}\n\n${guidance}`
     : defaultInstructions;
@@ -87,7 +91,21 @@ function createMcpServer(scopes: string[], guidance?: string): McpServer {
   const server = new McpServer(
     {
       name: "outline",
+      title: "Outline",
       version,
+      websiteUrl: origin,
+      icons: [
+        {
+          src: `${origin}/images/icon-192.png`,
+          mimeType: "image/png",
+          sizes: ["192x192"],
+        },
+        {
+          src: `${origin}/images/icon-512.png`,
+          mimeType: "image/png",
+          sizes: ["512x512"],
+        },
+      ],
     },
     {
       capabilities: {
@@ -152,6 +170,7 @@ router.post(
     await user.save({ hooks: false });
 
     const server = createMcpServer(
+      OAuthHelper.getIssuer(ctx),
       scope ?? [],
       user.team.guidanceMCP ?? undefined
     );
