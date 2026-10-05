@@ -72,6 +72,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
 function DocumentEditor(props: Props) {
   const editorRef = React.useRef<SharedEditor>(null);
   const titleRef = React.useRef<RefHandle>(null);
+  const tagInputRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
   const location = useLocation();
@@ -124,6 +125,16 @@ function DocumentEditor(props: Props) {
   const handleBlur = React.useCallback(() => {
     setTimeout(() => props.onSave({ autosave: true }), 250);
   }, [props]);
+
+  // Shift-Tab at the start of the content goes back to the tag field, or to
+  // the title when tags are not editable here.
+  const handleShiftTabAtStart = React.useCallback(() => {
+    if (tagInputRef.current) {
+      tagInputRef.current.focus();
+    } else {
+      titleRef.current?.focusAtEnd();
+    }
+  }, []);
 
   const handleGoToNextInput = React.useCallback(
     (insertParagraph: boolean) => {
@@ -264,6 +275,7 @@ function DocumentEditor(props: Props) {
           documentId={document.id}
           tags={(document as Document).tags}
           canUpdate={!!can.update && !readOnly}
+          inputRef={tagInputRef}
         />
       )}
       {/* The editor core loads lazily and can suspend after the title and
@@ -296,6 +308,7 @@ function DocumentEditor(props: Props) {
           }
           onInit={handleInit}
           onDestroy={handleDestroy}
+          onShiftTabAtStart={readOnly ? undefined : handleShiftTabAtStart}
           onChange={updateDocState}
           headingPrefix={
             document instanceof Document

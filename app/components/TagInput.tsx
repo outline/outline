@@ -26,9 +26,11 @@ interface Props {
   tags: Tag[] | undefined;
   /** Whether the current user can edit tags, false when read only. */
   canUpdate: boolean;
+  /** Ref to the text input, used to move focus into the tag field. */
+  inputRef?: React.Ref<HTMLInputElement>;
 }
 
-function TagInput({ documentId, tags, canUpdate }: Props) {
+function TagInput({ documentId, tags, canUpdate, inputRef }: Props) {
   const { tags: tagsStore, documents } = useStores();
   const { t } = useTranslation();
   const [state, dispatch] = React.useReducer(
@@ -170,6 +172,7 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
       {canUpdate && (
         <InputWrapper>
           <Input
+            ref={inputRef}
             type="text"
             role="combobox"
             autoComplete="off"
