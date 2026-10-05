@@ -108,7 +108,7 @@
     "@sentry/node": "^10.75.3",
     "@sentry/react": "^10.75.3",
     "@simplewebauthn/browser": "^13.3.0",
-    "@simplewebauthn/server": "^13.3.2",
+    "@simplewebauthn/server": "^13.3.3",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.9",
     "@types/form-data": "^2.5.2",
