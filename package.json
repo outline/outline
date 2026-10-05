@@ -214,7 +214,7 @@
     "prosemirror-state": "^1.4.4",
     "prosemirror-tables": "^1.8.5",
     "prosemirror-transform": "1.10.5",
-    "prosemirror-view": "^1.41.8",
+    "prosemirror-view": "^1.42.3",
     "proxy-from-env": "^1.1.0",
     "query-string": "^9.5.0",
     "rate-limiter-flexible": "^2.4.2",
