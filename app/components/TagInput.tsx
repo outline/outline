@@ -1,8 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { mergeRefs } from "react-merge-refs";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { isMac } from "@shared/utils/browser";
 import { errToString } from "@shared/utils/error";
 import { TagValidation } from "@shared/validations";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -13,8 +15,10 @@ import type { TagSelection } from "~/utils/tagInput";
 import {
   buildTagOptions,
   initialTagInputState,
+  isUndoShortcut,
   resolveTagSelection,
   tagInputReducer,
+  takeRestorableTag,
   validateTagName,
 } from "~/utils/tagInput";
 import { TagList } from "./TagList";
@@ -38,6 +42,13 @@ function TagInput({ documentId, tags, canUpdate, inputRef }: Props) {
     initialTagInputState
   );
   const isSubmittingRef = React.useRef(false);
+  const localInputRef = React.useRef<HTMLInputElement>(null);
+  // Tags removed from this document in this session, oldest first, so that
+  // the undo shortcut can restore them.
+  const removedRef = React.useRef<Tag[]>([]);
+  React.useEffect(() => {
+    removedRef.current = [];
+  }, [documentId]);
   const listboxId = `tag-input-${React.useId()}`;
   const optionId = (index: number) => `${listboxId}-option-${index}`;
   const document = documents.get(documentId);
@@ -129,6 +140,19 @@ function TagInput({ documentId, tags, canUpdate, inputRef }: Props) {
       return;
     }
 
+    if (!state.value && isUndoShortcut(e.nativeEvent, isMac)) {
+      const { tag, rest } = takeRestorableTag(removedRef.current, appliedIds);
+      if (tag) {
+        e.preventDefault();
+        removedRef.current = rest;
+        void tagsStore.addToDocument(tag.id, documentId).catch((err) => {
+          removedRef.current.push(tag);
+          toast.error(errToString(err));
+        });
+      }
+      return;
+    }
+
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       dispatch({
@@ -161,9 +185,13 @@ function TagInput({ documentId, tags, canUpdate, inputRef }: Props) {
   };
 
   const handleRemove = (tag: Tag) => {
-    void tagsStore
-      .removeFromDocument(tag.id, documentId)
-      .catch((err) => toast.error(errToString(err)));
+    removedRef.current.push(tag);
+    // The pill's button unmounts, keep focus in the field so undo works.
+    localInputRef.current?.focus();
+    void tagsStore.removeFromDocument(tag.id, documentId).catch((err) => {
+      removedRef.current = removedRef.current.filter((t) => t !== tag);
+      toast.error(errToString(err));
+    });
   };
 
   return (
@@ -172,7 +200,7 @@ function TagInput({ documentId, tags, canUpdate, inputRef }: Props) {
       {canUpdate && (
         <InputWrapper>
           <Input
-            ref={inputRef}
+            ref={mergeRefs([localInputRef, inputRef])}
             type="text"
             role="combobox"
             autoComplete="off"

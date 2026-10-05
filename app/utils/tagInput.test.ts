@@ -2,8 +2,10 @@ import type Tag from "~/models/Tag";
 import {
   buildTagOptions,
   initialTagInputState,
+  isUndoShortcut,
   resolveTagSelection,
   tagInputReducer,
+  takeRestorableTag,
   validateTagName,
 } from "./tagInput";
 import type { TagInputState } from "./tagInput";
@@ -322,5 +324,59 @@ describe("resolveTagSelection", () => {
 
   it("falls back to the typed text when the highlight is out of range", () => {
     expect(resolve("gamma", 5)).toEqual({ type: "create", name: "gamma" });
+  });
+});
+
+describe("isUndoShortcut", () => {
+  const key = (init: Partial<KeyboardEvent>) =>
+    ({
+      key: "z",
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      ...init,
+    }) as KeyboardEvent;
+
+  it("matches Cmd+Z on Mac and Ctrl+Z elsewhere", () => {
+    expect(isUndoShortcut(key({ metaKey: true }), true)).toBe(true);
+    expect(isUndoShortcut(key({ ctrlKey: true }), false)).toBe(true);
+  });
+
+  it("ignores the other platform's modifier, redo and other keys", () => {
+    expect(isUndoShortcut(key({ ctrlKey: true }), true)).toBe(false);
+    expect(isUndoShortcut(key({ metaKey: true }), false)).toBe(false);
+    expect(isUndoShortcut(key({ metaKey: true, shiftKey: true }), true)).toBe(
+      false
+    );
+    expect(isUndoShortcut(key({ metaKey: true, key: "y" }), true)).toBe(false);
+    expect(isUndoShortcut(key({ metaKey: true, key: "Z" }), true)).toBe(true);
+  });
+});
+
+describe("takeRestorableTag", () => {
+  it("returns the most recently removed tag and the remaining stack", () => {
+    expect(takeRestorableTag([alpha, beta], new Set())).toEqual({
+      tag: beta,
+      rest: [alpha],
+    });
+  });
+
+  it("skips removed tags that were applied again in the meantime", () => {
+    expect(takeRestorableTag([alpha, beta], new Set(["b1"]))).toEqual({
+      tag: alpha,
+      rest: [],
+    });
+  });
+
+  it("returns nothing when there is nothing to restore", () => {
+    expect(takeRestorableTag([alpha], new Set(["a1"]))).toEqual({
+      tag: undefined,
+      rest: [],
+    });
+    expect(takeRestorableTag([], new Set())).toEqual({
+      tag: undefined,
+      rest: [],
+    });
   });
 });

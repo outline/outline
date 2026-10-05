@@ -209,3 +209,51 @@ export function resolveTagSelection({
   }
   return canCreate ? { type: "create", name } : { type: "unknown" };
 }
+
+/**
+ * Whether a key press is the platform's undo shortcut: Cmd+Z on Mac, Ctrl+Z
+ * elsewhere. Redo (with Shift) and other modifiers don't match.
+ *
+ * @param event the key press.
+ * @param isMac whether the platform uses Cmd as its primary modifier.
+ * @returns true for the undo shortcut.
+ */
+export function isUndoShortcut(
+  event: Pick<
+    KeyboardEvent,
+    "key" | "metaKey" | "ctrlKey" | "shiftKey" | "altKey"
+  >,
+  isMac: boolean
+): boolean {
+  const primary = isMac ? event.metaKey : event.ctrlKey;
+  const other = isMac ? event.ctrlKey : event.metaKey;
+  return (
+    event.key.toLowerCase() === "z" &&
+    primary &&
+    !other &&
+    !event.shiftKey &&
+    !event.altKey
+  );
+}
+
+/**
+ * Picks the most recently removed tag that can be restored, skipping tags that
+ * were applied again since they were removed.
+ *
+ * @param removed tags removed from the document, oldest first.
+ * @param appliedIds ids of the tags currently on the document.
+ * @returns the tag to restore, if any, and the stack left after taking it.
+ */
+export function takeRestorableTag(
+  removed: Tag[],
+  appliedIds: Set<string>
+): { tag: Tag | undefined; rest: Tag[] } {
+  const rest = [...removed];
+  while (rest.length > 0) {
+    const tag = rest.pop()!;
+    if (!appliedIds.has(tag.id)) {
+      return { tag, rest };
+    }
+  }
+  return { tag: undefined, rest };
+}
