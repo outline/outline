@@ -37,25 +37,24 @@ export function getJWTPayload(token: string) {
  *
  * @param token The JWT token to validate and extract the user from.
  * @param allowedTypes An array of allowed token types (default: ["session", "transfer"]). The token's type must be included in this array to be considered valid.
- * @returns An object containing the user associated with the token and an optional service string if included in the token's payload.
+ * @returns An object containing the user associated with the token, an optional service string if included in the token's payload, and the time the token expires at if it has one.
  * @throws AuthenticationError if the token is missing, invalid, expired, or if the token's type is not allowed.
  * @throws UserSuspendedError if the user associated with the token is suspended.
  */
 export async function getUserForJWT(
   token: string,
   allowedTypes = ["session", "transfer"]
-): Promise<{ user: User; service?: string }> {
+): Promise<{ user: User; service?: string; expiresAt?: Date }> {
   const payload = getJWTPayload(token);
+  const expiresAt = payload.expiresAt ? new Date(payload.expiresAt) : undefined;
 
   if (!allowedTypes.includes(payload.type)) {
     throw AuthenticationError("Invalid token");
   }
 
   // check the token is within it's expiration time
-  if (payload.expiresAt) {
-    if (new Date(payload.expiresAt) < new Date()) {
-      throw AuthenticationError("Expired token");
-    }
+  if (expiresAt && expiresAt < new Date()) {
+    throw AuthenticationError("Expired token");
   }
 
   const user = await User.findByPk(payload.id, {
@@ -101,6 +100,7 @@ export async function getUserForJWT(
   return {
     user,
     service: payload.service as string | undefined,
+    expiresAt,
   };
 }
 

@@ -9,6 +9,7 @@ import type {
 import { uniq } from "es-toolkit";
 import { AuthorizationChanged } from "@shared/collaboration/CloseEvents";
 import { toError } from "@shared/utils/error";
+import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -42,8 +43,9 @@ export interface AuthorizationScope {
 
 /**
  * Authorizes connections to a document when they are established, and closes
- * them again whenever the access a user was granted may have changed. Clients
- * reconnect on their own, so authorization is only ever decided in one place.
+ * them again whenever the access a user was granted may have changed or the
+ * token they authenticated with expires. Clients reconnect on their own, so
+ * authorization is only ever decided in one place.
  */
 @trace()
 export default class AuthenticationExtension implements Extension {
@@ -84,7 +86,10 @@ export default class AuthenticationExtension implements Extension {
       throw AuthenticationError("Authentication required");
     }
 
-    const { user } = await getUserForJWT(token, ["session", "collaboration"]);
+    const { user, expiresAt } = await getUserForJWT(token, [
+      "session",
+      "collaboration",
+    ]);
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
@@ -101,11 +106,16 @@ export default class AuthenticationExtension implements Extension {
 
     return {
       user,
+      expiresAt,
     };
   }
 
   async onConfigure({ instance }: onConfigurePayload) {
     this.instance = instance;
+    this.expiryInterval ??= setInterval(
+      this.handleExpiryInterval,
+      Minute.ms
+    ).unref();
 
     if (this.subscribed) {
       return;
@@ -125,6 +135,9 @@ export default class AuthenticationExtension implements Extension {
   }
 
   async onDestroy(_data: onDestroyPayload) {
+    clearInterval(this.expiryInterval);
+    this.expiryInterval = undefined;
+
     if (this.subscribed) {
       const subscriber = RedisAdapter.collaborationSubscriber;
       subscriber.off("message", this.handleMessage);
@@ -215,9 +228,56 @@ export default class AuthenticationExtension implements Extension {
     }
   }
 
+  /**
+   * Close every locally held connection that authenticated with a token which
+   * has since expired. The client reconnects and must present a token that is
+   * still valid.
+   */
+  disconnectExpired() {
+    if (!this.instance) {
+      return;
+    }
+
+    const now = new Date();
+    const expired: Connection[] = [];
+
+    for (const document of this.instance.documents.values()) {
+      for (const connection of document.getConnections()) {
+        const context: { expiresAt?: Date } = connection.context;
+
+        if (context.expiresAt && context.expiresAt <= now) {
+          expired.push(connection);
+        }
+      }
+    }
+
+    if (!expired.length) {
+      return;
+    }
+
+    Logger.info(
+      "multiplayer",
+      `Closing ${expired.length} connections with an expired token`
+    );
+
+    for (const connection of expired) {
+      connection.close(AuthorizationChanged);
+    }
+  }
+
   private instance?: Hocuspocus;
 
   private subscribed = false;
+
+  private expiryInterval?: NodeJS.Timeout;
+
+  private handleExpiryInterval = () => {
+    try {
+      this.disconnectExpired();
+    } catch (error) {
+      Logger.error("Failed to close expired connections", toError(error));
+    }
+  };
 
   private handleMessage = async (channel: string, message: string) => {
     if (channel !== CHANNEL) {
