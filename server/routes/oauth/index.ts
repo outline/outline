@@ -79,13 +79,11 @@ router.post(
 
     // In the case of a redirect, the response will be always be a redirect
     // to the redirect_uri with the authorization code as a query parameter.
-    // The issuer is added so clients can detect mix-up attacks (RFC 9207).
     if (response.status === 302 && response.headers?.location) {
-      const location = new URL(response.headers.location);
-      location.searchParams.set("iss", OAuthHelper.getIssuer(ctx));
+      const location = response.headers.location;
       delete response.headers.location;
       ctx.set(response.headers);
-      ctx.redirect(location.toString());
+      ctx.redirect(location);
       return;
     }
 

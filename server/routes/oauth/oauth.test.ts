@@ -501,7 +501,6 @@ describe("GET /.well-known/oauth-authorization-server", () => {
       "none",
     ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
-    expect(body.authorization_response_iss_parameter_supported).toEqual(true);
     expect(body.scopes_supported).toEqual(["read", "write"]);
   });
 
@@ -624,32 +623,6 @@ describe("POST /oauth/authorize", () => {
 
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).toContain("code=");
-  });
-
-  it("should include the issuer in the authorization response", async () => {
-    const user = await buildUser();
-    const client = await buildOAuthClient({ teamId: user.teamId });
-
-    const res = await server.post("/oauth/authorize", user, {
-      redirect: "manual",
-      body: {
-        client_id: client.clientId,
-        response_type: "code",
-        redirect_uri: client.redirectUris[0],
-        state: "state",
-        scope: "read",
-      },
-    });
-
-    expect(res.status).toEqual(302);
-    const location = new URL(res.headers.get("location")!);
-    const metadata = await server.get(
-      "/.well-known/oauth-authorization-server"
-    );
-    const { issuer } = await metadata.json();
-    expect(location.searchParams.get("code")).toBeTruthy();
-    expect(location.searchParams.get("state")).toEqual("state");
-    expect(location.searchParams.get("iss")).toEqual(issuer);
   });
 
   it("should not issue an authorization code to a dynamically registered client when MCP is disabled", async () => {

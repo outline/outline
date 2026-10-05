@@ -30,7 +30,6 @@ router.get(
       token_endpoint_auth_methods_supported:
         OAuthHelper.tokenEndpointAuthMethods,
       code_challenge_methods_supported: ["S256"],
-      authorization_response_iss_parameter_supported: true,
       scopes_supported: OAuthHelper.mcpScopes,
     };
   }
