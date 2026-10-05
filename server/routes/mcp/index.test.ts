@@ -42,6 +42,7 @@ describe("POST /mcp/", () => {
       expect(wwwAuth).toContain("Bearer");
       expect(wwwAuth).toContain("resource_metadata=");
       expect(wwwAuth).toContain("/.well-known/oauth-protected-resource/mcp");
+      expect(wwwAuth).toContain('scope="read write"');
     });
 
     it("should reject JWT authentication", async () => {
@@ -119,12 +120,31 @@ describe("POST /mcp/", () => {
       const parsed = await parseMcpResponse(res);
       const result = parsed?.result as {
         capabilities?: unknown;
-        serverInfo?: { name: string };
+        serverInfo?: {
+          name: string;
+          title?: string;
+          websiteUrl?: string;
+          icons?: { src: string; mimeType?: string; sizes?: string[] }[];
+        };
       };
 
       expect(result).toBeDefined();
       expect(result?.capabilities).toBeDefined();
       expect(result?.serverInfo?.name).toEqual("outline");
+      expect(result?.serverInfo?.title).toEqual("Outline");
+      expect(result?.serverInfo?.websiteUrl).toMatch(/^https?:\/\//);
+      expect(result?.serverInfo?.icons).toEqual([
+        expect.objectContaining({
+          src: expect.stringMatching(/^https?:\/\/.+\/images\/icon-192\.png$/),
+          mimeType: "image/png",
+          sizes: ["192x192"],
+        }),
+        expect.objectContaining({
+          src: expect.stringMatching(/^https?:\/\/.+\/images\/icon-512\.png$/),
+          mimeType: "image/png",
+          sizes: ["512x512"],
+        }),
+      ]);
     });
 
     it("should return 202 for the notifications/initialized lifecycle message", async () => {

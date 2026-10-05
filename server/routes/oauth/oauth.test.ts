@@ -42,7 +42,7 @@ describe("#oauth.register", () => {
     expect(body.client_secret_expires_at).toBeUndefined();
     expect(body.client_name).toEqual("Test MCP Client");
     expect(body.redirect_uris).toEqual(["https://example.com/callback"]);
-    expect(body.grant_types).toEqual(["authorization_code"]);
+    expect(body.grant_types).toEqual(["authorization_code", "refresh_token"]);
     expect(body.response_types).toEqual(["code"]);
     expect(body.token_endpoint_auth_method).toEqual("none");
     expect(body.registration_access_token).toBeTruthy();
@@ -501,6 +501,7 @@ describe("GET /.well-known/oauth-authorization-server", () => {
       "none",
     ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
+    expect(body.scopes_supported).toEqual(["read", "write"]);
   });
 
   it("should return OAuth metadata at /mcp suffix path", async () => {
