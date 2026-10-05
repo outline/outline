@@ -49,8 +49,12 @@ describe("validateTagName", () => {
 });
 
 describe("buildTagOptions", () => {
-  it("returns no options for empty input", () => {
-    expect(buildTagOptions(known, "  ", new Set(), findByName)).toEqual([]);
+  it("lists every unapplied tag, without a create row, for empty input", () => {
+    const many = Array.from({ length: 12 }, (_, i) => tag(`t${i}`, `tag${i}`));
+
+    expect(
+      buildTagOptions(many, "  ", new Set(["t0"]), () => undefined)
+    ).toEqual(many.slice(1).map((t) => ({ type: "tag", tag: t })));
   });
 
   it("suggests matching tags, prefix matches first, then a create row", () => {
@@ -181,6 +185,31 @@ describe("tagInputReducer", () => {
 
     state = tagInputReducer(state, { type: "move", delta: 1, optionCount: 2 });
     expect(state).toEqual({ value: "al", highlightedIndex: 0, isOpen: true });
+  });
+
+  it("opens the list on arrow down in an empty field", () => {
+    const state = tagInputReducer(initialTagInputState, {
+      type: "move",
+      delta: 1,
+      optionCount: 3,
+    });
+
+    expect(state).toEqual({ value: "", highlightedIndex: 0, isOpen: true });
+  });
+
+  it("attaches the highlighted tag when submitting an empty field", () => {
+    expect(
+      resolveTagSelection({
+        value: "",
+        highlightedIndex: 1,
+        options: [
+          { type: "tag", tag: alpha },
+          { type: "tag", tag: beta },
+        ],
+        appliedIds: new Set(),
+        findByName,
+      })
+    ).toEqual({ type: "attach", tag: beta });
   });
 
   it("highlights the hovered option", () => {

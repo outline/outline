@@ -65,7 +65,8 @@ export function validateTagName(raw: string): TagNameError | undefined {
 /**
  * Builds the suggestion list for the typed text: matching tags that are not
  * applied yet, names starting with the text first, followed by a row to create
- * the typed tag when it is valid and no tag has that name.
+ * the typed tag when it is valid and no tag has that name. An empty field lists
+ * every tag not applied yet.
  *
  * @param tags all known tags, in display order.
  * @param value the typed text.
@@ -87,7 +88,10 @@ export function buildTagOptions(
 ): TagOption[] {
   const query = normalizeTagName(value);
   if (!query) {
-    return [];
+    // Browsing with an empty field lists every tag that can still be applied.
+    return tags
+      .filter((tag) => !appliedIds.has(tag.id))
+      .map((tag) => ({ type: "tag", tag }));
   }
 
   const matches = tags.filter(

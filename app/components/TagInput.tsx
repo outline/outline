@@ -85,6 +85,16 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
       ? state.highlightedIndex
       : -1;
 
+  // Keep the keyboard-highlighted option visible in the scrollable list.
+  React.useEffect(() => {
+    if (activeIndex >= 0) {
+      window.document
+        .getElementById(optionId(activeIndex))
+        ?.scrollIntoView({ block: "nearest" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
+
   const handleSelect = async (selection: TagSelection) => {
     if (selection.type === "none") {
       dispatch({ type: "reset" });
@@ -275,6 +285,8 @@ const Dropdown = styled.ul`
   list-style: none;
   margin: 0;
   box-shadow: ${({ theme }) => theme.menuShadow};
+  max-height: 320px;
+  overflow-y: auto;
 `;
 
 const SuggestionItem = styled.li<{ $active: boolean }>`
