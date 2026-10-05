@@ -5834,9 +5834,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@simplewebauthn/server@npm:^13.3.2":
-  version: 13.3.2
-  resolution: "@simplewebauthn/server@npm:13.3.2"
+"@simplewebauthn/server@npm:^13.3.3":
+  version: 13.3.3
+  resolution: "@simplewebauthn/server@npm:13.3.3"
   dependencies:
     "@hexagon/base64": "npm:^1.1.27"
     "@levischuck/tiny-cbor": "npm:^0.2.2"
@@ -5846,7 +5846,7 @@ __metadata:
     "@peculiar/asn1-schema": "npm:^2.6.0"
     "@peculiar/asn1-x509": "npm:^2.6.1"
     "@peculiar/x509": "npm:^1.14.3"
-  checksum: 10c0/0be07c60235b9e605ed28c8262ccf6a9698044b0b9d28cbe407d8c72bcc9bf0f9ef6b75b46ee02a7ec534365e3428d5018be8e0e56233df91d74f87d721fe99b
+  checksum: 10c0/cee0448ca29efb92bd6486872580bb3f259c5b5aa89b7e553d5b1583f795a10c01835f54c651230c91e685fe20d1663bd782b7fd5b8dff5819cb90bbd7063875
   languageName: node
   linkType: hard
 
@@ -15589,7 +15589,7 @@ __metadata:
     "@sentry/node": "npm:^10.75.3"
     "@sentry/react": "npm:^10.75.3"
     "@simplewebauthn/browser": "npm:^13.3.0"
-    "@simplewebauthn/server": "npm:^13.3.2"
+    "@simplewebauthn/server": "npm:^13.3.3"
     "@swc/cli": "npm:^0.8.1"
     "@swc/core": "npm:^1.15.32"
     "@tanstack/react-table": "npm:^8.21.3"
