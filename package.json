@@ -251,7 +251,7 @@
     "slug": "^5.3.0",
     "slugify": "^1.6.9",
     "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3",
+    "socket.io-client": "^4.8.4",
     "socket.io-redis": "^6.1.1",
     "sonner": "^2.0.8",
     "stoppable": "^1.1.0",
