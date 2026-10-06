@@ -1,8 +1,14 @@
+import data from "@emoji-mart/data";
+import type { EmojiMartData } from "@emoji-mart/data";
 import { Schema } from "prosemirror-model";
 import { EditorState, TextSelection } from "prosemirror-state";
 import type { Plugin } from "prosemirror-state";
 import ExtensionManager from "../editor/lib/ExtensionManager";
+import { populateEmojiData } from "../editor/lib/emoji";
 import { richExtensions } from "../editor/nodes";
+
+// Match the server, which loads emoji data before it builds the parser.
+populateEmojiData(data as EmojiMartData);
 
 /**
  * Extension manager using the full rich extensions from the editor.

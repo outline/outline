@@ -7,11 +7,11 @@ const BR_TAG_REGEX = /<br\s*\/?>/gi;
 // ($$) fence
 const FENCE_OPEN_REGEX = /^(?::::\S|\+{3,}|```|\$\$)/;
 
-// Matches the opening of a bullet, ordered or checkbox list item with content
-const LIST_OPEN_REGEX = /^(?:[*+-]|\d+[.)]|\[[\sx_-]\])\s+\S/i;
+// Matches a line that opens a bullet, ordered, alpha or checkbox list item
+const LIST_OPEN_REGEX = /^(?:[*+-]|\d+[.)]|[a-z]\.|\[[ \tx_-]\])[ \t]+\S/im;
 
 // Matches a checkbox item that has no list marker, such as "[x] Task"
-const BARE_CHECKBOX_REGEX = /^[ \t]*(\[[\sx_-]\]\s)/gim;
+const BARE_CHECKBOX_REGEX = /^[ \t]*(\[[ \tx_-]\]\s)/gim;
 
 const BLOCK_CELL_TYPES = [
   "container_notice_open",
@@ -105,14 +105,19 @@ function parseBlockCell(
     const isRawFence = source.startsWith("```") || source.startsWith("$$");
     markdown = isRawFence ? unescapeRawTableCell(source) : source;
   } else if (LIST_OPEN_REGEX.test(source)) {
-    // Checkbox items may be written without a list marker, such as "[x] Task".
-    markdown = source.replace(BARE_CHECKBOX_REGEX, "- $1");
+    // Keep each <br> as a hard break, and add the list marker that checkbox
+    // items may be written without, such as "[x] Task".
+    markdown = content
+      .replace(BR_TAG_REGEX, "  \n")
+      .replace(BARE_CHECKBOX_REGEX, "- $1");
   } else {
     return null;
   }
 
   const tokens = md.parse(markdown, env);
-  return BLOCK_CELL_TYPES.includes(tokens[0]?.type) ? tokens : null;
+  return tokens.some((token) => BLOCK_CELL_TYPES.includes(token.type))
+    ? tokens
+    : null;
 }
 
 export default function markdownTables(md: MarkdownIt): void {

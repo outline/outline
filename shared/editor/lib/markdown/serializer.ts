@@ -237,7 +237,11 @@ export class MarkdownSerializerState {
   text(text, escape) {
     const lines = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
-      const startOfLine = this.atBlank() || this.closed;
+      // A <br> in a table cell becomes a new line when the cell is parsed.
+      const startOfLine =
+        this.atBlank() ||
+        this.closed ||
+        (this.inTable && this.out.endsWith("<br>"));
       this.write();
       this.append(
         escape !== false ? this.esc(lines[i], startOfLine) : lines[i]
@@ -564,7 +568,10 @@ export class MarkdownSerializerState {
     // `](`, meaning it could otherwise be parsed as an inline link or image
     str = str.replace(/\[(?=[^\n]*\]\()/g, "\\$&");
     if (startOfLine) {
-      str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
+      str = str
+        .replace(/^[:#\-*+]/, "\\$&")
+        .replace(/^(\d+)\./, "$1\\.")
+        .replace(/^([a-z])\.(?=\s)/i, "$1\\.");
     }
 
     if (this.inTable) {
