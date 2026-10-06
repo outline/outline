@@ -63,7 +63,6 @@ router.post(
 
     // For session-based uploads, ensure the attachment belongs to the actor.
     if (!sig && actor && attachment.userId !== actor.id) {
-      await attachment.destroy();
       throw AuthorizationError("Invalid key");
     }
 
