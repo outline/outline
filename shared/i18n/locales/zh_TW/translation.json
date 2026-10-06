@@ -384,7 +384,7 @@
   "{{ total }} task_plural": "{{ total }} 項工作",
   "{{ completed }} task done": "{{ completed }} 任務已完成",
   "{{ completed }} task done_plural": "已完成 {{ completed }} 項工作",
-  "{{ completed }} of {{ total }} tasks": "{{ completed }} / {{ total }} 任務已完成",
+  "{{ completed }} of {{ total }} tasks": "{{ total }} 項工作中，已完成 {{ completed }} 項",
   "Currently editing": "正在編輯",
   "Currently viewing": "正在瀏覽",
   "Viewed {{ timeAgo }}": "{{ timeAgo }} 前瀏覽過",
