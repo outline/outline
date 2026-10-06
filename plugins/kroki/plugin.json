@@ -1,0 +1,6 @@
+{
+  "id": "kroki",
+  "name": "Kroki",
+  "priority": 46,
+  "description": "Configure a Kroki server to enable rendering of D2 and PlantUML diagrams in documents."
+}
