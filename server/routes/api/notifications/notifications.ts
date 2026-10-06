@@ -13,7 +13,9 @@ import { Notification, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { authorize } from "@server/policies";
 import { presentPolicies } from "@server/presenters";
-import presentNotification from "@server/presenters/notification";
+import presentNotification, {
+  presentNotifications,
+} from "@server/presenters/notification";
 import type { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import pagination from "../middlewares/pagination";
@@ -129,11 +131,7 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        notifications: await Promise.all(
-          notifications.map((notification) =>
-            presentNotification(ctx, notification)
-          )
-        ),
+        notifications: await presentNotifications(ctx, notifications),
         unseen,
       },
     };

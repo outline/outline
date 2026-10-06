@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Op } from "sequelize";
-import { Collection, Document } from "@server/models";
+import { Collection, Document, DocumentTag } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { DocumentReference } from "@server/models/helpers/ProsemirrorHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -115,6 +115,9 @@ async function duplicateRoots(
   const newDocuments: Document[] = [];
   const references = new Map<string, DocumentReference>();
   const originalCollections = new Map<string, Collection | null>();
+  // Populated once, in a single query, right before duplication starts —
+  // avoids a document_tags query per duplicated document.
+  let originalTagsByDocumentId = new Map<string, DocumentTag[]>();
 
   async function originalCollectionFor(original: Document) {
     const collectionId = original.collectionId;
@@ -233,6 +236,23 @@ async function duplicateRoots(
     duplicated.collection = collection ?? null;
     newDocuments.push(duplicated);
 
+    // Copy tags onto the duplicate. This is bookkeeping derived entirely from
+    // the original document's own (already-audited) tags, rather than a
+    // user-initiated tag change, so it's created silently — no
+    // `document_tag.create` event, mirroring how the rest of duplication
+    // doesn't emit secondary events for anything else it copies.
+    const originalTags = originalTagsByDocumentId.get(original.id) ?? [];
+    if (originalTags.length > 0) {
+      await DocumentTag.bulkCreate(
+        originalTags.map((originalTag) => ({
+          tagId: originalTag.tagId,
+          documentId: duplicated.id,
+          createdById: ctx.state.auth.user.id,
+        })),
+        { transaction: ctx.state.transaction }
+      );
+    }
+
     for (const child of item.children) {
       await duplicateItem(child, {
         ...options,
@@ -255,6 +275,20 @@ async function duplicateRoots(
     );
   }
 
+  const originalIds = collectOriginalIds(items);
+  if (originalIds.length > 0) {
+    const originalTags = await DocumentTag.findAll({
+      where: { documentId: { [Op.in]: originalIds } },
+      transaction: ctx.state.transaction,
+    });
+    originalTagsByDocumentId = new Map();
+    for (const originalTag of originalTags) {
+      const list = originalTagsByDocumentId.get(originalTag.documentId) ?? [];
+      list.push(originalTag);
+      originalTagsByDocumentId.set(originalTag.documentId, list);
+    }
+  }
+
   for (const [index, item] of items.entries()) {
     await duplicateItem(item, {
       parentDocumentId: roots[index].parentDocumentId,
@@ -263,4 +297,21 @@ async function duplicateRoots(
   }
 
   return newDocuments;
+}
+
+/**
+ * Flattens every original document id referenced by a duplicate item tree,
+ * including all descendants, so their tags can be loaded in one query.
+ *
+ * @param items the root duplicate items (each carrying its own children).
+ * @returns the flattened list of original document ids.
+ */
+function collectOriginalIds(items: DuplicateItem[]): string[] {
+  const ids: string[] = [];
+  const walk = (item: DuplicateItem) => {
+    ids.push(item.original.id);
+    item.children.forEach(walk);
+  };
+  items.forEach(walk);
+  return ids;
 }

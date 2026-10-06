@@ -5,9 +5,11 @@ import {
   type DefaultBodyType,
   type StrictRequest,
 } from "msw";
+import { sequelize } from "@server/storage/database";
 import { server } from "@server/test/msw";
-import { WebhookDelivery } from "@server/models";
+import { DocumentTag, Tag, WebhookDelivery } from "@server/models";
 import {
+  buildDocument,
   buildUser,
   buildWebhookDelivery,
   buildWebhookSubscription,
@@ -154,6 +156,192 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.statusCode).toBe(200);
     expect(delivery.responseBody).toBeDefined();
   });
+
+  test("should deliver document payloads without tags", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["documents.update"],
+    });
+    const user = await buildUser({ teamId: subscription.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const tag = await Tag.create({ teamId: user.teamId, name: "hooked" });
+    await DocumentTag.create({ tagId: tag.id, documentId: document.id });
+    const captured = captureWebhook("http://example.com");
+
+    const queries: string[] = [];
+    const query = sequelize.query.bind(sequelize);
+    const spy = vi
+      .spyOn(sequelize, "query")
+      .mockImplementation((sql, options) => {
+        queries.push(typeof sql === "string" ? sql : sql.query);
+        return query(sql, options);
+      });
+    try {
+      await new DeliverWebhookTask().perform({
+        subscriptionId: subscription.id,
+        event: {
+          name: "documents.update",
+          documentId: document.id,
+          collectionId: document.collectionId!,
+          teamId: user.teamId,
+          actorId: user.id,
+          ip,
+          createdAt: new Date().toISOString(),
+          data: { done: true },
+        },
+      });
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(captured.length).toBe(1);
+    const parsedBody = JSON.parse(captured[0].body);
+    expect(parsedBody.payload.model.id).toBe(document.id);
+    expect(parsedBody.payload.model).not.toHaveProperty("tags");
+    expect(queries.filter((sql) => /document_tags/.test(sql))).toHaveLength(0);
+  });
+
+  test("should deliver tag events with the presented tag", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["tags"],
+    });
+    const user = await buildUser({ teamId: subscription.teamId });
+    const tag = await Tag.create({ teamId: user.teamId, name: "webhooked" });
+    const captured = captureWebhook("http://example.com");
+
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event: {
+        name: "tags.update",
+        modelId: tag.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        ip,
+      },
+    });
+
+    expect(captured.length).toBe(1);
+    const parsedBody = JSON.parse(captured[0].body);
+    expect(parsedBody.event).toBe("tags.update");
+    expect(parsedBody.payload.id).toBe(tag.id);
+    expect(parsedBody.payload.model).toMatchObject({
+      id: tag.id,
+      name: "webhooked",
+    });
+    expect(parsedBody.payload.model).not.toHaveProperty("documentCount");
+    expect(parsedBody.payload.model).not.toHaveProperty("createdById");
+  });
+
+  test("should deliver tags.merge with the sourceId and the target tag", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["tags"],
+    });
+    const user = await buildUser({ teamId: subscription.teamId });
+    const source = await Tag.create({ teamId: user.teamId, name: "old" });
+    const target = await Tag.create({ teamId: user.teamId, name: "new" });
+    const captured = captureWebhook("http://example.com");
+
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event: {
+        name: "tags.merge",
+        modelId: target.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        ip,
+        data: { sourceId: source.id, sourceName: source.name },
+      },
+    });
+
+    expect(captured.length).toBe(1);
+    const parsedBody = JSON.parse(captured[0].body);
+    expect(parsedBody.event).toBe("tags.merge");
+    expect(parsedBody.payload.id).toBe(target.id);
+    expect(parsedBody.payload.sourceId).toBe(source.id);
+    expect(parsedBody.payload.model).toMatchObject({
+      id: target.id,
+      name: "new",
+    });
+  });
+
+  test("should deliver tags.delete with the deleted name and no model", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["tags.delete"],
+    });
+    const user = await buildUser({ teamId: subscription.teamId });
+    const tagId = crypto.randomUUID();
+    const captured = captureWebhook("http://example.com");
+
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event: {
+        name: "tags.delete",
+        modelId: tagId,
+        teamId: user.teamId,
+        actorId: user.id,
+        ip,
+        data: { name: "removed" },
+      },
+    });
+
+    expect(captured.length).toBe(1);
+    const parsedBody = JSON.parse(captured[0].body);
+    expect(parsedBody.payload).toEqual({
+      id: tagId,
+      model: null,
+      name: "removed",
+    });
+  });
+
+  test.each(["tags.add", "tags.remove"] as const)(
+    "should deliver %s with the tag and document id",
+    async (name) => {
+      const subscription = await buildWebhookSubscription({
+        url: "http://example.com",
+        events: ["*"],
+      });
+      const user = await buildUser({ teamId: subscription.teamId });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const tag = await Tag.create({ teamId: user.teamId, name: "linked" });
+      const documentTag = await DocumentTag.create({
+        tagId: tag.id,
+        documentId: document.id,
+      });
+      const captured = captureWebhook("http://example.com");
+
+      await new DeliverWebhookTask().perform({
+        subscriptionId: subscription.id,
+        event: {
+          name,
+          modelId: documentTag.id,
+          documentId: document.id,
+          teamId: user.teamId,
+          actorId: user.id,
+          ip,
+          data: { tagId: tag.id },
+        },
+      });
+
+      expect(captured.length).toBe(1);
+      const parsedBody = JSON.parse(captured[0].body);
+      expect(parsedBody.event).toBe(name);
+      expect(parsedBody.payload.id).toBe(tag.id);
+      expect(parsedBody.payload.documentId).toBe(document.id);
+      expect(parsedBody.payload.model).toMatchObject({
+        id: tag.id,
+        name: "linked",
+      });
+    }
+  );
 
   test("should mark delivery as failed if post fails", async () => {
     const subscription = await buildWebhookSubscription({

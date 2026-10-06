@@ -38,6 +38,7 @@ function SearchInput({ defaultValue, ref, ...rest }: Props) {
         ref={ref}
         spellCheck="false"
         type="search"
+        autoComplete="off"
         autoFocus
       />
     </Wrapper>

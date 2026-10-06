@@ -3,7 +3,7 @@ import { omit } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
 import type { Collection, FileOperation } from "@server/models";
-import { Attachment, Document } from "@server/models";
+import { Attachment, Document, DocumentTag, Tag } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
@@ -96,6 +96,33 @@ export default class ExportJSONTask extends ExportTask {
       }
     };
 
+    // Tag names for every document in the collection, loaded in one query
+    // rather than one per document.
+    const tagsByDocumentId = new Map<string, string[]>();
+    const loadTags = async (nodes: NavigationNode[]) => {
+      const documentIds: string[] = [];
+      const collect = (children: NavigationNode[]) => {
+        for (const node of children) {
+          documentIds.push(node.id);
+          collect(node.children ?? []);
+        }
+      };
+      collect(nodes);
+
+      const documentTags = await sequelizeReadOnly.transaction((transaction) =>
+        DocumentTag.findAll({
+          where: { documentId: documentIds },
+          include: [{ model: Tag }],
+          transaction,
+        })
+      );
+      for (const documentTag of documentTags) {
+        const names = tagsByDocumentId.get(documentTag.documentId) ?? [];
+        names.push(documentTag.tag.name);
+        tagsByDocumentId.set(documentTag.documentId, names);
+      }
+    };
+
     const addDocumentTree = async (nodes: NavigationNode[]) => {
       for (const node of nodes) {
         const result = await sequelizeReadOnly.transaction(
@@ -153,6 +180,7 @@ export default class ExportJSONTask extends ExportTask {
             : null,
           fullWidth: document.fullWidth,
           parentDocumentId: document.parentDocumentId,
+          tags: tagsByDocumentId.get(document.id) ?? [],
         };
 
         if (node.children?.length > 0) {
@@ -181,6 +209,7 @@ export default class ExportJSONTask extends ExportTask {
     addAttachments(collectionAttachments);
 
     if (collection.documentStructure) {
+      await loadTags(collection.documentStructure);
       await addDocumentTree(collection.documentStructure);
     }
 

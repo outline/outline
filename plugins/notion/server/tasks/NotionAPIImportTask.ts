@@ -65,6 +65,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
       author: parsedPage.author,
       createdAt: parsedPage.createdAt,
       updatedAt: parsedPage.updatedAt,
+      tags: parsedPage.tags,
     }));
 
     const childTasksInput: ImportTaskInput<IntegrationService.Notion> =

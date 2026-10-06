@@ -17,7 +17,9 @@ import { authorize, can } from "@server/policies";
 import {
   presentDocument as presentDocumentBase,
   presentNavigationNode,
+  loadDocumentTags,
 } from "@server/presenters";
+import type { presentDocumentTag } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DeprecationValidation } from "@shared/validations";
@@ -33,6 +35,7 @@ import {
   getPublicShareUrlsForDocuments,
   optionalString,
   pathToUrl,
+  resolveTagNameFilters,
   withTracing,
 } from "./util";
 import { ValidationError } from "@server/errors";
@@ -55,6 +58,7 @@ export function presentDocument(
     includeText?: boolean;
     includeUpdatedAt?: boolean;
     includeCommentCount?: boolean;
+    tags?: ReturnType<typeof presentDocumentTag>[];
   } = {}
 ) {
   return presentDocumentBase(undefined, document, options);
@@ -86,6 +90,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "A collection ID to filter documents by."
           ),
+          tags: z
+            .array(z.string())
+            .optional()
+            .describe(
+              "Tag names to filter documents by. Only documents carrying every listed tag are returned. A name that does not match any tag in the workspace returns no results."
+            ),
           includeArchived: z
             .boolean()
             .optional()
@@ -112,7 +122,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       withTracing(
         "list_documents",
         async (
-          { query, collectionId, includeArchived, offset, limit },
+          { query, collectionId, tags, includeArchived, offset, limit },
           extra
         ) => {
           try {
@@ -171,6 +181,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   value: collectionId,
                 });
               }
+              if (tags?.length) {
+                searchFilters.push(
+                  ...(await resolveTagNameFilters(tags, user.teamId))
+                );
+              }
               const { results, total } = await searchProvider.searchForUser(
                 user,
                 {
@@ -201,13 +216,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 ...(exactMatch ? [exactMatch] : []),
                 ...filteredResults.map((r) => r.document),
               ];
-              const [breadcrumbs, shareUrls] = await Promise.all([
-                getBreadcrumbsForDocuments(matchedDocuments, user),
-                getPublicShareUrlsForDocuments(
-                  user.team,
-                  matchedDocuments.map((doc) => doc.id)
-                ),
-              ]);
+              const [breadcrumbs, shareUrls, tagsByDocumentId] =
+                await Promise.all([
+                  getBreadcrumbsForDocuments(matchedDocuments, user),
+                  getPublicShareUrlsForDocuments(
+                    user.team,
+                    matchedDocuments.map((doc) => doc.id)
+                  ),
+                  loadDocumentTags(matchedDocuments.map((doc) => doc.id)),
+                ]);
 
               const presented = await Promise.all(
                 filteredResults.map(async (result) => {
@@ -216,6 +233,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     await presentDocument(result.document, {
                       includeData: false,
                       includeText: false,
+                      tags: tagsByDocumentId.get(result.document.id) ?? [],
                     })
                   );
                   const breadcrumb = breadcrumbs.get(result.document.id);
@@ -239,6 +257,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   await presentDocument(exactMatch, {
                     includeData: false,
                     includeText: false,
+                    tags: tagsByDocumentId.get(exactMatch.id) ?? [],
                   })
                 );
                 const breadcrumb = breadcrumbs.get(exactMatch.id);
@@ -272,6 +291,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 value: collectionId,
               });
             }
+            if (tags?.length) {
+              filters.push(...(await resolveTagNameFilters(tags, user.teamId)));
+            }
             const { results } = await searchProvider.searchForUser(user, {
               filter: { operator: "AND", filters },
               offset: effectiveOffset,
@@ -280,13 +302,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const documents = results.map((result) => result.document);
 
-            const [breadcrumbs, shareUrls] = await Promise.all([
-              getBreadcrumbsForDocuments(documents, user),
-              getPublicShareUrlsForDocuments(
-                user.team,
-                documents.map((document) => document.id)
-              ),
-            ]);
+            const [breadcrumbs, shareUrls, tagsByDocumentId] =
+              await Promise.all([
+                getBreadcrumbsForDocuments(documents, user),
+                getPublicShareUrlsForDocuments(
+                  user.team,
+                  documents.map((document) => document.id)
+                ),
+                loadDocumentTags(documents.map((document) => document.id)),
+              ]);
 
             const presented = await Promise.all(
               documents.map(async (document) => {
@@ -295,6 +319,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   await presentDocument(document, {
                     includeData: false,
                     includeText: false,
+                    tags: tagsByDocumentId.get(document.id) ?? [],
                   })
                 );
                 const breadcrumb = breadcrumbs.get(document.id);

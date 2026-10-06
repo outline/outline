@@ -1,4 +1,11 @@
-import { sharedModelPath, desktopify } from "./routeHelpers";
+import { sharedModelPath, desktopify, searchPath } from "./routeHelpers";
+
+describe("#searchPath", () => {
+  it("should repeat the tagId param for each tag", () => {
+    expect(searchPath({ tagId: ["a", "b"] })).toBe("/search?tagId=a&tagId=b");
+    expect(searchPath({ query: "x", tagId: "a" })).toBe("/search?q=x&tagId=a");
+  });
+});
 
 describe("#sharedDocumentPath", () => {
   it("should return share path for a document", () => {

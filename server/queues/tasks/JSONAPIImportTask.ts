@@ -380,6 +380,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
         createdAt: item.createdAt ? new Date(item.createdAt) : undefined,
         updatedAt: item.updatedAt ? new Date(item.updatedAt) : undefined,
         publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
+        tags: item.tags,
         content: transformed,
       });
 
@@ -535,6 +536,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       createdAt: exported.createdAt,
       updatedAt: exported.updatedAt,
       publishedAt: exported.publishedAt,
+      tags: exported.tags,
       attachmentIdMap,
       children: doc.children.length
         ? doc.children.map((c) => this.toPageInput(c, attachmentIdMap))

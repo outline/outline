@@ -22,6 +22,7 @@ import "./searchQuery";
 import "./share";
 import "./star";
 import "./subscription";
+import "./tag";
 import "./user";
 import "./team";
 import "./template";

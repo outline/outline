@@ -12,8 +12,10 @@ import {
 import {
   Attachment,
   Document,
+  DocumentTag,
   GroupMembership,
   SearchQuery,
+  Tag,
   UserMembership,
 } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
@@ -380,6 +382,107 @@ describe("list_documents", () => {
     expect(await SearchQuery.count({ where: { teamId: user.teamId } })).toEqual(
       0
     );
+  });
+
+  it("includes tag names on document results", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const tag = await Tag.create({
+      teamId: user.teamId,
+      name: "invented-tag",
+    });
+    await DocumentTag.create({ tagId: tag.id, documentId: document.id });
+
+    const data = parseMcpListContent<{
+      document: { id: string; tags?: { name: string }[] };
+    }>(
+      (await callMcpTool(server, accessToken, "list_documents"))?.result
+        ?.content
+    );
+
+    const match = data.find((d) => d.document.id === document.id);
+    expect(match?.document.tags?.map((t) => t.name)).toEqual(["invented-tag"]);
+  });
+
+  it("filters by tag names, requiring every listed tag", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const tagged = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const partiallyTagged = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const untagged = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const first = await Tag.create({
+      teamId: user.teamId,
+      name: "invented-first",
+    });
+    const second = await Tag.create({
+      teamId: user.teamId,
+      name: "invented-second",
+    });
+    await DocumentTag.create({ tagId: first.id, documentId: tagged.id });
+    await DocumentTag.create({ tagId: second.id, documentId: tagged.id });
+    await DocumentTag.create({
+      tagId: first.id,
+      documentId: partiallyTagged.id,
+    });
+
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      (
+        await callMcpTool(server, accessToken, "list_documents", {
+          tags: ["invented-first", "invented-second"],
+        })
+      )?.result?.content
+    );
+
+    const ids = data.map((d) => d.document.id);
+    expect(ids).toContain(tagged.id);
+    expect(ids).not.toContain(partiallyTagged.id);
+    expect(ids).not.toContain(untagged.id);
+  });
+
+  it("returns no results for an unknown tag name rather than an unfiltered search", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      (
+        await callMcpTool(server, accessToken, "list_documents", {
+          tags: ["does-not-exist"],
+        })
+      )?.result?.content
+    );
+
+    expect(data).toEqual([]);
   });
 });
 

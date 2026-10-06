@@ -10,7 +10,7 @@ import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Notification, User } from "@server/models";
-import presentNotification from "@server/presenters/notification";
+import { presentNotifications } from "@server/presenters/notification";
 import { presentUser } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import * as T from "./schema";
@@ -114,11 +114,7 @@ router.post(
 
     ctx.body = {
       data: {
-        notifications: await Promise.all(
-          notifications.map((notification) =>
-            presentNotification(ctx, notification)
-          )
-        ),
+        notifications: await presentNotifications(ctx, notifications),
       },
     };
   }

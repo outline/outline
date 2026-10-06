@@ -611,6 +611,88 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
   });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "info-tag" },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", user, {
+      body: {
+        tagId: tagBody.data.id,
+        documentId: document.id,
+      },
+    });
+
+    const res = await server.post("/api/documents.info", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(Array.isArray(body.data.tags)).toBe(true);
+    expect(body.data.tags.map((t: { name: string }) => t.name)).toContain(
+      "info-tag"
+    );
+    // embedded tags are slim: counts depend on the reader and are left out
+    expect(Object.keys(body.data.tags[0]).sort()).toEqual([
+      "color",
+      "id",
+      "name",
+    ]);
+  });
+
+  it("should return an empty tags array when the document has no tags", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.info", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.tags).toEqual([]);
+  });
+
+  it("should not include tags when accessed via shareId", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "share-info-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: document.id },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: { shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.tags).toBeUndefined();
+  });
 });
 
 describe("#documents.export", () => {
@@ -2671,6 +2753,128 @@ describe("#documents.list", () => {
       // draft is not exposed.
       expect(ids).not.toContain(otherDraft.id);
     });
+
+    it("should filter documents by tagId", async () => {
+      const user = await buildUser();
+      const tagged = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        title: "tagged document",
+      });
+      const untagged = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        title: "untagged document",
+      });
+
+      const tagRes = await server.post("/api/tags.create", user, {
+        body: { name: "list-filter" },
+      });
+      const tagBody = await tagRes.json();
+
+      await server.post("/api/tags.add", user, {
+        body: { tagId: tagBody.data.id, documentId: tagged.id },
+      });
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "tagId", operator: "eq", value: tagBody.data.id }],
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toContain(tagged.id);
+      expect(ids).not.toContain(untagged.id);
+    });
+
+    it("should filter documents by tagId with the in operator", async () => {
+      const user = await buildUser();
+      const taggedA = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const taggedB = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const untagged = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const tagARes = await server.post("/api/tags.create", user, {
+        body: { name: "list-filter-a" },
+      });
+      const tagBRes = await server.post("/api/tags.create", user, {
+        body: { name: "list-filter-b" },
+      });
+      const tagABody = await tagARes.json();
+      const tagBBody = await tagBRes.json();
+
+      await server.post("/api/tags.add", user, {
+        body: { tagId: tagABody.data.id, documentId: taggedA.id },
+      });
+      await server.post("/api/tags.add", user, {
+        body: { tagId: tagBBody.data.id, documentId: taggedB.id },
+      });
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            {
+              field: "tagId",
+              operator: "in",
+              value: [tagABody.data.id, tagBBody.data.id],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toContain(taggedA.id);
+      expect(ids).toContain(taggedB.id);
+      expect(ids).not.toContain(untagged.id);
+    });
+  });
+
+  it("should include each document's own tags in the response", async () => {
+    const user = await buildUser();
+    const documentA = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const documentB = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "list-tag" },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: documentA.id },
+    });
+
+    const res = await server.post("/api/documents.list", user, { body: {} });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const presentedA = body.data.find(
+      (d: { id: string }) => d.id === documentA.id
+    );
+    const presentedB = body.data.find(
+      (d: { id: string }) => d.id === documentB.id
+    );
+    expect(presentedA.tags.map((t: { name: string }) => t.name)).toEqual([
+      "list-tag",
+    ]);
+    expect(presentedB.tags).toEqual([]);
   });
 
   it("should require authentication", async () => {
@@ -2765,6 +2969,32 @@ describe("#documents.drafts", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const draftDocument = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "draft-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: draftDocument.id },
+    });
+
+    const res = await server.post("/api/documents.drafts", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    const presented = body.data.find(
+      (d: { id: string }) => d.id === draftDocument.id
+    );
+    expect(presented.tags.map((t: { name: string }) => t.name)).toEqual([
+      "draft-tag",
+    ]);
+  });
 });
 
 describe("#documents.search_titles", () => {
@@ -2848,9 +3078,68 @@ describe("#documents.search_titles", () => {
     const res = await server.post("/api/documents.search_titles", user);
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "query: Invalid input: expected string, received undefined"
-    );
+    expect(body.message).toEqual("query or a tagId filter is required");
+  });
+
+  it("should return results for a tag-only filter without a query", async () => {
+    const user = await buildUser();
+    const tagged = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "tag-only-filter title",
+    });
+    const untagged = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "other title",
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "search-titles-tag-only" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: tagged.id },
+    });
+
+    const res = await server.post("/api/documents.search_titles", user, {
+      body: {
+        filters: [{ field: "tagId", operator: "eq", value: tagBody.data.id }],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map((d: { id: string }) => d.id);
+    expect(ids).toContain(tagged.id);
+    expect(ids).not.toContain(untagged.id);
+  });
+
+  it("should accept a blank query alongside a tagId filter", async () => {
+    const user = await buildUser();
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "search-titles-blank" },
+    });
+    const tagBody = await tagRes.json();
+
+    const res = await server.post("/api/documents.search_titles", user, {
+      body: {
+        query: "  ",
+        filters: [{ field: "tagId", operator: "eq", value: tagBody.data.id }],
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should fail with a blank query and no tagId filter", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.search_titles", user, {
+      body: { query: "  " },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("query or a tagId filter is required");
   });
 
   it("should return case insensitive results for partial query", async () => {
@@ -3182,9 +3471,64 @@ describe("#documents.search_titles", () => {
       expect(res.status).toEqual(403);
     });
   });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "search titles tag test",
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "search-titles-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: document.id },
+    });
+
+    const res = await server.post("/api/documents.search_titles", user, {
+      body: { query: "search titles tag test" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    const presented = body.data.find(
+      (d: { id: string }) => d.id === document.id
+    );
+    expect(presented.tags.map((t: { name: string }) => t.name)).toEqual([
+      "search-titles-tag",
+    ]);
+  });
 });
 
 describe("#documents.search", () => {
+  it("should reject a tagId filter on a share link search", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        shareId: crypto.randomUUID(),
+        query: "notes",
+        filters: [
+          { field: "tagId", operator: "eq", value: crypto.randomUUID() },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "tagId filters cannot be combined with shareId"
+    );
+  });
+
+  it("should accept a blank query", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.search", user, {
+      body: { query: "", statusFilter: ["published"] },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should return results", async () => {
     const user = await buildUser();
     await buildDocument({
@@ -4396,6 +4740,245 @@ describe("#documents.search", () => {
       expect(res.status).toEqual(403);
     });
   });
+
+  it("should filter documents by tagId", async () => {
+    const user = await buildUser();
+    const docWithTag = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "tagged document",
+    });
+    const docWithout = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "untagged document",
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: {
+        name: "searchable",
+      },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", user, {
+      body: {
+        tagId: tagBody.data.id,
+        documentId: docWithTag.id,
+      },
+    });
+
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        filters: [{ field: "tagId", operator: "eq", value: tagBody.data.id }],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map(
+      (d: { document: { id: string } }) => d.document.id
+    );
+    expect(ids).toContain(docWithTag.id);
+    expect(ids).not.toContain(docWithout.id);
+
+    const tagged = body.data.find(
+      (d: { document: { id: string } }) => d.document.id === docWithTag.id
+    );
+    expect(tagged.document.tags.map((t: { name: string }) => t.name)).toEqual([
+      "searchable",
+    ]);
+  });
+
+  it("should filter documents by tagId with the in operator", async () => {
+    const user = await buildUser();
+    const taggedA = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const taggedB = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const untagged = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagARes = await server.post("/api/tags.create", user, {
+      body: { name: "search-in-a" },
+    });
+    const tagBRes = await server.post("/api/tags.create", user, {
+      body: { name: "search-in-b" },
+    });
+    const tagABody = await tagARes.json();
+    const tagBBody = await tagBRes.json();
+
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagABody.data.id, documentId: taggedA.id },
+    });
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBBody.data.id, documentId: taggedB.id },
+    });
+
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        filters: [
+          {
+            field: "tagId",
+            operator: "in",
+            value: [tagABody.data.id, tagBBody.data.id],
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map(
+      (d: { document: { id: string } }) => d.document.id
+    );
+    expect(ids).toContain(taggedA.id);
+    expect(ids).toContain(taggedB.id);
+    expect(ids).not.toContain(untagged.id);
+  });
+
+  it("should AND several tagId eq leaves, requiring all tags", async () => {
+    const user = await buildUser();
+    const both = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const onlyA = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagARes = await server.post("/api/tags.create", user, {
+      body: { name: "search-and-a" },
+    });
+    const tagBRes = await server.post("/api/tags.create", user, {
+      body: { name: "search-and-b" },
+    });
+    const tagABody = await tagARes.json();
+    const tagBBody = await tagBRes.json();
+
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagABody.data.id, documentId: both.id },
+    });
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBBody.data.id, documentId: both.id },
+    });
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagABody.data.id, documentId: onlyA.id },
+    });
+
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        filters: [
+          { field: "tagId", operator: "eq", value: tagABody.data.id },
+          { field: "tagId", operator: "eq", value: tagBBody.data.id },
+        ],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map(
+      (d: { document: { id: string } }) => d.document.id
+    );
+    expect(ids).toContain(both.id);
+    expect(ids).not.toContain(onlyA.id);
+  });
+
+  it("should combine a tagId filter with a collectionId filter", async () => {
+    const user = await buildUser();
+    const collectionA = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const collectionB = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const inCollectionA = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collectionA.id,
+    });
+    const inCollectionB = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collectionB.id,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "search-tag-collection" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: inCollectionA.id },
+    });
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: inCollectionB.id },
+    });
+
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        filters: [
+          { field: "tagId", operator: "eq", value: tagBody.data.id },
+          { field: "collectionId", operator: "eq", value: collectionA.id },
+        ],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map(
+      (d: { document: { id: string } }) => d.document.id
+    );
+    expect(ids).toContain(inCollectionA.id);
+    expect(ids).not.toContain(inCollectionB.id);
+  });
+
+  it("should not include tags in shared search results", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "shared search result",
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      includeChildDocuments: true,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "share-search-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: document.id },
+    });
+
+    const res = await server.post("/api/documents.search", {
+      body: { shareId: share.id, query: "shared search result" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const result = body.data.find(
+      (d: { document: { id: string } }) => d.document.id === document.id
+    );
+    expect(result.document.tags).toBeUndefined();
+  });
 });
 
 describe("#documents.templatize", () => {
@@ -4719,6 +5302,36 @@ describe("#documents.archived", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.archived");
     expect(res.status).toEqual(401);
+  });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "archived-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: document.id },
+    });
+
+    // A tag can only be added while the document is still active — add it
+    // before archiving.
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+
+    const res = await server.post("/api/documents.archived", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    const presented = body.data.find(
+      (d: { id: string }) => d.id === document.id
+    );
+    expect(presented.tags.map((t: { name: string }) => t.name)).toEqual([
+      "archived-tag",
+    ]);
   });
 });
 
@@ -5044,6 +5657,33 @@ describe("#documents.viewed", () => {
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "viewed-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: document.id },
+    });
+
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data[0].tags.map((t: { name: string }) => t.name)).toEqual([
+      "viewed-tag",
+    ]);
   });
 });
 
@@ -7549,6 +8189,18 @@ describe("#documents.unpublish", () => {
 });
 
 describe("#documents.users", () => {
+  it("should accept a blank query", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.users", user, {
+      body: { id: document.id, query: "" },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should return all users when collection is not private", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -8596,6 +9248,13 @@ describe("#documents.memberships", () => {
     });
   });
 
+  it("should accept a blank query", async () => {
+    const res = await server.post("/api/documents.memberships", actor, {
+      body: { id: document.id, query: "" },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should return members in document", async () => {
     const members = await Promise.all([
       buildUser({ teamId: actor.teamId }),
@@ -8723,6 +9382,33 @@ describe("#documents.duplicate", () => {
     expect(body.data.documents).toHaveLength(2);
     expect(body.data.documents[0].fullWidth).toBe(true);
     expect(body.data.documents[1].fullWidth).toBe(true);
+  });
+
+  it("should include copied tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", user, {
+      body: { name: "duplicate-response-tag" },
+    });
+    const tagBody = await tagRes.json();
+    await server.post("/api/tags.add", user, {
+      body: { tagId: tagBody.data.id, documentId: document.id },
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(
+      body.data.documents[0].tags.map((t: { name: string }) => t.name)
+    ).toEqual(["duplicate-response-tag"]);
   });
 
   it("should allow duplicating from a read-only collection into a writable one", async () => {

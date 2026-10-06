@@ -15,6 +15,7 @@ import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
+import { sequelize } from "@server/storage/database";
 import { isISO8601Duration } from "@server/validation";
 
 const operatorMap: Record<
@@ -92,6 +93,31 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
       return { collaboratorIds: { [Op.overlap]: value.map(String) } };
     }
     throw new Error("`userId` only supports `eq` or `in` operators");
+  }
+
+  // `tagId` matches through the document_tags join table. The subquery avoids
+  // referencing the outer table alias so it works in any document query.
+  if (field === "tagId") {
+    const tagIds =
+      operator === "eq" && value !== undefined
+        ? [String(value)]
+        : operator === "in" && Array.isArray(value)
+          ? value.map(String)
+          : undefined;
+    if (!tagIds) {
+      throw new Error("`tagId` only supports `eq` or `in` operators");
+    }
+    if (tagIds.length === 0) {
+      return { id: { [Op.in]: [] } };
+    }
+    const escaped = tagIds.map((tagId) => sequelize.escape(tagId)).join(", ");
+    return {
+      id: {
+        [Op.in]: Sequelize.literal(
+          `(SELECT "documentId" FROM document_tags WHERE "tagId" IN (${escaped}))`
+        ),
+      },
+    };
   }
 
   switch (operator) {

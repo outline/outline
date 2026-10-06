@@ -28,6 +28,7 @@ import SearchesStore from "./SearchesStore";
 import SharesStore from "./SharesStore";
 import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
+import TagsStore from "./TagsStore";
 import TemplatesStore from "./TemplatesStore";
 import UiStore from "./UiStore";
 import UnfurlsStore from "./UnfurlsStore";
@@ -66,6 +67,7 @@ export default class RootStore {
   unfurls: UnfurlsStore;
   stars: StarsStore;
   subscriptions: SubscriptionsStore;
+  tags: TagsStore;
   templates: TemplatesStore;
   users: UsersStore;
   views: ViewsStore;
@@ -98,6 +100,7 @@ export default class RootStore {
     this.registerStore(SharesStore);
     this.registerStore(StarsStore);
     this.registerStore(SubscriptionsStore);
+    this.registerStore(TagsStore);
     this.registerStore(TemplatesStore);
     this.registerStore(UnfurlsStore);
     this.registerStore(UsersStore);

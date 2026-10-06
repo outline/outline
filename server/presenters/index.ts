@@ -4,7 +4,10 @@ import presentAuthenticationProvider from "./authenticationProvider";
 import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
 import presentComment from "./comment";
-import presentDocument, { presentDocuments } from "./document";
+import presentDocument, {
+  presentDocuments,
+  loadDocumentTags,
+} from "./document";
 import presentDocumentInsight from "./documentInsight";
 import presentEvent from "./event";
 import presentExternalGroup from "./externalGroup";
@@ -28,6 +31,7 @@ import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
 import presentStar from "./star";
 import presentSubscription from "./subscription";
+import presentTag, { presentDocumentTag } from "./tag";
 import presentTeam from "./team";
 import presentTemplate from "./template";
 import presentUser from "./user";
@@ -45,6 +49,7 @@ export {
   presentDocument,
   presentDocuments,
   presentDocumentInsight,
+  loadDocumentTags,
   presentEvent,
   presentExternalGroup,
   presentFileOperation,
@@ -68,6 +73,8 @@ export {
   presentShare,
   presentStar,
   presentSubscription,
+  presentTag,
+  presentDocumentTag,
   presentTeam,
   presentTemplate,
   presentUser,

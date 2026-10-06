@@ -55,6 +55,15 @@ export function trashPath(): string {
 }
 
 /**
+ * Returns the path to the tags index.
+ *
+ * @returns the tags path.
+ */
+export function tagsPath(): string {
+  return "/tags";
+}
+
+/**
  * Returns the path to the debug screen.
  *
  * @returns the debug path.
@@ -275,17 +284,21 @@ export function searchPath({
   query,
   collectionId,
   documentId,
+  tagId,
   ref,
 }: {
   query?: string;
   collectionId?: string;
   documentId?: string;
+  /** One or more tag ids to filter by, all of which must match. */
+  tagId?: string | string[];
   ref?: string;
 } = {}): string {
   const search = queryString.stringify({
     q: query,
     collectionId,
     documentId,
+    tagId,
     ref,
   });
 

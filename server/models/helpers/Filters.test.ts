@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { CollectionPermission, StatusFilter, UserRole } from "@shared/types";
 import { buildCollection, buildUser, buildTeam } from "@server/test/factories";
 import {
@@ -255,6 +255,48 @@ describe("Filters", () => {
     it("rejects userId with a non-eq/in operator", () => {
       expect(() =>
         buildWhere({ field: "userId", operator: "neq", value: "u" })
+      ).toThrow();
+    });
+
+    it("maps tagId eq to an id subquery on document_tags", () => {
+      expect(
+        buildWhere({ field: "tagId", operator: "eq", value: "t1" })
+      ).toEqual({
+        id: {
+          [Op.in]: Sequelize.literal(
+            `(SELECT "documentId" FROM document_tags WHERE "tagId" IN ('t1'))`
+          ),
+        },
+      });
+    });
+
+    it("maps tagId in to an any-of id subquery on document_tags", () => {
+      expect(
+        buildWhere({ field: "tagId", operator: "in", value: ["a", "b"] })
+      ).toEqual({
+        id: {
+          [Op.in]: Sequelize.literal(
+            `(SELECT "documentId" FROM document_tags WHERE "tagId" IN ('a', 'b'))`
+          ),
+        },
+      });
+    });
+
+    it("escapes tagId values", () => {
+      expect(
+        buildWhere({ field: "tagId", operator: "eq", value: "x'); --" })
+      ).toEqual({
+        id: {
+          [Op.in]: Sequelize.literal(
+            `(SELECT "documentId" FROM document_tags WHERE "tagId" IN ('x''); --'))`
+          ),
+        },
+      });
+    });
+
+    it("rejects tagId with a non-eq/in operator", () => {
+      expect(() =>
+        buildWhere({ field: "tagId", operator: "neq", value: "t" })
       ).toThrow();
     });
   });

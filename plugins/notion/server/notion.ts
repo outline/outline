@@ -26,6 +26,7 @@ import { NotionUtils } from "../shared/NotionUtils";
 import type { Block, Page } from "../shared/types";
 import { PageType } from "../shared/types";
 import env from "./env";
+import { parseNotionTags } from "./utils/NotionTags";
 
 type PageInfo = {
   title: string;
@@ -33,6 +34,8 @@ type PageInfo = {
   author?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  /** Names of the tags found on "Tags"/"Labels" multi_select or select properties. */
+  tags?: string[];
 };
 
 const Credentials = Buffer.from(
@@ -390,6 +393,7 @@ export class NotionClient {
       updatedAt: !page.last_edited_time
         ? undefined
         : new Date(page.last_edited_time),
+      tags: parseNotionTags(page.properties),
     };
   }
 

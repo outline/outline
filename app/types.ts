@@ -13,6 +13,7 @@ import type Document from "./models/Document";
 import type FileOperation from "./models/FileOperation";
 import type Pin from "./models/Pin";
 import type Star from "./models/Star";
+import type Tag from "./models/Tag";
 import type User from "./models/User";
 import type UserMembership from "./models/UserMembership";
 import type Policy from "./models/Policy";
@@ -285,6 +286,17 @@ export type WebsocketCommentReactionEvent = {
   emoji: string;
   commentId: string;
   user: User;
+};
+
+export type WebsocketDocumentTagEvent = {
+  documentId: string;
+  tagId: string;
+  tag?: PartialExcept<Tag, "id">;
+};
+
+export type WebsocketTagMergeEvent = PartialExcept<Tag, "id"> & {
+  /** The id of the tag that was merged into this one and no longer exists. */
+  sourceId: string;
 };
 
 export type WebsocketEvent =

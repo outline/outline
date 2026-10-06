@@ -38,6 +38,7 @@ import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
+import TagsLink from "./components/TagsLink";
 import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
 
@@ -146,6 +147,7 @@ function AppSidebar() {
               </Section>
             )}
             <Section>
+              <TagsLink />
               {can.createDocument && <TrashLink />}
               <DismissableSidebarAction
                 id="sidebar-import-hidden"

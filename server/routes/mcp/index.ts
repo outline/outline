@@ -22,6 +22,7 @@ import { collectionTools } from "@server/tools/collections";
 import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
 import { fetchTool } from "@server/tools/fetch";
+import { tagTools } from "@server/tools/tags";
 import { templateTools } from "@server/tools/templates";
 import { userTools } from "@server/tools/users";
 import { iconNamesResourceUri } from "@server/tools/util";
@@ -143,6 +144,7 @@ function createMcpServer(
   commentTools(server, scopes);
   documentTools(server, scopes);
   fetchTool(server, scopes);
+  tagTools(server, scopes);
   templateTools(server, scopes);
   userTools(server, scopes);
 

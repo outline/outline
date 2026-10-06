@@ -82,6 +82,7 @@ import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
 import {
+  loadDocumentTags,
   presentDocument,
   presentDocumentInsight,
   presentDocuments,
@@ -1351,11 +1352,24 @@ router.post(
     const { results, total } = response;
     const documents = results.map((result) => result.document);
 
+    // presentDocument is called individually per result below (rather than
+    // through the batching presentDocuments), so tags are loaded once here
+    // and threaded through — one extra query for the whole response, not one
+    // per result.
+    const tagsByDocumentId: Awaited<ReturnType<typeof loadDocumentTags>> =
+      isPublic || shareId
+        ? new Map()
+        : await loadDocumentTags(
+            documents.map((document) => document.id),
+            { transaction: ctx.state.transaction }
+          );
+
     const data = await Promise.all(
       results.map(async (result) => {
         const document = await presentDocument(ctx, result.document, {
           isPublic,
           shareId,
+          tags: tagsByDocumentId.get(result.document.id) ?? [],
         });
         return { ...result, document };
       })

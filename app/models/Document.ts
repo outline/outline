@@ -28,8 +28,9 @@ import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
 import type DocumentsStore from "~/stores/DocumentsStore";
+import type Tag from "~/models/Tag";
 import User from "~/models/User";
-import type { Properties } from "~/types";
+import type { PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Collection from "./Collection";
 import type Notification from "./Notification";
@@ -255,6 +256,34 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @observable
   backlinkIds?: string[] = undefined;
+  /**
+   * Ids of the tags applied to this document, from API document responses.
+   * Share-link responses and realtime pushes carry no tags, so they leave this
+   * undefined or unchanged.
+   */
+  @observable
+  tagIds: string[] | undefined = undefined;
+
+  /**
+   * Tags applied to this document, resolved from the tags store.
+   */
+  @computed
+  get tags(): Tag[] | undefined {
+    const { tags } = this.store.rootStore;
+    return this.tagIds
+      ?.map((id) => tags.get(id))
+      .filter((tag): tag is Tag => !!tag);
+  }
+
+  /**
+   * Adds the given tags to the tags store and records their ids. Accepts raw
+   * API data so that documents.info payloads hydrate through updateData.
+   */
+  set tags(value: Array<Tag | PartialExcept<Tag, "id">> | undefined) {
+    const { tags } = this.store.rootStore;
+    this.tagIds = value?.map((tag) => tags.add(tag).id);
+  }
+
   /**
    * Returns the notifications associated with this document.
    */

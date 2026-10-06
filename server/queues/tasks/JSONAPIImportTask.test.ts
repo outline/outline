@@ -7,10 +7,13 @@ import {
   Attachment,
   Collection,
   Document,
+  DocumentTag,
   Import,
   ImportTask,
+  Tag,
   User,
 } from "@server/models";
+import Logger from "@server/logging/Logger";
 import FileStorage from "@server/storage/files";
 import {
   CollectionPermission,
@@ -52,7 +55,9 @@ interface BuiltZip {
  * documents carrying source user attribution, plus one referenced
  * attachment.
  */
-async function buildJSONExportZip(): Promise<BuiltZip> {
+async function buildJSONExportZip(
+  documentOneTags: string[] = ["  FixtureTag  ", "invalid tag!", "---"]
+): Promise<BuiltZip> {
   const collectionExternalId = randomUUID();
   const collectionUrlId = randomUrlId();
   const documentOneId = randomUUID();
@@ -151,6 +156,7 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
         publishedAt: "2024-07-18T18:03:45.710Z",
         fullWidth: false,
         parentDocumentId: null,
+        tags: documentOneTags,
       },
       [documentTwoId]: {
         id: documentTwoId,
@@ -333,6 +339,96 @@ describe("JSONAPIImportTask", () => {
     expect(collections.length).toBe(1);
     expect(documents.length).toBe(2);
     expect(attachments.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("restores tags by name, normalizing valid ones and skipping invalid ones", async () => {
+    const admin = await buildAdmin();
+    const { importId } = await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+    });
+
+    const documentOne = await Document.findOne({
+      where: { apiImportId: importId, title: "Document 1" },
+      rejectOnEmpty: true,
+    });
+    const documentTwo = await Document.findOne({
+      where: { apiImportId: importId, title: "Document 2" },
+      rejectOnEmpty: true,
+    });
+
+    const documentOneTags = await DocumentTag.findAll({
+      where: { documentId: documentOne.id },
+      include: [{ model: Tag }],
+    });
+    expect(documentOneTags.map((dt) => dt.tag.name)).toEqual(["fixturetag"]);
+
+    // The invalid name is skipped rather than failing the import, and no tag
+    // was created for it.
+    const invalidTag = await Tag.findOne({
+      where: { teamId: admin.teamId, name: "invalid tag!" },
+    });
+    expect(invalidTag).toBeNull();
+    // nor for a name without any letter or digit
+    expect(
+      await Tag.findOne({ where: { teamId: admin.teamId, name: "---" } })
+    ).toBeNull();
+
+    const documentTwoTags = await DocumentTag.findAll({
+      where: { documentId: documentTwo.id },
+    });
+    expect(documentTwoTags).toHaveLength(0);
+  });
+
+  it("logs a warning when skipping an invalid tag name", async () => {
+    const admin = await buildAdmin();
+    const warnSpy = vi.spyOn(Logger, "warn");
+
+    await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Skipping invalid tag name during import",
+      expect.objectContaining({ name: "invalid tag!", teamId: admin.teamId })
+    );
+  });
+
+  it("imports successfully when tag names collide after normalization", async () => {
+    // "Foo", "foo" and "FOO" all normalize to the same tag — without
+    // deduping first, attempting to attach the same tag twice to one
+    // document races the document_tags unique constraint inside the same
+    // transaction as the rest of the import.
+    const collisionZip = await buildJSONExportZip(["Foo", "foo", "FOO"]);
+    try {
+      const admin = await buildAdmin();
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: collisionZip.filePath,
+      });
+
+      const documentOne = await Document.findOne({
+        where: { apiImportId: importId, title: "Document 1" },
+        rejectOnEmpty: true,
+      });
+      const documentOneTags = await DocumentTag.findAll({
+        where: { documentId: documentOne.id },
+        include: [{ model: Tag }],
+      });
+      expect(documentOneTags.map((dt) => dt.tag.name)).toEqual(["foo"]);
+
+      const documentTwo = await Document.findOne({
+        where: { apiImportId: importId, title: "Document 2" },
+        rejectOnEmpty: true,
+      });
+      expect(documentTwo).not.toBeNull();
+    } finally {
+      await collisionZip.cleanup();
+    }
   });
 
   it("deletes the source archive after the import completes", async () => {

@@ -11,6 +11,7 @@ import {
   SortFilter,
 } from "@shared/types";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
+import { hasFieldInFilter } from "@server/models/helpers/Filters";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -28,6 +29,9 @@ const documentFilterFields = {
   userId: { kind: "uuid", operators: ["eq", "in"] },
   documentId: "uuid",
   parentDocumentId: "uuid",
+  // Matches through the document_tags join table; see `leafToWhere` in
+  // server/models/helpers/Filters.ts.
+  tagId: { kind: "uuid", operators: ["eq", "in"] },
 } as const;
 
 const documentListFilter = createFilterSchema(documentFilterFields);
@@ -38,7 +42,9 @@ const documentsDeletedFilter = createFilterSchema({
 } as const);
 
 // On search endpoints `documentId` scopes results to a document subtree and is
-// resolved by the route handler, which only supports `eq` and `in`.
+// resolved by the route handler, which only supports `eq` and `in`. `tagId`
+// (inherited from `documentFilterFields`) can be ANDed as several `eq` leaves
+// to require all of a set of tags.
 const documentSearchFilter = createFilterSchema({
   ...documentFilterFields,
   documentId: { kind: "uuid", operators: ["eq", "in"] },
@@ -320,16 +326,24 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     /** List of filter expressions. Implicit AND between top-level entries. */
     filters: documentSearchFilter.FilterListSchema.optional(),
   }),
-}).refine(filterIncompatibleWithLegacy, {
-  message: filterIncompatibleWithLegacyMessage,
-});
+})
+  .refine(filterIncompatibleWithLegacy, {
+    message: filterIncompatibleWithLegacyMessage,
+  })
+  .refine(
+    // share-link responses never include tags, so they cannot be filtered by
+    (req) =>
+      !req.body.shareId ||
+      !req.body.filters?.some((filter) => hasFieldInFilter(filter, "tagId")),
+    { message: "tagId filters cannot be combined with shareId" }
+  );
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
 
 export const DocumentsSearchTitlesSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
-    query: z.string().refine((val) => val.trim() !== ""),
+    query: z.string().optional(),
 
     /** Specifies the attributes by which search results will be sorted */
     sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
@@ -342,9 +356,16 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
     /** List of filter expressions. Implicit AND between top-level entries. */
     filters: documentSearchFilter.FilterListSchema.optional(),
   }),
-}).refine(filterIncompatibleWithLegacy, {
-  message: filterIncompatibleWithLegacyMessage,
-});
+})
+  .refine(filterIncompatibleWithLegacy, {
+    message: filterIncompatibleWithLegacyMessage,
+  })
+  .refine(
+    (req) =>
+      !!req.body.query?.trim() ||
+      !!req.body.filters?.some((filter) => hasFieldInFilter(filter, "tagId")),
+    { message: "query or a tagId filter is required" }
+  );
 
 export type DocumentsSearchTitlesReq = z.infer<
   typeof DocumentsSearchTitlesSchema

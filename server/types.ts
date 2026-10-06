@@ -25,6 +25,8 @@ import type {
   FileOperation,
   Revision,
   Team,
+  Tag,
+  DocumentTag,
   User,
   UserMembership,
   UserPasskey,
@@ -428,6 +430,26 @@ export type StarEvent = BaseEvent<Star> & {
   userId: string;
 };
 
+export type TagEvent =
+  | (BaseEvent<Tag> & {
+      name: "tags.create" | "tags.update" | "tags.delete";
+      modelId: string;
+      data?: { name: string };
+    })
+  | (BaseEvent<Tag> & {
+      name: "tags.merge";
+      /** The id of the tag that survived the merge. */
+      modelId: string;
+      /** The id and name of the tag merged away, kept for the audit log. */
+      data: { sourceId: string; sourceName: string };
+    })
+  | (BaseEvent<DocumentTag> & {
+      name: "tags.add" | "tags.remove";
+      modelId: string;
+      documentId: string;
+      data: { tagId: string };
+    });
+
 export type ShareEvent = BaseEvent<Share> & {
   name: "shares.create" | "shares.update" | "shares.revoke";
   modelId: string;
@@ -516,6 +538,7 @@ export type Event =
   | PinEvent
   | CommentEvent
   | StarEvent
+  | TagEvent
   | CollectionEvent
   | CollectionUserEvent
   | CollectionGroupEvent
@@ -574,6 +597,8 @@ export type DocumentJSONExport = {
   publishedAt: string | null;
   fullWidth: boolean;
   parentDocumentId: string | null;
+  /** Names of the tags attached to the document. */
+  tags?: string[];
 };
 
 export type AttachmentJSONExport = {

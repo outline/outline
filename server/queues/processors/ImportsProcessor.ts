@@ -26,11 +26,20 @@ import {
 import { colorPalette } from "@shared/constants";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { errToString } from "@shared/utils/error";
-import { CollectionValidation } from "@shared/validations";
+import { normalizeTagName } from "@shared/utils/TagHelper";
+import { CollectionValidation, TagValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { Attachment, Collection, Document, Import, User } from "@server/models";
+import {
+  Attachment,
+  Collection,
+  Document,
+  DocumentTag,
+  Import,
+  Tag,
+  User,
+} from "@server/models";
 import type {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
@@ -38,6 +47,7 @@ import type {
 import ImportTask from "@server/models/ImportTask";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import SavepointHelper from "@server/models/helpers/SavepointHelper";
 import { sequelize } from "@server/storage/database";
 import type { Event, ImportEvent } from "@server/types";
 import { generateUrlId } from "@server/utils/url";
@@ -329,6 +339,9 @@ export default abstract class ImportsProcessor<
     // Cache of resolved external author → internal user id (or undefined when
     // no match). Reused across every output in the import.
     const userIdCache = new Map<string, string | undefined>();
+    // Cache of normalized tag name → Tag, reused across every document in the
+    // import so a tag shared by many documents is only looked up once.
+    const tagCache = new Map<string, Tag>();
     // These will be imported as collections. Widened to the base input shape
     // because the abstract class has no narrowed view of T.
     const importInput = keyBy(
@@ -585,6 +598,17 @@ export default abstract class ImportsProcessor<
               { documentId: internalId },
               { where: { documentId: externalId }, silent: true, transaction }
             );
+
+            if (output.tags?.length) {
+              await this.restoreTags(
+                output.tags,
+                internalId,
+                importModel.teamId,
+                resolvedCreatedById,
+                tagCache,
+                transaction
+              );
+            }
           }
         }
       }
@@ -773,6 +797,79 @@ export default abstract class ImportsProcessor<
 
     idMap[externalId] = internalId ?? randomUUID();
     return idMap[externalId];
+  }
+
+  /**
+   * Restores tags by name onto an imported document, finding or creating each
+   * one in the importing team using the same name normalization and
+   * validation as the tags API. Invalid names are skipped and logged rather
+   * than failing the import. Names that collide after normalization (e.g.
+   * "Foo" and "foo") are deduped first, and the document_tag rows are written
+   * with `bulkCreate`/`ignoreDuplicates` so a name repeated across import
+   * retries never raises a constraint error inside the caller's transaction.
+   * Tag and document_tag rows are created silently — this is bookkeeping
+   * derived from the export, not a user-initiated tag change, matching the
+   * no-event choice made for copying tags in documentDuplicator.
+   *
+   * @param tagNames Tag names as they appeared in the export.
+   * @param documentId Internal id of the document to attach tags to.
+   * @param teamId Importing team.
+   * @param createdById User attributed as the creator of the tag/document_tag rows.
+   * @param tagCache Per-import cache of normalized tag name to Tag, reused across documents.
+   * @param transaction Active sequelize transaction.
+   */
+  private async restoreTags(
+    tagNames: string[],
+    documentId: string,
+    teamId: string,
+    createdById: string,
+    tagCache: Map<string, Tag>,
+    transaction: Transaction
+  ) {
+    const names = new Set<string>();
+    for (const rawName of tagNames) {
+      const name = normalizeTagName(rawName);
+      if (
+        !name ||
+        name.length > TagValidation.maxNameLength ||
+        !TagValidation.nameRegex.test(name)
+      ) {
+        Logger.warn("Skipping invalid tag name during import", {
+          name: rawName,
+          teamId,
+        });
+        continue;
+      }
+      names.add(name);
+    }
+
+    const tagIds: string[] = [];
+    for (const name of names) {
+      let tag = tagCache.get(name);
+      if (!tag) {
+        [tag] = await SavepointHelper.findOrCreate(
+          Tag,
+          { teamId, name },
+          transaction,
+          (savepoint) =>
+            Tag.create(
+              { teamId, name, createdById },
+              { transaction: savepoint }
+            )
+        );
+        tagCache.set(name, tag);
+      }
+      tagIds.push(tag.id);
+    }
+
+    if (tagIds.length === 0) {
+      return;
+    }
+
+    await DocumentTag.bulkCreate(
+      tagIds.map((tagId) => ({ tagId, documentId, createdById })),
+      { ignoreDuplicates: true, transaction }
+    );
   }
 
   /**

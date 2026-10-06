@@ -2,12 +2,14 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { errToString } from "@shared/utils/error";
+import { normalizeTagName } from "@shared/utils/TagHelper";
 import env from "@server/env";
-import { Collection, Share, type Team, type User } from "@server/models";
+import { Collection, Share, Tag, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { can } from "@server/policies";
 import { type APIContext, AuthenticationType } from "@server/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type { NavigationNode } from "@shared/types";
 
 interface McpContext {
@@ -203,6 +205,46 @@ export function buildBreadcrumb(
   }
 
   return [collectionName, ...ancestors].join(" › ");
+}
+
+/**
+ * Builds `tagId` filter leaves for a set of tag names, resolving each to the
+ * matching Tag id within the given team. Names are normalized the same way
+ * tags are stored, and matched case-insensitively as a result. All the
+ * resulting leaves are ANDed by the caller via `combineFilters`, so a
+ * document must carry every named tag to match — mirroring the web search
+ * UI's tag filter, which requires all selected tags.
+ *
+ * A name that matches no tag in the team makes the whole filter match no
+ * documents (an explicit empty `tagId in []` leaf) rather than silently
+ * dropping that condition and searching unfiltered.
+ *
+ * @param tagNames - the tag names to resolve.
+ * @param teamId - the team to resolve tag names within.
+ * @returns filter leaves to include in a search filter; empty when no tag names were given.
+ */
+export async function resolveTagNameFilters(
+  tagNames: string[],
+  teamId: string
+): Promise<Filter[]> {
+  if (tagNames.length === 0) {
+    return [];
+  }
+
+  const names = [...new Set(tagNames.map((name) => normalizeTagName(name)))];
+  const tags = await Tag.findAll({
+    where: { teamId, name: names },
+  });
+
+  if (tags.length !== names.length) {
+    return [{ field: "tagId", operator: "in", value: [] }];
+  }
+
+  return tags.map((tag) => ({
+    field: "tagId",
+    operator: "eq" as const,
+    value: tag.id,
+  }));
 }
 
 /**

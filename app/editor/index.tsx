@@ -176,6 +176,11 @@ export type Props = {
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /**
+   * Callback when Shift-Tab is pressed with the cursor at the very start of
+   * the document, used to move focus back to the preceding input.
+   */
+  onShiftTabAtStart?: () => void;
+  /**
    * Callback used to surface a short notice to the user. Defaults to rendering
    * a toast so that shared editor code stays agnostic of the toast library.
    */
