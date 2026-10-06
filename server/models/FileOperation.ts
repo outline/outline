@@ -213,6 +213,13 @@ class FileOperation extends ParanoidModel<
     options: FindOptions<FileOperation> & AdditionalFindOptions = {}
   ): Promise<FileOperation | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `File operation doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
