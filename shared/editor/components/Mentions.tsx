@@ -23,6 +23,8 @@ import { PullRequestIcon } from "../../components/PullRequestIcon";
 import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
 import useStores from "../../hooks/useStores";
+import useShare from "../../hooks/useShare";
+import env from "../../env";
 import theme from "../../styles/theme";
 import {
   IntegrationService,
@@ -33,6 +35,7 @@ import {
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
 import lazyWithRetry from "../../utils/lazyWithRetry";
+import { sharedModelPath } from "../../utils/routeHelpers";
 import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
 
@@ -55,6 +58,21 @@ const getAttributesFromNode = (node: Node): Attrs => {
       : undefined,
     ...attrs,
   };
+};
+
+/**
+ * Returns a hook that scopes an internal model path to the current public share,
+ * if any, so that navigation stays within the share rather than falling through
+ * to the authenticated app (and its login screen).
+ */
+const useSharePath = () => {
+  const { shareId } = useShare();
+
+  return React.useCallback(
+    (path: string) =>
+      shareId ? sharedModelPath(shareId, path, env.ROOT_SHARE_ID) : path,
+    [shareId]
+  );
 };
 
 export const MentionUser = observer(function MentionUser_(
@@ -108,6 +126,7 @@ export const MentionDocument = observer(function MentionDocument_(
   const modelId = node.attrs.modelId;
   const anchorId = node.attrs.anchorId;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const sharePath = useSharePath();
 
   React.useEffect(() => {
     if (modelId) {
@@ -115,7 +134,7 @@ export const MentionDocument = observer(function MentionDocument_(
     }
   }, [modelId, documents]);
 
-  const documentPath = doc?.path ?? `/doc/${node.attrs.modelId}`;
+  const documentPath = sharePath(doc?.path ?? `/doc/${node.attrs.modelId}`);
 
   return (
     <Link
@@ -148,6 +167,7 @@ export const MentionCollection = observer(function MentionCollection_(
   const collection = collections.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const sharePath = useSharePath();
 
   React.useEffect(() => {
     if (modelId) {
@@ -161,7 +181,7 @@ export const MentionCollection = observer(function MentionCollection_(
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      to={collection?.path ?? `/collection/${node.attrs.modelId}`}
+      to={sharePath(collection?.path ?? `/collection/${node.attrs.modelId}`)}
     >
       {collection?.icon ? (
         <Icon
