@@ -672,6 +672,13 @@ class Collection extends ParanoidModel<
     options: FindOptions<Collection> & AdditionalFindOptions = {}
   ): Promise<Collection | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Collection doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -699,44 +706,34 @@ class Collection extends ParanoidModel<
 
     const scope = this.scope(scopes);
 
+    let collection: Collection | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const collection = await scope.findOne({
+      collection = await scope.findOne({
         ...rest,
         where: {
           id,
         },
         rejectOnEmpty: false,
       });
-
-      if (!collection && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
-      }
-
-      return collection;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const collection = await scope.findOne({
+    } else if (match) {
+      collection = await scope.findOne({
         ...rest,
         where: {
           urlId: match[1],
         },
         rejectOnEmpty: false,
       });
-
-      if (!collection && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
-      }
-
-      return collection;
     }
 
-    return null;
+    if (!collection && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+    }
+
+    return collection;
   }
 
   /**

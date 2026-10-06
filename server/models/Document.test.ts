@@ -646,6 +646,13 @@ describe("#findByPk", () => {
         rejectOnEmpty: true,
       })
     ).rejects.toThrow(EmptyResultError);
+
+    await expect(
+      Document.findByPk("not a valid id", {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).rejects.toThrow(EmptyResultError);
   });
 
   it("should omit content columns when includeContent is false", async () => {
