@@ -3,18 +3,24 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    await queryInterface.addIndex("views", ["userId", "updatedAt"], {
-      name: "views_user_id_updated_at",
-      concurrently: true,
-    });
-    await queryInterface.removeIndex("views", "views_user_id");
+    // Covers the documents.viewed query (userId filter + updatedAt ordering).
+    await queryInterface.sequelize.query(
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS "views_user_id_updated_at" ON "views" ("userId", "updatedAt");'
+    );
+
+    // Now redundant: fully covered by the composite index above as a
+    // leftmost-prefix.
+    await queryInterface.sequelize.query(
+      'DROP INDEX CONCURRENTLY IF EXISTS "views_user_id";'
+    );
   },
 
   async down(queryInterface) {
-    await queryInterface.addIndex("views", ["userId"], {
-      name: "views_user_id",
-      concurrently: true,
-    });
-    await queryInterface.removeIndex("views", "views_user_id_updated_at");
+    await queryInterface.sequelize.query(
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS "views_user_id" ON "views" ("userId");'
+    );
+    await queryInterface.sequelize.query(
+      'DROP INDEX CONCURRENTLY IF EXISTS "views_user_id_updated_at";'
+    );
   },
 };
