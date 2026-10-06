@@ -16,6 +16,8 @@ import {
   UserAuthentication,
   Integration,
   IntegrationAuthentication,
+  OAuthClient,
+  Pin,
   SearchQuery,
   Share,
 } from "@server/models";
@@ -134,12 +136,15 @@ async function destroyTeamData(team: Team) {
 
   // The largest tables are destroyed in batches outside of a transaction so
   // that row locks are held briefly, rather than for the whole deletion.
-  // events must be first due to db constraints
+  // Events must be first due to db constraints, and documents go before
+  // collections so a collection delete does not cascade into every document
+  // it contains in a single statement.
   await destroyInBatches(Event, { teamId });
-  await destroyInBatches(Collection, { teamId });
   await destroyInBatches(Document.unscoped(), { teamId });
+  await destroyInBatches(Collection, { teamId });
 
-  // Destory team-relation models
+  // Destroy team-relation models. Everything here references users without a
+  // cascade, so it must go before users are destroyed.
   await sequelize.transaction(async (transaction) => {
     await AuthenticationProvider.destroy({
       where: {
@@ -197,6 +202,31 @@ async function destroyTeamData(team: Team) {
       force: true,
       transaction,
     });
+    await Pin.destroy({
+      where: {
+        teamId,
+      },
+      force: true,
+      transaction,
+    });
+    await OAuthClient.destroy({
+      where: {
+        teamId,
+      },
+      force: true,
+      transaction,
+    });
+  });
+
+  // Users reference each other through invitedById and suspendedById, so
+  // those are cleared before deleting in batches.
+  await User.update(
+    { invitedById: null, suspendedById: null },
+    { where: { teamId }, paranoid: false, hooks: false }
+  );
+  await destroyInBatches(User, { teamId });
+
+  await sequelize.transaction(async (transaction) => {
     await team.destroy({
       force: true,
       transaction,

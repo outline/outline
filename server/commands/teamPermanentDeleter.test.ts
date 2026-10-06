@@ -6,6 +6,8 @@ import {
   Collection,
   Team,
   Import,
+  OAuthClient,
+  Pin,
 } from "@server/models";
 import {
   buildAttachment,
@@ -13,6 +15,8 @@ import {
   buildTeam,
   buildDocument,
   buildImport,
+  buildOAuthClient,
+  buildPin,
 } from "@server/test/factories";
 import { errToString } from "@shared/utils/error";
 import teamPermanentDeleter from "./teamPermanentDeleter";
@@ -197,6 +201,68 @@ describe("teamPermanentDeleter", () => {
           teamId: team.id,
         },
         paranoid: false,
+      })
+    ).toEqual(0);
+  });
+
+  it("should destroy users that reference each other", async () => {
+    const team = await buildTeam({
+      deletedAt: subDays(new Date(), 90),
+    });
+    const admin = await buildUser({ teamId: team.id });
+    const invited = await buildUser({
+      teamId: team.id,
+      invitedById: admin.id,
+    });
+    await buildUser({
+      teamId: team.id,
+      invitedById: invited.id,
+      suspendedById: admin.id,
+      suspendedAt: new Date(),
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: admin.id,
+    });
+    await buildPin({
+      teamId: team.id,
+      createdById: admin.id,
+      documentId: document.id,
+      collectionId: document.collectionId,
+    });
+    await buildOAuthClient({
+      teamId: team.id,
+      createdById: admin.id,
+    });
+    await teamPermanentDeleter(team);
+    expect(
+      await User.count({
+        where: {
+          teamId: team.id,
+        },
+        paranoid: false,
+      })
+    ).toEqual(0);
+    expect(
+      await Pin.count({
+        where: {
+          teamId: team.id,
+        },
+      })
+    ).toEqual(0);
+    expect(
+      await OAuthClient.count({
+        where: {
+          teamId: team.id,
+        },
+        paranoid: false,
+      })
+    ).toEqual(0);
+    expect(
+      await Team.count({
+        where: {
+          id: team.id,
+        },
       })
     ).toEqual(0);
   });
