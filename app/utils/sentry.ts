@@ -55,6 +55,8 @@ export function initSentry(history: History) {
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "Object Not Found Matching Id",
+      // Telegram's Android in-app browser calls a missing native bridge method
+      /Error invoking post\w*: Method not found/,
       "file://",
       "chrome-extension://",
     ],
