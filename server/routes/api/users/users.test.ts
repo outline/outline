@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { Plan, TeamPreference, UserRole } from "@shared/types";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
+import EmailUpdatedEmail from "@server/emails/templates/EmailUpdatedEmail";
 import { Team, TeamDomain } from "@server/models";
 import {
   buildTeam,
@@ -1142,6 +1143,34 @@ describe("#users.updateEmail", () => {
 
       await user.reload();
       expect(user.email).toEqual(email);
+    });
+
+    it("should send a security notice to the previous email", async () => {
+      const spy = vi.spyOn(EmailUpdatedEmail.prototype, "schedule");
+      onTestFinished(() => spy.mockRestore());
+      const user = await buildUser();
+      const previous = user.email;
+      const email = faker.internet.email().toLowerCase();
+      await server.get(
+        `/api/users.updateEmail?code=${user.getEmailUpdateToken(
+          email
+        )}&follow=true`,
+        user
+      );
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.instances[0]).toMatchObject({
+        props: expect.objectContaining({ to: previous, email }),
+      });
+    });
+
+    it("should not send a security notice if the code is invalid", async () => {
+      const spy = vi.spyOn(EmailUpdatedEmail.prototype, "schedule");
+      onTestFinished(() => spy.mockRestore());
+      const user = await buildUser();
+      await server.get(`/api/users.updateEmail?code=invalid&follow=true`, user);
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });
