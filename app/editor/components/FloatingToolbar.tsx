@@ -1,12 +1,12 @@
+import { transparentize } from "polished";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
-import { Portal as ReactPortal } from "react-portal";
 import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { depths, hairline, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
@@ -14,9 +14,13 @@ import useKeyboardStickyOffset from "~/hooks/useKeyboardStickyOffset";
 import useMobile from "~/hooks/useMobile";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
-import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
-import { RowSelection } from "@shared/editor/selection/RowSelection";
-import { isTableSelected } from "@shared/editor/queries/table";
+import {
+  getColumnBounds,
+  getColumnIndex,
+  getRowBounds,
+  getRowIndex,
+  isTableSelected,
+} from "@shared/editor/queries/table";
 
 type Props = {
   align?: "start" | "end" | "center";
@@ -24,6 +28,7 @@ type Props = {
   children: React.ReactNode;
   width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
+  ref?: React.RefObject<HTMLDivElement | null>;
 };
 
 const defaultPosition = {
@@ -40,7 +45,7 @@ function usePosition({
   active,
   align = "center",
 }: {
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
   active?: boolean;
   align?: Props["align"];
 }) {
@@ -124,10 +129,8 @@ function usePosition({
   }
 
   // tables are an oddity, and need their own positioning logic
-  const isColSelection =
-    selection instanceof ColumnSelection && selection.isColSelection();
-  const isRowSelection =
-    selection instanceof RowSelection && selection.isRowSelection();
+  const colIndex = getColumnIndex(view.state);
+  const rowIndex = getRowIndex(view.state);
 
   if (isTableSelected(view.state)) {
     const rect = selectedRect(view.state);
@@ -136,26 +139,16 @@ function usePosition({
     selectionBounds.top = bounds.top - 16;
     selectionBounds.left = bounds.left - 10;
     selectionBounds.right = bounds.left - 10;
-  } else if (isColSelection) {
-    const rect = selectedRect(view.state);
-    const table = view.domAtPos(rect.tableStart);
-    const element = (table.node as HTMLElement).querySelector(
-      `tr > *:nth-child(${rect.left + 1})`
-    );
-    if (element instanceof HTMLElement) {
-      const bounds = element.getBoundingClientRect();
+  } else if (colIndex !== undefined) {
+    const bounds = getColumnBounds(view, colIndex);
+    if (bounds) {
       selectionBounds.top = bounds.top - 16;
       selectionBounds.left = bounds.left;
       selectionBounds.right = bounds.right;
     }
-  } else if (isRowSelection) {
-    const rect = selectedRect(view.state);
-    const table = view.domAtPos(rect.tableStart);
-    const element = (table.node as HTMLElement).querySelector(
-      `tr:nth-child(${rect.top + 1}) > *`
-    );
-    if (element instanceof HTMLElement) {
-      const bounds = element.getBoundingClientRect();
+  } else if (rowIndex !== undefined) {
+    const bounds = getRowBounds(view, rowIndex);
+    if (bounds) {
       selectionBounds.top = bounds.top;
       selectionBounds.left = bounds.left - 10;
       selectionBounds.right = bounds.left - 10;
@@ -232,20 +225,18 @@ function usePosition({
     maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
     blockSelection: !!(
       codeBlock ||
-      isColSelection ||
-      isRowSelection ||
+      colIndex !== undefined ||
+      rowIndex !== undefined ||
       noticeBlock
     ),
     visible: true,
   };
 }
 
-const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
-  props: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function FloatingToolbar({ ref, ...props }: Props) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
+  const raisedClickAt = React.useRef(0);
 
   let position = usePosition({
     menuRef,
@@ -268,25 +259,63 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   });
 
   const isMobile = useMobile();
-  const isMobileToolbarVisible = isMobile && !!props.active && position.visible;
+  const isMobileToolbarVisible = isMobile && !!props.active && !!props.children;
 
   // Keep the mobile toolbar glued to the top of the on-screen keyboard. The
   // hook tracks the visual viewport directly — see its implementation for the
   // iOS specifics.
   useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
 
+  // Tapping the bar must not move focus out of the editor, that would dismiss
+  // the on-screen keyboard and take the bar down with it. Mousedown is the
+  // event that assigns focus, and a tap dispatches it only after pointerup.
+  const handleMouseDown = (event: React.MouseEvent) => {
+    if (
+      event.target instanceof Element &&
+      !event.target.closest("input, textarea, [contenteditable='true']")
+    ) {
+      event.preventDefault();
+    }
+  };
+
+  // Canceling that mousedown cancels the tap's click with it, so the click is
+  // raised here instead, from the pointerup that comes before both.
+  const handlePointerUp = (event: React.PointerEvent) => {
+    if (event.pointerType === "mouse") {
+      return;
+    }
+
+    const button =
+      event.target instanceof Element ? event.target.closest("button") : null;
+    if (button) {
+      raisedClickAt.current = event.timeStamp;
+      button.click();
+    }
+  };
+
+  // A browser that delivers the tap's click anyway must not act twice.
+  const handleClickCapture = (event: React.MouseEvent) => {
+    if (event.isTrusted && event.timeStamp - raisedClickAt.current < 500) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
   if (isMobile) {
     if (isMobileToolbarVisible) {
       // Vertical position (above the keyboard) is owned entirely by
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
-        <ReactPortal>
-          <MobileWrapper ref={menuRef}>
-            {props.children && (
-              <MobileBackground>{props.children}</MobileBackground>
-            )}
+        <Portal toBody>
+          <MobileWrapper
+            ref={menuRef}
+            onMouseDown={handleMouseDown}
+            onPointerUp={handlePointerUp}
+            onClickCapture={handleClickCapture}
+          >
+            <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
-        </ReactPortal>
+        </Portal>
       );
     }
 
@@ -313,7 +342,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       </Wrapper>
     </Portal>
   );
-});
+}
 
 type WrapperProps = {
   active?: boolean;
@@ -351,6 +380,7 @@ const MobileWrapper = styled.div`
   right: 0;
   width: 100vw;
   box-sizing: border-box;
+  padding: 0 16px 4px;
   z-index: ${depths.editorToolbar};
   will-change: transform;
 
@@ -359,19 +389,27 @@ const MobileWrapper = styled.div`
   }
 `;
 
+// A rounded bar floating clear of the edges of the screen, with the buttons
+// inside clipped to its corners as they scroll.
 const MobileBackground = styled.div`
-  padding: 10px 6px;
-  height: 60px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px;
+  min-height: 48px;
+  overflow: hidden;
   background-color: ${s("menuBackground")};
-  border-top: 1px solid ${s("divider")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 24px;
+  ${(props) => hairline(props.theme.divider)}
 
-  &:after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background-color: ${s("menuBackground")};
+  // The frosted glass of the iOS accessory bars.
+  @supports (backdrop-filter: blur(20px)) or
+    (-webkit-backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px) saturate(180%);
+    background-color: ${(props) =>
+      transparentize(0.2, props.theme.menuBackground)};
   }
 `;
 

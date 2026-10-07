@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import { CloseIcon } from "outline-icons";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +7,7 @@ import { s, hover } from "@shared/styles";
 import type SearchQuery from "~/models/SearchQuery";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 import { searchPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -23,7 +20,6 @@ function RecentSearchListItem({ searchQuery }: Props) {
   const ref = useRef<HTMLAnchorElement>(null);
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(ref, false);
-  useFocusEffect(focused, ref);
 
   return (
     <RecentSearch

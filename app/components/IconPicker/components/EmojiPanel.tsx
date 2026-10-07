@@ -134,15 +134,18 @@ const EmojiPanel = ({
     }
   }, []);
 
+  // Defer the search so typing stays responsive while the grid re-derives.
+  const deferredQuery = React.useDeferredValue(query);
+
   // Drop the preview when the grid contents change out from under it.
   React.useEffect(() => {
     setActiveEmoji(undefined);
-  }, [query, skinTone]);
+  }, [deferredQuery, skinTone]);
 
-  const isSearch = query !== "";
+  const isSearch = deferredQuery !== "";
   const templateData: DataNode[] = isSearch
     ? getSearchResults({
-        query,
+        query: deferredQuery,
         skinTone,
         customEmojis,
       })

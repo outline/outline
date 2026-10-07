@@ -1,9 +1,15 @@
-import { faker } from "@faker-js/faker";
 import sharedEnv from "@shared/env";
 import { TeamPreference } from "@shared/types";
+import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
 import { OAuthClient } from "@server/models";
-import { buildTeam } from "@server/test/factories";
+import {
+  buildApiKey,
+  buildOAuthClient,
+  buildTeam,
+  buildUser,
+  buildSubdomain,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -13,7 +19,7 @@ describe("#oauth.register", () => {
   let subdomain: string;
 
   beforeEach(async () => {
-    subdomain = faker.internet.domainWord();
+    subdomain = buildSubdomain();
     team = await buildTeam({ subdomain });
   });
 
@@ -36,7 +42,7 @@ describe("#oauth.register", () => {
     expect(body.client_secret_expires_at).toBeUndefined();
     expect(body.client_name).toEqual("Test MCP Client");
     expect(body.redirect_uris).toEqual(["https://example.com/callback"]);
-    expect(body.grant_types).toEqual(["authorization_code"]);
+    expect(body.grant_types).toEqual(["authorization_code", "refresh_token"]);
     expect(body.response_types).toEqual(["code"]);
     expect(body.token_endpoint_auth_method).toEqual("none");
     expect(body.registration_access_token).toBeTruthy();
@@ -151,6 +157,63 @@ describe("#oauth.register", () => {
     expect(res.status).toEqual(400);
   });
 
+  it("should allow the maximum number of redirect_uris", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "Test Client",
+        redirect_uris: Array.from(
+          { length: OAuthClientValidation.maxRedirectUris },
+          (_, index) => `https://example.com/callback/${index}`
+        ),
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(201);
+  });
+
+  it("should reject duplicate redirect_uris", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "Test Client",
+        redirect_uris: [
+          "https://example.com/callback",
+          "https://example.com/callback",
+        ],
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject too many redirect_uris and report the received count", async () => {
+    const count = OAuthClientValidation.maxRedirectUris + 1;
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "Test Client",
+        redirect_uris: Array.from(
+          { length: count },
+          (_, index) => `https://example.com/callback/${index}`
+        ),
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+    const body = await res.json();
+    expect(body.error).toEqual("invalid_request");
+    expect(body.error_description).toEqual(
+      `redirect_uris: expected array to have <=${OAuthClientValidation.maxRedirectUris} items, received ${count}`
+    );
+  });
+
   it("should reject unsupported grant types", async () => {
     const res = await server.post("/oauth/register", {
       body: {
@@ -209,7 +272,7 @@ describe("#oauth.register management (RFC 7592)", () => {
   let subdomain: string;
 
   beforeEach(async () => {
-    subdomain = faker.internet.domainWord();
+    subdomain = buildSubdomain();
     await buildTeam({ subdomain });
   });
 
@@ -438,6 +501,7 @@ describe("GET /.well-known/oauth-authorization-server", () => {
       "none",
     ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
+    expect(body.scopes_supported).toEqual(["read", "write"]);
   });
 
   it("should return OAuth metadata at /mcp suffix path", async () => {
@@ -492,7 +556,7 @@ describe("GET /.well-known/oauth-protected-resource", () => {
 
   it("should return 404 when MCP is disabled", async () => {
     const team = await buildTeam({
-      subdomain: faker.internet.domainWord(),
+      subdomain: buildSubdomain(),
       preferences: { [TeamPreference.MCP]: false },
     });
 
@@ -517,5 +581,94 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     } finally {
       env.URL = sharedEnv.URL = originalUrl;
     }
+  });
+});
+
+describe("POST /oauth/authorize", () => {
+  it("should not accept an API key in place of a session", async () => {
+    const user = await buildUser();
+    const client = await buildOAuthClient({ teamId: user.teamId });
+    const apiKey = await buildApiKey({ userId: user.id, scope: ["write"] });
+
+    const res = await server.post("/oauth/authorize", {
+      redirect: "manual",
+      headers: { authorization: `Bearer ${apiKey.value}` },
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read write",
+      },
+    });
+
+    expect(res.status).toEqual(403);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("should issue an authorization code for a session", async () => {
+    const user = await buildUser();
+    const client = await buildOAuthClient({ teamId: user.teamId });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("code=");
+  });
+
+  it("should not issue an authorization code to a dynamically registered client when MCP is disabled", async () => {
+    const team = await buildTeam({
+      preferences: { [TeamPreference.MCP]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const client = await buildOAuthClient({
+      teamId: team.id,
+      createdById: null,
+    });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(403);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("should issue an authorization code to a user created client when MCP is disabled", async () => {
+    const team = await buildTeam({
+      preferences: { [TeamPreference.MCP]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const client = await buildOAuthClient({ teamId: team.id });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("code=");
   });
 });

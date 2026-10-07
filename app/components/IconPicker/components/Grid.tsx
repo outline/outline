@@ -10,12 +10,18 @@ type Props = {
   columns: number;
   itemWidth: number;
   onOverflowChange?: (hasMoreBelow: boolean) => void;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const Grid = (
-  { width, height, data, columns, itemWidth, onOverflowChange }: Props,
-  ref: React.Ref<HTMLDivElement>
-) => {
+function Grid({
+  width,
+  height,
+  data,
+  columns,
+  itemWidth,
+  onOverflowChange,
+  ref,
+}: Props) {
   const offsetRef = React.useRef(0);
   const maxOffset = Math.max(0, data.length * itemWidth - height);
 
@@ -47,7 +53,7 @@ const Grid = (
       {Row}
     </Container>
   );
-};
+}
 
 type RowProps = {
   data: React.ReactNode[][];
@@ -82,4 +88,4 @@ const RowContainer = styled.div<{ columns: number }>`
   align-content: center;
 `;
 
-export default React.forwardRef(Grid);
+export default Grid;

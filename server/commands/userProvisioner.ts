@@ -8,7 +8,12 @@ import {
   InviteRequiredError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { Team, User, UserAuthentication } from "@server/models";
+import {
+  AuthenticationProvider,
+  Team,
+  User,
+  UserAuthentication,
+} from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 import { UserFlag } from "@server/models/User";
@@ -73,21 +78,46 @@ export default async function userProvisioner(
     authentication,
   }: Props
 ): Promise<UserProvisionerResult> {
-  const auth = authentication
-    ? await UserAuthentication.findOne({
+  // The provider being signed in with, external user identifiers are only
+  // unique within the namespace of a single provider so it must be known
+  // before an existing authentication record can be matched.
+  const provider = authentication
+    ? await AuthenticationProvider.findOne({
         where: {
-          providerId: String(authentication.providerId),
+          id: authentication.authenticationProviderId,
+          teamId,
         },
-        include: [
-          {
-            model: User,
-            as: "user",
-            where: { teamId },
-            required: true,
-          },
-        ],
       })
     : undefined;
+
+  if (authentication && !provider) {
+    throw InvalidAuthenticationError();
+  }
+
+  const auth =
+    authentication && provider
+      ? await UserAuthentication.findOne({
+          where: {
+            providerId: String(authentication.providerId),
+          },
+          include: [
+            {
+              model: User,
+              as: "user",
+              where: { teamId },
+              required: true,
+            },
+            {
+              // Restrict matching to the same type of provider, an identifier
+              // from one provider must never match a record from another.
+              model: AuthenticationProvider,
+              as: "authenticationProvider",
+              where: { name: provider.name },
+              required: true,
+            },
+          ],
+        })
+      : undefined;
 
   // Someone has signed in with this authentication before, we just
   // want to update the details instead of creating a new record

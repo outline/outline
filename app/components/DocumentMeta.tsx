@@ -5,13 +5,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { s, ellipsis } from "@shared/styles";
+import { ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
-import NudeButton from "~/components/NudeButton";
+import { MetaButton, Separator, metaStyles } from "~/components/HeaderMeta";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -86,16 +86,20 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {revision.createdBy?.id === user.id
           ? t("You updated")
-          : t("{{ userName }} updated", { userName })}{" "}
+          : t("{{ userName }} updated", {
+              userName: revision.createdBy?.name ?? t("Unknown"),
+            })}{" "}
         <Time dateTime={revision.createdAt} addSuffix />
       </span>
     );
   } else if (deletedAt) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser
+        {document.deletedBy?.id === user.id
           ? t("You deleted")
-          : t("{{ userName }} deleted", { userName })}{" "}
+          : t("{{ userName }} deleted", {
+              userName: document.deletedBy?.name ?? t("Unknown"),
+            })}{" "}
         <Time dateTime={deletedAt} addSuffix />
       </span>
     );
@@ -227,42 +231,12 @@ const DocumentMeta: React.FC<Props> = ({
   );
 };
 
-/** A button that visually matches the surrounding meta text. */
-export const MetaButton = styled(NudeButton)`
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  width: auto;
-  height: auto;
-  border-radius: 0;
-  color: inherit;
-  font: inherit;
-  text-align: inherit;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-export const Separator = styled.span`
-  padding: 0 0.4em;
-
-  &::after {
-    content: "•";
-  }
-`;
-
 const Strong = styled.strong`
   font-weight: 550;
 `;
 
 const Container = styled(Flex)<{ $rtl?: boolean }>`
-  justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};
-  color: ${s("textTertiary")};
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  min-width: 0;
+  ${metaStyles}
 `;
 
 const Viewed = styled.span`

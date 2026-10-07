@@ -208,6 +208,7 @@ export function GroupsTable(props: Props) {
 
   return (
     <SortableTable
+      id="groups"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}

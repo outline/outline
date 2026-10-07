@@ -12,6 +12,11 @@ import Relation from "./decorators/Relation";
 class Subscription extends Model {
   static modelName = "Subscription";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The user ID subscribing */
   userId: string;
 

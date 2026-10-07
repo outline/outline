@@ -19,6 +19,19 @@ export const schema = new Schema({
 });
 
 /**
+ * Markdown parser using the rich extensions and their rule plugins.
+ */
+export const parser = extensionManager.parser({
+  schema,
+  plugins: extensionManager.rulePlugins,
+});
+
+/**
+ * Markdown serializer using the rich extensions.
+ */
+export const serializer = extensionManager.serializer();
+
+/**
  * Creates an editor state with the given document and plugins.
  *
  * @param doc - the document node.

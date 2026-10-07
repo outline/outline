@@ -23,6 +23,7 @@ import type LocalStorage from "@server/storage/files/LocalStorage";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
+import { ByteRangeHelper } from "../utils/ByteRangeHelper";
 import * as T from "./schema";
 
 const router = new Router();
@@ -68,6 +69,7 @@ router.post(
     const declaredSize = Number(attachment.size);
 
     if (file.size > declaredSize) {
+      await attachment.destroy();
       throw ValidationError(
         `The uploaded file exceeds the declared size of ${bytesToHumanReadable(
           declaredSize
@@ -78,6 +80,7 @@ router.post(
     try {
       await attachment.writeFile(file);
     } catch (err) {
+      await attachment.destroy();
       if (err instanceof Error && err.message.includes("permission denied")) {
         throw Error(
           `Permission denied writing to "${key}". Check the host machine file system permissions.`
@@ -98,7 +101,8 @@ router.post(
 
 router.get(
   "files.get",
-  auth({ optional: true }),
+  // Signed requests are authorized by their signature alone.
+  auth({ optional: true, skip: (ctx) => !!ctx.query.sig }),
   validate(T.FilesGetSchema),
   async (ctx: APIContext<T.FilesGetReq>) => {
     const actor = ctx.state.auth.user;
@@ -150,14 +154,20 @@ router.get(
       contentDisposition(fileName, {
         type: forceDownload
           ? "attachment"
-          : FileStorage.getContentDisposition(contentType),
+          : FileStorage.getContentDispositionType(contentType),
       })
     );
 
     // Handle byte range requests
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
     const stats = await (FileStorage as LocalStorage).stat(key);
-    const range = getByteRange(ctx, stats.size);
+    const range = ByteRangeHelper.parse(ctx.headers.range, stats.size);
+
+    if (range === ByteRangeHelper.unsatisfiable) {
+      ctx.status = 416;
+      ctx.set("Content-Range", `bytes */${stats.size}`);
+      return;
+    }
 
     if (range) {
       ctx.status = 206;
@@ -173,26 +183,6 @@ router.get(
     ctx.body = await FileStorage.getFileStream(key, range);
   }
 );
-
-function getByteRange(
-  ctx: APIContext<T.FilesGetReq>,
-  size: number
-): { start: number; end: number } | undefined {
-  const { range } = ctx.headers;
-  if (!range) {
-    return;
-  }
-
-  const match = range.match(/bytes=(\d+)-(\d+)?/);
-  if (!match) {
-    return;
-  }
-
-  const start = parseInt(match[1], 10);
-  const end = parseInt(match[2], 10) || size - 1;
-
-  return { start, end };
-}
 
 /**
  * Verifies a short-lived signature authorizing an upload to a single key.

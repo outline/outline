@@ -4,7 +4,7 @@ import { ClockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { depths, s } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
@@ -162,7 +162,7 @@ const Content = styled(HoverCardPrimitive.Content)`
   transform-origin: var(--radix-hover-card-content-transform-origin);
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 6px;
+  ${borderRadius(8)}
   padding: 12px;
   min-width: 180px;
   max-width: 320px;

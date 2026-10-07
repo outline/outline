@@ -118,16 +118,24 @@ export default class Highlight extends Mark {
           },
         },
       ],
-      toDOM: (node) => [
-        "mark",
-        {
-          "data-color": node.attrs.color,
-          style: `background-color: ${rgba(
-            node.attrs.color || Highlight.presetColors[0].hex,
-            Highlight.opacity
-          )}`,
-        },
-      ],
+      toDOM: (node) => {
+        // rgba() throws for a color it cannot parse, which would stop the
+        // document rendering.
+        const color = validateColorHex(node.attrs.color ?? "")
+          ? node.attrs.color
+          : null;
+
+        return [
+          "mark",
+          {
+            "data-color": color,
+            style: `background-color: ${rgba(
+              color || Highlight.presetColors[0].hex,
+              Highlight.opacity
+            )}`,
+          },
+        ];
+      },
     };
   }
 

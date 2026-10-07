@@ -12,12 +12,12 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
-import { opensearchResponse } from "@server/utils/opensearch";
+import { getSessionRedirectUrl } from "@server/utils/authentication";
 import { getTeamFromContext } from "@server/utils/passport";
-import { robotsResponse } from "@server/utils/robots";
 import { isInvalidAppPath } from "@server/utils/url";
 import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
+import discovery from "./discovery";
 import { renderEmbed } from "./embeds";
 import errors from "./errors";
 
@@ -72,9 +72,15 @@ if (env.isProduction) {
         // Hashed static assets get 1 year expiry plus immutable flag
         maxAge: Day.ms * 365,
         immutable: true,
-        setHeaders: (res) => {
+        setHeaders: (res, filePath) => {
           res.setHeader("Service-Worker-Allowed", "/");
           res.setHeader("Access-Control-Allow-Origin", "*");
+
+          // The service worker is not hashed and must always be revalidated
+          // so that browsers detect and install new versions.
+          if (path.basename(filePath) === "sw.js") {
+            res.setHeader("Cache-Control", "no-cache");
+          }
         },
       });
     } catch (err) {
@@ -113,76 +119,7 @@ router.get("/locales/:lng.json", async (ctx) => {
   });
 });
 
-router.get(
-  [
-    "/.well-known/oauth-authorization-server",
-    "/.well-known/oauth-authorization-server/mcp",
-  ],
-  async (ctx) => {
-    // Use the configured URL for self-hosted deployments to preserve the port when behind
-    // a reverse proxy that may strip the port from the Host header.
-    const origin = env.isCloudHosted
-      ? ctx.request.URL.origin
-      : new URL(env.URL).origin;
-    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
-    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
-
-    ctx.body = {
-      issuer: origin,
-      authorization_endpoint: `${origin}/oauth/authorize`,
-      token_endpoint: `${origin}/oauth/token`,
-      revocation_endpoint: `${origin}/oauth/revoke`,
-      ...(!env.OAUTH_DISABLE_DCR &&
-        mcpEnabled && {
-          registration_endpoint: `${origin}/oauth/register`,
-        }),
-      response_types_supported: ["code"],
-      grant_types_supported: ["authorization_code", "refresh_token"],
-      token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
-      code_challenge_methods_supported: ["S256"],
-      scopes_supported: ["read", "write"],
-    };
-  }
-);
-
-router.get(
-  [
-    "/.well-known/oauth-protected-resource",
-    "/.well-known/oauth-protected-resource/mcp",
-  ],
-  async (ctx) => {
-    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
-    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
-
-    if (!mcpEnabled) {
-      ctx.status = 404;
-      return;
-    }
-
-    // Use the configured URL for self-hosted deployments to preserve the port when behind
-    // a reverse proxy that may strip the port from the Host header.
-    const origin = env.isCloudHosted
-      ? ctx.request.URL.origin
-      : new URL(env.URL).origin;
-
-    ctx.body = {
-      resource: `${origin}/mcp`,
-      authorization_servers: [origin],
-      scopes_supported: ["read", "write"],
-      bearer_methods_supported: ["header"],
-    };
-  }
-);
-
-router.get("/robots.txt", (ctx) => {
-  ctx.body = robotsResponse();
-});
-
-router.get("/opensearch.xml", (ctx) => {
-  ctx.type = "text/xml";
-  ctx.response.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
-  ctx.body = opensearchResponse(ctx.request.URL.origin);
-});
+router.use(discovery.routes());
 
 router.get("/s/:shareId.:format", shareDomains(), renderShare);
 router.get("/s/:shareId", shareDomains(), renderShare);
@@ -216,6 +153,19 @@ router.get("/sitemap.xml", async (ctx) => {
   }
 });
 
+// Client routes that render without an authenticated session.
+const publicAppPaths = [
+  "/",
+  "/create",
+  "/logout",
+  "/desktop-redirect",
+  "/oauth/authorize",
+];
+
+function isPublicAppPath(path: string) {
+  return publicAppPaths.includes(path.replace(/\/+$/, "") || "/");
+}
+
 // catch all for application
 router.get("*", async (ctx, next) => {
   if (isInvalidAppPath(ctx.path)) {
@@ -242,25 +192,26 @@ router.get("*", async (ctx, next) => {
         ctx.redirect(env.URL);
         return;
       }
-    }
 
-    // Redirect all requests to custom domain if one is set
-    else if (team?.domain) {
-      if (team.domain !== ctx.hostname) {
-        ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
-        return;
+      // Links to app paths on the root domain, such as those in emails, are
+      // sent on to the workspace the browser is signed in to.
+      if (!team && !isPublicAppPath(ctx.path)) {
+        const url = await getSessionRedirectUrl(ctx);
+        if (url) {
+          ctx.redirect(url);
+          return;
+        }
       }
     }
 
-    // Redirect if subdomain is not the current team's subdomain
-    else if (team?.subdomain) {
-      const { teamSubdomain } = parseDomain(ctx.href);
-      if (team?.subdomain !== teamSubdomain) {
-        ctx.redirect(
-          ctx.href.replace(`//${teamSubdomain}.`, `//${team.subdomain}.`)
-        );
-        return;
-      }
+    // Redirect to the team's canonical url, taking into account custom domains
+    // and hosted subdomains, if the request arrived on a different host.
+    else if (team && !team.isTeamUrl(ctx.href)) {
+      const url = new URL(team.url);
+      url.pathname = ctx.path;
+      url.search = ctx.search;
+      ctx.redirect(url.toString());
+      return;
     }
   }
 

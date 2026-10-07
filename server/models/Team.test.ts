@@ -4,6 +4,7 @@ import {
   buildTeam,
   buildCollection,
   buildAttachment,
+  buildSubdomain,
 } from "@server/test/factories";
 
 describe("Team", () => {
@@ -46,6 +47,34 @@ describe("Team", () => {
     it("should return null for unregistered domain", async () => {
       const result = await Team.findByDomain("unknown.example.com");
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findAvailableSubdomain", () => {
+    it("should slugify the requested value", async () => {
+      const slug = buildSubdomain();
+      const subdomain = await Team.findAvailableSubdomain(
+        `${slug.toUpperCase()} Inc`
+      );
+      expect(subdomain).toEqual(`${slug}-inc`);
+    });
+
+    it("should strip a trailing top-level domain", async () => {
+      const slug = buildSubdomain();
+      expect(await Team.findAvailableSubdomain(`${slug}.com`)).toEqual(slug);
+      expect(await Team.findAvailableSubdomain(`${slug} .com`)).toEqual(slug);
+      expect(await Team.findAvailableSubdomain(`${slug}.io`)).toEqual(slug);
+    });
+
+    it("should fall back to a default when too short or reserved", async () => {
+      expect(await Team.findAvailableSubdomain("ab")).toMatch(/^team\d*$/);
+      expect(await Team.findAvailableSubdomain("www")).toMatch(/^team\d*$/);
+    });
+
+    it("should append a number when the subdomain is taken", async () => {
+      const slug = buildSubdomain();
+      await buildTeam({ subdomain: slug });
+      expect(await Team.findAvailableSubdomain(slug)).toEqual(`${slug}1`);
     });
   });
 

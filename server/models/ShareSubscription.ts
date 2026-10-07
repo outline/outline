@@ -11,7 +11,9 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import { subHours } from "date-fns";
+import { Hour } from "@shared/utils/time";
 import { ValidationError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import Document from "./Document";
 import Share from "./Share";
 import IdModel from "./base/IdModel";
@@ -76,6 +78,9 @@ class ShareSubscription extends IdModel<
   /** Maximum number of unique email subscriptions allowed per IP address. */
   static maxSubscriptionsPerIP = 3;
 
+  /** Minimum time in milliseconds to wait before a confirmation email may be resent. */
+  static minResendInterval = Hour.ms;
+
   /**
    * Enforce a per-IP rate limit on subscription creation to prevent abuse.
    *
@@ -91,6 +96,14 @@ class ShareSubscription extends IdModel<
     if (!model.ipAddress) {
       return;
     }
+
+    // Serialize concurrent creation from the address, otherwise every request
+    // can read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `shareSubscriptions:${model.ipAddress}`,
+      options.transaction
+    );
 
     const results = await this.findAll({
       attributes: ["emailFingerprint"],
@@ -117,6 +130,21 @@ class ShareSubscription extends IdModel<
    */
   get isUnsubscribed(): boolean {
     return !!this.unsubscribedAt;
+  }
+
+  /**
+   * Whether a confirmation email may be sent again for this subscription. The
+   * required wait doubles as the subscription ages, so an unconfirmed address
+   * cannot be mailed repeatedly.
+   */
+  get canResendConfirmation(): boolean {
+    const now = Date.now();
+    const age = now - this.createdAt.getTime();
+    const sinceLastSend = now - this.updatedAt.getTime();
+
+    return (
+      sinceLastSend >= Math.max(age / 2, ShareSubscription.minResendInterval)
+    );
   }
 
   /**

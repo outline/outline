@@ -22,6 +22,9 @@ type ComponentViewConstructor = {
 };
 
 export default class ComponentView {
+  /** The class name applied to the editable content element of every node view. */
+  static readonly contentClassName = "component-content";
+
   /** The React component to render. */
   component: FunctionComponent<ComponentProps>;
   /** The editor instance. */
@@ -42,7 +45,7 @@ export default class ComponentView {
   isSelected = false;
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
-  /** The DOM element that the node's editable content is rendered into, if the node has content. */
+  /** The DOM element that the node's editable content is rendered into, if the node has editable content. */
   contentDOM: HTMLElement | null = null;
   /** The base class name for the node's DOM element. */
   className?: string;
@@ -70,10 +73,16 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
-    if (!node.isLeaf) {
+    // Atoms have no directly editable content, and ProseMirror only marks a node
+    // view uneditable when it has no contentDOM.
+    if (!node.type.isAtom) {
       this.contentDOM = document.createElement(
         node.type.spec.inline ? "span" : "div"
       );
+      // Chrome unwraps an attribute-less div that is the only child of its
+      // parent when a deletion empties a block inside it, which orphans the
+      // content from ProseMirror. Any attribute prevents this.
+      this.contentDOM.className = ComponentView.contentClassName;
     }
 
     this.className = `component-${node.type.name}`;
@@ -162,12 +171,15 @@ export default class ComponentView {
    */
   handleContentRef = (element: HTMLElement | null) => {
     if (
-      element &&
-      this.contentDOM &&
-      element !== this.contentDOM.parentElement
+      !element ||
+      !this.contentDOM ||
+      element === this.contentDOM.parentElement
     ) {
-      element.appendChild(this.contentDOM);
+      return;
     }
+
+    element.appendChild(this.contentDOM);
+    this.syncSelection();
   };
 
   stopEvent(event: Event) {
@@ -208,5 +220,26 @@ export default class ComponentView {
       decorations: this.decorations,
       contentRef: this.handleContentRef,
     } as ComponentProps;
+  }
+
+  /**
+   * Re-apply the editor selection to the DOM once the content is mounted. React
+   * mounts the content after ProseMirror has already synced the selection, so a
+   * selection inside a freshly created node lands on a detached element and the
+   * browser leaves the caret after the node instead.
+   */
+  private syncSelection() {
+    const { view } = this;
+    if (!this.dom || !view.hasFocus()) {
+      return;
+    }
+
+    const pos = this.getPos();
+    const { from, to } = view.state.selection;
+    if (from <= pos || to >= pos + this.node.nodeSize) {
+      return;
+    }
+
+    view.focus();
   }
 }

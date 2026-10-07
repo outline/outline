@@ -20,6 +20,8 @@ import EventBoundary from "@shared/components/EventBoundary";
 type SwatchButtonProps = {
   /** The current color value in hex format. If no color is passed a radial gradient will be shown */
   color?: string;
+  /** The color selected in the picker when opened. Defaults to `color` */
+  pickerColor?: string;
   /** Whether the swatch button is currently active/selected */
   active?: boolean;
   /** The size of the button in pixels */
@@ -34,6 +36,7 @@ type SwatchButtonProps = {
 
 export const SwatchButton: React.FC<SwatchButtonProps> = ({
   color,
+  pickerColor,
   active = false,
   size = 24,
   onChange,
@@ -56,7 +59,7 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
   const pickerContent = (
     <StyledColorPicker
       alpha={false}
-      activeColor={color}
+      activeColor={pickerColor ?? color}
       onSelect={(c) => onChange(c)}
     />
   );

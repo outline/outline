@@ -1,20 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useRef } from "react";
+import { useMergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import useDragResize from "./hooks/useDragResize";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import type { ComponentProps } from "../types";
 import { isFirefox } from "../../utils/browser";
+import { sanitizeUrl } from "../../utils/urls";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-
-/**
- * Default dimensions for the PDF preview – approximately the width of a standard
- * document with an A4 portrait aspect ratio.
- */
-const naturalWidth = 768;
-const naturalHeight = 1086;
+import { pdfNaturalHeight, pdfNaturalWidth } from "../lib/pdf";
 
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
@@ -37,55 +33,60 @@ export default function PdfViewer(props: Props) {
   const { width, handlePointerDown, dragging } = useDragResize({
     width: node.attrs.width,
     height: node.attrs.height,
-    naturalWidth,
-    naturalHeight,
+    naturalWidth: pdfNaturalWidth,
+    naturalHeight: pdfNaturalHeight,
     onChangeSize,
     ref,
   });
 
   // force embed to reload, so the content fits the new size.
-  useEffect(() => {
-    // firefox handles resizing on its own
-    // and forced reload causes the parent to collapse while resizing
-    if (isFirefox || !ref.current) {
-      return;
-    }
-
-    const observer = new ResizeObserver(() => {
-      if (dragging) {
+  const observeRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      // firefox handles resizing on its own
+      // and forced reload causes the parent to collapse while resizing
+      if (isFirefox || !element) {
         return;
       }
 
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      debounceTimerRef.current = setTimeout(() => {
-        if (embedRef.current) {
-          embedRef.current.src = "";
-          requestAnimationFrame(() => {
-            if (embedRef.current) {
-              embedRef.current.src = href;
-            }
-          });
+      const observer = new ResizeObserver(() => {
+        if (dragging) {
+          return;
         }
-      }, 250);
-    });
 
-    observer.observe(ref.current);
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
 
-    return () => {
-      observer.disconnect();
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [dragging, href]);
+        debounceTimerRef.current = setTimeout(() => {
+          if (embedRef.current) {
+            embedRef.current.src = "";
+            requestAnimationFrame(() => {
+              if (embedRef.current) {
+                embedRef.current.src = sanitizeUrl(href) ?? "";
+              }
+            });
+          }
+        }, 250);
+      });
+
+      observer.observe(element);
+
+      return () => {
+        observer.disconnect();
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+      };
+    },
+    [dragging, href]
+  );
+
+  const mergedRef = useMergeRefs([ref, observeRef]);
 
   return (
     <PDFWrapper
       contentEditable={false}
-      ref={ref}
+      ref={mergedRef}
       className={
         isSelected || dragging
           ? "pdf-wrapper ProseMirror-selectednode"
@@ -103,12 +104,12 @@ export default function PdfViewer(props: Props) {
       </Flex>
       <embed
         title={name}
-        src={href}
+        src={sanitizeUrl(href)}
         ref={embedRef}
         style={{
           width: "100%",
           height: "auto",
-          aspectRatio: `${naturalWidth} / ${naturalHeight}`,
+          aspectRatio: `${pdfNaturalWidth} / ${pdfNaturalHeight}`,
           pointerEvents:
             !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,

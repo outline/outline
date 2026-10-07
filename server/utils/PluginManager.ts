@@ -7,7 +7,11 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
-import type { UnfurlSignature, UninstallSignature } from "@server/types";
+import type {
+  MentionSignature,
+  UnfurlSignature,
+  UninstallSignature,
+} from "@server/types";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
 import type { GroupSyncProvider } from "./GroupSyncProvider";
 import type { BaseSearchProvider } from "./BaseSearchProvider";
@@ -34,6 +38,7 @@ export enum Hook {
   IssueProvider = "issueProvider",
   Processor = "processor",
   SearchProvider = "searchProvider",
+  MentionProvider = "mentionProvider",
   Task = "task",
   UnfurlProvider = "unfurl",
   Uninstall = "uninstall",
@@ -50,6 +55,7 @@ type PluginValueMap = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: typeof BaseEmail<any>;
   [Hook.IssueProvider]: BaseIssueProvider;
+  [Hook.MentionProvider]: MentionSignature;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.SearchProvider]: BaseSearchProvider;
   [Hook.Task]: typeof BaseTask<object>;

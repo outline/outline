@@ -7,6 +7,14 @@ const schema = new Schema({
   nodes: {
     doc: { content: "block+" },
     paragraph: { group: "block", content: "inline*" },
+    heading: {
+      group: "block",
+      content: "inline*",
+      attrs: { level: { default: 1 } },
+    },
+    table: { group: "block", content: "tr+" },
+    tr: { content: "td+" },
+    td: { content: "block+" },
     image: {
       group: "inline",
       inline: true,
@@ -29,6 +37,17 @@ const paragraph = (...content: object[]) => ({
 });
 
 const image = (attrs: object) => ({ type: "image", attrs });
+
+const heading = (title: string, level: number) => ({
+  type: "heading",
+  attrs: { level },
+  content: [{ type: "text", text: title }],
+});
+
+const table = (...content: object[]) => ({
+  type: "table",
+  content: [{ type: "tr", content: [{ type: "td", content }] }],
+});
 
 describe("ProsemirrorHelper", () => {
   describe("getNodeHash", () => {
@@ -188,148 +207,55 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
-  describe("getPlainParagraphs", () => {
-    it("should return an array of plain paragraphs", async () => {
-      const data = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: "some content in a paragraph",
-              },
-            ],
-          },
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: "some content in another paragraph",
-              },
-            ],
-          },
-        ],
-      } as ProsemirrorData;
-
-      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
-
-      expect(paragraphs).toEqual([
+  describe("everyNode", () => {
+    const data = {
+      type: "doc",
+      content: [
         {
           type: "paragraph",
           content: [
-            {
-              type: "text",
-              text: "some content in a paragraph",
-            },
+            { type: "text", text: "plain" },
+            { type: "text", text: "bold", marks: [{ type: "bold" }] },
           ],
         },
         {
-          type: "paragraph",
+          type: "bullet_list",
           content: [
             {
-              type: "text",
-              text: "some content in another paragraph",
+              type: "list_item",
+              content: [{ type: "paragraph" }],
             },
           ],
         },
-      ]);
+      ],
+    } as ProsemirrorData;
+
+    it("should return true when every node passes the predicate", () => {
+      expect(ProsemirrorHelper.everyNode(data, () => true)).toBe(true);
     });
 
-    it("should return undefined when data contains inline nodes", async () => {
-      const data = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: "some content in a paragraph",
-              },
-              {
-                type: "emoji",
-                attrs: {
-                  "data-name": "😆",
-                },
-              },
-            ],
-          },
-        ],
-      } as ProsemirrorData;
-
-      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
-      expect(paragraphs).toBeUndefined();
+    it("should visit the root node", () => {
+      expect(
+        ProsemirrorHelper.everyNode(data, (node) => node.type !== "doc")
+      ).toBe(false);
     });
 
-    it("should return undefined when data contains block nodes", async () => {
-      const data = {
-        type: "doc",
-        content: [
-          {
-            type: "blockquote",
-            content: [
-              {
-                type: "paragraph",
-                content: [
-                  {
-                    type: "text",
-                    text: "some content in a paragraph",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      } as ProsemirrorData;
-
-      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
-      expect(paragraphs).toBeUndefined();
+    it("should visit nested nodes", () => {
+      expect(
+        ProsemirrorHelper.everyNode(data, (node) => node.type !== "list_item")
+      ).toBe(false);
     });
 
-    it("should return undefined when data contains marks", async () => {
-      const data = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: "some content in a paragraph",
-                marks: [
-                  {
-                    type: "bold",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      } as ProsemirrorData;
-
-      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
-      expect(paragraphs).toBeUndefined();
+    it("should expose marks on text nodes", () => {
+      expect(
+        ProsemirrorHelper.everyNode(data, (node) => !node.marks?.length)
+      ).toBe(false);
     });
 
-    it("should handle paragraph without content", async () => {
-      const data = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-          },
-        ],
-      } as ProsemirrorData;
-
-      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
-      expect(paragraphs).toEqual([
-        {
-          type: "paragraph",
-        },
-      ]);
+    it("should handle nodes without content", () => {
+      expect(
+        ProsemirrorHelper.everyNode({ type: "paragraph" }, () => true)
+      ).toBe(true);
     });
   });
 
@@ -474,6 +400,40 @@ describe("ProsemirrorHelper", () => {
 
       const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
       expect(result.content![0].content![0].marks).toBeUndefined();
+    });
+  });
+
+  describe("getHeadings", () => {
+    it("marks headings that are nested inside tables", () => {
+      const node = doc(
+        heading("One", 1),
+        table(heading("Cell", 2)),
+        heading("Two", 2)
+      );
+
+      expect(ProsemirrorHelper.getHeadings(node)).toEqual([
+        expect.objectContaining({ title: "One", level: 1, inTable: false }),
+        expect.objectContaining({ title: "Cell", level: 2, inTable: true }),
+        expect.objectContaining({ title: "Two", level: 2, inTable: false }),
+      ]);
+    });
+
+    it("marks headings after a nested table as still inside the outer table", () => {
+      const node = doc(
+        table(
+          heading("Before", 2),
+          table(heading("Inner", 3)),
+          heading("After", 2)
+        ),
+        heading("Outside", 1)
+      );
+
+      expect(ProsemirrorHelper.getHeadings(node)).toEqual([
+        expect.objectContaining({ title: "Before", inTable: true }),
+        expect.objectContaining({ title: "Inner", inTable: true }),
+        expect.objectContaining({ title: "After", inTable: true }),
+        expect.objectContaining({ title: "Outside", inTable: false }),
+      ]);
     });
   });
 });

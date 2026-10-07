@@ -1,5 +1,6 @@
 import z from "zod";
 import { OAuthClientValidation } from "@shared/validations";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { BaseSchema } from "../api/schema";
 
 export const TokenSchema = BaseSchema.extend({
@@ -25,6 +26,18 @@ export const TokenRevokeSchema = BaseSchema.extend({
 
 export type TokenRevokeReq = z.infer<typeof TokenRevokeSchema>;
 
+// The received count is included in the message so that clients registering an
+// oversized list, and our own logs, show how far over the limit they are.
+const redirectUris = z
+  .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
+  .min(1)
+  .max(OAuthClientValidation.maxRedirectUris, {
+    error: (issue) =>
+      `expected array to have <=${OAuthClientValidation.maxRedirectUris} items, received ${
+        Array.isArray(issue.input) ? issue.input.length : "unknown"
+      }`,
+  });
+
 export const RegisterSchema = BaseSchema.extend({
   body: z.object({
     // RFC 7591 §2 marks every metadata field as OPTIONAL; some MCP clients
@@ -35,16 +48,15 @@ export const RegisterSchema = BaseSchema.extend({
       .min(1)
       .max(OAuthClientValidation.maxNameLength)
       .optional(),
-    redirect_uris: z
-      .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
-      .min(1)
-      .max(10),
+    redirect_uris: redirectUris,
     grant_types: z
-      .array(z.enum(["authorization_code", "refresh_token"]))
+      .array(z.enum(OAuthHelper.grantTypes))
       .default(["authorization_code"]),
-    response_types: z.array(z.enum(["code"])).default(["code"]),
+    response_types: z
+      .array(z.enum(OAuthHelper.responseTypes))
+      .default([...OAuthHelper.responseTypes]),
     token_endpoint_auth_method: z
-      .enum(["none", "client_secret_post"])
+      .enum(OAuthHelper.tokenEndpointAuthMethods)
       .default("none"),
     scope: z.string().optional(),
     client_uri: z
@@ -66,10 +78,7 @@ export type RegisterReq = z.infer<typeof RegisterSchema>;
 export const RegisterUpdateSchema = BaseSchema.extend({
   body: z.object({
     client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
-    redirect_uris: z
-      .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
-      .min(1)
-      .max(10),
+    redirect_uris: redirectUris,
     client_uri: z
       .string()
       .url()

@@ -9,7 +9,11 @@ import { gapCursor } from "prosemirror-gapcursor";
 import type { InputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
 import type { NodeSpec, MarkSpec } from "prosemirror-model";
-import { Schema, Node as ProsemirrorNode } from "prosemirror-model";
+import {
+  Schema,
+  Node as ProsemirrorNode,
+  DOMParser as ProsemirrorDOMParser,
+} from "prosemirror-model";
 import type { Plugin, Transaction } from "prosemirror-state";
 import { EditorState, Selection, TextSelection } from "prosemirror-state";
 import type { MarkdownParser } from "prosemirror-markdown";
@@ -36,6 +40,7 @@ import { inputRules } from "@shared/editor/lib/inputRules";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import textBetween from "@shared/editor/lib/textBetween";
+import { findNearestPos } from "@shared/editor/queries/findNearestPos";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
 import type {
@@ -48,8 +53,12 @@ import type {
   ProsemirrorMark,
   UserPreferences,
 } from "@shared/types";
+import { HeadingPrefixStyle } from "@shared/types";
+import { headingPrefixPluginKey } from "@shared/editor/extensions/HeadingPrefix";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
+import { getDataTransferFiles } from "@shared/utils/files";
+import { AttachmentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
@@ -175,6 +184,8 @@ export type Props = {
   embeds: EmbedDescriptor[];
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
+  /** The style of prefix displayed before headings in the document. */
+  headingPrefix?: HeadingPrefixStyle;
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   className?: string;
@@ -263,6 +274,7 @@ export class Editor extends React.PureComponent<
    */
   public componentDidMount() {
     this.init();
+    this.handleEditorInit();
     window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
@@ -311,6 +323,16 @@ export class Editor extends React.PureComponent<
 
     if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
       void this.scrollToAnchor(this.props.scrollTo);
+    }
+
+    // Recompute heading prefix decorations when the display preference changes
+    if (this.props.headingPrefix !== prevProps.headingPrefix) {
+      this.view.dispatch(
+        this.view.state.tr.setMeta(
+          headingPrefixPluginKey,
+          this.props.headingPrefix ?? HeadingPrefixStyle.None
+        )
+      );
     }
 
     // Focus at the end of the document if switching from readOnly and autoFocus
@@ -560,7 +582,7 @@ export class Editor extends React.PureComponent<
         ) {
           self.handleChange({
             remote: transactions.some(
-              (tr) => tr.docChanged && isRemoteTransaction(tr)
+              (tr) => tr.docChanged && isRemoteTransaction(tr, state)
             ),
           });
         }
@@ -582,6 +604,13 @@ export class Editor extends React.PureComponent<
     return view;
   }
 
+  /**
+   * Scroll the document to the element matching the given selector, waiting for
+   * it to be added to the DOM if it is not rendered yet.
+   *
+   * @param hash the selector to scroll to, typically a heading id prefixed
+   * with #.
+   */
   public async scrollToAnchor(hash: string) {
     if (!hash) {
       return;
@@ -723,6 +752,57 @@ export class Editor extends React.PureComponent<
       files,
       this.props
     );
+
+  /**
+   * Insert the content of a drop event at the position nearest to where it
+   * occurred. Intended for drops that land outside of the editor itself.
+   *
+   * @param event The drop event.
+   */
+  public insertDroppedContent = (event: React.DragEvent<HTMLElement>) => {
+    const { view } = this;
+    if (!view.editable) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const pos = findNearestPos(view, {
+      left: event.clientX,
+      top: event.clientY,
+    });
+    const files = getDataTransferFiles(event);
+
+    // Without files, attempt to parse the payload as an HTML fragment.
+    if (files.length === 0) {
+      const text =
+        event.dataTransfer.getData("text/html") ||
+        event.dataTransfer.getData("text/plain");
+      if (!text) {
+        return;
+      }
+
+      const dom = new DOMParser().parseFromString(text, "text/html");
+      view.dispatch(
+        view.state.tr.insert(
+          pos,
+          ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
+        )
+      );
+      return;
+    }
+
+    // Insert all files as attachments if any of the files are not images.
+    const isAttachment = files.some(
+      (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
+    );
+
+    return insertFiles(view, event, pos, files, {
+      ...this.props,
+      isAttachment,
+    });
+  };
 
   /**
    * Returns true if the trimmed content of the editor is an empty string.
@@ -906,6 +986,8 @@ export class Editor extends React.PureComponent<
   };
 
   private handleEditorDestroy = () => {
+    this.isInitialized = false;
+
     if (!this.props.onDestroy) {
       return;
     }
@@ -1010,6 +1092,8 @@ export class Editor extends React.PureComponent<
                   rtl={isRTL}
                   readOnly={readOnly}
                   selection={this.view.state.selection}
+                  storedMarks={this.view.state.storedMarks}
+                  isEditorFocused={this.state.isEditorFocused}
                 />
               ))}
             <Observer>
@@ -1054,8 +1138,8 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.focusedCommentId}
-        ~ span.component-image
-        div.image-wrapper {
+      ~ span.component-image
+      div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1072,8 +1156,8 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.hoveredCommentId}
-        ~ span.component-image
-        div.image-wrapper {
+      ~ span.component-image
+      div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1086,23 +1170,26 @@ const EditorContainer = styled(Styles)<{
         background: ${props.theme.textHighlight};
 
         &.ProseMirror-selectednode {
-          outline-color: ${props.readOnly
-            ? "transparent"
-            : darken(0.2, props.theme.textHighlight)};
+          outline-color: ${
+            props.readOnly
+              ? "transparent"
+              : darken(0.2, props.theme.textHighlight)
+          };
         }
       }
     `}
 `;
 
-const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  function LazyLoadedEditor_(props: Props, ref) {
-    return (
-      <WithTheme>
-        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
-      </WithTheme>
-    );
-  }
-);
+function LazyLoadedEditor({
+  ref,
+  ...props
+}: Props & { ref?: React.Ref<Editor> }) {
+  return (
+    <WithTheme>
+      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+    </WithTheme>
+  );
+}
 
 const observe = (
   selector: string,

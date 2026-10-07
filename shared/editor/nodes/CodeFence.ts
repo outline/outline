@@ -37,11 +37,12 @@ import Mermaid, {
   type MermaidState,
 } from "../extensions/Mermaid";
 import {
+  codeLanguages,
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
 import { isCode, isMermaid } from "../lib/isCode";
-import { isRemoteTransaction } from "../lib/multiplayer";
+import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { escapeRawTableCell } from "../lib/markdown/tableCell";
@@ -63,6 +64,28 @@ const COLLAPSE_HEIGHT_RATIO = 0.5;
 /** Approximate rendered line height of a code block, in pixels. */
 const CODE_LINE_HEIGHT = 20;
 
+/**
+ * Fraction of the document text above which a code block is not
+ * auto-collapsed, as collapsing it would hide most of the document.
+ */
+const AUTO_COLLAPSE_MAX_DOC_RATIO = 0.5;
+
+const collapseKey = new PluginKey<CollapseState>("collapse-code-block");
+
+/**
+ * Reduce a language attribute or fence info string to a single safe token, so
+ * it cannot break the fence line when written back to markdown.
+ *
+ * @param language - the language attribute or fence info string.
+ * @returns the first whitespace-separated token with backticks removed.
+ */
+function sanitizeLanguage(language: string | null | undefined): string {
+  return String(language ?? "")
+    .replace(/`/g, "")
+    .trim()
+    .split(/\s/)[0];
+}
+
 interface CollapseState {
   /** Positions of code blocks taller than COLLAPSE_HEIGHT_RATIO of the viewport. */
   tallBlocks: Set<number>;
@@ -70,6 +93,34 @@ interface CollapseState {
   collapsedBlocks: Set<number>;
   /** Node decorations that add the `collapsed` CSS class. */
   decorations: DecorationSet;
+}
+
+/**
+ * Expand the collapsed code block that contains a document position.
+ *
+ * @param pos - the document position inside the code block.
+ * @returns a command that expands the code block when it is collapsed.
+ */
+export function expandCodeBlockAt(pos: number): Command {
+  return (state, dispatch) => {
+    const $pos = state.doc.resolve(pos);
+    const codeBlock = findParentNodeClosestToPos($pos, isCode);
+    if (!codeBlock) {
+      return false;
+    }
+
+    const collapseState = collapseKey.getState(state);
+    if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
+      return false;
+    }
+
+    dispatch?.(
+      state.tr
+        .setMeta(collapseKey, { expand: codeBlock.pos })
+        .setMeta("addToHistory", false)
+    );
+    return true;
+  };
 }
 
 /**
@@ -95,6 +146,32 @@ function findTallBlocks(doc: ProsemirrorNode): Set<number> {
     }
   }
   return tall;
+}
+
+/**
+ * Find the tall code blocks that should start collapsed. A block that makes
+ * up the majority of the document text is left expanded.
+ *
+ * @param doc - the document to scan.
+ * @param tallBlocks - positions of tall code blocks in the document.
+ * @returns set of positions of code blocks to auto-collapse.
+ */
+function findAutoCollapsedBlocks(
+  doc: ProsemirrorNode,
+  tallBlocks: Set<number>
+): Set<number> {
+  const docLength = doc.textContent.length;
+  const collapsed = new Set<number>();
+  for (const pos of tallBlocks) {
+    const node = doc.nodeAt(pos);
+    if (!node || !isCode(node)) {
+      continue;
+    }
+    if (node.textContent.length <= docLength * AUTO_COLLAPSE_MAX_DOC_RATIO) {
+      collapsed.add(pos);
+    }
+  }
+  return collapsed;
 }
 
 /**
@@ -166,11 +243,6 @@ type CodeFenceOptions = {
 };
 
 export default class CodeFence extends Node<CodeFenceOptions> {
-  /** Plugin key for the collapse state, shared with the command. */
-  private static readonly collapseKey = new PluginKey<CollapseState>(
-    "collapse-code-block"
-  );
-
   get showLineNumbers(): boolean {
     return this.options.userPreferences?.codeBlockLineNumbers ?? true;
   }
@@ -184,7 +256,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       attrs: {
         language: {
           default: DEFAULT_LANGUAGE,
-          validate: "string",
+          // Null is permitted as existing documents can contain code blocks
+          // written before a language was always recorded.
+          validate: "string|null",
         },
         wrap: {
           default: false,
@@ -256,29 +330,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           ...attrs,
         });
       },
-      expandCodeBlockAt:
-        (pos: number): Command =>
-        (state, dispatch) => {
-          const $pos = state.doc.resolve(pos);
-          const codeBlock = findParentNodeClosestToPos($pos, isCode);
-          if (!codeBlock) {
-            return false;
-          }
-
-          const collapseState = CodeFence.collapseKey.getState(state);
-          if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
-            return false;
-          }
-
-          if (dispatch) {
-            dispatch(
-              state.tr
-                .setMeta(CodeFence.collapseKey, { expand: codeBlock.pos })
-                .setMeta("addToHistory", false)
-            );
-          }
-          return true;
-        },
+      expandCodeBlockAt: (pos: number) => expandCodeBlockAt(pos),
       toggleCodeBlockCollapse: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
         if (!codeBlock) {
@@ -288,7 +340,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         if (dispatch) {
           dispatch(
             state.tr
-              .setMeta(CodeFence.collapseKey, {
+              .setMeta(collapseKey, {
                 toggle: codeBlock.pos,
               })
               .setMeta("addToHistory", false)
@@ -412,7 +464,6 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
   /** Plugins for collapsible code block behavior. */
   private collapsePlugins(): Plugin[] {
-    const collapseKey = CodeFence.collapseKey;
     const build = (
       doc: ProsemirrorNode,
       tall: Set<number>,
@@ -426,9 +477,13 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         state: {
           init: (_config, state) => {
             const tallBlocks = findTallBlocks(state.doc);
-            return build(state.doc, tallBlocks, new Set(tallBlocks));
+            return build(
+              state.doc,
+              tallBlocks,
+              findAutoCollapsedBlocks(state.doc, tallBlocks)
+            );
           },
-          apply: (tr, prev, _oldState, newState) => {
+          apply: (tr, prev, oldState, newState) => {
             const meta = tr.getMeta(collapseKey);
 
             // Toggle collapsed state
@@ -459,15 +514,58 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             if (tr.docChanged) {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
-              const isRemote = isRemoteTransaction(tr);
+              const isRemote = isRemoteTransaction(tr, newState);
+              const autoCollapsedBlocks = isRemote
+                ? findAutoCollapsedBlocks(newState.doc, tallBlocks)
+                : new Set<number>();
+              const previousBlockDecorations: Decoration[] = [];
+              for (const pos of prev.tallBlocks) {
+                const node = oldState.doc.nodeAt(pos);
+                if (!node || !isCode(node)) {
+                  continue;
+                }
 
-              const inverse = tr.mapping.invert();
+                previousBlockDecorations.push(
+                  Decoration.node(
+                    pos,
+                    pos + node.nodeSize,
+                    {},
+                    {
+                      collapsed: prev.collapsedBlocks.has(pos),
+                      trackedCodeBlock: true,
+                    }
+                  )
+                );
+              }
+
+              const mappedTallBlocks = new Set<number>();
+              const mappedCollapsedBlocks = new Set<number>();
+              const previousBlocks = DecorationSet.create(
+                oldState.doc,
+                previousBlockDecorations
+              );
+              for (const decoration of mapDecorations(
+                previousBlocks,
+                tr,
+                newState
+              ).find()) {
+                if (!decoration.spec.trackedCodeBlock) {
+                  continue;
+                }
+
+                mappedTallBlocks.add(decoration.from);
+                if (decoration.spec.collapsed) {
+                  mappedCollapsedBlocks.add(decoration.from);
+                }
+              }
+
               for (const pos of tallBlocks) {
-                const oldPos = inverse.map(pos);
-                if (isRemote && !prev.tallBlocks.has(oldPos)) {
-                  // Newly tall blocks start collapsed on load
-                  collapsedBlocks.add(pos);
-                } else if (prev.collapsedBlocks.has(oldPos)) {
+                if (!mappedTallBlocks.has(pos)) {
+                  // Newly tall blocks start collapsed only on load/remote sync
+                  if (autoCollapsedBlocks.has(pos)) {
+                    collapsedBlocks.add(pos);
+                  }
+                } else if (mappedCollapsedBlocks.has(pos)) {
                   // Preserve previous collapsed state
                   collapsedBlocks.add(pos);
                 }
@@ -695,9 +793,17 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
   inputRules({ type }: { type: NodeType }) {
     return [
-      textblockTypeInputRule(/^```$/, type, () => ({
-        language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
-      })),
+      textblockTypeInputRule(/^```([a-zA-Z0-9+#-]*)\s$/, type, (match) => {
+        const language = match[1].toLowerCase();
+        return {
+          language: Object.prototype.hasOwnProperty.call(
+            codeLanguages,
+            language
+          )
+            ? language
+            : (getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE),
+        };
+      }),
     ];
   }
 
@@ -708,10 +814,17 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       ? escapeRawTableCell(node.textContent)
       : node.textContent;
 
-    state.write("```" + (node.attrs.language || "") + "\n");
+    // The fence must be longer than any backtick run in the content, or the
+    // content could terminate the fence early when the markdown is parsed.
+    const backticks = content.match(/`{3,}/g);
+    const fence = "`".repeat(
+      backticks ? Math.max(...backticks.map((run) => run.length)) + 1 : 3
+    );
+
+    state.write(fence + sanitizeLanguage(node.attrs.language) + "\n");
     state.text(content, false);
     state.ensureNewLine();
-    state.write("```");
+    state.write(fence);
     state.closeBlock(node);
   }
 
@@ -722,7 +835,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   parseMarkdown() {
     return {
       block: "code_block",
-      getAttrs: (tok: Token) => ({ language: tok.info }),
+      getAttrs: (tok: Token) => ({ language: sanitizeLanguage(tok.info) }),
       noCloseToken: true,
     };
   }

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   DragActiveProvider,
   SidebarScrollProvider,
@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { SidebarSection, UserPreference } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
 import { navigateToImport } from "~/actions/definitions/navigation";
@@ -24,6 +25,9 @@ import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
+import DraggableSection, {
+  normalizeSidebarSectionOrder,
+} from "./components/DraggableSection";
 import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
@@ -55,22 +59,26 @@ function AppSidebar() {
   }, [history]);
 
   useEffect(() => {
-    void collections.fetchAll();
+    void collections.fetchAllIfNeeded();
 
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
   }, [documents, collections, user.isViewer]);
 
-  // Scrollable reads ref.current internally for its shadow/ResizeObserver
-  // logic, so we must pass an object ref — a callback ref would leave those
-  // reads undefined. We mirror the attached node into state so the
-  // SidebarScrollProvider can re-render descendants with the scroll element.
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // Hold the scroll element in state so the SidebarScrollProvider can
+  // re-render descendants with it.
   const [scrollArea, setScrollArea] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setScrollArea(scrollRef.current);
-  }, []);
+
+  const sectionOrder = normalizeSidebarSectionOrder(
+    user.getPreference(UserPreference.SidebarSectionOrder, [])
+  );
+
+  const sectionContent = {
+    [SidebarSection.Starred]: <Starred />,
+    [SidebarSection.SharedWithMe]: <SharedWithMe />,
+    [SidebarSection.Collections]: <Collections />,
+  };
 
   return (
     <Sidebar hidden={!ui.readyToShow}>
@@ -125,17 +133,13 @@ function AppSidebar() {
             {can.createDocument && <DraftsLink />}
           </Section>
         </Overflow>
-        <Scrollable flex shadow ref={scrollRef}>
+        <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
-            <Section>
-              <Starred />
-            </Section>
-            <Section>
-              <SharedWithMe />
-            </Section>
-            <Section>
-              <Collections />
-            </Section>
+            {sectionOrder.map((section) => (
+              <DraggableSection key={section} section={section}>
+                {sectionContent[section]}
+              </DraggableSection>
+            ))}
             {can.createDocument && (
               <Section auto>
                 <ArchiveLink />

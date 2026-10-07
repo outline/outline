@@ -1,3 +1,20 @@
+declare global {
+  interface ObjectConstructor {
+    hasOwn(target: object, property: PropertyKey): boolean;
+  }
+}
+
+// Applied at module scope so dependencies that call it during evaluation, or on
+// first render, are covered. Unavailable before Chrome 93 and Safari 15.4.
+if (typeof Object.hasOwn !== "function") {
+  Object.defineProperty(Object, "hasOwn", {
+    value: (target: object, property: PropertyKey) =>
+      Object.prototype.hasOwnProperty.call(target, property),
+    writable: true,
+    configurable: true,
+  });
+}
+
 /**
  * Loads required polyfills.
  *

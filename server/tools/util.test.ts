@@ -183,6 +183,22 @@ describe("getBreadcrumbsForDocuments", () => {
     expect(result.has("doc-without-collection")).toBe(false);
   });
 
+  it("falls back to the collection name for a document missing from the structure", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+      name: "Engineering",
+    });
+
+    const result = await getBreadcrumbsForDocuments(
+      [{ id: "not-in-structure", collectionId: collection.id }],
+      user
+    );
+    expect(result.get("not-in-structure")).toBe("Engineering");
+  });
+
   it("resolves breadcrumbs across multiple collections in one call", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

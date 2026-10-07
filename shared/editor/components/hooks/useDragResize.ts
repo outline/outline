@@ -70,7 +70,7 @@ type Params = {
   /** The minimum height in pixels when resizing vertically. */
   minHeight?: number;
   /** A reference to the element being resized. */
-  ref: React.RefObject<HTMLDivElement>;
+  ref: React.RefObject<HTMLDivElement | null>;
   /** Whether the element should scale symmetrically from the center. Defaults to true. */
   isCentered?: boolean;
 };

@@ -9,16 +9,20 @@ type Props = React.ComponentPropsWithoutRef<
 > & {
   neutral?: boolean;
   className?: string;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
-export const OverflowMenuButton = React.forwardRef<HTMLButtonElement, Props>(
-  ({ neutral, className, ...rest }, ref) =>
-    neutral ? (
-      <Button ref={ref} icon={<MoreIcon />} neutral borderOnHover {...rest} />
-    ) : (
-      <NudeButton ref={ref} className={className} {...rest}>
-        <MoreIcon />
-      </NudeButton>
-    )
-);
-OverflowMenuButton.displayName = "OverflowMenuButton";
+export function OverflowMenuButton({
+  ref,
+  neutral,
+  className,
+  ...rest
+}: Props) {
+  return neutral ? (
+    <Button ref={ref} icon={<MoreIcon />} neutral borderOnHover {...rest} />
+  ) : (
+    <NudeButton ref={ref} className={className} {...rest}>
+      <MoreIcon />
+    </NudeButton>
+  );
+}

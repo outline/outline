@@ -143,6 +143,27 @@ declare global {
       onReplaceInPage: (callback: () => void) => void;
 
       /**
+       * Registers a callback to be called when a file download completes. The
+       * callback receives the name and saved path of the file, which can be
+       * passed back to `openDownload` or `showDownloadInFolder`.
+       */
+      onDownloadComplete: (
+        callback: (file: { fileName: string; filePath: string }) => void
+      ) => void;
+
+      /**
+       * Opens a downloaded file with the default application for its type.
+       * Resolves with whether the file was opened.
+       */
+      openDownload: (filePath: string) => Promise<boolean>;
+
+      /**
+       * Reveals a downloaded file in the file manager of the operating system.
+       * Resolves with whether the file was revealed.
+       */
+      showDownloadInFolder: (filePath: string) => Promise<boolean>;
+
+      /**
        * Get whether the app is configured to launch at login.
        */
       getAutoLaunch: () => Promise<boolean>;

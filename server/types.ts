@@ -9,6 +9,7 @@ import type {
   Client,
   CollectionPermission,
   JSONValue,
+  MentionType,
   UnfurlResourceType,
   ProsemirrorData,
   UnfurlResponse,
@@ -73,9 +74,13 @@ export type AppState = {
   auth: Authentication | Record<string, never>;
   transaction: Transaction;
   pagination: Pagination;
+  /** The teams authorized to receive an inbound webhook. */
+  webhookTeamIds?: string[];
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;
+  /** The identifiers this request is rate limited against. */
+  rateLimiterIdentifiers?: string[];
 };
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;
@@ -158,13 +163,21 @@ export type UserEvent = BaseEvent<User> &
     | {
         name:
           | "users.signin"
-          | "users.signout"
           | "users.update"
           | "users.suspend"
           | "users.activate"
           | "users.delete"
           | "users.invite_accepted";
         userId: string;
+      }
+    | {
+        name: "users.signout";
+        userId: string;
+        data?: {
+          name: string;
+          /** What caused the sign out, absent on events from older versions. */
+          reason?: "manual" | "sso_revoked";
+        };
       }
     | {
         name: "users.create" | "users.promote" | "users.demote";
@@ -239,6 +252,8 @@ export type DocumentEvent = BaseEvent<Document> &
         createdAt: string;
         data?: {
           done: boolean;
+          /** The latest collaborator sequence included in the persisted snapshot. */
+          collaborators?: number;
         };
       }
     | {
@@ -287,7 +302,8 @@ export type CollectionUserEvent = BaseEvent<UserMembership> & {
   userId: string;
   modelId: string;
   collectionId: string;
-  data: {
+  /** Only present when the membership was created or updated. */
+  data?: {
     isNew?: boolean;
   };
 };
@@ -304,7 +320,8 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   userId: string;
   modelId: string;
   documentId: string;
-  data: {
+  /** Only present when the membership was created or updated. */
+  data?: {
     isNew?: boolean;
   };
 };
@@ -452,7 +469,10 @@ export type WebhookSubscriptionEvent = BaseEvent<WebhookSubscription> & {
 };
 
 export type NotificationEvent = BaseEvent<Notification> & {
-  name: "notifications.create" | "notifications.update";
+  name:
+    | "notifications.create"
+    | "notifications.update"
+    | "notifications.delete";
   modelId: string;
   teamId: string;
   userId: string;
@@ -615,6 +635,13 @@ export type UnfurlSignature = (
   url: string,
   actor?: User
 ) => Promise<Unfurl | UnfurlError | undefined>;
+
+/**
+ * Recognizes the URL of a resource belonging to the service and returns the
+ * type of mention that represents it, or undefined when the URL is not one the
+ * service can mention.
+ */
+export type MentionSignature = (url: URL) => MentionType | undefined;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
 

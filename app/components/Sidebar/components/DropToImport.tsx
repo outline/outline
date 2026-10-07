@@ -13,7 +13,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  children: JSX.Element;
+  children: React.JSX.Element;
   collectionId?: string;
   documentId?: string;
   disabled?: boolean;

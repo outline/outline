@@ -14,10 +14,3 @@ declare module "*.png" {
   const value: any;
   export = value;
 }
-
-declare namespace JSX {
-  interface IntrinsicElements {
-    "zapier-app-directory": any;
-    "em-emoji": any;
-  }
-}

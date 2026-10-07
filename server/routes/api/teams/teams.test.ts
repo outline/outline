@@ -3,6 +3,7 @@ import { TeamDomain } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
+  buildSubdomain,
   buildTeam,
   buildUser,
 } from "@server/test/factories";
@@ -23,6 +24,34 @@ describe("teams.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.team.name).toEqual(name);
+  });
+
+  it("strips a top-level domain from the generated subdomain", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const slug = buildSubdomain();
+    const res = await server.post("/api/teams.create", user, {
+      body: {
+        name: `${slug}.com`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.team.subdomain).toEqual(slug);
+  });
+
+  it("strips a top-level domain preceded by whitespace", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const slug = buildSubdomain();
+    const res = await server.post("/api/teams.create", user, {
+      body: {
+        name: `${slug} .com`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.team.subdomain).toEqual(slug);
   });
 
   it.skip("requires a cloud hosted deployment", async () => {
@@ -51,6 +80,75 @@ describe("#team.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual(name);
+  });
+
+  it("should update team preferences", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          publicBranding: true,
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.publicBranding).toBe(true);
+  });
+
+  it("should fail upon sending unknown team preference", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          invalidPreference: true,
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail upon sending a team preference value of the wrong type", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          publicBranding: "yes",
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail upon sending an invalid custom theme color", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          customTheme: {
+            accent: "#qqqq",
+          },
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should accept a valid custom theme color", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", admin, {
+      body: {
+        preferences: {
+          customTheme: {
+            accent: "#0366d6",
+            accentText: "#fff",
+          },
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.customTheme.accent).toEqual("#0366d6");
   });
 
   it("should add avatar", async () => {

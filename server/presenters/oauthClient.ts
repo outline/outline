@@ -1,4 +1,5 @@
 import type { OAuthClient } from "@server/models";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 
 /**
  * Presents an OAuthClient in RFC 7591 Dynamic Client Registration response format.
@@ -34,10 +35,11 @@ export function presentDCRClient(
     client_id_issued_at: Math.floor(oauthClient.createdAt.getTime() / 1000),
     redirect_uris: oauthClient.redirectUris,
     client_name: oauthClient.name,
-    grant_types: ["authorization_code"],
-    response_types: ["code"],
-    token_endpoint_auth_method:
-      oauthClient.clientType === "confidential" ? "client_secret_post" : "none",
+    grant_types: OAuthHelper.grantTypes,
+    response_types: OAuthHelper.responseTypes,
+    token_endpoint_auth_method: OAuthHelper.authMethodForClientType(
+      oauthClient.clientType
+    ),
     ...(oauthClient.developerUrl && { client_uri: oauthClient.developerUrl }),
     ...(oauthClient.avatarUrl && { logo_uri: oauthClient.avatarUrl }),
     ...(includeRegistrationAccessToken && {
@@ -48,12 +50,19 @@ export function presentDCRClient(
 }
 
 /**
- * Presents the OAuth client to the user, including the client secret.
+ * Presents the OAuth client to the user.
  * This should ONLY be used for admin users who need to manage the OAuth client.
  *
- * @param oauthClient The OAuth client to present
+ * @param oauthClient The OAuth client to present.
+ * @param options.includeSecret whether to include the client secret. Because the
+ *   secret is a durable credential it is omitted unless the request is
+ *   explicitly known to be permitted to manage the client.
+ * @returns the presented OAuth client.
  */
-export default function presentOAuthClient(oauthClient: OAuthClient) {
+export default function presentOAuthClient(
+  oauthClient: OAuthClient,
+  { includeSecret = false }: { includeSecret?: boolean } = {}
+) {
   return {
     id: oauthClient.id,
     name: oauthClient.name,
@@ -62,7 +71,7 @@ export default function presentOAuthClient(oauthClient: OAuthClient) {
     developerUrl: oauthClient.developerUrl,
     avatarUrl: oauthClient.avatarUrl,
     clientId: oauthClient.clientId,
-    clientSecret: oauthClient.clientSecret,
+    ...(includeSecret && { clientSecret: oauthClient.clientSecret }),
     clientType: oauthClient.clientType,
     redirectUris: oauthClient.redirectUris,
     published: oauthClient.published,

@@ -7,7 +7,7 @@ import GitLabConnectDialog from "./GitLabConnectDialog";
 /**
  * Button that opens a dialog to connect to GitLab Cloud or a self-managed instance.
  */
-export function GitLabConnectButton(props: Props<HTMLButtonElement>) {
+export function GitLabConnectButton(props: Props<"button">) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
 

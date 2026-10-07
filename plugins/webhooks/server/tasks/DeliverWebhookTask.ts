@@ -169,6 +169,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "authenticationProviders.update":
       case "notifications.create":
       case "notifications.update":
+      case "notifications.delete":
       case "access_requests.create":
         // Ignored
         return;

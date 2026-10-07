@@ -1,13 +1,10 @@
 // Based on https://github.com/rehooks/window-scroll-position which is no longer
 // maintained.
 import { throttle } from "es-toolkit/compat";
-import { useState, useEffect } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 import { supportsPassiveListener } from "@shared/utils/browser";
 
-const getPosition = () => ({
-  x: window.pageXOffset,
-  y: window.pageYOffset,
-});
+type ScrollPosition = { x: number; y: number };
 
 const defaultOptions = {
   throttle: 100,
@@ -22,31 +19,40 @@ const defaultOptions = {
  */
 export default function useWindowScrollPosition(options: {
   throttle: number;
-}): {
-  x: number;
-  y: number;
-} {
-  const opts = Object.assign({}, defaultOptions, options);
-  const [position, setPosition] = useState(getPosition());
+}): ScrollPosition {
+  const throttleMs = options.throttle ?? defaultOptions.throttle;
 
-  useEffect(() => {
-    const handleScroll = throttle(() => {
-      setPosition(getPosition());
-    }, opts.throttle);
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      supportsPassiveListener
-        ? {
-            passive: true,
-          }
-        : false
-    );
-    return () => {
-      handleScroll.cancel();
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [opts.throttle]);
+  // Cache the last object so getSnapshot returns a stable reference while the
+  // position is unchanged, which useSyncExternalStore requires.
+  const cache = useRef<ScrollPosition>({
+    x: window.pageXOffset,
+    y: window.pageYOffset,
+  });
 
-  return position;
+  const getSnapshot = useCallback(() => {
+    const x = window.pageXOffset;
+    const y = window.pageYOffset;
+    if (x !== cache.current.x || y !== cache.current.y) {
+      cache.current = { x, y };
+    }
+    return cache.current;
+  }, []);
+
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const handleScroll = throttle(onStoreChange, throttleMs);
+      window.addEventListener(
+        "scroll",
+        handleScroll,
+        supportsPassiveListener ? { passive: true } : false
+      );
+      return () => {
+        handleScroll.cancel();
+        window.removeEventListener("scroll", handleScroll);
+      };
+    },
+    [throttleMs]
+  );
+
+  return useSyncExternalStore(subscribe, getSnapshot);
 }

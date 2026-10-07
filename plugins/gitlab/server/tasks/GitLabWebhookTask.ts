@@ -5,10 +5,11 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 type Props = {
   headers: Record<string, unknown>;
   payload: Record<string, unknown>;
+  teamId: string | null;
 };
 
 export default class GitLabWebhookTask extends BaseTask<Props> {
-  public async perform({ headers, payload }: Props): Promise<void> {
+  public async perform({ headers, payload, teamId }: Props): Promise<void> {
     const plugins = PluginManager.getHooks(Hook.IssueProvider);
     const plugin = plugins.find(
       (p) => p.value.service === IntegrationService.GitLab
@@ -21,6 +22,7 @@ export default class GitLabWebhookTask extends BaseTask<Props> {
     await plugin.value.handleWebhook({
       headers,
       payload,
+      teamId,
     });
   }
 }

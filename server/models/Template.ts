@@ -1,4 +1,4 @@
-import { isUUID } from "class-validator";
+import isUUID from "validator/lib/isUUID";
 import type {
   Identifier,
   InferAttributes,
@@ -206,6 +206,16 @@ class Template extends ParanoidModel<
     return !this.collectionId;
   }
 
+  /**
+   * Returns whether this template is an unpublished draft, only visible to the
+   * user that created it.
+   *
+   * @returns boolean
+   */
+  get isDraft() {
+    return !this.publishedAt;
+  }
+
   @BeforeValidate
   static createUrlId(model: Template) {
     return (model.urlId = model.urlId || generateUrlId());
@@ -234,6 +244,13 @@ class Template extends ParanoidModel<
       AdditionalFindOptions = {}
   ): Promise<Template | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Template doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -248,40 +265,34 @@ class Template extends ParanoidModel<
       },
     ]);
 
+    let template: Template | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const template = await scope.findOne({
+      template = await scope.findOne({
         where: {
           id,
         },
         ...rest,
         rejectOnEmpty: false,
       });
-
-      if (!template && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Template doesn't exist with id: ${id}`);
-      }
-
-      return template;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const template = await scope.findOne({
+    } else if (match) {
+      template = await scope.findOne({
         where: {
           urlId: match[1],
         },
         ...rest,
         rejectOnEmpty: false,
       });
-
-      if (!template && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Template doesn't exist with id: ${id}`);
-      }
-
-      return template;
     }
 
-    return null;
+    if (!template && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Template doesn't exist with id: ${id}`);
+    }
+
+    return template;
   }
 }
 

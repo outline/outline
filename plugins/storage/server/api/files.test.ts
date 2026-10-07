@@ -11,6 +11,7 @@ import AttachmentHelper, {
 } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
 import {
+  buildApiKey,
   buildAttachment,
   buildFileOperation,
   buildUser,
@@ -52,9 +53,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -89,9 +88,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -118,9 +115,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -150,9 +145,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -181,9 +174,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -366,9 +357,7 @@ describe("#files.get", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    await server.post(`/api/files.create`, {
+    await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -402,9 +391,7 @@ describe("#files.get", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    await server.post(`/api/files.create`, {
+    await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -607,6 +594,106 @@ describe("#files.get", () => {
     expect(res.headers.get("Content-Type")).toEqual("application/zip");
     expect(res.headers.get("Content-Disposition")).toEqual(
       'attachment; filename="export-markdown.zip"'
+    );
+  });
+  it("should succeed with status 200 ok when signed file is requested with an API key lacking scope", async () => {
+    const user = await buildUser();
+    const apiKey = await buildApiKey({
+      userId: user.id,
+      scope: ["/api/fileOperations.redirect"],
+    });
+    const fileName = "export-markdown.zip";
+    const key = `${Buckets.uploads}/${user.teamId}/${crypto.randomUUID()}/${fileName}`;
+
+    await buildFileOperation({
+      userId: user.id,
+      teamId: user.teamId,
+      type: FileOperationType.Export,
+      state: FileOperationState.Complete,
+      key,
+    });
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const signedUrl = await FileStorage.getSignedUrl(key);
+    const url = new URL(signedUrl);
+    const res = await server.get(url.pathname + url.search, {
+      headers: { authorization: `Bearer ${apiKey.value}` },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual("application/zip");
+  });
+});
+
+describe("#files.get byte ranges", () => {
+  const fileName = "avatar.jpg";
+
+  const buildFile = async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType: "image/jpeg",
+        acl: "public-read",
+      },
+      fileName
+    );
+
+    const source = path.resolve(__dirname, "..", "test", "fixtures", fileName);
+    const destination = path.join(
+      env.FILE_STORAGE_LOCAL_ROOT_DIR,
+      attachment.key
+    );
+
+    ensureDirSync(path.dirname(destination));
+    copyFileSync(source, destination);
+
+    return { key: attachment.key, content: await readFile(source) };
+  };
+
+  it("should serve the whole file when no range is requested", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`);
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Accept-Ranges")).toEqual("bytes");
+    expect(res.headers.get("Content-Length")).toEqual(String(content.length));
+  });
+
+  it("should serve the requested range", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: "bytes=-100" },
+    });
+
+    expect(res.status).toEqual(206);
+    expect(res.headers.get("Content-Length")).toEqual("100");
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes ${content.length - 100}-${content.length - 1}/${content.length}`
+    );
+    expect(Buffer.from(await res.arrayBuffer())).toEqual(
+      content.subarray(-100)
+    );
+  });
+
+  it("should fail with status 416 when the range cannot be satisfied", async () => {
+    const { key, content } = await buildFile();
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: { Range: `bytes=${content.length}-` },
+    });
+
+    expect(res.status).toEqual(416);
+    expect(res.headers.get("Content-Range")).toEqual(
+      `bytes */${content.length}`
     );
   });
 });

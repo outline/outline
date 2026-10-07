@@ -2,7 +2,6 @@ import Router from "koa-router";
 import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
-import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
 import { errToId } from "@shared/utils/error";
 import { QueryNotices, TeamPreference } from "@shared/types";
@@ -524,8 +523,8 @@ router.post(
         existing.secret = randomString(32);
         existing.email = email;
         await existing.save({ transaction });
-      } else if (existing.createdAt > subMinutes(new Date(), 60)) {
-        // Recently created, not yet confirmed — don't spam
+      } else if (!existing.canResendConfirmation) {
+        // Confirmation was sent recently, not yet confirmed — don't spam
         ctx.body = { success: true };
         return;
       } else {

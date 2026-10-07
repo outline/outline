@@ -2,12 +2,13 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
+import { buildWhere } from "@server/models/helpers/Filters";
 import { sequelize } from "@server/storage/database";
-import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
 import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { DeprecationValidation } from "@shared/validations";
 import {
   success,
   error,
@@ -89,9 +90,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
             if (query) {
               and.push(
-                Sequelize.literal(
-                  `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                ) as unknown as WhereOptions<Collection>
+                buildWhere<Collection>({
+                  field: "name",
+                  operator: "contains",
+                  value: query,
+                })
               );
             }
 
@@ -104,7 +107,6 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               method: ["withMembership", user.id],
             }).findAll({
               where,
-              replacements: { query: QueryHelper.likeContains(query ?? "") },
               order: [
                 Sequelize.literal('"collection"."index" collate "C"'),
                 ["updatedAt", "DESC"],
@@ -331,37 +333,52 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to true to archive the collection instead of deleting it. All documents within the collection will also be archived."
             ),
+          reason: z
+            .string()
+            .trim()
+            .max(DeprecationValidation.maxReasonLength)
+            .nullish()
+            .describe(
+              "A plain text reason for archiving or deleting the collection. Omit to keep the existing reason, or use null or an empty string to clear it."
+            ),
         },
       },
-      withTracing("delete_collection", async ({ id, archive }, context) => {
-        try {
-          const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+      withTracing(
+        "delete_collection",
+        async ({ id, archive, reason }, context) => {
+          try {
+            const ctx = buildAPIContext(context);
+            const { user } = ctx.state.auth;
 
-          await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            await sequelize.transaction(async (transaction) => {
+              ctx.state.transaction = transaction;
+              ctx.context.transaction = transaction;
 
-            const collection = await Collection.findByPk(id, {
-              userId: user.id,
-              rejectOnEmpty: true,
-              transaction,
+              const collection = await Collection.findByPk(id, {
+                userId: user.id,
+                rejectOnEmpty: true,
+                transaction,
+              });
+
+              authorize(user, archive ? "archive" : "delete", collection);
+
+              if (reason !== undefined) {
+                collection.deprecatedReason = reason || null;
+              }
+
+              if (archive) {
+                await collection.archiveWithCtx(ctx);
+              } else {
+                await collection.destroyWithCtx(ctx);
+              }
             });
 
-            if (archive) {
-              authorize(user, "archive", collection);
-              await collection.archiveWithCtx(ctx);
-            } else {
-              authorize(user, "delete", collection);
-              await collection.destroyWithCtx(ctx);
-            }
-          });
-
-          return success({ success: true });
-        } catch (message) {
-          return error(message);
+            return success({ success: true });
+          } catch (message) {
+            return error(message);
+          }
         }
-      })
+      )
     );
   }
 }

@@ -1,13 +1,14 @@
 import querystring from "node:querystring";
 import { addMonths } from "date-fns";
 import type { Context } from "koa";
-import { pick } from "es-toolkit/compat";
+import { isPlainObject, pick } from "es-toolkit/compat";
+import isUUID from "validator/lib/isUUID";
 import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { Event, Collection, View } from "@server/models";
+import { Event, Collection, Team, View } from "@server/models";
 import type { APIContext, AuthenticationResult } from "@server/types";
 import { AuthenticationType } from "@server/types";
 
@@ -23,10 +24,46 @@ export function getSessionsInCookie(ctx: Context) {
   try {
     const sessionCookie = ctx.cookies.get("sessions") || "";
     const decodedSessionCookie = decodeURIComponent(sessionCookie);
-    return decodedSessionCookie ? JSON.parse(decodedSessionCookie) : {};
+    const sessions = decodedSessionCookie
+      ? JSON.parse(decodedSessionCookie)
+      : {};
+    return isPlainObject(sessions) ? sessions : {};
   } catch (_err) {
     return {};
   }
+}
+
+/**
+ * Finds the workspace to send a request for the app root domain to, using the
+ * first usable workspace in the "sessions" cookie. Entries that are malformed,
+ * deleted, suspended, or already the current host are ignored.
+ *
+ * @param ctx The Koa context
+ * @returns The workspace url for the requested path, if there is one.
+ */
+export async function getSessionRedirectUrl(
+  ctx: Context
+): Promise<string | undefined> {
+  const teamIds = Object.keys(getSessionsInCookie(ctx)).filter((id) =>
+    isUUID(id)
+  );
+  if (teamIds.length === 0) {
+    return;
+  }
+
+  // Preserve cookie order so the earliest sign-in wins.
+  const teams = await Team.findAll({ where: { id: teamIds } });
+  const team = teamIds
+    .map((id) => teams.find((t) => t.id === id))
+    .find((t) => t && !t.isSuspended && !t.isTeamUrl(ctx.href));
+  if (!team) {
+    return;
+  }
+
+  const url = new URL(team.url);
+  url.pathname = ctx.path;
+  url.search = ctx.search;
+  return url.toString();
 }
 
 /**

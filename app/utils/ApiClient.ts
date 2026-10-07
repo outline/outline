@@ -263,14 +263,28 @@ class ApiClient {
     // raw body is captured for diagnosis.
     if (response.status === 502) {
       const text = await response.text();
-      const err = new BadGatewayError(text);
 
-      Logger.error("BadGatewayError", err, {
-        url: urlToFetch,
-        requestTime: Math.round(timeEnd - timeStart),
-        responseText: text,
-        responseHeaders: Object.fromEntries(response.headers.entries()),
-      });
+      // Gateways often respond with an empty body, or an HTML error page that is
+      // too long to read as a title, so the endpoint leads the message.
+      const detail = text.trim().slice(0, 200);
+      const err = new BadGatewayError(
+        detail
+          ? `Bad gateway response from ${path}: ${detail}`
+          : `Bad gateway response from ${path} with empty body`
+      );
+
+      Logger.error(
+        "BadGatewayError",
+        err,
+        {
+          url: urlToFetch,
+          requestTime: Math.round(timeEnd - timeStart),
+          responseText: text,
+          responseHeaders: Object.fromEntries(response.headers.entries()),
+        },
+        // Grouped by endpoint, as the stack trace is identical for every 502.
+        ["BadGatewayError", path]
+      );
       throw err;
     }
 

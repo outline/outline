@@ -11,10 +11,10 @@ import {
   tableNodeTypes,
   toggleHeader,
   addColumn,
-  deleteRow,
-  deleteColumn,
   deleteTable,
   mergeCells,
+  removeColumn,
+  removeRow,
   splitCell,
   TableMap,
   type TableRect,
@@ -27,6 +27,8 @@ import { isIPv4Address, parseIPv4 } from "../../utils/ip";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
   getAllSelectedColumns,
+  canMergeCells,
+  getAllSelectedRows,
   getCellsInColumn,
   getCellsInRow,
   getCellsInSelectedColumns,
@@ -61,10 +63,8 @@ function restoreColumnSelection(
 ): void {
   const table = tr.doc.nodeAt(tableStart - 1);
   if (table) {
-    const map = TableMap.get(table);
-    const pos = map.positionAt(0, columnIndex, table);
-    const $pos = tr.doc.resolve(tableStart + pos);
-    tr.setSelection(ColumnSelection.colSelection($pos));
+    const $pos = tr.doc.resolve(tableStart + TableMap.get(table).map[0]);
+    tr.setSelection(ColumnSelection.fromIndex($pos, columnIndex));
   }
 }
 
@@ -568,6 +568,74 @@ export function addRowBefore({ index }: { index?: number }): Command {
 }
 
 /**
+ * A command that deletes the selected rows. Rows that are only part of the
+ * selection because a merged cell spans into them are kept, and the merged
+ * cell is shortened instead.
+ *
+ * @returns The command
+ */
+export function deleteRows(): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const rows = getAllSelectedRows(state);
+    if (rows.length >= rect.map.height) {
+      return false;
+    }
+
+    if (dispatch) {
+      const { tr } = state;
+      for (const row of rows.reverse()) {
+        const table = tr.doc.nodeAt(rect.tableStart - 1);
+        if (!table) {
+          return false;
+        }
+        removeRow(tr, { ...rect, table, map: TableMap.get(table) }, row);
+      }
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
+ * A command that deletes the selected columns. Columns that are only part of
+ * the selection because a merged cell spans into them are kept, and the
+ * merged cell is narrowed instead.
+ *
+ * @returns The command
+ */
+export function deleteColumns(): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const columns = getAllSelectedColumns(state);
+    if (columns.length >= rect.map.width) {
+      return false;
+    }
+
+    if (dispatch) {
+      const { tr } = state;
+      for (const column of columns.reverse()) {
+        const table = tr.doc.nodeAt(rect.tableStart - 1);
+        if (!table) {
+          return false;
+        }
+        removeColumn(tr, { ...rect, table, map: TableMap.get(table) }, column);
+      }
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
  * A command that deletes the current selected row, if any.
  *
  * @returns The command
@@ -578,7 +646,7 @@ export function deleteRowSelection(): Command {
       state.selection instanceof CellSelection &&
       state.selection.isRowSelection()
     ) {
-      return deleteRow(state, dispatch);
+      return deleteRows()(state, dispatch);
     }
     return false;
   };
@@ -595,7 +663,7 @@ export function deleteColSelection(): Command {
       state.selection instanceof CellSelection &&
       state.selection.isColSelection()
     ) {
-      return deleteColumn(state, dispatch);
+      return deleteColumns()(state, dispatch);
     }
     return false;
   };
@@ -815,9 +883,8 @@ export function setRowAttr({
       });
 
       // Preserve the original row selection after aligning.
-      const pos = rect.map.positionAt(index, 0, rect.table);
-      const $pos = tr.doc.resolve(rect.tableStart + pos);
-      tr.setSelection(RowSelection.rowSelection($pos, $pos, index));
+      const $pos = tr.doc.resolve(rect.tableStart + rect.map.map[0]);
+      tr.setSelection(RowSelection.fromIndex($pos, index));
 
       dispatch(tr);
     }
@@ -852,34 +919,66 @@ export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
   };
 }
 
+/**
+ * Select a row in the table.
+ *
+ * @param index The index of the row to select.
+ * @param expand Whether to extend the existing selection to include every row
+ * between its anchor and the given row.
+ * @returns A command that selects the row.
+ */
 export function selectRow(index: number, expand = false): Command {
   return (state: EditorState, dispatch): boolean => {
     if (dispatch) {
       const rect = selectedRect(state);
-      const pos = rect.map.positionAt(index, 0, rect.table);
-      const $pos = state.doc.resolve(rect.tableStart + pos);
-      const rowSelection =
-        expand && state.selection instanceof CellSelection
-          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos, index)
-          : RowSelection.rowSelection($pos, $pos, index);
-      dispatch(state.tr.setSelection(rowSelection));
+      const $pos = state.doc.resolve(rect.tableStart + rect.map.map[0]);
+      const { selection } = state;
+
+      // Keep the anchor where the selection started so that the rows between
+      // it and the clicked row are all included.
+      const anchorIndex = !(expand && selection instanceof CellSelection)
+        ? index
+        : selection instanceof RowSelection
+          ? selection.anchorIndex
+          : rect.map.findCell(selection.$anchorCell.pos - rect.tableStart).top;
+
+      dispatch(
+        state.tr.setSelection(RowSelection.fromIndex($pos, anchorIndex, index))
+      );
       return true;
     }
     return false;
   };
 }
 
+/**
+ * Select a column in the table.
+ *
+ * @param index The index of the column to select.
+ * @param expand Whether to extend the existing selection to include every
+ * column between its anchor and the given column.
+ * @returns A command that selects the column.
+ */
 export function selectColumn(index: number, expand = false): Command {
   return (state, dispatch): boolean => {
     if (dispatch) {
       const rect = selectedRect(state);
-      const pos = rect.map.positionAt(0, index, rect.table);
-      const $pos = state.doc.resolve(rect.tableStart + pos);
-      const colSelection =
-        expand && state.selection instanceof CellSelection
-          ? ColumnSelection.colSelection(state.selection.$anchorCell, $pos)
-          : ColumnSelection.colSelection($pos);
-      dispatch(state.tr.setSelection(colSelection));
+      const $pos = state.doc.resolve(rect.tableStart + rect.map.map[0]);
+      const { selection } = state;
+
+      // Keep the anchor where the selection started so that the columns
+      // between it and the clicked column are all included.
+      const anchorIndex = !(expand && selection instanceof CellSelection)
+        ? index
+        : selection instanceof ColumnSelection
+          ? selection.anchorIndex
+          : rect.map.findCell(selection.$anchorCell.pos - rect.tableStart).left;
+
+      dispatch(
+        state.tr.setSelection(
+          ColumnSelection.fromIndex($pos, anchorIndex, index)
+        )
+      );
       return true;
     }
     return false;
@@ -1111,12 +1210,64 @@ function addRowWithAlignment(
 }
 
 /**
- * A command that merges selected cells and collapses the selection.
+ * A command that merges selected cells and collapses the selection. Content
+ * that is repeated across the selected cells is only kept once.
  *
  * @returns The command
  */
 export function mergeCellsAndCollapse(): Command {
-  return chainTransactions(mergeCells, collapseSelection());
+  return (state, dispatch) => {
+    if (!canMergeCells(state)) {
+      return false;
+    }
+    return chainTransactions(
+      clearDuplicateCells(),
+      mergeCells,
+      collapseSelection()
+    )(state, dispatch);
+  };
+}
+
+/**
+ * A command that empties every selected cell whose content matches an earlier
+ * selected cell.
+ *
+ * @returns The command
+ */
+function clearDuplicateCells(): Command {
+  return (state, dispatch) => {
+    const { selection } = state;
+    if (!(selection instanceof CellSelection)) {
+      return false;
+    }
+
+    const emptyCell = tableNodeTypes(state.schema).cell.createAndFill();
+    if (!emptyCell) {
+      return false;
+    }
+
+    const { tr } = state;
+    const seen: Node[] = [];
+    selection.forEachCell((cell, pos) => {
+      if (cell.content.eq(emptyCell.content)) {
+        return;
+      }
+      if (!seen.some((other) => other.content.eq(cell.content))) {
+        seen.push(cell);
+        return;
+      }
+      tr.replace(
+        tr.mapping.map(pos + 1),
+        tr.mapping.map(pos + cell.nodeSize - 1),
+        new Slice(emptyCell.content, 0, 0)
+      );
+    });
+
+    if (tr.docChanged) {
+      dispatch?.(tr);
+    }
+    return true;
+  };
 }
 
 const updateCellBackground = (
@@ -1236,9 +1387,8 @@ export function toggleRowBackground({
       // Instead, we want to preserve the original row selection so that the color
       // picker can be prevented from closing.
       const rect = selectedRect(state);
-      const pos = rect.map.positionAt(rowIndex, 0, rect.table);
-      const $pos = tr.doc.resolve(rect.tableStart + pos);
-      tr.setSelection(RowSelection.rowSelection($pos, $pos, rowIndex));
+      const $pos = tr.doc.resolve(rect.tableStart + rect.map.map[0]);
+      tr.setSelection(RowSelection.fromIndex($pos, rowIndex));
 
       dispatch(tr);
     }

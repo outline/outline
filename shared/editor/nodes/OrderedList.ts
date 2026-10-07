@@ -12,6 +12,8 @@ import { listWrappingInputRule } from "../lib/listInputRule";
 import alphaListsRule from "../rules/alphaLists";
 import Node from "./Node";
 
+const LIST_STYLES = ["number", "lower-alpha", "upper-alpha"];
+
 export default class OrderedList extends Node {
   get name() {
     return "ordered_list";
@@ -30,8 +32,7 @@ export default class OrderedList extends Node {
         },
         listStyle: {
           default: "number",
-          validate: (style: string) =>
-            ["number", "lower-alpha", "upper-alpha"].includes(style),
+          validate: (style: string) => LIST_STYLES.includes(style),
         },
       },
       content: "list_item+",
@@ -54,7 +55,12 @@ export default class OrderedList extends Node {
           attrs.start = node.attrs.order;
         }
 
-        if (node.attrs.listStyle !== "number") {
+        // The style is written into a declaration, so only a style the editor
+        // renders is emitted.
+        if (
+          node.attrs.listStyle !== "number" &&
+          LIST_STYLES.includes(node.attrs.listStyle)
+        ) {
           attrs.style = `list-style-type: ${node.attrs.listStyle}`;
         }
 

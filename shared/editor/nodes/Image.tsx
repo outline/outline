@@ -420,8 +420,15 @@ export default class Image extends SimpleImage {
       const { view } = this.editor;
       const { tr } = view.state;
 
-      // update meta on object
+      // The blur may fire while the node view is being torn down, at which
+      // point the position no longer refers to this image in the document.
       const pos = getPos();
+      const current =
+        pos === undefined ? undefined : view.state.doc.nodeAt(pos);
+      if (current?.type !== node.type) {
+        return;
+      }
+
       const transaction = tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
         alt: caption,

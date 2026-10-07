@@ -7,6 +7,11 @@ import { AfterChange } from "./decorators/Lifecycle";
 class Policy extends Model {
   static modelName = "Policy";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /**
    * An object containing keys representing abilities and values that are either
    * a boolean or an array of membership IDs that have provided access to the ability.

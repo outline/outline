@@ -21,12 +21,21 @@ import {
   Info,
 } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type">;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type"> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
 
-const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
-  { url, id, title, description, author, labels, state, createdAt }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+function HoverPreviewIssue({
+  url,
+  id,
+  title,
+  description,
+  author,
+  labels,
+  state,
+  createdAt,
+  ref,
+}: Props) {
   const authorName = author.name;
   const urlObj = new URL(url);
   const service =
@@ -88,7 +97,7 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
       </Flex>
     </Preview>
   );
-});
+}
 
 const StyledIssueStatusIcon = styled(IssueStatusIcon)`
   margin-top: 2px;

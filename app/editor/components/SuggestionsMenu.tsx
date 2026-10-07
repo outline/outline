@@ -13,7 +13,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import type { MenuItem } from "@shared/editor/types";
 import { toastNotice } from "~/editor/toastNotice";
-import { s } from "@shared/styles";
+import { hideScrollbars, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import {
@@ -90,7 +90,7 @@ function useSuggestionsMenuAria({
   // Stable ids for the WAI-ARIA editable-combobox-with-listbox pattern. The
   // editor keeps real DOM focus while the active option is exposed virtually
   // via aria-activedescendant (see effect below).
-  const instanceIdRef = React.useRef<number>();
+  const instanceIdRef = React.useRef<number | undefined>(undefined);
   if (instanceIdRef.current === undefined) {
     instanceIdRef.current = menuInstanceCounter++;
   }
@@ -178,6 +178,28 @@ function useSuggestionsMenuAria({
   };
 }
 
+/**
+ * Measures the bounding rect of the current selection within the editor.
+ *
+ * @param view the editor view to measure within.
+ * @returns the rect covering the selection, or undefined if it cannot be measured.
+ */
+function measureCaretRect(view: EditorView): DOMRect | undefined {
+  try {
+    const { selection } = view.state;
+    const fromPos = view.coordsAtPos(selection.from);
+    const toPos = view.coordsAtPos(selection.to, -1);
+    const top = Math.min(fromPos.top, toPos.top);
+    const bottom = Math.max(fromPos.bottom, toPos.bottom);
+    const left = Math.min(fromPos.left, toPos.left);
+    const right = Math.max(fromPos.right, toPos.right);
+    return new DOMRect(left, top, right - left, bottom - top);
+  } catch (err) {
+    Logger.warn("Unable to calculate caret position", { err });
+    return undefined;
+  }
+}
+
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
   const { t } = useTranslation();
@@ -195,40 +217,50 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const [submenu, setSubmenu] = React.useState<SubmenuState | null>(null);
   const itemRefs = React.useRef<Map<number, HTMLElement>>(new Map());
   const submenuContentRef = React.useRef<HTMLDivElement>(null);
-  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   // Stores the caret bounding rect, snapshotted when the menu opens
   const caretRectRef = React.useRef(new DOMRect());
 
-  // Stable virtual element for Radix PopoverAnchor – never replaced so the
-  // popper does not trigger unnecessary anchor-change cycles.
-  const caretRef = React.useRef({
+  // Virtual element for Radix PopoverAnchor – only replaced when the rect is
+  // re-measured, so the popper does not run unnecessary anchor-change cycles.
+  const [caretAnchor, setCaretAnchor] = React.useState(() => ({
     getBoundingClientRect: () => caretRectRef.current,
-  });
+  }));
 
   // Compute and store the caret rect during render so it is available before
   // the Radix popper effect runs for the first time.
-  const caretRect = React.useMemo(() => {
-    if (!props.isActive) {
-      return new DOMRect();
+  const caretRect = React.useMemo(
+    () => (props.isActive ? measureCaretRect(view) : new DOMRect()),
+    [props.isActive, view]
+  );
+
+  // Keep the last known rect when measuring fails, rather than collapsing the
+  // anchor to the top left corner of the viewport.
+  if (caretRect) {
+    caretRectRef.current = caretRect;
+  }
+
+  // Measuring fails while the editor view is mid-update, as the DOM and the
+  // view descriptors are briefly out of sync. Measure again on the next frame,
+  // once the view has settled, so the menu is not left at a stale position.
+  React.useEffect(() => {
+    if (caretRect || !props.isActive) {
+      return;
     }
 
-    try {
-      const { selection } = view.state;
-      const fromPos = view.coordsAtPos(selection.from);
-      const toPos = view.coordsAtPos(selection.to, -1);
-      const top = Math.min(fromPos.top, toPos.top);
-      const bottom = Math.max(fromPos.bottom, toPos.bottom);
-      const left = Math.min(fromPos.left, toPos.left);
-      const right = Math.max(fromPos.right, toPos.right);
-      return new DOMRect(left, top, right - left, bottom - top);
-    } catch (err) {
-      Logger.warn("Unable to calculate caret position", { err });
-      return new DOMRect();
-    }
-  }, [props.isActive, view]);
+    const frame = requestAnimationFrame(() => {
+      const rect = measureCaretRect(view);
+      if (rect) {
+        caretRectRef.current = rect;
+        setCaretAnchor({ getBoundingClientRect: () => caretRectRef.current });
+      }
+    });
 
-  caretRectRef.current = caretRect;
+    return () => cancelAnimationFrame(frame);
+  }, [caretRect, props.isActive, view]);
 
   const resolveChildren = (
     children: MenuItem["children"]
@@ -348,36 +380,45 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   );
 
   const handleClickItem = React.useCallback(
-    (item) => {
+    (item: MenuItem | EmbedDescriptor) => {
       if (item.disabled) {
         return;
       }
 
       props.onSelect?.(item);
 
+      const attrs = typeof item.attrs === "function" ? undefined : item.attrs;
+
       switch (item.name) {
-        case "link":
+        case "link": {
           insertNode({
-            ...item,
+            ...(item as MenuItem),
             name: "mention",
           });
+          const mention = attrs as
+            | { label?: string; modelId?: string; nested?: boolean }
+            | undefined;
           void editorProps.onCreateLink?.(
             {
-              title: item.attrs.label,
-              id: item.attrs.modelId,
+              title: mention?.label,
+              id: mention?.modelId,
             },
-            !!item.attrs.nested
+            !!mention?.nested
           );
           return;
+        }
         case "image":
           return triggerFilePick(
             AttachmentValidation.imageContentTypes.join(", "),
-            item.attrs
+            attrs
           );
         case "video":
-          return triggerFilePick("video/*", item.attrs);
+          return triggerFilePick("video/*", attrs);
         case "attachment":
-          return triggerFilePick(item.attrs?.accept ?? "*", item.attrs);
+          return triggerFilePick(
+            (attrs?.accept as string | undefined) ?? "*",
+            attrs
+          );
         case "embed":
           return triggerLinkInput(item);
         default:
@@ -389,7 +430,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const close = React.useCallback(() => {
     props.onClose();
-    view.focus();
+
+    // Don't steal focus back from a nested editor, such as the one inside a
+    // math node, that took it while the menu was closing.
+    const focused = view.dom.ownerDocument.activeElement;
+    if (focused === view.dom || !view.dom.contains(focused)) {
+      view.focus();
+    }
   }, [props, view]);
 
   const handleLinkInputKeydown = (
@@ -1081,7 +1128,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   return (
     <>
       <Popover open={isActive} onOpenChange={handleOpenChange} modal={false}>
-        <PopoverAnchor virtualRef={caretRef} />
+        <PopoverAnchor virtualRef={{ current: caretAnchor }} />
         <BouncyPopoverContent
           side="bottom"
           align="start"
@@ -1224,12 +1271,15 @@ const bouncyFadeIn = keyframes`
 `;
 
 const BouncyPopoverContent = styled(PopoverContent)`
+  ${hideScrollbars()}
+
   &[data-state="open"] {
     animation: ${bouncyFadeIn} 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 `;
 
 const SubmenuPopoverContent = styled(PopoverContent)`
+  ${hideScrollbars()}
   max-height: min(324px, var(--radix-popover-content-available-height));
 `;
 

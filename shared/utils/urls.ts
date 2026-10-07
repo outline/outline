@@ -246,10 +246,10 @@ export function sanitizeImageSrc(src: string | null | undefined) {
 }
 
 /**
- * Returns a regex to match the given url.
+ * Returns a regex to match urls that begin with the given url's origin.
  *
  * @param url The url to create a regex for.
- * @returns A regex to match the url.
+ * @returns A regex anchored to the origin, a path and query may follow.
  */
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
@@ -258,7 +258,7 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(sanitizeUrl(url) as string);
 
-  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
+  return new RegExp(`^${escapeRegExp(`${urlObj.protocol}//${urlObj.host}`)}`);
 }
 
 /**
@@ -302,6 +302,40 @@ export function parseShareIdFromUrl(url: string): string | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Adds the port that the application is publicly reachable on to a url that
+ * does not specify one. A proxy commonly forwards a Host header without the
+ * public port, so urls derived from an incoming request would otherwise point
+ * at the wrong address.
+ *
+ * @param url the url to modify, may be relative.
+ * @returns the url with the port added, if one was missing.
+ */
+export function addMissingUrlPort(url: string): string {
+  let port;
+  try {
+    port = new URL(env.URL).port;
+  } catch (_err) {
+    return url;
+  }
+
+  if (!port) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.port) {
+      return url;
+    }
+    parsed.port = port;
+    return parsed.toString();
+  } catch (_err) {
+    // Relative urls are resolved against the current origin and need no port.
+    return url;
+  }
 }
 
 /**

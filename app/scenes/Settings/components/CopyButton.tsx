@@ -26,7 +26,9 @@ export function CopyButton({
   tooltip,
   icon = <LinkIcon size={20} />,
 }: Props) {
-  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
+  const timeout = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const handleCopied = React.useCallback(() => {
     timeout.current = setTimeout(() => {

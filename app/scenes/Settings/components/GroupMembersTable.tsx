@@ -7,7 +7,6 @@ import { GroupPermission } from "@shared/types";
 import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import type Group from "~/models/Group";
 import type User from "~/models/User";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
@@ -16,6 +15,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -94,11 +94,9 @@ export const GroupMembersTable = observer(function GroupMembersTable({
           header: t("Name"),
           accessor: (user) => user.name,
           component: (user) => (
-            <HStack>
-              <Avatar model={user} size={AvatarSize.Large} />
-              <Text selectable>{user.name}</Text>
+            <UserLabel user={user} primary>
               {user.isAdmin && <Badge primary>{t("Admin")}</Badge>}
-            </HStack>
+            </UserLabel>
           ),
           width: "3fr",
         },
@@ -132,9 +130,11 @@ export const GroupMembersTable = observer(function GroupMembersTable({
               user.id
             )?.permission;
             return permission ? (
-              <Badge primary={permission === GroupPermission.Admin}>
-                {GroupPermissionHelper.displayName(permission, t)}
-              </Badge>
+              <HStack>
+                <Badge primary={permission === GroupPermission.Admin}>
+                  {GroupPermissionHelper.displayName(permission, t)}
+                </Badge>
+              </HStack>
             ) : null;
           },
           width: "1fr",
@@ -155,6 +155,7 @@ export const GroupMembersTable = observer(function GroupMembersTable({
 
   return (
     <SortableTable
+      id="groupMembers"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}

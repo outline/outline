@@ -42,6 +42,7 @@ describe("POST /mcp/", () => {
       expect(wwwAuth).toContain("Bearer");
       expect(wwwAuth).toContain("resource_metadata=");
       expect(wwwAuth).toContain("/.well-known/oauth-protected-resource/mcp");
+      expect(wwwAuth).toContain('scope="read write"');
     });
 
     it("should reject JWT authentication", async () => {
@@ -81,6 +82,26 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(405);
     });
 
+    it.each(["/mcp/sse", "/mcp/message", "/mcp/manifest.json"])(
+      "should return 404 for %s without rendering the app shell",
+      async (path) => {
+        const res = await server.get(path);
+        const body = await res.text();
+        expect(res.status).toEqual(404);
+        expect(body).not.toContain("<title>");
+      }
+    );
+
+    it("should return 404 for POST to a path below the endpoint", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/sse", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(404);
+    });
+
     it("should handle initialize and return capabilities", async () => {
       const { accessToken } = await buildOAuthUser();
       const { body } = mcpRequest("initialize", {
@@ -99,12 +120,31 @@ describe("POST /mcp/", () => {
       const parsed = await parseMcpResponse(res);
       const result = parsed?.result as {
         capabilities?: unknown;
-        serverInfo?: { name: string };
+        serverInfo?: {
+          name: string;
+          title?: string;
+          websiteUrl?: string;
+          icons?: { src: string; mimeType?: string; sizes?: string[] }[];
+        };
       };
 
       expect(result).toBeDefined();
       expect(result?.capabilities).toBeDefined();
       expect(result?.serverInfo?.name).toEqual("outline");
+      expect(result?.serverInfo?.title).toEqual("Outline");
+      expect(result?.serverInfo?.websiteUrl).toMatch(/^https?:\/\//);
+      expect(result?.serverInfo?.icons).toEqual([
+        expect.objectContaining({
+          src: expect.stringMatching(/^https?:\/\/.+\/images\/icon-192\.png$/),
+          mimeType: "image/png",
+          sizes: ["192x192"],
+        }),
+        expect.objectContaining({
+          src: expect.stringMatching(/^https?:\/\/.+\/images\/icon-512\.png$/),
+          mimeType: "image/png",
+          sizes: ["512x512"],
+        }),
+      ]);
     });
 
     it("should return 202 for the notifications/initialized lifecycle message", async () => {

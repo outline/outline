@@ -48,7 +48,7 @@ import {
 import { ExportDialog } from "~/components/Export/ExportDialog";
 import { isMobile } from "@shared/utils/browser";
 import history from "~/utils/history";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { openRouteInSplit } from "~/utils/splitView";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (

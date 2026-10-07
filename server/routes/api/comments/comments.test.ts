@@ -900,7 +900,7 @@ describe("#comments.create", () => {
       await documentCollaborativeUpdater({
         documentId: document.id,
         ydoc,
-        sessionCollaboratorIds: [user.id],
+        collaborators: { ids: [user.id] },
         isLastConnection: true,
         clientVersion: null,
       });
@@ -1069,6 +1069,55 @@ describe("#comments.update", () => {
             },
           ],
         },
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow updating a comment with text", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.update", user, {
+      body: {
+        id: comment.id,
+        text: "Updated **text**",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.data.content[0].content[0].text).toEqual("Updated ");
+    expect(body.data.data.content[0].content[1].text).toEqual("text");
+    expect(body.data.data.content[0].content[1].marks[0].type).toEqual(
+      "strong"
+    );
+  });
+
+  it("should require one of data or text", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.update", user, {
+      body: {
+        id: comment.id,
       },
     });
 

@@ -7,6 +7,7 @@ import {
   WarningIcon,
 } from "outline-icons";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 
 /**
@@ -16,8 +17,11 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
  * @returns an array of menu items.
  */
 export default function noticeMenuItems(ctx: SelectionContext): MenuItem[] {
-  const node = ctx.selection.$from.node(-1);
-  const currentStyle = node?.attrs.style as NoticeTypes;
+  const notice = findParentNode(
+    (node) => node.type === ctx.schema.nodes.container_notice
+  )(ctx.selection);
+  const currentStyle: NoticeTypes =
+    notice?.node.attrs.style ?? NoticeTypes.Info;
 
   const mapping = {
     [NoticeTypes.Info]: t("Info notice"),

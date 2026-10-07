@@ -1,4 +1,4 @@
-import { action, observable } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { NavigationNode } from "@shared/types";
 
@@ -45,6 +45,10 @@ function computeAncestorPath(
 export class SidebarExpansionState {
   @observable
   expandedIds = new Set<string>();
+
+  constructor() {
+    makeObservable(this);
+  }
 
   /**
    * Whether a given node is currently expanded.

@@ -5,10 +5,10 @@ import type Template from "~/models/Template";
 import { ActionSeparator, createAction } from "~/actions";
 import {
   copyTemplate,
-  createDocumentFromTemplate,
   deleteTemplate,
   duplicateTemplate,
   moveTemplate,
+  publishTemplate,
 } from "~/actions/definitions/templates";
 import { ActiveTemplateSection } from "~/actions/sections";
 import usePolicy from "~/hooks/usePolicy";
@@ -40,10 +40,10 @@ export function useTemplateSettingsActions(
               section: ActiveTemplateSection,
               perform: () => onEdit?.(),
             }),
+            publishTemplate,
             duplicateTemplate,
             moveTemplate,
             ActionSeparator,
-            createDocumentFromTemplate,
             copyTemplate,
             ActionSeparator,
             deleteTemplate,

@@ -1,100 +1,136 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
 import { isBrowser } from "@shared/utils/browser";
-import Logger from "~/utils/Logger";
-import useEventListener from "./useEventListener";
-import usePrevious from "./usePrevious";
 
 type Options = {
   /* Whether to listen and react to changes in the value from other tabs */
   listen?: boolean;
 };
 
+type PersistedValue = Primitive | object;
+type LocalListener = (value: PersistedValue) => void;
+
+interface PersistedState<T> {
+  key: string;
+  defaultValue: T;
+  value: T;
+}
+
+// Same-tab subscribers, keyed by storage key. Pass the value directly so a
+// failed storage write does not prevent mounted hooks from updating.
+const localListeners = new Map<string, Set<LocalListener>>();
+
+function subscribeLocal(key: string, callback: LocalListener) {
+  let set = localListeners.get(key);
+  if (!set) {
+    set = new Set();
+    localListeners.set(key, set);
+  }
+  set.add(callback);
+  return () => {
+    set.delete(callback);
+    if (set.size === 0) {
+      localListeners.delete(key);
+    }
+  };
+}
+
 /**
- * Set a value in local storage and emit storage event to trigger render of any
- * listening mounted components.
+ * Set a value in local storage and notify any listening mounted components.
  *
- * @param key Key to store value under
- * @param value Value to store
+ * @param key key to store the value under.
+ * @param value value to store.
+ * @returns nothing.
  */
-export function setPersistedState<T extends Primitive | object>(
+export function setPersistedState<T extends PersistedValue>(
   key: string,
   value: T
 ) {
   Storage.set(key, value);
-  window.dispatchEvent(
-    new StorageEvent("storage", { key, newValue: JSON.stringify(value) })
-  );
+  localListeners.get(key)?.forEach((callback) => callback(value));
 }
 
 /**
  * A hook with the same API as `useState` that persists its value locally and
  * syncs the value between browser tabs.
  *
- * @param key Key to store value under
- * @param defaultValue An optional default value if no key exists
- * @param options Options for the hook
- * @returns Tuple of the current value and a function to update it
+ * @param key key to store the value under.
+ * @param defaultValue default value if no key exists.
+ * @param options options for the hook.
+ * @returns the current value and a function to update it.
  */
-export default function usePersistedState<T extends Primitive | object>(
+export default function usePersistedState<T extends PersistedValue>(
   key: string,
   defaultValue: T,
   options?: Options
 ): [T, Dispatch<SetStateAction<T>>] {
-  const previousKey = usePrevious(key);
-  const [storedValue, setStoredValue] = useState(() => {
-    if (!isBrowser) {
-      return defaultValue;
-    }
-    return Storage.get(key) ?? defaultValue;
-  });
+  const [state, setState] = useState<PersistedState<T>>(() => ({
+    key,
+    defaultValue,
+    value: isBrowser ? (Storage.get(key) ?? defaultValue) : defaultValue,
+  }));
+  const storedValueRef = useRef(state.value);
 
-  // Mirrors the latest state so functional updates can be computed without
-  // capturing `storedValue` in the setter's closure, keeping its identity
-  // stable and safe to use in dependency arrays.
-  const storedValueRef = useRef<T>(storedValue);
+  // Reset before rendering children when the key changes, while keeping inline
+  // defaults and the setter stable for the lifetime of each key.
+  if (state.key !== key) {
+    const value: T = isBrowser
+      ? (Storage.get(key) ?? defaultValue)
+      : defaultValue;
+    setState({ key, defaultValue, value });
+  }
+
+  useLayoutEffect(() => {
+    storedValueRef.current = state.value;
+  }, [state.value]);
 
   const updateStoredValue = useCallback((value: T) => {
     storedValueRef.current = value;
-    setStoredValue(value);
+    setState((previous) =>
+      Object.is(previous.value, value) ? previous : { ...previous, value }
+    );
   }, []);
+
+  const listen = options?.listen;
+  const keyDefault = state.defaultValue;
+
+  useEffect(() => {
+    const unsubscribeLocal = subscribeLocal(key, (value) => {
+      updateStoredValue(value as T);
+    });
+    if (listen === false) {
+      return unsubscribeLocal;
+    }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === key || event.key === null) {
+        updateStoredValue(Storage.get(key) ?? keyDefault);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      unsubscribeLocal();
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [key, keyDefault, listen, updateStoredValue]);
 
   const setValue = useCallback(
     (value: SetStateAction<T>) => {
       const valueToStore =
         value instanceof Function ? value(storedValueRef.current) : value;
       updateStoredValue(valueToStore);
-      Storage.set(key, valueToStore);
+      setPersistedState(key, valueToStore);
     },
     [key, updateStoredValue]
   );
 
-  // Sync state when key changes
-  useEffect(() => {
-    if (previousKey !== undefined && previousKey !== key) {
-      updateStoredValue(Storage.get(key) ?? defaultValue);
-    }
-  }, [previousKey, key, defaultValue, updateStoredValue]);
-
-  // Listen to the key changing in other tabs so we can keep UI in sync
-  useEventListener("storage", (event: StorageEvent) => {
-    if (options?.listen === false || event.key !== key) {
-      return;
-    }
-    if (event.newValue === null) {
-      updateStoredValue(defaultValue);
-      return;
-    }
-    try {
-      updateStoredValue(JSON.parse(event.newValue));
-    } catch (error) {
-      // Another tab or unrelated code may have written a value under this key
-      // that is not valid JSON – never let that crash the listener.
-      Logger.debug("misc", "Failed to parse persisted state", { error });
-    }
-  });
-
-  return [storedValue, setValue];
+  return [state.value, setValue];
 }

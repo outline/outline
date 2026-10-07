@@ -33,25 +33,25 @@ type Props = {
   onClick: (ev: React.MouseEvent) => void;
   /** Fired when the node is double-clicked to submit the current selection. */
   onDoubleClick: (ev: React.MouseEvent) => void;
+  /** Ref to the node element. */
+  ref?: React.Ref<HTMLSpanElement>;
 };
 
-function DocumentExplorerNode(
-  {
-    selected,
-    active,
-    style,
-    expanded,
-    icon,
-    title,
-    depth,
-    hasChildren,
-    onDisclosureClick,
-    onPointerMove,
-    onClick,
-    onDoubleClick,
-  }: Props,
-  ref: React.RefObject<HTMLSpanElement>
-) {
+function DocumentExplorerNode({
+  selected,
+  active,
+  style,
+  expanded,
+  icon,
+  title,
+  depth,
+  hasChildren,
+  onDisclosureClick,
+  onPointerMove,
+  onClick,
+  onDoubleClick,
+  ref,
+}: Props) {
   const { t } = useTranslation();
   const DISCLOSURE = 24;
   const width = (depth + 2) * DISCLOSURE;
@@ -148,4 +148,4 @@ export const Node = styled.span<{
   `}
 `;
 
-export default observer(React.forwardRef(DocumentExplorerNode));
+export default observer(DocumentExplorerNode);

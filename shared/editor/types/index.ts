@@ -37,9 +37,22 @@ export enum MenuType {
 
 type Section = ({ t }: { t: TFunction }) => string;
 
+/**
+ * Which family of controls a toolbar item belongs to. On mobile the toolbar
+ * holds both families at once and scrolls to the one that suits the selection.
+ */
+export enum MenuItemGroup {
+  /** Acts on the selected text, such as bold or highlight. */
+  inline = "inline",
+  /** Acts on the block the cursor is in, such as heading or list. */
+  block = "block",
+}
+
 export type MenuItem = {
   icon?: React.ReactNode;
   name?: string;
+  /** The family of controls the item belongs to. */
+  group?: MenuItemGroup;
   title?: string;
   section?: Section;
   subtitle?: React.ReactNode;

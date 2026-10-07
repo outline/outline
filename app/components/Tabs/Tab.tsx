@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import { m } from "framer-motion";
 import type { LocationDescriptor } from "history";
 import { isEqual } from "es-toolkit/compat";
@@ -19,6 +20,8 @@ interface BaseProps {
    */
   exactQueryString?: boolean;
   children?: React.ReactNode;
+  /** Ref to the underlying button, only attached in button mode. */
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
 interface LinkProps extends BaseProps {
@@ -33,11 +36,12 @@ interface LinkProps extends BaseProps {
   active?: never;
 }
 
-interface ButtonProps extends BaseProps {
+interface ButtonProps
+  extends BaseProps, React.ButtonHTMLAttributes<HTMLButtonElement> {
   /**
-   * Click handler for button mode.
+   * Click handler for button mode, optional when the parent handles selection.
    */
-  onClick: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   /**
    * Whether the tab is currently active (only used in button mode).
    */
@@ -93,7 +97,7 @@ const Active = styled(m.div)`
   background: ${s("textSecondary")};
 `;
 
-const transition = {
+const transition: Transition = {
   type: "spring",
   stiffness: 500,
   damping: 30,
@@ -106,7 +110,12 @@ const horizontalOnly = (transform: Record<string, string>, generated: string) =>
     "translate3d($1, 0px, $2)"
   );
 
-export const Tab: React.FC<Props> = (props: Props) => {
+/**
+ * A single tab with an animated active underline, rendered either as a link
+ * matched against the current location, or as a button in controlled mode.
+ * A forwarded ref is only attached in button mode.
+ */
+export function Tab(props: Props) {
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
@@ -115,10 +124,18 @@ export const Tab: React.FC<Props> = (props: Props) => {
 
   // Button mode - controlled by onClick and active props (no `to` prop)
   if ("active" in props && !("to" in props)) {
+    const {
+      ref,
+      active,
+      exact: _exact,
+      exactQueryString: _exactQueryString,
+      ...rest
+    } = props;
+
     return (
-      <TabButton $active={props.active} onClick={props.onClick}>
+      <TabButton {...rest} ref={ref} type="button" $active={active}>
         {children}
-        {props.active && (
+        {active && (
           <Active
             layoutId="underline"
             initial={false}
@@ -131,7 +148,7 @@ export const Tab: React.FC<Props> = (props: Props) => {
   }
 
   // Link mode - controlled by react-router
-  const { to, ...rest } = props as LinkProps;
+  const { to, ref: _ref, ...rest } = props as LinkProps;
   return (
     <TabLink
       {...rest}
@@ -159,4 +176,4 @@ export const Tab: React.FC<Props> = (props: Props) => {
       )}
     </TabLink>
   );
-};
+}

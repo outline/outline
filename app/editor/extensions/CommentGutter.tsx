@@ -72,7 +72,11 @@ export default class CommentGutter extends Extension {
             }
 
             return {
-              decorations: mapDecorations(pluginState.decorations, tr),
+              decorations: mapDecorations(
+                pluginState.decorations,
+                tr,
+                newState
+              ),
             };
           },
         },

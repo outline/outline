@@ -216,6 +216,7 @@ async function duplicateRoots(
       icon: original.icon,
       color: original.color,
       fullWidth: original.fullWidth,
+      preferences: original.preferences,
       title: item.title,
       content: ProsemirrorHelper.replaceDocumentReferences(
         ProsemirrorHelper.removeMarks(DocumentHelper.toProsemirror(original), [
