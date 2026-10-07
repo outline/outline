@@ -1,4 +1,5 @@
 import type { JobOptions } from "bull";
+import { PlanFeature } from "@shared/types";
 import groupsSyncer from "@server/commands/groupsSyncer";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
@@ -8,6 +9,7 @@ import {
   User,
   UserAuthentication,
 } from "@server/models";
+import { teamHasEntitlement } from "@server/policies/utils";
 import { sequelize } from "@server/storage/database";
 import { PluginManager } from "@server/utils/PluginManager";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -21,8 +23,8 @@ type Props = {
  * Fetches a user's group memberships from the authentication provider linked
  * to the given user authentication and synchronizes them with internal
  * groups. This is a no-op when group sync is not enabled for the provider,
- * no access token is stored, or the provider plugin does not support group
- * sync.
+ * the team is not entitled to group sync, no access token is stored, or the
+ * provider plugin does not support group sync.
  */
 export default class SyncUserGroupsTask extends BaseTask<Props> {
   /**
@@ -80,7 +82,7 @@ export default class SyncUserGroupsTask extends BaseTask<Props> {
     }
 
     const team = await Team.findByPk(user.teamId);
-    if (!team) {
+    if (!team || !teamHasEntitlement(team, PlanFeature.GroupSync)) {
       return;
     }
 
