@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
 import { action, computed, makeObservable, override, runInAction } from "mobx";
+import naturalSort from "@shared/utils/naturalSort";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
@@ -34,6 +35,20 @@ export default class CollectionsStore extends IndexedStore<Collection> {
   @computed
   get allActive() {
     return this.orderedData.filter((c) => c.isActive);
+  }
+
+  /**
+   * Returns active collections in the selected sidebar order.
+   *
+   * @returns collections sorted by name, or their saved manual positions.
+   */
+  @computed
+  get sidebarCollections(): Collection[] {
+    const direction = this.rootStore.ui.collectionSort;
+    if (!direction) {
+      return this.allActive;
+    }
+    return naturalSort(this.allActive, "name", { direction });
   }
 
   @override

@@ -93,6 +93,40 @@ export const createCollection = dialogActionFactory({
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
 });
 
+/** Controls the persistent ordering of collections in the sidebar. */
+export const sortCollections = createActionWithChildren({
+  name: ({ t }) => t("Sort in sidebar"),
+  section: CollectionSection,
+  icon: ({ stores }) =>
+    stores.ui.collectionSort === "asc" ? (
+      <SortAlphabeticalIcon />
+    ) : stores.ui.collectionSort === "desc" ? (
+      <SortAlphabeticalReverseIcon />
+    ) : (
+      <SortManualIcon />
+    ),
+  children: [
+    createAction({
+      name: ({ t }) => t("A-Z sort"),
+      section: CollectionSection,
+      selected: ({ stores }) => stores.ui.collectionSort === "asc",
+      perform: ({ stores }) => stores.ui.set({ collectionSort: "asc" }),
+    }),
+    createAction({
+      name: ({ t }) => t("Z-A sort"),
+      section: CollectionSection,
+      selected: ({ stores }) => stores.ui.collectionSort === "desc",
+      perform: ({ stores }) => stores.ui.set({ collectionSort: "desc" }),
+    }),
+    createAction({
+      name: ({ t }) => t("Manual sort"),
+      section: CollectionSection,
+      selected: ({ stores }) => stores.ui.collectionSort === null,
+      perform: ({ stores }) => stores.ui.set({ collectionSort: null }),
+    }),
+  ],
+});
+
 export const editCollection = createAction({
   name: ({ t, isMenu }) => (isMenu ? `${t("Edit")}…` : t("Edit collection")),
   analyticsName: "Edit collection",

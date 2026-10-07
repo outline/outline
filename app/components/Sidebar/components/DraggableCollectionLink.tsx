@@ -65,6 +65,7 @@ function DraggableCollectionLink({
       );
     },
     canDrop: (item) =>
+      ui.collectionSort === null &&
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
       !!policies.abilities(item.id).move,
@@ -77,6 +78,7 @@ function DraggableCollectionLink({
   // Drag to reorder collection
   const [{ isDragging }, dragToReorderCollection, preview] = useDragRef({
     type: "collection",
+    canDrag: () => ui.collectionSort === null,
     item: () => ({
       id: collection.id,
       title: collection.name,
