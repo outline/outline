@@ -24,7 +24,7 @@ import {
   getPublicShareUrlForDocument,
   pathToUrl,
   withTracing,
-} from "./util";
+} from "../util";
 
 const SELF_TOKENS = new Set(["self", "me", "current_user"]);
 
