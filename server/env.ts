@@ -709,27 +709,6 @@ export class Environment {
   public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
 
   /**
-   * Default ACL applied to non-avatar attachments. This preserves AWS_S3_ACL
-   * when unset.
-   */
-  @IsIn(["private", "public-read"])
-  public FILE_STORAGE_DEFAULT_ACL =
-    this.toOptionalString(environment.FILE_STORAGE_DEFAULT_ACL) ??
-    this.AWS_S3_ACL;
-
-  /**
-   * The canned ACL sent with S3 upload requests. Set to an empty value for
-   * S3-compatible providers that do not support ACLs, such as Cloudflare R2.
-   * Defaults to AWS_S3_ACL to preserve existing behavior.
-   */
-  public AWS_S3_CANNED_ACL = Object.prototype.hasOwnProperty.call(
-    environment,
-    "AWS_S3_CANNED_ACL"
-  )
-    ? environment.AWS_S3_CANNED_ACL
-    : this.AWS_S3_ACL;
-
-  /**
    * Which HTTP method to use for presigned uploads to S3-compatible storage.
    * "post" uses multipart form upload (traditional S3 presigned POST).
    * "put" uses a single PUT request with a presigned URL (required for

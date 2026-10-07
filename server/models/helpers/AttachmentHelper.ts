@@ -77,7 +77,7 @@ export default class AttachmentHelper {
       case AttachmentPreset.Avatar:
         return "public-read";
       default:
-<        return env.AWS_S3_ACL || "private";
+        return env.AWS_S3_ACL || "private";
     }
   }
 
