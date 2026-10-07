@@ -1,5 +1,9 @@
-import { MentionType } from "../../types";
+import { EditorState } from "prosemirror-state";
+import type { Editor } from "../../../app/editor";
+import { MentionType, UnfurlResourceType } from "../../types";
+import type { UnfurlResponse } from "../../types";
 import { schema, serializer } from "../../test/editor";
+import Mention from "./Mention";
 
 const id = "0c440212-8b40-49fa-8a64-2548d6b60d59";
 const modelId = "c85a0d80-3a89-4b25-a0cd-e7fc83f0d226";
@@ -160,5 +164,63 @@ describe("Mention serialization", () => {
         )
       ).toBe(`[Engineering](/collection/${modelId})`);
     });
+  });
+});
+
+describe("Mention unfurl", () => {
+  const unfurl: UnfurlResponse[UnfurlResourceType.URL] = {
+    type: UnfurlResourceType.URL,
+    url: "https://example.com/page",
+    title: "Example",
+    description: "",
+    thumbnailUrl: "",
+    faviconUrl: "",
+  };
+
+  const setup = () => {
+    const doc = schema.nodeFromJSON({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "mention",
+              attrs: {
+                id,
+                modelId,
+                type: MentionType.URL,
+                href: unfurl.url,
+                label: unfurl.url,
+              },
+            },
+          ],
+        },
+      ],
+    });
+    const dispatch = vi.fn();
+    const mention = new Mention();
+    mention.bindEditor({
+      view: { state: EditorState.create({ doc }), dispatch },
+    } as unknown as Editor);
+
+    return { mention, dispatch, node: doc.firstChild!.firstChild! };
+  };
+
+  it("updates the mention with the unfurled data", () => {
+    const { mention, dispatch, node } = setup();
+
+    mention.handleChangeUnfurl({ node, getPos: () => 1 })(unfurl);
+
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.calls[0][0].doc.nodeAt(1).attrs.label).toBe("Example");
+  });
+
+  it("does nothing when the node view was destroyed", () => {
+    const { mention, dispatch, node } = setup();
+
+    mention.handleChangeUnfurl({ node, getPos: () => undefined })(unfurl);
+
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

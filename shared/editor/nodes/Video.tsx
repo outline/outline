@@ -92,21 +92,36 @@ export default class Video extends Node {
   }
 
   handleSelect =
-    ({ getPos }: { getPos: () => number }) =>
+    ({ getPos }: { getPos: () => number | undefined }) =>
     () => {
       const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
+      const $pos = view.state.doc.resolve(pos);
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view } = this.editor;
       const { tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const transaction = tr
         .setNodeMarkup(pos, undefined, {
           ...node.attrs,
@@ -114,12 +129,18 @@ export default class Video extends Node {
           height,
         })
         .setMeta("addToHistory", true);
-      const $pos = transaction.doc.resolve(getPos());
+      const $pos = transaction.doc.resolve(pos);
       view.dispatch(transaction.setSelection(new NodeSelection($pos)));
     };
 
   handleCaptionKeyDown =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
       // Pressing Enter in the caption field should move the cursor/selection
       // below the video
@@ -127,7 +148,12 @@ export default class Video extends Node {
         event.preventDefault();
 
         const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
+        const pos = getPos();
+        if (pos === undefined) {
+          return;
+        }
+
+        const $pos = view.state.doc.resolve(pos + node.nodeSize);
         view.dispatch(
           view.state.tr.setSelection(TextSelection.near($pos)).scrollIntoView()
         );
@@ -140,7 +166,12 @@ export default class Video extends Node {
         event.preventDefault();
         event.stopPropagation();
         const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos());
+        const pos = getPos();
+        if (pos === undefined) {
+          return;
+        }
+
+        const $pos = view.state.doc.resolve(pos);
         const tr = view.state.tr.setSelection(new NodeSelection($pos));
         view.dispatch(tr);
         view.focus();
@@ -149,7 +180,13 @@ export default class Video extends Node {
     };
 
   handleCaptionBlur =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     (event: React.FocusEvent<HTMLParagraphElement>) => {
       const caption = event.currentTarget.innerText;
       if (caption === node.attrs.title) {
@@ -162,9 +199,7 @@ export default class Video extends Node {
       // The blur may fire while the node view is being torn down, at which
       // point the position no longer refers to this video in the document.
       const pos = getPos();
-      const current =
-        pos === undefined ? undefined : view.state.doc.nodeAt(pos);
-      if (current?.type !== node.type) {
+      if (pos === undefined || view.state.doc.nodeAt(pos)?.type !== node.type) {
         return;
       }
 
