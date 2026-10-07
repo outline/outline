@@ -610,8 +610,11 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds();
     const userId = user.id;
+    const [collectionIds, membershipDocumentIds] = await Promise.all([
+      user.collectionIds(),
+      Document.membershipDocumentIds(userId),
+    ]);
     const views = await View.findAll({
       where: {
         userId,
@@ -627,7 +630,11 @@ router.post(
           required: true,
           where: {
             teamId: user.teamId,
-            collectionId: collectionIds,
+            [Op.or]: [
+              { collectionId: collectionIds },
+              { id: membershipDocumentIds },
+              { createdById: userId, collectionId: { [Op.is]: null } },
+            ],
           },
         },
       ],

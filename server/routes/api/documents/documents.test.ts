@@ -45,6 +45,7 @@ import {
   buildTemplate,
   buildAttachment,
   buildSubdomain,
+  buildGuestUser,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -5076,6 +5077,130 @@ describe("#documents.viewed", () => {
         userId: user.id,
         collectionId: collection.id,
       },
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should return viewed documents shared directly with the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: owner.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared with a group of the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const group = await buildGroup({ teamId: owner.teamId });
+    await group.$add("user", user, {
+      through: { createdById: owner.id },
+    });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: owner.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: owner.teamId,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared with a guest", async () => {
+    const owner = await buildUser();
+    const guest = await buildGuestUser({ teamId: owner.teamId });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: guest.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user: guest }), {
+      documentId: document.id,
+      userId: guest.id,
+    });
+    const res = await server.post("/api/documents.viewed", guest);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed drafts with no collection", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not return drafts with no collection created by another user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildDraftDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+      collectionId: null,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
     });
     const res = await server.post("/api/documents.viewed", user);
     const body = await res.json();
