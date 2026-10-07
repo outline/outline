@@ -27,6 +27,7 @@ import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -159,7 +160,7 @@ router.post(
 router.post(
   "users.updateEmail",
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
     if (!env.EMAIL_ENABLED) {
@@ -201,7 +202,7 @@ router.post(
 router.get(
   "users.updateEmail",
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   transaction(),
   validate(T.UsersUpdateEmailConfirmSchema),
   async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
