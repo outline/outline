@@ -424,7 +424,7 @@ export class Editor extends React.PureComponent<
           (
             node: ProsemirrorNode,
             view: EditorView,
-            getPos: () => number,
+            getPos: () => number | undefined,
             decorations: Decoration[]
           ) =>
             new ComponentView(extension.component, {

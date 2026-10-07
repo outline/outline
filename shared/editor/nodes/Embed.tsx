@@ -101,12 +101,22 @@ export default class Embed extends Node {
   }
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view } = this.editor;
       const { tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const transaction = tr
         .setNodeMarkup(pos, undefined, {
           ...node.attrs,
@@ -114,7 +124,7 @@ export default class Embed extends Node {
           height,
         })
         .setMeta("addToHistory", true);
-      const $pos = transaction.doc.resolve(getPos());
+      const $pos = transaction.doc.resolve(pos);
       view.dispatch(transaction.setSelection(new NodeSelection($pos)));
     };
 
