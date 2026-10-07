@@ -200,7 +200,7 @@ function Authentication() {
         const showGroupSync =
           provider.isActive &&
           provider.groupSyncSupported &&
-          (!!can.syncGroups || !!provider.settings?.groupSyncEnabled);
+          (!!can.externalGroupSync || !!provider.settings?.groupSyncEnabled);
 
         return (
           <React.Fragment key={provider.name}>

@@ -59,7 +59,7 @@ allow(User, "audit", Team, (actor, team) =>
   )
 );
 
-allow(User, "syncGroups", Team, (actor, team) =>
+allow(User, "externalGroupSync", Team, (actor, team) =>
   and(
     //
     isTeamAdmin(actor, team),

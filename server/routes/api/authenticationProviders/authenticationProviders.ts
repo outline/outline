@@ -57,7 +57,7 @@ router.post(
       settings?.groupSyncEnabled === true &&
       !authenticationProvider.settings?.groupSyncEnabled
     ) {
-      authorize(user, "syncGroups", user.team);
+      authorize(user, "externalGroupSync", user.team);
 
       const groupSyncProvider = PluginManager.getGroupSyncProvider(
         authenticationProvider.name
@@ -108,7 +108,7 @@ router.post(
       ctx.input.body.id
     );
     authorize(user, "update", authenticationProvider);
-    authorize(user, "syncGroups", user.team);
+    authorize(user, "externalGroupSync", user.team);
 
     const groupSyncProvider = PluginManager.getGroupSyncProvider(
       authenticationProvider.name
