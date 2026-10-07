@@ -14,7 +14,7 @@ import {
   getActorFromContext,
   optionalString,
   withTracing,
-} from "./util";
+} from "../util";
 
 /**
  * Registers user-related MCP tools on the given server, filtered by the

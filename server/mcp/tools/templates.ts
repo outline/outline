@@ -13,7 +13,7 @@ import {
   optionalString,
   pathToUrl,
   withTracing,
-} from "./util";
+} from "../util";
 
 /**
  * Presents a template's metadata and rendered markdown body for a tool

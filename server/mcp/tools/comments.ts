@@ -18,7 +18,7 @@ import {
   getActorFromContext,
   optionalString,
   withTracing,
-} from "./util";
+} from "../util";
 import { ValidationError } from "@server/errors";
 
 /**
