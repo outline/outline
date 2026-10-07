@@ -706,6 +706,7 @@ export class DocumentHelper {
     findText?: string
   ) {
     let doc: Node;
+    const existingDoc = DocumentHelper.toProsemirror(document);
 
     if (editMode === TextEditMode.Patch) {
       if (!findText) {
@@ -714,7 +715,6 @@ export class DocumentHelper {
         );
       }
 
-      const existingDoc = DocumentHelper.toProsemirror(document);
       const { markdown, blockMap } =
         serializer.serializeWithPositions(existingDoc);
 
@@ -776,7 +776,6 @@ export class DocumentHelper {
         doc = existingDoc.copy(before.append(newContent.content).append(after));
       }
     } else if (editMode === TextEditMode.Append) {
-      const existingDoc = DocumentHelper.toProsemirror(document);
       const newDoc = parser.parse(text);
       const lastChild = existingDoc.lastChild;
       const firstChild = newDoc.firstChild;
@@ -801,7 +800,6 @@ export class DocumentHelper {
         doc = existingDoc.copy(existingDoc.content.append(newDoc.content));
       }
     } else if (editMode === TextEditMode.Prepend) {
-      const existingDoc = DocumentHelper.toProsemirror(document);
       const newDoc = parser.parse(text);
       const lastChild = newDoc.lastChild;
       const firstChild = existingDoc.firstChild;
@@ -828,6 +826,10 @@ export class DocumentHelper {
     } else {
       doc = parser.parse(text);
     }
+
+    // Markdown cannot represent comment marks, so re-anchor any that were
+    // lost to the text they covered.
+    doc = ProsemirrorHelper.restoreCommentMarks(existingDoc, doc);
 
     document.content = doc.toJSON();
     document.text = serializer.serialize(doc);

@@ -9,7 +9,8 @@ import {
   EditorView,
   type DecorationSource,
 } from "prosemirror-view";
-import { Node, Fragment } from "prosemirror-model";
+import { Node, Fragment, type Mark } from "prosemirror-model";
+import { Transform } from "prosemirror-transform";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import {
@@ -92,6 +93,35 @@ export type MentionAttrs = {
   href?: string;
   unfurl?: UnfurlResponse[keyof UnfurlResponse];
 };
+
+/** Maps a run of plain text back to the ProseMirror node that produced it. */
+interface PlainTextSegment {
+  /** Offset of the run in the document's plain text. */
+  plainStart: number;
+  /** Start of the node in the document. */
+  pmFrom: number;
+  /** End of the node in the document. */
+  pmTo: number;
+  /** Length of the run in the plain text. */
+  length: number;
+  /** Whether the node is an atom whose text comes from `leafText`. */
+  isAtom: boolean;
+}
+
+/** The plain text a comment mark covers, with surrounding context. */
+interface CommentAnchor {
+  /** The comment mark. */
+  mark: Mark;
+  /** The plain text covered by the mark. */
+  text: string;
+  /** The plain text immediately preceding the mark. */
+  prefix: string;
+  /** The plain text immediately following the mark. */
+  suffix: string;
+}
+
+/** Number of plain text characters used to disambiguate a comment anchor. */
+const commentAnchorContextLength = 30;
 
 const pluginsWithSafeDecorations = new WeakSet<Plugin>();
 
@@ -1486,6 +1516,40 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
   }
 
+  /**
+   * Re-applies comment marks from a previous version of a document to a new
+   * version that was rebuilt without them, such as from markdown. Each mark is
+   * located by the plain text it covered, using the surrounding text to pick
+   * between repeated occurrences. Marks whose text no longer exists are
+   * dropped, and marks already present in the new document are untouched.
+   *
+   * @param previous The document containing the original comment marks.
+   * @param next The rebuilt document to restore the marks in.
+   * @returns The document with the comment marks restored.
+   */
+  static restoreCommentMarks(previous: Node, next: Node): Node {
+    const anchors = ProsemirrorHelper.getCommentAnchors(previous);
+    if (!anchors.length) {
+      return next;
+    }
+
+    const tr = new Transform(next);
+
+    for (const { mark, text, prefix, suffix } of anchors) {
+      const range =
+        ProsemirrorHelper.findTextRange(next, text, { prefix, suffix }) ??
+        ProsemirrorHelper.findTextRange(next, text, { prefix }) ??
+        ProsemirrorHelper.findTextRange(next, text, { suffix }) ??
+        ProsemirrorHelper.findTextRange(next, text);
+
+      if (range) {
+        tr.addMark(range.from, range.to, mark);
+      }
+    }
+
+    return tr.doc;
+  }
+
   private static applyCommentMarkAtRange(
     yjsDoc: Y.Doc,
     doc: Node,
@@ -1553,41 +1617,59 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
-   * Locates an occurrence of `needle` in the document's plain text and
-   * returns the matching ProseMirror position range, or null if no match.
-   * Plain text is built using the editor's `textBetween` so leaf nodes
-   * with `spec.leafText` (e.g. mentions) participate in matching.
-   *
-   * When `prefix` or `suffix` is provided, the first occurrence whose
-   * immediately preceding / following plain text matches is selected.
-   * Empty or omitted values impose no constraint on that side.
-   *
-   * Atom nodes (whose plain content comes from `leafText`) cannot be
-   * sliced into; matches that fall inside an atom are clamped to the
-   * atom's full PM range.
+   * Collects the comment marks in a document along with the plain text each
+   * covers. Contiguous runs of text with the same comment produce a single
+   * anchor; a comment spanning several blocks produces one anchor per block.
    */
-  private static findTextRange(
-    doc: Node,
-    needle: string,
-    options: { prefix?: string; suffix?: string } = {}
-  ): { from: number; to: number } | null {
-    if (!needle.length) {
-      return null;
+  private static getCommentAnchors(doc: Node): CommentAnchor[] {
+    const plain = textBetween(doc, 0, doc.content.size);
+    const ranges: { mark: Mark; start: number; end: number }[] = [];
+    const lastRangeById = new Map<string, (typeof ranges)[number]>();
+
+    for (const segment of ProsemirrorHelper.getPlainTextSegments(doc)) {
+      const node = doc.nodeAt(segment.pmFrom);
+      if (!node) {
+        continue;
+      }
+      for (const mark of node.marks) {
+        if (mark.type !== schema.marks.comment) {
+          continue;
+        }
+        const last = lastRangeById.get(mark.attrs.id);
+        if (last && last.end === segment.plainStart) {
+          last.end += segment.length;
+        } else {
+          const range = {
+            mark,
+            start: segment.plainStart,
+            end: segment.plainStart + segment.length,
+          };
+          ranges.push(range);
+          lastRangeById.set(mark.attrs.id, range);
+        }
+      }
     }
 
-    const plain = textBetween(doc, 0, doc.content.size);
+    return ranges
+      .filter(({ start, end }) => plain.slice(start, end).trim())
+      .map(({ mark, start, end }) => ({
+        mark,
+        text: plain.slice(start, end),
+        prefix: plain.slice(
+          Math.max(0, start - commentAnchorContextLength),
+          start
+        ),
+        suffix: plain.slice(end, end + commentAnchorContextLength),
+      }));
+  }
 
-    // Mirror textBetween's traversal so segment.plainStart aligns with the
-    // characters in `plain`. If textBetween's algorithm changes, this walk
-    // must change with it.
-    type Segment = {
-      plainStart: number;
-      pmFrom: number;
-      pmTo: number;
-      length: number;
-      isAtom: boolean;
-    };
-    const segments: Segment[] = [];
+  /**
+   * Maps the document's plain text back to the nodes that produced it. This
+   * mirrors the traversal in `textBetween` so that offsets align with the
+   * string it returns; if that algorithm changes, this walk must change too.
+   */
+  private static getPlainTextSegments(doc: Node): PlainTextSegment[] {
+    const segments: PlainTextSegment[] = [];
     let plainPos = 0;
     let first = true;
 
@@ -1623,6 +1705,35 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
       return !isLeafText;
     });
+
+    return segments;
+  }
+
+  /**
+   * Locates an occurrence of `needle` in the document's plain text and
+   * returns the matching ProseMirror position range, or null if no match.
+   * Plain text is built using the editor's `textBetween` so leaf nodes
+   * with `spec.leafText` (e.g. mentions) participate in matching.
+   *
+   * When `prefix` or `suffix` is provided, the first occurrence whose
+   * immediately preceding / following plain text matches is selected.
+   * Empty or omitted values impose no constraint on that side.
+   *
+   * Atom nodes (whose plain content comes from `leafText`) cannot be
+   * sliced into; matches that fall inside an atom are clamped to the
+   * atom's full PM range.
+   */
+  private static findTextRange(
+    doc: Node,
+    needle: string,
+    options: { prefix?: string; suffix?: string } = {}
+  ): { from: number; to: number } | null {
+    if (!needle.length) {
+      return null;
+    }
+
+    const plain = textBetween(doc, 0, doc.content.size);
+    const segments = ProsemirrorHelper.getPlainTextSegments(doc);
 
     const prefix = options.prefix ?? "";
     const suffix = options.suffix ?? "";
