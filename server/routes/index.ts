@@ -228,7 +228,9 @@ router.get("*", async (ctx, next) => {
       publicBranding && team?.description ? team.description : undefined,
     analytics,
     shortcutIcon:
-      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
+      publicBranding && team?.avatarUrl
+        ? ((await team.publicAvatarUrl()) ?? undefined)
+        : undefined,
   });
 });
 
