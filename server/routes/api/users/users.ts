@@ -8,7 +8,6 @@ import { UserValidation } from "@shared/validations";
 import userInviter from "@server/commands/userInviter";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
-import EmailUpdatedEmail from "@server/emails/templates/EmailUpdatedEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
@@ -247,21 +246,7 @@ router.get(
       throw ValidationError("User with email already exists");
     }
 
-    const previous = user.email;
     await user.updateWithCtx(ctx, { email });
-
-    if (previous && previous !== email) {
-      const { team } = actor;
-      transaction.afterCommit(async () => {
-        await new EmailUpdatedEmail({
-          to: previous,
-          language: user.language,
-          email,
-          teamName: team.name,
-          teamUrl: team.url,
-        }).schedule();
-      });
-    }
 
     ctx.redirect(settingsPath());
   }
