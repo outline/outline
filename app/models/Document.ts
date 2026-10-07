@@ -532,8 +532,11 @@ export default class Document extends ArchivableModel implements Searchable {
   archive = (options?: { reason?: string }) =>
     this.store.archive(this, options);
 
-  restore = (options?: { revisionId?: string; collectionId?: string }) =>
-    this.store.restore(this, options);
+  restore = (options?: {
+    revisionId?: string;
+    collectionId?: string;
+    parentDocumentId?: string | null;
+  }) => this.store.restore(this, options);
 
   unpublish = (
     options: { detach?: boolean } = {

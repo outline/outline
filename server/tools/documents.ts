@@ -844,7 +844,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Restore document",
         description:
-          "Restores an archived or trashed document, making it active again. Optionally provide a collectionId to restore the document into a different collection; otherwise it returns to its original collection.",
+          "Restores an archived or trashed document, making it active again. Optionally provide a collectionId to restore the document into a different collection, or a parentDocumentId to nest it under another document; otherwise it returns to its original location.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -856,48 +856,62 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "The collection to restore the document into. Defaults to its original collection."
           ),
+          parentDocumentId: optionalString()
+            .nullable()
+            .describe(
+              "The document to restore the document under. Pass null to restore to the collection root. Defaults to its original parent."
+            ),
         },
       },
-      withTracing("restore_document", async ({ id, collectionId }, context) => {
-        try {
-          const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+      withTracing(
+        "restore_document",
+        async ({ id, collectionId, parentDocumentId }, context) => {
+          try {
+            const ctx = buildAPIContext(context);
+            const { user } = ctx.state.auth;
 
-          const document = await sequelize.transaction(async (transaction) => {
-            ctx.state.transaction = transaction;
-            ctx.context.transaction = transaction;
+            const document = await sequelize.transaction(
+              async (transaction) => {
+                ctx.state.transaction = transaction;
+                ctx.context.transaction = transaction;
 
-            const document = await Document.findByPk(id, {
-              userId: user.id,
-              paranoid: false,
-              rejectOnEmpty: true,
-              transaction,
+                const document = await Document.findByPk(id, {
+                  userId: user.id,
+                  paranoid: false,
+                  rejectOnEmpty: true,
+                  transaction,
+                });
+
+                if (!document.deletedAt && !document.archivedAt) {
+                  throw ValidationError("Document is not archived or trashed");
+                }
+
+                await documentRestorer(ctx, {
+                  document,
+                  collectionId,
+                  parentDocumentId,
+                });
+
+                return document;
+              }
+            );
+
+            // Resolved after commit so the breadcrumb reflects the new location.
+            const breadcrumb = await getDocumentBreadcrumb(document, user);
+            return success({
+              success: true,
+              ...pathToUrl(user.team, {
+                id: document.id,
+                title: document.title,
+                url: document.url,
+              }),
+              ...(breadcrumb !== undefined && { breadcrumb }),
             });
-
-            if (!document.deletedAt && !document.archivedAt) {
-              throw ValidationError("Document is not archived or trashed");
-            }
-
-            await documentRestorer(ctx, { document, collectionId });
-
-            return document;
-          });
-
-          // Resolved after commit so the breadcrumb reflects the new location.
-          const breadcrumb = await getDocumentBreadcrumb(document, user);
-          return success({
-            success: true,
-            ...pathToUrl(user.team, {
-              id: document.id,
-              title: document.title,
-              url: document.url,
-            }),
-            ...(breadcrumb !== undefined && { breadcrumb }),
-          });
-        } catch (message) {
-          return error(message);
+          } catch (message) {
+            return error(message);
+          }
         }
-      })
+      )
     );
   }
 }
