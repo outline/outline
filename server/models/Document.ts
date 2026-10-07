@@ -923,6 +923,13 @@ class Document extends ArchivableModel<
       AdditionalFindOptions = {}
   ): Promise<Document | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Document doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -956,44 +963,34 @@ class Document extends ArchivableModel<
       },
     ]);
 
+    let document: Document | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const document = await scope.findOne({
+      document = await scope.findOne({
         ...rest,
         where: {
           id,
         },
         rejectOnEmpty: false,
       });
-
-      if (!document && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
-      }
-
-      return document;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const document = await scope.findOne({
+    } else if (match) {
+      document = await scope.findOne({
         ...rest,
         where: {
           urlId: match[1],
         },
         rejectOnEmpty: false,
       });
-
-      if (!document && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
-      }
-
-      return document;
     }
 
-    return null;
+    if (!document && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Document doesn't exist with id: ${id}`);
+    }
+
+    return document;
   }
 
   /**

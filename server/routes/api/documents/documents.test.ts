@@ -4968,6 +4968,14 @@ describe("#documents.deleted", () => {
 });
 
 describe("#documents.viewed", () => {
+  it("should reject sorting by a document column", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.viewed", user, {
+      body: { sort: "title" },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should return empty result if no views", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.viewed", user);
