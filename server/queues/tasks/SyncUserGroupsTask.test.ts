@@ -1,8 +1,10 @@
 import { vi } from "vitest";
+import { Plan } from "@shared/types";
 import {
   AuthenticationProvider,
   Group,
   GroupUser,
+  Team,
   UserAuthentication,
 } from "@server/models";
 import { buildUser } from "@server/test/factories";
@@ -37,6 +39,10 @@ async function setup() {
 
 describe("SyncUserGroupsTask", () => {
   const schedule = mockTaskSchedule();
+
+  beforeEach(() => {
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
+  });
 
   afterEach(() => {
     vi.restoreAllMocks();
@@ -96,6 +102,17 @@ describe("SyncUserGroupsTask", () => {
     await authenticationProvider.update({
       settings: { groupSyncEnabled: false },
     });
+
+    await new SyncUserGroupsTask().perform({
+      userAuthenticationId: authentication.id,
+    });
+
+    expect(fetchUserGroups).not.toHaveBeenCalled();
+  });
+
+  it("should not sync groups when the team is not entitled to group sync", async () => {
+    const { authentication, fetchUserGroups } = await setup();
+    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Community);
 
     await new SyncUserGroupsTask().perform({
       userAuthenticationId: authentication.id,

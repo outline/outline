@@ -59,6 +59,14 @@ allow(User, "audit", Team, (actor, team) =>
   )
 );
 
+allow(User, "syncGroups", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    teamHasEntitlement(team, PlanFeature.GroupSync)
+  )
+);
+
 allow(User, ["createTemplate", "updateTemplate"], Team, (actor, team) =>
   and(
     //
