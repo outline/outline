@@ -29,7 +29,7 @@ describe("UserUpdatedProcessor", () => {
     });
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.instances[0]).toMatchObject({
+    expect(spy.mock.contexts[0]).toMatchObject({
       props: expect.objectContaining({ to: user.email, email }),
     });
   });

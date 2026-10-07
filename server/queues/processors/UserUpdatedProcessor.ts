@@ -15,7 +15,9 @@ export default class UserUpdatedProcessor extends BaseProcessor {
       return;
     }
 
-    const user = await User.scope("withTeam").findByPk(event.userId);
+    const user = await User.scope("withTeam").findByPk(event.userId, {
+      paranoid: false,
+    });
     if (!user) {
       return;
     }
