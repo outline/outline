@@ -140,7 +140,9 @@ function Home() {
               documents={documents.createdByUser(userId)}
               fetch={documents.fetchOwned}
               options={{
-                userId,
+                filters: [
+                  { field: "createdById", operator: "eq", value: userId },
+                ],
               }}
               empty={
                 <Empty>{t("You haven’t created any documents yet")}</Empty>

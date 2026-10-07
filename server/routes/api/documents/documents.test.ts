@@ -1381,6 +1381,42 @@ describe("#documents.list", () => {
       expect(body.data).toHaveLength(2);
     });
 
+    it("should match documents created by a user, excluding collaborations", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser({ teamId: user.teamId });
+      const created = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const collaborated = await buildDocument({
+        userId: otherUser.id,
+        teamId: user.teamId,
+      });
+      collaborated.lastModifiedById = user.id;
+      await collaborated.save();
+      expect(collaborated.collaboratorIds).toContain(user.id);
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "createdById", operator: "eq", value: user.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toEqual([created.id]);
+    });
+
+    it("should reject unsupported operators for createdById", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "createdById", operator: "isNotNull" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
     it("should reject an unknown field", async () => {
       const user = await buildUser();
       const res = await server.post("/api/documents.list", user, {
