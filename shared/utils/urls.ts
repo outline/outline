@@ -149,6 +149,53 @@ export function isUrl(
 }
 
 /**
+ * Schemes that are never treated as private-use, either because they are web
+ * schemes validated elsewhere or because they can execute or embed content.
+ */
+const nonPrivateUseSchemes = new Set([
+  "http",
+  "https",
+  "ftp",
+  "ws",
+  "wss",
+  "file",
+  "data",
+  "javascript",
+  "vbscript",
+  "blob",
+  "about",
+]);
+
+/**
+ * Returns true if the given url uses a private-use URI scheme, as registered
+ * by native apps to receive OAuth redirects (RFC 8252 section 7.1), for
+ * example `com.example.app:/oauth2redirect` or `myapp://callback`.
+ *
+ * @param text The url to check.
+ * @returns True if the url uses a private-use URI scheme, false otherwise.
+ */
+export function isPrivateUseSchemeUrl(text: string) {
+  if (/\s/.test(text)) {
+    return false;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch (_err) {
+    return false;
+  }
+
+  const scheme = url.protocol.slice(0, -1).toLowerCase();
+  if (nonPrivateUseSchemes.has(scheme)) {
+    return false;
+  }
+
+  // Require a destination after the scheme, e.g. reject a bare "myapp:".
+  return !!url.host || (url.pathname !== "" && url.pathname !== "/");
+}
+
+/**
  * Temporary prefix applied to links in document that are not yet persisted.
  */
 export const creatingUrlPrefix = "creating#";

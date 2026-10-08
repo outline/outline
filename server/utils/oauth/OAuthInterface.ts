@@ -7,7 +7,7 @@ import type {
 } from "@node-oauth/oauth2-server";
 import type { Required } from "utility-types";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { isUrl } from "@shared/utils/urls";
+import { isPrivateUseSchemeUrl, isUrl } from "@shared/utils/urls";
 import {
   OAuthClient,
   OAuthAuthentication,
@@ -381,6 +381,13 @@ export const OAuthInterface: RefreshTokenModel &
       }
     } catch {
       // Invalid URL, will be caught by isUrl check below
+    }
+
+    // Allow private-use URI schemes for native apps (RFC 8252 §7.1). The
+    // recommended form, e.g. com.example.app:/oauth2redirect, has no host so
+    // isUrl would reject it.
+    if (isPrivateUseSchemeUrl(uri)) {
+      return true;
     }
 
     if (!isUrl(uri, { requireHttps: true })) {

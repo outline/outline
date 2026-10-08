@@ -59,6 +59,22 @@ describe("#oauth.register", () => {
     expect(client!.published).toEqual(false);
   });
 
+  it("should register a native app client with a private-use scheme redirect URI", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "Native App",
+        redirect_uris: ["com.example.app:/oauth2redirect"],
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(201);
+    const body = await res.json();
+    expect(body.redirect_uris).toEqual(["com.example.app:/oauth2redirect"]);
+  });
+
   it("should register a confidential client", async () => {
     const res = await server.post("/oauth/register", {
       body: {
@@ -670,5 +686,31 @@ describe("POST /oauth/authorize", () => {
 
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).toContain("code=");
+  });
+
+  it("should redirect to a private-use scheme redirect URI", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const client = await buildOAuthClient({
+      teamId: team.id,
+      redirectUris: ["com.example.app:/oauth2redirect"],
+    });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: "com.example.app:/oauth2redirect",
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(302);
+    const location = res.headers.get("location");
+    expect(location).toMatch(/^com\.example\.app:\/oauth2redirect\?/);
+    expect(location).toContain("code=");
+    expect(location).toContain("state=state");
   });
 });
