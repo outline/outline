@@ -1,0 +1,160 @@
+name: Docker build
+
+# Reusable multi-arch build and publish pipeline. Callers supply the ref to
+# build and the docker/metadata-action tag rules to publish under.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build. Defaults to the ref that triggered the caller.
+        type: string
+        required: false
+        default: ""
+      tags:
+        description: docker/metadata-action tag rules.
+        type: string
+        required: true
+      flavor:
+        description: docker/metadata-action flavor rules.
+        type: string
+        required: false
+        default: ""
+      environment:
+        description: Environment used to gate publishing of the manifest.
+        type: string
+        required: false
+        default: dockerhub
+
+env:
+  IMAGE_NAME: outlinewiki/outline
+  BASE_IMAGE_NAME: outlinewiki/outline-base
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: blacksmith-8vcpu-ubuntu-2404
+          - platform: linux/arm64
+            runner: blacksmith-8vcpu-ubuntu-2404-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Blacksmith Builder
+        uses: useblacksmith/setup-docker-builder@ab5c1da94f53f5cd75c1038092aa276dddfccbba  # v1
+
+      - name: Docker base meta
+        id: base_meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ env.BASE_IMAGE_NAME }}
+          flavor: ${{ inputs.flavor }}
+          tags: ${{ inputs.tags }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push base image
+        id: base_build
+        uses: useblacksmith/build-push-action@fb9e3e6a9299c78462bfadd0d93352c316adc9b8  # v2
+        with:
+          context: .
+          file: Dockerfile.base
+          labels: ${{ steps.base_meta.outputs.labels }}
+          tags: ${{ env.BASE_IMAGE_NAME }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          platforms: ${{ matrix.platform }}
+          pull: false
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ env.IMAGE_NAME }}
+          flavor: ${{ inputs.flavor }}
+          tags: ${{ inputs.tags }}
+
+      - name: Build and push
+        id: build
+        uses: useblacksmith/build-push-action@fb9e3e6a9299c78462bfadd0d93352c316adc9b8  # v2
+        with:
+          context: .
+          file: Dockerfile
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          platforms: ${{ matrix.platform }}
+          pull: false
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}@${{ steps.base_build.outputs.digest }}
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v5
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    needs:
+      - build
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v5
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Setup Blacksmith Builder
+        uses: useblacksmith/setup-docker-builder@ab5c1da94f53f5cd75c1038092aa276dddfccbba  # v1
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: ${{ inputs.flavor }}
+          tags: ${{ inputs.tags }}
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          # shellcheck disable=SC2046  # word splitting is intentional here
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}

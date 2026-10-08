@@ -2,6 +2,7 @@ import type { Location } from "history";
 import history, { patchLocation, toLocationDescriptor } from "./history";
 import {
   getSplitPath,
+  initSplitViewNavigation,
   setFocusedSplitPane,
   withoutSplitViewNavigation,
 } from "./splitView";
@@ -108,9 +109,9 @@ describe("split view navigation", () => {
   it("closes the split view when navigating to a non-splitable route", () => {
     navigate("/doc/my-doc?split=%2Fdoc%2Fother-doc");
 
-    history.push("/settings/members");
+    history.push("/settings/users");
 
-    expect(history.location.pathname).toEqual("/settings/members");
+    expect(history.location.pathname).toEqual("/settings/users");
     expect(getSplitPath(history.location.search)).toBeUndefined();
   });
 
@@ -134,5 +135,58 @@ describe("split view navigation", () => {
 
     expect(history.location.pathname).toEqual("/doc/third-doc");
     expect(getSplitPath(history.location.search)).toBeUndefined();
+  });
+
+  describe("with the split view modifier held", () => {
+    let stop: () => void;
+
+    // The test environment is neither macOS nor Electron, so the modifier is
+    // control together with shift.
+    const holdModifier = () =>
+      window.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Control",
+          ctrlKey: true,
+          shiftKey: true,
+        })
+      );
+
+    beforeEach(() => {
+      stop = initSplitViewNavigation(history);
+    });
+
+    afterEach(() => stop());
+
+    it("opens the route in the secondary pane", () => {
+      holdModifier();
+      history.push("/doc/my-doc");
+
+      expect(history.location.pathname).toEqual("/home");
+      expect(getSplitPath(history.location.search)).toEqual("/doc/my-doc");
+    });
+
+    it("navigates normally when the route carries location state", () => {
+      holdModifier();
+      history.push("/doc/my-doc", { sidebarContext: "collections" });
+
+      expect(history.location.pathname).toEqual("/doc/my-doc");
+      expect(getSplitPath(history.location.search)).toBeUndefined();
+    });
+
+    it("navigates normally to a route that cannot render in a pane", () => {
+      holdModifier();
+      history.push("/settings/users");
+
+      expect(history.location.pathname).toEqual("/settings/users");
+      expect(getSplitPath(history.location.search)).toBeUndefined();
+    });
+
+    it("leaves replace unchanged", () => {
+      holdModifier();
+      history.replace("/doc/my-doc");
+
+      expect(history.location.pathname).toEqual("/doc/my-doc");
+      expect(getSplitPath(history.location.search)).toBeUndefined();
+    });
   });
 });

@@ -7,6 +7,7 @@ import userAgent from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
+import cleanupMultipartFiles from "@server/middlewares/cleanupMultipartFiles";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestContextMiddleware from "@server/middlewares/requestContext";
 import requestTracer from "@server/middlewares/requestTracer";
@@ -72,6 +73,7 @@ api.use(
     jsonLimit: 5 * 1024 * 1024, // 5MB limit for JSON payloads
   })
 );
+api.use(cleanupMultipartFiles());
 api.use(coalesceBody());
 api.use<BaseContext, UserAgentContext>(userAgent);
 api.use(requestTracer());
@@ -131,11 +133,7 @@ if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 
-router.post("*", (ctx) => {
-  ctx.throw(NotFoundError("Endpoint not found"));
-});
-
-router.get("*", (ctx) => {
+router.register("*", ["get", "post"], (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 

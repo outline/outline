@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
-import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
+import { isExternalUrl, sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -30,7 +30,7 @@ type Props = ComponentProps & {
   onChangeSize?: (props: { width: number; height?: number }) => void;
   /** The editor view */
   view: EditorView;
-  children?: React.ReactElement;
+  children?: React.ReactElement<{ style?: React.CSSProperties }>;
 };
 
 /** Images rendered smaller than this width are displayed as inline icons. */
@@ -94,21 +94,15 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
-  const {
-    width,
-    height,
-    setSize,
-    handlePointerDown,
-    handleDoubleClick,
-    dragging,
-  } = useDragResize({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-    naturalWidth,
-    naturalHeight,
-    onChangeSize,
-    ref,
-  });
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width ?? naturalWidth,
+      height: node.attrs.height ?? naturalHeight,
+      naturalWidth,
+      naturalHeight,
+      onChangeSize,
+      ref,
+    });
 
   const isFullWidth = layoutClass === "full-width";
   const isInlineIcon = isInlineImageIcon({ layoutClass, width, error });
@@ -117,18 +111,9 @@ const Image = (props: Props) => {
 
   const className = imageClassName({ layoutClass, width, error });
 
-  React.useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-  }, [node.attrs.width]);
-
   const sanitizedSrc = sanitizeImageSrc(src);
   const linkMarkType = props.view.state.schema.marks.link;
-  const imgLink =
+  const imageLink =
     find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)
       ?.attrs.href ||
     // Coalescing to `undefined` to avoid empty string in href because empty string
@@ -181,7 +166,7 @@ const Image = (props: Props) => {
         <GlobeIcon />
       </Button>
     ),
-    imgLink && (
+    imageLink && (
       <Button
         key="zoom"
         // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
@@ -237,7 +222,7 @@ const Image = (props: Props) => {
           </Error>
         ) : (
           <a
-            href={imgLink}
+            href={sanitizeUrl(imageLink)}
             // Do not show hover preview when the image is selected
             className={!isSelected ? "use-hover-preview" : ""}
             target="_blank"
@@ -245,6 +230,7 @@ const Image = (props: Props) => {
           >
             <img
               className={EditorStyleHelper.imageHandle}
+              draggable={false}
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
@@ -261,16 +247,11 @@ const Image = (props: Props) => {
                 // seen and is not sized to 0px
                 const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
                 const nh = (ev.target as HTMLImageElement).naturalHeight;
+                // When no width is set on the node the natural size is what the
+                // image is displayed at, so it feeds straight into useDragResize.
                 setNaturalWidth(nw);
                 setNaturalHeight(nh);
                 setLoaded(true);
-
-                if (!node.attrs.width) {
-                  setSize((state) => ({
-                    ...state,
-                    width: nw,
-                  }));
-                }
               }}
               onClick={handleImageClick}
               onTouchStart={handleImageTouchStart}

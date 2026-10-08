@@ -24,6 +24,10 @@ If you'd like to run your own copy of Outline or contribute to development then 
 
 Please see the [documentation](https://docs.getoutline.com/s/hosting/) for running your own copy of Outline in a production configuration.
 
+Available container images:
+* [![Container Image Release](https://img.shields.io/docker/v/outlinewiki/outline?sort=semver&label=Latest%20release)](https://hub.docker.com/r/outlinewiki/outline)
+* [![Container Image Nightly](https://img.shields.io/docker/v/outlinewiki/outline?sort=date&label=Latest%20development%20version)](https://hub.docker.com/r/outlinewiki/outline)
+
 If you have questions or improvements for the docs please create a thread in [GitHub discussions](https://github.com/outline/outline/discussions).
 
 # Contributing

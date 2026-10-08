@@ -1,5 +1,6 @@
 import queryString from "query-string";
 import env from "@shared/env";
+import { MentionType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export const GitHubOAuthNonceCookie = "githubOAuthNonce";
@@ -58,6 +59,29 @@ export class GitHubUtils {
 
   static installRequestUrl(): string {
     return `${this.url}?install_request=true`;
+  }
+
+  /**
+   * Determines the type of mention a GitHub URL represents.
+   *
+   * @param url the URL to evaluate.
+   * @returns the mention type, or undefined if this is not a GitHub URL for a
+   * resource that can be mentioned.
+   */
+  public static mentionType(url: URL): MentionType | undefined {
+    if (url.hostname !== "github.com") {
+      return undefined;
+    }
+
+    const type = url.pathname.split("/")[3];
+
+    return type === "pull"
+      ? MentionType.PullRequest
+      : type === "issues"
+        ? MentionType.Issue
+        : type === "projects"
+          ? MentionType.Project
+          : undefined;
   }
 
   public static getColorForStatus(status: string, isDraftPR: boolean = false) {

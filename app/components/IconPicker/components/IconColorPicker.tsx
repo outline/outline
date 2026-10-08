@@ -1,10 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
-import { colorPalette } from "@shared/utils/collections";
-import Flex from "~/components/Flex";
+import { colorPalette } from "@shared/constants";
 import { SwatchButton } from "~/components/SwatchButton";
 import { ColorButton } from "~/components/ColorButton";
+
+const SWATCH_SIZE = 20;
 
 type Props = {
   width: number;
@@ -27,24 +27,19 @@ const IconColorPicker = ({ activeColor, onSelect }: Props) => {
   };
 
   return (
-    <Container justify="space-between" align="center" auto>
+    <Container>
       <PresetColors activeColor={selectedColor} onClick={handleSelect} />
-      <Divider />
       <SwatchButton
         color={color}
+        pickerColor={selectedColor}
         active={!isBuiltInColor}
+        size={SWATCH_SIZE}
         onChange={handleSelect}
         pickerInModal
       />
     </Container>
   );
 };
-
-const Divider = styled.div`
-  width: 1px;
-  height: 24px;
-  background-color: ${s("inputBorder")};
-`;
 
 const PresetColors = ({
   activeColor,
@@ -59,16 +54,22 @@ const PresetColors = ({
         key={color}
         color={color}
         active={color === activeColor}
+        size={SWATCH_SIZE}
         onClick={() => onClick(color)}
       />
     ))}
   </>
 );
 
-const Container = styled(Flex)`
+// One column per preset color plus the custom swatch, matching the horizontal
+// rhythm of the icon grid below.
+const Container = styled.div`
+  display: grid;
+  grid-template-columns: repeat(${colorPalette.length + 1}, 1fr);
+  align-items: center;
+  justify-items: center;
   height: 48px;
   padding: 8px 12px;
-  border-bottom: 1px solid ${s("inputBorder")};
 `;
 
 export default IconColorPicker;

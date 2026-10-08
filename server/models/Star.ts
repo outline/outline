@@ -11,10 +11,8 @@ import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 
 @Table({ tableName: "stars", modelName: "star" })
-@Fix
 class Star extends IdModel<
   InferAttributes<Star>,
   Partial<InferCreationAttributes<Star>>

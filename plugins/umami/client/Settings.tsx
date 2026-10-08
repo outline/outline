@@ -16,7 +16,7 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
 import Flex from "~/components/Flex";
-import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import { disconnectAnalyticsIntegrationActionFactory } from "~/actions/definitions/integrations";
 import styled from "styled-components";
 
 type FormData = {
@@ -147,7 +147,7 @@ function Umami() {
           </StyledSubmit>
 
           <Button
-            action={disconnectAnalyticsIntegrationFactory(integration)}
+            action={disconnectAnalyticsIntegrationActionFactory(integration)}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

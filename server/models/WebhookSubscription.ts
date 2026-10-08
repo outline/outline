@@ -4,6 +4,7 @@ import type {
   InferAttributes,
   InferCreationAttributes,
   InstanceUpdateOptions,
+  SaveOptions,
   Transaction,
 } from "sequelize";
 import {
@@ -25,13 +26,13 @@ import { Hour } from "@shared/utils/time";
 import { WebhookSubscriptionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import type { Event } from "@server/types";
+import { LockHelper } from "@server/storage/LockHelper";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 import IsUrl from "./validators/IsUrl";
 import Length from "./validators/Length";
 import { randomString } from "@shared/random";
@@ -48,7 +49,6 @@ import { randomString } from "@shared/random";
   tableName: "webhook_subscriptions",
   modelName: "webhook_subscription",
 })
-@Fix
 class WebhookSubscription extends ParanoidModel<
   InferAttributes<WebhookSubscription>,
   Partial<InferCreationAttributes<WebhookSubscription>>
@@ -156,9 +156,20 @@ class WebhookSubscription extends ParanoidModel<
   // hooks
 
   @BeforeCreate
-  static async checkLimit(model: WebhookSubscription) {
+  static async checkLimit(model: WebhookSubscription, options: SaveOptions) {
+    const { transaction } = options;
+
+    // Serialize concurrent creation for the team, otherwise every request can
+    // read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `webhookSubscriptions:${model.teamId}`,
+      transaction
+    );
+
     const count = await this.count({
       where: { teamId: model.teamId },
+      transaction,
     });
     if (count >= WebhookSubscriptionValidation.maxSubscriptions) {
       throw ValidationError(

@@ -1,3 +1,4 @@
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
 import { encrypt, decrypt } from "./Encrypted";
 
@@ -40,19 +41,39 @@ describe("Encrypted", () => {
     expect(encrypt(value).equals(encrypt(value))).toBe(false);
   });
 
-  it("should fail to decrypt tampered data", () => {
-    const encrypted = encrypt(JSON.stringify("hello world"));
+  it("should not return the original value for tampered data", () => {
+    const value = JSON.stringify("hello world");
+    const encrypted = encrypt(value);
     encrypted[encrypted.length - 1] ^= 0xff;
-    expect(() => decrypt(encrypted)).toThrow();
+
+    try {
+      expect(decrypt(encrypted)).not.toEqual(value);
+    } catch (err) {
+      expect(errToString(err)).toMatch(/bad decrypt/);
+    }
+  });
+
+  it("should fail to decrypt a truncated ciphertext", () => {
+    const encrypted = encrypt(JSON.stringify("hello world"));
+    expect(() =>
+      decrypt(encrypted.subarray(0, encrypted.length - 1))
+    ).toThrow();
   });
 
   it("should fail to decrypt with a different key", () => {
     const originalKey = env.SECRET_KEY;
-    const encrypted = encrypt(JSON.stringify("hello world"));
+    const value = JSON.stringify("hello world");
+    const encrypted = encrypt(value);
     try {
       env.SECRET_KEY =
         "a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230f";
-      expect(() => decrypt(encrypted)).toThrow(/bad decrypt/);
+      // CBC is unauthenticated, so a wrong key only throws when the resulting
+      // plaintext happens to have invalid padding.
+      try {
+        expect(decrypt(encrypted)).not.toEqual(value);
+      } catch (err) {
+        expect(errToString(err)).toMatch(/bad decrypt/);
+      }
     } finally {
       env.SECRET_KEY = originalKey;
     }

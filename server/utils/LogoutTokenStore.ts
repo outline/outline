@@ -109,7 +109,7 @@ export class LogoutTokenStore {
     return {
       httpOnly: true,
       sameSite: "lax" as const,
-      secure: env.isProduction,
+      secure: ctx.request.secure,
       path: this.cookiePath,
       domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
       expires,

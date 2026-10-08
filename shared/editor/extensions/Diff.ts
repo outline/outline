@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import type { Command } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -36,6 +36,29 @@ type DiffOptions = {
 };
 
 export default class Diff extends Extension<DiffOptions> {
+  /**
+   * Count the total number of individual changes in a changeset.
+   *
+   * @param changes the set of changes, or null.
+   * @returns the total count of all inserted, deleted, and modified items.
+   */
+  public static countChanges(
+    changes: readonly ExtendedChange[] | null
+  ): number {
+    if (!changes) {
+      return 0;
+    }
+
+    return changes.reduce(
+      (total, change) =>
+        total +
+        change.inserted.length +
+        change.deleted.length +
+        change.modified.length,
+      0
+    );
+  }
+
   get name() {
     return "diff";
   }
@@ -82,19 +105,7 @@ export default class Diff extends Extension<DiffOptions> {
    * @returns the total count of all inserted, deleted, and modified items.
    */
   public getTotalChangesCount(): number {
-    const { changes } = this.options;
-    if (!changes) {
-      return 0;
-    }
-
-    return changes.reduce(
-      (total, change) =>
-        total +
-        change.inserted.length +
-        change.deleted.length +
-        change.modified.length,
-      0
-    );
+    return Diff.countChanges(this.options.changes);
   }
 
   private goToChange(direction: number): Command {
@@ -349,9 +360,17 @@ export default class Diff extends Extension<DiffOptions> {
           return;
         }
 
-        modification.data.slice.content.forEach((node: Node) => {
-          const nodeSize = node.nodeSize;
-          const end = pos + nodeSize;
+        modification.data.slice.content.forEach(() => {
+          // The slice describes the content before the change, and may cover
+          // more nodes than remain at this position, so the node being
+          // decorated is measured in the document itself.
+          const node =
+            pos <= doc.content.size ? doc.resolve(pos).nodeAfter : null;
+          if (!node) {
+            return;
+          }
+
+          const end = pos + node.nodeSize;
 
           // Check if this specific node should use node decoration
           const useNodeDecoration =
@@ -373,6 +392,11 @@ export default class Diff extends Extension<DiffOptions> {
     });
 
     return DecorationSet.create(doc, decorations);
+  }
+
+  constructor(options: Partial<DiffOptions> = {}) {
+    super(options);
+    makeObservable(this);
   }
 
   @observable

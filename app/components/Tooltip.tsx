@@ -9,7 +9,7 @@ import { useTooltipContext } from "./TooltipContext";
 
 export type Props = {
   /** The content to display in the tooltip. */
-  content?: React.ReactChild | React.ReactChild[];
+  content?: React.ReactNode;
   /** A keyboard shortcut to display next to the content */
   shortcut?: React.ReactNode;
   /** Whether to show the shortcut on a new line */
@@ -254,6 +254,7 @@ const Shortcut = styled.kbd`
   padding: 2px 4px;
   font-size: 12px;
   font-family: ${s("fontFamilyMono")};
+  font-feature-settings: "cv08", "zero";
   line-height: 10px;
   color: ${s("tooltipText")};
   border: 1px solid ${(props) => transparentize(0.75, props.theme.tooltipText)};

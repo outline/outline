@@ -1,6 +1,6 @@
 import { exitCode } from "prosemirror-commands";
 import type { Command, EditorState } from "prosemirror-state";
-import { TextSelection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { isInCode } from "../queries/isInCode";
 import { findParentNode } from "../queries/findParentNode";
@@ -67,7 +67,9 @@ export const moveToNextNewline: Command = (state, dispatch) => {
  * @returns A prosemirror command
  */
 export const newlineInCode: Command = (state, dispatch) => {
-  if (!isInCode(state)) {
+  // A selected code block has no cursor to insert a newline at, and replacing
+  // it with one would delete the block.
+  if (state.selection instanceof NodeSelection || !isInCode(state)) {
     return false;
   }
   const { tr, selection } = state;

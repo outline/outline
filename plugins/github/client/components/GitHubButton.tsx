@@ -6,7 +6,7 @@ import { generateOAuthStateNonce } from "~/utils/oauth";
 import { redirectTo } from "~/utils/urls";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
 
-export function GitHubConnectButton(props: Props<HTMLButtonElement>) {
+export function GitHubConnectButton(props: Props<"button">) {
   const { t } = useTranslation();
   const team = useCurrentTeam();
 

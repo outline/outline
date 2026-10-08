@@ -19,7 +19,10 @@ export class AnchorPlugin extends Plugin {
             return pluginState;
           }
 
-          if (isRemoteTransaction(tr) || this.hasAnchorableChange(tr)) {
+          if (
+            isRemoteTransaction(tr, newState) ||
+            this.hasAnchorableChange(tr)
+          ) {
             return { decorations: this.createDecorations(newState) };
           }
 
@@ -84,7 +87,7 @@ export class AnchorPlugin extends Plugin {
     const anchors = ProsemirrorHelper.getAnchors(state.doc);
     return DecorationSet.create(
       state.doc,
-      anchors.map(this.createAnchorDecoration)
+      anchors.map((anchor) => this.createAnchorDecoration(anchor))
     );
   }
 }

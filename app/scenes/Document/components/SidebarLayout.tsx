@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import { HEADER_HEIGHT } from "~/components/Header";
 import { PortalContext } from "~/components/Portal";
 import { RightSidebarWrappedContext } from "~/components/RightSidebarContext";
 import Scrollable from "~/components/Scrollable";
@@ -107,7 +108,9 @@ const Header = styled(Flex)`
   ${draggableOnDesktop()}
   align-items: center;
   position: relative;
-  padding: 16px 12px 16px 16px;
+  padding-block: 12px;
+  padding-inline: 16px 12px;
+  min-height: ${HEADER_HEIGHT}px;
   color: ${s("text")};
   flex-shrink: 0;
 `;

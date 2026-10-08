@@ -44,6 +44,16 @@ export class RedisPrefixHelper {
   }
 
   /**
+   * Gets key for caching the document IDs a user is a member of.
+   *
+   * @param userId The user ID to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getUserMembershipDocumentIdsKey(userId: string) {
+    return `ud:${userId}`;
+  }
+
+  /**
    * Gets key for caching a team's enabled webhook subscriptions.
    *
    * @param teamId The team ID to generate a key for.

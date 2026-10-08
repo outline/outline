@@ -3,6 +3,7 @@ import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import type { match } from "react-router";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { type NavigationNode, UserPreference } from "@shared/types";
@@ -20,6 +21,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import DocumentMenu from "~/menus/DocumentMenu";
+import * as Scenes from "~/routes/scenes";
 import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragStar,
@@ -173,7 +175,10 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   });
 
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) => {
+    (
+      match: match | null,
+      location: Location<{ sidebarContext?: SidebarContextType }>
+    ) => {
       if (location.state?.sidebarContext !== sidebarContext) {
         return false;
       }
@@ -290,6 +295,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   }, []);
 
   const handlePrefetch = React.useCallback(() => {
+    void Scenes.Collection.preload();
     void collection.fetchDocuments();
   }, [collection]);
 
@@ -432,6 +438,7 @@ function StarredLink({ star }: Props) {
 
   const handlePrefetch = React.useCallback(() => {
     if (documentId) {
+      Scenes.preloadEditor();
       void documents.prefetchDocument(documentId);
       const document = documents.get(documentId);
       const documentCollection = document?.collectionId

@@ -1,10 +1,4 @@
-import { extensionManager, schema } from "../../test/editor";
-
-const serializer = extensionManager.serializer();
-const parser = extensionManager.parser({
-  schema,
-  plugins: extensionManager.rulePlugins,
-});
+import { parser, schema, serializer } from "../../test/editor";
 
 const docWithHardBreak = schema.nodeFromJSON({
   type: "doc",

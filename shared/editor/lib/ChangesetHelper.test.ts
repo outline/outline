@@ -166,6 +166,65 @@ describe("ChangesetHelper.getChangeset", () => {
     });
   });
 
+  describe("comment marks", () => {
+    /**
+     * Builds a paragraph where the given word carries a comment mark.
+     */
+    function commented(
+      before: string,
+      word: string,
+      after: string
+    ): ProsemirrorData {
+      return {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: before },
+              {
+                type: "text",
+                text: word,
+                marks: [
+                  { type: "comment", attrs: { id: "comment-id", userId: "u" } },
+                ],
+              },
+              { type: "text", text: after },
+            ],
+          },
+        ],
+      };
+    }
+
+    it("ignores a comment mark added to otherwise unchanged text", () => {
+      const changes = changesFor(
+        commented("Hello ", "brave", " world"),
+        para("Hello brave world")
+      );
+
+      expect(changes).toHaveLength(0);
+    });
+
+    it("ignores a comment mark removed from otherwise unchanged text", () => {
+      const changes = changesFor(
+        para("Hello brave world"),
+        commented("Hello ", "brave", " world")
+      );
+
+      expect(changes).toHaveLength(0);
+    });
+
+    it("still reports text changes within commented text", () => {
+      const changes = changesFor(
+        commented("Hello ", "bold", " world"),
+        commented("Hello ", "brave", " world")
+      );
+
+      expect(changes).toHaveLength(1);
+      expect(deletedText(changes[0])).toBe("brave");
+    });
+  });
+
   it("does not affect a simple single-word change", () => {
     const changes = changesFor(
       para("Hello modified world"),
@@ -174,5 +233,83 @@ describe("ChangesetHelper.getChangeset", () => {
 
     expect(changes).toHaveLength(1);
     expect(changes[0].inserted).toHaveLength(1);
+  });
+
+  describe("node boundary tokens", () => {
+    it("reports the change to a node's closing token when its type changes", () => {
+      // Converting a paragraph to a heading rewrites both of the node's
+      // boundary tokens. The closing tokens of the two node types must not
+      // compare as equal, or only the opening one is reported.
+      const changes = changesFor(
+        {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 1 },
+              content: [{ type: "text", text: "Alpha" }],
+            },
+          ],
+        },
+        para("Alpha")
+      );
+
+      expect(changes).toHaveLength(2);
+      // The paragraph opens at 0 and closes at 6, either side of "Alpha".
+      expect([changes[0].fromA, changes[0].toA]).toEqual([0, 1]);
+      expect([changes[1].fromA, changes[1].toA]).toEqual([6, 7]);
+    });
+
+    it("places an inserted wrapper's closing token outside the node it wraps", () => {
+      // Wrapping the paragraph in a blockquote inserts the quote's closing
+      // token after the paragraph, at the end of the old document. Matching it
+      // to the paragraph's own closing token instead would report the
+      // insertion at 6, inside the paragraph.
+      const changes = changesFor(
+        {
+          type: "doc",
+          content: [
+            {
+              type: "blockquote",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Alpha" }],
+                },
+              ],
+            },
+          ],
+        },
+        para("Alpha")
+      );
+
+      expect(changes).toHaveLength(2);
+      expect([changes[0].fromA, changes[0].toA]).toEqual([0, 0]);
+      expect([changes[1].fromA, changes[1].toA]).toEqual([7, 7]);
+      // In the new document the change is the blockquote's closing token at
+      // 8, not the paragraph's at 7.
+      expect([changes[1].fromB, changes[1].toB]).toEqual([8, 9]);
+    });
+  });
+
+  describe("complexity guard", () => {
+    const texts = Array.from(
+      { length: 500 },
+      (_, i) => `paragraph ${i} ${"lorem ipsum dolor sit amet ".repeat(12)}`
+    );
+
+    it("returns null when the changeset is too expensive to compute", () => {
+      const before = paras(...texts);
+      const after = paras(...texts.map((text) => `${text} rewritten`));
+
+      expect(ChangesetHelper.getChangeset(after, before)).toBeNull();
+    });
+
+    it("still computes a changeset for a small change to a large document", () => {
+      const before = paras(...texts);
+      const after = paras(...texts.slice(0, -1), "a different final paragraph");
+
+      expect(ChangesetHelper.getChangeset(after, before)).not.toBeNull();
+    });
   });
 });

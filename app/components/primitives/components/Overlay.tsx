@@ -12,4 +12,8 @@ export const Overlay = styled.div`
   &[data-state="open"] {
     opacity: 1;
   }
+
+  @media print {
+    display: none;
+  }
 `;

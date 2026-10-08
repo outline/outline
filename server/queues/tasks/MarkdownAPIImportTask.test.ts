@@ -125,4 +125,22 @@ describe("rewriteInternalLinks", () => {
     );
     expect(out).toBe("see [other](<<doc-3>>)");
   });
+
+  it("rewrites an angle bracketed link to a document with spaces", () => {
+    const out = rewriteInternalLinks(
+      "see [other](<./My Doc.md>)",
+      "Collection/parent.md",
+      { "Collection/My Doc.md": "doc-4" }
+    );
+    expect(out).toBe("see [other](<<doc-4>>)");
+  });
+
+  it("rewrites a link carrying a title, keeping the title", () => {
+    const out = rewriteInternalLinks(
+      'see [other](./other.md "The other one")',
+      "Collection/parent.md",
+      { "Collection/other.md": "doc-5" }
+    );
+    expect(out).toBe('see [other](<<doc-5>> "The other one")');
+  });
 });

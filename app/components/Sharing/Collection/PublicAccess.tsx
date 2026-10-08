@@ -31,12 +31,11 @@ type Props = {
   collection: Collection;
   /** The existing share model, if any. */
   share: Share | null | undefined;
+  /** Ref to the container element. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function InnerPublicAccess(
-  { collection, share }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function InnerPublicAccess({ collection, share, ref }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const theme = useTheme();
@@ -185,4 +184,4 @@ function InnerPublicAccess(
   );
 }
 
-export const PublicAccess = observer(React.forwardRef(InnerPublicAccess));
+export const PublicAccess = observer(InnerPublicAccess);

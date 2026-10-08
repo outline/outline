@@ -1,10 +1,14 @@
+import type { MemoryHistory } from "history";
 import { createMemoryHistory } from "history";
 import { reaction } from "mobx";
 import {
   closeSplitPane,
   getFocusedSplitPane,
   getSplitPath,
-  isSplitablePath,
+  initSplitViewNavigation,
+  isSplittablePath,
+  isSplitViewModifierEvent,
+  isSplitViewModifierPressed,
   openRouteInSplit,
   setFocusedSplitPane,
   setSplitPath,
@@ -65,35 +69,36 @@ describe("setSplitPath", () => {
   });
 });
 
-describe("isSplitablePath", () => {
+describe("isSplittablePath", () => {
   it("allows content routes", () => {
-    expect(isSplitablePath("/home")).toBe(true);
-    expect(isSplitablePath("/doc/my-doc-a1b2c3d4e5")).toBe(true);
-    expect(isSplitablePath("/collection/engineering-a1b2c3d4e5")).toBe(true);
-    expect(isSplitablePath("/search")).toBe(true);
-    expect(isSplitablePath("/drafts")).toBe(true);
+    expect(isSplittablePath("/home")).toBe(true);
+    expect(isSplittablePath("/doc/my-doc-a1b2c3d4e5")).toBe(true);
+    expect(isSplittablePath("/collection/engineering-a1b2c3d4e5")).toBe(true);
+    expect(isSplittablePath("/search")).toBe(true);
+    expect(isSplittablePath("/drafts")).toBe(true);
   });
 
   it("rejects routes that render their own chrome", () => {
-    expect(isSplitablePath("/")).toBe(false);
-    expect(isSplitablePath("/settings")).toBe(false);
-    expect(isSplitablePath("/settings/members")).toBe(false);
-    expect(isSplitablePath("/s/abc123")).toBe(false);
-    expect(isSplitablePath("/logout")).toBe(false);
-    expect(isSplitablePath("/oauth/authorize")).toBe(false);
-    expect(isSplitablePath("/404")).toBe(false);
+    expect(isSplittablePath("/")).toBe(false);
+    expect(isSplittablePath("/api/documents.export")).toBe(false);
+    expect(isSplittablePath("/settings")).toBe(false);
+    expect(isSplittablePath("/settings/users")).toBe(false);
+    expect(isSplittablePath("/s/abc123")).toBe(false);
+    expect(isSplittablePath("/logout")).toBe(false);
+    expect(isSplittablePath("/oauth/authorize")).toBe(false);
+    expect(isSplittablePath("/404")).toBe(false);
   });
 
   it("does not reject routes sharing a prefix with an excluded route", () => {
-    expect(isSplitablePath("/search")).toBe(true);
-    expect(isSplitablePath("/settings-doc-a1b2c3d4e5")).toBe(true);
+    expect(isSplittablePath("/search")).toBe(true);
+    expect(isSplittablePath("/settings-doc-a1b2c3d4e5")).toBe(true);
   });
 
   it("rejects values that are not internal absolute paths", () => {
-    expect(isSplitablePath("https://example.com/doc/my-doc")).toBe(false);
-    expect(isSplitablePath("//example.com")).toBe(false);
-    expect(isSplitablePath("doc/my-doc")).toBe(false);
-    expect(isSplitablePath("")).toBe(false);
+    expect(isSplittablePath("https://example.com/doc/my-doc")).toBe(false);
+    expect(isSplittablePath("//example.com")).toBe(false);
+    expect(isSplittablePath("doc/my-doc")).toBe(false);
+    expect(isSplittablePath("")).toBe(false);
   });
 });
 
@@ -131,6 +136,149 @@ describe("openRouteInSplit", () => {
     expect(getSplitPath(history.location.search)).toEqual("/doc/other-doc");
     expect(history.location.search).toContain("commentId=123");
     expect(getFocusedSplitPane()).toEqual("secondary");
+  });
+});
+
+// The test environment is neither macOS nor Electron, so the modifier is
+// control together with shift.
+describe("isSplitViewModifierEvent", () => {
+  it("matches the modifier combination for the platform", () => {
+    expect(
+      isSplitViewModifierEvent(
+        new MouseEvent("click", { ctrlKey: true, shiftKey: true })
+      )
+    ).toBe(true);
+  });
+
+  it("does not match other combinations", () => {
+    expect(
+      isSplitViewModifierEvent(new MouseEvent("click", { ctrlKey: true }))
+    ).toBe(false);
+    expect(
+      isSplitViewModifierEvent(new MouseEvent("click", { shiftKey: true }))
+    ).toBe(false);
+    expect(
+      isSplitViewModifierEvent(
+        new MouseEvent("click", { ctrlKey: true, shiftKey: true, altKey: true })
+      )
+    ).toBe(false);
+  });
+});
+
+describe("initSplitViewNavigation", () => {
+  let history: MemoryHistory;
+  let stop: () => void;
+  let anchor: HTMLAnchorElement;
+
+  // Returns whether the click was left to follow the link, stopping the
+  // navigation the test environment cannot perform.
+  const click = (target: Element, init: MouseEventInit = {}) => {
+    let followed = true;
+    const suppressNavigation = (event: Event) => {
+      followed = !event.defaultPrevented;
+      event.preventDefault();
+    };
+
+    window.addEventListener("click", suppressNavigation);
+    target.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        detail: 1,
+        ctrlKey: true,
+        shiftKey: true,
+        ...init,
+      })
+    );
+    window.removeEventListener("click", suppressNavigation);
+
+    return followed;
+  };
+
+  beforeEach(() => {
+    history = createMemoryHistory({ initialEntries: ["/doc/my-doc"] });
+    stop = initSplitViewNavigation(history);
+    anchor = window.document.createElement("a");
+    anchor.href = "/doc/other-doc?commentId=123";
+    window.document.body.append(anchor);
+  });
+
+  afterEach(() => {
+    stop();
+    anchor.remove();
+  });
+
+  it("opens an internal link in the secondary pane", () => {
+    const followed = click(anchor);
+
+    expect(followed).toBe(false);
+    expect(history.location.pathname).toEqual("/doc/my-doc");
+    expect(getSplitPath(history.location.search)).toEqual(
+      "/doc/other-doc?commentId=123"
+    );
+    expect(getFocusedSplitPane()).toEqual("secondary");
+  });
+
+  it("opens a link nested inside other elements", () => {
+    const child = window.document.createElement("span");
+    anchor.append(child);
+
+    click(child);
+
+    expect(getSplitPath(history.location.search)).toEqual(
+      "/doc/other-doc?commentId=123"
+    );
+  });
+
+  it("follows the link without the modifier", () => {
+    const followed = click(anchor, { ctrlKey: false, shiftKey: false });
+
+    expect(followed).toBe(true);
+    expect(getSplitPath(history.location.search)).toBeUndefined();
+  });
+
+  it("follows clicks that are not a primary button press", () => {
+    expect(click(anchor, { button: 1 })).toBe(true);
+    expect(click(anchor, { detail: 0 })).toBe(true);
+    expect(getSplitPath(history.location.search)).toBeUndefined();
+  });
+
+  it("follows links to routes that cannot render in a pane", () => {
+    anchor.href = "/settings/members";
+
+    expect(click(anchor)).toBe(true);
+    expect(getSplitPath(history.location.search)).toBeUndefined();
+  });
+
+  it("follows external links", () => {
+    anchor.href = "https://example.com/doc/other-doc";
+
+    expect(click(anchor)).toBe(true);
+    expect(getSplitPath(history.location.search)).toBeUndefined();
+  });
+
+  it("follows links that open elsewhere", () => {
+    anchor.target = "_blank";
+
+    expect(click(anchor)).toBe(true);
+    expect(getSplitPath(history.location.search)).toBeUndefined();
+  });
+
+  it("records the modifier for the duration of the event only", () => {
+    vi.useFakeTimers();
+
+    try {
+      const target = window.document.createElement("div");
+      window.document.body.append(target);
+      click(target);
+      expect(isSplitViewModifierPressed()).toBe(true);
+
+      vi.runAllTimers();
+      expect(isSplitViewModifierPressed()).toBe(false);
+      target.remove();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

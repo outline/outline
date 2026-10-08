@@ -118,6 +118,15 @@ export function NotFoundError(message = "Resource not found") {
   });
 }
 
+export function DocumentConflictError(
+  message = "Document has been modified since the provided revision"
+) {
+  return httpErrors(409, message, {
+    id: "document_conflict",
+    isReportable: false,
+  });
+}
+
 export function ParamRequiredError(message = "Required parameter missing") {
   return httpErrors(400, message, {
     id: "param_required",
@@ -239,6 +248,15 @@ export function UnprocessableEntityError(
   return httpErrors(422, message, {
     id: "unprocessable_entity",
     isReportable: false,
+  });
+}
+
+export function RequestTimeoutError(
+  message = "Request took too long to complete"
+) {
+  return httpErrors(503, message, {
+    id: "request_timeout",
+    isReportable: true,
   });
 }
 

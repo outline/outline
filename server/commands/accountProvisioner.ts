@@ -1,14 +1,13 @@
 import path from "node:path";
 import { readFile } from "fs-extra";
 import invariant from "invariant";
-import { toError, errToString } from "@shared/utils/error";
+import { errToString, errToId } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import env from "@server/env";
 import {
   InvalidAuthenticationError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import {
@@ -21,8 +20,7 @@ import {
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
-import { PluginManager } from "@server/utils/PluginManager";
-import groupsSyncer from "./groupsSyncer";
+import SyncUserGroupsTask from "@server/queues/tasks/SyncUserGroupsTask";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 import type { APIContext } from "@server/types";
@@ -137,11 +135,7 @@ async function accountProvisioner(
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
-    if (
-      err instanceof Error &&
-      "id" in err &&
-      err.id === "invalid_authentication"
-    ) {
+    if (errToId(err) === "invalid_authentication") {
       const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,
@@ -168,7 +162,7 @@ async function accountProvisioner(
     }
 
     if (!result) {
-      if (err instanceof Error && "id" in err && err.id) {
+      if (errToId(err)) {
         throw err;
       } else {
         throw InvalidAuthenticationError(errToString(err));
@@ -234,44 +228,14 @@ async function accountProvisioner(
   }
 
   // Sync group memberships from the authentication provider if enabled
-  if (authenticationParams.accessToken) {
-    const settings = authenticationProvider.settings;
-
-    if (settings?.groupSyncEnabled) {
-      const syncProvider = PluginManager.getGroupSyncProvider(
-        authenticationProviderParams.name
-      );
-
-      if (syncProvider) {
-        try {
-          const externalGroups = await syncProvider.fetchUserGroups(
-            authenticationParams.accessToken,
-            settings
-          );
-
-          await sequelize.transaction(async (transaction) => {
-            const groupSyncCtx = createContext({
-              user,
-              ip: ctx.context?.ip,
-              transaction,
-            });
-
-            await groupsSyncer(groupSyncCtx, {
-              user,
-              team,
-              authenticationProvider,
-              externalGroups,
-            });
-          });
-        } catch (err) {
-          // Group sync failure should never block login
-          Logger.error("Group sync failed during login", toError(err), {
-            userId: user.id,
-            provider: authenticationProviderParams.name,
-          });
-        }
-      }
-    }
+  if (
+    result.authentication &&
+    authenticationParams.accessToken &&
+    authenticationProvider.settings?.groupSyncEnabled
+  ) {
+    await new SyncUserGroupsTask().schedule({
+      userAuthenticationId: result.authentication.id,
+    });
   }
 
   return {
@@ -289,9 +253,10 @@ async function provisionFirstCollection(
 ) {
   await sequelize.transaction(async (transaction) => {
     const context = createContext({
-      ...ctx,
-      transaction,
       user,
+      authType: ctx.context.auth?.type,
+      ip: ctx.context.ip,
+      transaction,
     });
 
     const collection = await Collection.createWithCtx(context, {

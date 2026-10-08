@@ -1,5 +1,9 @@
+import { Readable } from "node:stream";
 import fs from "fs-extra";
 import { truncate } from "es-toolkit/compat";
+import { Op } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import type { ZipFile } from "yazl";
 import { toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
@@ -19,17 +23,19 @@ import {
   User,
 } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
+import { sequelizeReadOnly } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
-import { Op } from "sequelize";
-import { sequelizeReadOnly } from "@server/storage/database";
-import type { WhereOptions } from "sequelize";
 
 type Props = {
   fileOperationId: string;
 };
 
 export default abstract class ExportTask extends BaseTask<Props> {
+  protected jobId({ fileOperationId }: Props) {
+    return `export:${fileOperationId}`;
+  }
+
   /**
    * Transforms the data to be exported, uploads, and notifies user.
    *
@@ -124,13 +130,16 @@ export default abstract class ExportTask extends BaseTask<Props> {
     user: User
   ): Promise<string> {
     if (fileOperation.documentId) {
-      const document = await Document.findByPk(fileOperation.documentId!, {
-        include: {
-          model: Collection.scope("withDocumentStructure"),
-          as: "collection",
-        },
-        rejectOnEmpty: true,
-      });
+      const document = await sequelizeReadOnly.transaction((transaction) =>
+        Document.findByPk(fileOperation.documentId!, {
+          include: {
+            model: Collection.scope("withDocumentStructure"),
+            as: "collection",
+          },
+          rejectOnEmpty: true,
+          transaction,
+        })
+      );
 
       const documentStructure = document.collection?.getDocumentTree(
         document.id
@@ -194,10 +203,11 @@ export default abstract class ExportTask extends BaseTask<Props> {
       };
     }
 
-    const collections = await Collection.scope("withDocumentStructure").findAll(
-      {
+    const collections = await sequelizeReadOnly.transaction((transaction) =>
+      Collection.scope("withDocumentStructure").findAll({
         where,
-      }
+        transaction,
+      })
     );
 
     // Exclude restricted documents the user cannot access from the export
@@ -236,6 +246,49 @@ export default abstract class ExportTask extends BaseTask<Props> {
     documentStructure: NavigationNode[],
     includeAttachments: boolean
   ): Promise<string>;
+
+  /**
+   * Add an attachment to the archive, streaming its contents from storage as
+   * the archive is written so that the file is never held in memory whole.
+   *
+   * A read that fails, or is interrupted part way through, fails the export —
+   * a silently truncated archive is worse than none, as it looks complete.
+   * An attachment that is simply absent from storage is written as an empty
+   * entry, since a row outliving its file must not make export impossible.
+   *
+   * @param zip The archive to add the attachment to
+   * @param attachment The attachment to add
+   * @param pathInZip The path to store the attachment at within the archive
+   */
+  protected addAttachmentToArchive(
+    zip: ZipFile,
+    attachment: Attachment,
+    pathInZip: string
+  ) {
+    zip.addReadStreamLazy(
+      pathInZip,
+      { mtime: attachment.updatedAt },
+      (callback) => {
+        attachment.stream.then(
+          (stream) => {
+            if (!stream) {
+              Logger.warn(`Attachment is missing from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+              });
+              return callback(null, Readable.from([]));
+            }
+
+            // yazl does not watch the streams it is handed, so an interrupted
+            // read would otherwise stall the archive rather than fail it.
+            stream.on("error", (err) => zip.emit("error", toError(err)));
+            return callback(null, stream);
+          },
+          (err) => callback(toError(err), Readable.from([]))
+        );
+      }
+    );
+  }
 
   /**
    * Update the state of the underlying FileOperation in the database and send

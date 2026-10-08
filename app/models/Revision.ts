@@ -1,5 +1,9 @@
 import { computed, observable } from "mobx";
-import { type ExportContentType, type ProsemirrorData } from "@shared/types";
+import {
+  type AuthenticationType,
+  type ExportContentType,
+  type ProsemirrorData,
+} from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
@@ -11,6 +15,11 @@ import { client } from "~/utils/ApiClient";
 
 class Revision extends ParanoidModel {
   static modelName = "Revision";
+
+  constructor(fields: Record<string, unknown>, store: ParanoidModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   /** The document ID that the revision is related to */
   documentId: string;
@@ -43,6 +52,12 @@ class Revision extends ParanoidModel {
   /** HTML string representing the revision as a diff from the previous version */
   @observable
   html: string;
+
+  /** Metadata about how the revision came to be */
+  sourceMetadata?: {
+    /** The type of authentication used to create the revision */
+    authType?: AuthenticationType;
+  };
 
   /** @deprecated The ID of the user who created the revision */
   createdById: string;

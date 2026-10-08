@@ -2,10 +2,15 @@ import { z } from "zod";
 import {
   NotificationBadgeType,
   NotificationEventType,
+  SidebarSection,
   UserPreference,
   UserRole,
 } from "@shared/types";
 import { locales } from "@shared/utils/date";
+import {
+  UsersFilterListSchema,
+  UserStatusFilters,
+} from "@server/models/helpers/Filters";
 import User from "@server/models/User";
 import { zodEnumFromObjectKeys, zodTimezone } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
@@ -14,53 +19,74 @@ const BaseIdSchema = z.object({
   id: z.uuid(),
 });
 
-export const UsersListSchema = z.object({
-  body: z.object({
-    /** Users sorting direction */
-    direction: z
-      .string()
-      .optional()
-      .transform((val) => (val !== "ASC" ? "DESC" : val)),
+export const UsersListSchema = z
+  .object({
+    body: z.object({
+      /** Users sorting direction */
+      direction: z
+        .string()
+        .optional()
+        .transform((val) => (val !== "ASC" ? "DESC" : val)),
 
-    /** Users sorting column */
-    sort: z
-      .string()
-      .refine((val) => Object.keys(User.getAttributes()).includes(val), {
-        error: "Invalid sort parameter",
-      })
-      .prefault("createdAt"),
+      /** Users sorting column */
+      sort: z
+        .string()
+        .refine((val) => Object.keys(User.getAttributes()).includes(val), {
+          error: "Invalid sort parameter",
+        })
+        .prefault("createdAt"),
 
-    ids: z.array(z.uuid()).optional(),
+      /**
+       * Ids of the users to return.
+       * @deprecated use `filters` with field `id` instead.
+       */
+      ids: z.array(z.uuid()).optional(),
 
-    emails: z
-      .array(z.email().transform((email) => email.toLowerCase()))
-      .optional(),
+      /**
+       * Email addresses of the users to return.
+       * @deprecated use `filters` with field `email` instead.
+       */
+      emails: z
+        .array(z.email().transform((email) => email.toLowerCase()))
+        .optional(),
 
-    query: z.string().optional(),
+      /** Search term matched against user name and email */
+      query: z.string().optional(),
 
-    /** The user's role */
-    role: z.enum(UserRole).optional(),
+      /**
+       * The user's role.
+       * @deprecated use `filters` with field `role` instead.
+       */
+      role: z.enum(UserRole).optional(),
 
-    /**
-     * Filter the users by their status – passing a user role is deprecated here, instead use the
-     * `role` parameter, which will allow filtering by role and status, eg invited members, or
-     * suspended admins.
-     *
-     * @deprecated
-     */
-    filter: z
-      .enum([
-        "invited",
-        "viewers",
-        "admins",
-        "members",
-        "active",
-        "all",
-        "suspended",
-      ])
-      .optional(),
-  }),
-});
+      /**
+       * Filter the users by their status.
+       * @deprecated use `filters` with `role`, `lastActiveAt` and
+       * `suspendedAt` instead.
+       */
+      filter: z.enum(UserStatusFilters).optional(),
+
+      /**
+       * List of filter expressions. Implicit AND between top-level entries.
+       *
+       * Suspended users are excluded unless the expression references
+       * `suspendedAt`, and are never returned to non-admins.
+       */
+      filters: UsersFilterListSchema.optional(),
+    }),
+  })
+  .refine(
+    (req) =>
+      req.body.filters === undefined ||
+      (req.body.ids === undefined &&
+        req.body.emails === undefined &&
+        req.body.role === undefined &&
+        req.body.filter === undefined),
+    {
+      message:
+        "filters cannot be combined with deprecated parameters ids, emails, role, or filter",
+    }
+  );
 
 export type UsersListReq = z.infer<typeof UsersListSchema>;
 
@@ -91,10 +117,20 @@ export const UsersUpdateSchema = BaseSchema.extend({
     avatarUrl: z.string().nullish(),
     language: zodEnumFromObjectKeys(locales).optional(),
     preferences: z
-      .partialRecord(
-        z.enum(UserPreference),
-        z.union([z.boolean(), z.enum(NotificationBadgeType)])
-      )
+      .strictObject({
+        [UserPreference.RememberLastPath]: z.boolean(),
+        [UserPreference.UseCursorPointer]: z.boolean(),
+        [UserPreference.CodeBlockLineNumers]: z.boolean(),
+        [UserPreference.SeamlessEdit]: z.boolean(),
+        [UserPreference.FullWidthDocuments]: z.boolean(),
+        [UserPreference.SortCommentsByOrderInDocument]: z.boolean(),
+        [UserPreference.CommentsInGutter]: z.boolean(),
+        [UserPreference.EnableSmartText]: z.boolean(),
+        [UserPreference.ShowDocumentStats]: z.boolean(),
+        [UserPreference.NotificationBadge]: z.enum(NotificationBadgeType),
+        [UserPreference.SidebarSectionOrder]: z.array(z.enum(SidebarSection)),
+      })
+      .partial()
       .optional(),
     timezone: zodTimezone().optional(),
   }),

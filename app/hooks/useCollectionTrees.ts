@@ -1,88 +1,83 @@
-import { useMemo } from "react";
-import type { NavigationNode } from "@shared/types";
+import type { CollectionSort, NavigationNode } from "@shared/types";
 import { NavigationNodeType } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import type Collection from "~/models/Collection";
+import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
+import type Collection from "~/models/Collection";
 
 /**
- * React hook that modifies the document structure
- * of all collections present in store. Adds extra attributes
- * like type, depth and parent to each of the nodes in document
- * structure.
+ * React hook that returns the document structure of all collections in the
+ * store as navigation trees. Each node is a copy of the node in the store with
+ * extra attributes added – type, collectionId, depth, and parent.
  *
- * @return {NavigationNode[]} collectionTrees root collection nodes of modified trees
+ * @returns the root node of each collection tree.
  */
 export default function useCollectionTrees(): NavigationNode[] {
   const { collections } = useStores();
 
-  const getCollectionTree = (collection: Collection): NavigationNode => {
-    const addType = (node: NavigationNode): NavigationNode => {
-      if (node.children.length > 0) {
-        node.children = node.children.map(addType);
-      }
+  return useComputed(
+    () => collections.orderedData.map(getCollectionTree),
+    [collections]
+  );
+}
 
-      node.type = node.type ? node.type : NavigationNodeType.Document;
-      return node;
-    };
-
-    const addParent = (
-      node: NavigationNode,
-      parent: NavigationNode | null = null
-    ): NavigationNode => {
-      if (node.children.length > 0) {
-        node.children = node.children.map((child) => addParent(child, node));
-      }
-
-      node.parent = parent;
-      return node;
-    };
-
-    const addDepth = (node: NavigationNode, depth = 0): NavigationNode => {
-      if (node.children.length > 0) {
-        node.children = node.children.map((child) =>
-          addDepth(child, depth + 1)
-        );
-      }
-
-      node.depth = depth;
-      return node;
-    };
-
-    const addCollectionId = (
-      node: NavigationNode,
-      collectionId = collection.id
-    ): NavigationNode => {
-      if (node.children.length > 0) {
-        node.children = node.children.map((child) =>
-          addCollectionId(child, collectionId)
-        );
-      }
-
-      node.collectionId = collectionId;
-      return node;
-    };
-
-    const collectionNode: NavigationNode = {
-      id: collection.id,
-      title: collection.name,
-      url: collection.path,
-      type: NavigationNodeType.Collection,
-      children: collection.documents
-        ? sortNavigationNodes(collection.documents, collection.sort, true)
-        : [],
-      parent: null,
-    };
-
-    return addParent(addCollectionId(addDepth(addType(collectionNode), 1)));
+/**
+ * Builds the navigation tree for a collection.
+ *
+ * @param collection The collection to build the tree for.
+ * @returns the root node of the collection tree.
+ */
+function getCollectionTree(collection: Collection): NavigationNode {
+  const root: NavigationNode = {
+    id: collection.id,
+    title: collection.name,
+    url: collection.path,
+    type: NavigationNodeType.Collection,
+    collectionId: collection.id,
+    depth: 1,
+    parent: null,
+    children: [],
   };
 
-  const key = collections.orderedData.map((o) => o.documents?.length).join("-");
-  const collectionTrees = useMemo(
-    () => collections.orderedData.map(getCollectionTree),
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-    [collections.orderedData, key]
+  root.children = annotateNodes(
+    collection.documents ?? [],
+    collection.sort,
+    root
   );
 
-  return collectionTrees;
+  return root;
+}
+
+/**
+ * Copies the given nodes and their descendants in sorted order, adding the
+ * attributes needed to traverse and render the tree.
+ *
+ * @param nodes The nodes to copy.
+ * @param sort The sort of the collection the nodes belong to.
+ * @param parent The node that the given nodes are children of.
+ * @returns the copied nodes.
+ */
+function annotateNodes(
+  nodes: NavigationNode[],
+  sort: CollectionSort,
+  parent: NavigationNode
+): NavigationNode[] {
+  if (!nodes.length) {
+    return [];
+  }
+
+  return sortNavigationNodes(nodes, sort, false).map((node) => {
+    const annotated: NavigationNode = {
+      ...node,
+      type: node.type ?? NavigationNodeType.Document,
+      collectionId: parent.collectionId,
+      depth: (parent.depth ?? 0) + 1,
+      parent,
+      children: [],
+    };
+
+    annotated.children = annotateNodes(node.children ?? [], sort, annotated);
+
+    return annotated;
+  });
 }

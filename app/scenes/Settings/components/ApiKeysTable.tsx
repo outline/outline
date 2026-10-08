@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import type ApiKey from "~/models/ApiKey";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import { HEADER_HEIGHT } from "~/components/Header";
@@ -14,6 +13,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
@@ -115,13 +115,7 @@ export const ApiKeysTable = observer(function ApiKeysTable(props: Props) {
         id: "userId",
         header: t("Created by"),
         accessor: (apiKey) => apiKey.user?.name,
-        component: (apiKey) =>
-          apiKey.user ? (
-            <HStack>
-              <Avatar model={apiKey.user} size={AvatarSize.Medium} />
-              <Text selectable>{apiKey.user.name}</Text>
-            </HStack>
-          ) : null,
+        component: (apiKey) => <UserLabel user={apiKey.user} />,
         width: "2fr",
       },
       {
@@ -168,6 +162,7 @@ export const ApiKeysTable = observer(function ApiKeysTable(props: Props) {
 
   return (
     <SortableTable
+      id="apiKeys"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}

@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
+import { createContext } from "@server/context";
 import {
   buildUser,
   buildGroup,
@@ -14,6 +16,29 @@ import Document from "./Document";
 
 beforeEach(() => {
   vi.resetAllMocks();
+});
+
+describe("#updateDeprecatedReason", () => {
+  it("should reject a reason when a stale collection has already been restored", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+      archivedAt: new Date(),
+    });
+    await Collection.update(
+      { archivedAt: null },
+      { where: { id: collection.id } }
+    );
+
+    await expect(
+      withAPIContext(user, (ctx) =>
+        collection.updateDeprecatedReason(ctx, "Outdated")
+      )
+    ).rejects.toThrow("The collection must be archived");
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+  });
 });
 
 describe("#url", () => {
@@ -324,20 +349,22 @@ describe("#updateDocument", () => {
 describe("#removeDocument", () => {
   it("should save if removing", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
     const saveSpy = vi.spyOn(collection, "save");
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(saveSpy).toHaveBeenCalled();
   });
 
   it("should remove documents from root", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
@@ -350,6 +377,7 @@ describe("#removeDocument", () => {
 
   it("should remove a document with child documents", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
@@ -366,7 +394,38 @@ describe("#removeDocument", () => {
     await collection.addDocumentToStructure(newDocument);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({ user }), document);
+    expect(collection.documentStructure!.length).toBe(0);
+    const collectionDocuments = await Document.findAndCountAll({
+      where: {
+        collectionId: collection.id,
+      },
+    });
+    expect(collectionDocuments.count).toBe(0);
+  });
+
+  it("should remove a document with deeply nested child documents", async () => {
+    const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
+    let parentDocumentId = document.id;
+    for (let depth = 0; depth < 5; depth++) {
+      const child = await buildDocument({
+        parentDocumentId,
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        lastModifiedById: collection.createdById,
+        createdById: collection.createdById,
+        title: `Child document ${depth}`,
+        text: "content",
+      });
+      await collection.addDocumentToStructure(child);
+      parentDocumentId = child.id;
+    }
+
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -378,6 +437,7 @@ describe("#removeDocument", () => {
 
   it("should remove a child document", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
@@ -396,7 +456,7 @@ describe("#removeDocument", () => {
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(newDocument);
+    await collection.deleteDocument(createContext({ user }), newDocument);
     const reloaded = await collection.reload();
     expect(reloaded!.documentStructure!.length).toBe(1);
     expect(reloaded!.documentStructure![0].children.length).toBe(0);
@@ -485,6 +545,47 @@ describe("#findByPk", () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id);
     expect(response!.id).toBe(collection.id);
+  });
+
+  it("should not allow a passed where to override the id", async () => {
+    const collection = await buildCollection();
+    const other = await buildCollection();
+
+    const response = await Collection.findByPk(collection.id, {
+      where: { id: other.id },
+    });
+    expect(response!.id).toBe(collection.id);
+
+    const byUrlId = await Collection.findByPk(collection.urlId, {
+      where: { urlId: other.urlId },
+    });
+    expect(byUrlId!.id).toBe(collection.id);
+  });
+
+  it("should throw the passed error when rejectOnEmpty is an error", async () => {
+    const error = new Error("does not exist");
+    await expect(
+      Collection.findByPk("0e8280ea-7b4c-40e5-98ba-ec8a2f00f5e8", {
+        rejectOnEmpty: error,
+      })
+    ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is malformed", async () => {
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
+
+    const error = new Error("does not exist");
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: error })
+    ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is not a string", async () => {
+    await expect(
+      Collection.findByPk(123, { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
   });
 
   it("should not return documentStructure by default", async () => {

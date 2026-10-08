@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { AttachmentPreset } from "@shared/types";
 import env from "@server/env";
 import { buildUser, buildDocument } from "@server/test/factories";

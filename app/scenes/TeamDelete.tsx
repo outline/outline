@@ -102,11 +102,11 @@ function TeamDelete({ onSubmit }: Props) {
       ) : (
         <>
           <Text as="p" type="secondary">
-            <Trans>
-              Deleting the <strong>{{ workspaceName }}</strong> workspace will
-              destroy all collections, documents, users, and associated data.
-              You will be immediately logged out of {{ appName }}.
-            </Trans>
+            <Trans
+              defaults="Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}."
+              values={{ workspaceName, appName }}
+              components={{ 1: <strong /> }}
+            />
           </Text>
         </>
       )}

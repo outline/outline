@@ -16,6 +16,7 @@ import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { resolvePDFDimensions } from "../lib/pdf";
 import { isPDFAttachment } from "../queries/isPDFAttachment";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
@@ -92,14 +93,25 @@ export default class Attachment extends Node {
     ({ getPos }: ComponentProps) =>
     () => {
       const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
+      const $pos = view.state.doc.resolve(pos);
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    ({ width, height }: { width: number; height?: number }) => {
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
+    ({ width }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
       }
@@ -108,13 +120,15 @@ export default class Attachment extends Node {
       const { doc, tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = doc.resolve(pos);
+      const dimensions = resolvePDFDimensions(width);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
-      commands["resizeAttachment"]({
-        width,
-        height: height || node.attrs.height,
-      });
+      commands["resizeAttachment"](dimensions);
     };
 
   component = (props: ComponentProps) => {
@@ -221,11 +235,16 @@ export default class Attachment extends Node {
           return false;
         }
         const { node } = state.selection;
+        const href = sanitizeUrl(node.attrs.href);
+        if (!href) {
+          return false;
+        }
 
         // create a temporary link node and click it
         const link = document.createElement("a");
-        link.href = node.attrs.href;
+        link.href = href;
         link.target = "_blank";
+        link.rel = "noopener noreferrer";
         document.body.appendChild(link);
         link.click();
 

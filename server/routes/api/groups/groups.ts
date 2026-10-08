@@ -24,6 +24,7 @@ import {
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -68,9 +69,7 @@ router.post(
     } else if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -122,7 +121,7 @@ router.post(
       where = {
         ...where,
         id: {
-          ...((where.id as object) ?? {}),
+          ...(where.id as object),
           [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
         },
       };
@@ -234,12 +233,13 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, externalId, disableMentions } = ctx.input.body;
+    const { name, description, externalId, disableMentions } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
+      description,
       externalId,
       disableMentions,
       teamId: user.teamId,
@@ -286,14 +286,23 @@ router.post(
     });
     authorize(user, "update", group);
 
-    if (
-      group.externalGroups?.length &&
-      ctx.input.body.name !== undefined &&
-      ctx.input.body.name !== group.name
-    ) {
-      throw ValidationError(
-        "The name of a group synced from an external provider cannot be changed"
-      );
+    if (group.externalGroups?.length) {
+      const { name, description } = ctx.input.body;
+
+      if (name !== undefined && name !== group.name) {
+        throw ValidationError(
+          "The name of a group synced from an external provider cannot be changed"
+        );
+      }
+
+      if (
+        description !== undefined &&
+        description !== (group.description ?? "")
+      ) {
+        throw ValidationError(
+          "The description of a group synced from an external provider cannot be changed"
+        );
+      }
     }
 
     await group.updateWithCtx(ctx, ctx.input.body);
@@ -389,9 +398,7 @@ router.post(
 
     if (query) {
       userWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -475,7 +482,7 @@ router.post(
 
     const userPermission = permission;
 
-    const [groupUser] = await GroupUser.findOrCreateWithCtx(
+    const [groupUser, created] = await GroupUser.findOrCreateWithCtx(
       ctx,
       {
         where: {
@@ -496,6 +503,10 @@ router.post(
       groupUser.permission !== userPermission
     ) {
       await groupUser.updateWithCtx(ctx, { permission: userPermission });
+    }
+
+    if (created) {
+      await group.reload({ transaction });
     }
 
     groupUser.user = user;
@@ -554,7 +565,10 @@ router.post(
       lock: transaction.LOCK.UPDATE,
     });
 
-    await groupUser?.destroyWithCtx(ctx, { name: "remove_user" });
+    if (groupUser) {
+      await groupUser.destroyWithCtx(ctx, { name: "remove_user" });
+      await group.reload({ transaction });
+    }
 
     ctx.body = {
       data: {

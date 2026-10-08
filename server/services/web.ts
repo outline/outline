@@ -1,5 +1,5 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
-import type { Server } from "node:https";
+import { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
@@ -37,6 +37,13 @@ export default function init(app: Koa = new Koa(), server?: Server) {
       if (env.PROXY_IP_HEADER) {
         app.proxyIpHeader = env.PROXY_IP_HEADER;
       }
+    } else if (env.URL.startsWith("https://") && !(server instanceof Server)) {
+      // TLS is terminated upstream, but without X-Forwarded-Proto the app
+      // cannot tell, so the CSRF token falls back to a cookie that a sibling
+      // subdomain is able to write.
+      Logger.warn(
+        "PROXY_HEADERS_TRUSTED is disabled while URL is https and the app is not terminating TLS itself, which weakens CSRF protection. Enable it when running behind a proxy that terminates TLS."
+      );
     }
 
     // Force redirect to HTTPS protocol unless explicitly disabled

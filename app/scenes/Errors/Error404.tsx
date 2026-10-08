@@ -9,9 +9,11 @@ import {
 } from "~/actions/definitions/navigation";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
+import useCurrentUser from "~/hooks/useCurrentUser";
 
 const Error404 = () => {
   const { t } = useTranslation();
+  const user = useCurrentUser({ rejectOnEmpty: false });
 
   return (
     <Scene title={t("Not found")}>
@@ -23,14 +25,16 @@ const Error404 = () => {
             deleted or the link is incorrect.
           </Trans>
         </Empty>
-        <HStack>
-          <Button action={navigateToHome} neutral hideIcon>
-            {t("Home")}
-          </Button>
-          <Button action={navigateToSearch} neutral>
-            {t("Search")}…
-          </Button>
-        </HStack>
+        {user && (
+          <HStack>
+            <Button action={navigateToHome} neutral hideIcon>
+              {t("Home")}
+            </Button>
+            <Button action={navigateToSearch} neutral>
+              {t("Search")}…
+            </Button>
+          </HStack>
+        )}
       </VStack>
     </Scene>
   );

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { CheckmarkIcon, DocumentIcon, PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -14,16 +14,18 @@ import useShare from "@shared/hooks/useShare";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useModelSelection } from "~/components/ModelSelectionContext";
 import NudeButton from "~/components/NudeButton";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { sharedModelPath } from "~/utils/routeHelpers";
+import { newNestedDocumentPath, sharedModelPath } from "~/utils/routeHelpers";
 import useBoolean from "~/hooks/useBoolean";
 import useClickIntent from "~/hooks/useClickIntent";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import useCurrentUser from "~/hooks/useCurrentUser";
 
 type Props = {
@@ -32,6 +34,44 @@ type Props = {
   showCollection?: boolean;
   sidebarContext?: SidebarContextType;
 };
+
+type NewChildProps = {
+  parentDocumentId: string;
+  sidebarContext?: SidebarContextType;
+};
+
+/**
+ * A list item that starts the creation of a new document nested under the given
+ * parent document.
+ *
+ * @param parentDocumentId - the identifier of the parent document.
+ * @param sidebarContext - the sidebar context to keep after navigation.
+ * @returns a list item linking to the new document screen.
+ */
+export function NewChildReferenceListItem({
+  parentDocumentId,
+  sidebarContext,
+}: NewChildProps) {
+  const { t } = useTranslation();
+  const [pathname, search] = newNestedDocumentPath(parentDocumentId).split("?");
+
+  return (
+    <li>
+      <DocumentLink
+        to={{
+          pathname,
+          search,
+          state: { sidebarContext },
+        }}
+      >
+        <Content gap={4} dir="auto">
+          <PlusIcon />
+          <SecondaryTitle>{t("New doc")}</SecondaryTitle>
+        </Content>
+      </DocumentLink>
+    </li>
+  );
+}
 
 const Actions = styled(EventBoundary)`
   display: none;
@@ -50,7 +90,53 @@ const Actions = styled(EventBoundary)`
   `};
 `;
 
-const DocumentLink = styled(Link)<{ $menuOpen?: boolean }>`
+const IconWrapper = styled.span`
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  width: 24px;
+  height: 24px;
+`;
+
+const DocumentIconWrapper = styled.span<{ $dimmed: boolean }>`
+  display: flex;
+  transition: opacity 100ms ease;
+  opacity: ${(props) => (props.$dimmed ? 0 : 1)};
+`;
+
+const SelectButton = styled(NudeButton)<{
+  $checked: boolean;
+  $visible: boolean;
+}>`
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid ${s("inputBorder")};
+  color: ${(props) => props.theme.accentText};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transition:
+    opacity 100ms ease,
+    background 100ms ease,
+    border-color 100ms ease;
+
+  ${(props) =>
+    props.$checked &&
+    css`
+      background: ${props.theme.accent};
+      border-color: ${props.theme.accent};
+    `}
+`;
+
+const DocumentLink = styled(Link)<{
+  $menuOpen?: boolean;
+  $selectable?: boolean;
+}>`
   display: flex;
   align-items: center;
   margin: 2px -8px;
@@ -74,6 +160,27 @@ const DocumentLink = styled(Link)<{ $menuOpen?: boolean }>`
 
     ${Actions} {
       opacity: 1;
+    }
+  }
+
+  /* Revealing the checkbox is a hover affordance only – on touch devices the
+  equivalent states (active, focus) are triggered by tapping the item to
+  navigate. There, the checkbox appears once a selection is underway. */
+  @media (hover: hover) {
+    &:hover,
+    &:focus,
+    &:focus-within {
+      ${(props) =>
+        props.$selectable &&
+        css`
+          ${SelectButton} {
+            opacity: 1;
+          }
+
+          ${DocumentIconWrapper} {
+            opacity: 0;
+          }
+        `}
     }
   }
 
@@ -105,6 +212,10 @@ const Title = styled.div`
   font-family: ${s("fontFamily")};
 `;
 
+const SecondaryTitle = styled(Title)`
+  color: ${s("textSecondary")};
+`;
+
 function ReferenceListItem({
   document,
   showCollection,
@@ -112,9 +223,12 @@ function ReferenceListItem({
   sidebarContext,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
   const { documents } = useStores();
   const { shareId } = useShare();
   const user = useCurrentUser({ rejectOnEmpty: false });
+  const selection = useModelSelection();
+  const iconRef = useRef<HTMLSpanElement>(null);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const prefetchDocument = useCallback(async () => {
     await documents.prefetchDocument(document.id);
@@ -128,11 +242,43 @@ function ReferenceListItem({
   const initial = title.charAt(0).toUpperCase();
   const showContextMenu = document instanceof Document && !!user;
 
+  // Multi-select is only offered for documents the user can update.
+  const can = usePolicy(document.id);
+  const selectable = !!selection && !!can.update;
+  const isSelected = selection?.isSelected(document.id) ?? false;
+  const isSelecting =
+    selectable && ((selection?.isActive ?? false) || isSelected);
+
+  const inSelectArea = (event: React.MouseEvent) =>
+    selectable && !!iconRef.current?.contains(event.target as Node);
+
+  // Handled on the link so preventDefault reliably suppresses navigation.
+  const handleLinkClick = (event: React.MouseEvent) => {
+    if (selection && inSelectArea(event)) {
+      event.preventDefault();
+      if (event.shiftKey) {
+        selection.selectRange(document.id);
+      } else {
+        selection.toggle(document.id);
+      }
+    }
+  };
+
+  // Suppress the browser's text selection when shift-clicking to select a range.
+  const handleLinkMouseDown = (event: React.MouseEvent) => {
+    if (event.shiftKey && inSelectArea(event)) {
+      event.preventDefault();
+    }
+  };
+
   const link = (
     <DocumentLink
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleLinkClick}
+      onMouseDown={handleLinkMouseDown}
       $menuOpen={menuOpen}
+      $selectable={selectable}
       to={{
         pathname: shareId
           ? sharedModelPath(shareId, document.url)
@@ -146,11 +292,27 @@ function ReferenceListItem({
       {...rest}
     >
       <Content gap={4} dir="auto">
-        {icon ? (
-          <Icon value={icon} color={color ?? undefined} initial={initial} />
-        ) : (
-          <DocumentIcon />
-        )}
+        <IconWrapper ref={iconRef}>
+          {selectable && (
+            <SelectButton
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-label={t("Select")}
+              $checked={isSelected}
+              $visible={isSelecting}
+              tabIndex={-1}
+            >
+              {isSelected && <CheckmarkIcon size={16} />}
+            </SelectButton>
+          )}
+          <DocumentIconWrapper $dimmed={isSelecting}>
+            {icon ? (
+              <Icon value={icon} color={color ?? undefined} initial={initial} />
+            ) : (
+              <DocumentIcon />
+            )}
+          </DocumentIconWrapper>
+        </IconWrapper>
         <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
       </Content>
       {showContextMenu && (

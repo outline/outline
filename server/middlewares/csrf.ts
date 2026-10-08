@@ -7,8 +7,9 @@ import {
   generateRawToken,
   bundleToken,
   unbundleToken,
+  getCookieName,
+  getTokenFromCookie,
 } from "@server/utils/csrf";
-import { getCookieDomain } from "@shared/utils/domains";
 import { CSRF } from "@shared/constants";
 import { CSRFError } from "@server/errors";
 import { parseAuthentication } from "./authentication";
@@ -23,11 +24,13 @@ export function attachCSRFToken() {
       const raw = generateRawToken(16);
       const bundled = bundleToken(raw, env.SECRET_KEY);
 
-      // Set cookie that JavaScript can read (not HttpOnly)
-      ctx.cookies.set(CSRF.cookieName, bundled, {
+      // Set cookie that JavaScript can read (not HttpOnly). Unlike the UI hint
+      // cookies, this one is deliberately host-only and never scoped to the
+      // base domain
+      ctx.cookies.set(getCookieName(ctx), bundled, {
         httpOnly: false,
         sameSite: "lax",
-        domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
+        secure: ctx.request.secure,
       });
     }
 
@@ -77,7 +80,7 @@ export function verifyCSRFToken() {
     }
 
     // Get token from cookie
-    const cookieVal = ctx.cookies.get(CSRF.cookieName);
+    const cookieVal = getTokenFromCookie(ctx);
     if (!cookieVal) {
       throw CSRFError("CSRF token missing from cookie");
     }

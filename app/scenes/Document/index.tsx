@@ -30,7 +30,7 @@ export default function DocumentScene(props: Props) {
   const { ui } = useStores();
   const history = useHistory();
   const { pane, isSplitView } = useSplitView();
-  const { documentSlug, revisionId } = props.match.params;
+  const { documentSlug } = props.match.params;
   const currentPath = props.location.pathname;
   useTrackLastVisitedPath(currentPath);
 
@@ -63,16 +63,12 @@ export default function DocumentScene(props: Props) {
   const urlParts = documentSlug ? documentSlug.split("-") : [];
   const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
 
-  // Normalize the key so that it is *stable* between renders.
-  // Without this, the initial value can be "<urlId>/undefined" and then flip to
-  // "<urlId>/" when React stringifies `undefined` on the next render, causing a
-  // full unmount/mount cycle of the document subtree. Keeping the key constant
-  // prevents extra network requests and preserves editor state on resize.
-  const key = revisionId ? `${urlId}/${revisionId}` : urlId;
-
+  // The revision is deliberately not part of the key: remounting the subtree
+  // between revisions would empty the page while the next one loads and reset
+  // the scroll position. DataLoader refetches when the revision id changes.
   return (
     <DataLoader
-      key={key}
+      key={urlId}
       match={props.match}
       history={props.history}
       location={props.location}

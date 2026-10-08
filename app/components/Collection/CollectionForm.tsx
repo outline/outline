@@ -9,7 +9,7 @@ import { randomElement } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
@@ -54,6 +54,9 @@ const useIconColor = (collection?: Collection) => {
       (hasMultipleCollections && collectionColors.length === 1
         ? collectionColors[0]
         : randomElement(colorPalette)),
+    // Deliberately only keyed on the collection color so the randomly picked
+    // fallback stays stable while the form is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [collection?.color]
   );
   return iconColor;

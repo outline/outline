@@ -3,7 +3,7 @@ import Router from "koa-router";
 import { traceFunction } from "@server/logging/tracing";
 import isUUID from "validator/lib/isUUID";
 import { MentionType, UnfurlResourceType } from "@shared/types";
-import { getBaseDomain, parseDomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { isInternalUrl, parseShareIdFromUrl } from "@shared/utils/urls";
@@ -45,8 +45,13 @@ router.post(
     const { url, documentId } = ctx.input.body;
     const urlObj = new URL(url);
 
+    // A url may point at this installation without matching the default env.URL
+    // when the team is on a custom domain or hosted subdomain.
+    const isTeamUrl =
+      isInternalUrl(url) || !!ctx.state.auth.user?.team.isTeamUrl(url);
+
     // Public share URLs – does not require authentication
-    if (isInternalUrl(url)) {
+    if (isTeamUrl) {
       const shareId = parseShareIdFromUrl(url);
 
       if (shareId) {
@@ -74,7 +79,6 @@ router.post(
         ctx.body = await presentUnfurl({
           type: UnfurlResourceType.Document,
           document,
-          viewer: actor,
           anchor: urlObj.hash,
           url: `${share.canonicalUrl}/doc/${document.url.replace("/doc/", "")}${urlObj.hash}`,
         });
@@ -117,7 +121,11 @@ router.post(
             user,
             document,
           },
-          { includeEmail: !!can(actor, "readEmail", user) }
+          {
+            includeEmail: !!can(actor, "readEmail", user),
+            includeLastViewed:
+              document.insightsEnabled && !!can(actor, "listViews", document),
+          }
         );
       } else if (mentionType === MentionType.Group) {
         const [group, document] = await Promise.all([
@@ -159,7 +167,7 @@ router.post(
     }
 
     // Internal resources
-    if (isInternalUrl(url) || parseDomain(url).host === actor.team.domain) {
+    if (isTeamUrl) {
       const previewDocumentId = parseDocumentSlug(url);
       if (previewDocumentId) {
         const document = await Document.findByPk(previewDocumentId, {
@@ -287,14 +295,13 @@ router.post(
       throw ValidationError("Invalid domain");
     }
 
-    if (addresses.length === 0) {
+    const address = addresses[0];
+    if (!address) {
       throw ValidationError("No CNAME record found");
     }
 
-    const address = addresses[0];
-    const likelyValid = address.endsWith(getBaseDomain());
-
-    if (!likelyValid) {
+    // the record must point at the base domain, or a subdomain of it
+    if (parseDomain(address).custom) {
       throw ValidationError("CNAME is not configured correctly");
     }
 

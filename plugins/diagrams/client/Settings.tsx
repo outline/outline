@@ -17,7 +17,7 @@ import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
 import Flex from "~/components/Flex";
 import styled from "styled-components";
-import { disconnectIntegrationFactory } from "~/actions/definitions/integrations";
+import { disconnectIntegrationActionFactory } from "~/actions/definitions/integrations";
 
 type FormData = {
   url: string;
@@ -110,7 +110,7 @@ function DiagramsNet() {
           </StyledSubmit>
 
           <Button
-            action={disconnectIntegrationFactory(integration)}
+            action={disconnectIntegrationActionFactory(integration)}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

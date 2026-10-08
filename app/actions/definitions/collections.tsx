@@ -3,6 +3,7 @@ import {
   SortAlphabeticalIcon,
   ArchiveIcon,
   CollectionIcon,
+  DuplicateIcon,
   EditIcon,
   ExportIcon,
   ImportIcon,
@@ -21,19 +22,22 @@ import {
   UnsubscribeIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { errToString } from "@shared/utils/error";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import CollectionDuplicateDialog from "~/components/CollectionDuplicateDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import { DialogTitle } from "~/components/DialogTitle";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
+import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
   createInternalLinkAction,
   createActionWithChildren,
 } from "~/actions";
+import { dialogActionFactory } from "~/actions/definitions/common";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import {
@@ -41,11 +45,10 @@ import {
   newTemplatePath,
   searchPath,
 } from "~/utils/routeHelpers";
-import ExportDialog from "~/components/ExportDialog";
-import { getEventFiles } from "@shared/utils/files";
+import { ExportDialog } from "~/components/Export/ExportDialog";
 import { isMobile } from "@shared/utils/browser";
 import history from "~/utils/history";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { openRouteInSplit } from "~/utils/splitView";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
@@ -77,22 +80,17 @@ export const openCollection = createActionWithChildren({
   },
 });
 
-export const createCollection = createAction({
-  name: ({ t }) => t("New collection"),
+export const createCollection = dialogActionFactory({
   analyticsName: "New collection",
   section: CollectionSection,
+  name: (t) => t("New collection"),
+  title: (t) => t("Create a collection"),
+  content: (onSubmit) => <CollectionNew onSubmit={onSubmit} />,
   icon: <PlusIcon />,
   keywords: "create",
+  stopEvent: true,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
-  perform: ({ t, event, stores }) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-    stores.dialogs.openModal({
-      title: t("Create a collection"),
-      content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
-    });
-  },
 });
 
 export const editCollection = createAction({
@@ -109,7 +107,7 @@ export const editCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Edit collection"),
+      title: <DialogTitle title={t("Edit collection")} model={collection} />,
       content: (
         <CollectionEdit
           onSubmit={stores.dialogs.closeAllModals}
@@ -135,7 +133,9 @@ export const editCollectionPermissions = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t(`Share "{{ itemName }}"`, { itemName: collection.name }),
+      title: (
+        <DialogTitle title={t("Share this collection")} model={collection} />
+      ),
       content: (
         <SharePopover
           collection={collection}
@@ -147,44 +147,57 @@ export const editCollectionPermissions = createAction({
   },
 });
 
-export const importDocument = createAction({
-  name: ({ t }) => t("Import document"),
-  analyticsName: "Import document",
+export const duplicateCollection = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Duplicate")}…` : t("Duplicate collection"),
+  analyticsName: "Duplicate collection",
   section: ActiveCollectionSection,
-  icon: <ImportIcon />,
+  icon: <DuplicateIcon />,
+  keywords: "copy",
   visible: ({ getActivePolicies }) =>
-    getActivePolicies(Collection).some(
-      (policy) => policy.abilities.createDocument
-    ),
-  perform: ({ t, getActiveModel, stores }) => {
-    const { documents } = stores;
+    getActivePolicies(Collection).some((policy) => policy.abilities.duplicate),
+  perform: ({ getActiveModel, t, stores }) => {
     const collection = getActiveModel(Collection);
     if (!collection) {
       return;
     }
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = documents.importFileTypesString;
 
-    input.onchange = async (ev) => {
-      const files = getEventFiles(ev);
-      const file = files[0];
-      const toastId = toast.loading(`${t("Uploading")}…`);
-
-      try {
-        const document = await documents.import(file, null, collection.id, {
-          publish: true,
-        });
-        history.push(document.path);
-      } catch (err) {
-        toast.error(errToString(err));
-      } finally {
-        toast.dismiss(toastId);
-      }
-    };
-
-    input.click();
+    stores.dialogs.openModal({
+      title: (
+        <DialogTitle title={t("Duplicate collection")} model={collection} />
+      ),
+      content: (
+        <CollectionDuplicateDialog
+          collection={collection}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
   },
+});
+
+export const importDocument = dialogActionFactory({
+  analyticsName: "Import document",
+  section: ActiveCollectionSection,
+  width: "640px",
+  icon: <ImportIcon />,
+  name: (t) => `${t("Import documents")}…`,
+  title: (t, { getActiveModel }) => (
+    <DialogTitle
+      title={t("Import documents")}
+      model={getActiveModel(Collection)}
+    />
+  ),
+  content: (onSubmit, { getActiveModel }) => {
+    const collection = getActiveModel(Collection);
+    return collection ? (
+      <ImportDocumentDialog collectionId={collection.id} onSubmit={onSubmit} />
+    ) : null;
+  },
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Collection).some(
+      (policy) => policy.abilities.createDocument
+    ),
 });
 
 export const sortCollection = createActionWithChildren({
@@ -429,7 +442,7 @@ export const archiveCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Archive collection"),
+      title: <DialogTitle title={t("Archive collection")} model={collection} />,
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
@@ -481,7 +494,7 @@ export const deleteCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Delete collection"),
+      title: <DialogTitle title={t("Delete collection")} model={collection} />,
       content: (
         <CollectionDeleteDialog
           collection={collection}
@@ -506,7 +519,7 @@ export const exportCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Export collection"),
+      title: <DialogTitle title={t("Export collection")} model={collection} />,
       content: (
         <ExportDialog
           collection={collection}
@@ -559,6 +572,7 @@ export const rootCollectionActions = [
   openCollection,
   openCollectionInSplit,
   createCollection,
+  duplicateCollection,
   starCollection,
   unstarCollection,
   subscribeCollection,

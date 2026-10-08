@@ -1,6 +1,5 @@
 import Router from "koa-router";
 import { Client, UserRole } from "@shared/types";
-import slugify from "@shared/utils/slugify";
 import teamCreator from "@server/commands/teamCreator";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -31,7 +30,7 @@ router.post(
 
     const team = await teamCreator(ctx, {
       name: teamName,
-      subdomain: slugify(teamName),
+      subdomain: teamName,
       authenticationProviders: [],
     });
 

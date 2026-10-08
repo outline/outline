@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -225,6 +225,17 @@ const Header = styled(Flex)`
   font-weight: 600;
   padding: 24px 24px 12px;
   flex-shrink: 0;
+  gap: 8px;
+
+  // Allows a long title to wrap or truncate instead of pushing out the close
+  // button
+  > :first-child {
+    min-width: 0;
+  }
+
+  > :last-child {
+    flex-shrink: 0;
+  }
 `;
 
 const Wrapper = styled.div<{
@@ -244,7 +255,7 @@ const Wrapper = styled.div<{
   align-items: flex-start;
   background: ${s("modalBackground")};
   box-shadow: ${s("modalShadow")};
-  border-radius: 8px;
+  ${borderRadius(10)}
   outline: none;
 
   ${NudeButton} {

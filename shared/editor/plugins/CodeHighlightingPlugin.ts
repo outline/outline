@@ -114,8 +114,7 @@ function getDecorations({
           (block.node.textContent.match(/\n/g) || []).length + 1;
         const gutterWidth = String(lineCount).length;
 
-        const lineCountText = new Array(lineCount)
-          .fill(0)
+        const lineCountText = Array.from({ length: lineCount })
           .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
           .join("\n");
 
@@ -219,7 +218,7 @@ export function CodeHighlighting({
           codeBlockChanged ||
           isPaste ||
           langLoaded ||
-          isRemoteTransaction(transaction)
+          isRemoteTransaction(transaction, state)
         ) {
           // Invalidate cached entries for blocks whose language just loaded
           // so getDecorations rebuilds them with syntax highlighting applied.

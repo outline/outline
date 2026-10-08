@@ -75,10 +75,11 @@ function CommentThread({
 
   const canReply = can.comment && !thread.isResolved;
 
-  const highlightedText = ProsemirrorHelper.getAnchorTextForComment(
-    editor?.getComments() ?? [],
-    thread.id
-  );
+  const highlightedText =
+    ProsemirrorHelper.getAnchorTextForComment(
+      editor?.getComments() ?? [],
+      thread.id
+    ) ?? thread.pendingAnchor?.anchorText;
 
   const commentsInThread = comments
     .inThread(thread.id)

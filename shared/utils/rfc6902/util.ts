@@ -36,7 +36,8 @@ export function clone<T>(source: T): T {
   if (source.constructor === Array) {
     // construction via imperative for-loop is faster than source.map(arrayVsObject)
     const length = (source as Array<unknown>).length;
-    // setting the Array length during construction is faster than just `[]` or `new Array()`
+    // measurably faster here than `[]`, `.length =` or `Array.from({ length })`
+    // oxlint-disable-next-line unicorn/no-new-array
     const arrayTarget = new Array(length) as T;
     for (let i = 0; i < length; i++) {
       (arrayTarget as Array<unknown>)[i] = clone((source as Array<unknown>)[i]);

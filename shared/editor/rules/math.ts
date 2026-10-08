@@ -151,7 +151,7 @@ function mathDisplay(
     found = true;
   }
 
-  for (next = start; !found; ) {
+  for (next = start; !found;) {
     next++;
 
     if (next >= end) {

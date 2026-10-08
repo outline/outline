@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
   CollectionStatusFilter,
@@ -12,7 +13,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
-import collectionExporter from "@server/commands/collectionExporter";
+import collectionDuplicator from "@server/commands/collectionDuplicator";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -28,7 +29,13 @@ import {
   Attachment,
   Document,
   Import,
+  FileOperation,
 } from "@server/models";
+import {
+  buildWhere,
+  combineFilters,
+  hasFieldInFilter,
+} from "@server/models/helpers/Filters";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -42,6 +49,7 @@ import {
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 import { InvalidRequestError } from "@server/errors";
@@ -101,6 +109,36 @@ router.post(
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
+    };
+  }
+);
+
+router.post(
+  "collections.duplicate",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  validate(T.CollectionsDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const collection = await Collection.findByPk(id, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "duplicate", collection);
+
+    const duplicated = await collectionDuplicator(ctx, {
+      collection,
+      name,
+    });
+
+    ctx.body = {
+      data: await presentCollection(ctx, duplicated),
+      policies: presentPolicies(user, [duplicated]),
     };
   }
 );
@@ -314,9 +352,7 @@ router.post(
 
     if (query) {
       groupWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -465,9 +501,7 @@ router.post(
 
     if (query) {
       userWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -525,13 +559,11 @@ router.post(
     });
     authorize(user, "export", collection);
 
-    const fileOperation = await collectionExporter({
+    const fileOperation = await FileOperation.createExport(ctx, {
       collection,
       team,
-      user,
       format,
       includeAttachments,
-      ctx,
     });
 
     ctx.body = {
@@ -556,13 +588,11 @@ router.post(
     const team = await Team.findByPk(user.teamId, { transaction });
     authorize(user, "createExport", team);
 
-    const fileOperation = await collectionExporter({
-      user,
+    const fileOperation = await FileOperation.createExport(ctx, {
       team,
       format,
       includeAttachments,
       includePrivate,
-      ctx,
     });
 
     ctx.body = {
@@ -593,14 +623,36 @@ router.post(
       sharing,
       commenting,
       templateManagement,
+      deprecatedReason,
     } = ctx.input.body;
+
+    const updatingDeprecatedReason =
+      deprecatedReason !== undefined &&
+      Object.keys(ctx.input.body).every(
+        (key) => key === "id" || key === "deprecatedReason"
+      );
 
     const { user } = ctx.state.auth;
     const collection = await Collection.findByPk(id, {
       userId: user.id,
+      includeArchivedBy: updatingDeprecatedReason,
       transaction,
     });
-    authorize(user, "update", collection);
+    authorize(
+      user,
+      updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
+      collection
+    );
+
+    if (deprecatedReason !== undefined) {
+      authorize(user, "updateDeprecatedReason", collection);
+      await collection.updateDeprecatedReason(ctx, deprecatedReason);
+      ctx.body = {
+        data: await presentCollection(ctx, collection),
+        policies: presentPolicies(user, [collection]),
+      };
+      return;
+    }
 
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.
@@ -714,7 +766,12 @@ router.post(
   pagination(),
   transaction(),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { includeListOnly, query, statusFilter } = ctx.input.body;
+    const {
+      includeListOnly,
+      query,
+      statusFilter,
+      filters: rawFilters,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const collectionIds = await user.collectionIds({ transaction });
@@ -732,52 +789,46 @@ router.post(
       ],
     };
 
-    if (!statusFilter) {
+    // The schema rejects callers that combine `filters` with the deprecated
+    // top-level params, so at most one of the two shapes is set.
+    const legacyLeaves: Filter[] = [];
+    if (query) {
+      legacyLeaves.push({ field: "name", operator: "contains", value: query });
+    }
+    if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
+      legacyLeaves.push({ field: "archivedAt", operator: "isNotNull" });
+    }
+    const filter = combineFilters(rawFilters ?? legacyLeaves);
+
+    // Results can contain archived collections once the caller targets
+    // archivedAt themselves, so hydrate the archiving user for presentation.
+    const includeArchived =
+      filter !== undefined && hasFieldInFilter(filter, "archivedAt");
+
+    // Exclude archived collections unless the caller targets archivedAt.
+    if (statusFilter === undefined && !includeArchived) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
-    if (!includeListOnly || !user.isAdmin) {
+    // Admins can restore any archived collection, including private ones they
+    // are not a member of, so they must be able to see them listed.
+    if (!user.isAdmin || !(includeListOnly || includeArchived)) {
       where[Op.and].push({ id: collectionIds });
     }
 
-    if (query) {
-      where[Op.and].push(
-        Sequelize.literal(`unaccent(LOWER(name)) like unaccent(LOWER(:query))`)
-      );
+    if (filter) {
+      where[Op.and].push(buildWhere<Collection>(filter));
     }
-
-    const statusQuery = [];
-    if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
-      statusQuery.push({
-        archivedAt: {
-          [Op.ne]: null,
-        },
-      });
-    }
-
-    if (statusQuery.length) {
-      where[Op.and].push({
-        [Op.or]: statusQuery,
-      });
-    }
-
-    const replacements = { query: `%${query}%` };
 
     const [collections, total] = await Promise.all([
-      Collection.scope(
-        statusFilter?.includes(CollectionStatusFilter.Archived)
-          ? [
-              {
-                method: ["withMembership", user.id],
-              },
-              "withArchivedBy",
-            ]
-          : {
-              method: ["withMembership", user.id],
-            }
-      ).findAll({
+      Collection.scope([
+        // Named scopes replace the default scope, so it must be applied
+        // explicitly to keep the documentStructure column out of the result.
+        "defaultScope",
+        { method: ["withMembership", user.id] },
+        ...(includeArchived ? ["withArchivedBy"] : []),
+      ]).findAll({
         where,
-        replacements,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),
           ["updatedAt", "DESC"],
@@ -788,8 +839,6 @@ router.post(
       }),
       Collection.count({
         where,
-        // @ts-expect-error Types are incorrect for count
-        replacements,
         transaction,
       }),
     ]);
@@ -824,7 +873,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsDeleteReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {
@@ -833,6 +882,10 @@ router.post(
     });
 
     authorize(user, "delete", collection);
+
+    if (reason !== undefined) {
+      collection.deprecatedReason = reason || null;
+    }
 
     await collection.destroyWithCtx(ctx);
 
@@ -849,7 +902,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsArchiveReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
+    const { id, reason } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {
@@ -859,6 +912,10 @@ router.post(
     });
 
     authorize(user, "archive", collection);
+
+    if (reason !== undefined) {
+      collection.deprecatedReason = reason || null;
+    }
 
     await collection.archiveWithCtx(ctx);
 
@@ -892,6 +949,7 @@ router.post(
       {
         lastModifiedById: user.id,
         archivedAt: null,
+        deprecatedReason: null,
       },
       {
         where: {
@@ -905,6 +963,8 @@ router.post(
 
     collection.archivedAt = null;
     collection.archivedById = null;
+    collection.deprecatedReason = null;
+    collection.changed("deprecatedReason", true);
     collection = await collection.saveWithCtx(ctx, undefined, {
       name: "restore",
     });
@@ -928,7 +988,7 @@ router.post(
 
     let collection = await Collection.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(user, "move", collection);
 

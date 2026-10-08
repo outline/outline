@@ -21,6 +21,9 @@ export class EditorStyleHelper {
 
   static readonly headingPositionAnchor = "heading-position-anchor";
 
+  /** Section number prepended to headings in serialized clipboard HTML */
+  static readonly headingPrefix = "heading-prefix";
+
   // Comments
 
   static readonly comment = "comment-marker";
@@ -78,6 +81,22 @@ export class EditorStyleHelper {
   /** Toggle block folded state */
   static readonly toggleBlockFolded = "folded";
 
+  // Notices
+
+  /** Notice block wrapper */
+  static readonly notice = "notice-block";
+
+  /** Notice block icon */
+  static readonly noticeIcon = "icon";
+
+  /** Notice block content area */
+  static readonly noticeContent = "content";
+
+  // Suggestions
+
+  /** Trigger character and search term while a suggestion menu is open */
+  static readonly suggestionTrigger = "suggestion-trigger";
+
   // Checkbox Lists
 
   /** Checkbox list wrapper */
@@ -123,6 +142,9 @@ export class EditorStyleHelper {
 
   /** Sticky header state */
   static readonly tableStickyHeader = "table-sticky-header";
+
+  /** Sticky first column state */
+  static readonly tableStickyColumn = "table-sticky-column";
 
   /** Drop indicator for table drag and drop */
   static readonly tableDragDropIndicator = "table-drag-drop-indicator";

@@ -394,6 +394,77 @@ describe("GitLabUtils.parseUrl", () => {
     });
   });
 
+  describe("group URLs", () => {
+    it("should parse a group work_items URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/groups/gitlab-org/-/work_items/1234"
+      );
+      expect(result).toEqual({
+        owner: "gitlab-org",
+        type: UnfurlResourceType.Issue,
+        scope: "group",
+        id: 1234,
+        url: "https://gitlab.com/groups/gitlab-org/-/work_items/1234",
+      });
+    });
+
+    it("should parse a nested group work_items URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/groups/gitlab-org/subgroup/-/work_items/5"
+      );
+      expect(result).toEqual({
+        owner: "gitlab-org/subgroup",
+        type: UnfurlResourceType.Issue,
+        scope: "group",
+        id: 5,
+        url: "https://gitlab.com/groups/gitlab-org/subgroup/-/work_items/5",
+      });
+    });
+
+    it("should parse a legacy group epics URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/groups/gitlab-org/-/epics/1234"
+      );
+      expect(result).toEqual({
+        owner: "gitlab-org",
+        type: UnfurlResourceType.Issue,
+        scope: "group",
+        id: 1234,
+        url: "https://gitlab.com/groups/gitlab-org/-/epics/1234",
+      });
+    });
+
+    it("should parse a group work_items URL with show parameter", () => {
+      const show = btoa(
+        JSON.stringify({ iid: "39", full_path: "gitlab-org", id: 1215135 })
+      );
+      const result = GitLabUtils.parseUrl(
+        `https://gitlab.com/groups/gitlab-org/-/work_items?show=${show}`
+      );
+      expect(result).toEqual({
+        owner: "gitlab-org",
+        type: UnfurlResourceType.Issue,
+        scope: "group",
+        id: 39,
+        url: `https://gitlab.com/groups/gitlab-org/-/work_items?show=${show}`,
+      });
+    });
+
+    it("should return undefined for an unsupported group resource", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/groups/gitlab-org/-/milestones/3"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined for a subgroup URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/groups/gitlab-org/subgroup"
+      );
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe("custom GitLab URL", () => {
     it("should parse with a custom URL", () => {
       const result = GitLabUtils.parseUrl(

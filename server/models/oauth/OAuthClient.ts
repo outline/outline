@@ -1,10 +1,3 @@
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsUrl,
-} from "class-validator";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -25,9 +18,9 @@ import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Encrypted from "@server/models/decorators/Encrypted";
-import Fix from "@server/models/decorators/Fix";
 import { hash } from "@server/utils/crypto";
 import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import IsUrlList from "@server/models/validators/IsUrlList";
 import Length from "@server/models/validators/Length";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 import type { FindOptions } from "sequelize";
@@ -36,7 +29,6 @@ import type { FindOptions } from "sequelize";
   tableName: "oauth_clients",
   modelName: "oauth_client",
 })
-@Fix
 class OAuthClient extends ParanoidModel<
   InferAttributes<OAuthClient>,
   Partial<InferCreationAttributes<OAuthClient>>
@@ -105,19 +97,7 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.BOOLEAN)
   published: boolean;
 
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  @ArrayMinSize(1)
-  @ArrayMaxSize(10)
-  @IsUrl(
-    {
-      require_tld: false,
-      allow_underscores: true,
-    },
-    {
-      each: true,
-    }
-  )
+  @IsUrlList({ min: 1, max: OAuthClientValidation.maxRedirectUris })
   @Column(DataType.ARRAY(DataType.STRING))
   redirectUris: string[];
 

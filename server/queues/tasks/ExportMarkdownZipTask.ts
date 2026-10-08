@@ -1,4 +1,3 @@
-import { ZipFile } from "yazl";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import type { Collection, FileOperation } from "@server/models";
@@ -10,10 +9,7 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
     collections: Collection[],
     fileOperation: FileOperation
   ) {
-    const zip = new ZipFile();
-
     return await this.addCollectionsToArchive(
-      zip,
       collections,
       FileOperationFormat.MarkdownZip,
       fileOperation.options?.includeAttachments
@@ -25,13 +21,10 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
     documentStructure: NavigationNode[],
     includeAttachments: boolean
   ): Promise<string> {
-    const zip = new ZipFile();
-
     return await this.addDocumentToArchive({
       document,
       documentStructure,
       format: FileOperationFormat.MarkdownZip,
-      zip,
       includeAttachments,
     });
   }

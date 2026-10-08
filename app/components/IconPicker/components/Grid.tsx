@@ -9,23 +9,51 @@ type Props = {
   data: React.ReactNode[][];
   columns: number;
   itemWidth: number;
+  onOverflowChange?: (hasMoreBelow: boolean) => void;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-const Grid = (
-  { width, height, data, columns, itemWidth }: Props,
-  ref: React.Ref<HTMLDivElement>
-) => (
-  <Container
-    outerRef={ref}
-    width={width}
-    height={height}
-    itemCount={data.length}
-    itemSize={itemWidth}
-    itemData={{ data, columns }}
-  >
-    {Row}
-  </Container>
-);
+function Grid({
+  width,
+  height,
+  data,
+  columns,
+  itemWidth,
+  onOverflowChange,
+  ref,
+}: Props) {
+  const offsetRef = React.useRef(0);
+  const maxOffset = Math.max(0, data.length * itemWidth - height);
+
+  const notify = React.useCallback(() => {
+    onOverflowChange?.(offsetRef.current < maxOffset - 1);
+  }, [onOverflowChange, maxOffset]);
+
+  // The amount of scrollable content changes as rows are added or removed.
+  React.useEffect(notify, [notify]);
+
+  const handleScroll = React.useCallback(
+    ({ scrollOffset }: { scrollOffset: number }) => {
+      offsetRef.current = scrollOffset;
+      notify();
+    },
+    [notify]
+  );
+
+  return (
+    <Container
+      outerRef={ref}
+      width={width}
+      height={height}
+      itemCount={data.length}
+      itemSize={itemWidth}
+      itemData={{ data, columns }}
+      onScroll={handleScroll}
+    >
+      {Row}
+    </Container>
+  );
+}
 
 type RowProps = {
   data: React.ReactNode[][];
@@ -60,4 +88,4 @@ const RowContainer = styled.div<{ columns: number }>`
   align-content: center;
 `;
 
-export default React.forwardRef(Grid);
+export default Grid;

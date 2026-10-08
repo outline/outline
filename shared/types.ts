@@ -13,6 +13,14 @@ export enum Scope {
   Create = "create",
 }
 
+/** The method used to authenticate a request. */
+export enum AuthenticationType {
+  API = "api",
+  APP = "app",
+  MCP = "mcp",
+  OAUTH = "oauth",
+}
+
 export type DateFilter = "day" | "week" | "month" | "year";
 
 export enum StatusFilter {
@@ -56,13 +64,16 @@ export enum Client {
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
+  TextBundle = "application/x-textbundle",
   Pdf = "application/pdf",
 }
 
 export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
+  OKFZip = "okf",
   HTMLZip = "html",
+  TextBundleZip = "textbundle",
   PDF = "pdf",
   Notion = "notion",
 }
@@ -125,7 +136,10 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
+  /** ID of the share mounted at the root of a custom domain, if any. */
   ROOT_SHARE_ID?: string;
+  /** Whether the page is a publicly shared view. */
+  isShare?: boolean;
   analytics: {
     service: IntegrationService;
     settings: IntegrationSettings<IntegrationType.Analytics>;
@@ -326,8 +340,21 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                     };
                   }
                 | { serviceTeamId: string }
-                | { measurementId: string }
+                | {
+                    measurementId: string;
+                    instanceUrl?: string;
+                    scriptName?: string;
+                  }
                 | undefined;
+
+export enum SidebarSection {
+  /** The starred documents section. */
+  Starred = "starred",
+  /** The documents shared with the user directly or via groups. */
+  SharedWithMe = "shared",
+  /** The collections section. */
+  Collections = "collections",
+}
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -346,9 +373,33 @@ export enum UserPreference {
   CommentsInGutter = "commentsInGutter",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** Whether live word, character, and paragraph counts are shown in documents. */
+  ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** The display order of the reorderable sections in the sidebar. */
+  SidebarSectionOrder = "sidebarSectionOrder",
 }
+
+export enum HeadingPrefixStyle {
+  /** Headings are displayed without a prefix. */
+  None = "none",
+  /** Numeric prefixes, for example: 1, 1.1, 1.1.1 */
+  Numeric = "numeric",
+  /** Alphanumeric prefixes, for example: 1, 1.a, 1.a.i */
+  Alphanumeric = "alphanumeric",
+  /** Outline-style prefixes, for example: I, I.A, I.A.1 */
+  Outline = "outline",
+}
+
+export enum DocumentPreference {
+  /** The style of prefix displayed before headings in the document. */
+  HeadingPrefix = "headingPrefix",
+}
+
+export type DocumentPreferences = {
+  [DocumentPreference.HeadingPrefix]?: HeadingPrefixStyle;
+};
 
 export enum NotificationBadgeType {
   /** Do not show a notification badge. */
@@ -368,7 +419,9 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.CommentsInGutter]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.SidebarSectionOrder]?: SidebarSection[];
 };
 
 export type SourceMetadata = {
@@ -386,6 +439,10 @@ export type SourceMetadata = {
   trial?: boolean;
   /** The ID of the original document when this document was duplicated. */
   originalDocumentId?: string;
+  /** The ID of the original collection when this collection was duplicated. */
+  originalCollectionId?: string;
+  /** The type of authentication used to make the change. */
+  authType?: AuthenticationType;
 };
 
 export type CustomTheme = {
@@ -803,3 +860,37 @@ export type ReactionSummary = {
   emoji: string;
   userIds: string[];
 };
+
+/** The plans that a team can be on. */
+export enum Plan {
+  Community = "community",
+  Standard = "standard",
+  Business = "business",
+  Enterprise = "enterprise",
+  /** A plan that is no longer sold, kept for existing teams. */
+  Legacy = "legacy",
+}
+
+/** Features that are potentially gated by entitlements. */
+export enum PlanFeature {
+  /** Access to the workspace audit log. */
+  AuditLog = "auditLog",
+  /** Advanced security controls. */
+  AdvancedSecurity = "advancedSecurity",
+  /** Inviting guest users. */
+  Guests = "guests",
+  /** Synchronization of groups with an external IDP */
+  GroupSync = "groupSync",
+  /** Integrations that are not included in every plan. */
+  PremiumIntegrations = "premiumIntegrations",
+  /** Management of API keys across the workspace. */
+  ApiKeyManagement = "apiKeyManagement",
+  /** Content management tools. */
+  ContentManagement = "contentManagement",
+  /** AI generated answers. */
+  AIAnswers = "aiAnswers",
+  /** Serving the workspace from a custom domain. */
+  CustomDomain = "customDomain",
+  /** SAML authentication provider */
+  SAML = "saml",
+}

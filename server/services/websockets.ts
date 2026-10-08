@@ -5,7 +5,7 @@ import cookie from "cookie";
 import type Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
-import { errToString } from "@shared/utils/error";
+import { errToId, errToString, toError } from "@shared/utils/error";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -13,8 +13,7 @@ import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
-import { Collection, Group } from "@server/models";
-import { can } from "@server/policies";
+import { rejectUpgrade } from "@server/onupgrade";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -23,7 +22,7 @@ import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
 
 type SocketWithAuth = IO.Socket & {
   client: IO.Socket["client"] & {
-    user?: User;
+    auth?: { userId: string; teamId: string };
   };
 };
 
@@ -71,7 +70,7 @@ export default function init(
           !env.isCloudHosted &&
           (!req.headers.origin || !env.URL.startsWith(req.headers.origin))
         ) {
-          socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+          rejectUpgrade(socket);
           return;
         }
 
@@ -85,7 +84,7 @@ export default function init(
       }
 
       // If the collaboration service isn't running then we need to close the connection
-      socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+      rejectUpgrade(socket);
     }
   );
 
@@ -112,14 +111,9 @@ export default function init(
     Metrics.increment("websockets.connected");
     Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
 
-    socket.on("disconnect", async () => {
-      Metrics.increment("websockets.disconnected");
-      Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
-    });
-
-    setTimeout(function () {
-      // If the socket didn't authenticate after connection, disconnect it
-      if (!socket.client.user) {
+    // If the socket didn't authenticate after connection, disconnect it
+    const authTimeout = setTimeout(function () {
+      if (!socket.client.auth) {
         Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
 
         // @ts-expect-error should be boolean
@@ -127,18 +121,42 @@ export default function init(
       }
     }, 1000);
 
+    socket.on("disconnect", async () => {
+      Metrics.increment("websockets.disconnected");
+      Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
+
+      // Cancel the pending auth timeout, now we're disconnected
+      clearTimeout(authTimeout);
+
+      // Release the connection's auth reference so it isn't retained
+      socket.client.auth = undefined;
+    });
+
     try {
-      await authenticate(socket);
+      const user = await authenticate(socket);
       Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
       socket.emit("authenticated", true);
-      void authenticated(io, socket);
+      void authenticated(io, socket, user).catch((err) => {
+        Logger.error(
+          "Failed to join rooms for authenticated socket",
+          toError(err),
+          {
+            socketId: socket.id,
+            userId: user.id,
+          }
+        );
+
+        // The socket receives no events without its rooms, disconnect so that
+        // the client reconnects and tries again.
+        socket.disconnect();
+      });
     } catch (err) {
       const message = errToString(err);
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
         error: message,
       });
-      socket.emit("unauthorized", { message }, function () {
+      socket.emit("unauthorized", { message, id: errToId(err) }, function () {
         socket.disconnect();
       });
     }
@@ -169,19 +187,23 @@ export default function init(
     });
 }
 
-async function authenticated(io: IO.Server, socket: SocketWithAuth) {
-  const { user } = socket.client;
-  if (!user) {
-    throw new Error("User not returned from auth");
-  }
-
+async function authenticated(
+  io: IO.Server,
+  socket: SocketWithAuth,
+  user: User
+) {
   // the rooms associated with the current team
   // and user so we can send authenticated events
   const rooms = [`team-${user.teamId}`, `user-${user.id}`];
 
-  // the rooms associated with collections this user has access to on
-  // connection. New collection and group subscriptions are managed
-  // from the client as needed through the 'join' event.
+  // the room of non-guest team members, who have access to all
+  // team-visible collections.
+  if (!user.isGuest) {
+    rooms.push(`team-${user.teamId}.members`);
+  }
+
+  // the rooms associated with collections and groups this user
+  // has access to on connection.
   const [collectionIds, groupIds] = await Promise.all([
     user.collectionIds(),
     user.groupIds(),
@@ -190,49 +212,15 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   collectionIds.forEach((colId) => rooms.push(`collection-${colId}`));
   groupIds.forEach((groupId) => rooms.push(`group-${groupId}`));
 
-  // allow the client to request to join rooms
-  socket.on("join", async (event) => {
-    // user is joining a collection channel, because their permissions have
-    // changed, granting them access.
-    if (event.collectionId) {
-      const collection = await Collection.findByPk(event.collectionId, {
-        userId: user.id,
-      });
-
-      if (can(user, "read", collection)) {
-        await socket.join(`collection-${event.collectionId}`);
-      }
-    }
-    if (event.groupId) {
-      const group = await Group.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(event.groupId);
-
-      if (can(user, "read", group)) {
-        await socket.join(`group-${event.groupId}`);
-      }
-    }
-  });
-
-  // allow the client to request to leave rooms
-  socket.on("leave", async (event) => {
-    if (event.collectionId) {
-      await socket.leave(`collection-${event.collectionId}`);
-    }
-    if (event.groupId) {
-      await socket.leave(`group-${event.groupId}`);
-    }
-  });
-
   // join all of the rooms at once
   await socket.join(rooms);
 }
 
 /**
- * Authenticate the socket with the given token, attach the user model for the
- * duration of the session.
+ * Authenticate the socket with the given token, returning the user model and
+ * attaching lightweight auth identifiers for the lifetime of the connection.
  */
-async function authenticate(socket: SocketWithAuth) {
+async function authenticate(socket: SocketWithAuth): Promise<User> {
   const cookies = socket.request.headers.cookie
     ? cookie.parse(socket.request.headers.cookie)
     : {};
@@ -243,6 +231,6 @@ async function authenticate(socket: SocketWithAuth) {
   }
 
   const { user } = await getUserForJWT(accessToken);
-  socket.client.user = user;
+  socket.client.auth = { userId: user.id, teamId: user.teamId };
   return user;
 }

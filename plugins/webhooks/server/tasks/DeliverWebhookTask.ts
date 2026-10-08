@@ -1,7 +1,7 @@
 import { FetchError } from "node-fetch";
 import { Op, QueryTypes } from "sequelize";
 import { toError } from "@shared/utils/error";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -169,6 +169,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "authenticationProviders.update":
       case "notifications.create":
       case "notifications.update":
+      case "notifications.delete":
       case "access_requests.create":
         // Ignored
         return;

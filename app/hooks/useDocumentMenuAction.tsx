@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { InputIcon, SearchIcon } from "outline-icons";
+import { SearchIcon } from "outline-icons";
 import { ActionSeparator, createAction, createRootMenuAction } from "~/actions";
 import {
   restoreDocument,
@@ -20,31 +20,33 @@ import {
   unpublishDocument,
   archiveDocument,
   moveDocument,
-  applyTemplateFactory,
+  applyTemplateActionFactory,
   pinDocument,
   openDocumentComments,
   openDocumentHistory,
   openDocumentInsights,
   openDocumentInDesktop,
   openDocumentInSplit,
-  downloadDocument,
+  exportDocument,
   copyDocument,
   presentDocument,
-  printDocument,
   searchInDocument,
   deleteDocument,
   leaveDocument,
   permanentlyDeleteDocument,
+  toggleDocumentStats,
 } from "~/actions/definitions/documents";
+import { renameActionFactory } from "~/actions/definitions/common";
 import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
 import type Template from "~/models/Template";
-import usePolicy from "./usePolicy";
 import { useTemplateMenuActions } from "./useTemplateMenuActions";
 
 type Props = {
   /** Document ID for which the actions are generated */
   documentId: string;
+  /** Whether the document is currently being viewed */
+  isViewing?: boolean;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
   /** Invoked when the "Rename" menu item is clicked */
@@ -55,13 +57,13 @@ type Props = {
 
 export function useDocumentMenuAction({
   documentId,
+  isViewing = false,
   onFindAndReplace,
   onRename,
   onSelectTemplate,
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const can = usePolicy(documentId);
 
   const templateMenuActions = useTemplateMenuActions({
     documentId,
@@ -86,12 +88,10 @@ export function useDocumentMenuAction({
         }),
         ActionSeparator,
         editDocument,
-        createAction({
-          name: `${t("Rename")}…`,
+        renameActionFactory({
           section: ActiveDocumentSection,
-          icon: <InputIcon />,
-          visible: !!can.update && !!onRename,
-          perform: () => requestAnimationFrame(() => onRename?.()),
+          modelId: documentId,
+          onRename,
         }),
         shareDocument,
         createTemplateFromDocument,
@@ -100,7 +100,7 @@ export function useDocumentMenuAction({
         unpublishDocument,
         archiveDocument,
         moveDocument,
-        applyTemplateFactory({ actions: templateMenuActions }),
+        applyTemplateActionFactory({ actions: templateMenuActions }),
         importDocument,
         createNewDocument,
         createNewDocumentInAlphabeticalCollection,
@@ -109,18 +109,26 @@ export function useDocumentMenuAction({
         openDocumentComments,
         openDocumentHistory,
         openDocumentInsights,
+        ...(isViewing ? [toggleDocumentStats] : []),
         openDocumentInSplit,
         openDocumentInDesktop,
         presentDocument,
-        downloadDocument,
+        exportDocument,
         copyDocument,
-        printDocument,
         searchInDocument,
         ActionSeparator,
         deleteDocument,
         permanentlyDeleteDocument,
         leaveDocument,
       ]),
-    [t, isMobile, templateMenuActions, can.update, onFindAndReplace, onRename]
+    [
+      t,
+      isMobile,
+      isViewing,
+      templateMenuActions,
+      documentId,
+      onFindAndReplace,
+      onRename,
+    ]
   );
 }

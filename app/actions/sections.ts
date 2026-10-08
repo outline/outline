@@ -22,7 +22,11 @@ export const DocumentSection = ({ t }: ActionContext) => t("Document");
 export const SearchResultsSection = ({ t }: ActionContext) =>
   t("Search results");
 
+SearchResultsSection.priority = -1;
+
 export const DocumentsSection = ({ t }: ActionContext) => t("Documents");
+
+DocumentsSection.priority = 0.8;
 
 export const ActiveDocumentSection = ({ t, stores }: ActionContext) => {
   const activeDocument = stores.documents.active;
@@ -60,12 +64,21 @@ export const UserSection = ({ t }: ActionContext) => t("People");
 
 UserSection.priority = 0.5;
 
+/**
+ * People are the most common target when mentioning, so they rank above
+ * documents – unlike in the command bar, where the section holds user
+ * management actions.
+ */
+export const MentionUserSection = ({ t }: ActionContext) => t("People");
+
+MentionUserSection.priority = 0.9;
+
 export const ShareSection = ({ t }: ActionContext) => t("Share");
 
 export const TeamSection = ({ t }: ActionContext) => t("Workspace");
 
 export const RecentSearchesSection = ({ t }: ActionContext) =>
-  t("Recently viewed");
+  t("Recent searches");
 
 RecentSearchesSection.priority = -0.1;
 

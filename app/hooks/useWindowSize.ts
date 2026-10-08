@@ -1,39 +1,45 @@
-import { useState, useEffect } from "react";
-import useEventListener from "./useEventListener";
-import useThrottledCallback from "./useThrottledCallback";
+import { throttle } from "es-toolkit/compat";
+import { useCallback, useRef, useSyncExternalStore } from "react";
+
+type WindowSize = { width: number; height: number };
+
+const readSize = (): WindowSize => ({
+  width: window.visualViewport?.width || window.innerWidth,
+  height: window.visualViewport?.height || window.innerHeight,
+});
 
 /**
- * A debounced hook that listens to the window resize event and returns the
+ * A throttled hook that listens to the window resize event and returns the
  * size of the current window.
  *
  * @returns An object containing width and height of the current window
  */
-export default function useWindowSize() {
-  const [windowSize, setWindowSize] = useState({
-    width: window.visualViewport?.width || window.innerWidth,
-    height: window.visualViewport?.height || window.innerHeight,
-  });
+export default function useWindowSize(): WindowSize {
+  // Cache the last object so getSnapshot returns a stable reference while the
+  // size is unchanged, which useSyncExternalStore requires.
+  const cache = useRef<WindowSize>(readSize());
 
-  const handleResize = useThrottledCallback(() => {
-    const width = window.visualViewport?.width || window.innerWidth;
-    const height = window.visualViewport?.height || window.innerHeight;
+  const getSnapshot = useCallback(() => {
+    const next = readSize();
+    if (
+      next.width !== cache.current.width ||
+      next.height !== cache.current.height
+    ) {
+      cache.current = next;
+    }
+    return cache.current;
+  }, []);
 
-    setWindowSize((state) => {
-      if (width === state.width && height === state.height) {
-        return state;
-      }
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    const handleResize = throttle(onStoreChange, 100);
+    window.addEventListener("resize", handleResize);
+    window.visualViewport?.addEventListener("resize", handleResize);
+    return () => {
+      handleResize.cancel();
+      window.removeEventListener("resize", handleResize);
+      window.visualViewport?.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
-      return { width, height };
-    });
-  }, 100);
-
-  useEventListener("resize", handleResize);
-  useEventListener("resize", handleResize, window.visualViewport);
-
-  // Call handler right away so state gets updated with initial window size
-  useEffect(() => {
-    handleResize();
-  }, [handleResize]);
-
-  return windowSize;
+  return useSyncExternalStore(subscribe, getSnapshot);
 }

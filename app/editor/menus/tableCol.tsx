@@ -16,10 +16,10 @@ import {
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
+  canMergeCells,
   getAllSelectedColumns,
   getCellsInColumn,
   isMergedCellSelection,
-  isMultipleCellSelection,
   tableHasRowspan,
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
@@ -84,6 +84,9 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
   }
 
   const tableMap = selectedRect(state);
+  // Inserting and moving act on a single column, so they are ambiguous when
+  // the selection spans more than one.
+  const isMultipleColumns = selectedCols.length > 1;
   const colColors = getColumnColors(state, index);
   const hasBackground = colColors.size > 0;
   const activeColor =
@@ -163,15 +166,13 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
           <PaletteIcon />
         ),
       children: [
-        ...[
-          {
-            name: "toggleColumnBackgroundAndCollapseSelection",
-            label: t("None"),
-            icon: <DottedCircleIcon color="transparent" />,
-            active: () => (hasBackground ? false : true),
-            attrs: { color: null },
-          },
-        ],
+        {
+          name: "toggleColumnBackgroundAndCollapseSelection",
+          label: t("None"),
+          icon: <DottedCircleIcon color="transparent" />,
+          active: () => (hasBackground ? false : true),
+          attrs: { color: null },
+        },
         ...TableCell.presetColors.map((preset) => ({
           name: "toggleColumnBackgroundAndCollapseSelection",
           label: preset.name,
@@ -224,26 +225,28 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
       label: rtl ? t("Insert after") : t("Insert before"),
       icon: <InsertLeftIcon />,
       attrs: { index },
+      visible: !isMultipleColumns,
     },
     {
       name: rtl ? "addColumnBefore" : "addColumnAfter",
       label: rtl ? t("Insert before") : t("Insert after"),
       icon: <InsertRightIcon />,
       attrs: { index },
+      visible: !isMultipleColumns,
     },
     {
       name: "moveTableColumn",
       label: t("Move left"),
       icon: <ArrowLeftIcon />,
       attrs: { from: index, to: index - 1 },
-      visible: index > 0,
+      visible: !isMultipleColumns && index > 0,
     },
     {
       name: "moveTableColumn",
       label: t("Move right"),
       icon: <ArrowRightIcon />,
       attrs: { from: index, to: index + 1 },
-      visible: index < tableMap.map.width - 1,
+      visible: !isMultipleColumns && index < tableMap.map.width - 1,
     },
     {
       name: "separator",
@@ -252,7 +255,7 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
       name: "mergeCells",
       label: t("Merge cells"),
       icon: <TableMergeCellsIcon />,
-      visible: isMultipleCellSelection(state),
+      visible: canMergeCells(state),
     },
     {
       name: "splitCell",

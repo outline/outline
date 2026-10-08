@@ -1,9 +1,9 @@
-import { observable, action } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import * as React from "react";
 
 type DialogDefinition = {
-  title: string;
+  title: React.ReactNode;
   content: React.ReactNode;
   isOpen: boolean;
   style?: React.CSSProperties;
@@ -12,12 +12,22 @@ type DialogDefinition = {
   onClose?: () => void;
 };
 
+type GuideDefinition = {
+  title: string;
+  content: React.ReactNode;
+  isOpen: boolean;
+};
+
 export default class DialogsStore {
   @observable.shallow
-  guide: DialogDefinition;
+  guide: GuideDefinition | undefined = undefined;
 
   @observable.shallow
   modalStack = new Map<string, DialogDefinition>();
+
+  constructor() {
+    makeObservable(this);
+  }
 
   openGuide = ({
     title,

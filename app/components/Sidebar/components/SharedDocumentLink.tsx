@@ -21,21 +21,20 @@ type Props = {
   index: number;
   shareId: string;
   parentId?: string;
+  ref?: React.Ref<HTMLAnchorElement>;
 };
 
-function DocumentLink(
-  {
-    node,
-    collection,
-    activeDocument,
-    activeDocumentId,
-    prefetchDocument,
-    isDraft,
-    depth,
-    shareId,
-  }: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function DocumentLink({
+  node,
+  collection,
+  activeDocument,
+  activeDocumentId,
+  prefetchDocument,
+  isDraft,
+  depth,
+  shareId,
+  ref,
+}: Props) {
   const { documents } = useStores();
   const { t } = useTranslation();
   const expansion = useSidebarExpansion();
@@ -150,4 +149,4 @@ function DocumentLink(
   );
 }
 
-export const SharedDocumentLink = observer(React.forwardRef(DocumentLink));
+export const SharedDocumentLink = observer(DocumentLink);

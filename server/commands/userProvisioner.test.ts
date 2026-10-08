@@ -24,6 +24,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: existing.name,
       email: newEmail,
+      emailVerified: true,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       authentication: {
@@ -40,6 +41,30 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
     expect(isNewUser).toEqual(false);
+  });
+
+  it("should not update existing user email on re-login when unverified", async () => {
+    const existing = await buildUser();
+    const originalEmail = existing.email;
+    const authentications = await existing.$get("authentications");
+    const existingAuth = authentications[0];
+    const result = await userProvisioner(ctx, {
+      name: existing.name,
+      email: "victim@example.com",
+      emailVerified: false,
+      avatarUrl: existing.avatarUrl,
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: existingAuth.authenticationProviderId,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    expect(result.user.email).toEqual(originalEmail);
+
+    await existing.reload();
+    expect(existing.email).toEqual(originalEmail);
   });
 
   it("should add authentication provider to existing users", async () => {
@@ -200,6 +225,41 @@ describe("userProvisioner", () => {
     );
     expect(authentication?.accessToken).toEqual("123");
     expect(isNewUser).toEqual(false);
+  });
+
+  it("should not match an existing authentication from a different provider", async () => {
+    const existing = await buildUser();
+    const authentications = await existing.$get("authentications");
+    const existingAuth = authentications[0];
+    const originalProviderId = existingAuth.authenticationProviderId;
+
+    // A second provider of a different type, where the attacker is able to
+    // present the same external identifier as the existing user.
+    const otherAuthProvider = await AuthenticationProvider.create({
+      name: "oidc",
+      providerId: randomString(32),
+      teamId: existing.teamId,
+    });
+
+    const { user, isNewUser } = await userProvisioner(ctx, {
+      name: "Attacker",
+      email: "attacker@example.com",
+      emailVerified: false,
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: otherAuthProvider.id,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(isNewUser).toEqual(true);
+    expect(user.id).not.toEqual(existing.id);
+
+    await existingAuth.reload();
+    expect(existingAuth.authenticationProviderId).toEqual(originalProviderId);
+    expect(existingAuth.accessToken).not.toEqual("123");
   });
 
   it("should create a new user", async () => {

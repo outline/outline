@@ -1,6 +1,7 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { PlusIcon, SmileyIcon } from "outline-icons";
+import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -13,7 +14,6 @@ import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { createEmoji } from "~/actions/definitions/emojis";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -27,7 +27,6 @@ function Emojis() {
   const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const context = useActionContext();
   const { emojis } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
@@ -79,10 +78,13 @@ function Emojis() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = useCallback((event) => {
-    const { value } = event.target;
-    setQuery(value);
-  }, []);
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      setQuery(value);
+    },
+    []
+  );
 
   useEffect(() => {
     if (error) {
@@ -109,7 +111,6 @@ function Emojis() {
                 data-event-category="emoji"
                 data-event-action="create"
                 action={createEmoji}
-                context={context}
                 icon={<PlusIcon />}
               >
                 {t("New emoji")}…

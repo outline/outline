@@ -168,7 +168,6 @@ export class Figma {
             description: `Created by ${data.file.creator.handle}`,
             thumbnailUrl: data.file.thumbnail_url,
             faviconUrl: cdnPath("/images/figma.png"),
-            transformedUnfurl: true,
           };
         }
       } catch (err) {

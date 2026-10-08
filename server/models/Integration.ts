@@ -18,7 +18,6 @@ import IntegrationAuthentication from "@server/models/IntegrationAuthentication"
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
-import Fix from "@server/models/decorators/Fix";
 
 @Scopes(() => ({
   withAuthentication: {
@@ -32,11 +31,31 @@ import Fix from "@server/models/decorators/Fix";
   },
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
-@Fix
 class Integration<T = unknown> extends ParanoidModel<
   InferAttributes<Integration<T>>,
   Partial<InferCreationAttributes<Integration<T>>>
 > {
+  /**
+   * Load the analytics integrations enabled for a team.
+   *
+   * @param teamId The team to load integrations for, if any.
+   * @returns the team's analytics integrations.
+   */
+  public static async findAnalyticsIntegrationsForTeam(
+    teamId: string | undefined
+  ): Promise<Integration<IntegrationType.Analytics>[]> {
+    if (!teamId) {
+      return [];
+    }
+
+    return this.findAll({
+      where: {
+        teamId,
+        type: IntegrationType.Analytics,
+      },
+    });
+  }
+
   @IsIn([Object.values(IntegrationType)])
   @Column(DataType.STRING)
   type: IntegrationType;

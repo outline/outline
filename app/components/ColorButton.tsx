@@ -1,5 +1,5 @@
 import * as React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import NudeButton from "./NudeButton";
 import { hover, s } from "@shared/styles";
 
@@ -10,13 +10,17 @@ type Props = React.HTMLAttributes<HTMLButtonElement> & {
   active?: boolean;
   /** The size of the button in pixels */
   size?: number;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
-export const ColorButton = React.forwardRef(
-  (
-    { color, active = false, size = 24, ...rest }: Props,
-    ref: React.Ref<HTMLButtonElement>
-  ) => (
+export function ColorButton({
+  color,
+  active = false,
+  size = 24,
+  ref,
+  ...rest
+}: Props) {
+  return (
     <ColorButtonInternal
       $active={active}
       $size={size}
@@ -26,8 +30,11 @@ export const ColorButton = React.forwardRef(
     >
       <Selected />
     </ColorButtonInternal>
-  )
-);
+  );
+}
+
+/** Highlight for the hovered or selected swatch, falls back for the gradient. */
+const ring = css`2px solid var(--color, ${s("textTertiary")})`;
 
 const Selected = styled.span`
   width: 10px;
@@ -52,9 +59,11 @@ const ColorButtonInternal = styled(NudeButton)<{
     linear-gradient(135deg, #ff5858 0%, #fbcc34 50%, #00c6ff 100%)
   );
 
+  outline-offset: 1px;
+  outline: ${({ $active }) => ($active ? ring : "none")};
+
   &: ${hover} {
-    outline: 2px solid ${s("menuBackground")} !important;
-    box-shadow: 0px 0px 3px 3px var(--color);
+    outline: ${ring} !important;
   }
 
   & ${Selected} {

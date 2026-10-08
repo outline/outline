@@ -1,11 +1,13 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { EditIcon, TrashIcon } from "outline-icons";
+import { TrashIcon } from "outline-icons";
 import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionSeparator, createAction } from "~/actions";
+import { renameActionFactory } from "~/actions/definitions/common";
+import { SettingsSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import PasskeyIcon from "./PasskeyIcon";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
@@ -36,17 +38,12 @@ function PasskeyMenu({ onRename, onDelete }: Props) {
 
   const actions = React.useMemo(
     () => [
-      createAction({
-        name: `${t("Rename")}…`,
-        icon: <EditIcon />,
-        section: "Passkey",
-        perform: onRename,
-      }),
+      renameActionFactory({ section: SettingsSection, onRename }),
       ActionSeparator,
       createAction({
         name: `${t("Delete")}…`,
         icon: <TrashIcon />,
-        section: "Passkey",
+        section: SettingsSection,
         dangerous: true,
         perform: onDelete,
       }),

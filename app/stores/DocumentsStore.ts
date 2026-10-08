@@ -1,13 +1,21 @@
 import invariant from "invariant";
-import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
-import { observable, action, computed, runInAction } from "mobx";
+import { compact, omitBy, orderBy } from "es-toolkit/compat";
+import {
+  action,
+  computed,
+  makeObservable,
+  observable,
+  override,
+  runInAction,
+} from "mobx";
+import { computedFn, now } from "mobx-utils";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   AttachmentPreset,
   SubscriptionType,
   type DateFilter,
-  type StatusFilter,
 } from "@shared/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -33,18 +41,18 @@ export type SearchParams = {
   query?: string;
   offset?: number;
   limit?: number;
-  dateFilter?: DateFilter;
-  statusFilter?: StatusFilter[];
-  collectionId?: string;
-  userId?: string;
   shareId?: string;
   sort?: SortFilter;
   direction?: DirectionFilter;
+  filters?: Filter[];
 };
 
 type ImportOptions = {
   publish?: boolean;
 };
+
+// Filters are also called outside of reactions, where they run uncached.
+const computedFnOptions = { requiresReaction: false };
 
 export default class DocumentsStore extends Store<Document> {
   @observable
@@ -54,23 +62,39 @@ export default class DocumentsStore extends Store<Document> {
   similar: Map<string, string[]> = new Map();
 
   @observable
-  movingDocumentId: string | null | undefined;
+  movingDocumentId: string | null | undefined = undefined;
 
   importFileTypes: string[] = [
     ".md",
+    ".markdown",
     ".doc",
     ".docx",
+    ".txt",
+    ".htm",
+    ".html",
+    ".csv",
     ".tsv",
+    ".mhtml",
+    ".mht",
+    ".eml",
+    ".textpack",
+    ".pdf",
     "text/csv",
+    "text/tab-separated-values",
     "text/markdown",
     "text/plain",
     "text/html",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "message/rfc822",
+    "multipart/related",
+    "application/x-mimearchive",
+    "application/pdf",
   ];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
+    makeObservable(this);
   }
 
   @computed
@@ -80,7 +104,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
+    return this.orderedData.filter((d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -102,93 +126,174 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.all, "popularityScore", "desc");
   }
 
-  createdByUser(userId: string): Document[] {
-    return orderBy(
-      filter(this.all, (d) => d.createdBy?.id === userId),
-      "updatedAt",
-      "desc"
-    );
-  }
+  /**
+   * Documents created by the given user, most recently updated first.
+   *
+   * @param userId the ID of the user.
+   * @returns the matching documents.
+   */
+  createdByUser = computedFn(
+    (userId: string): Document[] =>
+      orderBy(
+        this.all.filter((d) => d.createdBy?.id === userId),
+        "updatedAt",
+        "desc"
+      ),
+    computedFnOptions
+  );
 
-  inCollection(collectionId: string): Document[] {
-    return filter(
-      this.all,
-      (document) => document.collectionId === collectionId
-    );
-  }
+  /**
+   * Active documents in the given collection.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  inCollection = computedFn(
+    (collectionId: string): Document[] =>
+      this.all.filter((document) => document.collectionId === collectionId),
+    computedFnOptions
+  );
 
+  /**
+   * Archived documents in the given collection, optionally narrowed to those
+   * archived at a specific time.
+   *
+   * @param collectionId the ID of the collection.
+   * @param options the filters to apply.
+   * @returns the matching documents.
+   */
   archivedInCollection(
     collectionId: string,
     options?: { archivedAt: string }
   ): Document[] {
-    const filterCond = (document: Document) =>
-      options
-        ? document.collectionId === collectionId &&
-          document.isArchived &&
-          document.archivedAt === options.archivedAt &&
+    return this.archivedInCollectionAt(collectionId, options?.archivedAt);
+  }
+
+  /**
+   * Documents in the given collection that are neither archived nor deleted.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  unarchivedInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      this.orderedData.filter(
+        (document) =>
+          document.collectionId === collectionId &&
+          !document.isArchived &&
           !document.isDeleted
-        : document.collectionId === collectionId &&
-          document.isArchived &&
-          !document.isDeleted;
+      ),
+    computedFnOptions
+  );
 
-    return filter(this.orderedData, filterCond);
-  }
+  /**
+   * Published documents in the given collection.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  publishedInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      this.all.filter(
+        (document) =>
+          document.collectionId === collectionId && !!document.publishedAt
+      ),
+    computedFnOptions
+  );
 
-  unarchivedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.orderedData,
-      (document) =>
-        document.collectionId === collectionId &&
-        !document.isArchived &&
-        !document.isDeleted
-    );
-  }
-
-  publishedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.all,
-      (document) =>
-        document.collectionId === collectionId && !!document.publishedAt
-    );
-  }
-
-  rootInCollection(collectionId: string): Document[] {
+  /**
+   * Root-level documents in the given collection, drafts first, followed by
+   * the published documents in the collection's own order.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  rootInCollection = computedFn((collectionId: string): Document[] => {
     const collection = this.rootStore.collections.get(collectionId);
 
     if (!collection || !collection.sortedDocuments) {
       return [];
     }
 
-    const drafts = this.drafts({ collectionId });
+    const drafts = this.draftsFiltered(undefined, collectionId);
 
     return compact([
       ...drafts,
       ...collection.sortedDocuments.map((node) => this.get(node.id)),
     ]);
-  }
+  }, computedFnOptions);
 
-  leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
-    return orderBy(this.inCollection(collectionId), "updatedAt", "asc");
-  }
+  /**
+   * Documents in the given collection, least recently updated first.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  leastRecentlyUpdatedInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      orderBy(this.inCollection(collectionId), "updatedAt", "asc"),
+    computedFnOptions
+  );
 
-  recentlyUpdatedInCollection(collectionId: string): Document[] {
-    return orderBy(this.inCollection(collectionId), "updatedAt", "desc");
-  }
+  /**
+   * Documents in the given collection, most recently updated first.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  recentlyUpdatedInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      orderBy(this.inCollection(collectionId), "updatedAt", "desc"),
+    computedFnOptions
+  );
 
-  recentlyPublishedInCollection(collectionId: string): Document[] {
-    return orderBy(
-      this.publishedInCollection(collectionId),
-      "publishedAt",
-      "desc"
-    );
-  }
+  /**
+   * Documents in the given collection, most recently published first.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  recentlyPublishedInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      orderBy(this.publishedInCollection(collectionId), "publishedAt", "desc"),
+    computedFnOptions
+  );
 
-  alphabeticalInCollection(collectionId: string): Document[] {
-    return naturalSort(this.inCollection(collectionId), "title");
-  }
+  /**
+   * Documents in the given collection, in natural order of title.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  alphabeticalInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      naturalSort(this.inCollection(collectionId), "title"),
+    computedFnOptions
+  );
 
-  popularInCollection(collectionId: string): Document[] {
-    return orderBy(this.inCollection(collectionId), "popularityScore", "desc");
+  /**
+   * Documents in the given collection, most popular first.
+   *
+   * @param collectionId the ID of the collection.
+   * @returns the matching documents.
+   */
+  popularInCollection = computedFn(
+    (collectionId: string): Document[] =>
+      orderBy(this.inCollection(collectionId), "popularityScore", "desc"),
+    computedFnOptions
+  );
+
+  /**
+   * Evict every document belonging to a collection from the store, for use when
+   * the current user has lost access to the collection's documents.
+   *
+   * @param collectionId the ID of the collection to evict documents for.
+   */
+  @action
+  removeInCollection(collectionId: string) {
+    this.orderedData
+      .filter((document) => document.collectionId === collectionId)
+      .forEach((document) => this.remove(document.id, { permanent: true }));
   }
 
   get(id: string): Document | undefined {
@@ -205,11 +310,20 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
-  @computed
-  get deleted(): Document[] {
-    return orderBy(this.orderedData, "deletedAt", "desc").filter(
-      (d) => d.deletedAt
-    );
+  /**
+   * Documents that are in the trash, optionally narrowed to those deleted by a
+   * particular user and/or within a particular time frame.
+   *
+   * @param options the filters to apply.
+   * @returns the matching deleted documents, most recently deleted first.
+   */
+  deleted(
+    options: {
+      dateFilter?: DateFilter;
+      userId?: string;
+    } = {}
+  ): Document[] {
+    return this.deletedFiltered(options.dateFilter, options.userId);
   }
 
   @computed
@@ -217,34 +331,21 @@ export default class DocumentsStore extends Store<Document> {
     return this.drafts().length;
   }
 
-  drafts = (
+  /**
+   * Unpublished documents, optionally narrowed to a collection and/or a time
+   * frame.
+   *
+   * @param options the filters to apply.
+   * @returns the matching drafts, most recently updated first.
+   */
+  drafts(
     options: PaginationParams & {
       dateFilter?: DateFilter;
       collectionId?: string;
     } = {}
-  ): Document[] => {
-    let drafts = filter(
-      orderBy(this.all, "updatedAt", "desc"),
-      (doc) => !doc.publishedAt
-    );
-
-    if (options.dateFilter) {
-      drafts = filter(
-        drafts,
-        (draft) =>
-          new Date(draft.updatedAt) >=
-          subtractDate(new Date(), options.dateFilter || "year")
-      );
-    }
-
-    if (options.collectionId) {
-      drafts = filter(drafts, {
-        collectionId: options.collectionId,
-      });
-    }
-
-    return drafts;
-  };
+  ): Document[] {
+    return this.draftsFiltered(options.dateFilter, options.collectionId);
+  }
 
   @computed
   get active(): Document | undefined {
@@ -258,7 +359,7 @@ export default class DocumentsStore extends Store<Document> {
     const res = await client.post("/relationships.list", { documentId });
     invariant(res?.data, "Relationships not available");
 
-    runInAction("DocumentsStore#fetchRelationships", () => {
+    runInAction(() => {
       res.data.documents.forEach(this.add);
       this.addPolicies(res.policies);
 
@@ -303,40 +404,26 @@ export default class DocumentsStore extends Store<Document> {
     });
     invariant(res?.data, "Document list not available");
 
-    runInAction("DocumentsStore#fetchChildDocuments", () => {
+    runInAction(() => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
   };
 
-  @action
   fetchNamedPage = async (
     request = "list",
     options: FetchPageParams | undefined
-  ): Promise<Document[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/documents.${request}`, options);
-      invariant(res?.data, "Document list not available");
-      runInAction("DocumentsStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-      });
-      return res.data;
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  ): Promise<Document[]> =>
+    this.fetchPaginated(`/documents.${request}`, options);
 
   @action
   fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("archived", options);
 
   @action
-  fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("deleted", options);
+  fetchDeleted = async (
+    options?: PaginationParams & { filters?: Filter[] }
+  ): Promise<Document[]> => this.fetchNamedPage("deleted", options);
 
   @action
   fetchRecentlyUpdated = async (
@@ -405,7 +492,7 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    runInAction("DocumentsStore#searchTitles", () => {
+    runInAction(() => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
@@ -436,7 +523,7 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    runInAction("DocumentsStore#search", () => {
+    runInAction(() => {
       res.data.forEach((result: SearchResult) => this.add(result.document));
       this.addPolicies(res.policies);
     });
@@ -583,7 +670,7 @@ export default class DocumentsStore extends Store<Document> {
     return this.add(res.data);
   };
 
-  @action
+  @override
   async delete(
     document: Document,
     options?: {
@@ -597,6 +684,16 @@ export default class DocumentsStore extends Store<Document> {
     // ParanoidModel instances by setting deletedAt.
     if (options?.permanent) {
       this.data.delete(document.id);
+    } else {
+      // remove() only stamps deletedAt, so mirror the server in recording the
+      // acting user against the document and its descendants. The trash relies
+      // on this to filter by who deleted an item before the next fetch.
+      const user = this.rootStore.auth.user ?? undefined;
+      const setDeletedBy = (doc: Document) => {
+        doc.deletedBy = user;
+        doc.childDocuments.forEach(setDeletedBy);
+      };
+      setDeletedBy(document);
     }
 
     // check to see if we have any shares related to this document already
@@ -613,12 +710,20 @@ export default class DocumentsStore extends Store<Document> {
     }
   }
 
+  /**
+   * Archives a document and updates its local state.
+   *
+   * @param document the document to archive.
+   * @param options the archive options.
+   * @returns a promise that resolves when local state is updated.
+   */
   @action
-  archive = async (document: Document) => {
+  archive = async (document: Document, options: { reason?: string } = {}) => {
     const res = await client.post("/documents.archive", {
       id: document.id,
+      reason: options.reason,
     });
-    runInAction("Document#archive", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       document.updateData(res.data);
       this.addPolicies(res.policies);
@@ -642,7 +747,7 @@ export default class DocumentsStore extends Store<Document> {
       revisionId: options.revisionId,
       collectionId: options.collectionId,
     });
-    runInAction("Document#restore", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       document.updateData(res.data);
       this.addPolicies(res.policies);
@@ -665,7 +770,7 @@ export default class DocumentsStore extends Store<Document> {
       ...options,
     });
 
-    runInAction("Document#unpublish", () => {
+    runInAction(() => {
       invariant(res?.data, "Data should be available");
       // unpublishing could sometimes detach the document from the collection.
       // so, get the collection id before data is updated.
@@ -685,7 +790,7 @@ export default class DocumentsStore extends Store<Document> {
   emptyTrash = async () => {
     await client.post("/documents.empty_trash");
 
-    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    const documentIdsSet = new Set(this.deleted().map((doc) => doc.id));
     // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
     // For permanent deletion (empty trash), we need to hard delete from the store
@@ -725,4 +830,67 @@ export default class DocumentsStore extends Store<Document> {
       ? this.rootStore.collections.get(document.collectionId)
       : undefined;
   }
+
+  private archivedInCollectionAt = computedFn(
+    (collectionId: string, archivedAt: string | undefined): Document[] =>
+      this.orderedData.filter(
+        (document) =>
+          document.collectionId === collectionId &&
+          document.isArchived &&
+          !document.isDeleted &&
+          (archivedAt === undefined || document.archivedAt === archivedAt)
+      ),
+    computedFnOptions
+  );
+
+  private deletedFiltered = computedFn(
+    (
+      dateFilter: DateFilter | undefined,
+      userId: string | undefined
+    ): Document[] => {
+      let deleted = orderBy(this.orderedData, "deletedAt", "desc").filter(
+        (d) => d.deletedAt
+      );
+
+      if (userId) {
+        deleted = deleted.filter(
+          (document) => document.deletedBy?.id === userId
+        );
+      }
+
+      if (dateFilter) {
+        const cutoff = subtractDate(new Date(now(60000)), dateFilter);
+        deleted = deleted.filter(
+          (document) =>
+            !!document.deletedAt && new Date(document.deletedAt) >= cutoff
+        );
+      }
+
+      return deleted;
+    },
+    computedFnOptions
+  );
+
+  private draftsFiltered = computedFn(
+    (
+      dateFilter: DateFilter | undefined,
+      collectionId: string | undefined
+    ): Document[] => {
+      let drafts = orderBy(this.all, "updatedAt", "desc").filter(
+        (doc) => !doc.publishedAt
+      );
+
+      if (dateFilter) {
+        const cutoff = subtractDate(new Date(now(60000)), dateFilter);
+        drafts = drafts.filter((draft) => new Date(draft.updatedAt) >= cutoff);
+      }
+
+      if (collectionId) {
+        drafts = drafts.filter((draft) => draft.collectionId === collectionId);
+      }
+
+      return drafts;
+    },
+    computedFnOptions
+  );
 }

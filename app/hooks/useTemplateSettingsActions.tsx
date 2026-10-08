@@ -1,16 +1,17 @@
 import * as React from "react";
-import { DuplicateIcon, EditIcon } from "outline-icons";
+import { EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import type Template from "~/models/Template";
 import { ActionSeparator, createAction } from "~/actions";
 import {
   copyTemplate,
-  createDocumentFromTemplate,
   deleteTemplate,
+  duplicateTemplate,
   moveTemplate,
+  publishTemplate,
 } from "~/actions/definitions/templates";
+import { ActiveTemplateSection } from "~/actions/sections";
 import usePolicy from "~/hooks/usePolicy";
-import useStores from "~/hooks/useStores";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 /**
@@ -25,10 +26,8 @@ export function useTemplateSettingsActions(
   onEdit?: () => void
 ) {
   const { t } = useTranslation();
-  const { templates } = useStores();
-  const can = usePolicy(template ?? ({} as Template));
+  const can = usePolicy(template);
 
-  const section = "Template";
   const actions = React.useMemo(
     () =>
       !template
@@ -38,24 +37,18 @@ export function useTemplateSettingsActions(
               name: `${t("Edit")}…`,
               visible: !!can.update && !!onEdit,
               icon: <EditIcon />,
-              section,
+              section: ActiveTemplateSection,
               perform: () => onEdit?.(),
             }),
-            createAction({
-              name: t("Duplicate"),
-              visible: !!can.duplicate,
-              icon: <DuplicateIcon />,
-              section,
-              perform: () => templates.duplicate(template),
-            }),
+            publishTemplate,
+            duplicateTemplate,
             moveTemplate,
             ActionSeparator,
-            createDocumentFromTemplate,
             copyTemplate,
             ActionSeparator,
             deleteTemplate,
           ],
-    [can.update, can.duplicate, onEdit, t, template, templates]
+    [can.update, onEdit, t, template]
   );
 
   return useMenuAction(actions);

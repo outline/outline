@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import type S3Storage from "./S3Storage";
 
 const { mockEnv, mockGetS3SignedUrl, mockGetCloudFrontSignedUrl } = vi.hoisted(

@@ -9,7 +9,10 @@ import {
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
-import { sequelize } from "@server/storage/database";
+import {
+  retryOnUniqueConstraintError,
+  sequelize,
+} from "@server/storage/database";
 import type { APIContext } from "@server/types";
 
 type TeamProvisionerResult = {
@@ -128,15 +131,19 @@ async function teamProvisioner(
     throw InvalidAuthenticationError();
   }
 
-  // We cannot find an existing team, so we create a new one
-  const team = await sequelize.transaction((transaction) =>
-    teamCreator(createContext({ transaction }), {
-      name,
-      domain,
-      subdomain,
-      avatarUrl,
-      authenticationProviders: [authenticationProvider],
-    })
+  // We cannot find an existing team, so we create a new one. Two concurrent
+  // signups can pick the same available subdomain, so retry on a conflict –
+  // the next attempt will see the committed team and choose another.
+  const team = await retryOnUniqueConstraintError(() =>
+    sequelize.transaction((transaction) =>
+      teamCreator(createContext({ transaction }), {
+        name,
+        domain,
+        subdomain,
+        avatarUrl,
+        authenticationProviders: [authenticationProvider],
+      })
+    )
   );
 
   return {

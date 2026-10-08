@@ -6,7 +6,7 @@ import { generateOAuthStateNonce } from "~/utils/oauth";
 import { redirectTo } from "~/utils/urls";
 import { LinearOAuthNonceCookie, LinearUtils } from "../../shared/LinearUtils";
 
-export function LinearConnectButton(props: Props<HTMLButtonElement>) {
+export function LinearConnectButton(props: Props<"button">) {
   const { t } = useTranslation();
   const team = useCurrentTeam();
 

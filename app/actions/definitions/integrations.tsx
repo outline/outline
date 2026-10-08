@@ -1,6 +1,6 @@
 import { TrashIcon } from "outline-icons";
-import stores from "~/stores";
 import { createAction } from "..";
+import { dialogActionFactory } from "./common";
 import { SettingsSection } from "../sections";
 import type Integration from "~/models/Integration";
 import { DisconnectAnalyticsDialog } from "~/scenes/Settings/components/DisconnectAnalyticsDialog";
@@ -8,7 +8,7 @@ import type { IntegrationType } from "@shared/types";
 import { settingsPath } from "@shared/utils/routeHelpers";
 import history from "~/utils/history";
 
-export const disconnectIntegrationFactory = (integration?: Integration) =>
+export const disconnectIntegrationActionFactory = (integration?: Integration) =>
   createAction({
     name: ({ t }) => t("Disconnect"),
     analyticsName: "Disconnect integration",
@@ -25,23 +25,20 @@ export const disconnectIntegrationFactory = (integration?: Integration) =>
     },
   });
 
-export const disconnectAnalyticsIntegrationFactory = (
+export const disconnectAnalyticsIntegrationActionFactory = (
   integration?: Integration<IntegrationType.Analytics>
 ) =>
-  createAction({
-    name: ({ t }) => t("Disconnect analytics"),
+  dialogActionFactory({
     analyticsName: "Disconnect analytics",
     section: SettingsSection,
+    name: (t) => t("Disconnect analytics"),
+    title: (t) => t("Disconnect analytics"),
+    content: () =>
+      integration ? (
+        <DisconnectAnalyticsDialog integration={integration} />
+      ) : null,
     icon: <TrashIcon />,
     keywords: "disconnect",
+    stopEvent: true,
     visible: () => !!integration,
-    perform: ({ t, event }) => {
-      event?.preventDefault();
-      event?.stopPropagation();
-
-      stores.dialogs.openModal({
-        title: t("Disconnect analytics"),
-        content: <DisconnectAnalyticsDialog integration={integration!} />,
-      });
-    },
   });

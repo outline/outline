@@ -92,6 +92,7 @@ export type MarkdownAttachmentManifestItem = z.infer<
 export interface MarkdownImportScratch {
   storageKey: string;
   manifest?: MarkdownAttachmentManifestItem[];
+  docMap?: Record<string, string>;
 }
 
 /**
@@ -128,7 +129,7 @@ export interface JSONImportScratch {
  * Per-importer scratch shape stored on `Import.scratch`. Holds cross-phase
  * state that the importer needs between bootstrap and completion but that
  * isn't part of any single task's input. Cleared when the import flips to
- * `Processed`.
+ * `Completed`.
  */
 export type ImportScratch<T extends ImportableIntegrationService> = T extends
   | IntegrationService.Markdown
@@ -157,7 +158,6 @@ export interface MarkdownPageImportTaskInputItem {
   path: string;
   markdownText: string;
   attachmentMap: MarkdownAttachmentManifestItem[];
-  docMap: Record<string, string>;
   children?: MarkdownPageImportTaskInputItem[];
 }
 

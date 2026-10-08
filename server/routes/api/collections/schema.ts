@@ -1,10 +1,12 @@
 import { isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
+import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
 } from "@shared/types";
+import { DeprecationValidation } from "@shared/validations";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
@@ -62,6 +64,17 @@ export const CollectionsCreateSchema = BaseSchema.extend({
 });
 
 export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
+
+export const CollectionsDuplicateSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** New collection name */
+    name: z.string().optional(),
+  }),
+});
+
+export type CollectionsDuplicateReq = z.infer<
+  typeof CollectionsDuplicateSchema
+>;
 
 export const CollectionsInfoSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
@@ -179,6 +192,12 @@ export type CollectionsExportAllReq = z.infer<
 
 export const CollectionsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** The reason the collection is archived. */
+    deprecatedReason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
     name: z.string().optional(),
     description: z.string().nullish(),
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
@@ -204,27 +223,72 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
 
 export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
 
+const collectionListFilter = createFilterSchema({
+  name: "string",
+  createdAt: "date",
+  updatedAt: "date",
+  archivedAt: "date",
+  createdById: "uuid",
+  permission: {
+    kind: "string",
+    operators: ["eq", "neq", "in", "notIn", "isNull", "isNotNull"],
+    values: Object.values(CollectionPermission),
+  },
+} as const);
+
 export const CollectionsListSchema = BaseSchema.extend({
   body: z.object({
     includeListOnly: z.boolean().prefault(false),
 
+    /**
+     * Filter results by collection name.
+     * @deprecated use `filters` with field `name` and operator `contains` instead.
+     */
     query: z.string().optional(),
 
-    /** Collection statuses to include in results */
+    /**
+     * Collection statuses to include in results.
+     * @deprecated use `filters` with field `archivedAt` instead.
+     */
     statusFilter: z.enum(CollectionStatusFilter).array().optional(),
+
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: collectionListFilter.FilterListSchema.optional(),
   }),
-});
+}).refine(
+  (req) =>
+    req.body.filters === undefined ||
+    (req.body.query === undefined && req.body.statusFilter === undefined),
+  {
+    message:
+      "filters cannot be combined with deprecated parameters query or statusFilter",
+  }
+);
 
 export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
 
 export const CollectionsDeleteSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for deleting the collection. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type CollectionsDeleteReq = z.infer<typeof CollectionsDeleteSchema>;
 
 export const CollectionsArchiveSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** The reason for archiving the collection. */
+    reason: z
+      .string()
+      .trim()
+      .max(DeprecationValidation.maxReasonLength)
+      .nullish(),
+  }),
 });
 
 export type CollectionsArchiveReq = z.infer<typeof CollectionsArchiveSchema>;

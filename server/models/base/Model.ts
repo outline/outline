@@ -4,6 +4,7 @@ import type {
   Attributes,
   CreateOptions,
   CreationAttributes,
+  DestroyOptions,
   FindOptions,
   FindOrCreateOptions,
   ModelStatic,
@@ -50,6 +51,13 @@ class Model<
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
+  /**
+   * Disables Sequelize's public class field detection, which reports a false positive for the
+   * per-instance accessors that sequelize-strict-attributes installs on attributes omitted from
+   * a query's selection.
+   */
+  static _overwrittenAttributesChecked = true;
+
   /**
    * The namespace to use for events - defaults to the table name if none is provided.
    */
@@ -181,6 +189,34 @@ class Model<
   }
 
   /**
+   * Destroys every row that matches the given options, publishing an event for
+   * each. Rows are matched when the destroy runs, so rows written after the
+   * options were prepared are destroyed too.
+   *
+   * @param ctx The API context.
+   * @param options The destroy options.
+   * @param eventOpts Optional event override options.
+   * @returns the number of destroyed rows.
+   */
+  public static destroyWithCtx<M extends Model>(
+    this: ModelStatic<M>,
+    ctx: APIContext,
+    options: DestroyOptions<Attributes<M>>,
+    eventOpts?: EventOverrideOptions
+  ) {
+    const hookContext = {
+      ...ctx.context,
+      ...options,
+      individualHooks: true,
+      event: {
+        ...eventOpts,
+        publish: true,
+      },
+    };
+    return this.destroy(hookContext);
+  }
+
+  /**
    * Builds a new model instance and calls save on it.
    */
   public static createWithCtx<M extends Model>(
@@ -283,33 +319,58 @@ class Model<
       );
     }
 
+    const collectionId =
+      "collectionId" in model
+        ? model.collectionId
+        : model instanceof models.collection
+          ? model.id
+          : undefined;
+
+    const documentId =
+      "documentId" in model
+        ? model.documentId
+        : model instanceof models.document
+          ? model.id
+          : undefined;
+
+    let teamId =
+      "teamId" in model
+        ? model.teamId
+        : model instanceof models.team
+          ? model.id
+          : context.auth?.user?.teamId;
+
+    // Membership-style models (e.g. UserMembership, GroupMembership) carry no
+    // teamId of their own, so derive it from the associated document or
+    // collection when the mutating context has no authenticated team. This
+    // guarantees events are never persisted without a team.
+    if (!teamId && (documentId || collectionId)) {
+      const parent = documentId
+        ? await models.document.unscoped().findByPk(documentId, {
+            attributes: ["teamId"],
+            paranoid: false,
+            transaction: context.transaction,
+          })
+        : await models.collection.unscoped().findByPk(collectionId, {
+            attributes: ["teamId"],
+            paranoid: false,
+            transaction: context.transaction,
+          });
+      teamId = parent?.getDataValue("teamId") ?? teamId;
+    }
+
     const attrs = {
       name: `${namespace}.${context.event.name ?? name}`,
       modelId: "modelId" in model ? model.modelId : model.id,
-      collectionId:
-        "collectionId" in model
-          ? model.collectionId
-          : model instanceof models.collection
-            ? model.id
-            : undefined,
-      documentId:
-        "documentId" in model
-          ? model.documentId
-          : model instanceof models.document
-            ? model.id
-            : undefined,
+      collectionId,
+      documentId,
       userId:
         "userId" in model
           ? model.userId
           : model instanceof models.user
             ? model.id
             : undefined,
-      teamId:
-        "teamId" in model
-          ? model.teamId
-          : model instanceof models.team
-            ? model.id
-            : context.auth?.user.teamId,
+      teamId,
       actorId:
         context.auth?.user?.id ??
         (model instanceof models.user && name === "create"

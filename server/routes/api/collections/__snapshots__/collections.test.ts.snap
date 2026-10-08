@@ -45,6 +45,15 @@ exports[`#collections.delete > should require authentication 1`] = `
 }
 `;
 
+exports[`#collections.duplicate > should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#collections.export > should require authentication 1`] = `
 {
   "error": "authentication_required",

@@ -17,7 +17,6 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 import { Minute } from "@shared/utils/time";
 import { addSeconds } from "date-fns";
 
@@ -32,7 +31,6 @@ export type TokenRefreshCallback = (
 ) => Promise<TokenRefreshResponse>;
 
 @Table({ tableName: "authentications", modelName: "authentication" })
-@Fix
 class IntegrationAuthentication extends IdModel<
   InferAttributes<IntegrationAuthentication>,
   Partial<InferCreationAttributes<IntegrationAuthentication>>

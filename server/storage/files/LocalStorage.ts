@@ -2,6 +2,7 @@ import { Blob } from "node:buffer";
 import { mkdir, unlink, rmdir } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";
@@ -11,6 +12,7 @@ import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
+import { getTokenFromCookie } from "@server/utils/csrf";
 import BaseStorage from "./BaseStorage";
 import { CSRF } from "@shared/constants";
 import type { AppContext } from "@server/types";
@@ -36,7 +38,7 @@ export default class LocalStorage extends BaseStorage {
         maxUploadSize: String(maxUploadSize),
         contentType,
         sig,
-        [CSRF.fieldName]: ctx.cookies.get(CSRF.cookieName) || "",
+        [CSRF.fieldName]: getTokenFromCookie(ctx) ?? "",
       },
     });
   }
@@ -82,19 +84,9 @@ export default class LocalStorage extends BaseStorage {
     // Create the file on disk first
     await fs.createFile(filePath);
 
-    return new Promise<string>((resolve, reject) => {
-      const dest = fs
-        .createWriteStream(filePath)
-        .on("error", reject)
-        .on("finish", () => resolve(this.getUrlForKey(key)));
+    await pipeline(src, fs.createWriteStream(filePath));
 
-      src
-        .on("error", (err) => {
-          dest.end();
-          reject(err);
-        })
-        .pipe(dest);
-    });
+    return this.getUrlForKey(key);
   };
 
   public async deleteFile(key: string) {
@@ -125,6 +117,9 @@ export default class LocalStorage extends BaseStorage {
       {
         key,
         type: "attachment",
+        iat: Math.floor(
+          LocalStorage.getSigningDate(expiresIn).getTime() / 1000
+        ),
       },
       env.SECRET_KEY,
       {
@@ -189,6 +184,12 @@ export default class LocalStorage extends BaseStorage {
       env.FILE_STORAGE_LOCAL_ROOT_DIR,
       "FILE_STORAGE_LOCAL_ROOT_DIR is required"
     );
+
+    // resolve-path only rejects a path that climbs above the root, it will
+    // silently normalize one that moves between buckets inside it.
+    if (key.split(/[\\/]/).includes("..")) {
+      throw ValidationError(`Invalid file key ${key}`);
+    }
 
     return safeResolvePath(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
   }

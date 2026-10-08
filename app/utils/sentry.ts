@@ -4,6 +4,7 @@ import env from "~/env";
 import {
   AuthorizationError,
   BadRequestError,
+  ClientClosedRequestError,
   NetworkError,
   NotFoundError,
   OfflineError,
@@ -12,6 +13,7 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
+import { staleChunkErrorPattern } from "@shared/utils/lazyWithRetry";
 
 /**
  * Initializes the Sentry error tracking client for the browser.
@@ -22,6 +24,7 @@ export function initSentry(history: History) {
   const ignoredErrorTypes = [
     AuthorizationError,
     BadRequestError,
+    ClientClosedRequestError,
     NetworkError,
     NotFoundError,
     OfflineError,
@@ -38,13 +41,22 @@ export function initSentry(history: History) {
     tunnel: env.SENTRY_TUNNEL,
     allowUrls: [env.URL, env.CDN_URL, env.COLLABORATION_URL],
     integrations: [Sentry.reactRouterV5BrowserTracingIntegration({ history })],
-    tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1,
+    ignoreSpans: [
+      // Resource timing spans are emitted for every subresource of a pageload (scripts)
+      { op: /^resource\./ },
+      // Connection phases of a pageload, per Sentry's recommended defaults
+      { op: /^browser\.(cache|connect|DNS)$/ },
+      // Performance marks and measures are mostly emitted by third-party browser extensions
+      { op: /^(mark|measure)$/ },
+    ],
+    tracesSampleRate: env.ENVIRONMENT === "production" ? 0.05 : 1,
     ignoreErrors: [
-      "Failed to fetch dynamically imported module",
-      "Importing a module script failed",
+      staleChunkErrorPattern,
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "Object Not Found Matching Id",
+      // Telegram's Android in-app browser calls a missing native bridge method
+      /Error invoking post\w*: Method not found/,
       "file://",
       "chrome-extension://",
     ],

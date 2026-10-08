@@ -31,6 +31,11 @@ export default class SimpleImage extends Node {
     return "image";
   }
 
+  /** The component relies on load events to reveal the image, and `toDOM` already emits a plain img. */
+  get allowComponentInStaticHTML() {
+    return false;
+  }
+
   get schema(): NodeSpec {
     return {
       inline: true,
@@ -90,8 +95,13 @@ export default class SimpleImage extends Node {
   handleClick =
     ({ view, getPos }: ComponentProps) =>
     () => {
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       this.editor.updateActiveLightboxImage(
-        LightboxImageFactory.createLightboxImage(view, getPos())
+        LightboxImageFactory.createLightboxImage(view, pos)
       );
     };
 

@@ -1,4 +1,4 @@
-import { QueryTypes, type Transaction } from "sequelize";
+import { type InferAttributes, QueryTypes, type Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import type { Document, User } from "@server/models";
@@ -19,6 +19,9 @@ type Props = {
   resubscribe?: boolean;
 };
 
+/** A subscription row with a flag reporting whether the upsert inserted it. */
+type SubscriptionRow = InferAttributes<Subscription> & { inserted: boolean };
+
 /**
  * This command creates a subscription of a user to a document.
  *
@@ -33,15 +36,15 @@ export default async function subscriptionCreator({
 }: Props): Promise<Subscription> {
   const { user } = ctx.state.auth;
 
-  let rows;
+  let rows: SubscriptionRow[];
   const now = new Date();
   if (documentId) {
-    rows = await sequelize.query(
+    rows = await sequelize.query<SubscriptionRow>(
       `INSERT INTO subscriptions ("id", "userId", "documentId", "event", "createdAt", "updatedAt")
        VALUES (gen_random_uuid(), :userId, :documentId, :event, :now, :now)
        ON CONFLICT ("userId", "documentId", "event")
        DO UPDATE SET "updatedAt" = EXCLUDED."updatedAt"
-       RETURNING *`,
+       RETURNING *, (xmax = 0) AS "inserted"`,
       {
         replacements: {
           userId: user.id,
@@ -54,12 +57,12 @@ export default async function subscriptionCreator({
       }
     );
   } else if (collectionId) {
-    rows = await sequelize.query(
+    rows = await sequelize.query<SubscriptionRow>(
       `INSERT INTO subscriptions ("id", "userId", "collectionId", "event", "createdAt", "updatedAt")
        VALUES (gen_random_uuid(), :userId, :collectionId, :event, :now, :now)
        ON CONFLICT ("userId", "collectionId", "event")
        DO UPDATE SET "updatedAt" = EXCLUDED."updatedAt"
-       RETURNING *`,
+       RETURNING *, (xmax = 0) AS "inserted"`,
       {
         replacements: {
           userId: user.id,
@@ -79,15 +82,15 @@ export default async function subscriptionCreator({
     throw new Error("Failed to create or find subscription");
   }
 
-  // Build subscription instance from the returned row
-  const subscription = Subscription.build(rows[0], {
+  // xmax is zero only for a row this statement inserted.
+  const { inserted, ...row } = rows[0];
+  const subscription = Subscription.build(row, {
     isNewRecord: false,
     include: [],
     raw: true,
   });
 
-  const isNew = subscription.createdAt.getTime() === now.getTime();
-  if (isNew) {
+  if (inserted) {
     await Event.createFromContext(ctx, {
       name: "subscriptions.create",
       modelId: subscription.id,

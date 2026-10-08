@@ -29,6 +29,14 @@ const topHandlerNames = [
 const isWithinEditor = (target: EventTarget | null): boolean =>
   target instanceof Element && Boolean(target.closest(".ProseMirror"));
 
+// A file dragged over an element marked `data-drop-area`, which accepts native
+// file drops itself. react-dnd never tracks these drags, so its handlers would
+// otherwise reject them.
+const isFileOverDropArea = (event: DragEvent): boolean =>
+  Boolean(event.dataTransfer?.types.includes("Files")) &&
+  event.target instanceof Element &&
+  Boolean(event.target.closest("[data-drop-area]"));
+
 /**
  * An HTML5 drag-and-drop backend that ignores drag events originating within the
  * rich text editor so that ProseMirror can handle them itself.
@@ -57,16 +65,19 @@ export const EditorAwareHTML5Backend: BackendFactory = (
     const original = handlers[name];
     if (typeof original === "function") {
       handlers[name] = (event: DragEvent) => {
-        if (isWithinEditor(event.target)) {
+        if (isWithinEditor(event.target) || isFileOverDropArea(event)) {
           return;
         }
         // A drag that began or entered the page over the editor is never
         // registered with react-dnd because those events are skipped above.
-        // The backend's drop handler assumes a registered drag and calls
+        // The backend's drop handlers assume a registered drag and may call
         // `actions.hover` unconditionally, which throws "Cannot call hover
         // while not dragging" – so drops without a tracked drag must be
         // ignored here.
-        if (name === "handleTopDrop" && !monitor.isDragging()) {
+        if (
+          (name === "handleTopDrop" || name === "handleTopDropCapture") &&
+          !monitor.isDragging()
+        ) {
           return;
         }
         original.call(backend, event);

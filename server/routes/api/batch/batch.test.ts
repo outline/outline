@@ -3,6 +3,7 @@ import env from "@server/env";
 import type { Document, User } from "@server/models";
 import {
   buildAdmin,
+  buildApiKey,
   buildCollection,
   buildDocument,
   buildUser,
@@ -147,7 +148,7 @@ describe("#batch", () => {
     const res = await server.post("/api/batch", user, {
       body: {
         requests: [
-          { method: "stars.create", body: { documentId: documentOne.id } },
+          { method: "documents.nonexistent", body: { id: documentOne.id } },
         ],
       },
     });
@@ -156,6 +157,44 @@ describe("#batch", () => {
     expect(body.data[0].ok).toBe(false);
     expect(body.data[0].status).toEqual(400);
     expect(body.data[0].error).toEqual("invalid_request");
+  });
+
+  it("should dispatch star requests across resources", async () => {
+    const res = await server.post("/api/batch", user, {
+      body: {
+        requests: [
+          { method: "stars.create", body: { documentId: documentOne.id } },
+          {
+            method: "documents.update",
+            body: { id: documentOne.id, title: "Starred" },
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data[0].ok).toBe(true);
+    expect(body.data[0].data.documentId).toEqual(documentOne.id);
+    expect(body.data[1].ok).toBe(true);
+    expect(body.data[1].data.title).toEqual("Starred");
+  });
+
+  it("should dispatch pin requests in a batch", async () => {
+    const admin = await buildAdmin();
+    const doc = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/batch", admin, {
+      body: {
+        requests: [{ method: "pins.create", body: { documentId: doc.id } }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data[0].ok).toBe(true);
+    expect(body.data[0].data.documentId).toEqual(doc.id);
   });
 
   it("should reject a known endpoint that is not allowlisted", async () => {
@@ -268,6 +307,60 @@ describe("#batch", () => {
       expect(res.status).toEqual(200);
       expect(body.data[0].ok).toBe(false);
       expect(body.data[0].status).toEqual(429);
+    });
+  });
+  describe("credentials", () => {
+    it("should reject an API key, as dispatching requires a session", async () => {
+      const apiKey = await buildApiKey({ userId: user.id, scope: ["write"] });
+
+      const res = await server.post("/api/batch", {
+        headers: { authorization: `Bearer ${apiKey.value}` },
+        body: {
+          requests: [
+            {
+              method: "documents.update",
+              body: { id: documentOne.id, title: "x" },
+            },
+          ],
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+
+    it("should ignore a token in a sub-request body", async () => {
+      // A credential for an unrelated workspace, which the parent request has
+      // no access to. The sub-request must run as the parent's credential.
+      const other = await buildUser();
+      const otherDocument = await buildDocument({
+        userId: other.id,
+        teamId: other.teamId,
+      });
+      const otherKey = await buildApiKey({ userId: other.id, scope: ["*"] });
+      const title = otherDocument.title;
+
+      const res = await server.post(`/api/batch`, user, {
+        body: {
+          requests: [
+            {
+              method: "documents.update",
+              body: {
+                id: otherDocument.id,
+                title: "smuggled",
+                token: otherKey.value,
+              },
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data[0].ok).toBe(false);
+      expect(body.data[0].status).toEqual(403);
+
+      await otherDocument.reload();
+      expect(otherDocument.title).toEqual(title);
     });
   });
 });

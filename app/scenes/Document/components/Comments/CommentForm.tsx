@@ -1,5 +1,6 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { v4 as uuidv4 } from "uuid";
+import type { Transition } from "framer-motion";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
@@ -25,7 +26,7 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
 import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { mergeRefs } from "react-merge-refs";
 import { HStack } from "~/components/primitives/HStack";
 
@@ -60,9 +61,10 @@ type Props = {
   onUpArrowAtStart?: () => void;
   /**
    * Callback invoked when a new top-level comment is about to be created,
-   * just before it is added to the store. Receives the generated comment id.
+   * just before it is added to the store. Receives the comment model, which
+   * may be modified, e.g. to set a pending anchor before submission.
    */
-  onBeforeCreate?: (commentId: string) => void;
+  onBeforeCreate?: (comment: Comment) => void;
 };
 
 function CommentForm({
@@ -136,7 +138,11 @@ function CommentForm({
       .save({
         documentId,
         data: draft,
+        ...thread?.pendingAnchor,
       })
+      // Note: pendingAnchor is intentionally kept after saving — it continues
+      // to provide the highlighted snippet until the server-applied mark
+      // arrives through the collaboration sync.
       .then(() => onSubmit?.())
       .catch(() => {
         onSaveDraft(commentDraft);
@@ -204,12 +210,17 @@ function CommentForm({
 
     comment.id = uuidv4();
     if (!thread) {
-      onBeforeCreate?.(comment.id);
+      onBeforeCreate?.(comment);
     }
     comments.add(comment);
 
     comment
-      .save()
+      .save({
+        documentId,
+        parentCommentId: thread?.id,
+        data: draft,
+        ...comment.pendingAnchor,
+      })
       .then(() => onSubmit?.())
       .catch(() => {
         onSaveDraft(commentDraft);
@@ -293,7 +304,7 @@ function CommentForm({
 
   // Focus the editor when it's a new comment just mounted
   const handleMounted = React.useCallback(
-    (ref) => {
+    (ref: SharedEditor | null) => {
       if (autoFocus && ref && !hasFocusedOnMount.current) {
         if (!draft) {
           ref.focusAtStart();
@@ -316,7 +327,7 @@ function CommentForm({
           transition: {
             duration: 0.2,
             ease: "easeOut",
-          },
+          } satisfies Transition,
         },
         exit: {
           opacity: 0,
@@ -324,17 +335,17 @@ function CommentForm({
           transition: {
             duration: 0.2,
             ease: "easeOut",
-          },
+          } satisfies Transition,
         },
       }
     : {};
 
   return (
     <m.form
-      ref={formRef}
-      onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
       {...presence}
       {...rest}
+      ref={formRef}
+      onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
     >
       <VisuallyHidden.Root>
         <input

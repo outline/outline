@@ -8,8 +8,8 @@ const LoadingIndicatorBar = () => (
 );
 
 const loadingFrame = keyframes`
-  from { margin-left: -100%; }
-  to { margin-left: 100%; }
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 `;
 
 const Container = styled.div`
@@ -19,7 +19,7 @@ const Container = styled.div`
   width: 100%;
   animation: ${loadingFrame} 4s ease-in-out infinite;
   animation-delay: 250ms;
-  margin-left: -100%;
+  transform: translateX(-100%);
 `;
 
 const Loader = styled.div`

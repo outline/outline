@@ -9,6 +9,11 @@ import type { Searchable } from "./interfaces/Searchable";
 class ApiKey extends Model implements Searchable {
   static modelName = "ApiKey";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /** The human-readable name of this API key */
   @Field
   @observable
@@ -17,17 +22,14 @@ class ApiKey extends Model implements Searchable {
   /** A list of scopes that this API key has access to. If empty, the key has full access. */
   @Field
   @observable
-  scope?: string[];
-
+  scope?: string[] = undefined;
   /** An optional datetime that the API key expires. */
   @Field
   @observable
-  expiresAt?: string;
-
+  expiresAt?: string = undefined;
   /** Timestamp that the API key was last used. */
   @observable
-  lastActiveAt?: string;
-
+  lastActiveAt?: string = undefined;
   /** The user who this API key belongs to. */
   @Relation(() => User)
   user: User;

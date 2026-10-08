@@ -13,7 +13,6 @@ import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
   withUser: {
@@ -25,7 +24,6 @@ import Fix from "./decorators/Fix";
   },
 }))
 @Table({ tableName: "subscriptions", modelName: "subscription" })
-@Fix
 class Subscription extends ParanoidModel<
   InferAttributes<Subscription>,
   Partial<InferCreationAttributes<Subscription>>

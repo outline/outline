@@ -20,11 +20,11 @@ import { type ImportInput, type ImportScratch } from "@shared/schema";
 import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import { UnprocessableEntityError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -38,7 +38,6 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   ],
 }))
 @Table({ tableName: "imports", modelName: "import" })
-@Fix
 class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   InferAttributes<Import<T>>,
   Partial<InferCreationAttributes<Import<T>>>
@@ -107,6 +106,16 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @BeforeCreate
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   static async checkInProgress(model: Import<any>, options: SaveOptions) {
+    const { transaction } = options;
+
+    // Serialize concurrent creation for the team, otherwise every request can
+    // read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `imports:${model.teamId}`,
+      transaction
+    );
+
     const inProgress = await this.count({
       where: {
         teamId: model.teamId,
@@ -116,7 +125,7 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
           ImportState.Processed,
         ],
       },
-      transaction: options.transaction,
+      transaction,
     });
     if (inProgress) {
       throw UnprocessableEntityError("An import is already in progress");

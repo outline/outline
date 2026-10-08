@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import Icon from "@shared/components/Icon";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import type Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 

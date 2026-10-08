@@ -1,9 +1,9 @@
-import type { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import { normalizeKeyDisplay, shortcutSeparator } from "@shared/utils/keyboard";
+import type { CommandBarActionImpl } from "~/actions";
 import Highlight from "~/components/Highlight";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
@@ -11,9 +11,10 @@ import Text from "~/components/Text";
 import { HStack } from "../primitives/HStack";
 
 type Props = {
-  action: ActionImpl;
+  action: CommandBarActionImpl;
   active: boolean;
   currentRootActionId: string | null | undefined;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -24,10 +25,7 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
-function CommandBarItem(
-  { action, active, currentRootActionId }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function CommandBarItem({ action, active, currentRootActionId, ref }: Props) {
   const theme = useTheme();
   const ancestors = React.useMemo(() => {
     if (!currentRootActionId || !action.ancestors) {
@@ -76,33 +74,43 @@ function CommandBarItem(
           </Text>
         )}
       </Content>
-      {action.shortcut?.length ? (
-        <Shortcut>
-          {action.shortcut.map((sc: string, index) => (
-            <React.Fragment key={sc}>
-              {index > 0 ? (
-                <>
-                  {" "}
-                  <Text size="xsmall" type="secondary">
-                    then
-                  </Text>{" "}
-                </>
-              ) : (
-                ""
-              )}
-              {sc.split("+").flatMap((key, i, arr) => {
-                const el = <Key key={key}>{normalizeKeyDisplay(key)}</Key>;
-                return i < arr.length - 1 && shortcutSeparator
-                  ? [el, shortcutSeparator]
-                  : [el];
-              })}
-            </React.Fragment>
-          ))}
-        </Shortcut>
+      {action.badge || action.shortcut?.length ? (
+        <Trailing>
+          {action.badge}
+          {action.shortcut?.length ? (
+            <Shortcut>
+              {action.shortcut.map((sc: string, index) => (
+                <React.Fragment key={sc}>
+                  {index > 0 ? (
+                    <>
+                      {" "}
+                      <Text size="xsmall" type="secondary">
+                        then
+                      </Text>{" "}
+                    </>
+                  ) : (
+                    ""
+                  )}
+                  {sc.split("+").flatMap((key, i, arr) => {
+                    const el = <Key key={key}>{normalizeKeyDisplay(key)}</Key>;
+                    return i < arr.length - 1 && shortcutSeparator
+                      ? [el, shortcutSeparator]
+                      : [el];
+                  })}
+                </React.Fragment>
+              ))}
+            </Shortcut>
+          ) : null}
+        </Trailing>
       ) : null}
     </Item>
   );
 }
+
+const Trailing = styled(HStack).attrs({ spacing: 4 })`
+  flex-shrink: 0;
+  padding-left: 8px;
+`;
 
 const Shortcut = styled.div`
   display: grid;
@@ -158,4 +166,4 @@ const ForwardIcon = styled(BackIcon)`
   flex-shrink: 0;
 `;
 
-export default React.forwardRef<HTMLDivElement, Props>(CommandBarItem);
+export default CommandBarItem;

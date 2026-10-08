@@ -13,9 +13,10 @@ import {
 import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import {
+  canMergeCells,
+  getAllSelectedRows,
   getCellsInRow,
   isMergedCellSelection,
-  isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
 import type {
@@ -99,6 +100,9 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
   }
 
   const tableMap = selectedRect(state);
+  // Inserting and moving act on a single row, so they are ambiguous when the
+  // selection spans more than one.
+  const isMultipleRows = getAllSelectedRows(state).length > 1;
   const rowAlignments = getRowAlignments(state, index);
   const isAlignment = (alignment: string) =>
     rowAlignments.size === 1 && rowAlignments.has(alignment);
@@ -150,15 +154,13 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
           <PaletteIcon />
         ),
       children: [
-        ...[
-          {
-            name: "toggleRowBackgroundAndCollapseSelection",
-            label: t("None"),
-            icon: <DottedCircleIcon color="transparent" />,
-            active: () => (hasBackground ? false : true),
-            attrs: { color: null },
-          },
-        ],
+        {
+          name: "toggleRowBackgroundAndCollapseSelection",
+          label: t("None"),
+          icon: <DottedCircleIcon color="transparent" />,
+          active: () => (hasBackground ? false : true),
+          attrs: { color: null },
+        },
         ...TableCell.presetColors.map((preset) => ({
           name: "toggleRowBackgroundAndCollapseSelection",
           label: preset.name,
@@ -211,26 +213,28 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
       label: t("Insert before"),
       icon: <InsertAboveIcon />,
       attrs: { index },
+      visible: !isMultipleRows,
     },
     {
       name: "addRowAfter",
       label: t("Insert after"),
       icon: <InsertBelowIcon />,
       attrs: { index },
+      visible: !isMultipleRows,
     },
     {
       name: "moveTableRow",
       label: t("Move up"),
       icon: <ArrowUpIcon />,
       attrs: { from: index, to: index - 1 },
-      visible: index > 0,
+      visible: !isMultipleRows && index > 0,
     },
     {
       name: "moveTableRow",
       label: t("Move down"),
       icon: <ArrowDownIcon />,
       attrs: { from: index, to: index + 1 },
-      visible: index < tableMap.map.height - 1,
+      visible: !isMultipleRows && index < tableMap.map.height - 1,
     },
     {
       name: "separator",
@@ -239,7 +243,7 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
       name: "mergeCells",
       label: t("Merge cells"),
       icon: <TableMergeCellsIcon />,
-      visible: isMultipleCellSelection(state),
+      visible: canMergeCells(state),
     },
     {
       name: "splitCell",

@@ -1,6 +1,6 @@
 import type { Node } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import { NodeSelection, Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import {
   getDataTransferFiles,
@@ -45,13 +45,43 @@ export class UploadPlugin extends Plugin {
               return false;
             }
 
-            const { tr } = view.state;
-            if (!tr.selection.empty) {
-              tr.deleteSelection();
-            }
-            const pos = tr.selection.from;
+            const { selection } = view.state;
 
-            void insertFiles(view, event, pos, files, options);
+            // With an image selected, pasting a single image replaces it in
+            // place rather than inserting a second image alongside.
+            if (
+              selection instanceof NodeSelection &&
+              selection.node.type.name === "image" &&
+              files.length === 1 &&
+              FileHelper.isImage(files[0].type) &&
+              !options.isAttachment
+            ) {
+              const { attrs } = selection.node;
+
+              void insertFiles(view, event, selection.from, files, {
+                ...options,
+                replaceExisting: true,
+                attrs: {
+                  width: attrs.width,
+                  height: attrs.height,
+                  alt: attrs.alt,
+                  layoutClass: attrs.layoutClass,
+                },
+              });
+              return true;
+            }
+
+            if (!selection.empty) {
+              view.dispatch(view.state.tr.deleteSelection());
+            }
+
+            void insertFiles(
+              view,
+              event,
+              view.state.selection.from,
+              files,
+              options
+            );
             return true;
           },
           drop(view, event: DragEvent): boolean {

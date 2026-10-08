@@ -12,6 +12,7 @@ import {
 } from "~/actions";
 import type { ActionContext, ExternalLinkAction } from "~/types";
 import Desktop from "~/utils/Desktop";
+import { dialogActionFactory } from "./common";
 import { TeamSection } from "../sections";
 
 export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
@@ -74,22 +75,16 @@ export const createTeam = createAction({
   },
 });
 
-export const desktopLoginTeam = createAction({
-  name: ({ t }) => t("Login to workspace"),
+export const desktopLoginTeam = dialogActionFactory({
   analyticsName: "Login to workspace",
-  keywords: "change switch workspace organization team",
   section: TeamSection,
+  name: (t) => t("Login to workspace"),
+  title: (t) => t("Login to workspace"),
+  content: () => <LoginDialog />,
   icon: <ArrowIcon />,
+  keywords: "change switch workspace organization team",
+  stopEvent: true,
   visible: () => Desktop.isElectron(),
-  perform: ({ t, event, stores }) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    stores.dialogs.openModal({
-      title: t("Login to workspace"),
-      content: <LoginDialog />,
-    });
-  },
 });
 
 const StyledTeamLogo = styled(TeamLogo)`

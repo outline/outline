@@ -50,6 +50,7 @@ import type { locales } from "@shared/utils/date";
 import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import { LockHelper } from "@server/storage/LockHelper";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -68,7 +69,6 @@ import UserMembership from "./UserMembership";
 import UserPasskey from "./UserPasskey";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -133,7 +133,6 @@ export enum UserFlag {
   },
 }))
 @Table({ tableName: "users", modelName: "user" })
-@Fix
 class User extends ParanoidModel<
   InferAttributes<User>,
   Partial<InferCreationAttributes<User>>
@@ -484,12 +483,17 @@ class User extends ParanoidModel<
    * Returns the user's active collection ids. This includes collections the user
    * has access to through group memberships.
    *
-   * @param options Additional options to pass to the find
+   * @param options Additional options to pass to the find, set `skipCache` to bypass the cached response
    * @returns An array of collection ids
    */
-  public collectionIds = async (options: FindOptions<Collection> = {}) => {
+  public collectionIds = async (
+    options: FindOptions<Collection> & { skipCache?: boolean } = {}
+  ) => {
+    const { skipCache, ...findOptions } = options;
     const hasOptions =
-      options.transaction || options.paranoid === false || options.lock;
+      findOptions.transaction ||
+      findOptions.paranoid === false ||
+      findOptions.lock;
 
     const fetchCollectionIds = async () => {
       const collectionStubs = await Collection.findAll({
@@ -547,13 +551,13 @@ class User extends ParanoidModel<
           },
         ],
         paranoid: true,
-        ...options,
+        ...findOptions,
       });
 
       return Array.from(new Set(collectionStubs.map((c) => c.id)));
     };
 
-    if (hasOptions) {
+    if (hasOptions || skipCache) {
       return fetchCollectionIds();
     }
 
@@ -744,6 +748,14 @@ class User extends ParanoidModel<
     model: User,
     { transaction }: { transaction: Transaction }
   ) {
+    // Serialize concurrent deletion within the team, otherwise every request
+    // can read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `users:${model.teamId}`,
+      transaction
+    );
+
     const usersCount = await this.count({
       where: {
         teamId: model.teamId,
@@ -766,6 +778,14 @@ class User extends ParanoidModel<
     if (model.role !== UserRole.Admin) {
       return;
     }
+
+    // Shares the lock name with the check above, so both counts are taken
+    // against a settled team.
+    await LockHelper.acquire(
+      model.sequelize,
+      `users:${model.teamId}`,
+      transaction
+    );
 
     const otherAdminsCount = await this.count({
       where: {
@@ -821,6 +841,14 @@ class User extends ParanoidModel<
       previousRole === UserRole.Admin &&
       UserRoleHelper.isRoleLower(model.role, UserRole.Admin)
     ) {
+      // Shares the lock name with the deletion checks, so a demotion and a
+      // deletion cannot each count the other account as the remaining admin.
+      await LockHelper.acquire(
+        model.sequelize,
+        `users:${model.teamId}`,
+        options.transaction
+      );
+
       const { count } = await this.findAndCountAll({
         where: {
           teamId: model.teamId,
@@ -862,6 +890,30 @@ class User extends ParanoidModel<
           },
         }
       );
+    }
+  }
+
+  // When a user's role changes their set of accessible collections may also
+  // change, so invalidate the cached collection ids.
+  @AfterUpdate
+  static async invalidateCollectionIdsAfterRoleChange(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    if (!model.changed("role")) {
+      return;
+    }
+
+    const invalidate = () =>
+      CacheHelper.removeData(
+        RedisPrefixHelper.getUserCollectionIdsKey(model.id)
+      );
+
+    if (options.transaction) {
+      const transaction = options.transaction.parent || options.transaction;
+      transaction.afterCommit(invalidate);
+    } else {
+      await invalidate();
     }
   }
 

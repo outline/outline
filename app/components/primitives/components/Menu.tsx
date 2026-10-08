@@ -3,7 +3,7 @@ import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -174,16 +174,25 @@ export const MenuShortcut = styled.span`
   align-items: center;
   gap: 2px;
   font-size: 12px;
+  font-feature-settings: "cv08", "zero";
   color: currentColor;
   opacity: 0.5;
   margin-inline-start: 16px;
   flex-shrink: 0;
 `;
 
-export const MenuContent = styled(Scrollable)<{
+type MenuContentProps = {
   maxHeightVar: string;
   transformOriginVar: string;
-}>`
+};
+
+export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
+  (props) => ({
+    // Fades the last item out at the bottom edge when the menu is scrollable.
+    fadeTo: props.theme.menuBackground,
+    bottomShadow: true,
+  })
+)<MenuContentProps>`
   z-index: ${depths.menu};
   min-width: 180px;
   max-width: 320px;
@@ -193,9 +202,18 @@ export const MenuContent = styled(Scrollable)<{
 
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 6px;
-  padding: 6px;
+  ${borderRadius(8)}
+  // Vertical spacing comes from spacers rather than padding so that the bottom
+  // fade, which is confined to the content box, can reach the menu's edge.
+  padding: 0 6px;
   outline: none;
+
+  &::before,
+  &::after {
+    content: "";
+    display: block;
+    height: 6px;
+  }
 
   transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
 

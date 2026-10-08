@@ -2,8 +2,8 @@ import Router from "koa-router";
 import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
-import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
+import { errToId } from "@shared/utils/error";
 import { QueryNotices, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
@@ -35,6 +35,7 @@ import {
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -103,7 +104,12 @@ router.post(
 
       ctx.body = {
         data: {
-          shares: [presentShare(share, user?.isAdmin ?? false)],
+          shares: [
+            presentShare(share, {
+              isAdmin: user?.isAdmin ?? false,
+              isPublic: cannot(user, "read", share),
+            }),
+          ],
           sharedTree,
           team: serializedTeam,
           collection: serializedCollection,
@@ -134,12 +140,14 @@ router.post(
 
       ctx.body = {
         data: {
-          shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
+          shares: shares.map((s) =>
+            presentShare(s, { isAdmin: user.isAdmin ?? false })
+          ),
         },
         policies: presentPolicies(user, shares),
       };
     } catch (err) {
-      if (err instanceof Error && "id" in err && err.id === "not_found") {
+      if (errToId(err) === "not_found") {
         ctx.response.status = 204;
         return;
       }
@@ -170,9 +178,11 @@ router.post(
     };
 
     if (query) {
-      collectionWhere["$collection.name$"] = { [Op.iLike]: `%${query}%` };
+      collectionWhere["$collection.name$"] = {
+        [Op.iLike]: QueryHelper.likeContains(query),
+      };
       documentWhere["$document.title$"] = {
-        [Op.iLike]: `%${query}%`,
+        [Op.iLike]: QueryHelper.likeContains(query),
       };
     }
 
@@ -218,7 +228,7 @@ router.post(
         },
         {
           model: User,
-          required: true,
+          required: false,
           as: "user",
         },
         {
@@ -242,7 +252,9 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: shares.map((share) => presentShare(share, user.isAdmin)),
+      data: shares.map((share) =>
+        presentShare(share, { isAdmin: user.isAdmin })
+      ),
       policies: presentPolicies(user, shares),
     };
   }
@@ -403,7 +415,7 @@ router.post(
     await share.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentShare(share, user.isAdmin),
+      data: presentShare(share, { isAdmin: user.isAdmin }),
       policies: presentPolicies(user, [share]),
     };
   }
@@ -511,8 +523,8 @@ router.post(
         existing.secret = randomString(32);
         existing.email = email;
         await existing.save({ transaction });
-      } else if (existing.createdAt > subMinutes(new Date(), 60)) {
-        // Recently created, not yet confirmed — don't spam
+      } else if (!existing.canResendConfirmation) {
+        // Confirmation was sent recently, not yet confirmed — don't spam
         ctx.body = { success: true };
         return;
       } else {

@@ -1,4 +1,4 @@
-import { OAuthClient, OAuthAuthentication } from "@server/models";
+import { Event, OAuthClient, OAuthAuthentication } from "@server/models";
 import {
   buildOAuthAuthentication,
   buildTeam,
@@ -192,5 +192,60 @@ describe("oauthAuthentications.delete", () => {
     // Verify other user's auth still exists
     const auth = await OAuthAuthentication.findByPk(otherAuth.id);
     expect(auth).not.toBeNull();
+  });
+
+  it("should delete authentications created while the request is in flight", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const oauthClient = await OAuthClient.create({
+      teamId: team.id,
+      createdById: user.id,
+      name: "Test Client",
+      redirectUris: ["https://example.com/callback"],
+    });
+
+    await buildOAuthAuthentication({
+      oauthClientId: oauthClient.id,
+      user,
+      scope: ["read"],
+    });
+
+    // Simulate a token refresh that writes a new authentication after the
+    // request has queried for the authentications to delete.
+    const findAll = OAuthAuthentication.findAll.bind(OAuthAuthentication);
+    vi.spyOn(OAuthAuthentication, "findAll").mockImplementationOnce(
+      async (options) => {
+        const found = await findAll(options);
+        await buildOAuthAuthentication({
+          oauthClientId: oauthClient.id,
+          user,
+          scope: ["read"],
+        });
+        return found;
+      }
+    );
+
+    const res = await server.post("/api/oauthAuthentications.delete", user, {
+      body: {
+        oauthClientId: oauthClient.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const auths = await OAuthAuthentication.findAll({
+      where: {
+        userId: user.id,
+        oauthClientId: oauthClient.id,
+      },
+    });
+    expect(auths.length).toEqual(0);
+
+    const events = await Event.count({
+      where: {
+        name: "oauthAuthentications.delete",
+        userId: user.id,
+      },
+    });
+    expect(events).toEqual(2);
   });
 });

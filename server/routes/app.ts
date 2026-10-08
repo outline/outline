@@ -6,14 +6,17 @@ import { escape } from "es-toolkit/compat";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import {
-  IntegrationType,
   TeamPreference,
+  type IntegrationType,
   type NavigationNode,
 } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
+import { Hour } from "@shared/utils/time";
 import env from "@server/env";
+import { allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
@@ -82,6 +85,7 @@ export const renderApp = async (
     shortcutIcon?: string;
     rootShareId?: string;
     isShare?: boolean;
+    markdownUrl?: string;
     analytics?: Integration<IntegrationType.Analytics>[];
     allowIndexing?: boolean;
   } = {}
@@ -99,18 +103,10 @@ export const renderApp = async (
     return next();
   }
 
-  if (!env.isCloudHosted) {
-    options.analytics?.forEach((integration) => {
-      if (integration.settings?.instanceUrl) {
-        const parsed = new URL(integration.settings?.instanceUrl);
-        const csp = ctx.response.get("Content-Security-Policy");
-        ctx.set(
-          "Content-Security-Policy",
-          csp.replace("script-src", `script-src ${parsed.host}`)
-        );
-      }
-    });
-  }
+  allowScriptSrc(
+    ctx,
+    IntegrationHelper.getAnalyticsScriptSrc(options.analytics)
+  );
 
   const { shareId } = ctx.params;
   const page = await readIndexFile();
@@ -138,9 +134,14 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
+  const alternateTag = options.markdownUrl
+    ? `<link rel="alternate" type="text/markdown" href="${escape(options.markdownUrl)}" />`
+    : "";
+
   let headTags = `
     <meta name="robots" content="${allowIndexing ? "index, follow" : "noindex, nofollow"}" />
     <link rel="canonical" href="${escape(canonical)}" />
+    ${alternateTag}
     <link
       rel="shortcut icon"
       type="image/png"
@@ -184,6 +185,15 @@ export const renderApp = async (
     `;
   }
 
+  // Advertise the markdown representation so that clients can discover it from
+  // the response headers alone, without parsing the page.
+  if (options.markdownUrl) {
+    ctx.response.set(
+      "Link",
+      `<${options.markdownUrl}>; rel="alternate"; type="text/markdown"`
+    );
+  }
+
   // Ensure no caching is performed
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
   ctx.response.set("Expires", "-1");
@@ -207,6 +217,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const shareId = rootShareId ?? ctx.params.shareId;
   const collectionSlug = ctx.params.collectionSlug;
   const documentSlug = ctx.params.documentSlug;
+
+  // The response depends on the Accept header, caches must key on it.
+  ctx.vary("Accept");
 
   // Find the share record if published so that the document title can be returned
   // in the server-rendered HTML. This allows it to appear in unfurls more reliably.
@@ -235,12 +248,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
       return;
     }
 
-    analytics = await Integration.findAll({
-      where: {
-        teamId: share.teamId,
-        type: IntegrationType.Analytics,
-      },
-    });
+    analytics = await Integration.findAnalyticsIntegrationsForTeam(
+      share.teamId
+    );
 
     if (share && !ctx.userAgent.isBot) {
       await share.update(
@@ -258,6 +268,16 @@ export const renderShare = async (ctx: Context, next: Next) => {
     ctx.status = 404;
   }
 
+  // The markdown representation lives at the same path with a .md suffix, only
+  // on the routes that accept a format suffix.
+  const markdownPath = ctx.params.shareId
+    ? `/s/${ctx.params.shareId}${documentSlug ? `/doc/${documentSlug}` : ""}`
+    : undefined;
+  const markdownUrl =
+    markdownPath && markdownPath === ctx.request.path
+      ? `${ctx.request.URL.origin}${markdownPath}.md`
+      : undefined;
+
   // If the client explicitly requests markdown and prefers it over HTML,
   // or the URL path ends with .md, return the document as markdown. This is
   // useful for LLMs and API clients.
@@ -272,6 +292,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
       teamId: team?.id,
+      commonMark: true,
     });
 
     // Append child documents list if the share includes them
@@ -289,6 +310,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
     }
 
     ctx.type = "text/markdown";
+    ctx.response.set("Cache-Control", "no-cache, must-revalidate");
+    ctx.response.set("Expires", "-1");
     ctx.body = markdown;
     return;
   }
@@ -317,7 +340,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
           includeStyles: false,
           includeHead: false,
           includeTitle: true,
-          signedUrls: true,
+          signedUrls: Hour.seconds,
         })
       : undefined;
 
@@ -348,5 +371,6 @@ export const renderShare = async (ctx: Context, next: Next) => {
     rootShareId,
     canonical: canonicalUrl,
     allowIndexing: share?.allowIndexing,
+    markdownUrl: document || collection ? markdownUrl : undefined,
   });
 };

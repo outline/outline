@@ -1,6 +1,7 @@
-import { TextSelection } from "prosemirror-state";
-import { createEditorState, codeBlock, doc } from "@shared/test/editor";
-import { indentInCode, outdentInCode } from "./codeFence";
+import { baseKeymap, chainCommands } from "prosemirror-commands";
+import { NodeSelection, TextSelection } from "prosemirror-state";
+import { createEditorState, codeBlock, doc, p } from "@shared/test/editor";
+import { enterInCode, indentInCode, outdentInCode } from "./codeFence";
 
 /**
  * Helper that runs a command against a code block document with the given
@@ -133,5 +134,31 @@ describe("indentInCode", () => {
       (state, dispatch) => indentInCode(state, dispatch)
     );
     expect(text).toBe("a\n  b\n  c");
+  });
+});
+
+describe("enterInCode", () => {
+  it("adds a paragraph below when the code block is selected", () => {
+    const testDoc = doc([
+      p("before"),
+      codeBlock("graph TD; A-->B", "mermaidjs"),
+    ]);
+    let state = createEditorState(testDoc);
+    const pos = state.doc.firstChild!.nodeSize;
+    state = state.apply(
+      state.tr.setSelection(NodeSelection.create(state.doc, pos))
+    );
+
+    const handled = chainCommands(enterInCode, baseKeymap.Enter)(
+      state,
+      (tr) => {
+        state = state.apply(tr);
+      }
+    );
+
+    expect(handled).toBe(true);
+    expect(state.doc.child(1).textContent).toBe("graph TD; A-->B");
+    expect(state.doc.lastChild?.type.name).toBe("paragraph");
+    expect(state.doc.childCount).toBe(3);
   });
 });

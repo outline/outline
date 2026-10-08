@@ -5,22 +5,6 @@ import { isRTLLanguage } from "@shared/utils/rtl";
 import Desktop from "./Desktop";
 
 /**
- * Formats a number using the user's locale where possible. Use `useFormatNumber` hook
- * instead of this function in React components, to automatically use the user's locale.
- *
- * @param number The number to format
- * @param locale The locale to use for formatting (BCP47 format)
- * @returns The formatted number as a string
- */
-export function formatNumber(number: number, locale: string) {
-  try {
-    return new Intl.NumberFormat(locale).format(number);
-  } catch (_err) {
-    return number.toString();
-  }
-}
-
-/**
  * Detects the user's language based on the browser's language settings.
  *
  * @returns The user's language in CLDR format (en_US)
@@ -54,47 +38,4 @@ export async function changeLanguage(
   if (typeof document !== "undefined") {
     document.documentElement.dir = isRTLLanguage(locale) ? "rtl" : "ltr";
   }
-}
-
-/**
- * Languages with special styling, in ISO 639-1 format.
- */
-const scriptsWithLang = new Set([
-  "th", // Thai
-  "lo", // Lao
-  "km", // Khmer
-  "my", // Burmese
-  "hi", // Hindi
-  "mr", // Marathi
-  "ne", // Nepali
-  "bn", // Bengali
-  "gu", // Gujarati
-  "pa", // Punjabi
-  "te", // Telugu
-  "ta", // Tamil
-  "ml", // Malayalam
-  "si", // Sinhala
-  "bo", // Tibetan
-  "ar", // Arabic
-  "fa", // Persian
-  "ur", // Urdu
-  "he", // Hebrew
-  "am", // Amharic
-  "mn", // Mongolian
-]);
-
-/**
- * Returns the language code if it requires special text styling, otherwise undefined.
- * This is used to determine if a lang attribute should be set on elements for CSS styling.
- *
- * @param langCode The language code to check, in ISO 639-1 format
- * @returns The language code if it requires special styling, otherwise undefined
- */
-export function getLangFor(
-  langCode: string | null | undefined
-): string | undefined {
-  if (!langCode) {
-    return undefined;
-  }
-  return scriptsWithLang.has(langCode) ? langCode : undefined;
 }

@@ -12,16 +12,23 @@ import {
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import type { locales } from "@shared/utils/date";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { client } from "~/utils/ApiClient";
 import type Document from "./Document";
 import type Group from "./Group";
 import type UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 import type { Searchable } from "./interfaces/Searchable";
 
 class User extends ParanoidModel implements Searchable {
   static modelName = "User";
+
+  constructor(fields: Record<string, unknown>, store: ParanoidModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   @Field
   @observable
@@ -49,8 +56,7 @@ class User extends ParanoidModel implements Searchable {
 
   @Field
   @observable
-  timezone?: string;
-
+  timezone?: string = undefined;
   @observable
   email: string;
 
@@ -63,8 +69,11 @@ class User extends ParanoidModel implements Searchable {
   /**
    * The last time the user was active. For the currently signed-in user, this
    * always returns the current date so they always appear as recently active.
+   *
+   * This accessor is not computed because `now` must use the caller's reactive
+   * context. This lets observed UI reads subscribe to clock updates and lets
+   * untracked model updates read the current time without a subscription.
    */
-  @computed
   get lastActiveAt(): string {
     if (this.store.rootStore.auth?.currentUserId === this.id) {
       return new Date(now(60000)).toISOString();
@@ -78,6 +87,13 @@ class User extends ParanoidModel implements Searchable {
 
   @observable
   isSuspended: boolean;
+
+  @observable
+  invitedById: string | undefined = undefined;
+
+  /** The user that invited this user, if they were invited. */
+  @Relation(() => User)
+  invitedBy: User | undefined;
 
   @computed
   get searchContent(): string[] {
@@ -150,6 +166,30 @@ class User extends ParanoidModel implements Searchable {
   @computed
   get isRecentlyActive(): boolean {
     return new Date(this.lastActiveAt) > subMinutes(now(10000), 5);
+  }
+
+  /**
+   * The current time where the user is located, formatted for the locale of the
+   * signed-in user.
+   *
+   * @returns the formatted time, or undefined if the user's timezone is unknown
+   */
+  @computed
+  get localTime(): string | undefined {
+    if (!this.timezone) {
+      return undefined;
+    }
+
+    const language = this.store.rootStore.auth?.user?.language;
+
+    try {
+      return new Date(now(60000)).toLocaleTimeString(
+        language ? unicodeCLDRtoBCP47(language) : undefined,
+        { hour: "numeric", minute: "numeric", timeZone: this.timezone }
+      );
+    } catch {
+      return undefined;
+    }
   }
 
   /**

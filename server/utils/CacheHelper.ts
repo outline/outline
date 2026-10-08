@@ -21,6 +21,10 @@ export class CacheHelper {
   // Default expiry time for cache data in seconds
   private static defaultDataExpiry = Day.seconds;
 
+  // In-flight cache population promises keyed by cache key, so that N same-key
+  // misses within one process share a single lock acquisition and callback.
+  private static inflight = new Map<string, Promise<unknown>>();
+
   /**
    * Given a key this method will attempt to get the data from cache store first
    * If data is not found, it will call the callback to get the data and save it in cache
@@ -42,45 +46,85 @@ export class CacheHelper {
     expiry: number,
     lockTimeout: number = MutexLock.defaultLockTimeout
   ): Promise<T | undefined> {
-    let cache = await this.getData<T>(key);
+    const cache = await this.getData<T>(key);
 
-    if (cache) {
+    if (cache !== undefined) {
       return cache;
     }
+
+    // Coalesce concurrent same-key misses in this process
+    const existing = this.inflight.get(key) as
+      | Promise<T | undefined>
+      | undefined;
+    if (existing) {
+      return existing;
+    }
+
+    const promise = this.populate<T>(key, callback, expiry, lockTimeout);
+    this.inflight.set(key, promise);
+    try {
+      return await promise;
+    } finally {
+      this.inflight.delete(key);
+    }
+  }
+
+  /**
+   * Acquires the distributed lock, re-checks the cache, and populates it from
+   * the callback. Serialized per-process by getDataOrSet's in-flight map.
+   *
+   * @param key Cache key.
+   * @param callback Callback to get the data if not found in cache.
+   * @param expiry Default cache data expiry in seconds.
+   * @param lockTimeout Lock timeout in milliseconds.
+   * @returns The data from cache or the result of the callback.
+   */
+  private static async populate<T>(
+    key: string,
+    callback: () => Promise<T | CacheResult<T> | undefined>,
+    expiry: number,
+    lockTimeout: number
+  ): Promise<T | undefined> {
+    let cache: T | undefined;
 
     // Nothing in the cache, acquire a lock to prevent multiple writes
     let lock;
     const lockKey = `lock:${key}`;
     try {
       try {
-        lock = await MutexLock.acquire(lockKey, lockTimeout);
+        lock = await MutexLock.acquire(lockKey, lockTimeout, {
+          retry: MutexLock.cacheRetrySettings,
+        });
       } catch (err) {
         Logger.error(`Could not acquire lock for ${key}`, toError(err));
       }
       cache = await this.getData<T>(key);
-      if (cache) {
+      if (cache !== undefined) {
         return cache;
       }
 
-      // Get the data from the callback and save it in cache
+      // Get the data from the callback and save it in cache. Only undefined
+      // means "nothing to cache"; falsy values like null are cached normally.
       const result = await callback();
-      if (result) {
-        // Check if result is a CacheResult with dynamic expiry
-        const isCacheResult =
-          typeof result === "object" &&
-          "data" in result &&
-          Object.keys(result).every((k) => k === "data" || k === "expiry");
-
-        if (isCacheResult) {
-          const { data, expiry: dynamicExpiry } = result as CacheResult<T>;
-          await this.setData<T>(key, data, dynamicExpiry ?? expiry);
-          return data;
-        }
-
-        await this.setData<T>(key, result as T, expiry);
-        return result as T;
+      if (result === undefined) {
+        return undefined;
       }
-      return undefined;
+
+      // Check if result is a CacheResult with dynamic expiry
+      const isCacheResult =
+        result !== null &&
+        typeof result === "object" &&
+        "data" in result &&
+        Object.keys(result).every((k) => k === "data" || k === "expiry");
+
+      if (isCacheResult) {
+        const { data, expiry: dynamicExpiry } = result as CacheResult<T>;
+        await this.setData<T>(key, data, dynamicExpiry ?? expiry);
+        return data;
+      }
+
+      await this.setData<T>(key, result as T, expiry);
+      return result as T;
     } finally {
       if (lock) {
         await MutexLock.release(lock);

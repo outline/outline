@@ -16,7 +16,7 @@ import {
 import useCurrentUser from "~/hooks/useCurrentUser";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { CollectionTab } from "./Navigation";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import history from "~/utils/history";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { useCallback } from "react";

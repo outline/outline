@@ -5,7 +5,7 @@ import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import type Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
@@ -54,13 +54,15 @@ function SharePopover({
   const loading = externalLoading ?? internalLoading;
   const { t } = useTranslation();
   const can = usePolicy(collection);
+  const teamCan = usePolicy(team);
+  const inviteRole = teamCan.addGuest ? UserRole.Guest : team.defaultUserRole;
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [hasRendered, setHasRendered] = React.useState(visible);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [permission, setPermission] = React.useState<CollectionPermission>(
-    CollectionPermission.Read
+    collection.permission ?? CollectionPermission.Read
   );
 
   const share = shares.getByCollectionId(collection.id);
@@ -137,7 +139,7 @@ function SharePopover({
   }, [pendingIds, prevPendingIds]);
 
   const handleQuery = React.useCallback(
-    (event) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       showPicker();
       setQuery(event.target.value);
     },
@@ -207,7 +209,7 @@ function SharePopover({
                   {
                     email: idOrEmail,
                     name: idOrEmail,
-                    role: team.defaultUserRole,
+                    role: inviteRole,
                   },
                 ]);
                 user = response[0];
@@ -295,7 +297,7 @@ function SharePopover({
       pendingIds,
       permission,
       t,
-      team.defaultUserRole,
+      inviteRole,
       users,
     ]
   );

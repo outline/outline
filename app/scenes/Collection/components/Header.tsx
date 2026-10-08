@@ -9,10 +9,10 @@ import Heading from "~/components/Heading";
 import ContentEditable from "~/components/ContentEditable";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type Collection from "~/models/Collection";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import usePolicy from "~/hooks/usePolicy";
 import { observer } from "mobx-react";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 

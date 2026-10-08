@@ -1,4 +1,7 @@
+import { randomUUID } from "node:crypto";
+import { MentionType } from "@shared/types";
 import { createContext } from "@server/context";
+import env from "@server/env";
 import { sequelize } from "@server/storage/database";
 import {
   buildCollection,
@@ -6,6 +9,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import { generateUrlId } from "@server/utils/url";
 import documentDuplicator from "./documentDuplicator";
 
 describe("documentDuplicator", () => {
@@ -199,6 +203,192 @@ describe("documentDuplicator", () => {
       childDocument.id
     );
     expect(duplicatedChild?.sourceMetadata?.fileName).toEqual("child.md");
+  });
+
+  it("should remap links between documents in the duplicated tree", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "parent",
+    });
+    const child2 = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: original.id,
+      title: "child 2",
+    });
+    const child1 = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: original.id,
+      title: "child 1",
+      text: `See [child 2](${child2.path}) and the [parent](/doc/${original.id}).`,
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection,
+        recursive: true,
+      })
+    );
+
+    const duplicatedParent = response.find(
+      (doc) => doc.sourceMetadata?.originalDocumentId === original.id
+    );
+    const duplicatedChild1 = response.find(
+      (doc) => doc.sourceMetadata?.originalDocumentId === child1.id
+    );
+    const duplicatedChild2 = response.find(
+      (doc) => doc.sourceMetadata?.originalDocumentId === child2.id
+    );
+
+    expect(duplicatedChild1!.text).toContain(duplicatedChild2!.path);
+    expect(duplicatedChild1!.text).toContain(duplicatedParent!.path);
+    expect(duplicatedChild1!.text).not.toContain(child2.urlId);
+    expect(duplicatedChild1!.text).not.toContain(original.id);
+  });
+
+  it("should remap mentions of documents in the duplicated tree", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "parent",
+    });
+    const child2 = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: original.id,
+      title: "child 2",
+    });
+    const child1 = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: original.id,
+      title: "child 1",
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "mention",
+                attrs: {
+                  type: MentionType.Document,
+                  modelId: child2.id,
+                  label: "child 2",
+                  actorId: user.id,
+                  id: randomUUID(),
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection,
+        recursive: true,
+      })
+    );
+
+    const duplicatedChild1 = response.find(
+      (doc) => doc.sourceMetadata?.originalDocumentId === child1.id
+    );
+    const duplicatedChild2 = response.find(
+      (doc) => doc.sourceMetadata?.originalDocumentId === child2.id
+    );
+    const mention = duplicatedChild1!.content!.content![0].content![0];
+
+    expect(mention.attrs!.modelId).toEqual(duplicatedChild2!.id);
+  });
+
+  it("should not remap links to documents outside of the duplicated tree", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const other = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "other",
+    });
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "parent",
+      text: `See [other](${other.path}) and [elsewhere](https://example.com/doc/${other.urlId}).`,
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection,
+        recursive: true,
+      })
+    );
+
+    expect(response[0].text).toContain(other.path);
+    expect(response[0].text).toContain(
+      `https://example.com/doc/${other.urlId}`
+    );
+  });
+
+  it("should remap self links when duplicating a single document", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const urlId = generateUrlId();
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "parent",
+      urlId,
+      text: [
+        `Relative [top](/doc/parent-${urlId}).`,
+        `Qualified [top](${env.URL}/doc/parent-${urlId}).`,
+        `Plain <${env.URL}/doc/parent-${urlId}>`,
+      ].join("\n\n"),
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection,
+        title: "parent (copy)",
+      })
+    );
+
+    expect(response[0].text).toContain(`(${response[0].path})`);
+    expect(response[0].text).toContain(`(${env.URL}${response[0].path})`);
+    expect(response[0].text).toContain(`<${env.URL}${response[0].path}>`);
+    expect(response[0].text).not.toContain(original.urlId);
   });
 
   it("should copy fullWidth property when duplicating document", async () => {

@@ -22,17 +22,24 @@ import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { ImageSource } from "../lib/FileHelper";
 import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
-import { addComment } from "../commands/comment";
+import type { CommentAnchor } from "../commands/comment";
+import { addComment, addDraftCommentAnchor } from "../commands/comment";
 import { addLink } from "../commands/link";
 import { commentedImagePlugin } from "../plugins/CommentedImagePlugin";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
+
+// Token that encodes the image `source` attribute inside the markdown title.
+// The title already carries layoutClass and size; this prefix is stripped on
+// parse so the embed type survives the API markdown round-trip.
+const SOURCE_TOKEN_PREFIX = "source=";
 
 type TitleAttributes = {
   layoutClass?: string;
   title?: string;
   width?: number;
   height?: number;
+  source?: string;
 };
 
 const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
@@ -41,9 +48,19 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
     title: undefined,
     width: undefined,
     height: undefined,
+    source: undefined,
   };
   if (!tokenTitle) {
     return attributes;
+  }
+
+  // Extract a leading "source=<value>" token before layout/size parsing.
+  const sourceMatch = tokenTitle.match(
+    new RegExp(`^\\s*${SOURCE_TOKEN_PREFIX}(\\S+)\\s*`)
+  );
+  if (sourceMatch) {
+    attributes.source = sourceMatch[1];
+    tokenTitle = tokenTitle.replace(sourceMatch[0], "");
   }
 
   ["right-50", "left-50", "full-width"].map((className) => {
@@ -60,7 +77,7 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
     tokenTitle = tokenTitle.replace(imageSizeRegex, "");
   }
 
-  attributes.title = tokenTitle;
+  attributes.title = tokenTitle || undefined;
 
   return attributes;
 };
@@ -97,6 +114,21 @@ export const downloadImageNode = async (
 };
 
 export default class Image extends SimpleImage {
+  declare options: SimpleImage["options"] & {
+    /** Whether the editor is in read-only mode. */
+    readOnly?: boolean;
+    /** Whether the current user has permission to edit the document. */
+    canUpdate?: boolean;
+    /** Callback invoked when a comment mark is created in the document. */
+    onCreateCommentMark?: (
+      commentId: string,
+      userId: string,
+      options?: { focus: boolean; anchor?: CommentAnchor }
+    ) => void;
+    /** Callback invoked to request that the comments sidebar be opened. */
+    onOpenCommentsSidebar?: () => void;
+  };
+
   get schema(): NodeSpec {
     return {
       inline: true,
@@ -335,6 +367,10 @@ export default class Image extends SimpleImage {
       const { doc, tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = doc.resolve(pos);
 
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
@@ -353,7 +389,12 @@ export default class Image extends SimpleImage {
         event.preventDefault();
 
         const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
+        const pos = getPos();
+        if (pos === undefined) {
+          return;
+        }
+
+        const $pos = view.state.doc.resolve(pos + node.nodeSize);
         view.dispatch(
           view.state.tr
             .setSelection(TextSelection.near($pos))
@@ -369,7 +410,12 @@ export default class Image extends SimpleImage {
         event.preventDefault();
         event.stopPropagation();
         const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos());
+        const pos = getPos();
+        if (pos === undefined) {
+          return;
+        }
+
+        const $pos = view.state.doc.resolve(pos);
         const tr = view.state.tr.setSelection(new NodeSelection($pos));
         view.dispatch(tr);
         view.focus();
@@ -388,8 +434,13 @@ export default class Image extends SimpleImage {
       const { view } = this.editor;
       const { tr } = view.state;
 
-      // update meta on object
+      // The blur may fire while the node view is being torn down, at which
+      // point the position no longer refers to this image in the document.
       const pos = getPos();
+      if (pos === undefined || view.state.doc.nodeAt(pos)?.type !== node.type) {
+        return;
+      }
+
       const transaction = tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
         alt: caption,
@@ -400,16 +451,26 @@ export default class Image extends SimpleImage {
   handleZoomIn =
     ({ getPos, view }: ComponentProps) =>
     () => {
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       this.editor.updateActiveLightboxImage(
-        LightboxImageFactory.createLightboxImage(view, getPos())
+        LightboxImageFactory.createLightboxImage(view, pos)
       );
     };
 
   handleClick =
     ({ getPos, view }: ComponentProps) =>
     () => {
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       this.editor.updateActiveLightboxImage(
-        LightboxImageFactory.createLightboxImage(view, getPos())
+        LightboxImageFactory.createLightboxImage(view, pos)
       );
     };
 
@@ -429,6 +490,10 @@ export default class Image extends SimpleImage {
         return;
       }
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
       commands.editDiagram();
@@ -479,6 +544,18 @@ export default class Image extends SimpleImage {
       "](" +
       state.esc(node.attrs.src || "", false);
 
+    // Build the title attribute payload. The source tag (e.g. diagrams.net)
+    // must round-trip so API-driven edits preserve draw.io editability.
+    const titleParts: string[] = [];
+    if (node.attrs.source) {
+      titleParts.push(`${SOURCE_TOKEN_PREFIX}${node.attrs.source}`);
+    }
+    if (node.attrs.layoutClass) {
+      titleParts.push(node.attrs.layoutClass);
+    } else if (node.attrs.title) {
+      titleParts.push(node.attrs.title);
+    }
+
     let size = "";
     if (node.attrs.width || node.attrs.height) {
       size = ` =${state.esc(
@@ -489,12 +566,9 @@ export default class Image extends SimpleImage {
         false
       )}`;
     }
-    if (node.attrs.layoutClass) {
-      markdown += ' "' + state.esc(node.attrs.layoutClass, false) + size + '"';
-    } else if (node.attrs.title) {
-      markdown += ' "' + state.esc(node.attrs.title, false) + size + '"';
-    } else if (size) {
-      markdown += ' "' + size + '"';
+
+    if (titleParts.length > 0 || size) {
+      markdown += ' "' + state.esc(titleParts.join(" "), false) + size + '"';
     }
     markdown += ")";
     state.write(markdown);
@@ -514,8 +588,23 @@ export default class Image extends SimpleImage {
   keys(): Record<string, Command> {
     return {
       ...super.keys(),
-      "Mod-Alt-m": addComment({ userId: this.options.userId }),
+      "Mod-Alt-m": this.commentCommand,
     };
+  }
+
+  /**
+   * Users that can comment but not edit cannot write the comment mark into
+   * the document, so record a pending anchor instead and let the server
+   * apply the mark on submission.
+   */
+  private get commentCommand(): Command {
+    return this.options.readOnly && !this.options.canUpdate
+      ? addDraftCommentAnchor({
+          userId: this.options.userId,
+          onCreate: this.options.onCreateCommentMark,
+          onOpenCommentsSidebar: this.options.onOpenCommentsSidebar,
+        })
+      : addComment({ userId: this.options.userId });
   }
 
   commands({ type }: { type: NodeType }) {
@@ -609,8 +698,7 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
-      commentOnImage: (): Command =>
-        addComment({ userId: this.options.userId }),
+      commentOnImage: (): Command => this.commentCommand,
       linkOnImage: (): Command => addLink({ href: "" }),
     };
   }

@@ -1,2 +1,2 @@
 export { Tab } from "./Tab";
-export { Separator, Tabs } from "./Tabs";
+export { Separator, Tabs, TabsGroup } from "./Tabs";

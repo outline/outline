@@ -15,15 +15,14 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
+import { errToId } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
-@Fix
 class UserAuthentication extends IdModel<
   InferAttributes<UserAuthentication>,
   Partial<InferCreationAttributes<UserAuthentication>>
@@ -124,11 +123,7 @@ class UserAuthentication extends IdModel<
 
       return true;
     } catch (error) {
-      if (
-        error instanceof Error &&
-        "id" in error &&
-        error.id === "authentication_required"
-      ) {
+      if (errToId(error) === "authentication_required") {
         return false;
       }
 

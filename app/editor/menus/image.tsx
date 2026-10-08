@@ -24,11 +24,26 @@ import { t } from "i18next";
  * Returns menu items for the image selection toolbar.
  *
  * @param ctx - the current selection context.
+ * @param canComment - whether the user has permission to comment on the document.
  * @returns an array of menu items.
  */
-export default function imageMenuItems(ctx: SelectionContext): MenuItem[] {
+export default function imageMenuItems(
+  ctx: SelectionContext,
+  canComment: boolean
+): MenuItem[] {
   if (ctx.readOnly) {
-    return [];
+    if (!canComment) {
+      return [];
+    }
+    return [
+      {
+        name: "comment",
+        tooltip: t("Comment"),
+        label: t("Comment"),
+        shortcut: `${metaDisplay}+⌥+M`,
+        icon: <CommentIcon />,
+      },
+    ];
   }
   const { schema, state } = ctx;
   const isLeftAligned = isNodeActive(schema.nodes.image, {

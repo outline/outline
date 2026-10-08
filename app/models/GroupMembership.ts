@@ -3,7 +3,6 @@ import type { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
-import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 import NavigableModel from "./base/NavigableModel";
 
@@ -12,6 +11,11 @@ import NavigableModel from "./base/NavigableModel";
  */
 class GroupMembership extends NavigableModel {
   static modelName = "GroupMembership";
+
+  constructor(fields: Record<string, unknown>, store: NavigableModel["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   /** The group ID that this membership is granted to. */
   groupId: string;
@@ -56,13 +60,6 @@ class GroupMembership extends NavigableModel {
       params: { id: this.documentId },
       ...options,
     });
-  }
-
-  // hooks
-
-  @AfterRemove
-  public static removeFromPolicies(model: GroupMembership) {
-    model.store.rootStore.policies.removeForMembership(model.id);
   }
 }
 

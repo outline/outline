@@ -28,8 +28,12 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
   const { groupUsers } = useStores();
   const [open, setOpen] = React.useState(false);
 
+  // `orderedData` is an observable dependency, it is what recomputes the list
+  // when group membership changes in the store.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const members = React.useMemo(
     () => groupUsers.inGroup(group.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [groupUsers.orderedData, group.id]
   );
 

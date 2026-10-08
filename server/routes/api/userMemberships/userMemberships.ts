@@ -34,6 +34,19 @@ router.post(
           [Op.eq]: null,
         },
       },
+      include: [
+        {
+          model: Document.unscoped(),
+          as: "document",
+          required: true,
+          attributes: [],
+          where: {
+            archivedAt: {
+              [Op.eq]: null,
+            },
+          },
+        },
+      ],
       order: [
         Sequelize.literal('"user_permission"."index" collate "C"'),
         ["updatedAt", "DESC"],

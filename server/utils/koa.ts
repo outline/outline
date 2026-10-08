@@ -36,13 +36,12 @@ export const getFileFromRequest = (
  * @param fileName The filename to advertise in the Content-Disposition header.
  * @param build Callback that adds entries to the provided ZipFile.
  */
-export const streamZipResponse = async (
+export const streamZipResponse = (
   ctx: Context,
   fileName: string,
   build: (zip: ZipFile) => void | Promise<void>
-): Promise<void> => {
+): void => {
   const zip = new ZipFile();
-  await build(zip);
 
   ctx.set("Content-Type", "application/zip");
   ctx.set(
@@ -50,10 +49,20 @@ export const streamZipResponse = async (
     contentDisposition(fileName, { type: "attachment" })
   );
 
-  zip.outputStream.on("error", (err) => {
+  const handleError = (err: Error) => {
     ctx.app.emit("error", err, ctx);
     ctx.res.destroy(err);
-  });
+  };
+
+  zip.outputStream.on("error", handleError);
   ctx.body = zip.outputStream;
-  zip.end();
+
+  void (async () => {
+    try {
+      await build(zip);
+      zip.end();
+    } catch (err) {
+      handleError(err instanceof Error ? err : new Error(String(err)));
+    }
+  })();
 };

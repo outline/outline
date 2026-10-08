@@ -23,7 +23,7 @@ export const markNotificationsAsArchived = createAction({
   visible: ({ stores }) => stores.notifications.orderedData.length > 0,
 });
 
-export const notificationMarkRead = (notification: Notification) =>
+export const notificationMarkReadActionFactory = (notification: Notification) =>
   createAction({
     name: ({ t }) => t("Mark as read"),
     analyticsName: "Mark notification read",
@@ -33,7 +33,9 @@ export const notificationMarkRead = (notification: Notification) =>
     visible: () => !notification.viewedAt,
   });
 
-export const notificationMarkUnread = (notification: Notification) =>
+export const notificationMarkUnreadActionFactory = (
+  notification: Notification
+) =>
   createAction({
     name: ({ t }) => t("Mark as unread"),
     analyticsName: "Mark notification unread",
@@ -43,7 +45,7 @@ export const notificationMarkUnread = (notification: Notification) =>
     visible: () => !!notification.viewedAt,
   });
 
-export const notificationArchive = (notification: Notification) =>
+export const notificationArchiveActionFactory = (notification: Notification) =>
   createAction({
     name: ({ t }) => t("Archive"),
     analyticsName: "Mark notification as archived",

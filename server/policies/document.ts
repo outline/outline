@@ -127,17 +127,19 @@ allow(User, "manageUsers", Document, (actor, document) =>
   )
 );
 
+// Note that read access to the source document is sufficient – the destination
+// collection is chosen separately and authorized at that point.
 allow(User, "duplicate", Document, (actor, document) =>
   and(
-    can(actor, "update", document),
+    !!document?.isActive,
+    isTeamMutable(actor),
+    can(actor, "read", document),
     or(
-      includesMembership(document, [DocumentPermission.Admin]),
-      and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      and(
-        !document?.isPrivate,
-        can(actor, "updateDocument", document?.collection)
-      ),
-      !!document?.isDraft && actor.id === document?.createdById
+      can(actor, "createDocument", actor.team),
+      // Guests and viewers are never team-level creators (see createDocument
+      // on Team above), but may duplicate documents they can update - the
+      // destination is still authorized separately in documents.duplicate.
+      can(actor, "update", document)
     )
   )
 );
@@ -269,6 +271,13 @@ allow(
   "restore",
   Revision,
   (document, revision) => document.id === revision?.documentId
+);
+
+allow(User, "updateDeprecatedReason", Document, (actor, document) =>
+  and(
+    isTeamMutable(actor),
+    or(can(actor, "unarchive", document), can(actor, "restore", document))
+  )
 );
 
 allow(User, "unpublish", Document, (user, document) =>

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Scope, TeamPreference } from "@shared/types";
 import { iconNames } from "@shared/utils/IconNames";
 import { UserFlag } from "@server/models/User";
@@ -42,6 +43,7 @@ describe("POST /mcp/", () => {
       expect(wwwAuth).toContain("Bearer");
       expect(wwwAuth).toContain("resource_metadata=");
       expect(wwwAuth).toContain("/.well-known/oauth-protected-resource/mcp");
+      expect(wwwAuth).toContain('scope="read write"');
     });
 
     it("should reject JWT authentication", async () => {
@@ -81,6 +83,26 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(405);
     });
 
+    it.each(["/mcp/sse", "/mcp/message", "/mcp/manifest.json"])(
+      "should return 404 for %s without rendering the app shell",
+      async (path) => {
+        const res = await server.get(path);
+        const body = await res.text();
+        expect(res.status).toEqual(404);
+        expect(body).not.toContain("<title>");
+      }
+    );
+
+    it("should return 404 for POST to a path below the endpoint", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/sse", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(404);
+    });
+
     it("should handle initialize and return capabilities", async () => {
       const { accessToken } = await buildOAuthUser();
       const { body } = mcpRequest("initialize", {
@@ -99,12 +121,31 @@ describe("POST /mcp/", () => {
       const parsed = await parseMcpResponse(res);
       const result = parsed?.result as {
         capabilities?: unknown;
-        serverInfo?: { name: string };
+        serverInfo?: {
+          name: string;
+          title?: string;
+          websiteUrl?: string;
+          icons?: { src: string; mimeType?: string; sizes?: string[] }[];
+        };
       };
 
       expect(result).toBeDefined();
       expect(result?.capabilities).toBeDefined();
       expect(result?.serverInfo?.name).toEqual("outline");
+      expect(result?.serverInfo?.title).toEqual("Outline");
+      expect(result?.serverInfo?.websiteUrl).toMatch(/^https?:\/\//);
+      expect(result?.serverInfo?.icons).toEqual([
+        expect.objectContaining({
+          src: expect.stringMatching(/^https?:\/\/.+\/images\/icon-192\.png$/),
+          mimeType: "image/png",
+          sizes: ["192x192"],
+        }),
+        expect.objectContaining({
+          src: expect.stringMatching(/^https?:\/\/.+\/images\/icon-512\.png$/),
+          mimeType: "image/png",
+          sizes: ["512x512"],
+        }),
+      ]);
     });
 
     it("should return 202 for the notifications/initialized lifecycle message", async () => {
@@ -207,6 +248,112 @@ describe("POST /mcp/", () => {
     });
   });
 
+  describe("skills", () => {
+    const skillUri = "skill://outline/find-and-cite/SKILL.md";
+
+    it("initialize advertises the skills extension", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("initialize", {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      });
+
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as {
+        capabilities?: { extensions?: Record<string, unknown> };
+      };
+      expect(
+        result?.capabilities?.extensions?.["io.modelcontextprotocol/skills"]
+      ).toEqual({});
+    });
+
+    it("skills/list returns entries with digests that match the content", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const listRes = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body: mcpRequest("skills/list").body,
+      });
+      expect(listRes.status).toEqual(200);
+
+      const listed = await parseMcpResponse(listRes);
+      const result = listed?.result as {
+        resultType: string;
+        ttlMs: number;
+        cacheScope: string;
+        skills: {
+          uri: string;
+          frontmatter: { name: string; description: string };
+          resources: { uri: string; digest: string; size: number }[];
+        }[];
+      };
+      expect(result.resultType).toEqual("complete");
+      expect(result.ttlMs).toBeGreaterThan(0);
+      expect(result.cacheScope).toEqual("public");
+
+      const skill = result.skills.find((s) => s.uri === skillUri);
+      expect(skill?.frontmatter.name).toEqual("find-and-cite");
+      expect(skill?.frontmatter.description).toBeTruthy();
+
+      const entry = skill?.resources.find((r) => r.uri === skillUri);
+      expect(entry?.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
+
+      const readRes = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body: mcpRequest("resources/read", { uri: skillUri }).body,
+      });
+      const read = await parseMcpResponse(readRes);
+      const readResult = read?.result as {
+        contents: { mimeType: string; text: string }[];
+      };
+      const content = readResult.contents[0];
+      const bytes = Buffer.from(content.text, "utf8");
+      expect(content.mimeType).toEqual("text/markdown");
+      expect(bytes.byteLength).toEqual(entry?.size);
+      expect(
+        `sha256:${createHash("sha256").update(bytes).digest("hex")}`
+      ).toEqual(entry?.digest);
+    });
+
+    it("skills/get returns a single skill", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body: mcpRequest("skills/get", { uri: skillUri }).body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as {
+        resultType: string;
+        skill: { uri: string; frontmatter: { name: string } };
+      };
+      expect(result.resultType).toEqual("complete");
+      expect(result.skill.uri).toEqual(skillUri);
+      expect(result.skill.frontmatter.name).toEqual("find-and-cite");
+    });
+
+    it("skills/get returns invalid params for an unknown skill", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body: mcpRequest("skills/get", {
+          uri: "skill://outline/unknown/SKILL.md",
+        }).body,
+      });
+
+      const parsed = await parseMcpResponse(res);
+      const responseError = parsed?.error as { code: number };
+      expect(responseError.code).toEqual(-32602);
+    });
+  });
+
   describe("scope enforcement", () => {
     async function buildScopedOAuthUser(scope: Scope[]) {
       const user = await buildUser();
@@ -294,7 +441,7 @@ describe("POST /mcp/", () => {
       });
       expect(res?.result?.isError).toBeUndefined();
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-      expect(data.document.title).toEqual("Created Document");
+      expect(data.title).toEqual("Created Document");
     });
 
     it("create-scoped token does not have update_document tool", async () => {
@@ -351,7 +498,7 @@ describe("POST /mcp/", () => {
         accessToken,
         "update_document",
         {
-          id: created.document.id,
+          id: created.id,
           title: "Updated by Write Token",
         }
       );

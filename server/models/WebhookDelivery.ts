@@ -11,13 +11,11 @@ import {
 import { type WebhookDeliveryStatus } from "@server/types";
 import WebhookSubscription from "./WebhookSubscription";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 
 @Table({
   tableName: "webhook_deliveries",
   modelName: "webhook_delivery",
 })
-@Fix
 class WebhookDelivery extends IdModel<
   InferAttributes<WebhookDelivery>,
   Partial<InferCreationAttributes<WebhookDelivery>>

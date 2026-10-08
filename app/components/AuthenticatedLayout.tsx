@@ -8,15 +8,16 @@ import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { RightSidebarProvider } from "~/components/RightSidebarContext";
 import Sidebar from "~/components/Sidebar";
+import { rootWebMCPActions } from "~/actions/definitions/webmcp";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
+import useWebMCPActions from "~/hooks/useWebMCPActions";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import history from "~/utils/history";
-import { isModKey } from "@shared/utils/keyboard";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import {
   searchPath,
   newDocumentPath,
@@ -37,7 +38,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const AuthenticatedLayout: React.FC = ({ children }: Props) => {
+const AuthenticatedLayout: React.FC<Props> = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
@@ -45,11 +46,8 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
 
-  useKeyDown(".", (event) => {
-    if (isModKey(event)) {
-      ui.toggleCollapsedSidebar();
-    }
-  });
+  useKeyDown(".", () => ui.toggleCollapsedSidebar(), { metaKey: true });
+  useWebMCPActions(rootWebMCPActions);
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {

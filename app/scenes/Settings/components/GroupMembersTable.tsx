@@ -1,27 +1,30 @@
 import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
+import * as React from "react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { GroupPermission } from "@shared/types";
+import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import type Group from "~/models/Group";
 import type User from "~/models/User";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import { HEADER_HEIGHT } from "~/components/Header";
-import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
 import {
   type Props as TableProps,
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useGroupUserMenuActions } from "~/hooks/useGroupUserMenuActions";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import type { Permission } from "~/types";
-import { EmptySelectValue } from "~/types";
+import { GroupMemberMenu } from "~/menus/GroupMemberMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import GroupMemberSelectionToolbar from "./GroupMemberSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 50;
@@ -30,6 +33,27 @@ const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   group: Group;
 };
+
+const GroupMemberRowContextMenu = observer(function GroupMemberRowContextMenu({
+  group,
+  user,
+  menuLabel,
+  children,
+}: {
+  group: Group;
+  user: User;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useGroupUserMenuActions();
+  return (
+    <ActionContextProvider value={{ activeModels: [group, user] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
+  );
+});
 
 /**
  * Table component for displaying group members with permission management.
@@ -41,60 +65,24 @@ export const GroupMembersTable = observer(function GroupMembersTable({
   const { t } = useTranslation();
   const { groupUsers } = useStores();
   const can = usePolicy(group);
+  const canManage = can.update && !group.isExternallyManaged;
 
-  const permissions = useMemo(
-    () =>
-      [
-        {
-          label: t("Group admin"),
-          value: GroupPermission.Admin,
-        },
-        {
-          label: t("Member"),
-          value: GroupPermission.Member,
-        },
-        {
-          divider: true,
-          label: t("Remove"),
-          value: EmptySelectValue,
-        },
-      ] as Permission[],
-    [t]
+  const isRowSelectable = useCallback(
+    (user: User) => !!groupUsers.membership(group.id, user.id),
+    [groupUsers, group.id]
   );
 
-  const handlePermissionChange = useCallback(
-    async (
-      user: User,
-      permission: GroupPermission | typeof EmptySelectValue
-    ) => {
-      try {
-        if (permission === EmptySelectValue) {
-          await groupUsers.delete({
-            userId: user.id,
-            groupId: group.id,
-          });
-          toast.success(
-            t(`{{userName}} was removed from the group`, {
-              userName: user.name,
-            }),
-            {
-              icon: <Avatar model={user} size={AvatarSize.Toast} />,
-            }
-          );
-        } else {
-          await groupUsers.update({
-            userId: user.id,
-            groupId: group.id,
-            permission,
-          });
-        }
-      } catch (err) {
-        toast.error((err as Error).message);
-        return false;
-      }
-      return true;
-    },
-    [t, groupUsers, group.id]
+  const applyContextMenu = useCallback(
+    (user: User, rowElement: React.ReactNode) => (
+      <GroupMemberRowContextMenu
+        group={group}
+        user={user}
+        menuLabel={t("Group member options")}
+      >
+        {rowElement}
+      </GroupMemberRowContextMenu>
+    ),
+    [group, t]
   );
 
   const columns = useMemo<TableColumn<User>[]>(
@@ -105,22 +93,11 @@ export const GroupMembersTable = observer(function GroupMembersTable({
           id: "name",
           header: t("Name"),
           accessor: (user) => user.name,
-          component: (user) => {
-            const gu = groupUsers.orderedData.find(
-              (m) => m.userId === user.id && m.groupId === group.id
-            );
-            return (
-              <HStack>
-                <Avatar model={user} size={AvatarSize.Large} />
-                <Text selectable>{user.name}</Text>
-                {user.isAdmin ? (
-                  <Badge primary>{t("Admin")}</Badge>
-                ) : gu?.permission === GroupPermission.Admin ? (
-                  <Badge>{t("Group admin")}</Badge>
-                ) : null}
-              </HStack>
-            );
-          },
+          component: (user) => (
+            <UserLabel user={user} primary>
+              {user.isAdmin && <Badge primary>{t("Admin")}</Badge>}
+            </UserLabel>
+          ),
           width: "3fr",
         },
         {
@@ -140,55 +117,51 @@ export const GroupMembersTable = observer(function GroupMembersTable({
           ),
           width: "1fr",
         },
-        can.update
+        {
+          type: "data",
+          id: "role",
+          header: t("Role"),
+          sortable: false,
+          accessor: (user) =>
+            groupUsers.membership(group.id, user.id)?.permission ?? "",
+          component: (user) => {
+            const permission = groupUsers.membership(
+              group.id,
+              user.id
+            )?.permission;
+            return permission ? (
+              <HStack>
+                <Badge primary={permission === GroupPermission.Admin}>
+                  {GroupPermissionHelper.displayName(permission, t)}
+                </Badge>
+              </HStack>
+            ) : null;
+          },
+          width: "1fr",
+        },
+        canManage
           ? {
-              type: "data",
-              id: "permission",
-              header: t("Permission"),
-              sortable: false,
-              accessor: (user) => {
-                const gu = groupUsers.orderedData.find(
-                  (m) => m.userId === user.id && m.groupId === group.id
-                );
-                return gu?.permission ?? "";
-              },
-              component: (user: User) => (
-                <InputMemberPermissionSelect
-                  permissions={permissions}
-                  disabled={group.isExternallyManaged}
-                  onChange={(permission) =>
-                    handlePermissionChange(
-                      user,
-                      permission as GroupPermission | typeof EmptySelectValue
-                    )
-                  }
-                  value={
-                    groupUsers.orderedData.find(
-                      (m) => m.userId === user.id && m.groupId === group.id
-                    )?.permission
-                  }
-                />
+              type: "action",
+              id: "action",
+              component: (user) => (
+                <GroupMemberMenu group={group} user={user} />
               ),
-              width: "130px",
+              width: "50px",
             }
           : undefined,
       ]),
-    [
-      t,
-      can.update,
-      group.id,
-      group.isExternallyManaged,
-      groupUsers.orderedData,
-      permissions,
-      handlePermissionChange,
-    ]
+    [t, canManage, group, groupUsers]
   );
 
   return (
     <SortableTable
+      id="groupMembers"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<GroupMemberSelectionToolbar group={group} />}
       {...rest}
     />
   );

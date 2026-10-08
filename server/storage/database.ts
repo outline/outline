@@ -1,10 +1,10 @@
 import cluster from "node:cluster";
 import path from "node:path";
+import { DatabaseError, UniqueConstraintError } from "sequelize";
 import type {
   InferAttributes,
   InferCreationAttributes,
   Transaction,
-  TransactionOptions,
 } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
@@ -46,6 +46,20 @@ function getDatabaseConfig() {
   );
 }
 
+/** Postgres error code for `query_canceled`. */
+const QueryCanceledErrorCode = "57014";
+
+/** Headroom between the statement timeout and the HTTP request timeout. */
+const StatementTimeoutMargin = 500;
+
+/** Sequelize types the query generator as unknown; this narrows to the single
+ * method used to begin a transaction. */
+interface QueryGeneratorWithTransaction {
+  startTransactionQuery(
+    transaction: Transaction & { parent?: Transaction }
+  ): string;
+}
+
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
@@ -60,12 +74,68 @@ const isApiProcess =
   !env.SERVICES.includes("worker") &&
   !env.SERVICES.includes("cron");
 
-// Request-handling processes get a Postgres `statement_timeout` matching the
-// HTTP request timeout, so a single slow query cannot hold a connection past
-// the point at which its response could be delivered. Applied as `SET LOCAL`
-// inside each transaction so the value is scoped to the transaction.
+// Request-handling processes get a Postgres `statement_timeout` slightly under
+// the HTTP request timeout, so a single slow query cannot hold a connection
+// past the point at which its response could be delivered, and the cancelation
+// still leaves enough headroom to write an error response before the socket is
+// closed. Applied as `SET LOCAL` inside each transaction so the value is scoped
+// to the transaction.
 const statementTimeout =
-  isApiProcess && cluster.isWorker ? env.REQUEST_TIMEOUT : undefined;
+  isApiProcess && cluster.isWorker
+    ? Math.max(
+        env.REQUEST_TIMEOUT - StatementTimeoutMargin,
+        // Fall back to a fraction of the request timeout when it is shorter
+        // than the margin, so the query is always canceled first.
+        Math.round(env.REQUEST_TIMEOUT / 2)
+      )
+    : undefined;
+
+/**
+ * Whether an error was caused by Postgres canceling a query, most commonly
+ * because it exceeded the configured `statement_timeout`.
+ *
+ * @param err the error to inspect.
+ * @returns true if the query was canceled by the database.
+ */
+export function isQueryCanceledError(err: unknown): boolean {
+  return (
+    err instanceof DatabaseError &&
+    !!err.parent &&
+    "code" in err.parent &&
+    err.parent.code === QueryCanceledErrorCode
+  );
+}
+
+/**
+ * Run the given function, retrying it when it fails due to a unique constraint
+ * violation. Useful for operations that choose a unique value based on a prior
+ * read, where a concurrent request may claim the same value first.
+ *
+ * @param fn the function to run, this should include any transaction as a
+ * violation leaves the surrounding transaction unusable.
+ * @param attempts the maximum number of times to run the function.
+ * @returns the result of the function.
+ * @throws the last error if it is not a unique constraint violation, or the
+ * maximum number of attempts has been reached.
+ */
+export async function retryOnUniqueConstraintError<T>(
+  fn: () => Promise<T>,
+  attempts = 3
+): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!(err instanceof UniqueConstraintError) || attempt >= attempts) {
+        throw err;
+      }
+      Logger.info("database", "Retrying after unique constraint violation", {
+        attempt,
+        fields: err.fields,
+      });
+    }
+  }
+}
 
 export function createDatabaseInstance(
   databaseConfig: string | object,
@@ -261,60 +331,34 @@ export function createMigrationRunner(
 }
 
 /**
- * Wraps `sequelize.transaction()` so that every transaction issues
- * `SET LOCAL statement_timeout` immediately after it begins. Using `SET LOCAL`
+ * Appends `SET LOCAL statement_timeout` to the statement that begins each
+ * transaction, so that both are sent in a single round trip. Using `SET LOCAL`
  * scopes the value to the transaction, preventing it from leaking to other
  * consumers (e.g. background workers) sharing the same underlying connection
  * via pgbouncer's transaction pooling.
+ *
+ * @param instance the Sequelize instance to modify.
+ * @param timeoutMs the statement timeout in milliseconds.
+ * @returns the modified Sequelize instance.
  */
 export function applyStatementTimeoutToTransactions(
   instance: Sequelize,
   timeoutMs: number
 ) {
-  const origTransaction = instance.transaction.bind(
-    instance
-  ) as Sequelize["transaction"];
+  const queryGenerator = instance.getQueryInterface()
+    .queryGenerator as QueryGeneratorWithTransaction;
+  const origStartTransactionQuery =
+    queryGenerator.startTransactionQuery.bind(queryGenerator);
 
-  const setLocalTimeout = (t: Transaction) =>
-    instance.query(`SET LOCAL statement_timeout = ${timeoutMs}`, {
-      transaction: t,
-    });
+  queryGenerator.startTransactionQuery = (transaction) => {
+    const sql = origStartTransactionQuery(transaction);
 
-  instance.transaction = (async (
-    optionsOrCallback?:
-      | TransactionOptions
-      | ((t: Transaction) => PromiseLike<unknown>),
-    maybeCallback?: (t: Transaction) => PromiseLike<unknown>
-  ) => {
-    const autoCallback =
-      typeof optionsOrCallback === "function"
-        ? optionsOrCallback
-        : maybeCallback;
-    const options =
-      typeof optionsOrCallback === "function" ? undefined : optionsOrCallback;
-
-    if (autoCallback) {
-      return origTransaction(options as TransactionOptions, async (t) => {
-        await setLocalTimeout(t);
-        return autoCallback(t);
-      });
+    // Savepoints inherit the value set when the outer transaction began.
+    if (transaction.parent) {
+      return sql;
     }
-
-    const t = await origTransaction(options);
-    try {
-      await setLocalTimeout(t);
-    } catch (err) {
-      // Roll back so the started transaction does not linger on the pooled
-      // connection until idle-in-transaction timeout closes it.
-      try {
-        await t.rollback();
-      } catch {
-        // Ignore rollback failure; the original error is more informative.
-      }
-      throw err;
-    }
-    return t;
-  }) as typeof instance.transaction;
+    return `${sql} SET LOCAL statement_timeout = ${timeoutMs};`;
+  };
 
   return instance;
 }
@@ -356,17 +400,20 @@ export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
  * Read-only database connection for read replicas.
- * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set.
+ * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set, and
+ * in the test environment, where DATABASE_READ_ONLY_URL would not point at
+ * the isolated per-worker test database.
  */
-export const sequelizeReadOnly = env.DATABASE_READ_ONLY_URL
-  ? createDatabaseInstance(
-      env.DATABASE_READ_ONLY_URL,
-      {},
-      {
-        readOnly: true,
-      }
-    )
-  : sequelize;
+export const sequelizeReadOnly =
+  env.DATABASE_READ_ONLY_URL && !env.isTest
+    ? createDatabaseInstance(
+        env.DATABASE_READ_ONLY_URL,
+        {},
+        {
+          readOnly: true,
+        }
+      )
+    : sequelize;
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",

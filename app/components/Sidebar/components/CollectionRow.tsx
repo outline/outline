@@ -2,7 +2,6 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import type { ConnectDropTarget } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
@@ -72,13 +71,13 @@ export type CollectionRowProps = {
   canCreateChild?: boolean;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
-  /** Depth of the inline new-child SidebarLink. Defaults to 2. */
+  /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
   newChildDepth?: number;
 
   /** Ref forwarded to the outer Relative; for drag hover timers. */
   parentRef?: React.Ref<HTMLDivElement>;
   /** Drop target connector for "change collection" / reorder. */
-  dropRef?: ConnectDropTarget;
+  dropRef?: React.Ref<HTMLDivElement>;
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 
@@ -107,7 +106,7 @@ function CollectionRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
-  newChildDepth = 2,
+  newChildDepth,
   parentRef,
   dropRef,
   isActiveDropTarget,
@@ -227,7 +226,9 @@ function CollectionRow({
   );
 
   return (
-    <ActionContextProvider value={{ activeModels: [collection] }}>
+    <ActionContextProvider
+      value={{ activeModels: [collection], sidebarContext }}
+    >
       <Relative ref={mergedRef}>
         <DropToImport collectionId={collection.id}>
           {sidebarLinkElement}
@@ -236,7 +237,7 @@ function CollectionRow({
       {isAddingNewChild && onCreateChild && (
         <SidebarLink
           isActive={() => true}
-          depth={newChildDepth}
+          depth={newChildDepth ?? Math.max(depth + 1, 2)}
           ellipsis={false}
           label={
             <EditableTitle

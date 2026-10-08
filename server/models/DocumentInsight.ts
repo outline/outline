@@ -12,7 +12,6 @@ import Document from "./Document";
 import Team from "./Team";
 import IdModel from "./base/IdModel";
 import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 
 export enum DocumentInsightPeriod {
   Day = "day",
@@ -32,7 +31,6 @@ export enum DocumentInsightPeriod {
     },
   ],
 })
-@Fix
 class DocumentInsight extends IdModel<
   InferAttributes<DocumentInsight>,
   Partial<InferCreationAttributes<DocumentInsight>>

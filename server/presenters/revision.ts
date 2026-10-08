@@ -36,6 +36,11 @@ async function presentRevision(
     icon: revision.icon ?? emoji,
     color: revision.color,
     collaborators: collaborators.map((user) => presentUser(user)),
+    sourceMetadata: revision.sourceMetadata
+      ? {
+          authType: revision.sourceMetadata.authType,
+        }
+      : undefined,
     createdAt: revision.createdAt,
     createdBy: presentUser(revision.user),
     createdById: revision.userId,

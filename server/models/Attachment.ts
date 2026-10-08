@@ -30,13 +30,11 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import Logger from "@server/logging/Logger";
 import { Buckets } from "./helpers/AttachmentHelper";
 
 @Table({ tableName: "attachments", modelName: "attachment" })
-@Fix
 class Attachment extends IdModel<
   InferAttributes<Attachment>,
   Partial<InferCreationAttributes<Attachment>>
