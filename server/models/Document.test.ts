@@ -1035,6 +1035,239 @@ describe("isPrivate", () => {
       expect(docC.isPrivate).toBe(false);
     });
   });
+
+  describe("nested restrictions", () => {
+    it("should preserve independently restricted subtrees when restricting and unrestricting an ancestor", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A → B → C, plus A → D
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      const docD = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+
+      // Restrict B first — B becomes its own restriction root
+      docB.isPrivate = true;
+      await docB.save();
+
+      await docC.reload();
+      expect(docC.restrictionSourceId).toBe(docB.id);
+
+      // Restrict A — B's subtree keeps its own restriction root
+      docA.isPrivate = true;
+      await docA.save();
+
+      await Promise.all([docB.reload(), docC.reload(), docD.reload()]);
+      expect(docB.isPrivate).toBe(true);
+      expect(docB.restrictionSourceId).toBeNull();
+      expect(docC.restrictionSourceId).toBe(docB.id);
+      expect(docD.isPrivate).toBe(true);
+      expect(docD.restrictionSourceId).toBe(docA.id);
+
+      // Unrestrict A — B's subtree remains restricted
+      docA.isPrivate = false;
+      await docA.save();
+
+      await Promise.all([docB.reload(), docC.reload(), docD.reload()]);
+      expect(docB.isPrivate).toBe(true);
+      expect(docB.restrictionSourceId).toBeNull();
+      expect(docC.isPrivate).toBe(true);
+      expect(docC.restrictionSourceId).toBe(docB.id);
+      expect(docD.isPrivate).toBe(false);
+      expect(docD.restrictionSourceId).toBeNull();
+    });
+
+    it("should not cascade memberships into nested restricted subtrees", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A → B → C, plus A → D
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      const docD = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+
+      docB.isPrivate = true;
+      await docB.save();
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Sharing A cascades to D but must not reach into B's subtree
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+
+      expect(
+        await UserMembership.count({
+          where: { documentId: docD.id, userId: viewer.id },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: [docB.id, docC.id],
+            userId: viewer.id,
+          },
+        })
+      ).toBe(0);
+    });
+
+    it("should cascade the enclosing restriction downwards when a nested restriction is dissolved", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A → B → C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      docB.isPrivate = true;
+      await docB.save();
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Sharing A does not reach into B's nested restricted subtree
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+      expect(
+        await UserMembership.count({
+          where: { documentId: [docB.id, docC.id], userId: viewer.id },
+        })
+      ).toBe(0);
+
+      // Dissolve B's restriction into A's
+      docB.restrictionSourceId = docA.id;
+      await docB.save();
+
+      await docC.reload();
+      expect(docB.isPrivate).toBe(true);
+      expect(docC.isPrivate).toBe(true);
+      expect(docC.restrictionSourceId).toBe(docA.id);
+
+      // A's memberships now cascade into the subtree
+      expect(
+        await UserMembership.count({
+          where: { documentId: docB.id, userId: viewer.id },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: { documentId: docC.id, userId: viewer.id },
+        })
+      ).toBe(1);
+    });
+
+    it("should inherit the parent's restriction root when publishing", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Publishing under B should resolve the root to A, not B
+      const draft = await buildDraftDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      await withAPIContext(user, (ctx) =>
+        draft.publish(ctx, { collectionId: collection.id })
+      );
+
+      expect(draft.isPrivate).toBe(true);
+      expect(draft.restrictionSourceId).toBe(docA.id);
+    });
+  });
 });
 
 describe("commentCount", () => {

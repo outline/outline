@@ -74,10 +74,10 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
-    const parentDocument = document.parentDocumentId
-      ? documents.get(document.parentDocumentId)
+    const isRestrictionInherited = !!document.restrictionSourceId;
+    const restrictionSource = document.restrictionSourceId
+      ? documents.get(document.restrictionSourceId)
       : undefined;
-    const parentIsPrivate = parentDocument?.isPrivate ?? false;
 
     const handleAccessChange = React.useCallback(
       async (value: string) => {
@@ -156,18 +156,29 @@ export const AccessControlList = observer(
                     label={t("Access")}
                     labelHidden
                     short
-                    disabled={!can.manageUsers || parentIsPrivate}
+                    disabled={!can.manageUsers || isRestrictionInherited}
                     nude
                   />
                 }
                 subtitle={
-                  parentIsPrivate ? (
-                    <Trans>
-                      Access managed by{" "}
-                      <StyledLink to={parentDocument?.path ?? ""}>
-                        parent
-                      </StyledLink>
-                    </Trans>
+                  isRestrictionInherited ? (
+                    <Trans
+                      defaults="Access managed by <link>{{ documentTitle }}</link>"
+                      values={{
+                        documentTitle:
+                          restrictionSource?.titleWithDefault ?? t("parent"),
+                      }}
+                      components={{
+                        link: (
+                          <StyledLink
+                            to={
+                              restrictionSource?.path ??
+                              `/doc/${document.restrictionSourceId}`
+                            }
+                          />
+                        ),
+                      }}
+                    />
                   ) : document.isPrivate ? (
                     t("Only invited users can access")
                   ) : collection?.isPrivate ? (

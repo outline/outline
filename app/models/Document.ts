@@ -163,6 +163,14 @@ export default class Document extends ArchivableModel implements Searchable {
   isPrivate: boolean;
 
   /**
+   * ID of the ancestor document that manages this document's restriction, when
+   * the restriction is inherited. Null when the document is not restricted or
+   * is itself the restriction root.
+   */
+  @observable
+  restrictionSourceId: string | null;
+
+  /**
    * Whether team members can see who has viewed this document.
    */
   @observable

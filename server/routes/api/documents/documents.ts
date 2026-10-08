@@ -1338,9 +1338,23 @@ router.post(
     // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
     if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
       authorize(user, "manageUsers", document);
-      document.isPrivate = isPrivate;
+
+      if (!isPrivate) {
+        // When a restriction is removed inside a restricted tree, the
+        // enclosing restriction cascades down to replace it — the document
+        // stays restricted, now managed by the enclosing root.
+        const parentRestrictionSourceId =
+          await document.getParentRestrictionSourceId({ transaction });
+        if (parentRestrictionSourceId) {
+          document.restrictionSourceId = parentRestrictionSourceId;
+        } else {
+          document.isPrivate = false;
+          document.restrictionSourceId = null;
+        }
+      }
 
       if (isPrivate) {
+        document.isPrivate = true;
         // Ensure the acting user has direct admin access
         const existingMembership = await UserMembership.findOne({
           where: {

@@ -336,7 +336,7 @@ class GroupMembership extends ParanoidModel<
     const document = await Document.unscoped()
       .scope("withoutState")
       .findOne({
-        attributes: ["id", "isPrivate"],
+        attributes: ["id", "isPrivate", "restrictionSourceId"],
         where: {
           id: documentId ?? model.documentId,
         },
@@ -346,12 +346,16 @@ class GroupMembership extends ParanoidModel<
       return;
     }
 
-    // When the document is private, cascade to all children (they are also
-    // private due to cascade). When non-private, stop at private boundaries.
+    // When the document is private, cascade to children sharing its
+    // restriction root — nested restricted subtrees manage their own
+    // memberships. When non-private, stop at private boundaries.
     const whereClause: Record<string, unknown> = {
       publishedAt: { [Op.ne]: null },
     };
-    if (!document.isPrivate) {
+    if (document.isPrivate) {
+      whereClause.restrictionSourceId =
+        document.restrictionSourceId ?? document.id;
+    } else {
       whereClause.isPrivate = false;
     }
 

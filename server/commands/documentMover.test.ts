@@ -234,4 +234,132 @@ describe("documentMover", () => {
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
     expect(response.documents[0].publishedAt).toBeNull();
   });
+
+  it("should inherit the restriction root when moving into a restricted parent", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    parent.isPrivate = true;
+    await parent.save();
+
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: document.id,
+    });
+
+    await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: collection.id,
+        parentDocumentId: parent.id,
+        index: 0,
+      })
+    );
+
+    expect(document.isPrivate).toBe(true);
+    expect(document.restrictionSourceId).toBe(parent.id);
+
+    await child.reload();
+    expect(child.isPrivate).toBe(true);
+    expect(child.restrictionSourceId).toBe(parent.id);
+  });
+
+  it("should become its own restriction root when moved out of a restricted parent", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: parent.id,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: document.id,
+    });
+    parent.isPrivate = true;
+    await parent.save();
+
+    await document.reload();
+    expect(document.restrictionSourceId).toBe(parent.id);
+
+    await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: collection.id,
+        parentDocumentId: undefined,
+        index: 0,
+      })
+    );
+
+    // The document stays restricted but now manages its own restriction
+    expect(document.isPrivate).toBe(true);
+    expect(document.restrictionSourceId).toBeNull();
+
+    await child.reload();
+    expect(child.isPrivate).toBe(true);
+    expect(child.restrictionSourceId).toBe(document.id);
+  });
+
+  it("should keep its own restriction root when a restricted document moves into a restricted parent", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    parent.isPrivate = true;
+    await parent.save();
+
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    document.isPrivate = true;
+    await document.save();
+
+    await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: collection.id,
+        parentDocumentId: parent.id,
+        index: 0,
+      })
+    );
+
+    expect(document.isPrivate).toBe(true);
+    expect(document.restrictionSourceId).toBeNull();
+  });
 });

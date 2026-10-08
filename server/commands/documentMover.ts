@@ -94,27 +94,36 @@ async function documentMover(
     document.lastModifiedById = user.id;
     document.updatedBy = user;
 
-    // Auto-restrict when moving into a restricted parent — descendant
-    // cascade is handled by the @AfterUpdate hook on Document.save()
-    if (parentDocumentId && !document.isPrivate) {
-      const parentDocument = await Document.unscoped().findOne({
-        attributes: ["id", "isPrivate"],
-        where: { id: parentDocumentId },
-        transaction,
-      });
+    // The restriction root of the new location, if it is restricted
+    const newRestrictionSourceId = await document.getParentRestrictionSourceId({
+      transaction,
+    });
 
-      if (parentDocument?.isPrivate) {
-        document.isPrivate = true;
+    if (document.isPrivate) {
+      // A document restricted directly remains its own restriction root. One
+      // with inherited restriction stays restricted, but is re-rooted: to the
+      // new location's root, or to itself when the new location is open. The
+      // descendant repoint is handled by the @AfterUpdate hook on save.
+      if (
+        document.restrictionSourceId &&
+        document.restrictionSourceId !== newRestrictionSourceId
+      ) {
+        document.restrictionSourceId = newRestrictionSourceId;
+      }
+    } else if (newRestrictionSourceId) {
+      // Auto-restrict when moving into a restricted parent — descendant
+      // cascade is handled by the @AfterUpdate hook on Document.save()
+      document.isPrivate = true;
+      document.restrictionSourceId = newRestrictionSourceId;
 
-        // Update the document structure nodes to reflect the restriction
-        if (documentJson) {
-          const markRestricted = (node: NavigationNode): NavigationNode => ({
-            ...node,
-            isPrivate: true,
-            children: node.children.map(markRestricted),
-          });
-          documentJson = markRestricted(documentJson);
-        }
+      // Update the document structure nodes to reflect the restriction
+      if (documentJson) {
+        const markRestricted = (node: NavigationNode): NavigationNode => ({
+          ...node,
+          isPrivate: true,
+          children: node.children.map(markRestricted),
+        });
+        documentJson = markRestricted(documentJson);
       }
     }
 

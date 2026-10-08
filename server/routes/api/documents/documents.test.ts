@@ -3971,6 +3971,59 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
+  it("should replace a nested restriction with the enclosing restriction when removed", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+
+    // A → B → C
+    const docA = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+    });
+    const docB = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: docA.id,
+    });
+    const docC = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: docB.id,
+    });
+
+    // Restricting through the API grants the acting user admin membership
+    await server.post("/api/documents.update", owner, {
+      body: { id: docB.id, isPrivate: true },
+    });
+    docA.isPrivate = true;
+    await docA.save();
+
+    const res = await server.post("/api/documents.update", owner, {
+      body: {
+        id: docB.id,
+        isPrivate: false,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    // B remains restricted, now managed by A
+    expect(body.data.isPrivate).toBe(true);
+    expect(body.data.restrictionSourceId).toBe(docA.id);
+
+    await docC.reload();
+    expect(docC.isPrivate).toBe(true);
+    expect(docC.restrictionSourceId).toBe(docA.id);
+  });
+
   it("should update document details in the root", async () => {
     const user = await buildUser();
     const document = await buildDocument({

@@ -387,6 +387,14 @@ class Document extends ArchivableModel<
   @Column(DataType.BOOLEAN)
   isPrivate: boolean;
 
+  /**
+   * ID of the ancestor document that manages this document's restriction, when
+   * the restriction is inherited. Null when the document is not restricted or
+   * is itself the restriction root.
+   */
+  @Column(DataType.UUID)
+  restrictionSourceId: string | null;
+
   /** Whether this document is part of onboarding. */
   @Default(false)
   @Column(DataType.BOOLEAN)
@@ -617,7 +625,7 @@ class Document extends ArchivableModel<
 
   @AfterUpdate
   static async cascadeIsPrivateChange(model: Document, ctx: HookContext) {
-    if (!model.changed("isPrivate")) {
+    if (!model.changed("isPrivate") && !model.changed("restrictionSourceId")) {
       return;
     }
 
@@ -627,10 +635,18 @@ class Document extends ArchivableModel<
     }
 
     const transaction = ctx.transaction;
+    if (model.changed("isPrivate")) {
+      if (model.isPrivate) {
+        await model.cascadeRestrict({ transaction });
+      } else {
+        await model.cascadeUnrestrict({ transaction });
+      }
+      return;
+    }
+
+    // Only the restriction root changed — repoint the subtree
     if (model.isPrivate) {
-      await model.cascadeRestrict({ transaction });
-    } else {
-      await model.cascadeUnrestrict({ transaction });
+      await model.cascadeReRoot({ transaction });
     }
   }
 
@@ -1156,23 +1172,27 @@ class Document extends ArchivableModel<
   };
 
   /**
-   * Cascade restriction to all descendant documents. Destroys sourced
-   * memberships inherited from outside the subtree, then rebuilds sourced
-   * memberships from direct memberships within the subtree so that users
-   * explicitly shared on this document (or its children) retain access.
+   * Cascade restriction to descendant documents that are not already
+   * restricted — subtrees rooted at an existing restriction keep their own
+   * restriction root and memberships. Destroys sourced memberships inherited
+   * from outside the subtree, then rebuilds sourced memberships from direct
+   * memberships within the subtree so that users explicitly shared on this
+   * document (or its children) retain access.
    *
    * @param options - options including transaction.
    */
   cascadeRestrict = async (options: { transaction?: Transaction }) => {
     const { transaction } = options;
-    const childDocumentIds = await this.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
+    const restrictionSourceId = this.restrictionSourceId ?? this.id;
+    const childDocumentIds = await this.findAllChildDocumentIds(
+      { isPrivate: false },
+      { transaction }
+    );
 
     if (childDocumentIds.length) {
       // Note: bulk update intentionally does not fire instance hooks
       await (this.constructor as typeof Document).update(
-        { isPrivate: true },
+        { isPrivate: true, restrictionSourceId },
         { where: { id: childDocumentIds }, transaction }
       );
     }
@@ -1224,28 +1244,134 @@ class Document extends ArchivableModel<
   };
 
   /**
-   * Cascade unrestriction to all descendant documents, re-inheriting
-   * memberships from ancestor documents and the subtree.
+   * Cascade unrestriction to the descendant documents that inherited their
+   * restriction from this document, re-inheriting memberships from ancestor
+   * documents and the subtree. Descendants restricted independently keep
+   * their restriction.
    *
    * @param options - options including transaction.
    */
   cascadeUnrestrict = async (options: { transaction?: Transaction }) => {
     const { transaction } = options;
-    const childDocumentIds = await this.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
+    const childDocumentIds = await this.findAllChildDocumentIds(
+      { restrictionSourceId: this.id },
+      { transaction }
+    );
 
     if (childDocumentIds.length) {
       // Note: bulk update intentionally does not fire instance hooks
       await (this.constructor as typeof Document).update(
-        { isPrivate: false },
+        { isPrivate: false, restrictionSourceId: null },
         { where: { id: childDocumentIds }, transaction }
       );
     }
 
-    // Walk up the ancestor chain and find all direct memberships on shared
-    // parent documents, then cascade them into this document and its children.
-    // We use the direct (root) memberships to ensure correct sourceId chains.
+    await this.inheritAncestorMemberships({ transaction });
+
+    // Recreate sourced memberships from direct memberships within the subtree.
+    // These may have been added while the document was private and couldn't
+    // cascade to children that were also marked private.
+    const allDocIds = [this.id, ...childDocumentIds];
+    for (const docId of allDocIds) {
+      const directUserMemberships = await UserMembership.findAll({
+        where: { documentId: docId, sourceId: null },
+        transaction,
+      });
+      for (const membership of directUserMemberships) {
+        await UserMembership.recreateSourcedMemberships(membership, {
+          transaction,
+        });
+      }
+
+      const directGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: docId, sourceId: null },
+        transaction,
+      });
+      for (const membership of directGroupMemberships) {
+        await GroupMembership.recreateSourcedMemberships(membership, {
+          transaction,
+        });
+      }
+    }
+  };
+
+  /**
+   * Cascade a change of restriction root to the descendant documents that
+   * inherited the previous root. When this document's own restriction was
+   * dissolved into an enclosing one, memberships from the enclosing scope are
+   * inherited into the subtree.
+   *
+   * @param options - options including transaction.
+   */
+  cascadeReRoot = async (options: { transaction?: Transaction }) => {
+    const { transaction } = options;
+    const previousSourceId =
+      (this.previous("restrictionSourceId") as string | null | undefined) ??
+      null;
+    const previousRootId = previousSourceId ?? this.id;
+    const rootId = this.restrictionSourceId ?? this.id;
+    if (previousRootId === rootId) {
+      return;
+    }
+
+    const childDocumentIds = await this.findAllChildDocumentIds(
+      { restrictionSourceId: previousRootId },
+      { transaction }
+    );
+    if (childDocumentIds.length) {
+      // Note: bulk update intentionally does not fire instance hooks
+      await (this.constructor as typeof Document).update(
+        { restrictionSourceId: rootId },
+        { where: { id: childDocumentIds }, transaction }
+      );
+    }
+
+    // This document was a restriction root that dissolved into an enclosing
+    // scope — memberships from that scope now cascade into the subtree.
+    if (previousSourceId === null && this.restrictionSourceId) {
+      await this.inheritAncestorMemberships({ transaction });
+    }
+  };
+
+  /**
+   * Returns the ID of the restriction root governing this document's parent,
+   * or null when there is no parent or the parent is not restricted.
+   *
+   * @param options - options including transaction.
+   * @returns A promise resolving to the parent's restriction root ID, if any.
+   */
+  getParentRestrictionSourceId = async (
+    options: { transaction?: Transaction } = {}
+  ): Promise<string | null> => {
+    if (!this.parentDocumentId) {
+      return null;
+    }
+
+    const parent = await (this.constructor as typeof Document)
+      .unscoped()
+      .findOne({
+        attributes: ["id", "isPrivate", "restrictionSourceId"],
+        where: { id: this.parentDocumentId },
+        transaction: options.transaction,
+      });
+
+    return parent?.isPrivate ? (parent.restrictionSourceId ?? parent.id) : null;
+  };
+
+  /**
+   * Walk up the ancestor chain and cascade all direct memberships on ancestor
+   * documents into this document and its children. Direct (root) memberships
+   * are used to ensure correct sourceId chains. The walk stops after the
+   * first explicit restriction root, as memberships do not cascade across
+   * restriction boundaries from above.
+   *
+   * @param options - options including transaction.
+   */
+  private inheritAncestorMemberships = async (options: {
+    transaction?: Transaction;
+  }) => {
+    const { transaction } = options;
+
     let currentDocId: string | null | undefined = this.parentDocumentId;
     while (currentDocId) {
       const ancestor: Document | null = await (
@@ -1254,7 +1380,12 @@ class Document extends ArchivableModel<
         .unscoped()
         .scope("withoutState")
         .findOne({
-          attributes: ["id", "parentDocumentId", "isPrivate"],
+          attributes: [
+            "id",
+            "parentDocumentId",
+            "isPrivate",
+            "restrictionSourceId",
+          ],
           where: { id: currentDocId },
           transaction,
         });
@@ -1284,37 +1415,12 @@ class Document extends ArchivableModel<
         });
       }
 
-      // Stop at private boundaries — memberships don't cascade through them
-      if (ancestor.isPrivate) {
+      // Stop after an explicit restriction root — memberships from above it
+      // don't cascade into its scope
+      if (ancestor.isPrivate && !ancestor.restrictionSourceId) {
         break;
       }
       currentDocId = ancestor.parentDocumentId;
-    }
-
-    // Recreate sourced memberships from direct memberships within the subtree.
-    // These may have been added while the document was private and couldn't
-    // cascade to children that were also marked private.
-    const allDocIds = [this.id, ...childDocumentIds];
-    for (const docId of allDocIds) {
-      const directUserMemberships = await UserMembership.findAll({
-        where: { documentId: docId, sourceId: null },
-        transaction,
-      });
-      for (const membership of directUserMemberships) {
-        await UserMembership.recreateSourcedMemberships(membership, {
-          transaction,
-        });
-      }
-
-      const directGroupMemberships = await GroupMembership.findAll({
-        where: { documentId: docId, sourceId: null },
-        transaction,
-      });
-      for (const membership of directGroupMemberships) {
-        await GroupMembership.recreateSourcedMemberships(membership, {
-          transaction,
-        });
-      }
     }
   };
 
@@ -1370,18 +1476,12 @@ class Document extends ArchivableModel<
     }
 
     // Auto-restrict when publishing under a restricted parent
-    if (this.parentDocumentId) {
-      const parentDocument = await (this.constructor as typeof Document)
-        .unscoped()
-        .findOne({
-          attributes: ["id", "isPrivate"],
-          where: { id: this.parentDocumentId },
-          transaction,
-        });
-
-      if (parentDocument?.isPrivate) {
-        this.isPrivate = true;
-      }
+    const parentRestrictionSourceId = await this.getParentRestrictionSourceId({
+      transaction,
+    });
+    if (parentRestrictionSourceId) {
+      this.isPrivate = true;
+      this.restrictionSourceId = parentRestrictionSourceId;
     }
 
     // Copy the group and user memberships from the parent document, if any
