@@ -192,7 +192,7 @@ export function isPrivateUseSchemeUrl(text: string) {
   }
 
   // Require a destination after the scheme, e.g. reject a bare "myapp:".
-  return !!url.host || url.pathname.length > 1;
+  return !!url.host || (url.pathname !== "" && url.pathname !== "/");
 }
 
 /**

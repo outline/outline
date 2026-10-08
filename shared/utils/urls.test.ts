@@ -77,6 +77,8 @@ describe("isPrivateUseSchemeUrl", () => {
     expect(urlsUtils.isPrivateUseSchemeUrl("myapp://callback")).toBe(true);
     expect(urlsUtils.isPrivateUseSchemeUrl("myapp://callback?x=1")).toBe(true);
     expect(urlsUtils.isPrivateUseSchemeUrl("MyApp://callback")).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp:a")).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp:/a")).toBe(true);
   });
 
   it("should return false for web schemes", () => {
@@ -102,6 +104,7 @@ describe("isPrivateUseSchemeUrl", () => {
     expect(urlsUtils.isPrivateUseSchemeUrl("")).toBe(false);
     expect(urlsUtils.isPrivateUseSchemeUrl("myapp:")).toBe(false);
     expect(urlsUtils.isPrivateUseSchemeUrl("myapp:/")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp://")).toBe(false);
     expect(urlsUtils.isPrivateUseSchemeUrl("callback")).toBe(false);
     expect(urlsUtils.isPrivateUseSchemeUrl("/relative/path")).toBe(false);
     expect(urlsUtils.isPrivateUseSchemeUrl(" myapp://callback")).toBe(false);
