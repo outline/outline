@@ -1334,6 +1334,8 @@
   "No people matching your search": "Vašemu hledání neodpovídají žádní uživatelé.",
   "No people left to add": "Nezbývají žádní uživatelé k přidání",
   "Last active": "Naposledy aktivní",
+  "Added": "Added",
+  "Added by {{ userName }}": "Added by {{ userName }}",
   "Role": "Role",
   "All permissions": "Všechna oprávnění",
   "All sources": "Všechny zdroje",
