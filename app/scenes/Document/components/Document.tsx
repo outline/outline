@@ -4,7 +4,7 @@ import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Prompt, useHistory, useLocation } from "react-router-dom";
+import { Prompt, matchPath, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -35,7 +35,11 @@ import isTextInput from "~/utils/isTextInput";
 import Logger from "~/utils/Logger";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
-import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
+import {
+  documentHistoryPath,
+  documentEditPath,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -336,10 +340,13 @@ function DocumentScene({
 
   const handleBlockNavigation = (nextLocation: Location) => {
     // Moving between views of this document, such as edit mode or a heading
-    // anchor, keeps the editor mounted.
-    const isLeaving = !parseDocumentSlug(nextLocation.pathname)?.endsWith(
-      document.urlId
-    );
+    // anchor, keeps the editor mounted, but a revision view replaces it.
+    const isLeaving =
+      !parseDocumentSlug(nextLocation.pathname)?.endsWith(document.urlId) ||
+      !!matchPath<{ revisionId?: string }>(
+        nextLocation.pathname,
+        matchDocumentHistory
+      )?.params.revisionId;
     if (!isLeaving) {
       return true;
     }
