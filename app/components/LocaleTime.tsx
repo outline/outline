@@ -21,10 +21,13 @@ const LocaleTime: React.FC<Props> = ({
 }: Props) => {
   const { tooltipContent, content } = useLocaleTime(rest);
   const [isInteractive, setIsInteractive] = React.useState(false);
+  // Detail is only available in the tooltip, so it must be reachable by keyboard.
+  const hasDetail = !!tooltipDetail;
 
   const time = (
     <time
       dateTime={rest.dateTime}
+      tabIndex={hasDetail ? 0 : undefined}
       onPointerEnter={() => setIsInteractive(true)}
       onFocus={() => setIsInteractive(true)}
     >
@@ -32,10 +35,10 @@ const LocaleTime: React.FC<Props> = ({
     </time>
   );
 
-  return isInteractive ? (
+  return isInteractive || hasDetail ? (
     <Tooltip
       content={
-        tooltipDetail ? (
+        hasDetail ? (
           <>
             {tooltipContent}
             <br />
