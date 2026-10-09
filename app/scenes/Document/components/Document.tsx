@@ -1,3 +1,4 @@
+import type { Location } from "history";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
@@ -12,6 +13,7 @@ import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType, TOCPosition, TeamPreference } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -332,13 +334,18 @@ function DocumentScene({
     });
   };
 
-  const handleBlockNavigation = () => {
+  const handleBlockNavigation = (nextLocation: Location) => {
     if (isUploading && !isEditorDirty) {
       return t(
         `Images are still uploading.\nAre you sure you want to discard them?`
       );
     }
-    if (hasUnsyncedChanges) {
+    // Moving between views of this document, such as edit mode or a heading
+    // anchor, keeps the editor connected.
+    const isLeaving = !parseDocumentSlug(nextLocation.pathname)?.endsWith(
+      document.urlId
+    );
+    if (hasUnsyncedChanges && isLeaving) {
       warnUnsyncedChanges();
     }
     return true;
