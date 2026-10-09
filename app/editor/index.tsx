@@ -297,6 +297,11 @@ export class Editor extends React.PureComponent<
     if (this.props.value && prevProps.value !== this.props.value) {
       const newState = this.createState(this.props.value);
       this.view.updateState(newState);
+
+      // Positions held by the lightbox refer to the previous document.
+      if (this.state.activeLightboxImage) {
+        this.updateActiveLightboxImage(null);
+      }
     }
 
     // When transitioning from readOnly to editable, reinitialize to create
