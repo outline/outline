@@ -59,6 +59,8 @@ export function initSentry(history: History) {
       /Error invoking post\w*: Method not found/,
       // Injected scripts calling eval are blocked by our CSP, the app never uses eval
       /evaluate a string as JavaScript/,
+      // Safari web extensions messaging a closed tab
+      "Invalid call to runtime.sendMessage(). Tab not found.",
       "file://",
       "chrome-extension://",
     ],
