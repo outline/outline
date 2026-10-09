@@ -335,17 +335,20 @@ function DocumentScene({
   };
 
   const handleBlockNavigation = (nextLocation: Location) => {
+    // Moving between views of this document, such as edit mode or a heading
+    // anchor, keeps the editor mounted.
+    const isLeaving = !parseDocumentSlug(nextLocation.pathname)?.endsWith(
+      document.urlId
+    );
+    if (!isLeaving) {
+      return true;
+    }
     if (isUploading && !isEditorDirty) {
       return t(
         `Images are still uploading.\nAre you sure you want to discard them?`
       );
     }
-    // Moving between views of this document, such as edit mode or a heading
-    // anchor, keeps the editor connected.
-    const isLeaving = !parseDocumentSlug(nextLocation.pathname)?.endsWith(
-      document.urlId
-    );
-    if (hasUnsyncedChanges && isLeaving) {
+    if (hasUnsyncedChanges) {
       warnUnsyncedChanges();
     }
     return true;
