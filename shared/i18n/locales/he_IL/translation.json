@@ -1334,6 +1334,8 @@
   "No people matching your search": "אין אנשים שתואמים לחיפוש שלך",
   "No people left to add": "לא נותרו אנשים להוסיף",
   "Last active": "פעיל אחרון",
+  "Added": "Added",
+  "Added by {{ userName }}": "Added by {{ userName }}",
   "Role": "תַפְקִיד",
   "All permissions": "כל ההרשאות",
   "All sources": "כל המקורות",
