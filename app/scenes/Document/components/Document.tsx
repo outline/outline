@@ -30,6 +30,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import isTextInput from "~/utils/isTextInput";
+import Logger from "~/utils/Logger";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
@@ -324,28 +325,28 @@ function DocumentScene({
 
   const hasUnsyncedChanges = !readOnly && documentContext.hasUnsyncedChanges;
 
+  const warnUnsyncedChanges = () => {
+    Logger.warn("Leaving document with unsynced changes", {
+      documentId: document.id,
+      hasLocalPersistence: documentContext.hasLocalPersistence,
+    });
+  };
+
   const handleBlockNavigation = () => {
-    if (hasUnsyncedChanges) {
-      return documentContext.hasLocalPersistence
-        ? t(
-            `Your changes haven’t synced yet, they are saved on this device.\nAre you sure you want to leave?`
-          )
-        : t(
-            `Your changes haven’t synced yet and will be lost.\nAre you sure you want to leave?`
-          );
-    }
     if (isUploading && !isEditorDirty) {
       return t(
         `Images are still uploading.\nAre you sure you want to discard them?`
       );
     }
+    if (hasUnsyncedChanges) {
+      warnUnsyncedChanges();
+    }
     return true;
   };
 
-  const handleUnload = (event: BeforeUnloadEvent) => {
+  const handleUnload = () => {
     if (hasUnsyncedChanges) {
-      event.preventDefault();
-      event.returnValue = "";
+      warnUnsyncedChanges();
     }
   };
 
