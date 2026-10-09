@@ -4,7 +4,6 @@ import * as React from "react";
 import type { Props as TooltipProps } from "~/components/Tooltip";
 import Tooltip from "~/components/Tooltip";
 import { performAction, resolve } from "~/actions";
-import useIsMounted from "~/hooks/useIsMounted";
 import useActionContext from "~/hooks/useActionContext";
 import type { ActionVariant, ActionWithChildren } from "~/types";
 
@@ -32,7 +31,6 @@ function ActionButton({
   const actionContext = useActionContext({
     isButton: true,
   });
-  const isMounted = useIsMounted();
   const [executing, setExecuting] = React.useState(false);
 
   if (!actionContext || !action) {
@@ -68,7 +66,7 @@ function ActionButton({
               const response = performAction(action, actionContext);
               if (response?.finally) {
                 setExecuting(true);
-                void response.finally(() => isMounted() && setExecuting(false));
+                void response.finally(() => setExecuting(false));
               }
             }
           : rest.onClick

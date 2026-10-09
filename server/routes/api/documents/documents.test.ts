@@ -7,6 +7,7 @@ import {
   CollectionPermission,
   DocumentPermission,
   ExportContentType,
+  FileOperationFormat,
   HeadingPrefixStyle,
   StatusFilter,
   TeamPreference,
@@ -25,6 +26,7 @@ import {
   UserMembership,
   SearchQuery,
   Event,
+  FileOperation,
   GroupMembership,
   Relationship,
 } from "@server/models";
@@ -46,6 +48,7 @@ import {
   buildTemplate,
   buildAttachment,
   buildSubdomain,
+  buildGuestUser,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -617,6 +620,34 @@ describe("#documents.info", () => {
 describe("#documents.export", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("should create a file operation for a document export with children", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: "Nested Export",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.export", user, {
+      body: { id: document.id, includeChildDocuments: true },
+      headers: { accept: "text/markdown" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.fileOperation.name).toBe(document.title);
+    expect(body.data.fileOperation.state).toBe("creating");
+
+    const fileOperation = await FileOperation.findByPk(
+      body.data.fileOperation.id,
+      { rejectOnEmpty: true }
+    );
+    expect(fileOperation.documentId).toBe(document.id);
+    expect(fileOperation.teamId).toBe(document.teamId);
+    expect(fileOperation.format).toBe(FileOperationFormat.MarkdownZip);
+    expect(fileOperation.options).toBeNull();
   });
 
   it("should return published document", async () => {
@@ -1392,6 +1423,42 @@ describe("#documents.list", () => {
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data).toHaveLength(2);
+    });
+
+    it("should match documents created by a user, excluding collaborations", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser({ teamId: user.teamId });
+      const created = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const collaborated = await buildDocument({
+        userId: otherUser.id,
+        teamId: user.teamId,
+      });
+      collaborated.lastModifiedById = user.id;
+      await collaborated.save();
+      expect(collaborated.collaboratorIds).toContain(user.id);
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "createdById", operator: "eq", value: user.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toEqual([created.id]);
+    });
+
+    it("should reject unsupported operators for createdById", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "createdById", operator: "isNotNull" }],
+        },
+      });
+      expect(res.status).toEqual(400);
     });
 
     it("should reject an unknown field", async () => {
@@ -4981,6 +5048,14 @@ describe("#documents.deleted", () => {
 });
 
 describe("#documents.viewed", () => {
+  it("should reject sorting by a document column", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.viewed", user, {
+      body: { sort: "title" },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should return empty result if no views", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.viewed", user);
@@ -5045,6 +5120,130 @@ describe("#documents.viewed", () => {
         userId: user.id,
         collectionId: collection.id,
       },
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should return viewed documents shared directly with the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: owner.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared with a group of the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const group = await buildGroup({ teamId: owner.teamId });
+    await group.$add("user", user, {
+      through: { createdById: owner.id },
+    });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: owner.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: owner.teamId,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared with a guest", async () => {
+    const owner = await buildUser();
+    const guest = await buildGuestUser({ teamId: owner.teamId });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: guest.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user: guest }), {
+      documentId: document.id,
+      userId: guest.id,
+    });
+    const res = await server.post("/api/documents.viewed", guest);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed drafts with no collection", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not return drafts with no collection created by another user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildDraftDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+      collectionId: null,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
     });
     const res = await server.post("/api/documents.viewed", user);
     const body = await res.json();

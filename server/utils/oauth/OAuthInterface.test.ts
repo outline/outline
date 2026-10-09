@@ -279,6 +279,44 @@ describe("OAuthInterface", () => {
       );
       expect(result).toBe(false); // Fragment check happens first
     });
+
+    it("should allow private-use scheme redirect URIs per RFC 8252", async () => {
+      const nativeClient = {
+        ...client,
+        redirectUris: ["com.example.app:/oauth2redirect", "myapp://callback"],
+      };
+      for (const redirectUri of nativeClient.redirectUris) {
+        const result = await OAuthInterface.validateRedirectUri(
+          redirectUri,
+          nativeClient
+        );
+        expect(result).toBe(true);
+      }
+    });
+
+    it("should reject private-use scheme redirect URIs that are not registered", async () => {
+      const nativeClient = {
+        ...client,
+        redirectUris: ["com.example.app:/oauth2redirect"],
+      };
+      const result = await OAuthInterface.validateRedirectUri(
+        "com.attacker.app:/oauth2redirect",
+        nativeClient
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should reject private-use scheme redirect URI with fragment", async () => {
+      const nativeClient = {
+        ...client,
+        redirectUris: ["com.example.app:/oauth2redirect#fragment"],
+      };
+      const result = await OAuthInterface.validateRedirectUri(
+        "com.example.app:/oauth2redirect#fragment",
+        nativeClient
+      );
+      expect(result).toBe(false);
+    });
   });
 
   describe("#saveAuthorizationCode", () => {

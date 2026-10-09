@@ -18,7 +18,7 @@ import {
   optionalString,
   pathToUrl,
   withTracing,
-} from "./util";
+} from "../util";
 
 /**
  * Presents a collection for a tool response. Includes a markdown description

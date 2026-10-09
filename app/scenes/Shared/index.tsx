@@ -33,7 +33,7 @@ import ErrorOffline from "../Errors/ErrorOffline";
 import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
 import DelayedMount from "~/components/DelayedMount";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { ShareContext } from "@shared/hooks/useShare";
 import ClickablePadding from "~/components/ClickablePadding";
 

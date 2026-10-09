@@ -39,9 +39,9 @@ type ContentProps = {
 } & React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>;
 
 function PopoverContent(props: ContentProps) {
-  const ref = React.useRef<
-    React.ComponentRef<typeof PopoverPrimitive.Content> | undefined
-  >(undefined);
+  const ref = React.useRef<React.ComponentRef<
+    typeof PopoverPrimitive.Content
+  > | null>(null);
   const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
   const container = usePortalContext();
   const {

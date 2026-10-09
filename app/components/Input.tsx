@@ -195,8 +195,8 @@ function Input(
   props: Props & { ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement> }
 ) {
   const internalRef = React.useRef<
-    HTMLInputElement | HTMLTextAreaElement | undefined
-  >(undefined);
+    HTMLInputElement | HTMLTextAreaElement | null
+  >(null);
   const [focused, setFocused] = React.useState(false);
   const [charCount, setCharCount] = React.useState(() => {
     if (typeof props.value === "string") {
@@ -323,7 +323,7 @@ function Input(
           {type === "textarea" ? (
             <NativeTextarea
               ref={mergeRefs([
-                internalRef,
+                internalRef as React.Ref<HTMLTextAreaElement>,
                 ref as React.Ref<HTMLTextAreaElement>,
               ])}
               onBlur={handleBlur}
@@ -342,7 +342,10 @@ function Input(
             />
           ) : (
             <NativeInput
-              ref={mergeRefs([internalRef, ref as React.Ref<HTMLInputElement>])}
+              ref={mergeRefs([
+                internalRef as React.Ref<HTMLInputElement>,
+                ref as React.Ref<HTMLInputElement>,
+              ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
               hasIcon={!!icon}

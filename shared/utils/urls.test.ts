@@ -69,6 +69,49 @@ describe("isUrl", () => {
   });
 });
 
+describe("isPrivateUseSchemeUrl", () => {
+  it("should return true for private-use schemes", () => {
+    expect(
+      urlsUtils.isPrivateUseSchemeUrl("com.example.app:/oauth2redirect")
+    ).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp://callback")).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp://callback?x=1")).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("MyApp://callback")).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp:a")).toBe(true);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp:/a")).toBe(true);
+  });
+
+  it("should return false for web schemes", () => {
+    expect(urlsUtils.isPrivateUseSchemeUrl("http://example.com")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("https://example.com")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("ftp://example.com")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("wss://example.com")).toBe(false);
+  });
+
+  it("should return false for schemes that can execute or embed content", () => {
+    expect(urlsUtils.isPrivateUseSchemeUrl("javascript:alert(1)")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("JavaScript:alert(1)")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("data:text/html,hi")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("vbscript:msgbox")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("file:///etc/passwd")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("blob:https://example.com/x")).toBe(
+      false
+    );
+    expect(urlsUtils.isPrivateUseSchemeUrl("about:blank")).toBe(false);
+  });
+
+  it("should return false for malformed or empty values", () => {
+    expect(urlsUtils.isPrivateUseSchemeUrl("")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp:")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp:/")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp://")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("callback")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("/relative/path")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl(" myapp://callback")).toBe(false);
+    expect(urlsUtils.isPrivateUseSchemeUrl("myapp://call back")).toBe(false);
+  });
+});
+
 describe("isBase64Url", () => {
   it("should return false for invalid url", () => {
     expect(urlsUtils.isBase64Url("")).toBe(false);

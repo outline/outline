@@ -16,8 +16,6 @@ import { type NavigationNode } from "@shared/types";
 import {
   ExportContentType,
   FileOperationFormat,
-  FileOperationState,
-  FileOperationType,
   StatusFilter,
   UserRole,
 } from "@shared/types";
@@ -301,12 +299,13 @@ router.post(
     // Sort=index needs the collection's documentStructure for ordering and
     // pagination. Only meaningful when the filter targets a single collection.
     let documentIds: string[] = [];
+    let collection: Collection | null | undefined;
     const explicitCollectionId =
       filter !== undefined
         ? extractTopLevelEqValue(filter, "collectionId")
         : undefined;
     if (explicitCollectionId && sort === "index") {
-      const collection = await Collection.findByPk(explicitCollectionId, {
+      collection = await Collection.findByPk(explicitCollectionId, {
         userId: user.id,
         includeDocumentStructure: true,
       });
@@ -321,7 +320,9 @@ router.post(
     // public-API `documentId` field is renamed to the underlying `id` column;
     // `userId` is handled inside `buildWhere` (maps to `collaboratorIds`).
     if (filter) {
-      await authorizeFilterFields(user, filter);
+      await authorizeFilterFields(user, filter, {
+        collections: collection ? [collection] : undefined,
+      });
       const mapped = mapFilterFields(filter, { documentId: "id" });
       where[Op.and].push(buildWhere<Document>(mapped));
     }
@@ -457,10 +458,13 @@ router.post(
             documentIds,
           },
         }),
+      // The membership includes are LEFT JOINs that never filter rows, so
+      // the total can be counted without them.
       () =>
-        Document.withMembershipScope(user.id, { includeDrafts }).count({
-          where,
-        })
+        (includeDrafts
+          ? Document.unscoped()
+          : Document.scope("defaultScope")
+        ).count({ where })
     );
 
     const data = await presentDocuments(ctx, documents);
@@ -618,8 +622,11 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds();
     const userId = user.id;
+    const [collectionIds, membershipDocumentIds] = await Promise.all([
+      user.collectionIds(),
+      Document.membershipDocumentIds(userId),
+    ]);
     const views = await View.findAll({
       where: {
         userId,
@@ -629,6 +636,7 @@ router.post(
         {
           model: Document.scope([
             "withDrafts",
+            "withoutState",
             { method: ["withMembership", userId] },
           ]),
           required: true,
@@ -637,6 +645,12 @@ router.post(
             [Op.or]: [
               { collectionId: collectionIds },
               { personalOwnerId: user.id },
+              { id: membershipDocumentIds },
+              {
+                createdById: userId,
+                collectionId: { [Op.is]: null },
+                personalOwnerId: { [Op.is]: null },
+              },
             ],
           },
         },
@@ -784,15 +798,15 @@ router.post(
     const { id, shareId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const apiVersion = getAPIVersion(ctx);
-    const teamFromCtx = await getTeamFromContext(ctx, {
-      includeOAuthState: false,
-    });
 
     let document: Document | null;
     let serializedDocument: Record<string, unknown> | undefined;
     let isPublic = false;
 
     if (shareId) {
+      const teamFromCtx = await getTeamFromContext(ctx, {
+        includeOAuthState: false,
+      });
       const result = await loadPublicShare({
         id: shareId,
         documentId: id,
@@ -1058,24 +1072,10 @@ router.post(
         );
       }
 
-      const fileOperation = await FileOperation.createWithCtx(ctx, {
-        type: FileOperationType.Export,
-        state: FileOperationState.Creating,
+      const fileOperation = await FileOperation.createExport(ctx, {
+        document,
         format,
-        key: FileOperation.getExportKey({
-          name: document.titleWithDefault,
-          teamId: document.teamId,
-          format,
-        }),
-        url: null,
-        size: 0,
-        documentId: document.id,
-        userId: user.id,
-        teamId: document.teamId,
       });
-
-      fileOperation.user = user;
-      fileOperation.document = document;
 
       ctx.body = {
         success: true,

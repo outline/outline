@@ -1,6 +1,67 @@
 import { Node } from "prosemirror-model";
 import { parser, schema, serializer } from "../../../test/editor";
 
+describe("tables", () => {
+  it("preserves line breaks and empty paragraphs in table cells", () => {
+    const doc = Node.fromJSON(schema, {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header" }],
+                    },
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "next" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Line 1" }],
+                    },
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Line 2" }],
+                    },
+                    { type: "paragraph" },
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Line 4" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const output = serializer.serialize(doc, { commonMark: true });
+
+    expect(output).toContain("| Header<br>next |");
+    expect(output).toContain("| Line 1<br>Line 2<br><br>Line 4 |");
+  });
+});
+
 describe("code fences", () => {
   it("serializes code blocks containing backtick runs with a longer fence", () => {
     const doc = Node.fromJSON(schema, {

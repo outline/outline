@@ -224,15 +224,33 @@ export const indentBlock: Command = (state, dispatch) => {
     return false;
   }
 
-  const slice = new Slice(
-    Fragment.from(state.schema.nodes.container_toggle.create()),
-    1,
-    0
-  );
+  const toggle = state.doc.nodeAt(before)!;
+  const from = before + toggle.nodeSize;
+  const node = state.doc.nodeAt(from)!;
+  const to = from + node.nodeSize;
 
-  const from = before + state.doc.nodeAt(before)!.nodeSize;
-  const to = from + state.doc.nodeAt(from)!.nodeSize;
-  const step = new ReplaceAroundStep(from - 1, to, from, to, slice, 0, true);
+  if (
+    !toggle.canReplace(
+      toggle.childCount,
+      toggle.childCount,
+      Fragment.from(node)
+    )
+  ) {
+    return false;
+  }
+
+  // Move the block to the end of the toggle body without requiring it to be
+  // a valid toggle head.
+  const slice = new Slice(Fragment.from(toggle), 0, 0);
+  const step = new ReplaceAroundStep(
+    before,
+    to,
+    from,
+    to,
+    slice,
+    toggle.nodeSize - 1,
+    false
+  );
 
   const tr = state.tr.step(step).scrollIntoView();
   if (dispatch) {

@@ -4,6 +4,7 @@ import { Node } from "prosemirror-model";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
+import { toError } from "@shared/utils/error";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
@@ -11,23 +12,36 @@ import { sequelize } from "@server/storage/database";
 import { AuthenticationType } from "@server/types";
 import semver from "semver";
 
-type Props = {
+interface Props {
   /** The document ID to update. */
   documentId: string;
-  /** Current collaobrative state. */
+  /** Current collaborative state. */
   ydoc: Y.Doc;
-  /** The user IDs that have modified the document since it was last persisted. */
-  sessionCollaboratorIds: string[];
+  /** The collaborators and sequence associated with this snapshot. */
+  collaborators: CollaboratorSnapshot;
   /** Whether the last connection to the document left. */
   isLastConnection: boolean;
   /** The client version, if available. */
   clientVersion: string | null;
-};
+}
 
+interface CollaboratorSnapshot {
+  /** The user IDs in edit order, with the snapshot's last editor last. */
+  ids: string[];
+  /** The latest collaborator sequence included in the snapshot, if available. */
+  sequence?: number;
+}
+
+/**
+ * Persist a collaborative document snapshot and its editing user.
+ *
+ * @param props the snapshot and attribution to persist.
+ * @returns a promise resolving when persistence completes.
+ */
 export default async function documentCollaborativeUpdater({
   documentId,
   ydoc,
-  sessionCollaboratorIds,
+  collaborators,
   isLastConnection,
   clientVersion,
 }: Props) {
@@ -84,7 +98,7 @@ export default async function documentCollaborativeUpdater({
     const isDeleted = !!document.deletedAt;
     const lastModifiedById = isDeleted
       ? document.lastModifiedById
-      : (sessionCollaboratorIds[sessionCollaboratorIds.length - 1] ??
+      : (collaborators.ids[collaborators.ids.length - 1] ??
         document.lastModifiedById);
 
     if (isUnchanged) {
@@ -98,7 +112,8 @@ export default async function documentCollaborativeUpdater({
 
     const collaboratorIds = uniq([
       ...(document.collaboratorIds ?? []),
-      ...sessionCollaboratorIds,
+      lastModifiedById,
+      ...collaborators.ids,
       ...pudIds,
     ]);
 
@@ -132,18 +147,27 @@ export default async function documentCollaborativeUpdater({
       }
     );
 
-    await Event.schedule({
-      name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: lastModifiedById,
-      authType: AuthenticationType.APP,
-      data: {
-        multiplayer: true,
-        title: document.title,
-        done: isLastConnection,
-      },
+    transaction.afterCommit(async () => {
+      try {
+        await Event.schedule({
+          name: "documents.update",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: lastModifiedById,
+          authType: AuthenticationType.APP,
+          data: {
+            multiplayer: true,
+            title: document.title,
+            done: isLastConnection,
+            collaborators: collaborators.sequence,
+          },
+        });
+      } catch (err) {
+        Logger.error("Unable to schedule document update event", toError(err), {
+          documentId,
+        });
+      }
     });
   });
 }

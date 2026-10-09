@@ -24,7 +24,7 @@ import { DocumentContextMenu } from "~/menus/DocumentContextMenu";
 import CollectionIcon from "./Icons/CollectionIcon";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const ReadingTime = lazyWithRetry(() => import("./ReadingTime"));
 

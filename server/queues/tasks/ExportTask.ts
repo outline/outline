@@ -32,6 +32,10 @@ type Props = {
 };
 
 export default abstract class ExportTask extends BaseTask<Props> {
+  protected jobId({ fileOperationId }: Props) {
+    return `export:${fileOperationId}`;
+  }
+
   /**
    * Transforms the data to be exported, uploads, and notifies user.
    *

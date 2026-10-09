@@ -15,8 +15,8 @@ type ComponentViewConstructor = {
   node: ProsemirrorNode;
   /** The editor view instance. */
   view: EditorView;
-  /** A function that returns the current position of the node. */
-  getPos: () => number;
+  /** A function that returns the current position of the node, or undefined once the view is destroyed. */
+  getPos: () => number | undefined;
   /** The decorations applied to the node. */
   decorations: Decoration[];
 };
@@ -35,8 +35,8 @@ export default class ComponentView {
   node: ProsemirrorNode;
   /** The editor view instance. */
   view: EditorView;
-  /** A function that returns the current position of the node. */
-  getPos: () => number;
+  /** A function that returns the current position of the node, or undefined once the view is destroyed. */
+  getPos: () => number | undefined;
   /** The decorations applied to the node. */
   decorations: Decoration[];
   /** The renderer instance. */
@@ -235,6 +235,10 @@ export default class ComponentView {
     }
 
     const pos = this.getPos();
+    if (pos === undefined) {
+      return;
+    }
+
     const { from, to } = view.state.selection;
     if (from <= pos || to >= pos + this.node.nodeSize) {
       return;

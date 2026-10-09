@@ -8,6 +8,7 @@ import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
 import { createCollection } from "~/actions/definitions/collections";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
 import { type DragObject, useDropRef } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
@@ -24,7 +25,8 @@ import usePolicy from "~/hooks/usePolicy";
 const headerActions = [createCollection];
 
 function Collections() {
-  const { documents, auth, collections, policies } = useStores();
+  const { documents, auth, collections, policies, ui } = useStores();
+  const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
   const orderedCollections = collections.allActive;
@@ -70,6 +72,11 @@ function Collections() {
               options={params}
               aria-label={t("Collections")}
               items={orderedCollections}
+              activeItemId={
+                activeSidebarContext === "collections"
+                  ? ui.activeCollectionId
+                  : undefined
+              }
               loading={<PlaceholderCollections />}
               heading={
                 isDraggingAnyCollection ? (

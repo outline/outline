@@ -167,6 +167,39 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
     });
 
+    it("should create a private document attachment when S3 object ACLs are disabled", async () => {
+      const original = env.AWS_S3_ACL;
+      env.AWS_S3_ACL = "";
+
+      try {
+        const user = await buildUser();
+        const document = await buildDocument({
+          teamId: user.teamId,
+          userId: user.id,
+        });
+
+        const res = await server.post("/api/attachments.create", user, {
+          body: {
+            name: "test.png",
+            contentType: "image/png",
+            size: 1000,
+            documentId: document.id,
+            preset: AttachmentPreset.DocumentAttachment,
+          },
+        });
+
+        expect(res.status).toEqual(200);
+        const body = await res.json();
+        const attachment = await Attachment.findByPk(body.data.attachment.id, {
+          rejectOnEmpty: true,
+        });
+        expect(attachment.acl).toBe("private");
+        expect(body.data.form).toBeDefined();
+      } finally {
+        env.AWS_S3_ACL = original;
+      }
+    });
+
     it("should return PUT data when AWS_S3_UPLOAD_METHOD is put", async () => {
       const original = env.AWS_S3_UPLOAD_METHOD;
       env.AWS_S3_UPLOAD_METHOD = "put";

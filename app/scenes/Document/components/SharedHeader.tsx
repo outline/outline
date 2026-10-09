@@ -4,7 +4,6 @@ import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import useMeasure from "react-use-measure";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
 import { HEADER_HEIGHT } from "@shared/constants";
 import useShare from "@shared/hooks/useShare";
@@ -29,7 +28,6 @@ import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import type Document from "~/models/Document";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -55,7 +53,6 @@ function SharedDocumentHeader({ document }: Props) {
 
   const { hasHeadings } = useDocumentContext();
   const [measureRef, size] = useMeasure();
-  const scrollbarWidth = useWindowScrollbarWidth() ?? 0;
   const { shareId, sharedTree, allowSubscriptions } = useShare();
   const share = shareId ? shares.get(shareId) : undefined;
   const team = useTeamContext() as PublicTeam | undefined;
@@ -115,7 +112,6 @@ function SharedDocumentHeader({ document }: Props) {
     <StyledHeader
       ref={measureRef}
       $hidden={isEditingFocus}
-      $scrollbarWidth={scrollbarWidth}
       title={
         <Flex gap={4}>
           {document.icon && (
@@ -165,33 +161,9 @@ function SharedDocumentHeader({ document }: Props) {
   );
 }
 
-type StyledHeaderProps = {
-  $hidden: boolean;
-  /** Width of the window scrollbar, which the header end edge falls behind. */
-  $scrollbarWidth: number;
-};
-
-/**
- * The body spans the full viewport width, so the end of the header falls behind
- * a visible scrollbar. The removed-body-scroll-bar-size variable is set while a
- * modal holds the page scroll, when the scrollbar is momentarily gone, and
- * keeps the padding constant as menus and dialogs open.
- */
-const endPadding = (base: number) => (props: StyledHeaderProps) =>
-  `calc(${base}px + ${props.$scrollbarWidth}px + var(--removed-body-scroll-bar-size, 0px))`;
-
-const StyledHeader = styled(Header)<StyledHeaderProps>`
+const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
-
-  /* Doubled to take precedence over the padding shorthand of the header. */
-  && {
-    padding-right: ${endPadding(16)};
-
-    ${breakpoint("tablet")`
-      padding-right: ${endPadding(12)};
-    `}
-  }
 `;
 
 const TocButton = styled(Button)<{ $flipped?: boolean }>`

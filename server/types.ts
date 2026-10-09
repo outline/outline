@@ -163,13 +163,21 @@ export type UserEvent = BaseEvent<User> &
     | {
         name:
           | "users.signin"
-          | "users.signout"
           | "users.update"
           | "users.suspend"
           | "users.activate"
           | "users.delete"
           | "users.invite_accepted";
         userId: string;
+      }
+    | {
+        name: "users.signout";
+        userId: string;
+        data?: {
+          name: string;
+          /** What caused the sign out, absent on events from older versions. */
+          reason?: "manual" | "sso_revoked";
+        };
       }
     | {
         name: "users.create" | "users.promote" | "users.demote";
@@ -244,6 +252,8 @@ export type DocumentEvent = BaseEvent<Document> &
         createdAt: string;
         data?: {
           done: boolean;
+          /** The latest collaborator sequence included in the persisted snapshot. */
+          collaborators?: number;
         };
       }
     | {

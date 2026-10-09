@@ -1,7 +1,4 @@
-import {
-  ProsemirrorHelper,
-  type CommentMark,
-} from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type { Comment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
@@ -9,23 +6,19 @@ import presentUser from "./user";
 type Options = {
   /** Whether to include anchor text, if it exists */
   includeAnchorText?: boolean;
-  /** Precomputed comment marks to avoid reparsing the document. */
-  commentMarks?: CommentMark[];
 };
 
 export default function present(
   comment: Comment,
-  { includeAnchorText, commentMarks }: Options = {}
+  { includeAnchorText }: Options = {}
 ) {
   let anchorText: string | undefined;
 
   if (includeAnchorText && comment.document) {
-    const marks =
-      commentMarks ??
-      ProsemirrorHelper.getComments(
-        DocumentHelper.toProsemirror(comment.document)
-      );
-    anchorText = ProsemirrorHelper.getAnchorTextForComment(marks, comment.id);
+    anchorText = ProsemirrorHelper.getAnchorTextForComment(
+      DocumentHelper.getCommentMarks(comment.document),
+      comment.id
+    );
   }
 
   return {

@@ -1,8 +1,11 @@
 import type {
   Hocuspocus,
+  onAuthenticatePayload,
   onConfigurePayload,
   onDestroyPayload,
 } from "@hocuspocus/server";
+import { addHours, subSeconds } from "date-fns";
+import { Minute } from "@shared/utils/time";
 import { AuthorizationChanged } from "@shared/collaboration/CloseEvents";
 import { CollectionPermission } from "@shared/types";
 import { sleep } from "@shared/utils/timers";
@@ -21,8 +24,8 @@ import {
 import { APIUpdateExtension } from "./APIUpdateExtension";
 import AuthenticationExtension from "./AuthenticationExtension";
 
-const buildConnection = (user: User) => ({
-  context: { user },
+const buildConnection = (user: User, expiresAt?: Date) => ({
+  context: { user, expiresAt },
   readOnly: false,
   close: vi.fn(),
 });
@@ -194,5 +197,62 @@ describe("AuthenticationExtension", () => {
     await extension.disconnect({ documentIds: ["other-document-id"] });
 
     expect(connection.close).not.toHaveBeenCalled();
+  });
+
+  it("should keep the token expiry in the connection context", async () => {
+    const { document, user } = await buildPrivateCollection();
+
+    const context = await extension.onAuthenticate({
+      token: user.getCollaborationToken(),
+      documentName: `document.${document.id}`,
+      connection: { readOnly: false },
+    } as onAuthenticatePayload);
+
+    const expiresAt = context.expiresAt?.getTime() ?? 0;
+    expect(expiresAt).toBeGreaterThan(addHours(new Date(), 23).getTime());
+    expect(expiresAt).toBeLessThanOrEqual(addHours(new Date(), 24).getTime());
+  });
+
+  it("should disconnect connections with an expired token", async () => {
+    const { document, user } = await buildPrivateCollection();
+    const connection = buildConnection(user, subSeconds(new Date(), 1));
+    await configure({ [document.id]: [connection] });
+
+    extension.disconnectExpired();
+
+    expect(connection.close).toHaveBeenCalledWith(AuthorizationChanged);
+  });
+
+  it("should not disconnect connections before the token expires", async () => {
+    const { document, user } = await buildPrivateCollection();
+    const valid = buildConnection(user, addHours(new Date(), 1));
+    const never = buildConnection(user);
+    await configure({ [document.id]: [valid, never] });
+
+    extension.disconnectExpired();
+
+    expect(valid.close).not.toHaveBeenCalled();
+    expect(never.close).not.toHaveBeenCalled();
+  });
+
+  it("should check for expired tokens on an interval", async () => {
+    const { document, user } = await buildPrivateCollection();
+    const connection = buildConnection(user, subSeconds(new Date(), 1));
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+
+    try {
+      await configure({ [document.id]: [connection] });
+      expect(connection.close).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(Minute.ms);
+      expect(connection.close).toHaveBeenCalledWith(AuthorizationChanged);
+
+      await extension.onDestroy({} as onDestroyPayload);
+      connection.close.mockClear();
+      vi.advanceTimersByTime(Minute.ms);
+      expect(connection.close).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

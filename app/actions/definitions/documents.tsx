@@ -112,7 +112,7 @@ import type {
   ActionGroup,
   ActionSeparator as TActionSeparator,
 } from "~/types";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import env from "~/env";
 import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";

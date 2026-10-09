@@ -251,19 +251,17 @@ export default class PasteHandler extends Extension {
 
                 if (supportsCodeMark) {
                   event.preventDefault();
-                  view.dispatch(
-                    state.tr
-                      .insertText(
-                        text,
-                        state.selection.from,
-                        state.selection.to
-                      )
-                      .addMark(
-                        state.selection.from,
-                        state.selection.to + text.length,
-                        state.schema.marks.code_inline.create()
-                      )
-                  );
+                  const { from, to } = state.selection;
+                  const tr = state.tr.insertText(text, from, to);
+                  if (text.length > 0) {
+                    // The inserted text now spans from the selection start
+                    tr.addMark(
+                      from,
+                      from + text.length,
+                      state.schema.marks.code_inline.create()
+                    );
+                  }
+                  view.dispatch(tr);
                   return true;
                 }
               }

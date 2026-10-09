@@ -57,9 +57,11 @@ function DocumentListItem(props: Props) {
   const theme = useTheme();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const [isInteractive, setIsInteractive] = React.useState(false);
   const isMobile = useMobile();
   const selection = useModelSelection();
   const iconRef = React.useRef<HTMLDivElement>(null);
+  const restoreFocus = React.useRef(false);
 
   let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
@@ -142,108 +144,141 @@ function DocumentListItem(props: Props) {
     [itemRef, draggableRef]
   );
 
+  React.useLayoutEffect(() => {
+    if (isInteractive && restoreFocus.current) {
+      itemRef.current?.focus();
+      restoreFocus.current = false;
+    }
+  }, [isInteractive]);
+
+  const handleFocusCapture = (event: React.FocusEvent<HTMLAnchorElement>) => {
+    if (!isInteractive && event.target === event.currentTarget) {
+      restoreFocus.current = true;
+      setIsInteractive(true);
+    }
+  };
+
+  const link = (
+    <DocumentLink
+      ref={mergedRef}
+      dir={document.dir}
+      $isStarred={document.isStarred}
+      $isDragging={isDragging}
+      $menuOpen={menuOpen}
+      $selectable={selectable}
+      to={{
+        pathname: documentPath(document),
+        search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
+        state: {
+          title: document.titleWithDefault,
+          sidebarContext,
+        },
+      }}
+      {...rest}
+      {...rovingTabIndex}
+      onClick={handleLinkClick}
+      onMouseDown={handleLinkMouseDown}
+      onPointerEnter={() => setIsInteractive(true)}
+      onFocusCapture={handleFocusCapture}
+    >
+      <Flex gap={4} auto>
+        <IconWrapper ref={iconRef}>
+          {selectable && (
+            <SelectButton
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-label={t("Select")}
+              $checked={isSelected}
+              $visible={isSelecting}
+              tabIndex={-1}
+            >
+              {isSelected && <CheckmarkIcon size={16} />}
+            </SelectButton>
+          )}
+          <DocumentIconWrapper $dimmed={isSelecting}>
+            {document.icon ? (
+              <Icon
+                value={document.icon}
+                color={document.color ?? undefined}
+                initial={document.initial}
+              />
+            ) : (
+              <DocumentIcon
+                outline={document.isDraft}
+                color={theme.textSecondary}
+              />
+            )}
+          </DocumentIconWrapper>
+        </IconWrapper>
+        <Content>
+          <Heading dir={document.dir}>
+            <Title
+              text={document.titleWithDefault}
+              highlight={highlight}
+              dir={document.dir}
+            />
+            {document.isBadgedNew && document.createdBy?.id !== user.id && (
+              <Badge yellow>{t("New")}</Badge>
+            )}
+            {document.isDraft &&
+              showDraft &&
+              (isInteractive ? (
+                <Tooltip content={t("Only visible to you")} placement="top">
+                  <Badge>{t("Draft")}</Badge>
+                </Tooltip>
+              ) : (
+                <Badge>{t("Draft")}</Badge>
+              ))}
+            {canStar && !isMobile && (
+              <StarButton
+                document={document}
+                tooltipDisabled={!isInteractive}
+              />
+            )}
+          </Heading>
+
+          {!queryIsInTitle && (
+            <ResultContext
+              text={context}
+              highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+              processResult={replaceResultMarks}
+            />
+          )}
+          <DocumentMeta
+            document={document}
+            showCollection={showCollection}
+            showPublished={showPublished}
+            showParentDocuments={showParentDocuments}
+            showLastViewed
+          />
+        </Content>
+      </Flex>
+      <Actions>
+        {isInteractive && (
+          <DocumentMenu
+            document={document}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        )}
+      </Actions>
+    </DocumentLink>
+  );
+
   return (
     <ActionContextProvider value={{ activeModels }}>
-      <ContextMenu
-        action={contextMenuAction}
-        ariaLabel={t("Document options")}
-        onOpen={handleMenuOpen}
-        onClose={handleMenuClose}
-      >
-        <DocumentLink
-          ref={mergedRef}
-          dir={document.dir}
-          $isStarred={document.isStarred}
-          $isDragging={isDragging}
-          $menuOpen={menuOpen}
-          $selectable={selectable}
-          to={{
-            pathname: documentPath(document),
-            search: highlight
-              ? `?q=${encodeURIComponent(highlight)}`
-              : undefined,
-            state: {
-              title: document.titleWithDefault,
-              sidebarContext,
-            },
-          }}
-          {...rest}
-          {...rovingTabIndex}
-          onClick={handleLinkClick}
-          onMouseDown={handleLinkMouseDown}
+      {isInteractive ? (
+        <ContextMenu
+          action={contextMenuAction}
+          ariaLabel={t("Document options")}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
         >
-          <Flex gap={4} auto>
-            <IconWrapper ref={iconRef}>
-              {selectable && (
-                <SelectButton
-                  role="checkbox"
-                  aria-checked={isSelected}
-                  aria-label={t("Select")}
-                  $checked={isSelected}
-                  $visible={isSelecting}
-                  tabIndex={-1}
-                >
-                  {isSelected && <CheckmarkIcon size={16} />}
-                </SelectButton>
-              )}
-              <DocumentIconWrapper $dimmed={isSelecting}>
-                {document.icon ? (
-                  <Icon
-                    value={document.icon}
-                    color={document.color ?? undefined}
-                    initial={document.initial}
-                  />
-                ) : (
-                  <DocumentIcon
-                    outline={document.isDraft}
-                    color={theme.textSecondary}
-                  />
-                )}
-              </DocumentIconWrapper>
-            </IconWrapper>
-            <Content>
-              <Heading dir={document.dir}>
-                <Title
-                  text={document.titleWithDefault}
-                  highlight={highlight}
-                  dir={document.dir}
-                />
-                {document.isBadgedNew && document.createdBy?.id !== user.id && (
-                  <Badge yellow>{t("New")}</Badge>
-                )}
-                {document.isDraft && showDraft && (
-                  <Tooltip content={t("Only visible to you")} placement="top">
-                    <Badge>{t("Draft")}</Badge>
-                  </Tooltip>
-                )}
-                {canStar && !isMobile && <StarButton document={document} />}
-              </Heading>
-
-              {!queryIsInTitle && (
-                <ResultContext
-                  text={context}
-                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-                  processResult={replaceResultMarks}
-                />
-              )}
-              <DocumentMeta
-                document={document}
-                showCollection={showCollection}
-                showPublished={showPublished}
-                showParentDocuments={showParentDocuments}
-                showLastViewed
-              />
-            </Content>
-          </Flex>
-          <Actions>
-            <DocumentMenu
-              document={document}
-              onOpen={handleMenuOpen}
-              onClose={handleMenuClose}
-            />
-          </Actions>
-        </DocumentLink>
-      </ContextMenu>
+          {link}
+        </ContextMenu>
+      ) : (
+        link
+      )}
     </ActionContextProvider>
   );
 }

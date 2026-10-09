@@ -7,7 +7,8 @@ import { mergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
+import AsyncEditor from "~/components/AsyncEditor";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
@@ -17,10 +18,7 @@ import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import { uploadFile, uploadFileFromUrl } from "~/utils/files";
-import lazyWithRetry from "~/utils/lazyWithRetry";
 import useShare from "@shared/hooks/useShare";
-
-const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,
@@ -45,7 +43,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   const { shareId } = useShare();
   const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
-  const localRef = React.useRef<SharedEditor | undefined>(undefined);
+  const localRef = React.useRef<SharedEditor | null>(null);
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousCommentIds = React.useRef<string[] | undefined>(undefined);
 
@@ -202,9 +200,12 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
     [updateComments]
   );
 
-  const paragraphs = React.useMemo(() => {
+  // Read-only content that needs no node views or plugins is rendered from
+  // the schema alone, avoiding an editor view per instance.
+  const staticHTML = React.useMemo(() => {
     if (props.readOnly && typeof props.value === "object") {
-      return ProsemirrorHelper.getPlainParagraphs(props.value);
+      const node = ProsemirrorHelper.toStaticNode(props.value);
+      return node ? ProsemirrorHelper.toHTML(node) : undefined;
     }
     return undefined;
   }, [props.readOnly, props.value]);
@@ -212,22 +213,21 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   return (
     <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
-        {paragraphs ? (
+        {staticHTML !== undefined ? (
           <EditorContainer
             $rtl={props.dir === "rtl"}
             grow={props.grow}
             style={props.style}
+            className={props.className}
             editorStyle={props.editorStyle}
             commenting={!!props.onClickCommentMark}
             lang={props.lang}
+            readOnly
           >
-            <div className="ProseMirror">
-              {paragraphs.map((paragraph, index) => (
-                <p key={index} dir="auto">
-                  {paragraph.content?.map((content) => content.text)}
-                </p>
-              ))}
-            </div>
+            <div
+              className="ProseMirror"
+              dangerouslySetInnerHTML={{ __html: staticHTML }}
+            />
           </EditorContainer>
         ) : (
           // The boundary must live between the lazy editor and any ancestor
@@ -235,7 +235,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
           // React 18 would hide mounted ancestors and destroy their effects,
           // re-running provider setup and ref callbacks in a loop.
           <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
-            <LazyLoadedEditor
+            <AsyncEditor
               key={props.extensions?.length || 0}
               ref={mergeRefs([ref, localRef, handleRefChanged])}
               uploadFile={handleUploadFile}

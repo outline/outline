@@ -1,3 +1,7 @@
+import { MessageType } from "@hocuspocus/provider";
+import * as encoding from "lib0/encoding";
+import WebSocket from "ws";
+import { writeUpdate } from "y-protocols/sync";
 import * as Y from "yjs";
 import {
   CollaborationProvider,
@@ -11,6 +15,13 @@ describe("CollaborationProvider", () => {
 
   const edit = (origin?: unknown) => {
     doc.transact(() => doc.getText("default").insert(0, "a"), origin);
+  };
+
+  const updateMessage = (update: Uint8Array) => {
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MessageType.Sync);
+    writeUpdate(encoder, update);
+    return new Uint8Array(encoding.toUint8Array(encoder)).buffer;
   };
 
   beforeEach(() => {
@@ -82,6 +93,57 @@ describe("CollaborationProvider", () => {
     vi.advanceTimersByTime(2000);
 
     expect(provider.hasPendingChanges).toBe(false);
+  });
+
+  it.each([0, 2000])(
+    "clears pending changes when the server echoes an update after %i ms",
+    (delay) => {
+      provider.synced = true;
+      edit();
+      vi.advanceTimersByTime(delay);
+
+      provider.onMessage({
+        data: updateMessage(Y.encodeStateAsUpdate(doc)),
+        type: "message",
+        target: new WebSocket(null),
+      });
+
+      expect(provider.hasPendingChanges).toBe(false);
+      vi.advanceTimersByTime(2000);
+      expect(provider.hasPendingChanges).toBe(false);
+    }
+  );
+
+  it("cancels the warning when a broadcast clears the pending count", () => {
+    provider.synced = true;
+    edit();
+
+    provider.broadcastChannelSubscriber(
+      updateMessage(Y.encodeStateAsUpdate(doc))
+    );
+    expect(provider.hasUnsyncedChanges).toBe(false);
+
+    vi.advanceTimersByTime(2000);
+
+    expect(provider.hasPendingChanges).toBe(false);
+    expect(events).toEqual([]);
+  });
+
+  it("clears an existing warning when a broadcast clears the pending count", () => {
+    provider.synced = true;
+    edit();
+    vi.advanceTimersByTime(2000);
+    expect(provider.hasPendingChanges).toBe(true);
+
+    provider.broadcastChannelSubscriber(
+      updateMessage(Y.encodeStateAsUpdate(doc))
+    );
+
+    expect(provider.hasPendingChanges).toBe(false);
+    expect(events.at(-1)).toEqual({
+      hasUnsyncedChanges: false,
+      hasLocalPersistence: false,
+    });
   });
 
   it("keeps pending changes while the connection is down", () => {

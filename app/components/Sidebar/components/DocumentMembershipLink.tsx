@@ -26,7 +26,7 @@ import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -283,22 +283,16 @@ function DocumentMembershipLink({ membership, depth = 0 }: Props) {
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <SidebarExpansionContext.Provider value={expansion}>
           <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((childNode, index) => (
-              <DocumentLink
-                key={childNode.id}
-                node={childNode}
-                collection={collection}
-                membership={membership}
-                activeDocument={documents.active}
-                // Loads the document and its policies on hover, without which
-                // rows that were never opened cannot be dragged or dropped on.
-                prefetchDocument={documents.prefetchDocument}
-                isDraft={childNode.isDraft}
-                depth={childDepth}
-                index={index}
-                parentId={document.id}
-              />
-            ))}
+            <DocumentTree
+              nodes={childDocuments}
+              depth={childDepth}
+              parentId={document.id}
+              collection={collection}
+              membership={membership}
+              // Loads the document and its policies on hover, without which
+              // rows that were never opened cannot be dragged or dropped on.
+              prefetchDocument={documents.prefetchDocument}
+            />
           </Folder>
         </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>

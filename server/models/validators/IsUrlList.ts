@@ -1,10 +1,12 @@
 import { addAttributeOptions } from "sequelize-typescript";
 import isURL from "validator/lib/isURL";
+import { isPrivateUseSchemeUrl } from "@shared/utils/urls";
 
 /**
  * A decorator that validates that a value is an array of unique, well-formed
  * URLs with a length within the given bounds. A top-level domain is not
- * required, allowing local and internal hostnames.
+ * required, allowing local and internal hostnames. Private-use schemes such
+ * as `com.example.app:/callback` are allowed for native apps (RFC 8252).
  */
 export default function IsUrlList({
   min = 1,
@@ -29,10 +31,13 @@ export default function IsUrlList({
           for (const url of value) {
             if (
               typeof url !== "string" ||
-              !isURL(url, {
-                require_tld: false,
-                allow_underscores: true,
-              })
+              !(
+                isURL(url, {
+                  require_tld: false,
+                  require_protocol: true,
+                  allow_underscores: true,
+                }) || isPrivateUseSchemeUrl(url)
+              )
             ) {
               throw new Error("Must be a valid url");
             }

@@ -28,6 +28,7 @@ const documentFilterFields = {
   title: "string",
   templateId: "uuid",
   collectionId: "uuid",
+  createdById: { kind: "uuid", operators: ["eq", "in"] },
   // `userId` maps to the collaboratorIds array column and only supports
   // membership checks.
   userId: { kind: "uuid", operators: ["eq", "in"] },
@@ -221,7 +222,16 @@ export const DocumentsDeletedSchema = BaseSchema.extend({
 export type DocumentsDeletedReq = z.infer<typeof DocumentsDeletedSchema>;
 
 export const DocumentsViewedSchema = BaseSchema.extend({
-  body: DocumentsSortParamsSchema.extend({}),
+  body: z.object({
+    /** Sort by a column of the view record, not the document */
+    sort: z.enum(["updatedAt", "createdAt"]).prefault("updatedAt"),
+
+    /** Specifies the sort order with respect to sort field */
+    direction: z
+      .string()
+      .optional()
+      .transform((val) => (val !== "ASC" ? "DESC" : val)),
+  }),
 });
 
 export type DocumentsViewedReq = z.infer<typeof DocumentsViewedSchema>;

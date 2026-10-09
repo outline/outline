@@ -406,3 +406,111 @@ describe("canonical host redirects", () => {
     expect(res.status).toEqual(200);
   });
 });
+
+describe("root domain session redirects", () => {
+  const host = "app.outline.dev";
+
+  const sessionsCookie = (teams: { id: string; name: string; url: string }[]) =>
+    `sessions=${encodeURIComponent(
+      JSON.stringify(
+        Object.fromEntries(
+          teams.map((team) => [
+            team.id,
+            { name: team.name, logoUrl: "", url: team.url },
+          ])
+        )
+      )
+    )}`;
+
+  it("should redirect an app path to the only signed-in workspace", async () => {
+    const team = await buildTeam({ subdomain: `only-${randomUUID()}` });
+
+    const res = await server.get("/settings/billing?referer=upcoming_invoice", {
+      headers: { Host: host, Cookie: sessionsCookie([team]) },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `${team.url}/settings/billing?referer=upcoming_invoice`
+    );
+  });
+
+  it("should skip unusable entries and redirect to the remaining workspace", async () => {
+    const team = await buildTeam({ subdomain: `usable-${randomUUID()}` });
+    const suspended = await buildTeam({
+      subdomain: `suspended-${randomUUID()}`,
+      suspendedAt: new Date(),
+    });
+    const deleted = { id: randomUUID(), name: "Gone", url: "https://x.dev" };
+
+    const res = await server.get("/settings/billing", {
+      headers: {
+        Host: host,
+        Cookie: sessionsCookie([suspended, deleted, team]),
+      },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(`${team.url}/settings/billing`);
+  });
+
+  it("should redirect to the first workspace when signed in to several", async () => {
+    const first = await buildTeam({ subdomain: `first-${randomUUID()}` });
+    const second = await buildTeam({ subdomain: `second-${randomUUID()}` });
+
+    const res = await server.get("/settings/billing", {
+      headers: { Host: host, Cookie: sessionsCookie([first, second]) },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `${first.url}/settings/billing`
+    );
+  });
+
+  it("should not redirect public paths", async () => {
+    const team = await buildTeam({ subdomain: `public-${randomUUID()}` });
+
+    for (const path of ["/", "/create", "/oauth/authorize?client_id=x"]) {
+      const res = await server.get(path, {
+        headers: { Host: host, Cookie: sessionsCookie([team]) },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(200);
+    }
+  });
+
+  it("should not redirect without a sessions cookie", async () => {
+    const res = await server.get("/settings/billing", {
+      headers: { Host: host },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should ignore a malformed sessions cookie", async () => {
+    const cookies = [
+      JSON.stringify({ "not-a-uuid": { name: "x", url: "https://evil.com" } }),
+      "null",
+      '"string"',
+      "[]",
+      "{not json",
+    ];
+
+    for (const cookie of cookies) {
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(cookie)}`,
+        },
+        redirect: "manual",
+      });
+
+      expect(res.status).toEqual(200);
+    }
+  });
+});

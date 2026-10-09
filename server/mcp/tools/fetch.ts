@@ -25,7 +25,7 @@ import {
   pathToUrl,
   resolveUserId,
   withTracing,
-} from "./util";
+} from "../util";
 
 /**
  * Extracts a resource identifier from a value that may be a URL or a plain ID.

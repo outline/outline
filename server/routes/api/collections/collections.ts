@@ -14,7 +14,6 @@ import {
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
-import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -30,6 +29,7 @@ import {
   Attachment,
   Document,
   Import,
+  FileOperation,
 } from "@server/models";
 import {
   buildWhere,
@@ -552,13 +552,11 @@ router.post(
     });
     authorize(user, "export", collection);
 
-    const fileOperation = await collectionExporter({
+    const fileOperation = await FileOperation.createExport(ctx, {
       collection,
       team,
-      user,
       format,
       includeAttachments,
-      ctx,
     });
 
     ctx.body = {
@@ -583,13 +581,11 @@ router.post(
     const team = await Team.findByPk(user.teamId, { transaction });
     authorize(user, "createExport", team);
 
-    const fileOperation = await collectionExporter({
-      user,
+    const fileOperation = await FileOperation.createExport(ctx, {
       team,
       format,
       includeAttachments,
       includePrivate,
-      ctx,
     });
 
     ctx.body = {
@@ -818,18 +814,13 @@ router.post(
     }
 
     const [collections, total] = await Promise.all([
-      Collection.scope(
-        includeArchived
-          ? [
-              {
-                method: ["withMembership", user.id],
-              },
-              "withArchivedBy",
-            ]
-          : {
-              method: ["withMembership", user.id],
-            }
-      ).findAll({
+      Collection.scope([
+        // Named scopes replace the default scope, so it must be applied
+        // explicitly to keep the documentStructure column out of the result.
+        "defaultScope",
+        { method: ["withMembership", user.id] },
+        ...(includeArchived ? ["withArchivedBy"] : []),
+      ]).findAll({
         where,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),

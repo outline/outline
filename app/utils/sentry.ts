@@ -13,7 +13,7 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
-import { staleChunkErrorPattern } from "./lazyWithRetry";
+import { staleChunkErrorPattern } from "@shared/utils/lazyWithRetry";
 
 /**
  * Initializes the Sentry error tracking client for the browser.
@@ -55,6 +55,12 @@ export function initSentry(history: History) {
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "Object Not Found Matching Id",
+      // Telegram's Android in-app browser calls a missing native bridge method
+      /Error invoking post\w*: Method not found/,
+      // Injected scripts calling eval are blocked by our CSP, the app never uses eval
+      /evaluate a string as JavaScript/,
+      // Safari web extensions messaging a closed tab
+      "Invalid call to runtime.sendMessage(). Tab not found.",
       "file://",
       "chrome-extension://",
     ],

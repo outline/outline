@@ -79,6 +79,19 @@ export class CollaborationProvider extends HocuspocusProvider {
     this.updateSyncState();
   }
 
+  /**
+   * Refreshes sync state after an update from another browser tab is processed.
+   *
+   * @param data the incoming broadcast message.
+   */
+  broadcastChannelSubscriber(data: ArrayBuffer) {
+    super.broadcastChannelSubscriber(data);
+    // The base constructor can receive broadcasts before our fields are set.
+    if (this.syncState) {
+      this.updateSyncState();
+    }
+  }
+
   destroy() {
     this.clearUnsyncedTimeout();
     this.stopLocalProviderListener?.();
@@ -141,7 +154,9 @@ export class CollaborationProvider extends HocuspocusProvider {
     if (hasUnsyncedChanges && this.synced) {
       this.unsyncedTimeout ??= setTimeout(() => {
         this.unsyncedTimeout = undefined;
-        this.emitSyncState(true);
+        this.emitSyncState(
+          this.synced ? this.hasUnsyncedChanges : this.editedSinceSync
+        );
       }, unsyncedGracePeriod);
       return;
     }

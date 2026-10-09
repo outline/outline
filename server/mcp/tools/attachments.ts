@@ -17,7 +17,7 @@ import {
   buildAPIContext,
   pathToUrl,
   withTracing,
-} from "./util";
+} from "../util";
 
 /**
  * Registers attachment-related MCP tools on the given server, filtered by

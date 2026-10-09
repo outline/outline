@@ -264,11 +264,12 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
           // InputRule from evaluating the trigger character. We use a timeout
           // here so the re-evaluation happens after all synchronous handlers
           // have run, ensuring the suggestion menu still opens in those cases.
+          // Synthetic events (e.g. Safari autofill) may be dispatched without a key.
           if (
             !event.ctrlKey &&
             !event.metaKey &&
             !event.altKey &&
-            event.key.length === 1
+            event.key?.length === 1
           ) {
             setTimeout(() => {
               const { pos: fromPos } = view.state.selection.$from;

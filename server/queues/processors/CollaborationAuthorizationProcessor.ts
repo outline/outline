@@ -1,4 +1,5 @@
 import AuthenticationExtension from "@server/collaboration/AuthenticationExtension";
+import { Document } from "@server/models";
 import type {
   CollectionUserEvent,
   DocumentUserEvent,
@@ -26,12 +27,17 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
     "documents.remove_group",
     "documents.move",
     "documents.unpublish",
+    "documents.archive",
+    "documents.unarchive",
+    "documents.delete",
+    "documents.permanent_delete",
     "groups.add_user",
     "groups.remove_user",
     "groups.delete",
     "users.demote",
     "users.suspend",
     "users.delete",
+    "users.signout",
   ];
 
   async perform(event: TEvent) {
@@ -98,6 +104,22 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
           documentIds: [event.documentId],
         });
 
+      // The document changed state along with its descendants, which emit no
+      // events of their own, so the whole tree is resolved here.
+      case "documents.archive":
+      case "documents.unarchive":
+      case "documents.delete":
+        return AuthenticationExtension.invalidate({
+          documentIds: await this.resolveDocumentTree(event.documentId),
+        });
+
+      // The rows are gone, only the root can be identified. Any descendants
+      // were soft-deleted first and had their connections closed then.
+      case "documents.permanent_delete":
+        return AuthenticationExtension.invalidate({
+          documentIds: [event.documentId],
+        });
+
       // Access to every document in the collection may have changed.
       case "collections.permission_changed":
       case "collections.archive":
@@ -106,10 +128,12 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
           collectionId: event.collectionId,
         });
 
-      // The user's role or status changed, which applies to every document.
+      // The user's role, status, or tokens changed, which applies to every
+      // document.
       case "users.demote":
       case "users.suspend":
       case "users.delete":
+      case "users.signout":
         return AuthenticationExtension.invalidate({
           userIds: [event.userId],
         });
@@ -117,6 +141,28 @@ export default class CollaborationAuthorizationProcessor extends BaseProcessor {
       default:
         return;
     }
+  }
+
+  /**
+   * Resolve a document and every descendant, including archived and deleted
+   * rows, as connections may be held to any of them.
+   *
+   * @param documentId The root document of the tree.
+   * @returns the ids of the document and all of its descendants.
+   */
+  private async resolveDocumentTree(documentId: string): Promise<string[]> {
+    const document = await Document.unscoped().findByPk(documentId, {
+      attributes: ["id"],
+      paranoid: false,
+    });
+    if (!document) {
+      return [documentId];
+    }
+
+    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
+      paranoid: false,
+    });
+    return [documentId, ...childDocumentIds];
   }
 
   /**

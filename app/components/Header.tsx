@@ -1,6 +1,7 @@
+import { useDirection } from "@radix-ui/react-direction";
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { CloseIcon, MenuIcon } from "outline-icons";
+import { CloseIcon, MenuIcon, SidebarIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -10,15 +11,18 @@ import breakpoint from "styled-components-breakpoint";
 import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT } from "@shared/constants";
 import { depths, s } from "@shared/styles";
+import { metaDisplay } from "@shared/utils/keyboard";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { useSidebarCollapsed } from "~/components/SidebarCollapsedContext";
 import { useSplitView } from "~/components/SplitView/context";
 import Tooltip from "~/components/Tooltip";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
@@ -43,8 +47,18 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
   const { t } = useTranslation();
   const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
+  const sidebarCollapsed = useSidebarCollapsed();
   const hasMobileSidebar = hasSidebar && isMobile;
+  const hasDesktopSidebar = hasSidebar && !isMobile;
   const [internalMeasureRef, size] = useMeasure();
+  const scrollbarWidth = useWindowScrollbarWidth() ?? 0;
+  const direction = useDirection();
+  // The body spans the full viewport, so a header at the window end extends past the visible area.
+  const isAtWindowEnd =
+    size.width > 0 &&
+    (direction === "rtl"
+      ? size.left <= 1
+      : size.right >= window.innerWidth - 1);
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
   const passThrough = !actions && !left && !title && !isSplitView;
 
@@ -93,7 +107,30 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
         className={className}
         $passThrough={passThrough}
         $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
+        $scrollbarInset={isAtWindowEnd ? scrollbarWidth : undefined}
       >
+        {hasDesktopSidebar && (
+          <SidebarToggle
+            $visible={sidebarCollapsed}
+            aria-hidden={!sidebarCollapsed}
+          >
+            <Tooltip
+              content={t("Toggle sidebar")}
+              shortcut={`${metaDisplay}+.`}
+              side="bottom"
+            >
+              <SidebarToggleButton
+                $visible={sidebarCollapsed}
+                aria-label={t("Expand sidebar")}
+                onClick={ui.toggleCollapsedSidebar}
+                icon={<SidebarIcon />}
+                tabIndex={sidebarCollapsed ? undefined : -1}
+                neutral
+                borderOnHover
+              />
+            </Tooltip>
+          </SidebarToggle>
+        )}
         {left || hasMobileSidebar ? (
           <Breadcrumbs ref={setBreadcrumbRef}>
             {hasMobileSidebar && (
@@ -162,7 +199,19 @@ const Actions = styled(Flex)`
 type WrapperProps = {
   $passThrough?: boolean;
   $insetTitleAdjust?: boolean;
+  /** Width of the window scrollbar that the end of the header falls behind. */
+  $scrollbarInset?: number;
 };
+
+/**
+ * Padding for the end of the header that clears the window scrollbar. The
+ * removed-body-scroll-bar-size variable is set while a modal locks the page
+ * scroll, which keeps the padding constant as the scrollbar is removed.
+ */
+const endPadding = (base: number) => (props: WrapperProps) =>
+  props.$scrollbarInset === undefined
+    ? `${base}px`
+    : `calc(${base}px + ${props.$scrollbarInset}px + var(--removed-body-scroll-bar-size, 0px))`;
 
 const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
@@ -182,6 +231,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       `};
 
   padding: 12px 16px;
+  padding-inline-end: ${endPadding(16)};
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;
@@ -207,6 +257,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
 
   ${breakpoint("tablet")`
     padding: 12px;
+    padding-inline-end: ${endPadding(12)};
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
@@ -242,6 +293,35 @@ const MobileMenuButton = styled(Button)`
 
   @media print {
     display: none;
+  }
+`;
+
+const SidebarToggle = styled("div")<{ $visible: boolean }>`
+  flex-shrink: 0;
+  overflow: hidden;
+  width: ${(props) => (props.$visible ? 32 : 0)}px;
+  margin-inline-end: ${(props) => (props.$visible ? 8 : 0)}px;
+  pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
+  transition:
+    width 150ms ease-out,
+    margin 150ms ease-out;
+
+  @media print {
+    display: none;
+  }
+`;
+
+const SidebarToggleButton = styled(Button)<{ $visible: boolean }>`
+  color: ${s("textTertiary")};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transition: opacity 150ms ease-out;
+
+  &:hover:not(:disabled) {
+    color: ${s("textSecondary")};
+  }
+
+  [dir="rtl"] & svg {
+    transform: scaleX(-1);
   }
 `;
 

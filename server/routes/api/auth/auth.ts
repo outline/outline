@@ -148,14 +148,9 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     user.lastSignedInAt < subHours(new Date(), 1)
   ) {
     await new ValidateSSOAccessTask()
-      .schedule(
-        {
-          userId: user.id,
-        },
-        {
-          jobId: `validate-sso:${user.id}`,
-        }
-      )
+      .schedule({
+        userId: user.id,
+      })
       .catch(() => {
         // Ignore errors from duplicate jobId when a validation is already queued
       });
@@ -202,6 +197,7 @@ router.post(
       userId: user.id,
       data: {
         name: user.name,
+        reason: "manual",
       },
     });
 

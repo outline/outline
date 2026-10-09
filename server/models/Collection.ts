@@ -672,6 +672,13 @@ class Collection extends ParanoidModel<
     options: FindOptions<Collection> & AdditionalFindOptions = {}
   ): Promise<Collection | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Collection doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -699,44 +706,34 @@ class Collection extends ParanoidModel<
 
     const scope = this.scope(scopes);
 
+    let collection: Collection | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const collection = await scope.findOne({
+      collection = await scope.findOne({
         ...rest,
         where: {
           id,
         },
         rejectOnEmpty: false,
       });
-
-      if (!collection && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
-      }
-
-      return collection;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const collection = await scope.findOne({
+    } else if (match) {
+      collection = await scope.findOne({
         ...rest,
         where: {
           urlId: match[1],
         },
         rejectOnEmpty: false,
       });
-
-      if (!collection && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
-      }
-
-      return collection;
     }
 
-    return null;
+    if (!collection && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+    }
+
+    return collection;
   }
 
   /**
@@ -1045,23 +1042,17 @@ class Collection extends ParanoidModel<
 
     const { id } = updatedDocument;
 
-    const updateChildren = (documents: NavigationNode[]) =>
-      Promise.all(
-        documents.map(async (document) => {
-          if (document.id === id) {
-            document = {
-              ...(await updatedDocument.toNavigationNode(options)),
-              children: document.children,
-            };
-          } else {
-            document.children = await updateChildren(document.children);
-          }
+    const updateChildren = (documents: NavigationNode[]): NavigationNode[] =>
+      documents.map((document) => {
+        if (document.id === id) {
+          return updatedDocument.toShallowNavigationNode(document.children);
+        }
 
-          return document;
-        })
-      );
+        document.children = updateChildren(document.children);
+        return document;
+      });
 
-    this.documentStructure = await updateChildren(this.documentStructure);
+    this.documentStructure = updateChildren(this.documentStructure);
     // Sequelize doesn't seem to set the value with splice on JSONB field
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
@@ -1093,10 +1084,8 @@ class Collection extends ParanoidModel<
     }
 
     // If moving existing document with children, use existing structure
-    const documentJson = {
-      ...(await document.toNavigationNode(options)),
-      ...options.documentJson,
-    };
+    const documentJson =
+      options.documentJson ?? (await document.toNavigationNode(options));
 
     // Determine the insertion index based on order parameter or explicit index
     let insertionIndex: number;

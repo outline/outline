@@ -3,6 +3,7 @@ import { TeamDomain } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
+  buildSubdomain,
   buildTeam,
   buildUser,
 } from "@server/test/factories";
@@ -23,6 +24,34 @@ describe("teams.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.team.name).toEqual(name);
+  });
+
+  it("strips a top-level domain from the generated subdomain", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const slug = buildSubdomain();
+    const res = await server.post("/api/teams.create", user, {
+      body: {
+        name: `${slug}.com`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.team.subdomain).toEqual(slug);
+  });
+
+  it("strips a top-level domain preceded by whitespace", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const slug = buildSubdomain();
+    const res = await server.post("/api/teams.create", user, {
+      body: {
+        name: `${slug} .com`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.team.subdomain).toEqual(slug);
   });
 
   it.skip("requires a cloud hosted deployment", async () => {

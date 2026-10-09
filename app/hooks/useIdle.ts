@@ -1,7 +1,6 @@
 import { throttle } from "es-toolkit/compat";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Minute } from "@shared/utils/time";
-import useIsMounted from "./useIsMounted";
 
 const activityEvents = [
   "click",
@@ -26,7 +25,6 @@ export default function useIdle(
   timeToIdle: number = 3 * Minute.ms,
   events = activityEvents
 ) {
-  const isMounted = useIsMounted();
   const [isIdle, setIsIdle] = useState(false);
   const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -36,18 +34,14 @@ export default function useIdle(
     }
 
     timeout.current = setTimeout(() => {
-      if (isMounted()) {
-        setIsIdle(true);
-      }
+      setIsIdle(true);
     }, timeToIdle);
-  }, [isMounted, timeToIdle]);
+  }, [timeToIdle]);
 
   useEffect(() => {
     const handleUserActivityEvent = throttle(() => {
-      if (isMounted()) {
-        setIsIdle(false);
-        onActivity();
-      }
+      setIsIdle(false);
+      onActivity();
     }, 1000);
 
     events.forEach((eventName) =>
@@ -67,7 +61,7 @@ export default function useIdle(
         window.removeEventListener(eventName, handleUserActivityEvent)
       );
     };
-  }, [events, isMounted, onActivity]);
+  }, [events, onActivity]);
 
   return isIdle;
 }

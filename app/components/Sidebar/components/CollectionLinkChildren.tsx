@@ -1,8 +1,7 @@
 import { noop } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
@@ -16,15 +15,12 @@ import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
 import { useSidebarDisclosure } from "./SidebarDisclosureContext";
 import SidebarLink from "./SidebarLink";
-
-// The number of child documents to initially render
-const DEFAULT_PAGE_SIZE = 50;
 
 type Props = {
   /** The collection to render the children of. */
@@ -49,24 +45,10 @@ function CollectionLinkChildren({
   // Documents sit one level below the collection, with a minimum that leaves
   // room for their own disclosure to the left of the label.
   const childDepth = Math.max(depth + 1, 2);
-  const pageSize = DEFAULT_PAGE_SIZE;
   const { documents, ui } = useStores();
   const { t } = useTranslation();
   const activeDocument = documents.active;
   const childDocuments = useCollectionDocuments(collection, activeDocument);
-  const [showing, setShowing] = useState(pageSize);
-
-  useEffect(() => {
-    if (!expanded) {
-      setShowing(pageSize);
-    }
-  }, [expanded, pageSize]);
-
-  const showMore = useCallback(() => {
-    if (childDocuments && childDocuments.length > showing) {
-      setShowing((value) => value + pageSize);
-    }
-  }, [childDocuments, showing, pageSize]);
 
   const expansion = useSidebarExpansionState(
     childDocuments,
@@ -97,18 +79,14 @@ function CollectionLinkChildren({
               <Loading />
             </ResizingHeightContainer>
           )}
-          {childDocuments?.slice(0, showing).map((node, index) => (
-            <DocumentLink
-              key={node.id}
-              node={node}
-              collection={collection}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={node.isDraft}
+          {childDocuments && (
+            <DocumentTree
+              nodes={childDocuments}
               depth={childDepth}
-              index={index}
+              collection={collection}
+              prefetchDocument={prefetchDocument}
             />
-          ))}
+          )}
           {childDocuments?.length === 0 && !children && (
             <SidebarLink
               label={
@@ -119,9 +97,6 @@ function CollectionLinkChildren({
               onClick={() => history.push(collection.url)}
               depth={childDepth}
             />
-          )}
-          {childDocuments && (
-            <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
           )}
         </DocumentsLoader>
       </Folder>
