@@ -437,10 +437,6 @@ export function useDropToReparentDocument(
   const { documents, collections, dialogs, policies } = useStores();
   const hasChildDocuments = !!node?.children.length;
   const document = node ? documents.get(node.id) : undefined;
-  const pathToNode = React.useMemo(
-    () => document?.pathTo.map((item) => item.id),
-    [document]
-  );
 
   const startHover = useHover(parentRef, setExpanded);
 
@@ -504,7 +500,10 @@ export function useDropToReparentDocument(
         return true; // optimistic, in case the document is not loaded yet; server will check for permissions before performing the move.
       }
 
-      return document.isActive && !!pathToNode && !pathToNode.includes(item.id);
+      return (
+        document.isActive &&
+        !document.pathTo.some((ancestor) => ancestor.id === item.id)
+      );
     },
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
