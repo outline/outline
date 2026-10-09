@@ -684,6 +684,32 @@ describe("#groups.memberships", () => {
     expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
   });
 
+  it("should return the user that added each member", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
+    const group = await buildGroup({
+      teamId: admin.teamId,
+    });
+    await group.$add("user", user, {
+      through: {
+        createdById: admin.id,
+      },
+    });
+    const res = await server.post("/api/groups.memberships", user, {
+      body: {
+        id: group.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].createdById).toEqual(admin.id);
+    expect(body.data.groupMemberships[0].createdAt).toBeTruthy();
+    expect(body.data.users.map((u: { id: string }) => u.id).sort()).toEqual(
+      [admin.id, user.id].sort()
+    );
+  });
+
   it("should allow filtering members in group by name", async () => {
     const user = await buildUser();
     const user2 = await buildUser({

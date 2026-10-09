@@ -10,15 +10,24 @@ export type Props = {
   shorten?: boolean;
   relative?: boolean;
   format?: Partial<Record<keyof typeof locales, string>>;
+  /** Additional content shown below the date in the tooltip. */
+  tooltipDetail?: React.ReactNode;
 };
 
-const LocaleTime: React.FC<Props> = ({ children, ...rest }: Props) => {
+const LocaleTime: React.FC<Props> = ({
+  children,
+  tooltipDetail,
+  ...rest
+}: Props) => {
   const { tooltipContent, content } = useLocaleTime(rest);
   const [isInteractive, setIsInteractive] = React.useState(false);
+  // Detail is only available in the tooltip, so it must be reachable by keyboard.
+  const hasDetail = !!tooltipDetail;
 
   const time = (
     <time
       dateTime={rest.dateTime}
+      tabIndex={hasDetail ? 0 : undefined}
       onPointerEnter={() => setIsInteractive(true)}
       onFocus={() => setIsInteractive(true)}
     >
@@ -26,8 +35,21 @@ const LocaleTime: React.FC<Props> = ({ children, ...rest }: Props) => {
     </time>
   );
 
-  return isInteractive ? (
-    <Tooltip content={tooltipContent} placement="bottom">
+  return isInteractive || hasDetail ? (
+    <Tooltip
+      content={
+        hasDetail ? (
+          <>
+            {tooltipContent}
+            <br />
+            {tooltipDetail}
+          </>
+        ) : (
+          tooltipContent
+        )
+      }
+      placement="bottom"
+    >
       {time}
     </Tooltip>
   ) : (
