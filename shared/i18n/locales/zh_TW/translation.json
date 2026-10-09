@@ -1334,6 +1334,8 @@
   "No people matching your search": "找不到符合搜尋條件的使用者",
   "No people left to add": "所有人員都已經被新增",
   "Last active": "最近一次活動",
+  "Added": "已新增",
+  "Added by {{ userName }}": "由 {{ userName }} 新增",
   "Role": "角色",
   "All permissions": "全部權限",
   "All sources": "所有來源",
