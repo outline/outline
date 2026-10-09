@@ -371,10 +371,17 @@ router.post(
     );
 
     if (groupIds.length) {
-      await Group.destroy({
-        where: { id: groupIds },
+      const groups = await Group.findAll({
+        where: { id: groupIds, teamId: user.teamId },
         transaction,
+        lock: transaction.LOCK.UPDATE,
       });
+
+      // Each group is destroyed individually so that a delete event is
+      // emitted, which revokes the access that its members were granted.
+      for (const group of groups) {
+        await group.destroyWithCtx(ctx);
+      }
     }
 
     ctx.body = {
