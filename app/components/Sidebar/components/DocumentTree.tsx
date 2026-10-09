@@ -209,10 +209,6 @@ export const DocumentTree = observer(function DocumentTree({
     }
   }, [rows, expansion, activeParentId]);
 
-  if (!rows.length) {
-    return null;
-  }
-
   // Rows outside of the rendered range are replaced by spacers of the same
   // height, so that the rows keep their place in the normal document flow.
   let offset = 0;
@@ -244,6 +240,8 @@ export const DocumentTree = observer(function DocumentTree({
   });
   const remainder = virtualizer.getTotalSize() - offset;
 
+  // The container stays mounted while the tree is empty, so that its scroll
+  // margin is already tracked when the first rows are added.
   return (
     <div ref={containerRef}>
       {items}
