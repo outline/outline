@@ -467,6 +467,13 @@ export default class Mention extends Node {
       const { view } = this.editor;
       const { tr } = view.state;
 
+      // Only unfurls of a resource the mention can represent are stored, others
+      // such as documents depend on the viewer and change between views.
+      const unfurledType = MentionTypeForResource[unfurl.type];
+      if (!unfurledType) {
+        return;
+      }
+
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
         unfurl.type === UnfurlResourceType.PR ||
@@ -482,9 +489,7 @@ export default class Mention extends Node {
       // The resource an external link points at is only known once it has been
       // unfurled, so narrow a generic URL mention to the type it turned out to
       // be – an issue, pull request or project.
-      const unfurledType = MentionTypeForResource[unfurl.type];
       if (
-        unfurledType &&
         node.attrs.type === MentionType.URL &&
         unfurledType !== node.attrs.type
       ) {
