@@ -1334,6 +1334,8 @@
   "No people matching your search": "Không có người nào phù hợp với tìm kiếm của bạn",
   "No people left to add": "Không còn người để thêm",
   "Last active": "Hoạt động lần cuối",
+  "Added": "Added",
+  "Added by {{ userName }}": "Added by {{ userName }}",
   "Role": "Vai trò",
   "All permissions": "All permissions",
   "All sources": "All sources",
