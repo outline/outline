@@ -1334,6 +1334,8 @@
   "No people matching your search": "Aucune personne ne correspond à votre recherche",
   "No people left to add": "Plus aucune personne à ajouter",
   "Last active": "Dernière activité",
+  "Added": "Added",
+  "Added by {{ userName }}": "Added by {{ userName }}",
   "Role": "Rôle",
   "All permissions": "Toutes les autorisations",
   "All sources": "Toutes les sources",
