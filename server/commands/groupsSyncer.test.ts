@@ -1,6 +1,7 @@
 import { createContext } from "@server/context";
 import {
   AuthenticationProvider,
+  Event,
   ExternalGroup,
   Group,
   GroupUser,
@@ -267,6 +268,16 @@ describe("groupsSyncer", () => {
       where: { groupId: designGroup!.id, userId: user.id },
     });
     expect(membership).toBeNull();
+
+    const events = await Event.findAll({
+      where: { teamId: user.teamId, modelId: designGroup!.id },
+      order: [["createdAt", "ASC"]],
+    });
+    expect(
+      events
+        .filter((event) => event.name !== "groups.create")
+        .map((event) => event.name)
+    ).toEqual(["groups.add_user", "groups.remove_user"]);
   });
 
   it("should not create duplicate memberships on re-sync", async () => {
