@@ -1334,6 +1334,8 @@
   "No people matching your search": "No hi ha persones que coincideixin amb la vostra cerca",
   "No people left to add": "No queda gent per afegir",
   "Last active": "Últim actiu",
+  "Added": "Afegit",
+  "Added by {{ userName }}": "Afegit per {{ userName }}",
   "Role": "Rol",
   "All permissions": "Tots els permisos",
   "All sources": "Totes les fonts",
