@@ -35,7 +35,7 @@ import SidebarExpansionContext, {
 } from "./SidebarExpansionContext";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -229,19 +229,13 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
           <SidebarExpansionContext.Provider value={expansion}>
             <Relative>
               <Folder expanded={displayChildDocuments}>
-                {childDocuments.map((node, index) => (
-                  <DocumentLink
-                    key={node.id}
-                    node={node}
-                    collection={documentCollection}
-                    activeDocument={documents.active}
-                    prefetchDocument={documents.prefetchDocument}
-                    isDraft={node.isDraft}
-                    depth={2}
-                    index={index}
-                    parentId={document.id}
-                  />
-                ))}
+                <DocumentTree
+                  nodes={childDocuments}
+                  depth={2}
+                  parentId={document.id}
+                  collection={documentCollection}
+                  prefetchDocument={documents.prefetchDocument}
+                />
               </Folder>
               {cursor}
             </Relative>
@@ -356,11 +350,15 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           dropRef={dropRef}
           isActiveDropTarget={isOver && canDrop}
         >
-          <CollectionLinkChildren
-            collection={collection}
-            expanded={displayChildDocuments}
-            prefetchDocument={documents.prefetchDocument}
-          />
+          {(newChild) => (
+            <CollectionLinkChildren
+              collection={collection}
+              expanded={displayChildDocuments}
+              prefetchDocument={documents.prefetchDocument}
+            >
+              {newChild}
+            </CollectionLinkChildren>
+          )}
         </CollectionRow>
       </Draggable>
       <Relative>{cursor}</Relative>

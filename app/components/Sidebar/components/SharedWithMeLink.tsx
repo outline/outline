@@ -21,7 +21,7 @@ import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -208,19 +208,13 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <SidebarExpansionContext.Provider value={expansion}>
           <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((childNode, index) => (
-              <DocumentLink
-                key={childNode.id}
-                node={childNode}
-                collection={collection}
-                membership={membership}
-                activeDocument={documents.active}
-                isDraft={childNode.isDraft}
-                depth={depth + 1}
-                index={index}
-                parentId={document.id}
-              />
-            ))}
+            <DocumentTree
+              nodes={childDocuments}
+              depth={depth + 1}
+              parentId={document.id}
+              collection={collection}
+              membership={membership}
+            />
           </Folder>
         </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>
