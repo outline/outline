@@ -1334,6 +1334,8 @@
   "No people matching your search": "Geen personen die aan de zoekopdracht voldoen",
   "No people left to add": "Geen personen meer om toe te voegen",
   "Last active": "Laatst actief",
+  "Added": "Toegevoegd",
+  "Added by {{ userName }}": "Toegevoegd door {{ userName }}",
   "Role": "Rol",
   "All permissions": "Alle machtigingen",
   "All sources": "Alle bronnen",
