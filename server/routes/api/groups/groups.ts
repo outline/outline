@@ -1,3 +1,4 @@
+import { compact, uniqBy } from "es-toolkit";
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -427,10 +428,25 @@ router.post(
       GroupUser.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
+        include: [
+          ...options.include,
+          {
+            model: User,
+            as: "createdBy",
+            required: false,
+          },
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
     ]);
+
+    const users = uniqBy(
+      compact(
+        groupUsers.flatMap((groupUser) => [groupUser.user, groupUser.createdBy])
+      ),
+      (u) => u.id
+    );
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -438,7 +454,7 @@ router.post(
         groupMemberships: groupUsers.map((groupUser) =>
           presentGroupUser(groupUser, { includeUser: true })
         ),
-        users: groupUsers.map((groupUser) => presentUser(groupUser.user)),
+        users: users.map((u) => presentUser(u)),
       },
     };
   }

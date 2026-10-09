@@ -10,9 +10,15 @@ export type Props = {
   shorten?: boolean;
   relative?: boolean;
   format?: Partial<Record<keyof typeof locales, string>>;
+  /** Additional content shown below the date in the tooltip. */
+  tooltipDetail?: React.ReactNode;
 };
 
-const LocaleTime: React.FC<Props> = ({ children, ...rest }: Props) => {
+const LocaleTime: React.FC<Props> = ({
+  children,
+  tooltipDetail,
+  ...rest
+}: Props) => {
   const { tooltipContent, content } = useLocaleTime(rest);
   const [isInteractive, setIsInteractive] = React.useState(false);
 
@@ -27,7 +33,20 @@ const LocaleTime: React.FC<Props> = ({ children, ...rest }: Props) => {
   );
 
   return isInteractive ? (
-    <Tooltip content={tooltipContent} placement="bottom">
+    <Tooltip
+      content={
+        tooltipDetail ? (
+          <>
+            {tooltipContent}
+            <br />
+            {tooltipDetail}
+          </>
+        ) : (
+          tooltipContent
+        )
+      }
+      placement="bottom"
+    >
       {time}
     </Tooltip>
   ) : (

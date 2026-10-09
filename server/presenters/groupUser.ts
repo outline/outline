@@ -10,6 +10,8 @@ export default function presentGroupUser(
     userId: membership.userId,
     groupId: membership.groupId,
     permission: membership.permission,
+    createdById: membership.createdById,
+    createdAt: membership.createdAt,
     user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
 }
