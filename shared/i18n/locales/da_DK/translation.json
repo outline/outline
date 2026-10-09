@@ -1334,6 +1334,8 @@
   "No people matching your search": "Ingen personer matcher din søgning",
   "No people left to add": "Ingen personer tilbage at tilføje",
   "Last active": "Senest aktiv",
+  "Added": "Tilføjet",
+  "Added by {{ userName }}": "Tilføjet af {{ userName }}",
   "Role": "Rolle",
   "All permissions": "Alle tilladelser",
   "All sources": "Alle kilder",
