@@ -350,11 +350,15 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           dropRef={dropRef}
           isActiveDropTarget={isOver && canDrop}
         >
-          <CollectionLinkChildren
-            collection={collection}
-            expanded={displayChildDocuments}
-            prefetchDocument={documents.prefetchDocument}
-          />
+          {(newChild) => (
+            <CollectionLinkChildren
+              collection={collection}
+              expanded={displayChildDocuments}
+              prefetchDocument={documents.prefetchDocument}
+            >
+              {newChild}
+            </CollectionLinkChildren>
+          )}
         </CollectionRow>
       </Draggable>
       <Relative>{cursor}</Relative>

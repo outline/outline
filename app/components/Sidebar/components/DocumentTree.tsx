@@ -151,6 +151,12 @@ export const DocumentTree = observer(function DocumentTree({
   // compensates when a row above the visible area changes size.
   virtualizer.shouldAdjustScrollPositionOnItemSizeChange = noAdjustment;
 
+  const virtualItems = virtualizer.getVirtualItems();
+  // The virtualizer renders no rows until it has measured the scroll element,
+  // so the active row can appear a render after the tree mounts.
+  const isActiveRowRendered = virtualItems.some(
+    (item) => item.index === activeIndex
+  );
   const activeNodeId =
     activeIndex === -1 ? undefined : rows[activeIndex].node.id;
   const activeHasChildren =
@@ -169,7 +175,7 @@ export const DocumentTree = observer(function DocumentTree({
     const element = containerRef.current?.querySelector(
       `[data-index="${activeIndex}"]`
     );
-    if (activeNodeId && isScrollContext && element) {
+    if (isActiveRowRendered && isScrollContext && element) {
       scrollIntoView(element, {
         scrollMode: "if-needed",
         behavior: "auto",
@@ -178,7 +184,7 @@ export const DocumentTree = observer(function DocumentTree({
     }
     // Scroll when the active row appears, not when rows above it change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeNodeId, isScrollContext, scrollElement]);
+  }, [activeNodeId, isActiveRowRendered, isScrollContext]);
 
   React.useEffect(() => {
     if (
@@ -210,7 +216,7 @@ export const DocumentTree = observer(function DocumentTree({
   // Rows outside of the rendered range are replaced by spacers of the same
   // height, so that the rows keep their place in the normal document flow.
   let offset = 0;
-  const items = virtualizer.getVirtualItems().map((item) => {
+  const items = virtualItems.map((item) => {
     const row = rows[item.index];
     const start = item.start - virtualizer.options.scrollMargin;
     const gap = start - offset;

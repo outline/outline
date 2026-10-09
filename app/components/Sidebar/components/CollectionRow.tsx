@@ -81,8 +81,11 @@ export type CollectionRowProps = {
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 
-  /** Content rendered after the row (e.g. CollectionLinkChildren). */
-  children?: React.ReactNode;
+  /**
+   * Renders the content after the row (e.g. CollectionLinkChildren), given the
+   * inline new document input to show above the child documents.
+   */
+  children: (newChild: React.ReactNode) => React.ReactNode;
 };
 
 function CollectionRow({
@@ -234,26 +237,27 @@ function CollectionRow({
           {sidebarLinkElement}
         </DropToImport>
       </Relative>
-      {isAddingNewChild && onCreateChild && (
-        <SidebarLink
-          isActive={() => true}
-          depth={newChildDepth ?? Math.max(depth + 1, 2)}
-          ellipsis={false}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewChildSubmit}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
-        />
+      {children(
+        isAddingNewChild && onCreateChild ? (
+          <SidebarLink
+            isActive={() => true}
+            depth={newChildDepth ?? Math.max(depth + 1, 2)}
+            ellipsis={false}
+            label={
+              <EditableTitle
+                title=""
+                canUpdate
+                isEditing
+                placeholder={`${t("New doc")}…`}
+                onCancel={closeAddingNewChild}
+                onSubmit={handleNewChildSubmit}
+                maxLength={DocumentValidation.maxTitleLength}
+                ref={newChildTitleRef}
+              />
+            }
+          />
+        ) : undefined
       )}
-      {children}
     </ActionContextProvider>
   );
 }
