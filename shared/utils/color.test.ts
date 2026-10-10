@@ -1,4 +1,4 @@
-import { toColorFormats, validateColorHex } from "./color";
+import { ensureContrast, toColorFormats, validateColorHex } from "./color";
 
 describe("validateColorHex", () => {
   it("accepts 3-digit hex", () => {
@@ -98,5 +98,31 @@ describe("toColorFormats", () => {
 
   it("throws for values that are not colors", () => {
     expect(() => toColorFormats("rgb(foo)")).toThrow();
+  });
+});
+
+describe("ensureContrast", () => {
+  it("returns the color when it is visible", () => {
+    expect(ensureContrast("#0366D6", true)).toBe("#0366D6");
+    expect(ensureContrast("#0366D6", false)).toBe("#0366D6");
+  });
+
+  it("returns the fallback for very dark colors in the dark theme", () => {
+    expect(ensureContrast("#000000", true)).toBe("currentColor");
+    expect(ensureContrast("#000000", false)).toBe("#000000");
+  });
+
+  it("returns the fallback for very light colors in the light theme", () => {
+    expect(ensureContrast("#FFFFFF", false)).toBe("currentColor");
+    expect(ensureContrast("#FFFFFF", true)).toBe("#FFFFFF");
+  });
+
+  it("returns the fallback when there is no color", () => {
+    expect(ensureContrast(null, true, "#111")).toBe("#111");
+    expect(ensureContrast(undefined, false)).toBe("currentColor");
+  });
+
+  it("returns currentColor unchanged", () => {
+    expect(ensureContrast("currentColor", true, "#111")).toBe("currentColor");
   });
 });

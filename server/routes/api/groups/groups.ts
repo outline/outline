@@ -234,13 +234,16 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, description, externalId, disableMentions } = ctx.input.body;
+    const { name, description, icon, color, externalId, disableMentions } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
       description,
+      icon,
+      color,
       externalId,
       disableMentions,
       teamId: user.teamId,
