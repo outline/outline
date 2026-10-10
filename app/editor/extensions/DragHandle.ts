@@ -1,14 +1,19 @@
+import { t } from "i18next";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { DragTargetKind } from "~/editor/plugins/DragTarget";
 import { DragTarget } from "~/editor/plugins/DragTarget";
 
-const HANDLE_CLASS = "block-drag-handle";
 const HANDLE_SIZE = 24;
-// Vertical center of the icon within the handle, including its 2px offset.
-const ICON_CENTER_Y = HANDLE_SIZE / 2 + 2;
+// Vertical offset of the icon within the handle, matches its mask-position.
+const ICON_OFFSET_Y = 2;
+// Vertical center of the icon within the handle.
+const ICON_CENTER_Y = HANDLE_SIZE / 2 + ICON_OFFSET_Y;
+// Tolerance when checking that text is rendered inside its block.
+const RECT_TOLERANCE = 1;
 const META_KEY = "drag-handle";
 // Horizontal distance from the block's edge to the handle, per kind of block.
 const GUTTER_OFFSET: Record<DragTargetKind, number> = {
@@ -71,7 +76,7 @@ export default class DragHandle extends Extension {
             }
             return DecorationSet.create(state.doc, [
               Decoration.node(pos, pos + node.nodeSize, {
-                class: "drag-handle-target",
+                class: EditorStyleHelper.dragHandleTarget,
               }),
             ]);
           },
@@ -114,7 +119,7 @@ export default class DragHandle extends Extension {
             }
             return DecorationSet.create(state.doc, [
               Decoration.node(dragState.pos, dragState.pos + dragState.size, {
-                class: "dragging-source",
+                class: EditorStyleHelper.draggingSource,
               }),
             ]);
           },
@@ -158,7 +163,6 @@ export default class DragHandle extends Extension {
           const position = (next: DragTarget) => {
             const rect = next.element.getBoundingClientRect();
             const offsetX = GUTTER_OFFSET[next.kind];
-            const offsetY = 2;
             // Center the icon on the first line of text when the block has
             // one, otherwise align it with the top of the block.
             const lineMiddle =
@@ -172,7 +176,7 @@ export default class DragHandle extends Extension {
               window.getComputedStyle(next.element).direction === "rtl";
             handle.style.top =
               lineMiddle === null
-                ? `${rect.top - offsetY}px`
+                ? `${rect.top - ICON_OFFSET_Y}px`
                 : `${lineMiddle - ICON_CENTER_Y}px`;
             handle.style.left = isRTL
               ? `${rect.right + offsetX - HANDLE_SIZE}px`
@@ -368,10 +372,10 @@ export default class DragHandle extends Extension {
 function createHandle(): HTMLElement {
   const handle = document.createElement("button");
   handle.type = "button";
-  handle.className = HANDLE_CLASS;
+  handle.className = EditorStyleHelper.blockDragHandle;
   handle.draggable = true;
   handle.contentEditable = "false";
-  handle.setAttribute("aria-label", "Drag to reorder");
+  handle.setAttribute("aria-label", t("Drag to reorder"));
   return handle;
 }
 
@@ -413,8 +417,8 @@ function getFirstLineMiddle(
   // source of a rendered math block.
   if (
     coords.bottom <= coords.top ||
-    coords.top < rect.top - 1 ||
-    coords.bottom > rect.bottom + 1
+    coords.top < rect.top - RECT_TOLERANCE ||
+    coords.bottom > rect.bottom + RECT_TOLERANCE
   ) {
     return null;
   }

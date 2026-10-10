@@ -164,6 +164,22 @@ export class EditorStyleHelper {
   /** Drag indicator on bottom side of cell */
   static readonly tableDragIndicatorBottom = "table-drag-indicator-bottom";
 
+  // Drag and drop
+
+  /** Floating handle shown beside the hovered block to drag it */
+  static readonly blockDragHandle = "block-drag-handle";
+
+  /** Block that the drag handle is currently attached to */
+  static readonly dragHandleTarget = "drag-handle-target";
+
+  /** Block that is being dragged */
+  static readonly draggingSource = "dragging-source";
+
+  // Diagrams
+
+  /** Container for a rendered Mermaid diagram */
+  static readonly mermaidDiagram = "mermaid-diagram-wrapper";
+
   // Global
 
   /** Minimum padding around editor */

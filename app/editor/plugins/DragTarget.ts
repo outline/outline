@@ -2,6 +2,7 @@ import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNode";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 /** The kind of block that a drag target points at. */
 export type DragTargetKind = "block" | "listItem" | "checkboxItem";
@@ -15,6 +16,10 @@ export interface ResolvedDragTarget {
 }
 
 const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
+// Distance outside the content column in which the cursor still finds a block.
+const GUTTER_HIT_WIDTH = 60;
+// Inset from the content edges, so that posAtCoords lands inside the block.
+const CONTENT_INSET = 1;
 
 /**
  * A block in the editor that the drag handle can attach to. Holds the
@@ -56,9 +61,12 @@ export class DragTarget {
     const style = window.getComputedStyle(view.dom);
     const paddingLeft = parseFloat(style.paddingLeft) || 0;
     const paddingRight = parseFloat(style.paddingRight) || 0;
-    const contentLeft = rect.left + paddingLeft + 1;
-    const contentRight = rect.right - paddingRight - 1;
-    if (event.clientX < contentLeft - 60 || event.clientX > contentRight + 60) {
+    const contentLeft = rect.left + paddingLeft + CONTENT_INSET;
+    const contentRight = rect.right - paddingRight - CONTENT_INSET;
+    if (
+      event.clientX < contentLeft - GUTTER_HIT_WIDTH ||
+      event.clientX > contentRight + GUTTER_HIT_WIDTH
+    ) {
       return null;
     }
     const projectedX = Math.max(
@@ -107,7 +115,7 @@ export class DragTarget {
     if (!element.isConnected) {
       return null;
     }
-    if (element.classList.contains("mermaid-diagram-wrapper")) {
+    if (element.classList.contains(EditorStyleHelper.mermaidDiagram)) {
       const pos = this.mermaidPos(view, element);
       return pos === null ? null : new DragTarget(pos, element, "block");
     }
@@ -227,15 +235,19 @@ export class DragTarget {
     // Look at the element directly under the cursor, and at the projected X
     // inside the editor so we still find the diagram when the cursor sits in
     // the left gutter where the handle is rendered.
-    const eventTarget = event.target as HTMLElement | null;
+    const eventTarget = event.target instanceof Element ? event.target : null;
     const projectedTarget =
       projectedX !== event.clientX
         ? document.elementFromPoint(projectedX, event.clientY)
         : null;
     const diagram =
-      eventTarget?.closest<HTMLElement>(".mermaid-diagram-wrapper") ??
+      eventTarget?.closest<HTMLElement>(
+        `.${EditorStyleHelper.mermaidDiagram}`
+      ) ??
       (projectedTarget instanceof Element
-        ? projectedTarget.closest<HTMLElement>(".mermaid-diagram-wrapper")
+        ? projectedTarget.closest<HTMLElement>(
+            `.${EditorStyleHelper.mermaidDiagram}`
+          )
         : null);
     if (!diagram) {
       return null;

@@ -18,6 +18,7 @@ import { LightboxImageFactory } from "../lib/Lightbox";
 import { hashString } from "../../utils/string";
 import { LRUCache } from "../../utils/LRUCache";
 import { sanitizeUrl } from "../../utils/urls";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { isModKey } from "../../utils/keyboard";
 
 export const pluginKey = new PluginKey("mermaid");
@@ -98,11 +99,11 @@ class MermaidRenderer {
 
   constructor() {
     this.diagramId = uuidv4();
-    this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
+    this.elementId = `${EditorStyleHelper.mermaidDiagram}-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
-    this.element.classList.add("mermaid-diagram-wrapper");
+    this.element.classList.add(EditorStyleHelper.mermaidDiagram);
   }
 
   render = async (block: { node: Node; pos: number }, isDark: boolean) => {
@@ -541,7 +542,9 @@ export default function Mermaid({
         },
         mousedown(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const diagram = target?.closest(
+            `.${EditorStyleHelper.mermaidDiagram}`
+          );
           if (!diagram) {
             return false;
           }
@@ -591,7 +594,9 @@ export default function Mermaid({
         },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const diagram = target?.closest(
+            `.${EditorStyleHelper.mermaidDiagram}`
+          );
           if (!diagram) {
             return false;
           }

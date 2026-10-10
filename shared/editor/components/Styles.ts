@@ -723,7 +723,7 @@ width: 100%;
     }
 
     &:hover,
-    &.drag-handle-target {
+    &.${EditorStyleHelper.dragHandleTarget} {
       .heading-anchor {
         opacity: 1;
       }
@@ -1002,7 +1002,7 @@ th .image .image-wrapper img {
 }
 
 .ProseMirror.dragging .ProseMirror-selectednode,
-.ProseMirror .dragging-source {
+.ProseMirror .${EditorStyleHelper.draggingSource} {
   opacity: 0.25;
 }
 
@@ -1154,7 +1154,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 1;
     }
     &:hover:not(.placeholder):not([data-heading-prefix])::before,
-    &.drag-handle-target:not(.placeholder):not([data-heading-prefix])::before {
+    &.${EditorStyleHelper.dragHandleTarget}:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
     }
   }
@@ -1809,7 +1809,7 @@ mark {
   }
 
   &:is(.code-active)
-    + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
+    + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
     cursor: zoom-in;
   }
 
@@ -1824,7 +1824,7 @@ mark {
   &.ProseMirror-selectednode {
     outline: none;
 
-    & + .mermaid-diagram-wrapper {
+    & + .${EditorStyleHelper.mermaidDiagram} {
       &:not(.parse-error):not(.empty) {
         cursor: zoom-in;
       }
@@ -1838,7 +1838,7 @@ mark {
     height: 0;
     overflow: hidden;
 
-    & + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
+    & + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
       cursor: zoom-in;
     }
 }
@@ -1854,7 +1854,7 @@ mark {
         }
     }
 
-    .mermaid-diagram-wrapper {
+    .${EditorStyleHelper.mermaidDiagram} {
         display: none;
     }
 }
@@ -1972,7 +1972,7 @@ mark {
   }
 }
 
-.mermaid-diagram-wrapper {
+.${EditorStyleHelper.mermaidDiagram} {
   display: flex;
   align-items: center;
   justify-content: center;

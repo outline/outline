@@ -180,7 +180,7 @@ export default createGlobalStyle<Props>`
 
   /* Block drag handle is appended to document.body, outside the styled
      EditorContainer scope, so its rules have to live globally. */
-  .block-drag-handle {
+  .${EditorStyleHelper.blockDragHandle} {
     appearance: none;
     border: 0;
     padding: 0;
@@ -212,7 +212,7 @@ export default createGlobalStyle<Props>`
   }
 
   @media print {
-    .block-drag-handle {
+    .${EditorStyleHelper.blockDragHandle} {
       display: none !important;
     }
   }
