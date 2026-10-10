@@ -113,6 +113,30 @@ describe("ClientMetadataHelper", () => {
       ).toBe(false);
     });
 
+    it("should reject backslashes and whitespace that hide dot segments", () => {
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl(
+          "https://example.com/a\\../client"
+        )
+      ).toBe(false);
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl(
+          "https://example.com/a/.\t./client"
+        )
+      ).toBe(false);
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl(
+          "https://example.com/a/.\n./client"
+        )
+      ).toBe(false);
+    });
+
+    it("should reject a hostname with a trailing dot", () => {
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl("https://example.com./client")
+      ).toBe(false);
+    });
+
     it("should reject a value that is not a URL", () => {
       expect(ClientMetadataHelper.isValidClientIdUrl("https://")).toBe(false);
       expect(ClientMetadataHelper.isValidClientIdUrl("abc123")).toBe(false);
@@ -141,6 +165,12 @@ describe("ClientMetadataHelper", () => {
       await buildShare({ domain });
 
       expect(await ClientMetadataHelper.isInstallationHost(domain)).toBe(true);
+    });
+
+    it("should match a hostname with a trailing dot", async () => {
+      expect(
+        await ClientMetadataHelper.isInstallationHost("app.outline.dev.")
+      ).toBe(true);
     });
 
     it("should not match another host", async () => {

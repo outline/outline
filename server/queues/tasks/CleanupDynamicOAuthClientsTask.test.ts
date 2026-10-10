@@ -130,6 +130,30 @@ describe("CleanupDynamicOAuthClientsTask", () => {
     expect(await clientExists(client)).toBe(true);
   });
 
+  it("should delete a metadata document client whose tokens have expired", async () => {
+    const user = await buildUser();
+    const client = await buildMetadataDocumentOAuthClient({
+      createdAt: subDays(new Date(), 90),
+    });
+    const authentication = await buildOAuthAuthentication({
+      user,
+      oauthClientId: client.id,
+      scope: [Scope.Read],
+    });
+    await authentication.update({
+      accessTokenExpiresAt: subDays(new Date(), 2),
+      refreshTokenExpiresAt: subDays(new Date(), 1),
+    });
+
+    const task = new CleanupDynamicOAuthClientsTask();
+    await task.perform({
+      limit: 100,
+      partition: { partitionIndex: 0, partitionCount: 1 },
+    });
+
+    expect(await clientExists(client)).toBe(false);
+  });
+
   it("should delete a metadata document client without tokens", async () => {
     const client = await buildMetadataDocumentOAuthClient({
       createdAt: subDays(new Date(), 3),

@@ -142,6 +142,13 @@ export class ClientMetadataHelper {
       return false;
     }
 
+    // The URL parser treats backslashes as separators and removes tabs and
+    // newlines, which would hide dot segments from the raw path check below.
+    // oxlint-disable-next-line no-control-regex
+    if (/[\\\s\x00-\x1f\x7f]/.test(clientId)) {
+      return false;
+    }
+
     let url: URL;
     try {
       url = new URL(clientId);
@@ -153,6 +160,11 @@ export class ClientMetadataHelper {
       return false;
     }
     if (url.username || url.password || clientId.includes("#")) {
+      return false;
+    }
+
+    // A trailing dot names the same host, so it could bypass host checks.
+    if (url.hostname.endsWith(".")) {
       return false;
     }
 
@@ -176,7 +188,7 @@ export class ClientMetadataHelper {
    * @returns true if the hostname belongs to this installation.
    */
   public static async isInstallationHost(hostname: string): Promise<boolean> {
-    const host = hostname.toLowerCase();
+    const host = hostname.toLowerCase().replace(/\.+$/, "");
     const baseDomain = getBaseDomain();
     if (host === baseDomain || host.endsWith(`.${baseDomain}`)) {
       return true;

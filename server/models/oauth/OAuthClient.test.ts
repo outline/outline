@@ -31,7 +31,7 @@ describe("OAuthClient", () => {
       expect(client.isDCR).toBe(false);
       expect(client.isCIMD).toBe(true);
       expect(client.clientId).toEqual(clientId);
-      expect(client.clientSecret).toBeFalsy();
+      expect(client.clientSecret).toBeNull();
       expect(client.registrationAccessTokenHash).toBeNull();
     });
   });
