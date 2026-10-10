@@ -368,6 +368,10 @@ class ApiClient {
       return new ServiceUnavailableError(message);
     }
 
+    if (status === 413) {
+      return new RequestError(message ?? "Request too large");
+    }
+
     if (status === 422) {
       return new UnprocessableEntityError(message);
     }

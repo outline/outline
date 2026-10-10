@@ -1,5 +1,6 @@
 import { Node } from "prosemirror-model";
 import { prosemirrorToYDoc } from "y-prosemirror";
+import { DocumentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
 import { createContext } from "@server/context";
 import { Document, Event, Revision } from "@server/models";
@@ -13,6 +14,40 @@ describe("documentCollaborativeUpdater", () => {
     const doc = Node.fromJSON(schema, { type: "doc", content });
     return prosemirrorToYDoc(doc, "default");
   };
+
+  it("rejects state over the maximum size before writing", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const { revisionCount } = document;
+
+    const ydoc = buildYDoc([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "a".repeat(DocumentValidation.maxStateLength),
+          },
+        ],
+      },
+    ]);
+
+    await expect(
+      documentCollaborativeUpdater({
+        documentId: document.id,
+        ydoc,
+        collaborators: { ids: [user.id] },
+        isLastConnection: true,
+        clientVersion: null,
+      })
+    ).rejects.toMatchObject({ id: "document_too_large" });
+
+    await document.reload();
+    expect(document.revisionCount).toEqual(revisionCount);
+  });
 
   it("persists canonical JSON without empty attrs on marks", async () => {
     const user = await buildUser();

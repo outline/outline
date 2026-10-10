@@ -57,7 +57,11 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
-import { InvalidRequestError, ValidationError } from "@server/errors";
+import {
+  DocumentTooLargeError,
+  InvalidRequestError,
+  ValidationError,
+} from "@server/errors";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
@@ -413,10 +417,6 @@ class Document extends ArchivableModel<
    * The content of the document as YJS collaborative state, this column can be quite large and
    * should only be selected from the DB when the `content` snapshot cannot be used.
    */
-  @SimpleLength({
-    max: DocumentValidation.maxStateLength,
-    msg: `Document collaborative state is too large, you must create a new document`,
-  })
   @Column(DataType.BLOB)
   @SkipChangeset
   state?: Uint8Array | null;
@@ -496,6 +496,21 @@ class Document extends ArchivableModel<
   }
 
   // hooks
+
+  @BeforeSave
+  static checkStateSize(model: Document) {
+    // Content saved without state is converted on first collaborative open, so
+    // the size of that conversion is checked here before it is stored.
+    const state = model.changed("state")
+      ? model.state
+      : model.changed("content") && !model.state
+        ? DocumentHelper.toState(model)
+        : undefined;
+
+    if (state && state.length > DocumentValidation.maxStateLength) {
+      throw DocumentTooLargeError();
+    }
+  }
 
   @BeforeSave
   static async updateCollectionStructure(
