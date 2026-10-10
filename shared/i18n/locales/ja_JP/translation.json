@@ -726,6 +726,7 @@
   "More options": "詳細設定",
   "Type '/' to insert": "文字を入力するか、「/」でコマンドを呼び出します...",
   "Keep typing to filter": "入力を続けてフィルターを適用",
+  "Drag to reorder": "ドラッグして並べ替え",
   "Replace file": "ファイルを置換",
   "Delete file": "ファイルを削除",
   "Show preview": "プレビューを表示",
