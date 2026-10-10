@@ -131,18 +131,25 @@ export default class WebsocketsProcessor {
         const documentToPresent = await presentDocument(undefined, document);
 
         const channels = await this.getDocumentEventChannels(event, document);
+        channels.push(`user-${document.createdById}`);
 
-        // We need to add the collection channel to let the members update the doc structure.
         // In case draft is detached from a collection, fallback to previous attribute to get the right one.
         const collectionId =
           event.collectionId ?? event.changes?.previous.collectionId;
 
-        channels.push(`collection-${collectionId}`);
-
-        return socketio.to(channels).emit(event.name, {
+        socketio.to(channels).emit(event.name, {
           document: documentToPresent,
           collectionId,
         });
+
+        // Other collection members only receive the ID so they can remove the draft.
+        return socketio
+          .to(`collection-${collectionId}`)
+          .except(channels)
+          .emit(event.name, {
+            document: { id: document.id },
+            collectionId,
+          });
       }
 
       case "documents.unarchive": {

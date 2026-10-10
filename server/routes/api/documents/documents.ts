@@ -611,10 +611,12 @@ router.post(
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
     const userId = user.id;
-    const [collectionIds, membershipDocumentIds] = await Promise.all([
-      user.collectionIds(),
-      Document.membershipDocumentIds(userId),
-    ]);
+    const [collectionIds, membershipDocumentIds, draftClauses] =
+      await Promise.all([
+        user.collectionIds(),
+        Document.membershipDocumentIds(userId),
+        draftVisibilityClauses(user),
+      ]);
     const views = await View.findAll({
       where: {
         userId,
@@ -630,10 +632,17 @@ router.post(
           required: true,
           where: {
             teamId: user.teamId,
-            [Op.or]: [
-              { collectionId: collectionIds },
-              { id: membershipDocumentIds },
-              { createdById: userId, collectionId: { [Op.is]: null } },
+            [Op.and]: [
+              {
+                [Op.or]: [
+                  { collectionId: collectionIds },
+                  { id: membershipDocumentIds },
+                  { createdById: userId, collectionId: { [Op.is]: null } },
+                ],
+              },
+              {
+                [Op.or]: [{ publishedAt: { [Op.ne]: null } }, ...draftClauses],
+              },
             ],
           },
         },
