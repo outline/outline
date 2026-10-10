@@ -21,19 +21,12 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
     const neverUsedCutoff = subHours(now, 48);
     const inactiveCutoff = subDays(now, 30);
 
-    // Deleting a client cascades to its codes, so keep clients that are
-    // between consent and token exchange.
     const metadataDocumentPattern = `${OAuthClientValidation.metadataDocumentClientIdPrefix}%`;
-
-    const noPendingCodes = Sequelize.literal(
-      `NOT EXISTS (SELECT 1 FROM oauth_authorization_codes oac WHERE oac."oauthClientId" = "oauth_clients"."id" AND oac."expiresAt" > NOW())`
-    );
 
     const count = await OAuthClient.unscoped().destroy({
       where: {
         createdById: null,
         clientId: { [Op.notLike]: metadataDocumentPattern },
-        [Op.and]: [noPendingCodes],
         [Op.or]: [
           {
             // Never used and created more than 48 hours ago.
@@ -55,7 +48,6 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
         clientId: { [Op.like]: metadataDocumentPattern },
         createdAt: { [Op.lt]: neverUsedCutoff },
         [Op.and]: [
-          noPendingCodes,
           Sequelize.literal(
             `NOT EXISTS (SELECT 1 FROM oauth_authentications oa WHERE oa."oauthClientId" = "oauth_clients"."id" AND oa."deletedAt" IS NULL AND (oa."accessTokenExpiresAt" > NOW() OR oa."refreshTokenExpiresAt" > NOW()))`
           ),
