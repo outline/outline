@@ -464,6 +464,37 @@ describe("ClientMetadataHelper", () => {
       }
     );
 
+    it("should reject a document with private key material", async () => {
+      const clientId = buildClientId();
+      mockDocument(
+        clientId,
+        buildDocument(clientId, {
+          jwks: {
+            keys: [{ kty: "EC", crv: "P-256", x: "x", y: "y", d: "private" }],
+          },
+        })
+      );
+
+      expect(
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
+      ).toBeNull();
+      expect(await OAuthClient.findByClientId(clientId)).toBeNull();
+    });
+
+    it("should accept a document with public keys", async () => {
+      const clientId = buildClientId();
+      mockDocument(
+        clientId,
+        buildDocument(clientId, {
+          jwks: { keys: [{ kty: "EC", crv: "P-256", x: "x", y: "y" }] },
+        })
+      );
+
+      expect(
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
+      ).toBeTruthy();
+    });
+
     it("should reject a document without redirect_uris", async () => {
       const clientId = buildClientId();
       mockDocument(clientId, buildDocument(clientId, { redirect_uris: [] }));

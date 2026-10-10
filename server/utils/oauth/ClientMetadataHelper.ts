@@ -13,6 +13,9 @@ import { OAuthClient, Share, Team } from "@server/models";
 import fetch from "@server/utils/fetch";
 import { OAuthHelper } from "./OAuthHelper";
 
+/** JWK members that hold private or symmetric key material (RFC 7518 §6). */
+const privateKeyMembers = ["d", "p", "q", "dp", "dq", "qi", "oth", "k"];
+
 const MetadataDocumentSchema = z.object({
   client_id: z.string(),
   client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
@@ -40,6 +43,20 @@ const MetadataDocumentSchema = z.object({
   // authentication are rejected.
   token_endpoint_auth_method: z.literal("none").optional(),
   client_secret: z.never().optional(),
+  // Public keys are ignored, but a document with private key material is
+  // invalid and must not be cached (draft section 4.1).
+  jwks: z
+    .object({
+      keys: z.array(
+        z
+          .record(z.string(), z.unknown())
+          .refine(
+            (key) => !privateKeyMembers.some((member) => member in key),
+            "jwks must not contain private key material"
+          )
+      ),
+    })
+    .optional(),
   client_secret_expires_at: z.never().optional(),
 });
 
