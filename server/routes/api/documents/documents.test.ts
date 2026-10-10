@@ -5183,6 +5183,34 @@ describe("#documents.viewed", () => {
     expect(body.data[0].id).toEqual(document.id);
   });
 
+  it("should return viewed drafts shared with a group of the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const group = await buildGroup({ teamId: owner.teamId });
+    await group.$add("user", user, {
+      through: { createdById: owner.id },
+    });
+    const document = await buildDraftDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
   it("should return viewed documents shared with a guest", async () => {
     const owner = await buildUser();
     const guest = await buildGuestUser({ teamId: owner.teamId });
