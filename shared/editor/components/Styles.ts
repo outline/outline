@@ -2343,6 +2343,8 @@ table {
       height: 12px;
       background: ${props.theme.divider};
       display: ${props.readOnly ? "none" : "block"};
+      /* above the add column controls so narrow columns stay draggable */
+      z-index: 2;
     }
 
     &:hover::after {
@@ -2377,6 +2379,8 @@ table {
       background: ${props.theme.divider};
       border-color: ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
+      /* above the add row controls so short rows stay draggable */
+      z-index: 2;
     }
 
     &:hover::after {
