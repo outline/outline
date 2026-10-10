@@ -19,7 +19,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
-import GroupIcon from "~/components/Icons/GroupIcon";
+import { ResolvedGroupIcon } from "~/components/Icons/GroupIcon";
 import Input from "~/components/Input";
 import { createLazyComponent } from "~/components/LazyLoad";
 import PlaceholderList from "~/components/List/Placeholder";
@@ -526,7 +526,7 @@ function GroupIconPicker({
   initial,
   onChange,
 }: GroupIconPickerProps) {
-  const fallback = <GroupIcon group={{ icon, color, initial }} />;
+  const fallback = <ResolvedGroupIcon group={{ icon, color, initial }} />;
 
   return (
     <React.Suspense fallback={fallback}>

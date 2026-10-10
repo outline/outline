@@ -17,7 +17,12 @@ type Props = {
 /**
  * Renders the icon chosen for a group, or the default group icon.
  */
-function ResolvedGroupIcon({ group, color, size, className }: Props) {
+export const ResolvedGroupIcon = observer(function ResolvedGroupIcon_({
+  group,
+  color,
+  size,
+  className,
+}: Props) {
   const contrastColor = useContrastColor();
 
   if (!group.icon) {
@@ -40,6 +45,4 @@ function ResolvedGroupIcon({ group, color, size, className }: Props) {
       forceColor={!!color}
     />
   );
-}
-
-export default observer(ResolvedGroupIcon);
+});

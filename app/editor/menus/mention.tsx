@@ -17,7 +17,7 @@ import {
   MentionUserSection,
 } from "~/actions/sections";
 import { Avatar, AvatarSize } from "~/components/Avatar";
-import GroupIcon from "~/components/Icons/GroupIcon";
+import { ResolvedGroupIcon } from "~/components/Icons/GroupIcon";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import type Collection from "~/models/Collection";
@@ -89,7 +89,7 @@ export function groupMentionItem(
 ): MentionMenuItem {
   return {
     name: "mention",
-    icon: <GroupIcon group={group} />,
+    icon: <ResolvedGroupIcon group={group} />,
     title: group.name,
     subtitle: t("{{ count }} members", {
       count: group.memberCount,

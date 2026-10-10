@@ -11,7 +11,7 @@ import { hover } from "@shared/styles";
 import type Group from "~/models/Group";
 import Facepile from "~/components/Facepile";
 import Flex from "~/components/Flex";
-import GroupIcon from "~/components/Icons/GroupIcon";
+import { ResolvedGroupIcon } from "~/components/Icons/GroupIcon";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
@@ -95,7 +95,7 @@ export function GroupsTable(props: Props) {
           component: (group) => (
             <HStack spacing={6}>
               <Image>
-                <GroupIcon group={group} size={24} />
+                <ResolvedGroupIcon group={group} size={24} />
               </Image>
               <NameColumn column>
                 <Title onClick={() => handleViewMembers(group)}>
