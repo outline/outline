@@ -3,14 +3,18 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import env from "@server/env";
-import { ValidationError, NotFoundError } from "@server/errors";
+import {
+  AuthorizationError,
+  ValidationError,
+  NotFoundError,
+} from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { OAuthAuthorizationCode, OAuthClient, Team } from "@server/models";
+import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
@@ -18,6 +22,7 @@ import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { TeamPreference } from "@shared/types";
+import { ClientMetadataHelper } from "@server/utils/oauth/ClientMetadataHelper";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import { getTeamFromContext } from "@server/utils/passport";
@@ -53,8 +58,29 @@ router.post(
       throw ValidationError("Missing client_id");
     }
 
-    const client = await OAuthClient.findByClientId(clientId);
+    // Metadata documents only serve MCP, so do not fetch one for a workspace
+    // that has turned it off.
+    if (
+      OAuthClient.isMetadataDocumentClientId(clientId) &&
+      !user.team.getPreference(TeamPreference.MCP)
+    ) {
+      throw AuthorizationError();
+    }
+
+    // Metadata document clients are fetched again here when the cached copy
+    // has expired, so that the redirect URI check uses fresh data.
+    const client = await ClientMetadataHelper.findOrFetchByClientId(clientId);
     authorize(user, "read", client);
+
+    // Metadata document clients are public and cannot prove a loopback
+    // redirect URI, so PKCE with S256 is required.
+    if (
+      client.isCIMD &&
+      (!ctx.request.body.code_challenge ||
+        ctx.request.body.code_challenge_method?.trim() !== "S256")
+    ) {
+      throw ValidationError("PKCE with code_challenge_method S256 is required");
+    }
 
     // Note: These objects are mutated by the OAuth2Server library
     const request = new OAuth2Server.Request({
@@ -241,9 +267,10 @@ router.post(
 
 router.get("/register/:clientId", registrationAuth(), async (ctx) => {
   const client: OAuthClient = ctx.state.oauthClient;
-  const team = await Team.findByPk(client.teamId, {
-    rejectOnEmpty: true,
-  });
+  const team = await client.$get("team");
+  if (!team) {
+    throw NotFoundError();
+  }
 
   ctx.body = presentDCRClient(team.url, client, {
     includeRegistrationAccessToken: false,
@@ -260,10 +287,12 @@ router.put(
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
 
-    const team = await Team.findByPk(client.teamId, {
-      rejectOnEmpty: true,
+    const team = await client.$get("team", {
       transaction: ctx.state.transaction,
     });
+    if (!team) {
+      throw NotFoundError();
+    }
 
     client.name = client_name;
     client.redirectUris = redirect_uris;
