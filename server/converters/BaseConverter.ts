@@ -42,34 +42,25 @@ export abstract class BaseConverter {
   }
 
   /**
-   * Parse and convert frontmatter to a YAML codeblock.
+   * Remove YAML frontmatter from the start of the content, if present.
+   * Content that is not valid YAML is not frontmatter and is left in place.
    *
    * @param content The markdown content that may contain frontmatter.
-   * @returns The markdown content with frontmatter converted to a YAML codeblock.
+   * @returns The markdown content without frontmatter.
    */
-  protected static processFrontmatter(content: string): string {
+  protected static stripFrontmatter(content: string): string {
     const match = content.match(this.frontmatterRegex);
-
     if (!match) {
       return content;
     }
 
-    const frontmatterContent = match[1];
-    const remainingContent = content.slice(match[0].length);
-
-    // Validate that the frontmatter is valid YAML
     try {
-      yaml.load(frontmatterContent);
+      yaml.load(match[1]);
     } catch {
-      // If it's not valid YAML, return content unchanged
       return content;
     }
 
-    // Convert frontmatter to a YAML codeblock
-    const codeBlockDelimiter = "```";
-    const yamlCodeblock = `${codeBlockDelimiter}yaml\n${frontmatterContent}\n${codeBlockDelimiter}\n\n`;
-
-    return yamlCodeblock + remainingContent;
+    return content.slice(match[0].length);
   }
 
   // Frontmatter must start at the beginning of the document

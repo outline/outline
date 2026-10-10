@@ -50,6 +50,7 @@ export class DocumentConverter extends BaseConverter {
     let doc: Node;
     let title = "";
     let icon: string | undefined;
+    let frontmatterTitle: string | undefined;
 
     // Route to appropriate conversion method
     const html = await this.convertToHtml(content, fileName, mimeType);
@@ -64,8 +65,12 @@ export class DocumentConverter extends BaseConverter {
           : content.subarray(0, 4).toString("utf8") === "---\n";
       if (hasFrontmatterPrefix) {
         const frontmatter = this.parseFrontmatter(this.bufferToString(content));
-        if (typeof frontmatter?.title === "string" && frontmatter.title) {
-          const { emoji, rest } = splitLeadingEmoji(frontmatter.title);
+        if (
+          typeof frontmatter?.title === "string" &&
+          frontmatter.title.trim()
+        ) {
+          frontmatterTitle = frontmatter.title.trim();
+          const { emoji, rest } = splitLeadingEmoji(frontmatterTitle);
           title = rest;
           icon = emoji;
         }
@@ -77,6 +82,15 @@ export class DocumentConverter extends BaseConverter {
         mimeType
       );
       doc = ProsemirrorHelper.toProsemirror(markdown);
+    }
+
+    // A leading H1 that repeats the frontmatter title is a duplicate of it.
+    if (frontmatterTitle && extractTitle) {
+      const firstChild = doc.firstChild;
+      const headingText = firstChild?.textContent.trim();
+      if (headingText === frontmatterTitle || headingText === title) {
+        doc = ProsemirrorHelper.removeFirstHeading(doc);
+      }
     }
 
     // Extract title from first H1 heading
@@ -260,8 +274,7 @@ export class DocumentConverter extends BaseConverter {
       }
     }
 
-    // Process frontmatter and convert it to a YAML codeblock
-    return this.processFrontmatter(markdown);
+    return this.stripFrontmatter(markdown);
   }
 
   /**
