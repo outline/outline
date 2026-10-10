@@ -1,3 +1,4 @@
+import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
@@ -7,6 +8,8 @@ import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNod
 
 const HANDLE_CLASS = "block-drag-handle";
 const HANDLE_SIZE = 24;
+// Vertical center of the icon within the handle, including its 2px offset.
+const ICON_CENTER_Y = HANDLE_SIZE / 2 + 2;
 const META_KEY = "drag-handle";
 const LIST_ITEM_TYPES = ["list_item", "checkbox_item"];
 const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
@@ -27,6 +30,8 @@ type PluginState = {
 } | null;
 
 const pluginKey = new PluginKey<PluginState>(META_KEY);
+const HOVER_META_KEY = "drag-handle-hover";
+const hoverPluginKey = new PluginKey<number | null>(HOVER_META_KEY);
 
 /**
  * Renders a floating drag handle to the left of block-level nodes when the
@@ -42,6 +47,43 @@ export default class DragHandle extends Extension {
 
   get plugins() {
     return [
+      // Marks the heading that owns the handle, so its level label in the
+      // gutter can be hidden.
+      new Plugin<number | null>({
+        key: hoverPluginKey,
+        state: {
+          init: () => null,
+          apply: (tr, value) => {
+            const meta = tr.getMeta(HOVER_META_KEY) as
+              | { pos: number | null }
+              | undefined;
+            if (meta) {
+              return meta.pos;
+            }
+            if (value !== null && tr.docChanged) {
+              const newPos = tr.mapping.map(value);
+              return tr.doc.nodeAt(newPos)?.type.name === "heading"
+                ? newPos
+                : null;
+            }
+            return value;
+          },
+        },
+        props: {
+          decorations: (state) => {
+            const pos = hoverPluginKey.getState(state) ?? null;
+            const node = pos === null ? null : state.doc.nodeAt(pos);
+            if (pos === null || !node) {
+              return DecorationSet.empty;
+            }
+            return DecorationSet.create(state.doc, [
+              Decoration.node(pos, pos + node.nodeSize, {
+                class: "drag-handle-target",
+              }),
+            ]);
+          },
+        },
+      }),
       new Plugin<PluginState>({
         key: pluginKey,
         state: {
@@ -122,23 +164,45 @@ export default class DragHandle extends Extension {
             const rect = next.element.getBoundingClientRect();
             const offsetX = next.isCheckboxItem ? 0 : next.isListItem ? 40 : 24;
             const offsetY = 2;
+            // Center the icon on the first line of text when the block has
+            // one, otherwise align it with the top of the block.
+            const lineMiddle =
+              next.element === view.nodeDOM(next.pos)
+                ? getFirstLineMiddle(view, next.pos, rect)
+                : null;
             // RTL blocks lay out their gutter on the right, so mirror the
             // handle to the opposite edge to match the rest of the editor's
             // :dir(rtl) handling.
             const isRTL =
               window.getComputedStyle(next.element).direction === "rtl";
-            handle.style.top = `${rect.top - offsetY}px`;
+            handle.style.top =
+              lineMiddle === null
+                ? `${rect.top - offsetY}px`
+                : `${lineMiddle - ICON_CENTER_Y}px`;
             handle.style.left = isRTL
               ? `${rect.right + offsetX - HANDLE_SIZE}px`
               : `${rect.left - offsetX}px`;
             handle.style.opacity = "1";
             handle.style.pointerEvents = "auto";
+            setHoveredHeading(
+              view.state.doc.nodeAt(next.pos)?.type.name === "heading"
+                ? next.pos
+                : null
+            );
           };
 
           const hide = () => {
             target = null;
             handle.style.opacity = "0";
             handle.style.pointerEvents = "none";
+            setHoveredHeading(null);
+          };
+
+          const setHoveredHeading = (pos: number | null) => {
+            if ((hoverPluginKey.getState(view.state) ?? null) === pos) {
+              return;
+            }
+            view.dispatch(view.state.tr.setMeta(HOVER_META_KEY, { pos }));
           };
 
           const onMouseMove = (event: MouseEvent) => {
@@ -150,7 +214,7 @@ export default class DragHandle extends Extension {
             // target. Re-resolving from a cursor in the gutter can land on
             // a different (often parent) block, causing the handle to
             // flicker between the hovered block and its parent.
-            if (isOverElement(handle, event)) {
+            if (target && isOverElement(handle, event)) {
               return;
             }
             const next = findTarget(view, event);
@@ -293,21 +357,22 @@ function createHandle(): HTMLElement {
   handle.draggable = true;
   handle.contentEditable = "false";
   handle.setAttribute("aria-label", "Drag to reorder");
-  // Reset the native button chrome so only the icon background shows.
+  // Reset the native button chrome so only the icon shows. The icon is a
+  // mask, so its color comes from the global background-color rule.
   handle.style.appearance = "none";
   handle.style.border = "0";
   handle.style.padding = "0";
-  handle.style.backgroundColor = "transparent";
   handle.style.position = "fixed";
   handle.style.width = `${HANDLE_SIZE}px`;
   handle.style.height = `${HANDLE_SIZE}px`;
   handle.style.cursor = "grab";
   handle.style.opacity = "0";
   handle.style.pointerEvents = "none";
-  handle.style.transition = "opacity 150ms ease-in-out";
-  handle.style.backgroundImage = `url("${HANDLE_ICON}")`;
-  handle.style.backgroundRepeat = "no-repeat";
-  handle.style.backgroundPosition = "0 2px";
+  handle.style.transition =
+    "opacity 150ms ease-in-out, background-color 150ms ease-in-out";
+  handle.style.maskImage = `url("${HANDLE_ICON}")`;
+  handle.style.maskRepeat = "no-repeat";
+  handle.style.maskPosition = "0 2px";
   handle.style.zIndex = "1";
   return handle;
 }
@@ -357,6 +422,12 @@ function findTarget(view: EditorView, event: MouseEvent): Target | null {
   }
   const resolved = resolveTargetPos(view.state, coords.pos);
   if (resolved === null) {
+    return null;
+  }
+  // Floated and full-width images sit outside the content column, so a
+  // handle in the gutter would not line up with them.
+  const node = view.state.doc.nodeAt(resolved.pos);
+  if (node && hasLayoutImage(node)) {
     return null;
   }
   const dom = view.nodeDOM(resolved.pos);
@@ -473,4 +544,53 @@ function resolveTargetPos(
     };
   }
   return null;
+}
+
+function hasLayoutImage(node: ProsemirrorNode): boolean {
+  if (!node.isTextblock) {
+    return false;
+  }
+  let found = false;
+  node.forEach((child) => {
+    if (child.type.name === "image" && child.attrs.layoutClass) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+function getFirstLineMiddle(
+  view: EditorView,
+  pos: number,
+  rect: DOMRect
+): number | null {
+  // Descend to the first textblock, and only use it when it begins with
+  // text – inline atoms such as images have no meaningful line.
+  let node = view.state.doc.nodeAt(pos);
+  let nodePos = pos;
+  while (node && !node.isTextblock) {
+    node = node.firstChild;
+    nodePos += 1;
+  }
+  if (!node?.firstChild?.isText) {
+    return null;
+  }
+  const textPos = nodePos + 1;
+
+  let coords: { top: number; bottom: number };
+  try {
+    coords = view.coordsAtPos(textPos, 1);
+  } catch {
+    return null;
+  }
+  // Ignore text that is hidden or rendered outside the block, such as the
+  // source of a rendered math block.
+  if (
+    coords.bottom <= coords.top ||
+    coords.top < rect.top - 1 ||
+    coords.bottom > rect.bottom + 1
+  ) {
+    return null;
+  }
+  return (coords.top + coords.bottom) / 2;
 }

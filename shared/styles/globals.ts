@@ -176,7 +176,15 @@ export default createGlobalStyle<Props>`
   }
 
   /* Block drag handle is appended to document.body, outside the styled
-     EditorContainer scope, so the print rule has to live globally. */
+     EditorContainer scope, so its rules have to live globally. */
+  .block-drag-handle {
+    background-color: ${s("textTertiary")};
+
+    &:hover {
+      background-color: ${s("text")};
+    }
+  }
+
   @media print {
     .block-drag-handle {
       display: none !important;

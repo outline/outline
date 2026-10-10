@@ -722,13 +722,10 @@ width: 100%;
       }
     }
 
-    &:hover {
+    &:hover,
+    &.drag-handle-target {
       .heading-anchor {
-        opacity: 0.75;
-
-        &:hover {
-          opacity: 1;
-        }
+        opacity: 1;
       }
     }
   }
@@ -1156,7 +1153,8 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
     &:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 1;
     }
-    &:hover:not(.placeholder):not([data-heading-prefix])::before {
+    &:hover:not(.placeholder):not([data-heading-prefix])::before,
+    &.drag-handle-target:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
     }
   }
@@ -1215,15 +1213,15 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   left: 0;
   top: 0;
   bottom: 0;
-  /* Offset further left than the default so the anchor clears the block
-     drag handle, which occupies the gutter immediately left of the heading. */
-  margin-left: -52px;
-  width: 26px;
+  /* Sit immediately left of the block drag handle in the gutter. */
+  margin-left: -38px;
+  width: 18px;
   align-items: center;
   justify-content: center;
   opacity: 0;
   user-select: none;
-  color: ${props.theme.text};
+  color: ${props.theme.textTertiary};
+  transition: color 150ms ease-in-out;
   cursor: var(--pointer);
   background: none;
   outline: none;
@@ -1237,11 +1235,12 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 
   &:hover {
     opacity: 1;
+    color: ${props.theme.text};
   }
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -52px;
+    margin-right: -38px;
   }
 }
 
