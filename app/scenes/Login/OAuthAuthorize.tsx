@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { isLoopbackUri } from "~/utils/urls";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
+import { isLoopbackUri } from "@shared/utils/urls";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
@@ -68,6 +68,23 @@ function inputScopes(scope?: string): string[] {
   }
 
   return scope.split(" ").filter(Boolean);
+}
+
+/**
+ * Returns the hostname of a client ID metadata document URL.
+ *
+ * @param clientId the OAuth client_id parameter.
+ * @returns the hostname, or undefined if the client does not use a metadata document.
+ */
+function metadataDocumentHost(clientId?: string) {
+  if (!clientId?.startsWith("https://")) {
+    return undefined;
+  }
+  try {
+    return new URL(clientId).hostname;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -182,6 +199,7 @@ function Authorize() {
   }
 
   const { name, developerName, developerUrl } = response.data;
+  const clientHost = metadataDocumentHost(clientId);
 
   return (
     <Background>
@@ -219,6 +237,15 @@ function Authorize() {
             />
           </Text>
         )}
+        {clientHost && (
+          <Text type="secondary" as="p" style={{ marginTop: -12 }}>
+            <Trans
+              defaults="App details from <em>{{ clientHost }}</em>"
+              values={{ clientHost }}
+              components={{ em: <strong /> }}
+            />
+          </Text>
+        )}
         <Text type="secondary" as="p">
           {t(
             "{{ appName }} will be able to access your account and perform the following actions",
@@ -238,7 +265,13 @@ function Authorize() {
           )}
         </ul>
         <Text type="tertiary" as="p" style={{ wordBreak: "break-all" }}>
-          {isLoopbackUri(redirectUri) ? (
+          {isLoopbackUri(redirectUri) && clientHost ? (
+            <Trans
+              defaults="You will be redirected to a local application after authorizing. <em>{{ clientHost }}</em> cannot confirm that this application belongs to it, only continue if you started this connection yourself."
+              values={{ clientHost }}
+              components={{ em: <strong /> }}
+            />
+          ) : isLoopbackUri(redirectUri) ? (
             <Trans>
               You will be redirected to a local application after authorizing.
             </Trans>

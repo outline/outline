@@ -1,8 +1,13 @@
+import crypto, { randomUUID } from "node:crypto";
+import { http, HttpResponse } from "msw";
 import sharedEnv from "@shared/env";
 import { TeamPreference } from "@shared/types";
 import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
+import type { User } from "@server/models";
 import { OAuthClient } from "@server/models";
+import { mcpHeaders, mcpRequest } from "@server/test/McpHelper";
+import { server as msw } from "@server/test/msw";
 import {
   buildApiKey,
   buildOAuthClient,
@@ -10,7 +15,7 @@ import {
   buildUser,
   buildSubdomain,
 } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, toFormData } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -506,7 +511,7 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.authorization_endpoint).toContain("/oauth/authorize");
     expect(body.token_endpoint).toContain("/oauth/token");
     expect(body.revocation_endpoint).toContain("/oauth/revoke");
-    expect(body.registration_endpoint).toContain("/oauth/register");
+    expect(body.client_id_metadata_document_supported).toBe(true);
     expect(body.response_types_supported).toEqual(["code"]);
     expect(body.grant_types_supported).toEqual([
       "authorization_code",
@@ -518,6 +523,41 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
     expect(body.scopes_supported).toEqual(["read", "write"]);
+  });
+
+  it("should not advertise registration on the root domain", async () => {
+    const res = await server.get("/.well-known/oauth-authorization-server");
+
+    const body = await res.json();
+    expect(body.registration_endpoint).toBeUndefined();
+    expect(body.client_id_metadata_document_supported).toBe(true);
+  });
+
+  it("should advertise registration on a workspace subdomain", async () => {
+    const team = await buildTeam({ subdomain: buildSubdomain() });
+
+    const res = await server.get("/.well-known/oauth-authorization-server", {
+      headers: { host: `${team.subdomain}.outline.dev` },
+    });
+
+    const body = await res.json();
+    expect(body.registration_endpoint).toContain("/oauth/register");
+    expect(body.client_id_metadata_document_supported).toBe(true);
+  });
+
+  it("should not advertise registration or metadata documents when MCP is disabled", async () => {
+    const team = await buildTeam({
+      subdomain: buildSubdomain(),
+      preferences: { [TeamPreference.MCP]: false },
+    });
+
+    const res = await server.get("/.well-known/oauth-authorization-server", {
+      headers: { host: `${team.subdomain}.outline.dev` },
+    });
+
+    const body = await res.json();
+    expect(body.registration_endpoint).toBeUndefined();
+    expect(body.client_id_metadata_document_supported).toBe(false);
   });
 
   it("should return OAuth metadata at /mcp suffix path", async () => {
@@ -712,5 +752,225 @@ describe("POST /oauth/authorize", () => {
     expect(location).toMatch(/^com\.example\.app:\/oauth2redirect\?/);
     expect(location).toContain("code=");
     expect(location).toContain("state=state");
+  });
+});
+
+describe("client ID metadata documents", () => {
+  const redirectUri = "https://example.com/callback";
+  const codeVerifier = crypto.randomBytes(32).toString("base64url");
+  const codeChallenge = crypto
+    .createHash("sha256")
+    .update(codeVerifier)
+    .digest("base64url");
+
+  const mockMetadataDocument = (clientId: string) =>
+    msw.use(
+      http.get(clientId, () =>
+        HttpResponse.json({
+          client_id: clientId,
+          client_name: "Example MCP Client",
+          redirect_uris: [redirectUri],
+          token_endpoint_auth_method: "none",
+        })
+      )
+    );
+
+  const authorize = (user: User, subdomain: string, clientId: string) =>
+    server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      headers: { host: `${subdomain}.outline.dev` },
+      body: {
+        client_id: clientId,
+        response_type: "code",
+        redirect_uri: redirectUri,
+        state: "state",
+        scope: "read write",
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      },
+    });
+
+  const token = (body: Record<string, string>) =>
+    server.post("/oauth/token", {
+      headers: {
+        host: "app.outline.dev",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: toFormData(body),
+    });
+
+  it("should authorize on a subdomain, exchange and refresh at the root, then call MCP", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    mockMetadataDocument(clientId);
+
+    const authorizeRes = await authorize(user, subdomain, clientId);
+    expect(authorizeRes.status).toEqual(302);
+    const location = new URL(authorizeRes.headers.get("location") ?? "");
+    const code = location.searchParams.get("code");
+    expect(code).toBeTruthy();
+
+    const client = await OAuthClient.findByClientId(clientId);
+    expect(client?.teamId).toBeNull();
+    expect(client?.isCIMD).toBe(true);
+
+    const tokenRes = await token({
+      grant_type: "authorization_code",
+      code: code ?? "",
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      code_verifier: codeVerifier,
+    });
+    expect(tokenRes.status).toEqual(200);
+    const tokenBody = await tokenRes.json();
+    expect(tokenBody.access_token).toBeTruthy();
+
+    const refreshRes = await token({
+      grant_type: "refresh_token",
+      refresh_token: tokenBody.refresh_token,
+      client_id: clientId,
+    });
+    expect(refreshRes.status).toEqual(200);
+    const refreshBody = await refreshRes.json();
+    expect(refreshBody.access_token).toBeTruthy();
+
+    const { body } = mcpRequest("initialize", {
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      clientInfo: { name: "test-client", version: "1.0.0" },
+    });
+    const mcpRes = await server.post("/mcp/", {
+      headers: mcpHeaders(refreshBody.access_token),
+      body,
+    });
+    expect(mcpRes.status).toEqual(200);
+  });
+
+  it("should reject a client secret for a metadata document client", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    mockMetadataDocument(clientId);
+
+    const authorizeRes = await authorize(user, subdomain, clientId);
+    const location = new URL(authorizeRes.headers.get("location") ?? "");
+
+    const tokenRes = await token({
+      grant_type: "authorization_code",
+      code: location.searchParams.get("code") ?? "",
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      client_secret: "guess",
+      code_verifier: codeVerifier,
+    });
+    expect(tokenRes.status).toEqual(400);
+    expect((await tokenRes.json()).error_description).toContain(
+      "client is invalid"
+    );
+  });
+
+  it("should not authorize a metadata document client when MCP is disabled", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({
+      subdomain,
+      preferences: { [TeamPreference.MCP]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    mockMetadataDocument(clientId);
+
+    const res = await authorize(user, subdomain, clientId);
+    expect(res.status).toEqual(403);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("should not authorize a redirect URI missing from the document", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    mockMetadataDocument(clientId);
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      headers: { host: `${subdomain}.outline.dev` },
+      body: {
+        client_id: clientId,
+        response_type: "code",
+        redirect_uri: "https://attacker.example.com/callback",
+        state: "state",
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      },
+    });
+    expect(res.status).not.toEqual(302);
+  });
+
+  it("should require PKCE with S256", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    mockMetadataDocument(clientId);
+
+    const body = {
+      client_id: clientId,
+      response_type: "code",
+      redirect_uri: redirectUri,
+      state: "state",
+    };
+
+    const missing = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      headers: { host: `${subdomain}.outline.dev` },
+      body,
+    });
+    expect(missing.status).toEqual(400);
+
+    const plain = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      headers: { host: `${subdomain}.outline.dev` },
+      body: {
+        ...body,
+        code_challenge: codeVerifier,
+        code_challenge_method: "plain",
+      },
+    });
+    expect(plain.status).toEqual(400);
+  });
+
+  it("should not fetch the document when MCP is disabled", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({
+      subdomain,
+      preferences: { [TeamPreference.MCP]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    let requests = 0;
+    msw.use(
+      http.get(clientId, () => {
+        requests++;
+        return new HttpResponse(null, { status: 404 });
+      })
+    );
+
+    const res = await authorize(user, subdomain, clientId);
+    expect(res.status).toEqual(403);
+    expect(requests).toEqual(0);
+  });
+
+  it("should not authorize when the document cannot be fetched", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    msw.use(http.get(clientId, () => new HttpResponse(null, { status: 404 })));
+
+    const res = await authorize(user, subdomain, clientId);
+    expect(res.status).toEqual(403);
   });
 });
