@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
+import { NodeSelection, Plugin, PluginKey, Selection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
@@ -115,6 +115,23 @@ export default class DragHandle extends Extension {
             return value;
           },
         },
+        appendTransaction: (transactions, oldState, newState) => {
+          const isDrop = transactions.some(
+            (tr) => tr.getMeta("uiEvent") === "drop"
+          );
+          if (!isDrop || !pluginKey.getState(oldState)) {
+            return null;
+          }
+
+          // ProseMirror selects the dropped content, which would open the
+          // formatting toolbar, so collapse it to a cursor at the end instead.
+          const $end = newState.doc.resolve(newState.selection.to);
+          const selection =
+            Selection.findFrom($end, -1, true) ??
+            Selection.findFrom($end, 1, true);
+          const tr = newState.tr.setMeta(META_KEY, { pos: null });
+          return selection ? tr.setSelection(selection) : tr;
+        },
         props: {
           decorations: (state) => {
             const dragState = pluginKey.getState(state);
@@ -134,9 +151,6 @@ export default class DragHandle extends Extension {
             },
             drop: (view) => {
               view.dom.classList.remove("dragging");
-              if (pluginKey.getState(view.state)) {
-                view.dispatch(view.state.tr.setMeta(META_KEY, { pos: null }));
-              }
               return false;
             },
             dragend: (view) => {

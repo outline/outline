@@ -201,6 +201,10 @@ export default createGlobalStyle<Props>`
       background-color: ${s("text")};
     }
 
+    &:active {
+      cursor: grabbing;
+    }
+
     &.visible {
       opacity: 1;
       pointer-events: auto;
