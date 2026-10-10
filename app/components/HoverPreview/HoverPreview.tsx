@@ -122,7 +122,7 @@ const HoverPreviewDesktop = observer(
             <Animate
               initial={{
                 opacity: 0,
-                y: -20,
+                y: -8,
                 filter: "blur(5px)",
                 pointerEvents: "none",
               }}
