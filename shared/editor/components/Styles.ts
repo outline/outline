@@ -1614,11 +1614,6 @@ ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
-ul li.ProseMirror-selectednode::after,
-ol li.ProseMirror-selectednode::after {
-  display: none;
-}
-
 ul.checkbox_list {
   & > li > span[contenteditable="false"] {
     cursor: text;
@@ -2633,13 +2628,6 @@ table {
   background: ${props.theme.accent};
   border-radius: 1px;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
-}
-
-
-.folded-content,
-.folded-content + .mermaid-diagram-wrapper {
-  display: none;
-  user-select: none;
 }
 
 @keyframes ProseMirror-cursor-blink {

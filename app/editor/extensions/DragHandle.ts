@@ -61,8 +61,8 @@ export default class DragHandle extends Extension {
               return meta.pos;
             }
             if (value !== null && tr.docChanged) {
-              const newPos = tr.mapping.map(value);
-              return tr.doc.nodeAt(newPos)?.type.name === "heading"
+              const { pos: newPos, deleted } = tr.mapping.mapResult(value, 1);
+              return !deleted && tr.doc.nodeAt(newPos)?.type.name === "heading"
                 ? newPos
                 : null;
             }
@@ -154,13 +154,15 @@ export default class DragHandle extends Extension {
 
           const onDragEnd = () => {
             view.dom.classList.remove("dragging");
+            // The handle is outside the editor DOM, so ProseMirror's own
+            // dragend cleanup does not run for it.
+            view.dragging = null;
             if (pluginKey.getState(view.state)) {
               view.dispatch(view.state.tr.setMeta(META_KEY, { pos: null }));
             }
           };
 
-          const show = (next: Target) => {
-            target = next;
+          const position = (next: Target) => {
             const rect = next.element.getBoundingClientRect();
             const offsetX = next.isCheckboxItem ? 0 : next.isListItem ? 40 : 24;
             const offsetY = 2;
@@ -184,6 +186,11 @@ export default class DragHandle extends Extension {
               : `${rect.left - offsetX}px`;
             handle.style.opacity = "1";
             handle.style.pointerEvents = "auto";
+          };
+
+          const show = (next: Target) => {
+            target = next;
+            position(next);
             setHoveredHeading(
               view.state.doc.nodeAt(next.pos)?.type.name === "heading"
                 ? next.pos
@@ -191,10 +198,14 @@ export default class DragHandle extends Extension {
             );
           };
 
-          const hide = () => {
+          const hideHandle = () => {
             target = null;
             handle.style.opacity = "0";
             handle.style.pointerEvents = "none";
+          };
+
+          const hide = () => {
+            hideHandle();
             setHoveredHeading(null);
           };
 
@@ -331,6 +342,22 @@ export default class DragHandle extends Extension {
           handle.addEventListener("click", onClick);
 
           return {
+            update: (_view, prevState) => {
+              if (!target || view.state.doc === prevState.doc) {
+                return;
+              }
+              // Positions shift when the document changes, e.g. from a
+              // collaborator's edit, so resolve the target again from its DOM.
+              const pos = resolveElementPos(view, target.element);
+              if (pos === null) {
+                hideHandle();
+                return;
+              }
+              target = { ...target, pos };
+              if (!pluginKey.getState(view.state)) {
+                position(target);
+              }
+            },
             destroy: () => {
               window.removeEventListener("mousemove", onMouseMove);
               window.removeEventListener("scroll", onScroll, { capture: true });
@@ -442,6 +469,51 @@ function findTarget(view: EditorView, event: MouseEvent): Target | null {
   };
 }
 
+function resolveElementPos(
+  view: EditorView,
+  element: HTMLElement
+): number | null {
+  if (!element.isConnected) {
+    return null;
+  }
+  if (element.classList.contains("mermaid-diagram-wrapper")) {
+    return resolveMermaidPos(view, element);
+  }
+  const parent = element.parentNode;
+  if (!parent) {
+    return null;
+  }
+  let pos: number;
+  try {
+    pos = view.posAtDOM(parent, Array.from(parent.childNodes).indexOf(element));
+  } catch {
+    return null;
+  }
+  return view.nodeDOM(pos) === element ? pos : null;
+}
+
+function resolveMermaidPos(
+  view: EditorView,
+  diagram: HTMLElement
+): number | null {
+  const codeBlockDom = diagram.previousElementSibling;
+  if (!(codeBlockDom instanceof HTMLElement)) {
+    return null;
+  }
+  let pos: number;
+  try {
+    pos = view.posAtDOM(codeBlockDom, 0);
+  } catch {
+    return null;
+  }
+  if (pos < 0) {
+    return null;
+  }
+  const $pos = view.state.doc.resolve(pos);
+  const blockPos = $pos.depth > 0 ? $pos.before($pos.depth) : 0;
+  return view.state.doc.nodeAt(blockPos) ? blockPos : null;
+}
+
 function findMermaidTarget(
   view: EditorView,
   event: MouseEvent,
@@ -463,22 +535,8 @@ function findMermaidTarget(
   if (!diagram) {
     return null;
   }
-  const codeBlockDom = diagram.previousElementSibling;
-  if (!(codeBlockDom instanceof HTMLElement)) {
-    return null;
-  }
-  let pos: number;
-  try {
-    pos = view.posAtDOM(codeBlockDom, 0);
-  } catch {
-    return null;
-  }
-  if (pos < 0) {
-    return null;
-  }
-  const $pos = view.state.doc.resolve(pos);
-  const blockPos = $pos.depth > 0 ? $pos.before($pos.depth) : 0;
-  if (!view.state.doc.nodeAt(blockPos)) {
+  const blockPos = resolveMermaidPos(view, diagram);
+  if (blockPos === null) {
     return null;
   }
   return {
