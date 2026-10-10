@@ -310,13 +310,11 @@ class Notification extends Model {
       case NotificationEventType.ExportCompleted: {
         return settingsPath("export");
       }
-      case NotificationEventType.AddUserToGroup: {
+      case NotificationEventType.AddUserToGroup:
+      case NotificationEventType.RemoveUserFromGroup: {
         return this.groupId
           ? settingsPath("groups", this.groupId, "members")
           : "";
-      }
-      case NotificationEventType.RemoveUserFromGroup: {
-        return "";
       }
       default:
         this.event satisfies never;
