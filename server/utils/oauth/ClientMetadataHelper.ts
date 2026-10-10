@@ -181,7 +181,16 @@ export class ClientMetadataHelper {
     if (!OAuthClient.isMetadataDocumentClientId(clientId)) {
       return false;
     }
-    if (url.username || url.password || clientId.includes("#")) {
+    if (clientId.includes("#")) {
+      return false;
+    }
+
+    // The parsed URL drops empty userinfo, as in "https://@host", so look for
+    // the delimiter in the raw authority instead.
+    const authority = clientId
+      .slice(OAuthClientValidation.metadataDocumentClientIdPrefix.length)
+      .split(/[/?]/)[0];
+    if (authority.includes("@")) {
       return false;
     }
 

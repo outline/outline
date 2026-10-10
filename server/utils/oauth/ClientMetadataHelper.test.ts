@@ -99,6 +99,15 @@ describe("ClientMetadataHelper", () => {
       ).toBe(false);
     });
 
+    it("should reject empty userinfo", () => {
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl("https://@example.com/client")
+      ).toBe(false);
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl("https://:@example.com/client")
+      ).toBe(false);
+    });
+
     it("should reject dot path segments", () => {
       expect(
         ClientMetadataHelper.isValidClientIdUrl(
