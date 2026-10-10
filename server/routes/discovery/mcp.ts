@@ -21,10 +21,14 @@ router.get(
       authorization_endpoint: `${origin}/oauth/authorize`,
       token_endpoint: `${origin}/oauth/token`,
       revocation_endpoint: `${origin}/oauth/revoke`,
+      // Registration needs a workspace, so it is not offered on the root
+      // domain. Clients there use a client ID metadata document instead.
       ...(!env.OAUTH_DISABLE_DCR &&
+        team &&
         mcpEnabled && {
           registration_endpoint: `${origin}/oauth/register`,
         }),
+      client_id_metadata_document_supported: mcpEnabled,
       response_types_supported: OAuthHelper.responseTypes,
       grant_types_supported: OAuthHelper.grantTypes,
       token_endpoint_auth_methods_supported:

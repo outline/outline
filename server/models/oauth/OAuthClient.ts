@@ -83,16 +83,26 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.STRING)
   avatarUrl: string | null;
 
-  @Column(DataType.STRING)
+  /**
+   * The public client identifier. Either a generated value, or the URL of a
+   * client ID metadata document (CIMD).
+   */
+  @Length({
+    max: OAuthClientValidation.maxClientIdLength,
+    msg: `clientId must be ${OAuthClientValidation.maxClientIdLength} characters or less`,
+  })
+  @Column(DataType.STRING(OAuthClientValidation.maxClientIdLength))
   clientId: string;
 
   @IsIn([Array.from(OAuthClientValidation.clientTypes)])
   @Column(DataType.STRING)
   clientType: (typeof OAuthClientValidation.clientTypes)[number];
 
+  /** The client secret. Null for clients identified by a metadata document. */
+  @AllowNull
   @Column(DataType.BLOB)
   @Encrypted
-  clientSecret: string;
+  clientSecret: string | null;
 
   @Column(DataType.BOOLEAN)
   published: boolean;
@@ -118,14 +128,23 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.VIRTUAL)
   registrationAccessToken: string | null;
 
+  /** When the cached client ID metadata document must be fetched again. */
+  @AllowNull
+  @IsDate
+  @Column(DataType.DATE)
+  @SkipChangeset
+  metadataExpiresAt: Date | null;
+
   // associations
 
   @BelongsTo(() => Team, "teamId")
-  team: Team;
+  team: Team | null;
 
+  /** The owning team. Null for clients identified by a metadata document. */
+  @AllowNull
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
-  teamId: string;
+  teamId: string | null;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User | null;
@@ -161,13 +180,29 @@ class OAuthClient extends ParanoidModel<
    * @returns true if this client is a DCR client, false otherwise.
    */
   public get isDCR() {
-    return !this.createdById;
+    return !this.createdById && !this.isCIMD;
+  }
+
+  /**
+   * Determine if this client is identified by a client ID metadata document
+   * (CIMD). These clients use the https URL of the document as their
+   * `clientId`, and do not belong to a team.
+   *
+   * @returns true if this client is a CIMD client, false otherwise.
+   */
+  public get isCIMD() {
+    return OAuthClient.isMetadataDocumentClientId(this.clientId);
   }
 
   // hooks
 
   @BeforeCreate
   public static async generateCredentials(model: OAuthClient) {
+    // Metadata document clients are public and identified by their URL.
+    if (model.isCIMD) {
+      return;
+    }
+
     model.clientId = OAuthClient.generateNewClientId();
     model.clientSecret = OAuthClient.generateNewClientSecret();
 
@@ -179,6 +214,18 @@ class OAuthClient extends ParanoidModel<
   }
 
   // static methods
+
+  /**
+   * Whether a client identifier is the URL of a client ID metadata document.
+   * Generated identifiers never contain a scheme, so the prefix is enough to
+   * tell them apart.
+   *
+   * @param clientId The client identifier to check.
+   * @returns true if the identifier is a metadata document URL.
+   */
+  public static isMetadataDocumentClientId(clientId: string | undefined) {
+    return !!clientId?.startsWith("https://");
+  }
 
   /**
    * Find an OAuthClient by it's public `clientId`

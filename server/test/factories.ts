@@ -874,6 +874,36 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
   );
 }
 
+/**
+ * Build an OAuth client that is identified by a client ID metadata document.
+ *
+ * @param overrides Attributes to override on the client.
+ * @returns The created OAuth client.
+ */
+export async function buildMetadataDocumentOAuthClient(
+  overrides: Partial<OAuthClient> = {}
+) {
+  return OAuthClient.create(
+    {
+      clientId: `https://${randomUUID()}.example.com/oauth/client.json`,
+      name: faker.company.name(),
+      redirectUris: ["https://example.com/oauth/callback"],
+      clientType: "public",
+      published: false,
+      teamId: null,
+      createdById: null,
+      metadataExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      ...(overrides.createdAt && !overrides.updatedAt
+        ? { updatedAt: overrides.createdAt }
+        : {}),
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
+}
+
 export async function buildOAuthAuthorizationCode(
   overrides: Partial<OAuthAuthorizationCode> = {}
 ) {

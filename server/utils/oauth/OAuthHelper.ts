@@ -1,5 +1,10 @@
 import type { Context } from "koa";
 import type { OAuthClientValidation } from "@shared/validations";
+import {
+  isLoopbackUri,
+  isPrivateUseSchemeUrl,
+  isUrl,
+} from "@shared/utils/urls";
 import env from "@server/env";
 
 type ClientType = (typeof OAuthClientValidation.clientTypes)[number];
@@ -53,6 +58,34 @@ export class OAuthHelper {
     clientType: ClientType
   ): (typeof OAuthHelper.tokenEndpointAuthMethods)[number] {
     return clientType === "confidential" ? "client_secret_post" : "none";
+  }
+
+  /**
+   * Whether a URI is acceptable as an OAuth redirect URI. HTTPS is required,
+   * except for loopback addresses (RFC 8252 §7.3) and private-use schemes
+   * (RFC 8252 §7.1) used by native apps. Fragments and wildcards are rejected.
+   *
+   * @param uri - the redirect URI to validate.
+   * @returns true if the URI is valid.
+   */
+  public static isValidRedirectUri(uri: string): boolean {
+    if (uri.includes("#") || uri.includes("*")) {
+      return false;
+    }
+
+    // Loopback addresses may use http:// since TLS certificates cannot be
+    // obtained for them.
+    if (isLoopbackUri(uri) && new URL(uri).protocol === "http:") {
+      return true;
+    }
+
+    // The recommended private-use form, e.g. com.example.app:/oauth2redirect,
+    // has no host so isUrl would reject it.
+    if (isPrivateUseSchemeUrl(uri)) {
+      return true;
+    }
+
+    return isUrl(uri, { requireHttps: true });
   }
 
   /**

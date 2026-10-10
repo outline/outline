@@ -121,6 +121,9 @@ export const OAuthClientValidation = {
   /** The maximum length of an OAuth client redirect URI */
   maxRedirectUriLength: 1024,
 
+  /** The maximum length of an OAuth client ID, which can be a metadata document URL */
+  maxClientIdLength: 1024,
+
   /** The maximum number of redirect URIs for an OAuth client */
   maxRedirectUris: 20,
 

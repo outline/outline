@@ -196,6 +196,28 @@ export function isPrivateUseSchemeUrl(text: string) {
 }
 
 /**
+ * Check if a URI is a loopback address (localhost, 127.0.0.1, or [::1]).
+ *
+ * @param uri - the redirect URI to check.
+ * @returns true if the URI targets a loopback address.
+ */
+export function isLoopbackUri(uri: string | undefined): boolean {
+  if (!uri) {
+    return false;
+  }
+  try {
+    const url = new URL(uri);
+    return (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "[::1]"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Temporary prefix applied to links in document that are not yet persisted.
  */
 export const creatingUrlPrefix = "creating#";
