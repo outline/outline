@@ -649,6 +649,7 @@ function Placeholder({
 }
 
 const NoResults = styled(Empty)`
+  display: block;
   margin-top: 8px;
 `;
 
