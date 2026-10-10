@@ -1,3 +1,4 @@
+/** Any value that can be serialized to JSON. */
 export type JSONValue =
   | string
   | number
@@ -7,13 +8,16 @@ export type JSONValue =
   | { [x: string]: JSONValue }
   | Array<JSONValue>;
 
+/** A JSON object. */
 export type JSONObject = { [x: string]: JSONValue };
 
+/** A ProseMirror mark in JSON form. */
 export type ProsemirrorMark = {
   type: string;
   attrs?: JSONObject;
 };
 
+/** A ProseMirror node in JSON form. */
 export type ProsemirrorData = {
   type: string;
   content?: ProsemirrorData[];
@@ -22,6 +26,7 @@ export type ProsemirrorData = {
   marks?: ProsemirrorMark[];
 };
 
+/** A ProseMirror document in JSON form. */
 export type ProsemirrorDoc = {
   type: "doc";
   content: ProsemirrorData[];

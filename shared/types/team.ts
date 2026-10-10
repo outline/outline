@@ -1,8 +1,10 @@
+/** Custom brand colors for a workspace. */
 export type CustomTheme = {
   accent: string;
   accentText: string;
 };
 
+/** The workspace details that are visible on public shares. */
 export type PublicTeam = {
   avatarUrl: string;
   name: string;
@@ -10,17 +12,20 @@ export type PublicTeam = {
   tocPosition: TOCPosition;
 };
 
+/** Positions of the table of contents relative to the document. */
 export enum TOCPosition {
   Left = "left",
   Right = "right",
 }
 
+/** Who can see user email addresses. */
 export enum EmailDisplay {
   None = "none",
   Members = "members",
   Everyone = "everyone",
 }
 
+/** Who can comment on documents. */
 export enum CommentingAccess {
   /** No one can comment. */
   None = "none",
@@ -30,6 +35,7 @@ export enum CommentingAccess {
   Everyone = "everyone",
 }
 
+/** Workspace-level preferences. */
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
@@ -61,6 +67,7 @@ export enum TeamPreference {
   DisabledEmbeds = "disabledEmbeds",
 }
 
+/** Workspace preference values, keyed by preference. */
 export type TeamPreferences = {
   [TeamPreference.SeamlessEdit]?: boolean;
   [TeamPreference.PublicBranding]?: boolean;

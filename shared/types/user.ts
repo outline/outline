@@ -1,3 +1,4 @@
+/** Sidebar sections that a user can reorder. */
 export enum SidebarSection {
   /** The starred documents section. */
   Starred = "starred",
@@ -7,6 +8,7 @@ export enum SidebarSection {
   Collections = "collections",
 }
 
+/** User-level preferences. */
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
   RememberLastPath = "rememberLastPath",
@@ -32,6 +34,7 @@ export enum UserPreference {
   SidebarSectionOrder = "sidebarSectionOrder",
 }
 
+/** Styles of prefix that can be shown before headings. */
 export enum HeadingPrefixStyle {
   /** Headings are displayed without a prefix. */
   None = "none",
@@ -43,15 +46,18 @@ export enum HeadingPrefixStyle {
   Outline = "outline",
 }
 
+/** Document-level preferences. */
 export enum DocumentPreference {
   /** The style of prefix displayed before headings in the document. */
   HeadingPrefix = "headingPrefix",
 }
 
+/** Document preference values, keyed by preference. */
 export type DocumentPreferences = {
   [DocumentPreference.HeadingPrefix]?: HeadingPrefixStyle;
 };
 
+/** Styles of unread notification badge. */
 export enum NotificationBadgeType {
   /** Do not show a notification badge. */
   Disabled = "disabled",
@@ -61,6 +67,7 @@ export enum NotificationBadgeType {
   Indicator = "indicator",
 }
 
+/** User preference values, keyed by preference. */
 export type UserPreferences = {
   [UserPreference.RememberLastPath]?: boolean;
   [UserPreference.UseCursorPointer]?: boolean;

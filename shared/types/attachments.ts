@@ -1,5 +1,6 @@
 import type { AuthenticationType } from "./auth";
 
+/** Upload presets that set the ACL, size limit, and expiry of an attachment. */
 export enum AttachmentPreset {
   DocumentAttachment = "documentAttachment",
   WorkspaceImport = "workspaceImport",
@@ -8,6 +9,7 @@ export enum AttachmentPreset {
   Emoji = "emoji",
 }
 
+/** Metadata about the origin of a document, collection, or revision. */
 export type SourceMetadata = {
   /** The original source file name. */
   fileName?: string;

@@ -1,3 +1,4 @@
+/** The kinds of node in a navigation tree. */
 export enum NavigationNodeType {
   Collection = "collection",
   Document = "document",
@@ -5,6 +6,7 @@ export enum NavigationNodeType {
   GroupMembership = "groupMembership",
 }
 
+/** A node in a navigation tree, such as a collection's document structure. */
 export type NavigationNode = {
   id: string;
   title: string;
@@ -20,6 +22,7 @@ export type NavigationNode = {
   depth?: number;
 };
 
+/** The sort order of documents in a collection. */
 export type CollectionSort = {
   field: string;
   direction: "asc" | "desc";

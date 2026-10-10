@@ -1,7 +1,9 @@
+/** Events that a user can subscribe to. */
 export enum SubscriptionType {
   Document = "documents.update",
 }
 
+/** Events that can trigger a notification. */
 export enum NotificationEventType {
   PublishDocument = "documents.publish",
   UpdateDocument = "documents.update",
@@ -25,16 +27,19 @@ export enum NotificationEventType {
   RequestDocumentAccess = "access_requests.create",
 }
 
+/** Channels that a notification can be delivered through. */
 export enum NotificationChannelType {
   App = "app",
   Email = "email",
   Chat = "chat",
 }
 
+/** Extra data stored on a notification. */
 export type NotificationData = {
   emoji?: string;
 };
 
+/** A user's notification settings, by event and optionally by channel. */
 export type NotificationSettings = {
   [event in NotificationEventType]?:
     | {
@@ -43,6 +48,7 @@ export type NotificationSettings = {
     | boolean;
 };
 
+/** Whether each notification event is enabled when the user has no setting. */
 export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
   {
     [NotificationEventType.PublishDocument]: false,
@@ -67,6 +73,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.RequestDocumentAccess]: true,
   };
 
+/** Notices shown to the user from the `notice` query parameter. */
 export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
   UnsubscribeCollection = "unsubscribe-collection",

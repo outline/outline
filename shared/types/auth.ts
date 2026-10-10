@@ -21,6 +21,7 @@ export enum AuthenticationType {
   OAUTH = "oauth",
 }
 
+/** The client application that a user signs in from. */
 export enum Client {
   Web = "web",
   Desktop = "desktop",

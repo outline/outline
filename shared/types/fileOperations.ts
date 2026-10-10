@@ -1,3 +1,4 @@
+/** Content types that a single document can be exported as. */
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
@@ -5,6 +6,7 @@ export enum ExportContentType {
   Pdf = "application/pdf",
 }
 
+/** File formats supported by bulk imports and exports. */
 export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
@@ -15,11 +17,13 @@ export enum FileOperationFormat {
   Notion = "notion",
 }
 
+/** The direction of a file operation. */
 export enum FileOperationType {
   Import = "import",
   Export = "export",
 }
 
+/** The lifecycle states of a file operation. */
 export enum FileOperationState {
   Creating = "creating",
   Uploading = "uploading",
@@ -28,6 +32,7 @@ export enum FileOperationState {
   Expired = "expired",
 }
 
+/** The lifecycle states of an import. */
 export enum ImportState {
   Created = "created",
   InProgress = "in_progress",
@@ -37,6 +42,7 @@ export enum ImportState {
   Canceled = "canceled",
 }
 
+/** The lifecycle states of a single import task. */
 export enum ImportTaskState {
   Created = "created",
   InProgress = "in_progress",

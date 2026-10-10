@@ -1,3 +1,4 @@
+/** The kinds of resource that a mention can refer to. */
 export enum MentionType {
   User = "user",
   Document = "document",
@@ -10,6 +11,7 @@ export enum MentionType {
   Date = "date",
 }
 
+/** The kinds of resource that a link can unfurl to. */
 export enum UnfurlResourceType {
   URL = "url",
   Mention = "mention",
@@ -20,6 +22,7 @@ export enum UnfurlResourceType {
   Project = "project",
 }
 
+/** The unfurl response shape for each resource type. */
 export type UnfurlResponse = {
   [UnfurlResourceType.URL]: {
     /** The resource type */
