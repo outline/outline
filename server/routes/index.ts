@@ -12,7 +12,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
-import { getSessionRedirectUrl } from "@server/utils/authentication";
+import { getSessionTeams } from "@server/utils/authentication";
 import { getTeamFromContext } from "@server/utils/passport";
 import { isInvalidAppPath } from "@server/utils/url";
 import apexRedirect from "../middlewares/apexRedirect";
@@ -194,11 +194,15 @@ router.get("*", async (ctx, next) => {
       }
 
       // Links to app paths on the root domain, such as those in emails, are
-      // sent on to the workspace the browser is signed in to.
+      // sent on to the workspace the browser is signed in to. When signed in
+      // to several, the client shows a workspace chooser instead.
       if (!team && !isPublicAppPath(ctx.path)) {
-        const url = await getSessionRedirectUrl(ctx);
-        if (url) {
-          ctx.redirect(url);
+        const teams = await getSessionTeams(ctx);
+        if (teams.length === 1) {
+          const url = new URL(teams[0].url);
+          url.pathname = ctx.path;
+          url.search = ctx.search;
+          ctx.redirect(url.toString());
           return;
         }
       }

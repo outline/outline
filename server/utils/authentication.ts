@@ -34,36 +34,25 @@ export function getSessionsInCookie(ctx: Context) {
 }
 
 /**
- * Finds the workspace to send a request for the app root domain to, using the
- * first usable workspace in the "sessions" cookie. Entries that are malformed,
- * deleted, suspended, or already the current host are ignored.
+ * Finds the usable workspaces in the "sessions" cookie, in the order that they
+ * were signed in to. Entries that are malformed, deleted, suspended, or already
+ * the current host are ignored.
  *
  * @param ctx The Koa context
- * @returns The workspace url for the requested path, if there is one.
+ * @returns The workspaces the browser is signed in to.
  */
-export async function getSessionRedirectUrl(
-  ctx: Context
-): Promise<string | undefined> {
+export async function getSessionTeams(ctx: Context): Promise<Team[]> {
   const teamIds = Object.keys(getSessionsInCookie(ctx)).filter((id) =>
     isUUID(id)
   );
   if (teamIds.length === 0) {
-    return;
+    return [];
   }
 
-  // Preserve cookie order so the earliest sign-in wins.
   const teams = await Team.findAll({ where: { id: teamIds } });
-  const team = teamIds
+  return teamIds
     .map((id) => teams.find((t) => t.id === id))
-    .find((t) => t && !t.isSuspended && !t.isTeamUrl(ctx.href));
-  if (!team) {
-    return;
-  }
-
-  const url = new URL(team.url);
-  url.pathname = ctx.path;
-  url.search = ctx.search;
-  return url.toString();
+    .filter((t): t is Team => !!t && !t.isSuspended && !t.isTeamUrl(ctx.href));
 }
 
 /**

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { s } from "@shared/styles";
+import { sanitizeUrl } from "@shared/utils/urls";
 import { AvatarSize } from "~/components/Avatar";
 import Avatar, { AvatarVariant } from "~/components/Avatar/Avatar";
 import ChangeLanguage from "~/components/ChangeLanguage";
@@ -16,13 +17,21 @@ import Login from "../Login";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
 
-type Props = { sessions: Sessions };
+interface Props {
+  /** The workspaces that the browser is signed in to. */
+  sessions: Sessions;
+  /** Text shown below the heading, defaults to a generic prompt. */
+  description?: string;
+}
 
-export function TeamSwitcher({ sessions }: Props) {
+/**
+ * Lists the workspaces that the browser is signed in to, so the user can
+ * choose which one to continue to with the current path, or login to another.
+ */
+export function TeamSwitcher({ sessions, description }: Props) {
   const { t } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
   const url = new URL(window.location.href);
-  const appName = env.APP_NAME;
 
   if (showLogin) {
     return <Login onBack={() => setShowLogin(false)} />;
@@ -36,17 +45,17 @@ export function TeamSwitcher({ sessions }: Props) {
 
         <StyledHeading>{t("Choose a workspace")}</StyledHeading>
         <Text type="tertiary" as="p">
-          {t(
-            "Choose an {{ appName }} workspace or login to continue connecting this app",
-            { appName }
-          )}
+          {description ??
+            t("Choose an {{ appName }} workspace or login to continue", {
+              appName: env.APP_NAME,
+            })}
           .
         </Text>
-        {Object.keys(sessions)?.map((teamId) => {
+        {Object.keys(sessions).map((teamId) => {
           const session = sessions[teamId];
-          const location = session.url + url.pathname + url.search;
+          const location = sanitizeUrl(session.url + url.pathname + url.search);
           return (
-            <TeamLink href={location} key={session.url}>
+            <TeamLink href={location} key={teamId}>
               <Avatar
                 variant={AvatarVariant.Square}
                 model={{
