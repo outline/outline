@@ -314,9 +314,11 @@ export class ClientMetadataHelper {
   }
 
   /**
-   * Returns when a cached metadata document expires, from the
-   * `Cache-Control` and `Expires` response headers. The result is clamped
-   * between the minimum and maximum cache durations.
+   * Returns when a cached metadata document expires, using HTTP caching
+   * semantics. `no-store` and `no-cache` expire the document at once.
+   * Otherwise the freshness lifetime comes from `max-age` or `Expires`, less
+   * the `Age` of the response, and is clamped between the minimum and maximum
+   * cache durations.
    *
    * @param headers The response headers.
    * @param now The current time.
@@ -326,19 +328,35 @@ export class ClientMetadataHelper {
     headers: { get(name: string): string | null },
     now = new Date()
   ): Date {
-    let duration = 0;
+    const directives = (headers.get("cache-control") ?? "")
+      .toLowerCase()
+      .split(",")
+      .map((directive) => directive.trim());
+    if (
+      directives.some(
+        (directive) =>
+          directive === "no-store" || directive.startsWith("no-cache")
+      )
+    ) {
+      return now;
+    }
 
-    const maxAge = headers
-      .get("cache-control")
-      ?.match(/(?:^|,)\s*max-age\s*=\s*"?(\d+)"?/i);
+    const maxAge = directives
+      .map((directive) => directive.match(/^max-age\s*=\s*"?(\d+)"?$/))
+      .find(Boolean);
     const expires = headers.get("expires");
+    const age = parseInt(headers.get("age") ?? "", 10) || 0;
+    let duration = 0;
 
     if (maxAge) {
       duration = parseInt(maxAge[1], 10) * Second.ms;
     } else if (expires) {
       const expiresAt = new Date(expires).getTime();
-      duration = Number.isNaN(expiresAt) ? 0 : expiresAt - now.getTime();
+      const date = new Date(headers.get("date") ?? "").getTime();
+      const responseTime = Number.isNaN(date) ? now.getTime() : date;
+      duration = Number.isNaN(expiresAt) ? 0 : expiresAt - responseTime;
     }
+    duration -= age * Second.ms;
 
     const clamped = clamp(
       duration,

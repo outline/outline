@@ -222,9 +222,40 @@ describe("ClientMetadataHelper", () => {
       expect(expiresAt.getTime() - now.getTime()).toEqual(120 * Minute.ms);
     });
 
+    it("should subtract the Age of the response", () => {
+      const expiresAt = ClientMetadataHelper.cacheExpiry(
+        headers({ "Cache-Control": "max-age=7200", Age: "3600" }),
+        now
+      );
+      expect(expiresAt.getTime() - now.getTime()).toEqual(60 * Minute.ms);
+    });
+
+    it("should measure Expires from the Date header", () => {
+      const date = new Date(now.getTime() - 30 * Minute.ms);
+      const expiresAt = ClientMetadataHelper.cacheExpiry(
+        headers({
+          Date: date.toUTCString(),
+          Expires: new Date(date.getTime() + 90 * Minute.ms).toUTCString(),
+        }),
+        now
+      );
+      expect(expiresAt.getTime() - now.getTime()).toEqual(90 * Minute.ms);
+    });
+
+    it.each(["no-store", "no-cache", "no-cache, max-age=86400"])(
+      "should expire at once for %s",
+      (cacheControl) => {
+        const expiresAt = ClientMetadataHelper.cacheExpiry(
+          headers({ "Cache-Control": cacheControl }),
+          now
+        );
+        expect(expiresAt.getTime()).toEqual(now.getTime());
+      }
+    );
+
     it("should clamp to the minimum duration", () => {
       const expiresAt = ClientMetadataHelper.cacheExpiry(
-        headers({ "Cache-Control": "no-store" }),
+        headers({ "Cache-Control": "max-age=0" }),
         now
       );
       expect(expiresAt.getTime() - now.getTime()).toEqual(
@@ -334,6 +365,25 @@ describe("ClientMetadataHelper", () => {
       expect(client?.id).toEqual(cached.id);
       expect(client?.name).toEqual("Renamed Client");
       expect(client?.metadataExpiresAt?.getTime()).toBeGreaterThan(Date.now());
+    });
+
+    it("should fetch a no-cache document again on the next request", async () => {
+      const clientId = buildClientId();
+      const mock = mockDocument(clientId, buildDocument(clientId), {
+        headers: { "Cache-Control": "no-cache, max-age=86400" },
+      });
+
+      const first = await ClientMetadataHelper.findOrFetchByClientId(
+        clientId,
+        team
+      );
+      const second = await ClientMetadataHelper.findOrFetchByClientId(
+        clientId,
+        team
+      );
+
+      expect(second?.id).toEqual(first?.id);
+      expect(mock.requests()).toEqual(2);
     });
 
     it("should keep the cached client when a new fetch fails", async () => {
