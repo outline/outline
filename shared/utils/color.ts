@@ -1,5 +1,5 @@
 import md5 from "crypto-js/md5";
-import { darken, parseToHsl, parseToRgb } from "polished";
+import { darken, getLuminance, parseToHsl, parseToRgb } from "polished";
 import theme from "../styles/theme";
 import type { RgbaColor } from "polished/lib/types/color";
 
@@ -49,6 +49,33 @@ export const getTextColor = (background: string) => {
   const b = parseInt(background.substring(5, 7), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? "black" : "white";
+};
+
+/**
+ * Returns the color when it is visible against the theme background, otherwise
+ * the fallback. Very dark colors are not visible in the dark theme and very
+ * light colors are not visible in the light theme.
+ *
+ * @param color - the color to check.
+ * @param isDark - whether the dark theme is active.
+ * @param fallback - the color to use when the color is missing or not visible.
+ * @returns the color or the fallback.
+ */
+export const ensureContrast = (
+  color: string | null | undefined,
+  isDark: boolean,
+  fallback = "currentColor"
+): string => {
+  if (!color) {
+    return fallback;
+  }
+  if (color === "currentColor") {
+    return color;
+  }
+
+  const luminance = getLuminance(color);
+  const isVisible = isDark ? luminance > 0.09 : luminance < 0.9;
+  return isVisible ? color : fallback;
 };
 
 const round = (

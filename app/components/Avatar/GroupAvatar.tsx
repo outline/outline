@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
-import { getLuminance } from "polished";
 import { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import Squircle from "@shared/components/Squircle";
 import { IconType } from "@shared/types";
+import useContrastColor from "@shared/hooks/useContrastColor";
 import { determineIconType } from "@shared/utils/icon";
 import type Group from "~/models/Group";
 import { AvatarSize } from "../Avatar/Avatar";
@@ -29,6 +29,7 @@ export const GroupAvatar = observer(function GroupAvatar_({
   className,
 }: Props) {
   const theme = useTheme();
+  const contrastColor = useContrastColor();
   const iconType = determineIconType(group.icon);
   const iconSize = size * 0.75;
 
@@ -44,12 +45,7 @@ export const GroupAvatar = observer(function GroupAvatar_({
     );
   }
 
-  // Fall back to the text color when the chosen color has too little contrast.
-  const luminance = group.color ? getLuminance(group.color) : undefined;
-  const hasContrast =
-    luminance !== undefined &&
-    (theme.isDark ? luminance > 0.09 : luminance < 0.9);
-  const groupColor = group.color && hasContrast ? group.color : theme.text;
+  const groupColor = contrastColor(group.color, theme.text);
   const foreground = backgroundColor ?? theme.background;
 
   return (

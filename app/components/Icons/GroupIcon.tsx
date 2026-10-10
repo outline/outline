@@ -1,9 +1,8 @@
 import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
-import { getLuminance } from "polished";
 import Icon from "@shared/components/Icon";
 import type Group from "~/models/Group";
-import useStores from "~/hooks/useStores";
+import useContrastColor from "@shared/hooks/useContrastColor";
 
 type Props = {
   /** The group to show an icon for. */
@@ -19,19 +18,12 @@ type Props = {
  * Renders the icon chosen for a group, or the default group icon.
  */
 function ResolvedGroupIcon({ group, color, size, className }: Props) {
-  const { ui } = useStores();
+  const contrastColor = useContrastColor();
 
   if (!group.icon) {
-    // Very dark colors are not visible against the dark theme background.
-    const groupColor =
-      group.color &&
-      !(ui.resolvedTheme === "dark" && getLuminance(group.color) <= 0.09)
-        ? group.color
-        : "currentColor";
-
     return (
       <GroupIcon
-        color={color ?? groupColor}
+        color={color ?? contrastColor(group.color)}
         size={size}
         className={className}
       />
