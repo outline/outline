@@ -732,6 +732,21 @@ export class Environment {
     "/var/lib/outline/data";
 
   /**
+   * Optional public base URL for serving files, for example a CDN or custom
+   * domain in front of the storage bucket. Signed uploads and downloads
+   * continue to use the S3-compatible endpoint.
+   */
+  @IsOptional()
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
+    require_tld: false,
+  })
+  public FILE_STORAGE_PUBLIC_URL = this.toOptionalString(
+    environment.FILE_STORAGE_PUBLIC_URL
+  );
+
+  /**
    * Set max allowed upload size for file attachments.
    */
   @IsNumber()
