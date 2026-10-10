@@ -48,7 +48,7 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
         createdAt: { [Op.lt]: neverUsedCutoff },
         [Op.and]: [
           Sequelize.literal(
-            `NOT EXISTS (SELECT 1 FROM oauth_authentications oa WHERE oa."oauthClientId" = "oauth_clients"."id" AND oa."deletedAt" IS NULL)`
+            `NOT EXISTS (SELECT 1 FROM oauth_authentications oa WHERE oa."oauthClientId" = "oauth_clients"."id" AND oa."deletedAt" IS NULL AND (oa."accessTokenExpiresAt" > NOW() OR oa."refreshTokenExpiresAt" > NOW()))`
           ),
         ],
       },

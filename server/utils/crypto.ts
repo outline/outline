@@ -7,7 +7,7 @@ import crypto from "node:crypto";
  * @param b The second string to compare
  * @returns Whether the strings are equal
  */
-export function safeEqual(a?: string, b?: string) {
+export function safeEqual(a?: string | null, b?: string | null) {
   if (!a || !b) {
     return false;
   }

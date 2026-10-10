@@ -98,9 +98,11 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.STRING)
   clientType: (typeof OAuthClientValidation.clientTypes)[number];
 
+  /** The client secret. Null for clients identified by a metadata document. */
+  @AllowNull
   @Column(DataType.BLOB)
   @Encrypted
-  clientSecret: string;
+  clientSecret: string | null;
 
   @Column(DataType.BOOLEAN)
   published: boolean;
