@@ -190,7 +190,7 @@ export default createGlobalStyle<Props>`
     cursor: grab;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 150ms ease-in-out, background-color 150ms ease-in-out;
+    transition: background-color 150ms ease-in-out;
     background-color: ${s("textTertiary")};
     mask-image: url("${dragHandleIcon}");
     mask-repeat: no-repeat;
