@@ -561,6 +561,8 @@ export enum NotificationEventType {
   UpdateDocument = "documents.update",
   AddUserToDocument = "documents.add_user",
   AddUserToCollection = "collections.add_user",
+  AddUserToGroup = "groups.add_user",
+  RemoveUserFromGroup = "groups.remove_user",
   CreateRevision = "revisions.create",
   CreateCollection = "collections.create",
   CreateComment = "comments.create",
@@ -614,6 +616,8 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.ExportCompleted]: true,
     [NotificationEventType.AddUserToDocument]: true,
     [NotificationEventType.AddUserToCollection]: true,
+    [NotificationEventType.AddUserToGroup]: true,
+    [NotificationEventType.RemoveUserFromGroup]: true,
     [NotificationEventType.RequestDocumentAccess]: true,
   };
 
