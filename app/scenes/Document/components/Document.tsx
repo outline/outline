@@ -1,9 +1,10 @@
+import type { Location } from "history";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Prompt, useHistory, useLocation } from "react-router-dom";
+import { Prompt, matchPath, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -12,8 +13,10 @@ import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType, TOCPosition, TeamPreference } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import { useDocumentContext } from "~/components/DocumentContext";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import ErrorBoundary from "~/components/ErrorBoundary";
@@ -24,18 +27,25 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
+import useEventListener from "~/hooks/useEventListener";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import isTextInput from "~/utils/isTextInput";
+import Logger from "~/utils/Logger";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
-import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
+import {
+  documentHistoryPath,
+  documentEditPath,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import Notices from "./Notices";
+import Notices, { DocumentNotice } from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 import SharedHeader from "./SharedHeader";
@@ -82,6 +92,8 @@ function DocumentScene({
   children,
 }: Props) {
   const { auth, ui, dialogs } = useStores();
+  const documentContext = useDocumentContext();
+  const isMobile = useMobile();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation<LocationState>();
@@ -206,6 +218,37 @@ function DocumentScene({
     [readOnly, abilities.update, history, document, sidebarContext]
   );
 
+  // Files dropped in the margins around the document are inserted at the
+  // closest point in the editor, rather than being ignored by the browser.
+  const isFileDrag = useCallback(
+    (event: React.DragEvent<HTMLElement>) =>
+      !readOnly && !revision && event.dataTransfer.types.includes("Files"),
+    [readOnly, revision]
+  );
+
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      if (isFileDrag(event)) {
+        event.dataTransfer.dropEffect = "copy";
+        event.preventDefault();
+      }
+    },
+    [isFileDrag]
+  );
+
+  const handleDrop = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      // A drop that landed inside the editor has already been handled.
+      if (event.defaultPrevented || !isFileDrag(event)) {
+        return;
+      }
+      // Prevent the browser from navigating to the file if it cannot be added.
+      event.preventDefault();
+      void editorRef.current?.insertDroppedContent(event);
+    },
+    [isFileDrag]
+  );
+
   const goToHistory = useCallback(
     (ev: KeyboardEvent) => {
       if (!readOnly) {
@@ -273,8 +316,11 @@ function DocumentScene({
     tocPosition ??
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
+  // Hide on mobile at render time so the stored preference is kept intact.
   const showContents =
-    tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+    tocPos &&
+    !isMobile &&
+    (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
   const tocOffset =
     tocPos === TOCPosition.Left
       ? EditorStyleHelper.tocWidth / -2
@@ -282,6 +328,46 @@ function DocumentScene({
 
   const multiplayerEditor =
     !document.isArchived && !document.isDeleted && !revision && !isShare;
+
+  const hasUnsyncedChanges = !readOnly && documentContext.hasUnsyncedChanges;
+
+  const warnUnsyncedChanges = () => {
+    Logger.warn("Leaving document with unsynced changes", {
+      documentId: document.id,
+      hasLocalPersistence: documentContext.hasLocalPersistence,
+    });
+  };
+
+  const handleBlockNavigation = (nextLocation: Location) => {
+    // Moving between views of this document, such as edit mode or a heading
+    // anchor, keeps the editor mounted, but a revision view replaces it.
+    const isLeaving =
+      !parseDocumentSlug(nextLocation.pathname)?.endsWith(document.urlId) ||
+      !!matchPath<{ revisionId?: string }>(
+        nextLocation.pathname,
+        matchDocumentHistory
+      )?.params.revisionId;
+    if (!isLeaving) {
+      return true;
+    }
+    if (isUploading && !isEditorDirty) {
+      return t(
+        `Images are still uploading.\nAre you sure you want to discard them?`
+      );
+    }
+    if (hasUnsyncedChanges) {
+      warnUnsyncedChanges();
+    }
+    return true;
+  };
+
+  const handleUnload = () => {
+    if (hasUnsyncedChanges) {
+      warnUnsyncedChanges();
+    }
+  };
+
+  useEventListener("beforeunload", handleUnload);
 
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
   const pageTitle = hasEmojiInTitle
@@ -312,26 +398,25 @@ function DocumentScene({
       <MeasuredContainer
         as={Background}
         name="container"
-        key={revision ? revision.id : document.id}
         column
         auto
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        data-drop-area
       >
         <PageTitle title={pageTitle} favicon={favicon} />
         {(isUploading || isSaving) && <LoadingIndicator />}
-        <Container column>
+        <Container column auto>
           {!readOnly && (
             <Prompt
-              when={isUploading && !isEditorDirty}
-              message={t(
-                `Images are still uploading.\nAre you sure you want to discard them?`
-              )}
+              when={(isUploading && !isEditorDirty) || hasUnsyncedChanges}
+              message={handleBlockNavigation}
             />
           )}
           {isShare ? (
             <SharedHeader document={document} />
           ) : (
             <Header
-              editorRef={editorRef}
               document={document}
               revision={revision}
               isDraft={document.isDraft}
@@ -407,7 +492,7 @@ function DocumentScene({
                       readOnly={readOnly}
                       canUpdate={abilities.update}
                       canComment={abilities.comment}
-                      autoFocus={document.createdAt === document.updatedAt}
+                      autoFocus={document.isJustCreated}
                     >
                       <ReferencesWrapper>
                         <References document={document} />
@@ -508,6 +593,11 @@ type EditorContainerProps = {
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
   padding: 0 32px;
+
+  // A notice above the editor already provides the space from the header
+  &:has(> ${DocumentNotice}) {
+    --document-title-margin-top: 0;
+  }
 
   ${breakpoint("tablet")`
     padding: 0 44px;

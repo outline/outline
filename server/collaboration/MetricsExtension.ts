@@ -1,37 +1,27 @@
 import type {
-  onChangePayload,
   onDisconnectPayload,
-  onLoadDocumentPayload,
   Extension,
   connectedPayload,
+  onLoadDocumentPayload,
 } from "@hocuspocus/server";
 import Metrics from "@server/logging/Metrics";
 import type { withContext } from "./types";
 
 export default class MetricsExtension implements Extension {
-  async onLoadDocument({
-    documentName,
-    instance,
-  }: withContext<onLoadDocumentPayload>) {
-    Metrics.increment("collaboration.load_document", {
-      documentName,
-    });
+  async onLoadDocument({ instance }: withContext<onLoadDocumentPayload>) {
+    Metrics.increment("collaboration.load_document");
     Metrics.gaugePerInstance(
       "collaboration.documents_count",
       instance.getDocumentsCount()
     );
   }
 
-  onAuthenticationFailed({ documentName }: { documentName: string }) {
-    Metrics.increment("collaboration.authentication_failed", {
-      documentName,
-    });
+  onAuthenticationFailed() {
+    Metrics.increment("collaboration.authentication_failed");
   }
 
-  async connected({ documentName, instance }: withContext<connectedPayload>) {
-    Metrics.increment("collaboration.connect", {
-      documentName,
-    });
+  async connected({ instance }: withContext<connectedPayload>) {
+    Metrics.increment("collaboration.connect");
     Metrics.gaugePerInstance(
       "collaboration.connections_count",
       instance.getConnectionsCount() + 1
@@ -42,13 +32,8 @@ export default class MetricsExtension implements Extension {
     );
   }
 
-  async onDisconnect({
-    documentName,
-    instance,
-  }: withContext<onDisconnectPayload>) {
-    Metrics.increment("collaboration.disconnect", {
-      documentName,
-    });
+  async onDisconnect({ instance }: withContext<onDisconnectPayload>) {
+    Metrics.increment("collaboration.disconnect");
     Metrics.gaugePerInstance(
       "collaboration.connections_count",
       instance.getConnectionsCount()
@@ -59,10 +44,8 @@ export default class MetricsExtension implements Extension {
     );
   }
 
-  async onStoreDocument({ documentName }: withContext<onChangePayload>) {
-    Metrics.increment("collaboration.change", {
-      documentName,
-    });
+  async onStoreDocument() {
+    Metrics.increment("collaboration.change");
   }
 
   async onDestroy() {

@@ -12,6 +12,11 @@ import Relation from "./decorators/Relation";
 class Pin extends Model {
   static modelName = "Pin";
 
+  constructor(fields: Record<string, unknown>, store: PinsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   store: PinsStore;
 
   /** The collection ID that the document is pinned to. If empty the document is pinned to home. */

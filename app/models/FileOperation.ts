@@ -16,6 +16,11 @@ import Relation from "./decorators/Relation";
 class FileOperation extends Model {
   static modelName = "FileOperation";
 
+  constructor(fields: Record<string, unknown>, store: FileOperationsStore) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   store: FileOperationsStore;
 
   @observable

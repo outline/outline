@@ -8,4 +8,14 @@ export class RevisionHelper {
   static latestId(documentId?: string) {
     return documentId ? `latest-${documentId}` : "";
   }
+
+  /**
+   * Extract the document id from a latest revision id.
+   *
+   * @param id The revision id to inspect.
+   * @returns The document id if the id is a latest revision id, otherwise undefined.
+   */
+  static documentIdFromLatestId(id: string) {
+    return id.startsWith("latest-") ? id.slice("latest-".length) : undefined;
+  }
 }

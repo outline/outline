@@ -1,21 +1,34 @@
 import type Token from "markdown-it/lib/token.mjs";
-import type { NodeSpec } from "prosemirror-model";
+import type { Node as ProsemirrorNode, NodeSpec } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import { isInTable, moveTableColumn, TableMap } from "prosemirror-tables";
+import {
+  isInTable,
+  moveTableColumn,
+  selectedRect,
+  TableMap,
+} from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
 import { isMobile } from "../../utils/browser";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import {
   getCellAttrs,
+  getCellSpan,
+  getColumnSizes,
   isValidCellAlignment,
   isValidCellMarks,
   setCellAttrs,
+  setSpanPosition,
+  trackSpanPosition,
+  untrackSpanPosition,
 } from "../lib/table";
+import { isInlineTransaction } from "../queries/isInlineTransaction";
 import {
   getCellsInColumn,
   getCellsInRow,
+  hasTableSelectionChanged,
   isColumnSelected,
   isTableSelected,
 } from "../queries/table";
@@ -207,6 +220,8 @@ function createColumnDragDecorations(state: EditorState): DecorationSet {
   return DecorationSet.create(state.doc, decorations);
 }
 
+const isTableNode = (node: ProsemirrorNode) => !!node.type.spec.tableRole;
+
 export default class TableHeader extends Node {
   get name() {
     return "th";
@@ -250,22 +265,33 @@ export default class TableHeader extends Node {
   }
 
   get plugins() {
-    function buildAddColumnDecoration(pos: number, index: number) {
+    function buildAddColumnDecoration(
+      pos: number,
+      index: number,
+      offset = 0,
+      sizes: number[] = [1],
+      spanKey = ""
+    ) {
       const className = cn(EditorStyleHelper.tableAddColumn, {
         first: index === 0,
       });
 
       return Decoration.widget(
         pos + 1,
-        () => {
+        (view, getPos) => {
           const plus = document.createElement("a");
           plus.role = "button";
           plus.className = className;
           plus.dataset.index = index.toString();
+          setSpanPosition(plus, offset, sizes);
+          if (sizes.length > 1) {
+            trackSpanPosition(plus, view, getPos, "column", offset);
+          }
           return plus;
         },
         {
-          key: cn(className, index),
+          key: cn(className, index, spanKey),
+          destroy: untrackSpanPosition,
         }
       );
     }
@@ -301,28 +327,44 @@ export default class TableHeader extends Node {
 
       const { doc } = state;
       const decorations: Decoration[] = [];
-      const cols = getCellsInRow(0)(state);
+      if (isInTable(state)) {
+        const { map, table, tableStart } = selectedRect(state);
 
-      if (cols) {
-        cols.forEach((pos, index) => {
+        // Each column gets a grip in the first row. A cell that spans several
+        // columns holds one grip for each of them.
+        for (let index = 0; index < map.width; index++) {
+          const cellPos = map.map[index];
+          const span = getCellSpan(map, 0, index, "column");
+          const pos = tableStart + cellPos;
+          const offset = index - span.start;
+          const cell = table.nodeAt(cellPos);
+          const sizes = getColumnSizes(cell, span.end - span.start);
+          // Resizing a column changes the stored widths, so the widgets are
+          // rebuilt and measure the new layout.
+          const spanKey = `${offset}/${sizes.length}/${cell?.attrs.colwidth}`;
           const className = cn(EditorStyleHelper.tableGripColumn, {
             selected: isColumnSelected(index)(state) || isTableSelected(state),
             first: index === 0,
-            last: index === cols.length - 1,
+            last: index === map.width - 1,
           });
 
           decorations.push(
             Decoration.widget(
               pos + 1,
-              () => {
+              (view, getPos) => {
                 const grip = document.createElement("a");
                 grip.role = "button";
                 grip.className = className;
                 grip.dataset.index = index.toString();
+                setSpanPosition(grip, offset, sizes);
+                if (sizes.length > 1) {
+                  trackSpanPosition(grip, view, getPos, "column", offset);
+                }
                 return grip;
               },
               {
-                key: cn(className, index),
+                key: cn(className, index, spanKey),
+                destroy: untrackSpanPosition,
               }
             )
           );
@@ -334,9 +376,11 @@ export default class TableHeader extends Node {
               decorations.push(buildAddColumnDecoration(pos, index));
             }
 
-            decorations.push(buildAddColumnDecoration(pos, index + 1));
+            decorations.push(
+              buildAddColumnDecoration(pos, index + 1, offset, sizes, spanKey)
+            );
           }
-        });
+        }
       }
 
       return DecorationSet.create(doc, decorations);
@@ -403,9 +447,18 @@ export default class TableHeader extends Node {
         state: {
           init: (_, state) => createHeaderDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Only recompute if document changed
             if (!tr.docChanged) {
               return pluginState;
+            }
+
+            // Local inline edits cannot change the table layout, so mapping
+            // the existing decorations is enough. Remote transactions do not
+            // reflect the shape of the change, so they always rebuild.
+            if (
+              !isRemoteTransaction(tr, newState) &&
+              isInlineTransaction(tr, isTableNode)
+            ) {
+              return pluginState.map(tr.mapping, tr.doc);
             }
 
             return createHeaderDecorations(newState);
@@ -422,17 +475,32 @@ export default class TableHeader extends Node {
         state: {
           init: (_, state) => createColumnDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Recompute if selection, document, or drag state changed
-            if (
-              !tr.selectionSet &&
-              !tr.docChanged &&
-              !tr.getMeta(columnDragPluginKey) &&
-              !tr.getMeta(rowDragPluginKey)
-            ) {
+            const hasDragChanged =
+              !!tr.getMeta(columnDragPluginKey) ||
+              !!tr.getMeta(rowDragPluginKey);
+            if (!tr.selectionSet && !tr.docChanged && !hasDragChanged) {
               return pluginState;
             }
 
-            return createColumnDecorations(newState);
+            // Rebuild for drag state, selection changes that affect the grips,
+            // and any change that may alter the table layout. The set is also
+            // empty when built before the view existed, so build it once the
+            // selection is in a table.
+            if (
+              hasDragChanged ||
+              hasTableSelectionChanged(tr, oldState, newState) ||
+              (pluginState === DecorationSet.empty && isInTable(newState)) ||
+              (tr.docChanged &&
+                (isRemoteTransaction(tr, newState) ||
+                  !isInlineTransaction(tr, isTableNode)))
+            ) {
+              return createColumnDecorations(newState);
+            }
+
+            // Local inline edits only shift positions, so mapping is enough.
+            return tr.docChanged
+              ? pluginState.map(tr.mapping, tr.doc)
+              : pluginState;
           },
         },
         props: {

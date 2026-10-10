@@ -20,12 +20,16 @@ type Props = React.PropsWithChildren<{
   actions: InternalLinkAction[];
   max?: number;
   highlightFirstItem?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
 }>;
 
-function Breadcrumb(
-  { actions, highlightFirstItem, children, max = 2 }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function Breadcrumb({
+  actions,
+  highlightFirstItem,
+  children,
+  max = 2,
+  ref,
+}: Props) {
   const actionContext = useActionContext({ isMenu: true });
 
   const visibleActions = useComputed(
@@ -141,4 +145,4 @@ const Title = styled.span`
   min-width: 0;
 `;
 
-export default observer(React.forwardRef<HTMLDivElement, Props>(Breadcrumb));
+export default observer(Breadcrumb);

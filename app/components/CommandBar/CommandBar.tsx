@@ -2,10 +2,10 @@ import { useKBar, KBarPositioner, KBarAnimator, KBarSearch } from "kbar";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
+import { Portal } from "~/components/Portal";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
@@ -52,7 +52,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const KBarPortal: React.FC = ({ children }: Props) => {
+const KBarPortal: React.FC<Props> = ({ children }: Props) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));

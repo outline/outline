@@ -117,6 +117,9 @@ export default class LocalStorage extends BaseStorage {
       {
         key,
         type: "attachment",
+        iat: Math.floor(
+          LocalStorage.getSigningDate(expiresIn).getTime() / 1000
+        ),
       },
       env.SECRET_KEY,
       {
@@ -181,6 +184,12 @@ export default class LocalStorage extends BaseStorage {
       env.FILE_STORAGE_LOCAL_ROOT_DIR,
       "FILE_STORAGE_LOCAL_ROOT_DIR is required"
     );
+
+    // resolve-path only rejects a path that climbs above the root, it will
+    // silently normalize one that moves between buckets inside it.
+    if (key.split(/[\\/]/).includes("..")) {
+      throw ValidationError(`Invalid file key ${key}`);
+    }
 
     return safeResolvePath(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
   }

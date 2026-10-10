@@ -7,6 +7,11 @@ import Relation from "./decorators/Relation";
 class View extends Model {
   static modelName = "View";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   documentId: string;
 
   @Relation(() => Document)

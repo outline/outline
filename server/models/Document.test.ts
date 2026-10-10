@@ -1,4 +1,5 @@
-import { EmptyResultError, Op } from "sequelize";
+import { createHash } from "node:crypto";
+import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import { parser } from "@server/editor";
@@ -15,11 +16,45 @@ import {
   buildGuestUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import { sequelize } from "@server/storage/database";
 import GroupMembership from "./GroupMembership";
+import GroupUser from "./GroupUser";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
   vi.resetAllMocks();
+});
+
+describe("#restoreTo", () => {
+  it.each(["archived", "deleted"])(
+    "should clear a reason saved after an %s document was loaded",
+    async (status) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+        archivedAt: status === "archived" ? new Date() : null,
+        deletedAt: status === "deleted" ? new Date() : null,
+      });
+
+      // Simulate another request saving a reason after the restore loaded its model.
+      await Document.update(
+        { deprecatedReason: "Outdated" },
+        { where: { id: document.id }, paranoid: false }
+      );
+      await withAPIContext(user, (ctx) =>
+        document.restoreTo(ctx, { collectionId: collection.id })
+      );
+      await document.reload();
+      expect(document.isActive).toBe(true);
+      expect(document.deprecatedReason).toBeNull();
+    }
+  );
 });
 
 describe("#getSummary", () => {
@@ -130,6 +165,25 @@ describe("#save", () => {
     document.title = "test";
     await document.save();
     expect(document.previousTitles.length).toBe(3);
+  });
+
+  it("should index text whose search vector exceeds the tsvector limit", async () => {
+    const document = await buildDocument({ title: "Original" });
+    const tokens: string[] = [];
+    for (let i = 0; i < 40_000; i++) {
+      tokens.push(createHash("md5").update(String(i)).digest("hex"));
+    }
+    document.title = "Unique tokens";
+    document.text = tokens.join(" ");
+    await document.save();
+
+    const [rows] = await sequelize.query<{ searchVector: string }>(
+      `SELECT "searchVector" FROM documents WHERE id = :id`,
+      { replacements: { id: document.id }, type: QueryTypes.SELECT }
+    );
+    expect(rows.searchVector).toContain("'uniqu':1A");
+    expect(rows.searchVector).toMatch(/'origin':\d+C/);
+    expect(rows.searchVector).toContain(tokens[0]);
   });
 });
 
@@ -256,6 +310,133 @@ describe("#findAllChildDocumentIds", () => {
     expect(
       await document.findAllChildDocumentIds(undefined, { paranoid: false })
     ).toEqual([child.id]);
+  });
+});
+
+describe("#toNavigationNode", () => {
+  it("should build the nested tree of published children", async () => {
+    const collection = await buildCollection();
+    const props = {
+      teamId: collection.teamId,
+      collectionId: collection.id,
+    };
+    const root = await buildDocument({ ...props, title: "Root" });
+    const childA = await buildDocument({
+      ...props,
+      parentDocumentId: root.id,
+      title: "Child A",
+    });
+    const childB = await buildDocument({
+      ...props,
+      parentDocumentId: root.id,
+      title: "Child B",
+    });
+    const grandchild = await buildDocument({
+      ...props,
+      parentDocumentId: childA.id,
+      title: "Grandchild",
+    });
+    await buildDraftDocument({ ...props, parentDocumentId: root.id });
+
+    const node = await root.toNavigationNode();
+
+    expect(node.id).toBe(root.id);
+    expect(node.url).toBe(root.url);
+    expect(node.children.map((child) => child.id).sort()).toEqual(
+      [childA.id, childB.id].sort()
+    );
+
+    const nodeA = node.children.find((child) => child.id === childA.id);
+    expect(nodeA?.title).toBe("Child A");
+    expect(nodeA?.url).toBe(childA.url);
+    expect(nodeA?.children).toEqual([
+      {
+        id: grandchild.id,
+        title: "Grandchild",
+        url: grandchild.url,
+        icon: undefined,
+        color: undefined,
+        children: [],
+      },
+    ]);
+  });
+
+  it("should only include archived children when requested", async () => {
+    const collection = await buildCollection();
+    const root = await buildDocument({
+      teamId: collection.teamId,
+      collectionId: collection.id,
+    });
+    const archived = await buildDocument({
+      teamId: collection.teamId,
+      collectionId: collection.id,
+      parentDocumentId: root.id,
+      archivedAt: new Date(),
+    });
+
+    expect((await root.toNavigationNode()).children).toEqual([]);
+    expect(
+      (await root.toNavigationNode({ includeArchived: true })).children.map(
+        (child) => child.id
+      )
+    ).toEqual([archived.id]);
+  });
+});
+
+describe("#findAllParentDocumentIds", () => {
+  test("should return empty array if there is no parent", async () => {
+    const document = await buildDocument();
+
+    expect(await document.findAllParentDocumentIds()).toEqual([]);
+  });
+
+  test("should return nested parent document ids in one query", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const grandchild = await buildDocument({
+      parentDocumentId: child.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+
+    const query = sequelize.query.bind(sequelize);
+    const spy = vi.spyOn(sequelize, "query").mockImplementation(query);
+    try {
+      const results = await grandchild.findAllParentDocumentIds();
+
+      expect(results).toEqual([child.id, parent.id]);
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  test("should stop at soft-deleted parents unless paranoid is false", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    const grandchild = await buildDocument({
+      parentDocumentId: child.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+      userId: parent.createdById,
+    });
+    await child.destroy();
+
+    expect(await grandchild.findAllParentDocumentIds()).toEqual([]);
+    expect(
+      await grandchild.findAllParentDocumentIds({ paranoid: false })
+    ).toEqual([child.id, parent.id]);
   });
 });
 
@@ -386,6 +567,112 @@ describe("#membershipDocumentIds", () => {
     const ids = await Document.membershipDocumentIds(user.id);
     expect(ids).toEqual([]);
   });
+
+  it("should invalidate the cache when a direct membership is added or removed", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+
+    const membership = await UserMembership.create({
+      createdById: otherUser.id,
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+    });
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([
+      document.id,
+    ]);
+
+    await membership.destroy();
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+  });
+
+  it("should invalidate the cache when a group membership is added or removed", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    const group = await buildGroup({ teamId: team.id });
+    await group.$add("user", user, { through: { createdById: otherUser.id } });
+
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+
+    const membership = await GroupMembership.create({
+      createdById: otherUser.id,
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+    });
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([
+      document.id,
+    ]);
+
+    await membership.destroy();
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+  });
+
+  it("should invalidate the cache when the user joins or leaves a group", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    const group = await buildGroup({ teamId: team.id });
+    await GroupMembership.create({
+      createdById: otherUser.id,
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+    });
+
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+
+    const groupUser = await GroupUser.create({
+      groupId: group.id,
+      userId: user.id,
+      createdById: otherUser.id,
+    });
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([
+      document.id,
+    ]);
+
+    await groupUser.destroy();
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+  });
+
+  it("should read through to the database when skipCache is set", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+
+    await UserMembership.create({
+      createdById: otherUser.id,
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+    });
+
+    expect(
+      await Document.membershipDocumentIds(user.id, { skipCache: true })
+    ).toEqual([document.id]);
+  });
 });
 
 describe("#findByPk", () => {
@@ -425,6 +712,20 @@ describe("#findByPk", () => {
 
     await expect(
       Document.findByPk("0e8280ea-7b4c-40e5-98ba-ec8a2f00f5e8", {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).rejects.toThrow(EmptyResultError);
+
+    await expect(
+      Document.findByPk("not a valid id", {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).rejects.toThrow(EmptyResultError);
+
+    await expect(
+      Document.findByPk(123, {
         userId: user.id,
         rejectOnEmpty: true,
       })

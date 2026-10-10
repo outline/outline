@@ -2,6 +2,7 @@ import fractionalIndex from "fractional-index";
 import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
+import type { match } from "react-router";
 import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type GroupMembership from "~/models/GroupMembership";
@@ -20,7 +21,7 @@ import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -140,8 +141,10 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     useDropToReorderUserMembership(getIndex);
 
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) =>
-      !!match && location.state?.sidebarContext === sidebarContext,
+    (
+      match: match | null,
+      location: Location<{ sidebarContext?: SidebarContextType }>
+    ) => !!match && location.state?.sidebarContext === sidebarContext,
     [sidebarContext]
   );
 
@@ -205,19 +208,13 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <SidebarExpansionContext.Provider value={expansion}>
           <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((childNode, index) => (
-              <DocumentLink
-                key={childNode.id}
-                node={childNode}
-                collection={collection}
-                membership={membership}
-                activeDocument={documents.active}
-                isDraft={childNode.isDraft}
-                depth={depth + 1}
-                index={index}
-                parentId={document.id}
-              />
-            ))}
+            <DocumentTree
+              nodes={childDocuments}
+              depth={depth + 1}
+              parentId={document.id}
+              collection={collection}
+              membership={membership}
+            />
           </Folder>
         </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>

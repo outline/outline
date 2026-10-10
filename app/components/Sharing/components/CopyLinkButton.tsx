@@ -14,7 +14,7 @@ export function CopyLinkButton({
   onCopy: () => void;
 }) {
   const { t } = useTranslation();
-  const timeout = useRef<ReturnType<typeof setTimeout>>();
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleCopied = useCallback(() => {
     onCopy();

@@ -7,10 +7,7 @@ import useShare from "@shared/hooks/useShare";
 import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import { flattenTree } from "@shared/utils/tree";
 import { createAction } from "~/actions";
-import {
-  RecentSearchesSection,
-  SearchResultsSection,
-} from "~/actions/sections";
+import { RecentSection, SearchResultsSection } from "~/actions/sections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -164,7 +161,7 @@ function SharedSearchActions() {
           id: `shared-recent-doc-${doc.id}`,
           name: doc.title,
           analyticsName: "Open recent shared document",
-          section: RecentSearchesSection,
+          section: RecentSection,
           icon: <SearchResultIcon document={doc} />,
           perform: () => {
             if (shareId) {

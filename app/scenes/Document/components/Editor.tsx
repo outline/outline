@@ -2,14 +2,16 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useRouteMatch } from "react-router-dom";
+import { useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import { getLangFor } from "@shared/utils/language";
+import { DocumentPreference } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
-import type Document from "~/models/Document";
+import Document from "~/models/Document";
 import type Template from "~/models/Template";
 import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -18,6 +20,7 @@ import Editor from "~/components/Editor";
 import { useSplitView } from "~/components/SplitView/context";
 import type { Editor as SharedEditor } from "~/editor";
 import Flex from "~/components/Flex";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Time from "~/components/Time";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -37,7 +40,6 @@ import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 import { first } from "es-toolkit/compat";
-import { getLangFor } from "~/utils/language";
 import useShare from "@shared/hooks/useShare";
 import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
 
@@ -59,17 +61,19 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     publish?: boolean;
   }) => void;
   children?: React.ReactNode;
+  ref?: React.Ref<SharedEditor>;
 };
 
 /**
  * The main document editor includes an editable title with metadata below it,
  * and support for commenting.
  */
-function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
+function DocumentEditor(props: Props) {
   const editorRef = React.useRef<SharedEditor>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const location = useLocation();
   const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
   const { ui, comments } = useStores();
@@ -87,6 +91,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
     readOnly,
     children,
     multiplayer,
+    ref,
     ...rest
   } = props;
   const can = usePolicy(document);
@@ -253,37 +258,48 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
           rtl={direction === "rtl"}
         />
       ) : null}
-      <EditorComponent
-        ref={mergeRefs([ref, editorRef, handleRefChanged])}
-        lang={getLangFor(document.language)}
-        autoFocus={!!document.title && !props.defaultValue}
-        placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={decodeURIComponentSafe(window.location.hash)}
-        readOnly={readOnly}
-        userId={user?.id}
-        focusedCommentId={focusedComment?.id}
-        onClickCommentMark={
-          commentingEnabled && can.comment ? handleClickCommentMark : undefined
-        }
-        onCreateCommentMark={
-          commentingEnabled && can.comment ? handleDraftComment : undefined
-        }
-        onDeleteCommentMark={
-          commentingEnabled && can.comment ? handleRemoveComment : undefined
-        }
-        onOpenCommentsSidebar={
-          commentingEnabled
-            ? () => ui.setRightSidebar("comments", pane)
-            : undefined
-        }
-        onInit={handleInit}
-        onDestroy={handleDestroy}
-        onChange={updateDocState}
-        extensions={extensions}
-        editorStyle={editorStyle}
-        {...rest}
-        canComment={commentingEnabled && can.comment}
-      />
+      {/* The editor core loads lazily and can suspend after the title and
+          meta above have mounted. A nested boundary prevents that suspension
+          from hiding mounted content, which would detach refs mid-commit. */}
+      <React.Suspense fallback={<PlaceholderDocument />}>
+        <EditorComponent
+          ref={mergeRefs([ref, editorRef, handleRefChanged])}
+          lang={getLangFor(document.language)}
+          placeholder={t("Type '/' to insert, or start writing…")}
+          scrollTo={decodeURIComponentSafe(location.hash)}
+          readOnly={readOnly}
+          userId={user?.id}
+          focusedCommentId={focusedComment?.id}
+          onClickCommentMark={
+            commentingEnabled && can.comment
+              ? handleClickCommentMark
+              : undefined
+          }
+          onCreateCommentMark={
+            commentingEnabled && can.comment ? handleDraftComment : undefined
+          }
+          onDeleteCommentMark={
+            commentingEnabled && can.comment ? handleRemoveComment : undefined
+          }
+          onOpenCommentsSidebar={
+            commentingEnabled
+              ? () => ui.setRightSidebar("comments", pane)
+              : undefined
+          }
+          onInit={handleInit}
+          onDestroy={handleDestroy}
+          onChange={updateDocState}
+          headingPrefix={
+            document instanceof Document
+              ? document.getPreference(DocumentPreference.HeadingPrefix)
+              : undefined
+          }
+          extensions={extensions}
+          editorStyle={editorStyle}
+          {...rest}
+          canComment={commentingEnabled && can.comment}
+        />
+      </React.Suspense>
       <div ref={childRef}>{children}</div>
     </Flex>
   );
@@ -294,4 +310,4 @@ const SharedMeta = styled(Text)`
   font-size: 14px;
 `;
 
-export default observer(React.forwardRef(DocumentEditor));
+export default observer(DocumentEditor);

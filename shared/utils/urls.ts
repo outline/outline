@@ -149,6 +149,53 @@ export function isUrl(
 }
 
 /**
+ * Schemes that are never treated as private-use, either because they are web
+ * schemes validated elsewhere or because they can execute or embed content.
+ */
+const nonPrivateUseSchemes = new Set([
+  "http",
+  "https",
+  "ftp",
+  "ws",
+  "wss",
+  "file",
+  "data",
+  "javascript",
+  "vbscript",
+  "blob",
+  "about",
+]);
+
+/**
+ * Returns true if the given url uses a private-use URI scheme, as registered
+ * by native apps to receive OAuth redirects (RFC 8252 section 7.1), for
+ * example `com.example.app:/oauth2redirect` or `myapp://callback`.
+ *
+ * @param text The url to check.
+ * @returns True if the url uses a private-use URI scheme, false otherwise.
+ */
+export function isPrivateUseSchemeUrl(text: string) {
+  if (/\s/.test(text)) {
+    return false;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch (_err) {
+    return false;
+  }
+
+  const scheme = url.protocol.slice(0, -1).toLowerCase();
+  if (nonPrivateUseSchemes.has(scheme)) {
+    return false;
+  }
+
+  // Require a destination after the scheme, e.g. reject a bare "myapp:".
+  return !!url.host || (url.pathname !== "" && url.pathname !== "/");
+}
+
+/**
  * Temporary prefix applied to links in document that are not yet persisted.
  */
 export const creatingUrlPrefix = "creating#";
@@ -246,10 +293,10 @@ export function sanitizeImageSrc(src: string | null | undefined) {
 }
 
 /**
- * Returns a regex to match the given url.
+ * Returns a regex to match urls that begin with the given url's origin.
  *
  * @param url The url to create a regex for.
- * @returns A regex to match the url.
+ * @returns A regex anchored to the origin, a path and query may follow.
  */
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
@@ -258,7 +305,7 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(sanitizeUrl(url) as string);
 
-  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
+  return new RegExp(`^${escapeRegExp(`${urlObj.protocol}//${urlObj.host}`)}`);
 }
 
 /**
@@ -302,6 +349,40 @@ export function parseShareIdFromUrl(url: string): string | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Adds the port that the application is publicly reachable on to a url that
+ * does not specify one. A proxy commonly forwards a Host header without the
+ * public port, so urls derived from an incoming request would otherwise point
+ * at the wrong address.
+ *
+ * @param url the url to modify, may be relative.
+ * @returns the url with the port added, if one was missing.
+ */
+export function addMissingUrlPort(url: string): string {
+  let port;
+  try {
+    port = new URL(env.URL).port;
+  } catch (_err) {
+    return url;
+  }
+
+  if (!port) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.port) {
+      return url;
+    }
+    parsed.port = port;
+    return parsed.toString();
+  } catch (_err) {
+    // Relative urls are resolved against the current origin and need no port.
+    return url;
+  }
 }
 
 /**

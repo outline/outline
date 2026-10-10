@@ -11,6 +11,7 @@ import {
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
+import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -27,6 +28,11 @@ export type NotificationFilter =
 
 class Notification extends Model {
   static modelName = "Notification";
+
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
 
   static filterCategories: Record<NotificationFilter, NotificationEventType[]> =
     {
@@ -59,6 +65,8 @@ class Notification extends Model {
         NotificationEventType.Onboarding,
         NotificationEventType.Features,
         NotificationEventType.ExportCompleted,
+        NotificationEventType.AddUserToGroup,
+        NotificationEventType.RemoveUserFromGroup,
       ],
     };
 
@@ -81,15 +89,13 @@ class Notification extends Model {
    */
   @Field
   @observable
-  accessRequestId?: string;
-
+  accessRequestId?: string = undefined;
   /**
    * Status of the associated access request.
    */
   @Field
   @observable
-  accessRequestStatus?: string;
-
+  accessRequestStatus?: string = undefined;
   /**
    * The user that triggered the notification.
    */
@@ -117,6 +123,17 @@ class Notification extends Model {
    */
   @Relation(() => Collection, { onDelete: "cascade" })
   collection?: Collection;
+
+  /**
+   * The group ID that the notification is associated with.
+   */
+  groupId?: string;
+
+  /**
+   * The group that the notification is associated with.
+   */
+  @Relation(() => Group, { onDelete: "cascade" })
+  group?: Group;
 
   commentId?: string;
 
@@ -210,6 +227,10 @@ class Notification extends Model {
         return t("shared");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
+      case NotificationEventType.AddUserToGroup:
+        return t("added you to the group");
+      case NotificationEventType.RemoveUserFromGroup:
+        return t("removed you from the group");
       case NotificationEventType.RequestDocumentAccess:
         if (this.accessRequestStatus === "approved") {
           return t("was granted access to");
@@ -224,19 +245,23 @@ class Notification extends Model {
   }
 
   /**
-   * Returns the subject of the notification. This is the title of the associated
-   * document.
+   * Returns translated text for the subject of the notification. This is the
+   * name of the associated document, collection, or group.
    *
-   * @returns The subject
+   * @param t - The translation function.
+   * @returns The subject.
    */
-  get subject() {
+  subject(t: TFunction): string {
     if (this.documentId) {
-      return this.document?.title ?? "a document";
+      return this.document?.title ?? t("a document");
     }
     if (this.collectionId) {
-      return this.collection?.name ?? "a collection";
+      return this.collection?.name ?? t("a collection");
     }
-    return "Unknown";
+    if (this.groupId) {
+      return this.group?.name ?? t("a group");
+    }
+    return t("Unknown");
   }
 
   /**
@@ -284,6 +309,12 @@ class Notification extends Model {
       }
       case NotificationEventType.ExportCompleted: {
         return settingsPath("export");
+      }
+      case NotificationEventType.AddUserToGroup:
+      case NotificationEventType.RemoveUserFromGroup: {
+        return this.groupId
+          ? settingsPath("groups", this.groupId, "members")
+          : "";
       }
       default:
         this.event satisfies never;

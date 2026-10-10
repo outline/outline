@@ -10,13 +10,17 @@ type Props = React.HTMLAttributes<HTMLButtonElement> & {
   active?: boolean;
   /** The size of the button in pixels */
   size?: number;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
-export const ColorButton = React.forwardRef(
-  (
-    { color, active = false, size = 24, ...rest }: Props,
-    ref: React.Ref<HTMLButtonElement>
-  ) => (
+export function ColorButton({
+  color,
+  active = false,
+  size = 24,
+  ref,
+  ...rest
+}: Props) {
+  return (
     <ColorButtonInternal
       $active={active}
       $size={size}
@@ -26,8 +30,8 @@ export const ColorButton = React.forwardRef(
     >
       <Selected />
     </ColorButtonInternal>
-  )
-);
+  );
+}
 
 /** Highlight for the hovered or selected swatch, falls back for the gradient. */
 const ring = css`2px solid var(--color, ${s("textTertiary")})`;

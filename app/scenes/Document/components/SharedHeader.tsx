@@ -1,8 +1,7 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon, SettingsIcon } from "outline-icons";
+import { TableOfContentsIcon } from "outline-icons";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import useMeasure from "react-use-measure";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
@@ -20,21 +19,17 @@ import {
   AppearanceAction,
   SubscribeAction,
 } from "~/components/Sharing/components/Actions";
+import AuthenticatedIsland from "~/components/Sharing/components/AuthenticatedIsland";
 import HeaderBranding from "~/components/Sharing/components/HeaderBranding";
-import ShareSettingsPopover from "~/components/Sharing/components/ShareSettingsPopover";
 import { useTeamContext } from "~/components/TeamContext";
 import Tooltip from "~/components/Tooltip";
 import env from "~/env";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import type Document from "~/models/Document";
-import { documentEditPath } from "~/utils/routeHelpers";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import { SearchHighlightChip } from "./SearchHighlightChip";
 
@@ -45,7 +40,6 @@ type Props = {
 function SharedDocumentHeader({ document }: Props) {
   const { t } = useTranslation();
   const { ui, shares } = useStores();
-  const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobileMedia = useMobile();
   const isEditingFocus = useEditingFocus();
 
@@ -58,7 +52,6 @@ function SharedDocumentHeader({ document }: Props) {
   }, [isEditingFocus]);
 
   const { hasHeadings } = useDocumentContext();
-  const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
   const { shareId, sharedTree, allowSubscriptions } = useShare();
   const share = shareId ? shares.get(shareId) : undefined;
@@ -75,14 +68,7 @@ function SharedDocumentHeader({ document }: Props) {
     }
   }, [ui]);
 
-  const can = usePolicy(document);
   const showContents = ui.tocVisible !== false;
-
-  useEffect(() => {
-    if (isMobile && showContents) {
-      ui.set({ tocVisible: false });
-    }
-  }, [isMobile, showContents, ui]);
 
   useKeyDown(
     (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
@@ -117,30 +103,6 @@ function SharedDocumentHeader({ document }: Props) {
         neutral
       />
     </Tooltip>
-  );
-
-  const editAction = can.update ? (
-    <Action>
-      <Tooltip
-        content={t("Edit {{noun}}", { noun: document.noun })}
-        shortcut="e"
-        placement="bottom"
-      >
-        <Button
-          as={Link}
-          icon={<EditIcon />}
-          to={{
-            pathname: documentEditPath(document),
-            state: { sidebarContext },
-          }}
-          neutral
-        >
-          {isMobile ? null : t("Edit")}
-        </Button>
-      </Tooltip>
-    </Action>
-  ) : (
-    <div />
   );
 
   const hasSidebar = !!(sharedTree && sharedTree.children?.length);
@@ -184,23 +146,15 @@ function SharedDocumentHeader({ document }: Props) {
         <>
           <SearchHighlightChip />
           {hasHeadings && !isMobile && !tocInLeft && <Action>{toc}</Action>}
-          {allowSubscriptions !== false && !user && env.EMAIL_ENABLED && (
+          {allowSubscriptions !== false && env.EMAIL_ENABLED && (
             <SubscribeAction shareId={shareId} documentId={document.id} />
           )}
           <AppearanceAction />
-          {can.update && share && (
-            <Action>
-              <ShareSettingsPopover share={share}>
-                <Button
-                  icon={<SettingsIcon />}
-                  aria-label={t("Display settings")}
-                  neutral
-                  borderOnHover
-                />
-              </ShareSettingsPopover>
-            </Action>
-          )}
-          {editAction}
+          <AuthenticatedIsland
+            document={document}
+            share={share}
+            compact={isMobile}
+          />
         </>
       }
     />

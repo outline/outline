@@ -1,8 +1,9 @@
 import { has, isEqual } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
-import type { Team, User } from "@server/models";
-import { TeamDomain } from "@server/models";
+import { ValidationError } from "@server/errors";
+import type { User } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -16,7 +17,21 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   team.setAttributes(attributes);
 
   if (subdomain !== undefined && env.isCloudHosted) {
-    team.subdomain = subdomain === "" ? null : subdomain;
+    const newSubdomain = subdomain === "" ? null : subdomain;
+
+    if (newSubdomain && newSubdomain !== team.subdomain) {
+      const existing = await Team.findOne({
+        where: { subdomain: newSubdomain },
+        paranoid: false,
+        transaction: ctx.state.transaction,
+      });
+
+      if (existing) {
+        throw ValidationError("Subdomain is already in use");
+      }
+    }
+
+    team.subdomain = newSubdomain;
   }
 
   if (allowedDomains !== undefined) {
@@ -35,17 +50,17 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
     const newDomains = allowedDomains.filter(
       (newDomain) => newDomain !== "" && !existingDomains.includes(newDomain)
     );
-    await Promise.all(
-      newDomains.map(async (newDomain) => {
-        newAllowedDomains.push(
-          await TeamDomain.createWithCtx(ctx, {
-            name: newDomain,
-            teamId: team.id,
-            createdById: user.id,
-          })
-        );
-      })
-    );
+    // Created one at a time so that the limit check on each create counts the
+    // domains added earlier in the same request.
+    for (const newDomain of newDomains) {
+      newAllowedDomains.push(
+        await TeamDomain.createWithCtx(ctx, {
+          name: newDomain,
+          teamId: team.id,
+          createdById: user.id,
+        })
+      );
+    }
 
     // Destroy the existing TeamDomains that were removed
     const deletedDomains = existingAllowedDomains.filter(

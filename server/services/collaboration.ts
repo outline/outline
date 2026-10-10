@@ -13,9 +13,11 @@ import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitE
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { rejectUpgrade } from "@server/onupgrade";
 import RedisAdapter from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
+import AwarenessIdentityExtension from "../collaboration/AwarenessIdentityExtension";
 import { EditorVersionExtension } from "../collaboration/EditorVersionExtension";
 import LoggerExtension from "../collaboration/LoggerExtension";
 import MetricsExtension from "../collaboration/MetricsExtension";
@@ -62,6 +64,7 @@ export default function init(
       new ConnectionLimitExtension(),
       new EditorVersionExtension(),
       new AuthenticationExtension(),
+      new AwarenessIdentityExtension(),
       new PersistenceExtension(),
       new APIUpdateExtension(),
       new ViewsExtension(),
@@ -82,22 +85,6 @@ export default function init(
           .pop();
 
         if (documentId) {
-          // Handle socket errors that may occur during upgrade (e.g., maxPayload exceeded)
-          socket.on("error", (error: NodeJS.ErrnoException) => {
-            // ECONNRESET is common when clients disconnect abruptly, no need to log
-            if (error.code === "ECONNRESET") {
-              return;
-            }
-            Logger.error(
-              "Socket error during WebSocket upgrade",
-              error,
-              {
-                documentId,
-              },
-              req
-            );
-          });
-
           wss.handleUpgrade(req, socket, head, (client) => {
             // Handle websocket connection errors as soon as the client is upgraded
             client.on("error", (error) => {
@@ -133,7 +120,7 @@ export default function init(
       }
 
       // If the collaboration service is running it will close the connection
-      socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+      rejectUpgrade(socket);
     }
   );
 

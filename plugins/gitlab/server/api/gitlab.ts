@@ -12,6 +12,7 @@ import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
+import { safeEqual } from "@server/utils/crypto";
 import {
   generateOAuthStateNonce,
   verifyOAuthStateNonce,
@@ -26,6 +27,11 @@ import GitLabWebhookTask from "../tasks/GitLabWebhookTask";
 import * as T from "./schema";
 
 const router = new Router();
+
+function getGitLabWebhookToken(ctx: APIContext): string | undefined {
+  const signatureHeader = ctx.request.headers["x-gitlab-token"];
+  return Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+}
 
 router.post(
   "gitlab.connect",
@@ -307,7 +313,7 @@ router.post(
       // Self-hosted instances store their client secret in the database,
       // use the X-Gitlab-Instance header to find the matching integration.
       if (instanceUrl && instanceUrl !== "https://gitlab.com") {
-        const integration = await Integration.findOne({
+        const integrations = await Integration.findAll({
           where: {
             service: IntegrationService.GitLab,
             settings: { gitlab: { url: instanceUrl } },
@@ -320,29 +326,46 @@ router.post(
             },
           ],
         });
-        if (integration) {
-          return integration.authentication.clientSecret ?? undefined;
+        const token = getGitLabWebhookToken(ctx);
+        const teamIds = new Set<string>();
+        let clientSecret: string | undefined;
+
+        for (const integration of integrations) {
+          const candidateSecret = integration.authentication.clientSecret;
+
+          if (!candidateSecret || !safeEqual(candidateSecret, token)) {
+            continue;
+          }
+
+          clientSecret = candidateSecret;
+          teamIds.add(integration.teamId);
         }
+
+        if (clientSecret) {
+          ctx.state.webhookTeamIds = [...teamIds];
+        }
+
+        return clientSecret;
       }
 
       // Default GitLab.com instance uses the env secret
       return env.GITLAB_CLIENT_SECRET;
     },
-    getSignatureFromHeader: (ctx) => {
-      const { headers } = ctx.request;
-      const signatureHeader = headers["x-gitlab-token"];
-      return Array.isArray(signatureHeader)
-        ? signatureHeader[0]
-        : signatureHeader;
-    },
+    getSignatureFromHeader: getGitLabWebhookToken,
   }),
   async (ctx: APIContext) => {
     const { headers, body } = ctx.request;
+    const teamIds: Array<string | null> = ctx.state.webhookTeamIds ?? [null];
 
-    await new GitLabWebhookTask().schedule({
-      payload: body,
-      headers,
-    });
+    await Promise.all(
+      teamIds.map((teamId) =>
+        new GitLabWebhookTask().schedule({
+          payload: body,
+          headers,
+          teamId,
+        })
+      )
+    );
 
     ctx.status = 202;
   }

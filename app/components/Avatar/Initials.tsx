@@ -15,6 +15,12 @@ const Initials = styled(Flex)<{
   justify-content: center;
   width: 100%;
   height: 100%;
+
+  // Allows a parent to nudge the initials away from an edge that is masked off,
+  // so they remain optically centered in the visible area.
+  padding-right: var(--initials-inset, 0px);
+  transition: padding-right 100ms;
+
   color: ${(props) =>
     getLuminance(props.color ?? props.theme.textTertiary) > 0.5
       ? s("black50")

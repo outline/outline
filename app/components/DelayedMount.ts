@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 type Props = {
   delay?: number;
-  children: JSX.Element;
+  children: React.JSX.Element;
 };
 
 export default function DelayedMount({ delay = 250, children }: Props) {

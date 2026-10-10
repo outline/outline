@@ -8,7 +8,7 @@ import { changeLanguage } from "~/utils/language";
 import LoadingIndicator from "./LoadingIndicator";
 
 type Props = {
-  children: JSX.Element;
+  children: React.JSX.Element;
 };
 
 const Authenticated = ({ children }: Props) => {

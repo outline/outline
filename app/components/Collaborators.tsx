@@ -3,6 +3,8 @@ import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
+import type User from "~/models/User";
+import type { AvatarProps } from "~/components/Avatar";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
@@ -118,7 +120,7 @@ function Collaborators(props: Props) {
   );
 
   const renderAvatar = useCallback(
-    ({ model: collaborator, ...rest }) => {
+    ({ model: collaborator, ...rest }: AvatarProps & { model: User }) => {
       const isPresent = presentIds.has(collaborator.id);
       const isEditing = editingIds.has(collaborator.id);
       const isObserving = observingUserId === collaborator.id;

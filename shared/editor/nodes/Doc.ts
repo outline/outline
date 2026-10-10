@@ -26,8 +26,8 @@ export default class Doc extends Node<DocOptions> {
     return [
       new PlaceholderPlugin([
         {
-          condition: ({ $start, parent, node, state, textContent }) =>
-            textContent === "" &&
+          condition: ({ $start, parent, node, state, isDocEmpty }) =>
+            isDocEmpty &&
             !isNull(parent) &&
             parent.type === state.doc.type &&
             parent.childCount === 1 &&

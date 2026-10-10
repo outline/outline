@@ -79,3 +79,79 @@ export const descendants = (
 
   return found;
 };
+
+/** A node of a flattened tree, with its position in the tree. */
+export interface FlattenedTreeNode {
+  /** The node itself. */
+  node: NavigationNode;
+  /** Depth of the node in the tree. */
+  depth: number;
+  /** Index of the node among its siblings. */
+  index: number;
+  /** Id of the parent node, if any. */
+  parentId?: string;
+  /** Whether the node has children. */
+  hasChildren: boolean;
+  /**
+   * Ancestors whose subtree ends with the subtree of this node, nearest first.
+   * Empty unless the node is the last child of its parent.
+   */
+  trailingAncestors: FlattenedTreeNode[];
+}
+
+/**
+ * Flattens the expanded part of a navigation tree into a list of nodes in
+ * display order. The children of a node are included only when it is expanded.
+ *
+ * @param options.nodes The nodes at the root of the tree.
+ * @param options.isExpanded Returns whether the node with the given id is expanded.
+ * @param options.getChildren Returns the children to show for a node, defaults
+ *   to the children of the node.
+ * @param options.depth Depth of the root nodes, defaults to 0.
+ * @param options.parentId Id of the node that contains the root nodes, if any.
+ * @returns the visible nodes in display order.
+ */
+export const flattenExpandedTree = ({
+  nodes,
+  isExpanded,
+  getChildren = (node) => node.children,
+  depth = 0,
+  parentId,
+}: {
+  nodes: NavigationNode[];
+  isExpanded: (nodeId: string) => boolean;
+  getChildren?: (node: NavigationNode) => NavigationNode[];
+  depth?: number;
+  parentId?: string;
+}): FlattenedTreeNode[] => {
+  const flattened: FlattenedTreeNode[] = [];
+
+  const visit = (
+    siblings: NavigationNode[],
+    siblingDepth: number,
+    parent: FlattenedTreeNode | undefined
+  ) => {
+    siblings.forEach((node, index) => {
+      const children = getChildren(node);
+      const item: FlattenedTreeNode = {
+        node,
+        depth: siblingDepth,
+        index,
+        parentId: parent ? parent.node.id : parentId,
+        hasChildren: children.length > 0,
+        trailingAncestors:
+          parent && index === siblings.length - 1
+            ? [parent, ...parent.trailingAncestors]
+            : [],
+      };
+      flattened.push(item);
+
+      if (children.length && isExpanded(node.id)) {
+        visit(children, siblingDepth + 1, item);
+      }
+    });
+  };
+
+  visit(nodes, depth, undefined);
+  return flattened;
+};

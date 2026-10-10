@@ -16,6 +16,7 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
+import { UserHoverCard } from "~/components/UserHoverCard";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
@@ -101,7 +102,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
           ),
           width: "4fr",
         },
-        canManage && !isMobile
+        canManage
           ? {
               type: "data",
               id: "email",
@@ -109,28 +110,59 @@ export function UsersTable({ canManage, ...rest }: Props) {
               accessor: (user) => user.email,
               component: (user) => <>{user.email}</>,
               width: "4fr",
+              hideOnMobile: true,
             }
           : undefined,
-        isMobile
-          ? undefined
-          : {
+        {
+          type: "data",
+          id: "lastActiveAt",
+          header: t("Last active"),
+          accessor: (user) => user.lastActiveAt,
+          component: (user) =>
+            user.lastActiveAt ? (
+              <Time dateTime={user.lastActiveAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
+        canManage
+          ? {
               type: "data",
-              id: "lastActiveAt",
-              header: t("Last active"),
-              accessor: (user) => user.lastActiveAt,
+              id: "invitedBy",
+              header: t("Invited by"),
+              accessor: (user) => user.invitedBy?.name,
               component: (user) =>
-                user.lastActiveAt ? (
-                  <Time dateTime={user.lastActiveAt} addSuffix shorten />
+                user.invitedBy ? (
+                  <UserHoverCard user={user.invitedBy}>
+                    <Text selectable ellipsis>
+                      {user.invitedBy.name}
+                    </Text>
+                  </UserHoverCard>
                 ) : null,
+              sortable: false,
               width: "2fr",
-            },
+              hideOnMobile: true,
+            }
+          : undefined,
+        {
+          type: "data",
+          id: "createdAt",
+          header: t("Joined"),
+          accessor: (user) => user.createdAt,
+          component: (user) =>
+            user.createdAt ? (
+              <Time dateTime={user.createdAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
         {
           type: "data",
           id: "role",
           header: t("Role"),
           accessor: (user) => user.role,
           component: (user) => (
-            <HStack spacing={4} wrap>
+            <HStack spacing={4}>
               {user.isInvited && <Badge>{t("Invited")}</Badge>}
               {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
@@ -144,7 +176,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </HStack>
           ),
-          width: "2fr",
+          width: "minmax(160px, 2fr)",
         },
         canManage
           ? {
@@ -161,6 +193,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
 
   return (
     <SortableTable
+      id="users"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}

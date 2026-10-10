@@ -17,12 +17,13 @@ export abstract class BaseTask<T extends object> {
    * @returns A promise that resolves once the job is placed on the task queue
    */
   public schedule(props: T, options?: JobOptions): Promise<Job> {
+    const jobId = this.jobId(props) ?? options?.jobId;
     return taskQueue().add(
       {
         name: this.constructor.name,
         props,
       },
-      { ...options, ...this.options }
+      { ...options, jobId, ...this.options }
     );
   }
 
@@ -43,6 +44,18 @@ export abstract class BaseTask<T extends object> {
   // oxlint-disable-next-line @typescript-eslint/no-unused-vars
   public onFailed(props: T): Promise<void> {
     return Promise.resolve();
+  }
+
+  /**
+   * A stable ID for the job. When defined, a job with the same ID that is
+   * already queued or active prevents a duplicate from being added.
+   *
+   * @param props Properties to be used by the task
+   * @returns The job ID, or undefined to let the queue assign one.
+   */
+  // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+  protected jobId(props: T): string | undefined {
+    return undefined;
   }
 
   /**

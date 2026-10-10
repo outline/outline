@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Button from "~/components/Button";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { CSVHelper } from "@shared/utils/csv";
 import { download } from "~/utils/download";
 import useStores from "~/hooks/useStores";
@@ -12,8 +13,7 @@ type Props = {
   /** Request parameters for filtering users */
   reqParams: {
     query?: string;
-    filter?: string;
-    role?: string;
+    filters?: Filter[];
     sort?: string;
     direction?: "ASC" | "DESC";
   };

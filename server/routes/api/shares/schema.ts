@@ -5,13 +5,13 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import { ShareValidation } from "@shared/validations";
 import { Share } from "@server/models";
 import { ValidateURL } from "@server/validation";
-import { zodIdType } from "@server/utils/zod";
+import { zodIdType, zodShareIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
     .object({
-      id: z.string().optional(),
+      id: zodShareIdType().optional(),
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
     })
@@ -120,7 +120,7 @@ export type SharesRevokeReq = z.infer<typeof SharesRevokeSchema>;
 
 export const SharesSitemapSchema = BaseSchema.extend({
   query: z.object({
-    id: z.string(),
+    id: zodShareIdType(),
   }),
 });
 
@@ -128,7 +128,7 @@ export type SharesSitemapReq = z.infer<typeof SharesSitemapSchema>;
 
 export const SharesSubscribeSchema = BaseSchema.extend({
   body: z.object({
-    shareId: z.string(),
+    shareId: zodShareIdType(),
     documentId: z.uuid(),
     email: z.string().email(),
   }),

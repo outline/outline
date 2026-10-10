@@ -1,8 +1,7 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
-import type { DropTargetMonitor } from "react-dnd";
-import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
@@ -10,7 +9,7 @@ import type Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
-import type { DragObject } from "../hooks/useDragAndDrop";
+import { useDragRef, useDropRef } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import SidebarDisclosureContext, {
@@ -25,12 +24,18 @@ type Props = {
   belowCollection: Collection | void;
 };
 
+interface CollectionDragItem {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+}
+
 function DraggableCollectionLink({
   collection,
   activeDocument,
   belowCollection,
 }: Props) {
-  const activeSidebarContext = useActiveSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const sidebarContext = useSidebarContext();
   const { ui, policies, collections } = useStores();
   const [expanded, setExpanded] = useState(
@@ -47,9 +52,13 @@ function DraggableCollectionLink({
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
-  ] = useDrop({
+  ] = useDropRef<
+    CollectionDragItem,
+    void,
+    { isCollectionDropping: boolean; isDraggingAnyCollection: boolean }
+  >({
     accept: "collection",
-    drop: (item: DragObject) => {
+    drop: (item) => {
       void collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
@@ -59,14 +68,14 @@ function DraggableCollectionLink({
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
       !!policies.abilities(item.id).move,
-    collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
+    collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),
     }),
   });
 
   // Drag to reorder collection
-  const [{ isDragging }, dragToReorderCollection, preview] = useDrag({
+  const [{ isDragging }, dragToReorderCollection, preview] = useDragRef({
     type: "collection",
     item: () => ({
       id: collection.id,
@@ -94,12 +103,13 @@ function DraggableCollectionLink({
   }, [
     collection.id,
     ui.activeCollectionId,
+    activeDocument?.id,
     sidebarContext,
     activeSidebarContext,
   ]);
 
   const handleDisclosureClick = useCallback(
-    (ev) => {
+    (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
       setExpanded((e) => {
         const willExpand = !e;

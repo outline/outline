@@ -131,12 +131,16 @@ const CollectionLink: React.FC<Props> = ({
       dropRef={dropRef}
       isActiveDropTarget={isOver && canDrop}
     >
-      <CollectionLinkChildren
-        collection={collection}
-        expanded={!!expanded}
-        depth={depth}
-        prefetchDocument={documents.prefetchDocument}
-      />
+      {(newChild) => (
+        <CollectionLinkChildren
+          collection={collection}
+          expanded={!!expanded}
+          depth={depth}
+          prefetchDocument={documents.prefetchDocument}
+        >
+          {newChild}
+        </CollectionLinkChildren>
+      )}
     </CollectionRow>
   );
 };

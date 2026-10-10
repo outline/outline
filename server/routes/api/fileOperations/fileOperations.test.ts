@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import {
   CollectionPermission,
   FileOperationState,

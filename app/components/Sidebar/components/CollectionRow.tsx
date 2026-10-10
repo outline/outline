@@ -2,7 +2,6 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import type { ConnectDropTarget } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
@@ -78,12 +77,15 @@ export type CollectionRowProps = {
   /** Ref forwarded to the outer Relative; for drag hover timers. */
   parentRef?: React.Ref<HTMLDivElement>;
   /** Drop target connector for "change collection" / reorder. */
-  dropRef?: ConnectDropTarget;
+  dropRef?: React.Ref<HTMLDivElement>;
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 
-  /** Content rendered after the row (e.g. CollectionLinkChildren). */
-  children?: React.ReactNode;
+  /**
+   * Renders the content after the row (e.g. CollectionLinkChildren), given the
+   * inline new document input to show above the child documents.
+   */
+  children: (newChild: React.ReactNode) => React.ReactNode;
 };
 
 function CollectionRow({
@@ -227,32 +229,35 @@ function CollectionRow({
   );
 
   return (
-    <ActionContextProvider value={{ activeModels: [collection] }}>
+    <ActionContextProvider
+      value={{ activeModels: [collection], sidebarContext }}
+    >
       <Relative ref={mergedRef}>
         <DropToImport collectionId={collection.id}>
           {sidebarLinkElement}
         </DropToImport>
       </Relative>
-      {isAddingNewChild && onCreateChild && (
-        <SidebarLink
-          isActive={() => true}
-          depth={newChildDepth ?? Math.max(depth + 1, 2)}
-          ellipsis={false}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewChildSubmit}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
-        />
+      {children(
+        isAddingNewChild && onCreateChild ? (
+          <SidebarLink
+            isActive={() => true}
+            depth={newChildDepth ?? Math.max(depth + 1, 2)}
+            ellipsis={false}
+            label={
+              <EditableTitle
+                title=""
+                canUpdate
+                isEditing
+                placeholder={`${t("New doc")}…`}
+                onCancel={closeAddingNewChild}
+                onSubmit={handleNewChildSubmit}
+                maxLength={DocumentValidation.maxTitleLength}
+                ref={newChildTitleRef}
+              />
+            }
+          />
+        ) : undefined
       )}
-      {children}
     </ActionContextProvider>
   );
 }

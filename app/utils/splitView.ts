@@ -1,9 +1,10 @@
-import type { History, LocationDescriptor } from "history";
-import { createPath, parsePath } from "history";
+import type { History } from "history";
+import { parsePath } from "history";
 import { action, observable } from "mobx";
 import queryString from "query-string";
 import { isMobile } from "@shared/utils/browser";
 import { isModKey } from "@shared/utils/keyboard";
+import Desktop from "./Desktop";
 
 /**
  * Name of the query string parameter that holds the route displayed in the
@@ -66,6 +67,7 @@ export function setSplitPath(search: string, path: string | undefined): string {
 }
 
 const nonSplitViewPrefixes = [
+  "/api",
   "/settings",
   "/s",
   "/share",
@@ -157,7 +159,9 @@ let splitModifierPressed = false;
 
 /**
  * Whether an event carries the modifier combination that opens a route in the
- * secondary pane of the split view.
+ * secondary pane of the split view. The desktop app has no tabs of its own, so
+ * the modifier stands in for the browser's open-in-new-tab; in the browser the
+ * shift key is added so that both native behaviors remain available.
  *
  * @param event the keyboard or mouse event to check.
  * @returns true if the split view modifier combination is held.
@@ -165,35 +169,66 @@ let splitModifierPressed = false;
 export function isSplitViewModifierEvent(
   event: KeyboardEvent | MouseEvent
 ): boolean {
-  return isModKey(event) && !event.shiftKey && !event.altKey;
+  if (!isModKey(event) || event.altKey) {
+    return false;
+  }
+
+  return Desktop.isElectron() ? !event.shiftKey : event.shiftKey;
 }
 
 /**
- * Starts tracking whether the split view modifier combination is held during
- * events dispatched to the window, allowing code without direct access to the
- * triggering event, such as command bar actions, to check it with
- * isSplitViewModifierPressed. Synthetic clicks, such as the one kbar
- * dispatches when Enter is pressed, are ignored so the state of the
- * originating keyboard event is preserved.
+ * Starts handling navigation that should be directed to the secondary pane of
+ * the split view. While active:
  *
- * @returns a function that stops tracking.
+ * - Clicks on internal links held with the split view modifier open the link
+ *   in the secondary pane rather than following it.
+ * - Whether the modifier is held during events dispatched to the window is
+ *   recorded, allowing code without direct access to the triggering event,
+ *   such as the patched history methods, to check it with
+ *   isSplitViewModifierPressed.
+ *
+ * Synthetic clicks, such as the one kbar dispatches when Enter is pressed, are
+ * ignored so the state of the originating keyboard event is preserved.
+ *
+ * @param history the history instance to navigate with.
+ * @returns a function that stops handling navigation.
  */
-export function trackSplitViewModifier(): () => void {
+export function initSplitViewNavigation(history: History): () => void {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
   const record = (event: KeyboardEvent | MouseEvent) => {
     splitModifierPressed = isSplitViewModifierEvent(event);
+
+    // Scope the recorded state to the dispatch of this event so that a
+    // navigation triggered later, while the modifier happens to still be held,
+    // is unaffected.
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      splitModifierPressed = false;
+    }, 0);
   };
+
   const handleClick = (event: MouseEvent) => {
     // Clicks not produced by a pointer press carry no modifier state.
     if (event.detail === 0) {
       return;
     }
     record(event);
+
+    const path = splitViewPathFromClick(event);
+    if (path) {
+      // Also stops the click reaching the link, as react-router ignores an
+      // event that has had its default prevented.
+      event.preventDefault();
+      openRouteInSplit(history, path);
+    }
   };
 
   window.addEventListener("keydown", record, { capture: true });
   window.addEventListener("click", handleClick, { capture: true });
 
   return () => {
+    clearTimeout(timeout);
     splitModifierPressed = false;
     window.removeEventListener("keydown", record, { capture: true });
     window.removeEventListener("click", handleClick, { capture: true });
@@ -202,7 +237,7 @@ export function trackSplitViewModifier(): () => void {
 
 /**
  * Whether the split view modifier combination was held during the most recent
- * tracked event, see trackSplitViewModifier. Intended to be read while that
+ * tracked event, see initSplitViewNavigation. Intended to be read while that
  * event is still being dispatched.
  *
  * @returns true if the split view modifier is held.
@@ -212,33 +247,47 @@ export function isSplitViewModifierPressed(): boolean {
 }
 
 /**
- * Navigates to the given location, opening it in the secondary pane of the
- * split view instead when the split view modifier is held and the route can
- * render in a pane.
+ * Resolves the path that a click should open in the secondary pane of the
+ * split view.
  *
- * @param history the history instance to navigate with.
- * @param to the path or location descriptor to navigate to.
+ * @param event the click event to inspect.
+ * @returns the internal path to open, or undefined when the click should be
+ * handled normally.
  */
-export function pushOrOpenInSplit(
-  history: History,
-  to: LocationDescriptor
-): void {
-  if (isSplitViewModifierPressed() && !isMobile()) {
-    const location = typeof to === "string" ? parsePath(to) : to;
-
-    // Location state cannot be represented in the split query parameter, so
-    // routes that rely on it must navigate normally.
-    if (
-      location.state === undefined &&
-      location.pathname &&
-      isSplittablePath(location.pathname)
-    ) {
-      openRouteInSplit(history, createPath(location));
-      return;
-    }
+function splitViewPathFromClick(event: MouseEvent): string | undefined {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    isMobile() ||
+    !isSplitViewModifierEvent(event) ||
+    !(event.target instanceof Element)
+  ) {
+    return undefined;
   }
 
-  history.push(to);
+  const anchor = event.target.closest("a[href]");
+  if (
+    !(anchor instanceof HTMLAnchorElement) ||
+    anchor.target ||
+    anchor.hasAttribute("download")
+  ) {
+    return undefined;
+  }
+
+  // Editor links resolve their own destination, see useEditorClickHandlers.
+  if (anchor.closest(".ProseMirror")) {
+    return undefined;
+  }
+
+  const url = new URL(anchor.href, window.location.origin);
+  if (
+    url.origin !== window.location.origin ||
+    !isSplittablePath(url.pathname)
+  ) {
+    return undefined;
+  }
+
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 /**
@@ -251,11 +300,16 @@ export function pushOrOpenInSplit(
 export function openRouteInSplit(history: History, path: string): void {
   const { location } = history;
   setFocusedSplitPane("secondary");
-  history.push({
-    pathname: location.pathname,
-    hash: location.hash,
-    state: location.state,
-    search: setSplitPath(location.search, path),
+
+  // The location below is already the intended result, so it is pushed without
+  // further split view handling.
+  withoutSplitViewNavigation(() => {
+    history.push({
+      pathname: location.pathname,
+      hash: location.hash,
+      state: location.state,
+      search: setSplitPath(location.search, path),
+    });
   });
 }
 

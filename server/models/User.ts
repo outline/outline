@@ -50,6 +50,7 @@ import type { locales } from "@shared/utils/date";
 import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import { LockHelper } from "@server/storage/LockHelper";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -747,6 +748,14 @@ class User extends ParanoidModel<
     model: User,
     { transaction }: { transaction: Transaction }
   ) {
+    // Serialize concurrent deletion within the team, otherwise every request
+    // can read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `users:${model.teamId}`,
+      transaction
+    );
+
     const usersCount = await this.count({
       where: {
         teamId: model.teamId,
@@ -769,6 +778,14 @@ class User extends ParanoidModel<
     if (model.role !== UserRole.Admin) {
       return;
     }
+
+    // Shares the lock name with the check above, so both counts are taken
+    // against a settled team.
+    await LockHelper.acquire(
+      model.sequelize,
+      `users:${model.teamId}`,
+      transaction
+    );
 
     const otherAdminsCount = await this.count({
       where: {
@@ -824,6 +841,14 @@ class User extends ParanoidModel<
       previousRole === UserRole.Admin &&
       UserRoleHelper.isRoleLower(model.role, UserRole.Admin)
     ) {
+      // Shares the lock name with the deletion checks, so a demotion and a
+      // deletion cannot each count the other account as the remaining admin.
+      await LockHelper.acquire(
+        model.sequelize,
+        `users:${model.teamId}`,
+        options.transaction
+      );
+
       const { count } = await this.findAndCountAll({
         where: {
           teamId: model.teamId,

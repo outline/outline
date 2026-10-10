@@ -24,10 +24,12 @@ import {
 import type { DocumentPermission } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import type { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
+import GroupUser from "./GroupUser";
 import User from "./User";
 import UserMembership from "./UserMembership";
 import { type HookContext } from "./base/Model";
@@ -222,6 +224,11 @@ class GroupMembership extends ParanoidModel<
     });
   }
 
+  @AfterCreate
+  static async invalidateDocumentIdsAfterCreate(model: GroupMembership) {
+    await model.invalidateMembershipDocumentIds();
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: GroupMembership,
@@ -319,6 +326,11 @@ class GroupMembership extends ParanoidModel<
     });
   }
 
+  @AfterDestroy
+  static async invalidateDocumentIdsAfterDestroy(model: GroupMembership) {
+    await model.invalidateMembershipDocumentIds();
+  }
+
   /**
    * Recreate all sourced permissions for a given permission.
    */
@@ -390,6 +402,25 @@ class GroupMembership extends ParanoidModel<
     }
   }
 
+  /**
+   * Invalidates the cached document membership IDs of every user in the group,
+   * as a document granted to a group is reachable by all of its members.
+   */
+  private async invalidateMembershipDocumentIds() {
+    if (!this.documentId) {
+      return;
+    }
+
+    const groupUsers = await GroupUser.findAll({
+      attributes: ["userId"],
+      where: { groupId: this.groupId },
+    });
+
+    await Document.invalidateMembershipDocumentIds(
+      groupUsers.map((groupUser) => groupUser.userId)
+    );
+  }
+
   private async insertEvent(
     ctx: APIContext["context"],
     name: string,
@@ -411,6 +442,15 @@ class GroupMembership extends ParanoidModel<
     model: GroupMembership,
     { transaction }: APIContext["context"]
   ) {
+    // Both models guard the same invariant, so they share one lock name,
+    // otherwise the last user manager and the last group manager can be
+    // removed at the same time.
+    await LockHelper.acquire(
+      model.sequelize,
+      `collectionAdmins:${model.collectionId}`,
+      transaction
+    );
+
     const [userMemberships, groupMemberships] = await Promise.all([
       UserMembership.count({
         where: {

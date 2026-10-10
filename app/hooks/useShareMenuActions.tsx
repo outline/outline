@@ -1,35 +1,23 @@
-import * as React from "react";
-import type Share from "~/models/Share";
-import usePolicy from "~/hooks/usePolicy";
+import { useMemo } from "react";
 import { ActionSeparator } from "~/actions";
 import {
-  copyShareUrlActionFactory,
-  goToShareSourceActionFactory,
-  revokeShareActionFactory,
+  copyShareUrl,
+  goToShareSource,
+  revokeShare,
 } from "~/actions/definitions/shares";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 /**
- * Hook that constructs the action menu for share management operations.
+ * Hook that constructs the action menu for share management operations. The
+ * share is read from the active models in the action context.
  *
- * @param targetShare - the share to build actions for, or null to skip.
- * @returns action with children for use in menus, or undefined if share is null.
+ * @returns action with children for use in menus.
  */
-export function useShareMenuActions(targetShare: Share | null) {
-  const can = usePolicy(targetShare ?? ({} as Share));
-
-  const actionList = React.useMemo(
-    () =>
-      !targetShare
-        ? []
-        : [
-            copyShareUrlActionFactory({ share: targetShare }),
-            goToShareSourceActionFactory({ share: targetShare }),
-            ActionSeparator,
-            revokeShareActionFactory({ share: targetShare, can }),
-          ],
-    [targetShare, can]
+export function useShareMenuActions() {
+  const actions = useMemo(
+    () => [copyShareUrl, goToShareSource, ActionSeparator, revokeShare],
+    []
   );
 
-  return useMenuAction(actionList);
+  return useMenuAction(actions);
 }

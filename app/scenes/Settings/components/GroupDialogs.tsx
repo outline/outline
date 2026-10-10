@@ -159,7 +159,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         {group.isExternallyManaged ? (
           <Trans>
             This group is managed by an external authentication provider. The
-            name is synced automatically and cannot be changed.
+            name and description are synced automatically and cannot be changed.
           </Trans>
         ) : (
           <Trans>
@@ -188,6 +188,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           value={description}
           maxLength={GroupValidation.maxDescriptionLength}
+          disabled={group.isExternallyManaged}
           flex
         />
         <Switch

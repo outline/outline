@@ -11,6 +11,8 @@ export interface SearchIndexDocument {
   url: string;
   icon?: string | null;
   color?: string | null;
+  /** Whether the document is archived. */
+  isArchived?: boolean;
 }
 
 /** A single document matched by a search of the index. */
@@ -200,7 +202,8 @@ export class SearchIndex {
         existing &&
         existing.title === merged.title &&
         existing.text === merged.text &&
-        existing.url === merged.url
+        existing.url === merged.url &&
+        existing.isArchived === merged.isArchived
       ) {
         continue;
       }

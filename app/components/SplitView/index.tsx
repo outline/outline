@@ -181,7 +181,11 @@ const Pane = ({
               </React.Suspense>
             </PaneContent>
             <PaneAside />
-            <FocusRing $visible={isFocused} aria-hidden />
+            <FocusRing
+              $visible={isFocused}
+              $secondary={isSecondary}
+              aria-hidden
+            />
           </RightSidebarProvider>
         </DocumentContextProvider>
       </SplitViewContext.Provider>
@@ -283,23 +287,34 @@ const PaneContainer = styled.div<{ $secondary: boolean }>`
   display: flex;
   flex: 1 1 50%;
   min-width: 0;
+
+  /* Separate the secondary pane's content from the pane divider. */
+  padding-inline-start: ${(props) => (props.$secondary ? "8px" : "0")};
 `;
 
 const PaneContent = styled.div`
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+
+  /* Route content fills the pane, as it would the window outside of a split
+   * view, so that sticky footers sit at the bottom of the pane. */
+  && > * {
+    flex: 1 0 auto;
+  }
 `;
 
 const SplitResizeBorder = styled(ResizeBorder)`
   z-index: ${depths.sidebar + 1};
 `;
 
-const FocusRing = styled.div<{ $visible: boolean }>`
+const FocusRing = styled.div<{ $visible: boolean; $secondary: boolean }>`
   position: absolute;
-  inset: 0;
+  inset: 0 ${(props) => (props.$secondary ? "0 0 -2px" : "0")};
   pointer-events: none;
   z-index: ${depths.sidebar + 1};
   box-shadow:

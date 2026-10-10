@@ -11,10 +11,14 @@ import { opts } from "@server/utils/i18n";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
 type UnfurlData = Record<string, any>;
 
-async function presentUnfurl(
-  data: UnfurlData,
-  options?: { includeEmail: boolean }
-) {
+interface UnfurlOptions {
+  /** Whether the mentioned user's email may be included in the response. */
+  includeEmail: boolean;
+  /** Whether the mentioned user's viewing activity may be included in the response. */
+  includeLastViewed: boolean;
+}
+
+async function presentUnfurl(data: UnfurlData, options?: UnfurlOptions) {
   switch (data.type) {
     case UnfurlResourceType.Mention:
       return presentMention(data, options);
@@ -49,13 +53,16 @@ const presentURL = (
 
 const presentMention = async (
   data: UnfurlData,
-  options?: { includeEmail: boolean }
+  options?: UnfurlOptions
 ): Promise<UnfurlResponse[UnfurlResourceType.Mention]> => {
   const user: User = data.user;
   const document: Document = data.document;
 
   const lastOnlineInfo = presentLastOnlineInfoFor(user);
-  const lastViewedInfo = await presentLastViewedInfoFor(user, document);
+  const lastViewedInfo =
+    options && options.includeLastViewed
+      ? await presentLastViewedInfoFor(user, document)
+      : undefined;
 
   return {
     type: UnfurlResourceType.Mention,
@@ -63,7 +70,9 @@ const presentMention = async (
     email: options && options.includeEmail ? user.email : null,
     avatarUrl: user.avatarUrl,
     color: user.color,
-    lastActive: `${lastOnlineInfo} • ${lastViewedInfo}`,
+    lastActive: lastViewedInfo
+      ? `${lastOnlineInfo} • ${lastViewedInfo}`
+      : lastOnlineInfo,
   };
 };
 

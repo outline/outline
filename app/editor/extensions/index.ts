@@ -3,6 +3,8 @@ import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import CommentGutterExtension from "~/editor/extensions/CommentGutter";
 import DiagramsExtension from "@shared/editor/extensions/Diagrams";
+import DocumentMenuExtension from "~/editor/extensions/DocumentMenu";
+import DragHandle from "~/editor/extensions/DragHandle";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
 import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
@@ -23,11 +25,13 @@ export const withUIExtensions = (nodes: Nodes) => [
   BlockMenuExtension,
   EmojiMenuExtension,
   MentionMenuExtension,
+  DocumentMenuExtension,
   FindAndReplaceExtension,
   HoverPreviewsExtension,
   SelectionToolbarExtension,
   CommentGutterExtension,
   DiagramsExtension,
+  DragHandle,
   // Order these default key handlers last
   PreventTab,
   Keys,

@@ -285,7 +285,7 @@ const codeBlockStyle = (props: Props) => css`
 
 const diffStyle = (props: Props) => css`
   .${EditorStyleHelper.diffNodeInsertion},
-    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
   .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -311,19 +311,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeInsertion}.math-node,
-    ul.${EditorStyleHelper.diffNodeInsertion},
-    li.${EditorStyleHelper.diffNodeInsertion} {
+  .${EditorStyleHelper.diffNodeInsertion}.math-node,
+  ul.${EditorStyleHelper.diffNodeInsertion},
+  li.${EditorStyleHelper.diffNodeInsertion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeInsertion},
-    th.${EditorStyleHelper.diffNodeInsertion} {
+  th.${EditorStyleHelper.diffNodeInsertion} {
     border-color: ${props.theme.textDiffInsertedBackground};
   }
 
   .${EditorStyleHelper.diffNodeDeletion},
-    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
   .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
@@ -353,19 +353,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeDeletion}.math-node,
-    ul.${EditorStyleHelper.diffNodeDeletion},
-    li.${EditorStyleHelper.diffNodeDeletion} {
+  .${EditorStyleHelper.diffNodeDeletion}.math-node,
+  ul.${EditorStyleHelper.diffNodeDeletion},
+  li.${EditorStyleHelper.diffNodeDeletion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeDeletion},
-    th.${EditorStyleHelper.diffNodeDeletion} {
+  th.${EditorStyleHelper.diffNodeDeletion} {
     border-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .${EditorStyleHelper.diffNodeModification},
-    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification}:not([class^="component-"]),
   .${EditorStyleHelper.diffModification} > * {
     color: ${props.theme.text};
     background-color: ${transparentize(0.7, "#FFA500")};
@@ -392,14 +392,14 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeModification}[class*="component-"],
-    .${EditorStyleHelper.diffNodeModification}.math-node,
-    ul.${EditorStyleHelper.diffNodeModification},
-    li.${EditorStyleHelper.diffNodeModification} {
+  .${EditorStyleHelper.diffNodeModification}.math-node,
+  ul.${EditorStyleHelper.diffNodeModification},
+  li.${EditorStyleHelper.diffNodeModification} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeModification},
-    th.${EditorStyleHelper.diffNodeModification} {
+  th.${EditorStyleHelper.diffNodeModification} {
     border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;
@@ -523,6 +523,21 @@ const textStyle = () => css`
       margin-bottom: 0.8em;
     }
   }
+
+  /* East Asian scripts */
+  :lang(zh),  /* Chinese */
+    :lang(ja),  /* Japanese */
+    :lang(ko) {
+    /* Korean */
+    p {
+      line-height: 1.8;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
 `;
 
 const style = (props: Props) => css`
@@ -545,6 +560,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
+  color: ${props.theme.text};
   border-radius: 8px;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -560,9 +576,50 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
+  /* Keep icons at their intended size when the mention wraps. */
+  &::before,
+  svg,
+  img {
+    flex-shrink: 0;
+  }
+
+  /* External resource titles stay on one line, while internal mentions can
+     wrap to fit constrained containers such as table cells. */
+  &[data-type="issue"],
+  &[data-type="pull_request"],
+  &[data-type="project"],
+  &[data-type="url"] {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+      white-space: nowrap;
+    }
+
+    /* Only the label truncates; trailing identifiers stay whole. */
+    span ~ span {
+      flex-shrink: 0;
+    }
+  }
+
   &:${hover} {
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
+  }
+
+  /* Date mentions only open the picker when editable, so no hover affordance
+     in read-only mode. */
+  ${
+    props.readOnly
+      ? `&[data-type="date"]:${hover} {
+    background: ${props.theme.mentionBackground};
+  }`
+      : ""
   }
 
   &[data-type="user"],
@@ -583,6 +640,13 @@ width: 100%;
   &.mention-document::before {
     content: "+";
   }
+}
+
+.${EditorStyleHelper.suggestionTrigger} {
+  background: ${props.theme.mentionBackground};
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px ${props.theme.mentionBackground};
+  box-decoration-break: clone;
 }
 
 > div {
@@ -639,7 +703,7 @@ width: 100%;
       margin-top: 0.25em;
     }
 
-    &:not(.placeholder) {
+    &:not(.placeholder):not([data-heading-prefix]) {
       &::before {
         display: none;
         font-family: ${props.theme.fontFamilyMono};
@@ -658,13 +722,10 @@ width: 100%;
       }
     }
 
-    &:hover {
+    &:hover,
+    &.${EditorStyleHelper.dragHandleTarget} {
       .heading-anchor {
-        opacity: 0.75;
-
-        &:hover {
-          opacity: 1;
-        }
+        opacity: 1;
       }
     }
   }
@@ -677,6 +738,13 @@ width: 100%;
   h4 { font-size: var(--font-size-h4); }
   h5 { font-size: var(--font-size-h5); }
   h6 { font-size: var(--font-size-h6); }
+
+  [data-heading-prefix]::before {
+    content: attr(data-heading-prefix);
+    color: ${props.theme.text};
+    opacity: 0.75;
+    margin-inline-end: 0.25em;
+  }
 
   .${EditorStyleHelper.multiplayerSelection} {
     transition: background-color 500ms ease-in-out;
@@ -933,37 +1001,19 @@ th .image .image-wrapper img {
   caret-color: transparent;
 }
 
-.ProseMirror-selectednode {
-  outline: 2px solid
-    ${props.readOnly ? "transparent" : props.theme.selected};
-
-  @media print {
-    outline: none;
-  }
+.ProseMirror.dragging .ProseMirror-selectednode,
+.ProseMirror .${EditorStyleHelper.draggingSource} {
+  opacity: 0.25;
 }
 
-/* Make sure li selections wrap around markers */
-
-li.ProseMirror-selectednode {
-  outline: none;
+.ProseMirror.dragging *::selection {
+  background: transparent;
 }
-
-li.ProseMirror-selectednode {
-  &::after {
-    content: "";
-    position: absolute;
-    left: -32px;
-    right: -2px;
-    top: -2px;
-    bottom: -2px;
-    border: 2px solid ${props.theme.selected};
-    pointer-events: none;
-  }
-
-  &:dir(rtl)::after {
-    left: -2px;
-    right: -32px;
-  }
+.ProseMirror.dragging *::-moz-selection {
+  background: transparent;
+}
+.ProseMirror.dragging .selectedCell::after {
+  display: none;
 }
 
 img.ProseMirror-separator {
@@ -989,6 +1039,21 @@ img.ProseMirror-separator {
 // being inline nodes that are displayed like blocks
 .component-image + img.ProseMirror-separator,
 .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
+  display: none;
+}
+
+// Let paragraphs of floated images collapse so consecutive floats line up
+p:has(> .component-image > .image-left-50, > .component-image > .image-right-50) {
+  min-height: 0;
+}
+
+// In static HTML the parser lifts floats out of their paragraph, leaving empty ones
+p:empty:has(+ .image-left-50, + .image-right-50),
+:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak + p:empty {
+  min-height: 0;
+}
+
+:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak {
   display: none;
 }
 
@@ -1058,22 +1123,22 @@ a:first-child {
   }
 }
 
-h1:not(.placeholder)::before {
+h1:not(.placeholder):not([data-heading-prefix])::before {
   content: "H1";
 }
-h2:not(.placeholder)::before {
+h2:not(.placeholder):not([data-heading-prefix])::before {
   content: "H2";
 }
-h3:not(.placeholder)::before {
+h3:not(.placeholder):not([data-heading-prefix])::before {
   content: "H3";
 }
-h4:not(.placeholder)::before {
+h4:not(.placeholder):not([data-heading-prefix])::before {
   content: "H4";
 }
-h5:not(.placeholder)::before {
+h5:not(.placeholder):not([data-heading-prefix])::before {
   content: "H5";
 }
-h6:not(.placeholder)::before {
+h6:not(.placeholder):not([data-heading-prefix])::before {
   content: "H6";
 }
 
@@ -1085,10 +1150,11 @@ h6:not(.placeholder)::before {
   h4,
   h5,
   h6 {
-    &:not(.placeholder)::before {
+    &:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 1;
     }
-    &:hover:not(.placeholder)::before {
+    &:hover:not(.placeholder):not([data-heading-prefix])::before,
+    &.${EditorStyleHelper.dragHandleTarget}:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
     }
   }
@@ -1147,13 +1213,16 @@ h6:not(.placeholder)::before {
   left: 0;
   top: 0;
   bottom: 0;
-  margin-left: -26px;
-  width: 26px;
+
+  /* Sit left of the block drag handle, or in its place when read-only. */
+  margin-left: ${props.readOnly ? -26 : -38}px;
+  width: ${props.readOnly ? 26 : 18}px;
   align-items: center;
   justify-content: center;
   opacity: 0;
   user-select: none;
-  color: ${props.theme.text};
+  color: ${props.theme.textTertiary};
+  transition: color 150ms ease-in-out;
   cursor: var(--pointer);
   background: none;
   outline: none;
@@ -1167,11 +1236,12 @@ h6:not(.placeholder)::before {
 
   &:hover {
     opacity: 1;
+    color: ${props.theme.text};
   }
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -26px;
+    margin-right: ${props.readOnly ? -26 : -38}px;
   }
 }
 
@@ -1185,7 +1255,7 @@ h6:not(.placeholder)::before {
     .heading-anchor {
       display: inline-flex;
     }
-    &:not(.placeholder)::before {
+    &:not(.placeholder):not([data-heading-prefix])::before {
       display: ${props.readOnly ? "none" : "inline-block"};
     }
   }
@@ -1545,65 +1615,6 @@ ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
-ul li,
-ol li {
-  &::before {
-    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=") no-repeat;
-    background-position: 0 2px;
-    content: "";
-    display: ${props.readOnly ? "none" : "inline-block"};
-    cursor: grab;
-    width: 24px;
-    height: 24px;
-    position: absolute;
-    left: -40px;
-    opacity: 0;
-    transition: opacity 200ms ease-in-out;
-  }
-
-  &:dir(rtl)::before {
-    left: auto;
-    right: -40px;
-  }
-}
-
-ul li[draggable=true]::before,
-ol li[draggable=true]::before {
-  cursor: grabbing;
-}
-
-ul > li.counter-2,
-ol li.counter-2 {
-  &::before {
-    left: -50px;
-  }
-  &:dir(rtl)::before {
-    left: auto;
-    right: -50px;
-  }
-}
-
-ul > li.hovering::before,
-ol li.hovering::before {
-  opacity: 0.5;
-}
-
-ul li.ProseMirror-selectednode::after,
-ol li.ProseMirror-selectednode::after {
-  display: none;
-}
-
-ul.checkbox_list > li {
-  &::before {
-    left: 0;
-  }
-
-  &:dir(rtl)::before {
-    left: auto;
-    right: 0;
-  }
-}
-
 ul.checkbox_list {
   & > li > span[contenteditable="false"] {
     cursor: text;
@@ -1799,7 +1810,7 @@ mark {
   }
 
   &:is(.code-active)
-    + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
+    + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
     cursor: zoom-in;
   }
 
@@ -1814,7 +1825,7 @@ mark {
   &.ProseMirror-selectednode {
     outline: none;
 
-    & + .mermaid-diagram-wrapper {
+    & + .${EditorStyleHelper.mermaidDiagram} {
       &:not(.parse-error):not(.empty) {
         cursor: zoom-in;
       }
@@ -1828,7 +1839,7 @@ mark {
     height: 0;
     overflow: hidden;
 
-    & + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
+    & + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
       cursor: zoom-in;
     }
 }
@@ -1844,7 +1855,7 @@ mark {
         }
     }
 
-    .mermaid-diagram-wrapper {
+    .${EditorStyleHelper.mermaidDiagram} {
         display: none;
     }
 }
@@ -1962,7 +1973,7 @@ mark {
   }
 }
 
-.mermaid-diagram-wrapper {
+.${EditorStyleHelper.mermaidDiagram} {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2153,7 +2164,7 @@ table {
   }
 
   .${EditorStyleHelper.tableAddRow} {
-    bottom: -1px;
+    bottom: calc(var(--span-end, 0%) - 1px);
     left: -16px;
     width: 0;
     height: 2px;
@@ -2199,7 +2210,7 @@ table {
 
   .${EditorStyleHelper.tableAddColumn} {
     top: -16px;
-    right: -1px;
+    right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
     z-index: 1;
@@ -2252,11 +2263,13 @@ table {
       cursor: grab;
       position: absolute;
       top: -16px;
-      left: 0;
-      width: 100%;
+      left: var(--span-start, 0);
+      width: var(--span-size, 100%);
       height: 12px;
       background: ${props.theme.divider};
       display: ${props.readOnly ? "none" : "block"};
+      /* above the add column controls so narrow columns stay draggable */
+      z-index: 2;
     }
 
     &:hover::after {
@@ -2270,14 +2283,13 @@ table {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
     }
+    &.last::after {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGripRow} {
@@ -2286,12 +2298,14 @@ table {
       cursor: grab;
       position: absolute;
       left: -16px;
-      top: 0;
-      height: 100%;
+      top: var(--span-start, 0);
+      height: var(--span-size, 100%);
       width: 12px;
       background: ${props.theme.divider};
       border-color: ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
+      /* above the add row controls so short rows stay draggable */
+      z-index: 2;
     }
 
     &:hover::after {
@@ -2305,14 +2319,13 @@ table {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
     }
+    &.last::after {
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGrip} {
@@ -2462,6 +2475,41 @@ table {
   }
 }
 
+.${EditorStyleHelper.tableStickyColumn} {
+  // The padding of the scroll container also holds the column back, so the
+  // column stops at the same place it sits when the table is not scrolled.
+  > .${EditorStyleHelper.tableScrollable} > table > tbody > tr > th[data-first-column] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  // The first cell is part of both the sticky row and column, so it goes above both.
+  &.${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th[data-first-column] {
+    z-index: 3;
+  }
+
+  // Move the scroll shadow from the edge of the table to the edge of the column.
+  &.${EditorStyleHelper.tableShadowLeft} {
+    &::before {
+      box-shadow: none;
+    }
+
+    > .${EditorStyleHelper.tableScrollable} > table > tbody > tr > th[data-first-column]::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      bottom: -1px;
+      right: -${EditorStyleHelper.padding}px;
+      width: ${EditorStyleHelper.padding}px;
+      pointer-events: none;
+      box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+        props.theme.isDark ? 1 : 0.25
+      });
+    }
+  }
+}
+
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
   margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
@@ -2581,7 +2629,9 @@ table {
   position: absolute;
   top: -2px;
   width: 20px;
-  border-top: 1px solid ${props.theme.cursor};
+  height: 2px;
+  background: ${props.theme.accent};
+  border-radius: 1px;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
@@ -2601,16 +2651,18 @@ del {
 }
 
 @media print {
+  // The heading level labels are an editing affordance, but the same pseudo
+  // element carries the heading prefix, which is content and must be printed.
   .placeholder::before,
   .block-menu-trigger,
   .heading-anchor,
   button.show-source-button,
-  h1:not(.placeholder)::before,
-  h2:not(.placeholder)::before,
-  h3:not(.placeholder)::before,
-  h4:not(.placeholder)::before,
-  h5:not(.placeholder)::before,
-  h6:not(.placeholder)::before {
+  h1:not(.placeholder):not([data-heading-prefix])::before,
+  h2:not(.placeholder):not([data-heading-prefix])::before,
+  h3:not(.placeholder):not([data-heading-prefix])::before,
+  h4:not(.placeholder):not([data-heading-prefix])::before,
+  h5:not(.placeholder):not([data-heading-prefix])::before,
+  h6:not(.placeholder):not([data-heading-prefix])::before {
     display: none;
   }
 
@@ -2662,15 +2714,20 @@ li > .${EditorStyleHelper.toggleBlock} {
     &:dir(ltr) {
       --rotate-by: -90deg;
     }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
-      display: none;
-    }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
-      display: unset;
+    /* Folded content is always included when printing */
+    @media not print {
+      > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
+        display: none;
+      }
+      > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
+        display: unset;
+      }
+      > .${EditorStyleHelper.toggleBlockButton} svg {
+        transform: rotate(var(--rotate-by));
+      }
     }
     > .${EditorStyleHelper.toggleBlockButton} {
       svg {
-        transform: rotate(var(--rotate-by));
         pointer-events: none;
       }
       opacity: 1;
@@ -2738,6 +2795,9 @@ li > .${EditorStyleHelper.toggleBlock} {
       margin-top: 0;
     }
     > .${EditorStyleHelper.toggleBlockHead} {
+      /* The title acts as a fold/unfold control when the document is read-only */
+      ${props.readOnly ? "cursor: var(--pointer);" : ""}
+
       > * {
         margin-top: 0;
       }

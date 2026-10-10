@@ -66,7 +66,11 @@ export default class ExtensionManager {
     return Object.fromEntries(
       this.extensions
         .filter((extension) =>
-          extension.widget({ rtl: false, readOnly: false })
+          extension.widget({
+            rtl: false,
+            readOnly: false,
+            isEditorFocused: false,
+          })
         )
         .map((node: Node) => [
           node.name,
@@ -276,10 +280,11 @@ export default class ExtensionManager {
             // Focusing a blurred editor (e.g. when the command is run from a
             // menu that holds focus) can collapse a non-text selection such as
             // a table cell selection. Restore it so selection-based commands
-            // operate on the intended selection.
-            const { selection } = view.state;
+            // operate on the intended selection, unless focus also flushed
+            // document changes that make the previous selection invalid.
+            const { doc, selection } = view.state;
             view.focus();
-            if (!view.state.selection.eq(selection)) {
+            if (view.state.doc === doc && !view.state.selection.eq(selection)) {
               view.dispatch(
                 view.state.tr
                   .setSelection(selection)

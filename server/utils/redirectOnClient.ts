@@ -1,19 +1,21 @@
 import { escape } from "es-toolkit/compat";
 import type { Context } from "koa";
+import { addMissingUrlPort } from "@shared/utils/urls";
 
 /**
  * Performs a redirect on the browser so that the user's auth cookies are
  * included in the request. Assigned to the Koa context as `redirectOnClient`.
  *
- * @param url the URL to redirect to.
+ * @param redirectTo the URL to redirect to.
  * @param method the HTTP method to use for the redirect. Use POST when
  * preventing links in emails from being clicked by bots. Otherwise, use GET.
  */
 export function redirectOnClient(
   this: Context,
-  url: string,
+  redirectTo: string,
   method: "GET" | "POST" = "GET"
 ) {
+  const url = addMissingUrlPort(redirectTo);
   this.type = "text/html";
 
   if (method === "POST") {

@@ -13,7 +13,7 @@ import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { ContextMenu } from "../Menu/ContextMenu";
 import {
   notificationMarkReadActionFactory,
@@ -64,6 +64,10 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     [notification]
   );
   const menuAction = useMenuAction(actions);
+  const commentData = React.useMemo(
+    () => toJS(notification.comment?.data),
+    [notification.comment?.data]
+  );
 
   return (
     <ContextMenu action={menuAction} ariaLabel={t("Notification options")}>
@@ -76,16 +80,14 @@ function NotificationListItem({ notification, onNavigate }: Props) {
                 {notification.actor?.name ?? t("Unknown")}
               </Text>{" "}
               {notification.eventText(t)}{" "}
-              <Text weight="bold">{notification.subject}</Text>
+              <Text weight="bold">{notification.subject(t)}</Text>
             </Text>
             <Text type="tertiary" size="xsmall">
               <Time dateTime={notification.createdAt} addSuffix />{" "}
               {collection && <>&middot; {collection.name}</>}
             </Text>
-            {notification.comment && (
-              <StyledCommentEditor
-                defaultValue={toJS(notification.comment.data)}
-              />
+            {commentData && (
+              <StyledCommentEditor value={commentData} readOnly />
             )}
             {isAccessRequestPending && (
               <AccessRequestActions notification={notification} />

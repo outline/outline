@@ -12,7 +12,7 @@ const Fade = styled.span<{ timing?: number | string }>`
 `;
 
 type Props = {
-  children?: JSX.Element | null;
+  children?: React.JSX.Element | null;
   /** If true, children will be animated. */
   animate: boolean;
 };

@@ -1,12 +1,21 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
+import { Op } from "sequelize";
 import {
   DataType,
   Column,
   ForeignKey,
   BelongsTo,
+  BeforeCreate,
   Table,
   Length,
 } from "sequelize-typescript";
+import { PinValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
+import { LockHelper } from "@server/storage/LockHelper";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -54,6 +63,41 @@ class Pin extends IdModel<
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
+
+  // hooks
+
+  /**
+   * Limits the number of documents pinned to a single destination, either one
+   * collection or the home screen.
+   */
+  @BeforeCreate
+  static async checkLimit(model: Pin, options: SaveOptions) {
+    const { transaction } = options;
+    const { teamId, collectionId } = model;
+
+    // Serialize concurrent creation for the destination, otherwise every
+    // request can read the same count and pass the check.
+    await LockHelper.acquire(
+      model.sequelize,
+      `pins:${teamId}:${collectionId ?? "home"}`,
+      transaction
+    );
+
+    const count = await this.count({
+      where: {
+        teamId,
+        ...(collectionId
+          ? { collectionId }
+          : { collectionId: { [Op.is]: null } }),
+      },
+      transaction,
+    });
+    if (count >= PinValidation.max) {
+      throw ValidationError(
+        `You cannot pin more than ${PinValidation.max} documents`
+      );
+    }
+  }
 }
 
 export default Pin;

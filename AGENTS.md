@@ -32,6 +32,7 @@ You're an expert in the following areas:
 
 - Critical – Do not create new markdown (.md) files.
 - Use early returns for readability.
+- Leave an empty line above every comment, unless the comment is the first line in a block.
 - Emphasize type safety and static analysis.
 - Follow consistent oxfmt formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
@@ -168,6 +169,7 @@ yarn test:shared   # All shared code tests
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.
+- Server tests share a module registry between files. A server test that uses `vi.mock` or `vi.resetModules` must start with `// @vitest-isolate true` so it runs isolated.
 - Do not create new test directories
 - Mock external dependencies appropriately in **mocks** folder.
 - Aim for high code coverage but focus on critical paths.

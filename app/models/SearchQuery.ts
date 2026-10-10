@@ -4,6 +4,11 @@ import Model from "./base/Model";
 class SearchQuery extends Model {
   static modelName = "Search";
 
+  constructor(fields: Record<string, unknown>, store: Model["store"]) {
+    super(fields, store);
+    this.initialize(fields);
+  }
+
   /**
    * The query string, automatically truncated to 255 characters.
    */

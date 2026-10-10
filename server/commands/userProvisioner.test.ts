@@ -227,6 +227,41 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(false);
   });
 
+  it("should not match an existing authentication from a different provider", async () => {
+    const existing = await buildUser();
+    const authentications = await existing.$get("authentications");
+    const existingAuth = authentications[0];
+    const originalProviderId = existingAuth.authenticationProviderId;
+
+    // A second provider of a different type, where the attacker is able to
+    // present the same external identifier as the existing user.
+    const otherAuthProvider = await AuthenticationProvider.create({
+      name: "oidc",
+      providerId: randomString(32),
+      teamId: existing.teamId,
+    });
+
+    const { user, isNewUser } = await userProvisioner(ctx, {
+      name: "Attacker",
+      email: "attacker@example.com",
+      emailVerified: false,
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: otherAuthProvider.id,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(isNewUser).toEqual(true);
+    expect(user.id).not.toEqual(existing.id);
+
+    await existingAuth.reload();
+    expect(existingAuth.authenticationProviderId).toEqual(originalProviderId);
+    expect(existingAuth.accessToken).not.toEqual("123");
+  });
+
   it("should create a new user", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.$get("authenticationProviders");

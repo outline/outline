@@ -24,12 +24,7 @@ export function getTestServer() {
   onerror(app);
   const server = new TestServer(app);
 
-  const disconnect = async () => {
-    await sequelize.close();
-    return server.close();
-  };
-
-  afterAll(disconnect);
+  afterAll(() => server.close());
 
   return server;
 }
@@ -39,6 +34,13 @@ export function getTestServer() {
  */
 export function setSelfHosted() {
   env.URL = sharedEnv.URL = `https://${faker.internet.domainName()}`;
+}
+
+/**
+ * Set the environment to be cloud hosted.
+ */
+export function setCloudHosted() {
+  env.URL = sharedEnv.URL = "https://app.outline.dev";
 }
 
 /**

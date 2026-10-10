@@ -1,11 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
 import { closeHistory } from "@shared/editor/lib/closeHistory";
-import type { MenuItem } from "@shared/editor/types";
+import { MenuItemGroup, type MenuItem } from "@shared/editor/types";
 import { hideScrollbars, s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
+import useMobile from "~/hooks/useMobile";
 import type { MenuItem as TMenuItem } from "~/types";
 import { mapMenuItems } from "../menus/mapMenuItems";
 import { useEditor } from "./EditorContext";
@@ -70,6 +71,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
         <Menu open={isOpen} onOpenChange={handleOpenChange}>
           <MenuTrigger>
             <ToolbarButton
+              data-group={item.group}
               aria-label={item.label ? undefined : item.tooltip}
               disabled={item.disabled}
             >
@@ -94,6 +96,31 @@ function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
   const { items } = props;
   const { state } = view;
+  const isMobile = useMobile();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const hasSelection = !state.selection.empty;
+
+  // On mobile the toolbar is a single bar holding both the text and the block
+  // controls, wider than the screen. It scrolls to the group that suits the
+  // selection – text controls once there is a selection, block controls for a
+  // bare cursor – leaving the other group one swipe away.
+  const didScroll = useRef(false);
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!isMobile || !wrapper) {
+      return;
+    }
+
+    const target = wrapper.querySelector(
+      `[data-group="${hasSelection ? MenuItemGroup.inline : MenuItemGroup.block}"]`
+    );
+    target?.scrollIntoView({
+      block: "nearest",
+      inline: "start",
+      behavior: didScroll.current ? "smooth" : "auto",
+    });
+    didScroll.current = true;
+  }, [isMobile, hasSelection]);
 
   const handleClick = (item: MenuItem) => () => {
     if (!item.name) {
@@ -117,10 +144,12 @@ function ToolbarMenu(props: Props) {
   return (
     <TooltipProvider>
       <Toolbar.Root asChild>
-        <FlexibleWrapper>
+        <FlexibleWrapper ref={wrapperRef}>
           {items.map((item, index) => {
             if (item.name === "separator" && item.visible !== false) {
-              return <ToolbarSeparator key={index} />;
+              // The mobile bar spaces its buttons evenly instead, as dividers
+              // would eat into the room for them.
+              return isMobile ? null : <ToolbarSeparator key={index} />;
             }
             if (item.visible === false || (!item.skipIcon && !item.icon)) {
               return null;
@@ -152,6 +181,7 @@ function ToolbarMenu(props: Props) {
                 ) : (
                   <Toolbar.Button asChild>
                     <ToolbarButton
+                      data-group={item.group}
                       onClick={handleClick(item)}
                       active={isActive && !item.label}
                       aria-label={item.label ? undefined : item.tooltip}
@@ -182,7 +212,28 @@ const FlexibleWrapper = styled.div`
     justify-content: space-evenly;
     align-items: center;
     overflow-x: auto;
-    gap: 10px;
+    scroll-padding-inline-start: 4px;
+    padding: 0;
+
+    // Six buttons and half of the seventh fill the width – the half button is
+    // what tells the user that the bar scrolls. Whatever is left over becomes
+    // the space between them, so the first and last sit hard against the ends
+    // and the bar keeps an even margin all round.
+    gap: 0 calc((100% - 20px) / 6 - 40px);
+
+    > * {
+      display: flex;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-width: 40px;
+    }
+
+    > * > button {
+      min-width: 40px;
+      height: 40px;
+      justify-content: center;
+      border-radius: 20px;
+    }
 
     ${hideScrollbars()}
   `}

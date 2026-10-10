@@ -7,13 +7,14 @@ import type {
 } from "@node-oauth/oauth2-server";
 import type { Required } from "utility-types";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { isUrl } from "@shared/utils/urls";
+import { isPrivateUseSchemeUrl, isUrl } from "@shared/utils/urls";
 import {
   OAuthClient,
   OAuthAuthentication,
   OAuthAuthorizationCode,
 } from "@server/models";
 import { hash, safeEqual } from "@server/utils/crypto";
+import { OAuthHelper } from "./OAuthHelper";
 
 /**
  * The number of seconds during which a rotated refresh token may be replayed
@@ -56,7 +57,7 @@ export const OAuthInterface: RefreshTokenModel &
   > &
   Config = {
   /** Supported grant types */
-  grants: ["authorization_code", "refresh_token"],
+  grants: [...OAuthHelper.grantTypes],
 
   /**
    * Generates a new access token.
@@ -329,37 +330,25 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   /**
-   * Revokes a refresh token.
+   * Revokes a refresh token. The token is revoked atomically, so that only one
+   * of a set of concurrent requests can exchange it for new tokens.
    *
    * @param token The token object containing the refresh token to revoke.
    * @returns True if the token was revoked, false otherwise.
    */
   async revokeToken(token) {
-    const auth = await OAuthAuthentication.findByRefreshToken(
-      token.refreshToken
-    );
-    if (auth) {
-      await auth.destroy();
-      return true;
-    }
-    return false;
+    return OAuthAuthentication.revokeByRefreshToken(token.refreshToken);
   },
 
   /**
-   * Revokes an authorization code.
+   * Revokes an authorization code. The code is consumed atomically, so that only
+   * one of a set of concurrent requests can exchange it for a token.
    *
    * @param code The authorization code object to revoke.
    * @returns True if the code was revoked, false otherwise.
    */
   async revokeAuthorizationCode(code) {
-    const authCode = await OAuthAuthorizationCode.findByCode(
-      code.authorizationCode
-    );
-    if (authCode) {
-      await authCode.destroy();
-      return true;
-    }
-    return false;
+    return OAuthAuthorizationCode.consume(code.authorizationCode);
   },
 
   /**
@@ -392,6 +381,13 @@ export const OAuthInterface: RefreshTokenModel &
       }
     } catch {
       // Invalid URL, will be caught by isUrl check below
+    }
+
+    // Allow private-use URI schemes for native apps (RFC 8252 §7.1). The
+    // recommended form, e.g. com.example.app:/oauth2redirect, has no host so
+    // isUrl would reject it.
+    if (isPrivateUseSchemeUrl(uri)) {
+      return true;
     }
 
     if (!isUrl(uri, { requireHttps: true })) {

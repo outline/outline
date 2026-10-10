@@ -14,20 +14,26 @@ type Props = {
   onKeyDown: React.KeyboardEventHandler;
   back: React.ReactNode;
   action: React.ReactNode;
+  ref?: React.Ref<HTMLInputElement>;
 };
 
-export const SearchInput = React.forwardRef(function SearchInput_(
-  { onChange, onClick, onKeyDown, query, back, action }: Props,
-  ref: React.Ref<HTMLInputElement>
-) {
+export function SearchInput({
+  onChange,
+  onClick,
+  onKeyDown,
+  query,
+  back,
+  action,
+  ref,
+}: Props) {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const isMobile = useMobile();
 
   const focusInput = React.useCallback(
-    (event) => {
-      if (event.target.closest("button")) {
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target instanceof Element && event.target.closest("button")) {
         return;
       }
       inputRef.current?.focus();
@@ -72,4 +78,4 @@ export const SearchInput = React.forwardRef(function SearchInput_(
       </AnimatePresence>
     </HeaderInput>
   );
-});
+}

@@ -48,13 +48,16 @@ interface Props<
   heading?: React.ReactNode;
 
   /** Content to display when the list is empty */
-  empty?: JSX.Element | null;
+  empty?: React.JSX.Element | null;
 
   /** Optional loading state content */
-  loading?: JSX.Element | null;
+  loading?: React.JSX.Element | null;
 
   /** Array of items to display in the list */
   items?: T[];
+
+  /** ID of an item that must be included in the rendered page. */
+  activeItemId?: string;
 
   /** CSS class name to apply to the list container */
   className?: string;
@@ -75,7 +78,7 @@ interface Props<
     error: Error;
     /** Function to retry the fetch operation */
     retry: () => void;
-  }) => JSX.Element;
+  }) => React.JSX.Element;
 
   /**
    * Function to render section headings (typically date-based)
@@ -96,7 +99,7 @@ interface Props<
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 
   /** Reference to the list container element */
-  listRef?: React.RefObject<HTMLDivElement>;
+  listRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -112,6 +115,7 @@ const PaginatedList = <T extends PaginatedItem>({
   empty = null,
   loading = null,
   items = [],
+  activeItemId,
   className,
   renderItem,
   renderError,
@@ -120,7 +124,7 @@ const PaginatedList = <T extends PaginatedItem>({
   onEscape,
   listRef,
   ...rest
-}: Props<T>): JSX.Element | null => {
+}: Props<T>): React.JSX.Element | null => {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { t } = useTranslation();
 
@@ -134,6 +138,17 @@ const PaginatedList = <T extends PaginatedItem>({
   const [renderCount, setRenderCount] = React.useState(Pagination.defaultLimit);
   const [offset, setOffset] = React.useState(0);
   const [allowLoadMore, setAllowLoadMore] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!activeItemId) {
+      return;
+    }
+
+    const activeIndex = items.findIndex((item) => item.id === activeItemId);
+    if (activeIndex >= 0) {
+      setRenderCount((count) => Math.max(count, activeIndex + 1));
+    }
+  }, [items, activeItemId]);
 
   const reset = React.useCallback(() => {
     setOffset(0);

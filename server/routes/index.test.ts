@@ -1,9 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import env from "@server/env";
 import {
   buildShare,
   buildDocument,
   buildIntegration,
+  buildTeam,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -105,6 +107,59 @@ describe("/s/:id", () => {
     expect(res.status).toEqual(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
+  it("should vary on Accept and advertise the markdown alternate in html", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("vary")).toContain("Accept");
+    const origin = new URL(res.url).origin;
+    expect(res.headers.get("link")).toEqual(
+      `<${origin}/s/${share.id}.md>; rel="alternate"; type="text/markdown"`
+    );
+    expect(body).toContain(
+      `<link rel="alternate" type="text/markdown" href="${origin}/s/${share.id}.md" />`
+    );
+  });
+
+  it("should advertise the markdown alternate for a nested document", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}/doc/${document.urlId}`);
+    expect(res.status).toEqual(200);
+    const origin = new URL(res.url).origin;
+    expect(res.headers.get("link")).toEqual(
+      `<${origin}/s/${share.id}/doc/${document.urlId}.md>; rel="alternate"; type="text/markdown"`
+    );
+  });
+
+  it("should not advertise the markdown alternate when share is not found", async () => {
+    const res = await server.get(`/s/junk`);
+    expect(res.status).toEqual(404);
+    expect(res.headers.get("link")).toEqual(null);
+  });
+
+  it("should vary on Accept and prevent caching of markdown", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}.md`);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("vary")).toContain("Accept");
+    expect(res.headers.get("cache-control")).toEqual(
+      "no-cache, must-revalidate"
+    );
   });
 
   it("should include child documents list in markdown when includeChildDocuments is true", async () => {
@@ -286,10 +341,176 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("returns 404 for the legacy SSE transport probe", async () => {
+    const res = await server.get("/sse");
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).not.toContain("<title>");
+  });
+
   it("still serves the OAuth well-known endpoint", async () => {
     const res = await server.get("/.well-known/oauth-authorization-server");
     expect(res.status).toEqual(200);
     const body = await res.json();
     expect(body.issuer).toBeDefined();
+  });
+});
+
+describe("canonical host redirects", () => {
+  it("should redirect to the current subdomain when a previous one is used", async () => {
+    const id = randomUUID();
+    const subdomain = `current-${id}`;
+    const previousSubdomain = `previous-${id}`;
+    await buildTeam({
+      subdomain,
+      previousSubdomains: [previousSubdomain],
+    });
+
+    const res = await server.get("/search?query=hello", {
+      headers: { Host: `${previousSubdomain}.outline.dev` },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `https://${subdomain}.outline.dev/search?query=hello`
+    );
+  });
+
+  it("should redirect to the custom domain when one is set", async () => {
+    const id = randomUUID();
+    const subdomain = `wombat-${id}`;
+    const domain = `docs-${id}.example.com`;
+    await buildTeam({ subdomain, domain });
+
+    const res = await server.get("/doc/getting-started", {
+      headers: { Host: `${subdomain}.outline.dev` },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `https://${domain}/doc/getting-started`
+    );
+  });
+
+  it("should not redirect a request already on the canonical host", async () => {
+    const subdomain = `canonical-${randomUUID()}`;
+    await buildTeam({ subdomain });
+
+    const res = await server.get("/search", {
+      headers: { Host: `${subdomain}.outline.dev` },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(200);
+  });
+});
+
+describe("root domain session redirects", () => {
+  const host = "app.outline.dev";
+
+  const sessionsCookie = (teams: { id: string; name: string; url: string }[]) =>
+    `sessions=${encodeURIComponent(
+      JSON.stringify(
+        Object.fromEntries(
+          teams.map((team) => [
+            team.id,
+            { name: team.name, logoUrl: "", url: team.url },
+          ])
+        )
+      )
+    )}`;
+
+  it("should redirect an app path to the only signed-in workspace", async () => {
+    const team = await buildTeam({ subdomain: `only-${randomUUID()}` });
+
+    const res = await server.get("/settings/billing?referer=upcoming_invoice", {
+      headers: { Host: host, Cookie: sessionsCookie([team]) },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `${team.url}/settings/billing?referer=upcoming_invoice`
+    );
+  });
+
+  it("should skip unusable entries and redirect to the remaining workspace", async () => {
+    const team = await buildTeam({ subdomain: `usable-${randomUUID()}` });
+    const suspended = await buildTeam({
+      subdomain: `suspended-${randomUUID()}`,
+      suspendedAt: new Date(),
+    });
+    const deleted = { id: randomUUID(), name: "Gone", url: "https://x.dev" };
+
+    const res = await server.get("/settings/billing", {
+      headers: {
+        Host: host,
+        Cookie: sessionsCookie([suspended, deleted, team]),
+      },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(`${team.url}/settings/billing`);
+  });
+
+  it("should redirect to the first workspace when signed in to several", async () => {
+    const first = await buildTeam({ subdomain: `first-${randomUUID()}` });
+    const second = await buildTeam({ subdomain: `second-${randomUUID()}` });
+
+    const res = await server.get("/settings/billing", {
+      headers: { Host: host, Cookie: sessionsCookie([first, second]) },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `${first.url}/settings/billing`
+    );
+  });
+
+  it("should not redirect public paths", async () => {
+    const team = await buildTeam({ subdomain: `public-${randomUUID()}` });
+
+    for (const path of ["/", "/create", "/oauth/authorize?client_id=x"]) {
+      const res = await server.get(path, {
+        headers: { Host: host, Cookie: sessionsCookie([team]) },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(200);
+    }
+  });
+
+  it("should not redirect without a sessions cookie", async () => {
+    const res = await server.get("/settings/billing", {
+      headers: { Host: host },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should ignore a malformed sessions cookie", async () => {
+    const cookies = [
+      JSON.stringify({ "not-a-uuid": { name: "x", url: "https://evil.com" } }),
+      "null",
+      '"string"',
+      "[]",
+      "{not json",
+    ];
+
+    for (const cookie of cookies) {
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(cookie)}`,
+        },
+        redirect: "manual",
+      });
+
+      expect(res.status).toEqual(200);
+    }
   });
 });

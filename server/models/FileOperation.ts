@@ -18,9 +18,15 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
-import type { CollectionPermission, FileOperationFormat } from "@shared/types";
-import { FileOperationState, FileOperationType } from "@shared/types";
+import type { CollectionPermission } from "@shared/types";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
 import FileStorage from "@server/storage/files";
+import type { APIContext } from "@server/types";
+import { ValidateKey } from "@server/validation";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -38,6 +44,23 @@ type AdditionalFindOptions = {
   userId?: string;
   rejectOnEmpty?: boolean | Error;
 };
+
+interface CreateCollectionExportOptions {
+  collection?: Collection;
+  team: Team;
+  format?: FileOperationFormat;
+  includeAttachments?: boolean;
+  includePrivate?: boolean;
+}
+
+interface CreateDocumentExportOptions {
+  document: Document;
+  format: FileOperationFormat;
+}
+
+type CreateExportOptions =
+  | CreateCollectionExportOptions
+  | CreateDocumentExportOptions;
 
 @DefaultScope(() => ({
   include: [
@@ -113,6 +136,63 @@ class FileOperation extends ParanoidModel<
   static expiryDays = 15;
 
   /**
+   * Create a file operation for a team, collection, or document export.
+   *
+   * @param ctx the request context with the acting user and transaction.
+   * @param options the source and settings for the export.
+   * @returns the new file operation with its source associations set.
+   */
+  static async createExport(
+    ctx: APIContext,
+    options: CreateExportOptions
+  ): Promise<FileOperation> {
+    const { user } = ctx.state.auth;
+    const format = options.format ?? FileOperationFormat.MarkdownZip;
+    const source =
+      "document" in options
+        ? {
+            name: options.document.titleWithDefault,
+            documentId: options.document.id,
+            teamId: options.document.teamId,
+          }
+        : {
+            name: options.collection?.name || options.team.name,
+            collectionId: options.collection?.id,
+            teamId: user.teamId,
+            options: {
+              includeAttachments: options.includeAttachments ?? true,
+              includePrivate: options.includePrivate ?? true,
+            },
+          };
+    const { name, ...attributes } = source;
+    const key = this.getExportKey({
+      name,
+      teamId: source.teamId,
+      format,
+    });
+    const fileOperation = await this.createWithCtx(ctx, {
+      type: FileOperationType.Export,
+      state: FileOperationState.Creating,
+      format,
+      key,
+      url: null,
+      size: 0,
+      userId: user.id,
+      ...attributes,
+    });
+
+    fileOperation.user = user;
+
+    if ("document" in options) {
+      fileOperation.document = options.document;
+    } else if (options.collection) {
+      fileOperation.collection = options.collection;
+    }
+
+    return fileOperation;
+  }
+
+  /**
    * Overrides the standard findByPk behavior to allow loading the exported
    * collection or document with memberships for a user passed in by `userId`.
    *
@@ -133,6 +213,13 @@ class FileOperation extends ParanoidModel<
     options: FindOptions<FileOperation> & AdditionalFindOptions = {}
   ): Promise<FileOperation | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `File operation doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -277,6 +364,14 @@ class FileOperation extends ParanoidModel<
     });
   }
 
+  /**
+   * Get the storage key to write an export archive to.
+   *
+   * @param name the user-provided name of the exported source.
+   * @param teamId the team id.
+   * @param format the format of the export.
+   * @returns a storage key.
+   */
   static getExportKey({
     name,
     teamId,
@@ -286,9 +381,11 @@ class FileOperation extends ParanoidModel<
     teamId: string;
     format: FileOperationFormat;
   }) {
-    return `${
-      Buckets.uploads
-    }/${teamId}/${uuidv4()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
+    const fileName = ValidateKey.sanitizeSegment(
+      `${name}-export.${format.replace(/outline-/, "")}.zip`
+    );
+
+    return `${Buckets.uploads}/${teamId}/${uuidv4()}/${fileName}`;
   }
 }
 

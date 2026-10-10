@@ -3,9 +3,10 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 
-type Props = React.ComponentProps<typeof OneTimePasswordRoot> & {
+type Props = React.ComponentPropsWithoutRef<typeof OneTimePasswordRoot> & {
   /** The length of the OTP */
   length?: number;
+  ref?: React.Ref<HTMLInputElement>;
   /**
    * Whether to accept uppercase letters in addition to digits. Lowercase input
    * is normalized to uppercase. Defaults to numeric only.
@@ -16,28 +17,28 @@ type Props = React.ComponentProps<typeof OneTimePasswordRoot> & {
 const sanitizeAlphanumeric = (value: string) =>
   value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
-export const OneTimePasswordInput = React.forwardRef(
-  function OneTimePasswordInput_(
-    { length = 6, alphanumeric, ...rest }: Props,
-    ref: React.RefObject<HTMLInputElement>
-  ) {
-    const alphanumericProps = alphanumeric
-      ? {
-          validationType: "none" as const,
-          sanitizeValue: sanitizeAlphanumeric,
-        }
-      : undefined;
+export function OneTimePasswordInput({
+  length = 6,
+  alphanumeric,
+  ref,
+  ...rest
+}: Props) {
+  const alphanumericProps = alphanumeric
+    ? {
+        validationType: "none" as const,
+        sanitizeValue: sanitizeAlphanumeric,
+      }
+    : undefined;
 
-    return (
-      <OneTimePasswordRoot {...alphanumericProps} {...rest}>
-        {Array.from({ length }, (_, i) => (
-          <OneTimePasswordInputField key={i} />
-        ))}
-        <OneTimePasswordField.HiddenInput ref={ref} />
-      </OneTimePasswordRoot>
-    );
-  }
-);
+  return (
+    <OneTimePasswordRoot {...alphanumericProps} {...rest}>
+      {Array.from({ length }, (_, i) => (
+        <OneTimePasswordInputField key={i} />
+      ))}
+      <OneTimePasswordField.HiddenInput ref={ref} />
+    </OneTimePasswordRoot>
+  );
+}
 
 const OneTimePasswordRoot = styled(OneTimePasswordField.Root)`
   display: flex;

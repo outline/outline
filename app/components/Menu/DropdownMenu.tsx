@@ -47,120 +47,114 @@ type Props = {
   /** Callback when menu is closed */
   onClose?: () => void;
   // TODO: Invert the dependency chain by forwarding dropdown ref and props to Tooltip component
+  ref?: React.Ref<React.ComponentRef<typeof TooltipPrimitive.Trigger>>;
 } & React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>;
 
-export const DropdownMenu = observer(
-  React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Trigger>, Props>(
-    (
-      {
-        action,
-        children,
-        align = "start",
-        ariaLabel,
-        modal = true,
-        append,
-        onOpen,
-        onClose,
-        ...rest
-      },
-      ref
-    ) => {
-      const [open, setOpen] = React.useState(false);
-      const isMobile = useMobile();
-      const contentRef =
-        React.useRef<React.ElementRef<typeof MenuContent>>(null);
-      const actionContext = useActionContext({
-        isMenu: true,
-      });
+export const DropdownMenu = observer(function DropdownMenu({
+  ref,
+  action,
+  children,
+  align = "start",
+  ariaLabel,
+  modal = true,
+  append,
+  onOpen,
+  onClose,
+  ...rest
+}: Props) {
+  const [open, setOpen] = React.useState(false);
+  const isMobile = useMobile();
+  const contentRef = React.useRef<React.ComponentRef<typeof MenuContent>>(null);
+  const actionContext = useActionContext({
+    isMenu: true,
+  });
 
-      const menuItems = useComputed(() => {
-        if (!open) {
-          return [];
-        }
-
-        const resolvedAction = typeof action === "function" ? action() : action;
-
-        return (resolvedAction.children as ActionVariant[]).map((childAction) =>
-          actionToMenuItem(childAction, actionContext)
-        );
-      }, [open, action, actionContext]);
-
-      // Only visibility is resolved while the menu is closed, the remainder of
-      // each item is resolved when it is opened.
-      const isEmpty = useComputed(() => {
-        const resolvedAction = typeof action === "function" ? action() : action;
-
-        return !hasVisibleActions(
-          resolvedAction.children as ActionVariant[],
-          actionContext
-        );
-      }, [action, actionContext]);
-
-      const handleOpenChange = React.useCallback(
-        (open: boolean) => {
-          setOpen(open);
-          if (open) {
-            onOpen?.();
-          } else {
-            onClose?.();
-          }
-        },
-        [onOpen, onClose]
-      );
-
-      const enablePointerEvents = React.useCallback(() => {
-        if (contentRef.current) {
-          contentRef.current.style.pointerEvents = "auto";
-        }
-      }, []);
-
-      const disablePointerEvents = React.useCallback(() => {
-        if (contentRef.current) {
-          contentRef.current.style.pointerEvents = "none";
-        }
-      }, []);
-
-      if (isEmpty && !append) {
-        return null;
-      }
-
-      if (isMobile) {
-        return (
-          <MobileDropdown
-            open={open}
-            onOpenChange={handleOpenChange}
-            items={menuItems}
-            trigger={children}
-            ariaLabel={ariaLabel}
-            append={append}
-          />
-        );
-      }
-
-      const content = toMenuItems(menuItems);
-
-      return (
-        <MenuProvider variant="dropdown">
-          <Menu open={open} onOpenChange={handleOpenChange} modal={modal}>
-            <MenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
-              {children}
-            </MenuTrigger>
-            <MenuContent
-              align={align}
-              aria-label={ariaLabel}
-              onAnimationStart={disablePointerEvents}
-              onAnimationEnd={enablePointerEvents}
-              onCloseAutoFocus={preventDefault}
-            >
-              {content}
-              {append}
-            </MenuContent>
-          </Menu>
-        </MenuProvider>
-      );
+  const menuItems = useComputed(() => {
+    if (!open) {
+      return [];
     }
-  )
-);
+
+    const resolvedAction = typeof action === "function" ? action() : action;
+
+    return (resolvedAction.children as ActionVariant[]).map((childAction) =>
+      actionToMenuItem(childAction, actionContext)
+    );
+  }, [open, action, actionContext]);
+
+  // Only visibility is resolved while the menu is closed, the remainder of
+  // each item is resolved when it is opened.
+  const isEmpty = useComputed(() => {
+    const resolvedAction = typeof action === "function" ? action() : action;
+
+    return !hasVisibleActions(
+      resolvedAction.children as ActionVariant[],
+      actionContext
+    );
+  }, [action, actionContext]);
+
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      setOpen(open);
+      if (open) {
+        onOpen?.();
+      } else {
+        onClose?.();
+      }
+    },
+    [onOpen, onClose]
+  );
+
+  const enablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
+    }
+  }, []);
+
+  if (isEmpty && !append) {
+    return null;
+  }
+
+  if (isMobile) {
+    return (
+      <MobileDropdown
+        open={open}
+        onOpenChange={handleOpenChange}
+        items={menuItems}
+        trigger={children}
+        ariaLabel={ariaLabel}
+        append={append}
+      />
+    );
+  }
+
+  const content = toMenuItems(menuItems);
+
+  return (
+    <MenuProvider variant="dropdown">
+      <Menu open={open} onOpenChange={handleOpenChange} modal={modal}>
+        <MenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
+          {children}
+        </MenuTrigger>
+        <MenuContent
+          align={align}
+          aria-label={ariaLabel}
+          onAnimationStart={disablePointerEvents}
+          onAnimationEnd={enablePointerEvents}
+          onCloseAutoFocus={preventDefault}
+        >
+          {content}
+          {append}
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
+  );
+});
 
 type MobileDropdownProps = {
   open: boolean;
@@ -178,7 +172,8 @@ function MobileDropdown({
   append,
 }: MobileDropdownProps) {
   const [submenuName, setSubmenuName] = React.useState<string>();
-  const contentRef = React.useRef<React.ElementRef<typeof DrawerContent>>(null);
+  const contentRef =
+    React.useRef<React.ComponentRef<typeof DrawerContent>>(null);
 
   const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {

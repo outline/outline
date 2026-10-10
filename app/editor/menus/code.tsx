@@ -108,7 +108,7 @@ const langToMenuItem = ({
 }): MenuItem => ({
   name: "code_block",
   label,
-  active: () => node.attrs.language === value,
+  active: () => (node.attrs.language ?? "none") === value,
   attrs: {
     language: value,
   },
