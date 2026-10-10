@@ -256,6 +256,9 @@ export class ClientMetadataHelper {
     const res = await fetch(clientId, {
       method: "GET",
       redirect: "manual",
+      // Special-use addresses are never allowed, even when the installation
+      // allows them for other integrations (draft section 8.6).
+      allowIPAddressList: [],
       size: ClientMetadataHelper.maxDocumentSize,
       signal: AbortSignal.timeout(ClientMetadataHelper.fetchTimeout),
       headers: { Accept: "application/json" },
