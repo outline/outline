@@ -1,28 +1,24 @@
-import type { Node as ProsemirrorNode } from "prosemirror-model";
-import type { EditorState } from "prosemirror-state";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
-import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNode";
+import type { DragTargetKind } from "~/editor/plugins/DragTarget";
+import { DragTarget } from "~/editor/plugins/DragTarget";
 
 const HANDLE_CLASS = "block-drag-handle";
 const HANDLE_SIZE = 24;
 // Vertical center of the icon within the handle, including its 2px offset.
 const ICON_CENTER_Y = HANDLE_SIZE / 2 + 2;
 const META_KEY = "drag-handle";
-const LIST_ITEM_TYPES = ["list_item", "checkbox_item"];
-const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
+// Horizontal distance from the block's edge to the handle, per kind of block.
+const GUTTER_OFFSET: Record<DragTargetKind, number> = {
+  block: 24,
+  listItem: 40,
+  checkboxItem: 0,
+};
 
 const HANDLE_ICON =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=";
-
-type Target = {
-  pos: number;
-  element: HTMLElement;
-  isListItem: boolean;
-  isCheckboxItem: boolean;
-};
 
 type PluginState = {
   pos: number;
@@ -150,7 +146,7 @@ export default class DragHandle extends Extension {
           const handle = createHandle();
           document.body.appendChild(handle);
 
-          let target: Target | null = null;
+          let target: DragTarget | null = null;
 
           const onDragEnd = () => {
             view.dom.classList.remove("dragging");
@@ -162,9 +158,9 @@ export default class DragHandle extends Extension {
             }
           };
 
-          const position = (next: Target) => {
+          const position = (next: DragTarget) => {
             const rect = next.element.getBoundingClientRect();
-            const offsetX = next.isCheckboxItem ? 0 : next.isListItem ? 40 : 24;
+            const offsetX = GUTTER_OFFSET[next.kind];
             const offsetY = 2;
             // Center the icon on the first line of text when the block has
             // one, otherwise align it with the top of the block.
@@ -188,7 +184,7 @@ export default class DragHandle extends Extension {
             handle.style.pointerEvents = "auto";
           };
 
-          const show = (next: Target) => {
+          const show = (next: DragTarget) => {
             target = next;
             position(next);
             setHoveredHeading(
@@ -228,16 +224,12 @@ export default class DragHandle extends Extension {
             if (target && isOverElement(handle, event)) {
               return;
             }
-            const next = findTarget(view, event);
+            const next = DragTarget.fromEvent(view, event);
             if (next) {
               // Skip repositioning when still hovering the same block —
               // avoids a getBoundingClientRect and style writes on every
               // mousemove. Scroll repositioning is handled separately.
-              if (
-                target &&
-                target.pos === next.pos &&
-                target.element === next.element
-              ) {
+              if (next.equals(target)) {
                 return;
               }
               show(next);
@@ -348,12 +340,12 @@ export default class DragHandle extends Extension {
               }
               // Positions shift when the document changes, e.g. from a
               // collaborator's edit, so resolve the target again from its DOM.
-              const pos = resolveElementPos(view, target.element);
-              if (pos === null) {
+              const next = DragTarget.fromElement(view, target.element);
+              if (!next) {
                 hideHandle();
                 return;
               }
-              target = { ...target, pos };
+              target = next;
               if (!pluginKey.getState(view.state)) {
                 position(target);
               }
@@ -412,209 +404,6 @@ function isOverElement(element: HTMLElement, event: MouseEvent): boolean {
     event.clientY >= rect.top &&
     event.clientY <= rect.bottom
   );
-}
-
-function findTarget(view: EditorView, event: MouseEvent): Target | null {
-  const rect = view.dom.getBoundingClientRect();
-  if (event.clientY < rect.top || event.clientY > rect.bottom) {
-    return null;
-  }
-  const style = window.getComputedStyle(view.dom);
-  const paddingLeft = parseFloat(style.paddingLeft) || 0;
-  const paddingRight = parseFloat(style.paddingRight) || 0;
-  const contentLeft = rect.left + paddingLeft + 1;
-  const contentRight = rect.right - paddingRight - 1;
-  if (event.clientX < contentLeft - 60 || event.clientX > contentRight + 60) {
-    return null;
-  }
-  const projectedX = Math.max(
-    contentLeft,
-    Math.min(contentRight, event.clientX)
-  );
-
-  // Mermaid diagrams hide their source code block and render an SVG widget
-  // next to it — target the underlying code block but anchor the handle to
-  // the visible diagram element.
-  const mermaid = findMermaidTarget(view, event, projectedX);
-  if (mermaid) {
-    return mermaid;
-  }
-
-  const coords = view.posAtCoords({
-    left: projectedX,
-    top: event.clientY,
-  });
-  if (!coords) {
-    return null;
-  }
-  const resolved = resolveTargetPos(view.state, coords.pos);
-  if (resolved === null) {
-    return null;
-  }
-  // Floated and full-width images sit outside the content column, so a
-  // handle in the gutter would not line up with them.
-  const node = view.state.doc.nodeAt(resolved.pos);
-  if (node && hasLayoutImage(node)) {
-    return null;
-  }
-  const dom = view.nodeDOM(resolved.pos);
-  if (!(dom instanceof HTMLElement)) {
-    return null;
-  }
-  return {
-    pos: resolved.pos,
-    element: dom,
-    isListItem: resolved.isListItem,
-    isCheckboxItem: resolved.isCheckboxItem,
-  };
-}
-
-function resolveElementPos(
-  view: EditorView,
-  element: HTMLElement
-): number | null {
-  if (!element.isConnected) {
-    return null;
-  }
-  if (element.classList.contains("mermaid-diagram-wrapper")) {
-    return resolveMermaidPos(view, element);
-  }
-  const parent = element.parentNode;
-  if (!parent) {
-    return null;
-  }
-  let pos: number;
-  try {
-    pos = view.posAtDOM(parent, Array.from(parent.childNodes).indexOf(element));
-  } catch {
-    return null;
-  }
-  return view.nodeDOM(pos) === element ? pos : null;
-}
-
-function resolveMermaidPos(
-  view: EditorView,
-  diagram: HTMLElement
-): number | null {
-  const codeBlockDom = diagram.previousElementSibling;
-  if (!(codeBlockDom instanceof HTMLElement)) {
-    return null;
-  }
-  let pos: number;
-  try {
-    pos = view.posAtDOM(codeBlockDom, 0);
-  } catch {
-    return null;
-  }
-  if (pos < 0) {
-    return null;
-  }
-  const $pos = view.state.doc.resolve(pos);
-  const blockPos = $pos.depth > 0 ? $pos.before($pos.depth) : 0;
-  return view.state.doc.nodeAt(blockPos) ? blockPos : null;
-}
-
-function findMermaidTarget(
-  view: EditorView,
-  event: MouseEvent,
-  projectedX: number
-): Target | null {
-  // Look at the element directly under the cursor, and at the projected X
-  // inside the editor so we still find the diagram when the cursor sits in
-  // the left gutter where the handle is rendered.
-  const eventTarget = event.target as HTMLElement | null;
-  const projectedTarget =
-    projectedX !== event.clientX
-      ? document.elementFromPoint(projectedX, event.clientY)
-      : null;
-  const diagram =
-    eventTarget?.closest<HTMLElement>(".mermaid-diagram-wrapper") ??
-    (projectedTarget instanceof Element
-      ? projectedTarget.closest<HTMLElement>(".mermaid-diagram-wrapper")
-      : null);
-  if (!diagram) {
-    return null;
-  }
-  const blockPos = resolveMermaidPos(view, diagram);
-  if (blockPos === null) {
-    return null;
-  }
-  return {
-    pos: blockPos,
-    element: diagram,
-    isListItem: false,
-    isCheckboxItem: false,
-  };
-}
-
-function resolveTargetPos(
-  state: EditorState,
-  pos: number
-): {
-  pos: number;
-  isListItem: boolean;
-  isCheckboxItem: boolean;
-} | null {
-  const $pos = state.doc.resolve(pos);
-
-  const listItem = findParentNodeClosestToPos($pos, (node) =>
-    LIST_ITEM_TYPES.includes(node.type.name)
-  );
-  if (listItem) {
-    return {
-      pos: listItem.pos,
-      isListItem: true,
-      isCheckboxItem: listItem.node.type.name === "checkbox_item",
-    };
-  }
-
-  if ($pos.depth >= 1) {
-    const node = $pos.node(1);
-    if (LIST_TYPES.includes(node.type.name)) {
-      return null;
-    }
-    // Skip empty top-level paragraphs — the block menu trigger is shown
-    // there instead.
-    if (node.type.name === "paragraph" && node.content.size === 0) {
-      return null;
-    }
-    return {
-      pos: $pos.before(1),
-      isListItem: false,
-      isCheckboxItem: false,
-    };
-  }
-
-  // Hovering on a top-level atom block (video, etc.) — there are no
-  // positions inside an atom, so posAtCoords lands at depth 0 between
-  // siblings of the doc. Pick whichever neighbouring atom block the
-  // position is adjacent to.
-  const after = $pos.nodeAfter;
-  if (after?.isBlock && after.isAtom) {
-    return { pos: $pos.pos, isListItem: false, isCheckboxItem: false };
-  }
-  const before = $pos.nodeBefore;
-  if (before?.isBlock && before.isAtom) {
-    return {
-      pos: $pos.pos - before.nodeSize,
-      isListItem: false,
-      isCheckboxItem: false,
-    };
-  }
-  return null;
-}
-
-function hasLayoutImage(node: ProsemirrorNode): boolean {
-  if (!node.isTextblock) {
-    return false;
-  }
-  let found = false;
-  node.forEach((child) => {
-    if (child.type.name === "image" && child.attrs.layoutClass) {
-      found = true;
-    }
-  });
-  return found;
 }
 
 function getFirstLineMiddle(
