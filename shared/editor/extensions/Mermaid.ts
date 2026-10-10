@@ -417,6 +417,7 @@ export default function Mermaid({
 
         const node = state.selection.$head.parent;
         const previousNode = oldState.selection.$head.parent;
+
         // For a NodeSelection, $head.parent resolves to the selection's
         // parent — so also inspect the selected node and its descendants to
         // catch e.g. drag-and-drop of a container that holds a diagram.

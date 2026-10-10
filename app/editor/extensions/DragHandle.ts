@@ -8,13 +8,17 @@ import type { DragTargetKind } from "~/editor/plugins/DragTarget";
 import { DragTarget } from "~/editor/plugins/DragTarget";
 
 const HANDLE_SIZE = 24;
+
 // Vertical offset of the icon within the handle, matches its mask-position.
 const ICON_OFFSET_Y = 2;
+
 // Vertical center of the icon within the handle.
 const ICON_CENTER_Y = HANDLE_SIZE / 2 + ICON_OFFSET_Y;
+
 // Tolerance when checking that text is rendered inside its block.
 const RECT_TOLERANCE = 1;
 const META_KEY = "drag-handle";
+
 // Horizontal distance from the block's edge to the handle, per kind of block.
 const GUTTER_OFFSET: Record<DragTargetKind, number> = {
   block: 24,
@@ -152,6 +156,7 @@ export default class DragHandle extends Extension {
 
           const onDragEnd = () => {
             view.dom.classList.remove("dragging");
+
             // The handle is outside the editor DOM, so ProseMirror's own
             // dragend cleanup does not run for it.
             view.dragging = null;
@@ -163,12 +168,14 @@ export default class DragHandle extends Extension {
           const position = (next: DragTarget) => {
             const rect = next.element.getBoundingClientRect();
             const offsetX = GUTTER_OFFSET[next.kind];
+
             // Center the icon on the first line of text when the block has
             // one, otherwise align it with the top of the block.
             const lineMiddle =
               next.element === view.nodeDOM(next.pos)
                 ? getFirstLineMiddle(view, next.pos, rect)
                 : null;
+
             // RTL blocks lay out their gutter on the right, so mirror the
             // handle to the opposite edge to match the rest of the editor's
             // :dir(rtl) handling.
@@ -217,6 +224,7 @@ export default class DragHandle extends Extension {
               hide();
               return;
             }
+
             // When the cursor is over the handle itself, keep the current
             // target. Re-resolving from a cursor in the gutter can land on
             // a different (often parent) block, causing the handle to
@@ -261,6 +269,7 @@ export default class DragHandle extends Extension {
               return;
             }
             const sourceElement = target.element;
+
             // Snapshot the drag image of the unmodified element first, so
             // it isn't baked with the dragging-source opacity. Anchor it to
             // its original screen position by offsetting by the cursor's
@@ -274,10 +283,12 @@ export default class DragHandle extends Extension {
             );
             event.dataTransfer.clearData();
             event.dataTransfer.effectAllowed = "copyMove";
+
             // Hide the handle for the duration of the drag — keep it
             // interactive so the in-flight drag isn't cancelled.
             handle.classList.add("dragging");
             const selection = NodeSelection.create(view.state.doc, pos);
+
             // Use the slice from the original NodeSelection rather than
             // view.state.selection, which prosemirror-tables' tableEditing
             // normalizes from a NodeSelection on a table into a CellSelection
@@ -286,6 +297,7 @@ export default class DragHandle extends Extension {
             const { dom, text } = view.serializeForClipboard(slice);
             event.dataTransfer.setData("text/html", dom.innerHTML);
             event.dataTransfer.setData("text/plain", text);
+
             // Include the original NodeSelection as `node` so ProseMirror's
             // drop handler removes the source via node.replace(tr) rather
             // than tr.deleteSelection() (which would operate on the
@@ -302,6 +314,7 @@ export default class DragHandle extends Extension {
             view.dragging = dragging;
             view.dom.classList.add("dragging");
             view.focus();
+
             // Apply the source decoration via the plugin's state and set
             // the NodeSelection in a single transaction so the
             // dragging-source class survives any DOM re-rendering caused
@@ -349,6 +362,7 @@ export default class DragHandle extends Extension {
                 }
                 target = next;
               }
+
               // Leave the handle alone mid-drag so the drag is not cancelled.
               if (pluginKey.getState(view.state)) {
                 return;
@@ -368,6 +382,7 @@ export default class DragHandle extends Extension {
               handle.removeEventListener("dragend", onDragEnd);
               handle.removeEventListener("click", onClick);
               handle.remove();
+
               // Only clean up the DOM class here — the plugin state is
               // discarded on unmount, so avoid dispatching onto a view that
               // is being torn down (e.g. unmounted mid-drag).
@@ -424,6 +439,7 @@ function getFirstLineMiddle(
   } catch {
     return null;
   }
+
   // Ignore text that is hidden or rendered outside the block, such as the
   // source of a rendered math block.
   if (

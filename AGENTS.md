@@ -32,6 +32,7 @@ You're an expert in the following areas:
 
 - Critical – Do not create new markdown (.md) files.
 - Use early returns for readability.
+- Leave an empty line above every comment, unless the comment is the first line in a block.
 - Emphasize type safety and static analysis.
 - Follow consistent oxfmt formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").

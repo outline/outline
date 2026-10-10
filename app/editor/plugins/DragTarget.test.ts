@@ -16,6 +16,7 @@ import { DragTarget } from "./DragTarget";
 describe("DragTarget.resolvePos", () => {
   it("resolves a position in a top-level block to the block", () => {
     const state = createEditorState(doc([p("one"), heading("two")]));
+
     // Inside the heading text, which starts after the 5-size paragraph.
     expect(DragTarget.resolvePos(state, 7)).toEqual({ pos: 5, kind: "block" });
   });
@@ -70,6 +71,7 @@ describe("DragTarget.resolvePos", () => {
 
 describe("DragTarget#hasOwnControls", () => {
   const testDoc = doc([p("one"), table([tr([td("a"), td("b")])])]);
+
   // The table starts after the 5-size paragraph.
   const target = new DragTarget(5, document.createElement("div"), "block");
 

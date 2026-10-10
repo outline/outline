@@ -11,13 +11,16 @@ export type DragTargetKind = "block" | "listItem" | "checkboxItem";
 export interface ResolvedDragTarget {
   /** Position of the block in the document. */
   pos: number;
+
   /** The kind of block at the position. */
   kind: DragTargetKind;
 }
 
 const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
+
 // Distance outside the content column in which the cursor still finds a block.
 const GUTTER_HIT_WIDTH = 60;
+
 // Inset from the content edges, so that posAtCoords lands inside the block.
 const CONTENT_INSET = 1;
 
@@ -165,11 +168,13 @@ export class DragTarget {
       if (LIST_TYPES.includes(node.type.name)) {
         return null;
       }
+
       // Skip empty top-level paragraphs — the block menu trigger is shown
       // there instead.
       if (node.type.name === "paragraph" && node.content.size === 0) {
         return null;
       }
+
       // Floated and full-width images sit outside the content column, so a
       // handle in the gutter would not line up with them.
       if (this.hasLayoutImage(node)) {
