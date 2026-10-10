@@ -971,6 +971,847 @@ describe("tasks", () => {
   });
 });
 
+describe("isPrivate", () => {
+  describe("cascadeRestrict", () => {
+    test("should remove sourced user memberships on document and children", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Add direct membership on A for viewer — cascades to B and C
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Verify sourced memberships were created on B and C
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docB.id,
+            userId: viewer.id,
+            sourceId: { [Op.ne]: null },
+          },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: viewer.id,
+            sourceId: { [Op.ne]: null },
+          },
+        })
+      ).toBe(1);
+
+      // Make B private
+      docB.isPrivate = true;
+      await docB.save();
+
+      // Sourced memberships on B and C should be removed
+      expect(
+        await UserMembership.count({
+          where: { documentId: docB.id, userId: viewer.id },
+        })
+      ).toBe(0);
+      expect(
+        await UserMembership.count({
+          where: { documentId: docC.id, userId: viewer.id },
+        })
+      ).toBe(0);
+
+      // Direct membership on A should remain
+      expect(
+        await UserMembership.count({
+          where: { documentId: docA.id, userId: viewer.id, sourceId: null },
+        })
+      ).toBe(1);
+    });
+
+    test("should recreate sourced memberships from direct memberships after restrict", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A -> B -> C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Add direct membership on A for viewer — cascades to B and C
+      const directMembership = await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Verify sourced memberships exist on B and C
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docB.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+
+      // Make A private — B and C become private, sourced memberships are
+      // destroyed but should be immediately recreated from A's direct membership
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Direct membership on A should remain
+      expect(
+        await UserMembership.count({
+          where: { documentId: docA.id, userId: viewer.id, sourceId: null },
+        })
+      ).toBe(1);
+
+      // Sourced memberships on B and C should be recreated
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docB.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+    });
+
+    test("should set children to private", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      docB.isPrivate = true;
+      await docB.save();
+
+      await docC.reload();
+      expect(docC.isPrivate).toBe(true);
+    });
+  });
+
+  describe("cascadeUnrestrict", () => {
+    test("should recreate sourced memberships from parent", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Add direct membership on A — cascades to B and C
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Make B private (removes sourced on B and C)
+      docB.isPrivate = true;
+      await docB.save();
+
+      expect(
+        await UserMembership.count({
+          where: { documentId: docB.id, userId: viewer.id },
+        })
+      ).toBe(0);
+
+      // Make B non-private
+      docB.isPrivate = false;
+      await docB.save();
+
+      // Sourced memberships should be recreated on B and C
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docB.id,
+            userId: viewer.id,
+            sourceId: { [Op.ne]: null },
+          },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: viewer.id,
+            sourceId: { [Op.ne]: null },
+          },
+        })
+      ).toBe(1);
+    });
+
+    test("should recreate sourced memberships from shared ancestor documents", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A -> B -> C -> D
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      const docD = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docC.id,
+      });
+
+      // Add direct membership on A — cascades to B, C, D
+      const directMembership = await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Make C private (removes sourced on C and D)
+      docC.isPrivate = true;
+      await docC.save();
+
+      expect(
+        await UserMembership.count({
+          where: { documentId: docC.id, userId: viewer.id },
+        })
+      ).toBe(0);
+      expect(
+        await UserMembership.count({
+          where: { documentId: docD.id, userId: viewer.id },
+        })
+      ).toBe(0);
+
+      // Make C non-private
+      docC.isPrivate = false;
+      await docC.save();
+
+      // Sourced memberships should be recreated on C and D, pointing to
+      // the original direct membership on A (not to B's sourced membership)
+      const cMembership = await UserMembership.findOne({
+        where: {
+          documentId: docC.id,
+          userId: viewer.id,
+          sourceId: { [Op.ne]: null },
+        },
+      });
+      expect(cMembership).not.toBeNull();
+      expect(cMembership!.sourceId).toBe(directMembership.id);
+
+      const dMembership = await UserMembership.findOne({
+        where: {
+          documentId: docD.id,
+          userId: viewer.id,
+          sourceId: { [Op.ne]: null },
+        },
+      });
+      expect(dMembership).not.toBeNull();
+      expect(dMembership!.sourceId).toBe(directMembership.id);
+    });
+
+    test("should recreate sourced memberships from multiple shared ancestors", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const alice = await buildUser({ teamId: team.id });
+      const bob = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A -> B -> C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Share A with Alice, B with Bob
+      const aliceMembership = await UserMembership.create({
+        userId: alice.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+      const bobMembership = await UserMembership.create({
+        userId: bob.id,
+        documentId: docB.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Make C private
+      docC.isPrivate = true;
+      await docC.save();
+
+      expect(
+        await UserMembership.count({
+          where: { documentId: docC.id, userId: alice.id },
+        })
+      ).toBe(0);
+      expect(
+        await UserMembership.count({
+          where: { documentId: docC.id, userId: bob.id },
+        })
+      ).toBe(0);
+
+      // Make C non-private
+      docC.isPrivate = false;
+      await docC.save();
+
+      // Both Alice's (from grandparent A) and Bob's (from parent B)
+      // memberships should be recreated on C with correct sourceIds
+      const cAlice = await UserMembership.findOne({
+        where: {
+          documentId: docC.id,
+          userId: alice.id,
+          sourceId: { [Op.ne]: null },
+        },
+      });
+      expect(cAlice).not.toBeNull();
+      expect(cAlice!.sourceId).toBe(aliceMembership.id);
+
+      const cBob = await UserMembership.findOne({
+        where: {
+          documentId: docC.id,
+          userId: bob.id,
+          sourceId: { [Op.ne]: null },
+        },
+      });
+      expect(cBob).not.toBeNull();
+      expect(cBob!.sourceId).toBe(bobMembership.id);
+    });
+
+    test("should recreate sourced memberships from direct memberships in subtree", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const bob = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Make B private (children become private too)
+      docB.isPrivate = true;
+      await docB.save();
+
+      // Add direct membership to B for Bob — should cascade to C
+      // even though C is private (it's within B's private subtree)
+      await UserMembership.create({
+        userId: bob.id,
+        documentId: docB.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: bob.id,
+            sourceId: { [Op.ne]: null },
+          },
+        })
+      ).toBe(1);
+
+      // Make B non-private
+      docB.isPrivate = false;
+      await docB.save();
+
+      // Bob's membership should still be on C
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: bob.id,
+            sourceId: { [Op.ne]: null },
+          },
+        })
+      ).toBe(1);
+
+      // Children should no longer be private
+      await docC.reload();
+      expect(docC.isPrivate).toBe(false);
+    });
+
+    test("should cascade memberships to private children when added to private doc", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A -> B -> C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Make A private — B and C become private too
+      docA.isPrivate = true;
+      await docA.save();
+
+      await docB.reload();
+      await docC.reload();
+      expect(docB.isPrivate).toBe(true);
+      expect(docC.isPrivate).toBe(true);
+
+      // Add membership on A — should cascade to private children B and C
+      const directMembership = await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Sourced memberships should exist on both B and C
+      const bMembership = await UserMembership.findOne({
+        where: {
+          documentId: docB.id,
+          userId: viewer.id,
+          sourceId: directMembership.id,
+        },
+      });
+      expect(bMembership).not.toBeNull();
+
+      const cMembership = await UserMembership.findOne({
+        where: {
+          documentId: docC.id,
+          userId: viewer.id,
+          sourceId: directMembership.id,
+        },
+      });
+      expect(cMembership).not.toBeNull();
+    });
+
+    test("should set children to non-private", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      docB.isPrivate = true;
+      await docB.save();
+
+      await docC.reload();
+      expect(docC.isPrivate).toBe(true);
+
+      docB.isPrivate = false;
+      await docB.save();
+
+      await docC.reload();
+      expect(docC.isPrivate).toBe(false);
+    });
+  });
+
+  describe("nested restrictions", () => {
+    it("should preserve independently restricted subtrees when restricting and unrestricting an ancestor", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A → B → C, plus A → D
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      const docD = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+
+      // Restrict B first — B becomes its own restriction root
+      docB.isPrivate = true;
+      await docB.save();
+
+      await docC.reload();
+      expect(docC.restrictionSourceId).toBe(docB.id);
+
+      // Restrict A — B's subtree keeps its own restriction root
+      docA.isPrivate = true;
+      await docA.save();
+
+      await Promise.all([docB.reload(), docC.reload(), docD.reload()]);
+      expect(docB.isPrivate).toBe(true);
+      expect(docB.restrictionSourceId).toBeNull();
+      expect(docC.restrictionSourceId).toBe(docB.id);
+      expect(docD.isPrivate).toBe(true);
+      expect(docD.restrictionSourceId).toBe(docA.id);
+
+      // Unrestrict A — B's subtree remains restricted
+      docA.isPrivate = false;
+      await docA.save();
+
+      await Promise.all([docB.reload(), docC.reload(), docD.reload()]);
+      expect(docB.isPrivate).toBe(true);
+      expect(docB.restrictionSourceId).toBeNull();
+      expect(docC.isPrivate).toBe(true);
+      expect(docC.restrictionSourceId).toBe(docB.id);
+      expect(docD.isPrivate).toBe(false);
+      expect(docD.restrictionSourceId).toBeNull();
+    });
+
+    it("should not cascade memberships into nested restricted subtrees", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A → B → C, plus A → D
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      const docD = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+
+      docB.isPrivate = true;
+      await docB.save();
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Sharing A cascades to D but must not reach into B's subtree
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+
+      expect(
+        await UserMembership.count({
+          where: { documentId: docD.id, userId: viewer.id },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: [docB.id, docC.id],
+            userId: viewer.id,
+          },
+        })
+      ).toBe(0);
+    });
+
+    it("should cascade the enclosing restriction downwards when a nested restriction is dissolved", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A → B → C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      docB.isPrivate = true;
+      await docB.save();
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Sharing A does not reach into B's nested restricted subtree
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+      expect(
+        await UserMembership.count({
+          where: { documentId: [docB.id, docC.id], userId: viewer.id },
+        })
+      ).toBe(0);
+
+      // Dissolve B's restriction into A's
+      docB.restrictionSourceId = docA.id;
+      await docB.save();
+
+      await docC.reload();
+      expect(docB.isPrivate).toBe(true);
+      expect(docC.isPrivate).toBe(true);
+      expect(docC.restrictionSourceId).toBe(docA.id);
+
+      // A's memberships now cascade into the subtree
+      expect(
+        await UserMembership.count({
+          where: { documentId: docB.id, userId: viewer.id },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: { documentId: docC.id, userId: viewer.id },
+        })
+      ).toBe(1);
+    });
+
+    it("should inherit the parent's restriction root when publishing", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Publishing under B should resolve the root to A, not B
+      const draft = await buildDraftDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+      await withAPIContext(user, (ctx) =>
+        draft.publish(ctx, { collectionId: collection.id })
+      );
+
+      expect(draft.isPrivate).toBe(true);
+      expect(draft.restrictionSourceId).toBe(docA.id);
+    });
+  });
+});
+
 describe("commentCount", () => {
   it("returns 0 for a document with no comments", async () => {
     const document = await buildDocument();

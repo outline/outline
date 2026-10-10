@@ -680,14 +680,26 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         collectionId: { [Op.is]: null },
       });
       if (collectionIds.length) {
+        // Exclude restricted documents the user cannot access
+        const restrictionsWhere = Document.restrictionsWhere(model);
         where[Op.or].push(
           {
-            collectionId: collectionIds,
-            publishedAt: { [Op.ne]: null },
+            [Op.and]: [
+              {
+                collectionId: collectionIds,
+                publishedAt: { [Op.ne]: null },
+              },
+              restrictionsWhere,
+            ],
           },
           {
-            createdById: model.id,
-            collectionId: collectionIds,
+            [Op.and]: [
+              {
+                createdById: model.id,
+                collectionId: collectionIds,
+              },
+              restrictionsWhere,
+            ],
           }
         );
       }
@@ -699,7 +711,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         ? explicitCollectionIds
         : await model.collectionIds();
       if (collectionIds.length) {
-        where[Op.or].push({ collectionId: collectionIds });
+        // Team-level searches fail closed and never include restricted documents
+        where[Op.or].push({ collectionId: collectionIds, isPrivate: false });
       }
     }
 

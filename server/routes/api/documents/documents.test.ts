@@ -1326,6 +1326,158 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
+  it("should not return restricted backlinks for non-members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const restrictedDoc = await buildDocument({
+      title: "restricted backlink",
+      text: "secret",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await Relationship.create({
+      reverseDocumentId: restrictedDoc.id,
+      type: RelationshipType.Backlink,
+      documentId: document.id,
+      userId: owner.id,
+    });
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        backlinkDocumentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should return restricted backlinks for direct members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const restrictedDoc = await buildDocument({
+      title: "restricted backlink",
+      text: "secret",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: restrictedDoc.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await Relationship.create({
+      reverseDocumentId: restrictedDoc.id,
+      type: RelationshipType.Backlink,
+      documentId: document.id,
+      userId: owner.id,
+    });
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        backlinkDocumentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(restrictedDoc.id);
+  });
+
+  it("should return restricted documents for group members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const group = await buildGroup({ teamId: team.id, createdById: owner.id });
+    await group.$add("user", user, {
+      through: {
+        createdById: owner.id,
+      },
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    const res = await server.post("/api/documents.list", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((doc: { id: string }) => doc.id)).toContain(
+      document.id
+    );
+  });
+
+  it("should return children of a document shared from a private collection", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parent = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+    await UserMembership.create({
+      documentId: parent.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(child.id);
+  });
+
   describe("filter DSL", () => {
     it("should match a simple contains leaf case-insensitively", async () => {
       const user = await buildUser();
@@ -3238,6 +3390,59 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.title).toEqual("Much test support");
+  });
+
+  it("should return restricted documents for admins", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      title: "restricted searchable",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const res = await server.post("/api/documents.search", admin, {
+      body: {
+        query: "restricted searchable",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it("should not return restricted documents for non-members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    await buildDocument({
+      title: "restricted searchable",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        query: "restricted searchable",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
   });
 
   it("should return results using shareId", async () => {
@@ -6536,6 +6741,59 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
+  it("should replace a nested restriction with the enclosing restriction when removed", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+
+    // A → B → C
+    const docA = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+    });
+    const docB = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: docA.id,
+    });
+    const docC = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: docB.id,
+    });
+
+    // Restricting through the API grants the acting user admin membership
+    await server.post("/api/documents.update", owner, {
+      body: { id: docB.id, isPrivate: true },
+    });
+    docA.isPrivate = true;
+    await docA.save();
+
+    const res = await server.post("/api/documents.update", owner, {
+      body: {
+        id: docB.id,
+        isPrivate: false,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    // B remains restricted, now managed by A
+    expect(body.data.isPrivate).toBe(true);
+    expect(body.data.restrictionSourceId).toBe(docA.id);
+
+    await docC.reload();
+    expect(docC.isPrivate).toBe(true);
+    expect(docC.restrictionSourceId).toBe(docA.id);
+  });
+
   describe("deprecatedReason", () => {
     it.each(["archived", "deleted"])(
       "should update the reason for an %s document without changing attribution",
@@ -9224,6 +9482,61 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it("should filter private children the user cannot access", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const viewer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+    });
+
+    const parent = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const publicChild = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: parent.id,
+      title: "Public Child",
+    });
+    const privateChild = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: parent.id,
+      title: "Private Child",
+    });
+
+    // Make privateChild private
+    privateChild.isPrivate = true;
+    await privateChild.save();
+
+    // Give viewer a membership on the parent so they can read it
+    await UserMembership.create({
+      userId: viewer.id,
+      documentId: parent.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.documents", viewer, {
+      body: {
+        id: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(parent.id);
+    const childIds = body.data.children.map((node: { id: string }) => node.id);
+    expect(childIds).toContain(publicChild.id);
+    expect(childIds).not.toContain(privateChild.id);
   });
 
   it("should return 403 if user does not have access to the document", async () => {

@@ -13,6 +13,7 @@ import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  DocumentPermission,
   ExportContentType,
   FileOperationFormat,
   StatusFilter,
@@ -331,9 +332,17 @@ router.post(
         [Op.or]: [
           { collectionId: collectionIds },
           { collectionId: null, createdById: user.id },
+          // Restricted documents the user can access through a direct or group
+          // membership are included regardless of collection access.
+          ...(user.isAdmin
+            ? []
+            : [{ id: { [Op.in]: Document.restrictedDocumentIdsQuery(user) } }]),
         ],
       });
     }
+
+    // Exclude restricted documents the user cannot access
+    where[Op.and].push(Document.restrictionsWhere(user));
 
     if (backlinkDocumentId) {
       const sourceDocumentIds = await Relationship.findSourceDocumentIdsForUser(
@@ -941,6 +950,16 @@ router.post(
         includeDocumentStructure: true,
       });
       documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+
+      // Filter restricted subtrees the user cannot access
+      if (documentTree) {
+        const [filtered] = await Collection.filterRestrictedNodes(
+          [documentTree],
+          user,
+          document.collectionId
+        );
+        documentTree = filtered;
+      }
     }
 
     ctx.body = {
@@ -1457,7 +1476,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
+    const { id, insightsEnabled, publish, collectionId, isPrivate, ...input } =
       ctx.input.body;
     const updatingDeprecatedReason =
       input.deprecatedReason !== undefined &&
@@ -1488,6 +1507,50 @@ router.post(
 
     if (collection && insightsEnabled !== undefined) {
       authorize(user, "updateInsights", document);
+    }
+
+    // Handle restrict/unrestrict toggle — validation and descendant cascade
+    // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
+    if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
+      authorize(user, "manageUsers", document);
+
+      if (!isPrivate) {
+        // When a restriction is removed inside a restricted tree, the
+        // enclosing restriction cascades down to replace it — the document
+        // stays restricted, now managed by the enclosing root.
+        const parentRestrictionSourceId =
+          await document.getParentRestrictionSourceId({ transaction });
+        if (parentRestrictionSourceId) {
+          document.restrictionSourceId = parentRestrictionSourceId;
+        } else {
+          document.isPrivate = false;
+          document.restrictionSourceId = null;
+        }
+      }
+
+      if (isPrivate) {
+        document.isPrivate = true;
+        // Ensure the acting user has direct admin access
+        const existingMembership = await UserMembership.findOne({
+          where: {
+            documentId: document.id,
+            userId: user.id,
+            sourceId: null,
+          },
+          transaction,
+        });
+        if (!existingMembership) {
+          await UserMembership.create(
+            {
+              documentId: document.id,
+              userId: user.id,
+              permission: DocumentPermission.Admin,
+              createdById: user.id,
+            },
+            { transaction }
+          );
+        }
+      }
     }
 
     if (publish) {

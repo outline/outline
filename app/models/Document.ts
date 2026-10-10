@@ -169,6 +169,21 @@ export default class Document extends ArchivableModel implements Searchable {
   fullWidth: boolean;
 
   /**
+   * Whether this document has restricted access (does not inherit permissions from parent/collection).
+   */
+  @Field
+  @observable
+  isPrivate: boolean;
+
+  /**
+   * ID of the ancestor document that manages this document's restriction, when
+   * the restriction is inherited. Null when the document is not restricted or
+   * is itself the restriction root.
+   */
+  @observable
+  restrictionSourceId: string | null;
+
+  /**
    * Display preferences for the document.
    */
   @Field

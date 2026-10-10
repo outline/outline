@@ -1055,7 +1055,15 @@ export default class WebsocketsProcessor {
       channels.push(`user-${event.actorId}`);
     }
 
-    if (document.publishedAt) {
+    // Include collection/team channels for published documents that are not
+    // restricted. Also include them when the privacy state just changed so that
+    // clients can react to the transition (e.g. remove from or add to their view).
+    const changes = (
+      event as { changes?: { attributes?: Record<string, unknown> } }
+    ).changes;
+    const privacyChanged = changes?.attributes?.isPrivate !== undefined;
+
+    if (document.publishedAt && (!document.isPrivate || privacyChanged)) {
       if (document.collection) {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)
