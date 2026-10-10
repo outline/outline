@@ -1,9 +1,10 @@
-import { subDays, subHours } from "date-fns";
+import { addMinutes, subDays, subHours, subMinutes } from "date-fns";
 import { Scope } from "@shared/types";
 import { OAuthClient } from "@server/models";
 import {
   buildMetadataDocumentOAuthClient,
   buildOAuthAuthentication,
+  buildOAuthAuthorizationCode,
   buildOAuthClient,
   buildUser,
 } from "@server/test/factories";
@@ -143,6 +144,67 @@ describe("CleanupDynamicOAuthClientsTask", () => {
     await authentication.update({
       accessTokenExpiresAt: subDays(new Date(), 2),
       refreshTokenExpiresAt: subDays(new Date(), 1),
+    });
+
+    const task = new CleanupDynamicOAuthClientsTask();
+    await task.perform({
+      limit: 100,
+      partition: { partitionIndex: 0, partitionCount: 1 },
+    });
+
+    expect(await clientExists(client)).toBe(false);
+  });
+
+  it("should not delete a metadata document client with a pending authorization code", async () => {
+    const user = await buildUser();
+    const client = await buildMetadataDocumentOAuthClient({
+      createdAt: subDays(new Date(), 3),
+    });
+    await buildOAuthAuthorizationCode({
+      userId: user.id,
+      oauthClientId: client.id,
+      expiresAt: addMinutes(new Date(), 5),
+    });
+
+    const task = new CleanupDynamicOAuthClientsTask();
+    await task.perform({
+      limit: 100,
+      partition: { partitionIndex: 0, partitionCount: 1 },
+    });
+
+    expect(await clientExists(client)).toBe(true);
+  });
+
+  it("should not delete a dynamic client with a pending authorization code", async () => {
+    const user = await buildUser();
+    const client = await buildOAuthClient({
+      createdById: null,
+      createdAt: subDays(new Date(), 3),
+    });
+    await buildOAuthAuthorizationCode({
+      userId: user.id,
+      oauthClientId: client.id,
+      expiresAt: addMinutes(new Date(), 5),
+    });
+
+    const task = new CleanupDynamicOAuthClientsTask();
+    await task.perform({
+      limit: 100,
+      partition: { partitionIndex: 0, partitionCount: 1 },
+    });
+
+    expect(await clientExists(client)).toBe(true);
+  });
+
+  it("should delete a metadata document client with only an expired authorization code", async () => {
+    const user = await buildUser();
+    const client = await buildMetadataDocumentOAuthClient({
+      createdAt: subDays(new Date(), 3),
+    });
+    await buildOAuthAuthorizationCode({
+      userId: user.id,
+      oauthClientId: client.id,
+      expiresAt: subMinutes(new Date(), 5),
     });
 
     const task = new CleanupDynamicOAuthClientsTask();
