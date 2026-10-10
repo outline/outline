@@ -166,6 +166,9 @@ export class EditorStyleHelper {
 
   // Drag and drop
 
+  /** Line that shows where dragged content will be dropped */
+  static readonly dropCursor = "drop-cursor";
+
   /** Floating handle shown beside the hovered block to drag it */
   static readonly blockDragHandle = "block-drag-handle";
 

@@ -36,6 +36,7 @@ import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
 import type { AnyExtension, AnyExtensionClass } from "@shared/editor/lib/types";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { inputRules } from "@shared/editor/lib/inputRules";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -510,7 +511,7 @@ export class Editor extends React.PureComponent<
         dropCursor({
           color: this.props.theme.accent,
           width: 2,
-          class: "drop-cursor",
+          class: EditorStyleHelper.dropCursor,
         }),
         gapCursor(),
         inputRules({

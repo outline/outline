@@ -174,7 +174,7 @@ export default createGlobalStyle<Props>`
 
   /* prosemirror-dropcursor renders adjacent to the editor (in view.dom.offsetParent), outside
      the styled EditorContainer scope, so this rule has to live globally. */
-  .drop-cursor {
+  .${EditorStyleHelper.dropCursor} {
     border-radius: 9999px;
   }
 
