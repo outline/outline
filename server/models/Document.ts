@@ -556,6 +556,82 @@ class Document extends ArchivableModel<
     return (model.urlId = model.urlId || generateUrlId());
   }
 
+  @BeforeSave
+  static enforceSingleHome(model: Document) {
+    // A document lives in a collection or in a person's own space, never in
+    // both. Normalising here rather than at each call site means the two
+    // columns are always written together, in one statement.
+    if (model.changed("personalOwnerId") && model.personalOwnerId) {
+      model.collectionId = null;
+    } else if (model.changed("collectionId") && model.collectionId) {
+      model.personalOwnerId = null;
+    }
+  }
+
+  @AfterCreate
+  @AfterUpdate
+  static async cascadePersonalOwner(model: Document, ctx: HookContext) {
+    // A child moved to the root needs its own sidebar record even when it
+    // stays in the same personal space.
+    if (
+      model.personalOwnerId &&
+      !model.parentDocumentId &&
+      (model.changed("personalOwnerId") || model.changed("parentDocumentId"))
+    ) {
+      await UserMembership.findOrCreateForPersonalDocument(
+        model,
+        model.personalOwnerId,
+        ctx
+      );
+    }
+
+    if (!model.changed("personalOwnerId")) {
+      return;
+    }
+
+    const { transaction } = ctx;
+    const { personalOwnerId } = model;
+
+    const childDocumentIds = await model.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    if (childDocumentIds.length && (model.collectionId || personalOwnerId)) {
+      // hooks are skipped as the descendants inherit the location that has
+      // already been resolved on this document. When the document becomes a
+      // draft with no home, descendants keep theirs — a published document
+      // cannot live nowhere.
+      await this.update(
+        { collectionId: model.collectionId ?? null, personalOwnerId },
+        { where: { id: childDocumentIds }, transaction, hooks: false }
+      );
+    }
+
+    const previousOwnerId = model.previous("personalOwnerId");
+    if (previousOwnerId && previousOwnerId !== personalOwnerId) {
+      // Descendants can have their own owner records if they were once roots.
+      // Remove those grants too when the subtree changes location. Children
+      // that keep their personal location when this document becomes a draft
+      // keep their own records.
+      const documentIds =
+        model.collectionId || personalOwnerId
+          ? [model.id, ...childDocumentIds]
+          : [model.id];
+      const memberships = await UserMembership.findAll({
+        where: {
+          documentId: documentIds,
+          userId: previousOwnerId,
+          sourceId: null,
+        },
+        transaction,
+      });
+      const context: HookContext = { auth: ctx.auth, ip: ctx.ip, transaction };
+      for (const membership of memberships) {
+        await membership.destroy(context);
+      }
+    }
+  }
+
   @BeforeCreate
   static setDocumentVersion(model: Document) {
     if (model.version === undefined) {
@@ -724,6 +800,17 @@ class Document extends ArchivableModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  @BelongsTo(() => User, "personalOwnerId")
+  personalOwner: User | null;
+
+  /**
+   * The user whose personal space this document lives in. Mutually exclusive
+   * with collectionId.
+   */
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  personalOwnerId?: string | null;
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];
@@ -1103,6 +1190,16 @@ class Document extends ArchivableModel<
   }
 
   /**
+   * Whether this document lives in a user's personal space rather than in a
+   * collection.
+   *
+   * @returns boolean
+   */
+  get isPersonal(): boolean {
+    return !!this.personalOwnerId;
+  }
+
+  /**
    * Returns the title of the document or a default if the document is untitled.
    *
    * @returns boolean
@@ -1407,6 +1504,7 @@ class Document extends ArchivableModel<
     this.createdBy = user;
     this.updatedBy = user;
     this.publishedAt = null;
+    this.personalOwnerId = null;
 
     if (options.detach) {
       this.collectionId = null;
@@ -1441,7 +1539,7 @@ class Document extends ArchivableModel<
   // Restore an archived document back to being visible to the team
   restoreTo = async (
     ctx: APIContext,
-    { collectionId }: { collectionId: string }
+    { collectionId }: { collectionId: string | null }
   ) => {
     const { transaction } = ctx.state;
     const collection = collectionId
@@ -1631,7 +1729,7 @@ class Document extends ArchivableModel<
 
   private restoreArchivedWithChildren = async (
     ctx: APIContext,
-    { collectionId }: { collectionId: string }
+    { collectionId }: { collectionId: string | null }
   ) => {
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;

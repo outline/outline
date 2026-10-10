@@ -112,6 +112,7 @@ function DraggableSection({ section, children }: Props) {
     [SidebarSection.Starred]: t("Starred"),
     [SidebarSection.SharedWithMe]: t("Shared with me"),
     [SidebarSection.Collections]: t("Collections"),
+    [SidebarSection.Personal]: t("Personal"),
   };
 
   const order = normalizeSidebarSectionOrder(

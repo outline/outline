@@ -144,7 +144,7 @@ export const BreadcrumbContainer = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  
+
   /* Adds a subtle separator between path items */
   span:not(:last-child)::after {
     content: "/";

@@ -11,7 +11,7 @@ import NudeButton from "~/components/NudeButton";
 import useActionContext from "~/hooks/useActionContext";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
-import type { Action, ActionVariant } from "~/types";
+import type { ActionVariant, ActionWithChildren } from "~/types";
 import { SidebarSectionContext } from "./DraggableSection";
 import {
   SidebarActions,
@@ -26,7 +26,7 @@ type Props = {
   /** Actions shown at the top of the header's context menu */
   actions?: ActionVariant[];
   /** Action rendered as an icon button beside the header's menu button */
-  primaryAction?: Action;
+  primaryAction?: Exclude<ActionVariant, ActionWithChildren>;
   children?: React.ReactNode;
 };
 

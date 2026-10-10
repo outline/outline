@@ -36,6 +36,8 @@ type Props = {
   findText?: string;
   /** Whether the document should be published to the collection */
   publish?: boolean;
+  /** The personal space to publish the document into, outside any collection */
+  personalOwnerId?: string | null;
   /** The ID of the collection to publish the document to */
   collectionId?: string | null;
   /** The reason the document is archived or deleted. */
@@ -66,6 +68,7 @@ export default async function documentUpdater(
     findText,
     lastRevision,
     publish,
+    personalOwnerId,
     collectionId,
     deprecatedReason,
     done,
@@ -73,7 +76,7 @@ export default async function documentUpdater(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const cId = collectionId || document.collectionId;
+  const destCollectionId = collectionId || document.collectionId;
 
   if (title !== undefined) {
     document.title = title.trim();
@@ -155,15 +158,25 @@ export default async function documentUpdater(
   const event = {
     name: "documents.update",
     documentId: document.id,
-    collectionId: cId,
+    collectionId: destCollectionId,
     data: eventData,
   };
 
-  if (publish && cId) {
+  if (publish && personalOwnerId) {
+    // Detach before publishing, which otherwise adds the draft to its former
+    // collection's document structure before the save hooks run.
+    document.personalOwnerId = personalOwnerId;
+    document.collectionId = null;
+    document.collection = null;
+    await document.publish(ctx, { collectionId: null, data: eventData });
+  } else if (publish && destCollectionId) {
     if (!document.collectionId) {
-      document.collectionId = cId;
+      document.collectionId = destCollectionId;
     }
-    await document.publish(ctx, { collectionId: cId, data: eventData });
+    await document.publish(ctx, {
+      collectionId: destCollectionId,
+      data: eventData,
+    });
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;

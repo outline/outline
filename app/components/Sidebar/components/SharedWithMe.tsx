@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
@@ -17,19 +17,18 @@ import GroupLink from "./GroupLink";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SharedWithMeLink from "./SharedWithMeLink";
-import SidebarContext, { groupSidebarContext } from "./SidebarContext";
+import DocumentMembershipLink from "./DocumentMembershipLink";
+import SidebarContext, {
+  groupSidebarContext,
+  type SidebarContextType,
+} from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import { useHistory } from "react-router-dom";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import { patchLocation } from "~/utils/history";
+import { useSyncSidebarContext } from "~/hooks/useSyncSidebarContext";
 
 function SharedWithMe() {
-  const { ui, userMemberships, groupMemberships } = useStores();
+  const { userMemberships, groupMemberships } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const history = useHistory();
-  const locationSidebarContext = useLocationSidebarContext();
 
   usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
 
@@ -49,58 +48,36 @@ function SharedWithMe() {
     }
   }, [error, t]);
 
-  useEffect(() => {
-    const isContextInSharedSection =
-      locationSidebarContext === "shared" ||
-      locationSidebarContext?.startsWith("group");
+  useSyncSidebarContext(
+    useCallback(
+      (context: NonNullable<SidebarContextType>) =>
+        context === "shared" || context.startsWith("group"),
+      []
+    ),
+    useCallback(
+      (activeDocumentId: string) => {
+        const isSharedDirectly = user.documentMemberships.some(
+          (m) => m.pathToDocument(activeDocumentId).length > 0
+        );
 
-    if (!ui.activeDocumentId || isContextInSharedSection) {
-      return;
-    }
+        if (isSharedDirectly) {
+          return "shared";
+        }
 
-    const isActiveDocSharedDirectly = user.documentMemberships.find(
-      (m) => m.pathToDocument(ui.activeDocumentId!).length > 0
-    );
+        const groupWithActiveDocument = user.groupsWithDocumentMemberships.find(
+          (group) =>
+            group.documentMemberships.some(
+              (m) => m.pathToDocument(activeDocumentId).length > 0
+            )
+        );
 
-    if (isActiveDocSharedDirectly) {
-      history.push(
-        patchLocation(history.location, {
-          state: {
-            ...(history.location.state as Record<string, unknown>),
-            sidebarContext: "shared",
-          },
-        })
-      );
-
-      return;
-    }
-
-    const groupWithActiveDocument = user.groupsWithDocumentMemberships.find(
-      (group) =>
-        group.documentMemberships.some(
-          (m) => m.pathToDocument(ui.activeDocumentId!).length > 0
-        )
-    );
-
-    if (groupWithActiveDocument) {
-      history.push(
-        patchLocation(history.location, {
-          state: {
-            ...(history.location.state as Record<string, unknown>),
-            sidebarContext: groupSidebarContext(groupWithActiveDocument.id),
-          },
-        })
-      );
-    }
-    // `history` is read imperatively, the sidebar context should only be
-    // recalculated when the active document or memberships change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    ui.activeDocumentId,
-    locationSidebarContext,
-    user.documentMemberships,
-    user.groupsWithDocumentMemberships,
-  ]);
+        return groupWithActiveDocument
+          ? groupSidebarContext(groupWithActiveDocument.id)
+          : undefined;
+      },
+      [user.documentMemberships, user.groupsWithDocumentMemberships]
+    )
+  );
 
   if (
     !user.documentMemberships.length &&
@@ -127,7 +104,10 @@ function SharedWithMe() {
             {user.documentMemberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
-                <SharedWithMeLink key={membership.id} membership={membership} />
+                <DocumentMembershipLink
+                  key={membership.id}
+                  membership={membership}
+                />
               ))}
             {!loading && !end && (
               <SidebarLink
