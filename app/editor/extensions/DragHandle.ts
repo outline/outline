@@ -225,7 +225,7 @@ export default class DragHandle extends Extension {
               return;
             }
             const next = DragTarget.fromEvent(view, event);
-            if (next) {
+            if (next && !next.hasOwnControls(view.state)) {
               // Skip repositioning when still hovering the same block —
               // avoids a getBoundingClientRect and style writes on every
               // mousemove. Scroll repositioning is handled separately.
@@ -335,18 +335,29 @@ export default class DragHandle extends Extension {
 
           return {
             update: (_view, prevState) => {
-              if (!target || view.state.doc === prevState.doc) {
+              if (!target) {
                 return;
               }
-              // Positions shift when the document changes, e.g. from a
-              // collaborator's edit, so resolve the target again from its DOM.
-              const next = DragTarget.fromElement(view, target.element);
-              if (!next) {
+              const docChanged = view.state.doc !== prevState.doc;
+              if (docChanged) {
+                // Positions shift when the document changes, e.g. from a
+                // collaborator's edit, so resolve the target again from its DOM.
+                const next = DragTarget.fromElement(view, target.element);
+                if (!next) {
+                  hideHandle();
+                  return;
+                }
+                target = next;
+              }
+              // Leave the handle alone mid-drag so the drag is not cancelled.
+              if (pluginKey.getState(view.state)) {
+                return;
+              }
+              if (target.hasOwnControls(view.state)) {
                 hideHandle();
                 return;
               }
-              target = next;
-              if (!pluginKey.getState(view.state)) {
+              if (docChanged) {
                 position(target);
               }
             },

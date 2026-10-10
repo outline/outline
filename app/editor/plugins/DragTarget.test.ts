@@ -1,11 +1,15 @@
 import {
   bulletList,
   createEditorState,
+  createEditorStateWithSelection,
   doc,
   heading,
   hr,
   p,
   schema,
+  table,
+  td,
+  tr,
 } from "@shared/test/editor";
 import { DragTarget } from "./DragTarget";
 
@@ -61,5 +65,27 @@ describe("DragTarget.resolvePos", () => {
     const state = createEditorState(doc([p("one"), hr()]));
     expect(DragTarget.resolvePos(state, 5)).toEqual({ pos: 5, kind: "block" });
     expect(DragTarget.resolvePos(state, 6)).toEqual({ pos: 5, kind: "block" });
+  });
+});
+
+describe("DragTarget#hasOwnControls", () => {
+  const testDoc = doc([p("one"), table([tr([td("a"), td("b")])])]);
+  // The table starts after the 5-size paragraph.
+  const target = new DragTarget(5, document.createElement("div"), "block");
+
+  it("returns true when the selection is inside the table", () => {
+    const state = createEditorStateWithSelection(testDoc, 9);
+    expect(target.hasOwnControls(state)).toBe(true);
+  });
+
+  it("returns false when the selection is outside the table", () => {
+    const state = createEditorStateWithSelection(testDoc, 2);
+    expect(target.hasOwnControls(state)).toBe(false);
+  });
+
+  it("returns false for a block that is not a table", () => {
+    const state = createEditorStateWithSelection(testDoc, 2);
+    const paragraph = new DragTarget(0, document.createElement("div"), "block");
+    expect(paragraph.hasOwnControls(state)).toBe(false);
   });
 });
