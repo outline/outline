@@ -76,8 +76,14 @@ describe("ClientMetadataHelper", () => {
         ClientMetadataHelper.isValidClientIdUrl("https://example.com")
       ).toBe(false);
       expect(
-        ClientMetadataHelper.isValidClientIdUrl("https://example.com/")
+        ClientMetadataHelper.isValidClientIdUrl("https://example.com?client=1")
       ).toBe(false);
+    });
+
+    it("should accept a root path", () => {
+      expect(
+        ClientMetadataHelper.isValidClientIdUrl("https://example.com/")
+      ).toBe(true);
     });
 
     it("should reject a fragment", () => {

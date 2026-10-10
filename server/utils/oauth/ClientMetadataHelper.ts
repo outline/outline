@@ -153,8 +153,8 @@ export class ClientMetadataHelper {
 
   /**
    * Whether a client identifier is a valid metadata document URL. The URL
-   * must use https, have a path, and must not have a fragment, userinfo, or
-   * dot path segments.
+   * must use https, have a path (a root path is allowed), and must not have a
+   * fragment, userinfo, or dot path segments.
    *
    * @param clientId The client identifier to validate.
    * @returns true if the identifier is a valid metadata document URL.
@@ -201,7 +201,7 @@ export class ClientMetadataHelper {
 
     // The parsed URL resolves dot segments, so inspect the raw path instead.
     const rawPath = clientId.replace(/^https:\/\/[^/?]*/, "").split("?")[0];
-    if (!rawPath || rawPath === "/") {
+    if (!rawPath) {
       return false;
     }
 
