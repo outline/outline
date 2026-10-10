@@ -630,10 +630,21 @@ router.post(
           required: true,
           where: {
             teamId: user.teamId,
-            [Op.or]: [
-              { collectionId: collectionIds },
-              { id: membershipDocumentIds },
-              { createdById: userId, collectionId: { [Op.is]: null } },
+            [Op.and]: [
+              {
+                [Op.or]: [
+                  { collectionId: collectionIds },
+                  { id: membershipDocumentIds },
+                  { createdById: userId, collectionId: { [Op.is]: null } },
+                ],
+              },
+              {
+                [Op.or]: [
+                  { publishedAt: { [Op.ne]: null } },
+                  { createdById: userId },
+                  { id: membershipDocumentIds },
+                ],
+              },
             ],
           },
         },
