@@ -8,6 +8,9 @@ type Props = {
   useCursorPointer?: boolean;
 };
 
+const dragHandleIcon =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=";
+
 export default createGlobalStyle<Props>`
   ${styledNormalize}
 
@@ -178,10 +181,33 @@ export default createGlobalStyle<Props>`
   /* Block drag handle is appended to document.body, outside the styled
      EditorContainer scope, so its rules have to live globally. */
   .block-drag-handle {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    position: fixed;
+    width: 24px;
+    height: 24px;
+    cursor: grab;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease-in-out, background-color 150ms ease-in-out;
     background-color: ${s("textTertiary")};
+    mask-image: url("${dragHandleIcon}");
+    mask-repeat: no-repeat;
+    mask-position: 0 2px;
+    z-index: 1;
 
     &:hover {
       background-color: ${s("text")};
+    }
+
+    &.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    &.visible.dragging {
+      opacity: 0;
     }
   }
 

@@ -17,9 +17,6 @@ const GUTTER_OFFSET: Record<DragTargetKind, number> = {
   checkboxItem: 0,
 };
 
-const HANDLE_ICON =
-  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=";
-
 type PluginState = {
   pos: number;
   size: number;
@@ -180,8 +177,8 @@ export default class DragHandle extends Extension {
             handle.style.left = isRTL
               ? `${rect.right + offsetX - HANDLE_SIZE}px`
               : `${rect.left - offsetX}px`;
-            handle.style.opacity = "1";
-            handle.style.pointerEvents = "auto";
+            handle.classList.remove("dragging");
+            handle.classList.add("visible");
           };
 
           const show = (next: DragTarget) => {
@@ -196,8 +193,7 @@ export default class DragHandle extends Extension {
 
           const hideHandle = () => {
             target = null;
-            handle.style.opacity = "0";
-            handle.style.pointerEvents = "none";
+            handle.classList.remove("visible", "dragging");
           };
 
           const hide = () => {
@@ -274,9 +270,9 @@ export default class DragHandle extends Extension {
             );
             event.dataTransfer.clearData();
             event.dataTransfer.effectAllowed = "copyMove";
-            // Hide the handle for the duration of the drag — leave
-            // pointer-events alone so the in-flight drag isn't cancelled.
-            handle.style.opacity = "0";
+            // Hide the handle for the duration of the drag — keep it
+            // interactive so the in-flight drag isn't cancelled.
+            handle.classList.add("dragging");
             const selection = NodeSelection.create(view.state.doc, pos);
             // Use the slice from the original NodeSelection rather than
             // view.state.selection, which prosemirror-tables' tableEditing
@@ -376,23 +372,6 @@ function createHandle(): HTMLElement {
   handle.draggable = true;
   handle.contentEditable = "false";
   handle.setAttribute("aria-label", "Drag to reorder");
-  // Reset the native button chrome so only the icon shows. The icon is a
-  // mask, so its color comes from the global background-color rule.
-  handle.style.appearance = "none";
-  handle.style.border = "0";
-  handle.style.padding = "0";
-  handle.style.position = "fixed";
-  handle.style.width = `${HANDLE_SIZE}px`;
-  handle.style.height = `${HANDLE_SIZE}px`;
-  handle.style.cursor = "grab";
-  handle.style.opacity = "0";
-  handle.style.pointerEvents = "none";
-  handle.style.transition =
-    "opacity 150ms ease-in-out, background-color 150ms ease-in-out";
-  handle.style.maskImage = `url("${HANDLE_ICON}")`;
-  handle.style.maskRepeat = "no-repeat";
-  handle.style.maskPosition = "0 2px";
-  handle.style.zIndex = "1";
   return handle;
 }
 
