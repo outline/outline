@@ -5,6 +5,7 @@ import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
 import { isLoopbackUri } from "@shared/utils/urls";
+import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
@@ -76,15 +77,12 @@ function inputScopes(scope?: string): string[] {
  * @param clientId the OAuth client_id parameter.
  * @returns the hostname, or undefined if the client does not use a metadata document.
  */
-function metadataDocumentHost(clientId?: string) {
-  if (!clientId?.startsWith("https://")) {
-    return undefined;
-  }
-  try {
-    return new URL(clientId).hostname;
-  } catch {
-    return undefined;
-  }
+function metadataDocumentHost(clientId: string) {
+  return clientId.startsWith(
+    OAuthClientValidation.metadataDocumentClientIdPrefix
+  )
+    ? parseDomain(clientId).host
+    : undefined;
 }
 
 /**
@@ -199,7 +197,8 @@ function Authorize() {
   }
 
   const { name, developerName, developerUrl } = response.data;
-  const clientHost = metadataDocumentHost(clientId);
+  const clientHost = metadataDocumentHost(response.data.clientId);
+  const isLoopback = isLoopbackUri(redirectUri);
 
   return (
     <Background>
@@ -265,13 +264,13 @@ function Authorize() {
           )}
         </ul>
         <Text type="tertiary" as="p" style={{ wordBreak: "break-all" }}>
-          {isLoopbackUri(redirectUri) && clientHost ? (
+          {isLoopback && clientHost ? (
             <Trans
               defaults="You will be redirected to a local application after authorizing. <em>{{ clientHost }}</em> cannot confirm that this application belongs to it, only continue if you started this connection yourself."
               values={{ clientHost }}
               components={{ em: <strong /> }}
             />
-          ) : isLoopbackUri(redirectUri) ? (
+          ) : isLoopback ? (
             <Trans>
               You will be redirected to a local application after authorizing.
             </Trans>

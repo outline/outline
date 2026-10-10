@@ -26,10 +26,11 @@ module.exports = {
         { transaction }
       );
 
-      // Only clients identified by a metadata document URL may exist without a team.
+      // A client has no team exactly when it is identified by a metadata
+      // document URL.
       await queryInterface.sequelize.query(
         `ALTER TABLE "oauth_clients" ADD CONSTRAINT "oauth_clients_team_id_or_metadata_document"
-          CHECK ("teamId" IS NOT NULL OR "clientId" LIKE 'https://%');`,
+          CHECK (("teamId" IS NULL) = ("clientId" LIKE 'https://%'));`,
         { transaction }
       );
     });

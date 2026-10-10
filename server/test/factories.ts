@@ -5,6 +5,7 @@ import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
+import { Hour } from "@shared/utils/time";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
   CollectionPermission,
@@ -845,14 +846,14 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
 }
 
 export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
-  if (!overrides.teamId) {
+  if (overrides.teamId === undefined) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
   if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
-      teamId: overrides.teamId,
+      teamId: overrides.teamId ?? undefined,
     });
     overrides.createdById = user.id;
   }
@@ -883,25 +884,15 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
 export async function buildMetadataDocumentOAuthClient(
   overrides: Partial<OAuthClient> = {}
 ) {
-  return OAuthClient.create(
-    {
-      clientId: `https://${randomUUID()}.example.com/oauth/client.json`,
-      name: faker.company.name(),
-      redirectUris: ["https://example.com/oauth/callback"],
-      clientType: "public",
-      published: false,
-      teamId: null,
-      createdById: null,
-      metadataExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
-      ...(overrides.createdAt && !overrides.updatedAt
-        ? { updatedAt: overrides.createdAt }
-        : {}),
-      ...overrides,
-    },
-    {
-      silent: overrides.createdAt || overrides.updatedAt ? true : false,
-    }
-  );
+  return buildOAuthClient({
+    clientId: `https://${randomUUID()}.example.com/oauth/client.json`,
+    clientType: "public",
+    published: false,
+    teamId: null,
+    createdById: null,
+    metadataExpiresAt: new Date(Date.now() + Hour.ms),
+    ...overrides,
+  });
 }
 
 export async function buildOAuthAuthorizationCode(

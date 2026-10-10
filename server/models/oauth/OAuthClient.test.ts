@@ -3,6 +3,7 @@ import { OAuthClient } from "@server/models";
 import {
   buildMetadataDocumentOAuthClient,
   buildOAuthClient,
+  buildTeam,
 } from "@server/test/factories";
 
 describe("OAuthClient", () => {
@@ -43,6 +44,18 @@ describe("OAuthClient", () => {
       await expect(
         OAuthClient.update(
           { teamId: null },
+          { where: { id: client.id }, hooks: false }
+        )
+      ).rejects.toThrow();
+    });
+
+    it("should not allow a metadata document client to have a team", async () => {
+      const team = await buildTeam();
+      const client = await buildMetadataDocumentOAuthClient();
+
+      await expect(
+        OAuthClient.update(
+          { teamId: team.id },
           { where: { id: client.id }, hooks: false }
         )
       ).rejects.toThrow();

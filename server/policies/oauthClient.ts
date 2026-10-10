@@ -18,10 +18,8 @@ allow(User, "read", OAuthClient, (actor, oauthClient) =>
       !!oauthClient?.published,
       !!oauthClient?.isCIMD
     ),
-    // Dynamically registered and metadata document clients exist only to
-    // serve MCP, so they become unreachable when the team turns it off.
-    (!oauthClient?.isDCR && !oauthClient?.isCIMD) ||
-      !!actor.team?.getPreference(TeamPreference.MCP)
+    // MCP clients become unreachable when the team turns MCP off.
+    !oauthClient?.isMCPClient || !!actor.team?.getPreference(TeamPreference.MCP)
   )
 );
 
@@ -29,7 +27,6 @@ allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>
   and(
     isTeamAdmin(actor, oauthClient),
     isTeamMutable(actor),
-    !oauthClient?.isDCR,
-    !oauthClient?.isCIMD
+    !oauthClient?.isMCPClient
   )
 );

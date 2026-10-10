@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { http, HttpResponse } from "msw";
 import { Minute, Day } from "@shared/utils/time";
+import { TeamPreference } from "@shared/types";
+import type { Team } from "@server/models";
 import { OAuthClient } from "@server/models";
 import {
   buildMetadataDocumentOAuthClient,
@@ -225,10 +227,30 @@ describe("ClientMetadataHelper", () => {
   });
 
   describe("findOrFetchByClientId", () => {
+    let team: Team;
+
+    beforeEach(async () => {
+      team = await buildTeam();
+    });
+
+    it("should not fetch when the team has turned MCP off", async () => {
+      const clientId = buildClientId();
+      const mock = mockDocument(clientId, buildDocument(clientId));
+      const disabled = await buildTeam({
+        preferences: { [TeamPreference.MCP]: false },
+      });
+
+      await expect(
+        ClientMetadataHelper.findOrFetchByClientId(clientId, disabled)
+      ).rejects.toThrow();
+      expect(mock.requests()).toEqual(0);
+    });
+
     it("should find a generated client without fetching", async () => {
       const client = await buildOAuthClient();
       const found = await ClientMetadataHelper.findOrFetchByClientId(
-        client.clientId
+        client.clientId,
+        team
       );
       expect(found?.id).toEqual(client.id);
     });
@@ -239,7 +261,10 @@ describe("ClientMetadataHelper", () => {
         headers: { "Cache-Control": "max-age=3600" },
       });
 
-      const client = await ClientMetadataHelper.findOrFetchByClientId(clientId);
+      const client = await ClientMetadataHelper.findOrFetchByClientId(
+        clientId,
+        team
+      );
 
       expect(client).toBeTruthy();
       expect(client?.clientId).toEqual(clientId);
@@ -268,7 +293,8 @@ describe("ClientMetadataHelper", () => {
       );
 
       const client = await ClientMetadataHelper.findOrFetchByClientId(
-        cached.clientId
+        cached.clientId,
+        team
       );
 
       expect(client?.id).toEqual(cached.id);
@@ -285,7 +311,8 @@ describe("ClientMetadataHelper", () => {
       );
 
       const client = await ClientMetadataHelper.findOrFetchByClientId(
-        cached.clientId
+        cached.clientId,
+        team
       );
 
       expect(mock.requests()).toEqual(1);
@@ -301,7 +328,8 @@ describe("ClientMetadataHelper", () => {
       mockDocument(cached.clientId, "error", { status: 500 });
 
       const client = await ClientMetadataHelper.findOrFetchByClientId(
-        cached.clientId
+        cached.clientId,
+        team
       );
 
       expect(client).toBeNull();
@@ -315,9 +343,9 @@ describe("ClientMetadataHelper", () => {
       mockDocument(clientId, buildDocument(clientId));
 
       const clients = await Promise.all([
-        ClientMetadataHelper.findOrFetchByClientId(clientId),
-        ClientMetadataHelper.findOrFetchByClientId(clientId),
-        ClientMetadataHelper.findOrFetchByClientId(clientId),
+        ClientMetadataHelper.findOrFetchByClientId(clientId, team),
+        ClientMetadataHelper.findOrFetchByClientId(clientId, team),
+        ClientMetadataHelper.findOrFetchByClientId(clientId, team),
       ]);
 
       expect(clients.every(Boolean)).toBe(true);
@@ -326,7 +354,8 @@ describe("ClientMetadataHelper", () => {
 
     it("should not fetch an invalid client_id URL", async () => {
       const client = await ClientMetadataHelper.findOrFetchByClientId(
-        "https://example.com/a/../client"
+        "https://example.com/a/../client",
+        team
       );
       expect(client).toBeNull();
     });
@@ -339,7 +368,7 @@ describe("ClientMetadataHelper", () => {
       mockDocument(clientId, buildDocument(clientId), { status });
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -359,7 +388,7 @@ describe("ClientMetadataHelper", () => {
       );
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
       expect(mock.requests()).toEqual(0);
     });
@@ -374,7 +403,7 @@ describe("ClientMetadataHelper", () => {
       );
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -383,7 +412,7 @@ describe("ClientMetadataHelper", () => {
       mockDocument(clientId, "{ not json");
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -392,7 +421,7 @@ describe("ClientMetadataHelper", () => {
       mockDocument(clientId, buildDocument(buildClientId()));
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -401,7 +430,7 @@ describe("ClientMetadataHelper", () => {
       mockDocument(clientId, buildDocument(clientId, { client_secret: "abc" }));
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -415,7 +444,7 @@ describe("ClientMetadataHelper", () => {
         );
 
         expect(
-          await ClientMetadataHelper.findOrFetchByClientId(clientId)
+          await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
         ).toBeNull();
       }
     );
@@ -425,7 +454,7 @@ describe("ClientMetadataHelper", () => {
       mockDocument(clientId, buildDocument(clientId, { redirect_uris: [] }));
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -439,7 +468,7 @@ describe("ClientMetadataHelper", () => {
       );
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -450,7 +479,7 @@ describe("ClientMetadataHelper", () => {
       });
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
     });
 
@@ -461,7 +490,7 @@ describe("ClientMetadataHelper", () => {
       });
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeTruthy();
     });
 
@@ -470,7 +499,7 @@ describe("ClientMetadataHelper", () => {
       const mock = mockDocument(clientId, buildDocument(clientId));
 
       expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId)
+        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
       ).toBeNull();
       expect(mock.requests()).toEqual(0);
     });
@@ -484,7 +513,10 @@ describe("ClientMetadataHelper", () => {
         })
       );
 
-      const client = await ClientMetadataHelper.findOrFetchByClientId(clientId);
+      const client = await ClientMetadataHelper.findOrFetchByClientId(
+        clientId,
+        team
+      );
       expect(client?.redirectUris).toEqual(["http://127.0.0.1:33418/callback"]);
     });
   });

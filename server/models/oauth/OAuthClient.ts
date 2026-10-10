@@ -184,6 +184,16 @@ class OAuthClient extends ParanoidModel<
   }
 
   /**
+   * Determine if this client exists only to serve MCP. This is true for
+   * clients from dynamic client registration and from metadata documents.
+   *
+   * @returns true if this client was not created by a user, false otherwise.
+   */
+  public get isMCPClient() {
+    return !this.createdById;
+  }
+
+  /**
    * Determine if this client is identified by a client ID metadata document
    * (CIMD). These clients use the https URL of the document as their
    * `clientId`, and do not belong to a team.
@@ -224,7 +234,9 @@ class OAuthClient extends ParanoidModel<
    * @returns true if the identifier is a metadata document URL.
    */
   public static isMetadataDocumentClientId(clientId: string | undefined) {
-    return !!clientId?.startsWith("https://");
+    return !!clientId?.startsWith(
+      OAuthClientValidation.metadataDocumentClientIdPrefix
+    );
   }
 
   /**

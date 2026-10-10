@@ -1,5 +1,6 @@
 import { subDays, subHours } from "date-fns";
 import { Op, Sequelize } from "sequelize";
+import { OAuthClientValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { OAuthClient } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
@@ -22,6 +23,8 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
 
     // Deleting a client cascades to its codes, so keep clients that are
     // between consent and token exchange.
+    const metadataDocumentPattern = `${OAuthClientValidation.metadataDocumentClientIdPrefix}%`;
+
     const noPendingCodes = Sequelize.literal(
       `NOT EXISTS (SELECT 1 FROM oauth_authorization_codes oac WHERE oac."oauthClientId" = "oauth_clients"."id" AND oac."expiresAt" > NOW())`
     );
@@ -29,7 +32,7 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
     const count = await OAuthClient.unscoped().destroy({
       where: {
         createdById: null,
-        clientId: { [Op.notLike]: "https://%" },
+        clientId: { [Op.notLike]: metadataDocumentPattern },
         [Op.and]: [noPendingCodes],
         [Op.or]: [
           {
@@ -49,9 +52,7 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
 
     const metadataCount = await OAuthClient.unscoped().destroy({
       where: {
-        createdById: null,
-        teamId: null,
-        clientId: { [Op.like]: "https://%" },
+        clientId: { [Op.like]: metadataDocumentPattern },
         createdAt: { [Op.lt]: neverUsedCutoff },
         [Op.and]: [
           noPendingCodes,

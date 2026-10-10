@@ -1,9 +1,13 @@
+import { clamp } from "es-toolkit";
+import { UniqueConstraintError } from "sequelize";
 import { z } from "zod";
-import { getBaseDomain } from "@shared/utils/domains";
+import { TeamPreference } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import { errToString } from "@shared/utils/error";
-import { Minute, Day } from "@shared/utils/time";
+import { Day, Minute, Second } from "@shared/utils/time";
 import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
+import { AuthorizationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { OAuthClient, Share, Team } from "@server/models";
 import fetch from "@server/utils/fetch";
@@ -67,23 +71,25 @@ export class ClientMetadataHelper {
    * client or the cached copy has expired.
    *
    * @param clientId The public client identifier.
+   * @param team The team of the user that requests the client.
    * @returns The OAuth client, or null if it is not found or not valid.
+   * @throws AuthorizationError if the client is a metadata document and the
+   *   team has turned MCP off.
    */
   public static async findOrFetchByClientId(
-    clientId: string
+    clientId: string,
+    team: Team
   ): Promise<OAuthClient | null> {
     if (!OAuthClient.isMetadataDocumentClientId(clientId)) {
       return OAuthClient.findByClientId(clientId);
     }
-    if (!ClientMetadataHelper.isValidClientIdUrl(clientId)) {
-      return null;
-    }
 
-    // Users can upload content to this installation, so a document hosted
-    // here could impersonate a client.
-    if (
-      await ClientMetadataHelper.isInstallationHost(new URL(clientId).hostname)
-    ) {
+    // Metadata documents only serve MCP, so do not fetch one for a team that
+    // has turned it off.
+    if (!team.getPreference(TeamPreference.MCP)) {
+      throw AuthorizationError();
+    }
+    if (!ClientMetadataHelper.isValidClientIdUrl(clientId)) {
       return null;
     }
 
@@ -93,6 +99,14 @@ export class ClientMetadataHelper {
       existing.metadataExpiresAt > new Date()
     ) {
       return existing;
+    }
+
+    // Users can upload content to this installation, so a document hosted
+    // here could impersonate a client.
+    if (
+      await ClientMetadataHelper.isInstallationHost(new URL(clientId).hostname)
+    ) {
+      return null;
     }
 
     try {
@@ -112,12 +126,20 @@ export class ClientMetadataHelper {
         return await existing.update(attributes);
       }
 
-      // Concurrent first requests for the same URL resolve to the same row.
-      const [client, created] = await OAuthClient.findOrCreate({
-        where: { clientId },
-        defaults: { ...attributes, clientId, teamId: null, createdById: null },
-      });
-      return created ? client : await client.update(attributes);
+      try {
+        return await OAuthClient.create({
+          ...attributes,
+          clientId,
+          teamId: null,
+          createdById: null,
+        });
+      } catch (err) {
+        // A concurrent request for the same URL created the row first.
+        if (err instanceof UniqueConstraintError) {
+          return await OAuthClient.findByClientId(clientId);
+        }
+        throw err;
+      }
     } catch (err) {
       // An existing client is kept so that issued tokens continue to work,
       // but it cannot be authorized again until a fetch succeeds.
@@ -156,7 +178,7 @@ export class ClientMetadataHelper {
       return false;
     }
 
-    if (url.protocol !== "https:" || !clientId.startsWith("https://")) {
+    if (!OAuthClient.isMetadataDocumentClientId(clientId)) {
       return false;
     }
     if (url.username || url.password || clientId.includes("#")) {
@@ -188,9 +210,8 @@ export class ClientMetadataHelper {
    * @returns true if the hostname belongs to this installation.
    */
   public static async isInstallationHost(hostname: string): Promise<boolean> {
-    const host = hostname.toLowerCase().replace(/\.+$/, "");
-    const baseDomain = getBaseDomain();
-    if (host === baseDomain || host.endsWith(`.${baseDomain}`)) {
+    const { host, custom } = parseDomain(hostname);
+    if (!custom) {
       return true;
     }
 
@@ -284,14 +305,15 @@ export class ClientMetadataHelper {
     const expires = headers.get("expires");
 
     if (maxAge) {
-      duration = parseInt(maxAge[1], 10) * 1000;
+      duration = parseInt(maxAge[1], 10) * Second.ms;
     } else if (expires) {
       const expiresAt = new Date(expires).getTime();
       duration = Number.isNaN(expiresAt) ? 0 : expiresAt - now.getTime();
     }
 
-    const clamped = Math.min(
-      Math.max(duration, ClientMetadataHelper.minCacheDuration),
+    const clamped = clamp(
+      duration,
+      ClientMetadataHelper.minCacheDuration,
       ClientMetadataHelper.maxCacheDuration
     );
     return new Date(now.getTime() + clamped);

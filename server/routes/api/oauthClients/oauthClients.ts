@@ -1,12 +1,8 @@
 import Router from "@koa/router";
 import { Op } from "sequelize";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { TeamPreference, UserRole } from "@shared/types";
-import {
-  AuthorizationError,
-  NotFoundError,
-  ValidationError,
-} from "@server/errors";
+import { UserRole } from "@shared/types";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -88,18 +84,8 @@ router.post(
     const { id, clientId, redirectUri } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    // Metadata documents only serve MCP, so do not fetch one for a workspace
-    // that has turned it off.
-    if (
-      clientId &&
-      OAuthClient.isMetadataDocumentClientId(clientId) &&
-      !user.team.getPreference(TeamPreference.MCP)
-    ) {
-      throw AuthorizationError();
-    }
-
     const oauthClient = clientId
-      ? await ClientMetadataHelper.findOrFetchByClientId(clientId)
+      ? await ClientMetadataHelper.findOrFetchByClientId(clientId, user.team)
       : await OAuthClient.findByPk(id);
     if (!oauthClient) {
       throw NotFoundError();
