@@ -1213,9 +1213,9 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   left: 0;
   top: 0;
   bottom: 0;
-  /* Sit immediately left of the block drag handle in the gutter. */
-  margin-left: -38px;
-  width: 18px;
+  /* Sit left of the block drag handle, or in its place when read-only. */
+  margin-left: ${props.readOnly ? -26 : -38}px;
+  width: ${props.readOnly ? 26 : 18}px;
   align-items: center;
   justify-content: center;
   opacity: 0;
@@ -1240,7 +1240,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -38px;
+    margin-right: ${props.readOnly ? -26 : -38}px;
   }
 }
 
