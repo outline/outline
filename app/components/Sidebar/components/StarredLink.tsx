@@ -383,6 +383,10 @@ function StarredLink({ star }: Props) {
         : star.collectionId === ui.activeCollectionId,
     [star, ui]
   );
+  const activeDocumentId = useComputed(
+    () => (isActive ? ui.activeDocumentId : undefined),
+    [isActive, ui]
+  );
   const [expanded, setExpanded] = useState(
     isActive && sidebarContext === activeSidebarContext
   );
@@ -394,7 +398,7 @@ function StarredLink({ star }: Props) {
     if (isActive && sidebarContext === activeSidebarContext) {
       setExpanded(true);
     }
-  }, [isActive, sidebarContext, activeSidebarContext]);
+  }, [isActive, activeDocumentId, sidebarContext, activeSidebarContext]);
 
   useEffect(() => {
     if (documentId) {
