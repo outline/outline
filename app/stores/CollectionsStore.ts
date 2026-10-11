@@ -172,10 +172,7 @@ export default class CollectionsStore extends IndexedStore<Collection> {
     });
 
   get(id: string = ""): Collection | undefined {
-    return (
-      this.data.get(id) ??
-      this.orderedData.find((collection) => id.endsWith(collection.urlId))
-    );
+    return this.getByIdOrUrlId(id);
   }
 
   @computed
