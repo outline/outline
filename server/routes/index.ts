@@ -245,6 +245,11 @@ if (env.SENTRY_DSN) {
 
 koa.use(async (ctx, next) => {
   ctx.set("Timing-Allow-Origin", timingOrigins.join(", "));
+
+  // Allow the JS Self-Profiling API to be used for local performance work.
+  if (env.isDevelopment) {
+    ctx.set("Document-Policy", "js-profiling");
+  }
   await next();
 });
 

@@ -25,7 +25,7 @@ import usePolicy from "~/hooks/usePolicy";
 const headerActions = [createCollection];
 
 function Collections() {
-  const { documents, auth, collections, policies, ui } = useStores();
+  const { auth, collections, policies, ui } = useStores();
   const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
@@ -106,7 +106,6 @@ function Collections() {
                 <DraggableCollectionLink
                   key={item.id}
                   collection={item}
-                  activeDocument={documents.active}
                   belowCollection={orderedCollections[index + 1]}
                 />
               )}

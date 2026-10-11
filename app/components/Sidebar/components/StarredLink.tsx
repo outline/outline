@@ -15,6 +15,7 @@ import type { RefHandle } from "~/components/EditableTitle";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
+import { useComputed } from "~/hooks/useComputed";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import usePolicy from "~/hooks/usePolicy";
@@ -109,10 +110,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : emptyChildDocuments;
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
-  const expansion = useSidebarExpansionState(
-    childDocuments,
-    documents.active?.id
-  );
+  const expansion = useSidebarExpansionState(childDocuments);
 
   const handleCascadeExpand = React.useCallback(() => {
     if (childDocuments.length) {
@@ -376,36 +374,31 @@ function StarredLink({ star }: Props) {
   const sidebarContext = starredSidebarContext(
     star.documentId ?? star.collectionId ?? ""
   );
+  // Computed so that only the stars that become active or inactive re-render
+  // when navigating.
+  const isActive = useComputed(
+    () =>
+      star.documentId
+        ? star.documentId === ui.activeDocumentId
+        : star.collectionId === ui.activeCollectionId,
+    [star, ui]
+  );
+  const activeDocumentId = useComputed(
+    () => (isActive ? ui.activeDocumentId : undefined),
+    [isActive, ui]
+  );
   const [expanded, setExpanded] = useState(
-    (star.documentId
-      ? star.documentId === ui.activeDocumentId
-      : star.collectionId === ui.activeCollectionId) &&
-      sidebarContext === activeSidebarContext
+    isActive && sidebarContext === activeSidebarContext
   );
 
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
 
   React.useEffect(() => {
-    if (
-      star.documentId === ui.activeDocumentId &&
-      sidebarContext === activeSidebarContext
-    ) {
-      setExpanded(true);
-    } else if (
-      star.collectionId === ui.activeCollectionId &&
-      sidebarContext === activeSidebarContext
-    ) {
+    if (isActive && sidebarContext === activeSidebarContext) {
       setExpanded(true);
     }
-  }, [
-    star.documentId,
-    star.collectionId,
-    ui.activeDocumentId,
-    ui.activeCollectionId,
-    sidebarContext,
-    activeSidebarContext,
-  ]);
+  }, [isActive, activeDocumentId, sidebarContext, activeSidebarContext]);
 
   useEffect(() => {
     if (documentId) {
@@ -454,21 +447,31 @@ function StarredLink({ star }: Props) {
   const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
 
-  const cursor = (
-    <>
-      {reorderStarProps.isDragging && (
-        <DropCursor
-          isActiveDrop={reorderStarProps.isOverCursor}
-          innerRef={dropToReorderRef}
-        />
-      )}
-      {createStarProps.isDragging && (
-        <DropCursor
-          isActiveDrop={createStarProps.isOverCursor}
-          innerRef={dropToStarRef}
-        />
-      )}
-    </>
+  const cursor = React.useMemo(
+    () => (
+      <>
+        {reorderStarProps.isDragging && (
+          <DropCursor
+            isActiveDrop={reorderStarProps.isOverCursor}
+            innerRef={dropToReorderRef}
+          />
+        )}
+        {createStarProps.isDragging && (
+          <DropCursor
+            isActiveDrop={createStarProps.isOverCursor}
+            innerRef={dropToStarRef}
+          />
+        )}
+      </>
+    ),
+    [
+      reorderStarProps.isDragging,
+      reorderStarProps.isOverCursor,
+      dropToReorderRef,
+      createStarProps.isDragging,
+      createStarProps.isOverCursor,
+      dropToStarRef,
+    ]
   );
 
   if (document) {
