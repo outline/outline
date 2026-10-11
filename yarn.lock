@@ -15733,7 +15733,7 @@ __metadata:
     sequelize-cli: "npm:^6.6.5"
     sequelize-strict-attributes: "npm:^1.0.2"
     sequelize-typescript: "npm:^2.1.6"
-    slug: "npm:^5.3.0"
+    slug: "npm:^11.0.1"
     slugify: "npm:^1.6.9"
     socket.io: "npm:^4.8.3"
     socket.io-client: "npm:^4.8.4"
@@ -18688,10 +18688,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"slug@npm:^5.3.0":
-  version: 5.3.0
-  resolution: "slug@npm:5.3.0"
-  checksum: 10c0/78d42d984c5ac448f2ac5beb37378ab00de1588a72443f4afec24244ff93e8e9134c68fbe76b120c9213a9e9d6bfa748b6257ff3b7c8865861cb8b177f2d0a3a
+"slug@npm:^11.0.1":
+  version: 11.0.1
+  resolution: "slug@npm:11.0.1"
+  bin:
+    slug: cli.js
+  checksum: 10c0/96e89626de676d069ffed91bde3400d2bf8e6c344e20be2f33cc192d0b90dc59b4b0b22d6a048a43c665518a5ffecc92fe8b954f9390c69c8adee8894f3782a8
   languageName: node
   linkType: hard
 
