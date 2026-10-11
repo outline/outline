@@ -97,6 +97,9 @@ class MermaidRenderer {
   readonly element: HTMLElement;
   readonly elementId: string;
 
+  /** The cache key of the diagram rendered, or being rendered, into the element. */
+  private renderedKey?: string;
+
   constructor() {
     this.diagramId = uuidv4();
     this.elementId = `${EditorStyleHelper.mermaidDiagram}-${this.diagramId}`;
@@ -111,6 +114,11 @@ class MermaidRenderer {
     const text = block.node.textContent;
 
     const cacheKey = hashString(`${isDark ? "dark" : "light"}-${text}`);
+    if (this.renderedKey === cacheKey) {
+      return;
+    }
+    this.renderedKey = cacheKey;
+
     const cached = cache.get(cacheKey);
     if (cached) {
       element.classList.remove("parse-error", "empty");
@@ -175,6 +183,11 @@ class MermaidRenderer {
 
       const { svg, bindFunctions } = await mermaid.render(tempId, text);
 
+      // A newer render replaced this one while it was in progress.
+      if (this.renderedKey !== cacheKey) {
+        return;
+      }
+
       element.classList.remove("parse-error", "empty");
       element.innerHTML = svg;
 
@@ -205,6 +218,12 @@ class MermaidRenderer {
         cache.set(cacheKey, element.innerHTML);
       }
     } catch (error) {
+      if (this.renderedKey !== cacheKey) {
+        return;
+      }
+
+      // Allow a later state change to retry the render.
+      this.renderedKey = undefined;
       const isEmpty = block.node.textContent.trim().length === 0;
 
       if (isEmpty) {
@@ -490,10 +509,6 @@ export default function Mermaid({
       return newState.tr.setSelection(
         NodeSelection.create(newState.doc, codeBlock.pos)
       );
-    },
-    view: (view) => {
-      view.dispatch(view.state.tr.setMeta(pluginKey, { loaded: true }));
-      return {};
     },
     props: {
       decorations(state) {

@@ -369,8 +369,13 @@ export default function FindAndReplace({
     []
   );
 
+  // Tracks whether the controls were opened, as there is nothing to clear
+  // when the editor mounts with them closed.
+  const hasOpenedRef = React.useRef(false);
+
   React.useEffect(() => {
     if (localOpen) {
+      hasOpenedRef.current = true;
       onOpen();
       // The find controls take over highlighting from here.
       clearSearchHighlight();
@@ -389,7 +394,7 @@ export default function FindAndReplace({
       if (selectionRef.current) {
         setSearchTerm(selectionRef.current);
       }
-    } else {
+    } else if (hasOpenedRef.current) {
       onClose();
       setShowReplace(false);
       // Cancel any pending debounced find so it can't reactivate highlights
