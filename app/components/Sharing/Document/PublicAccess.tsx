@@ -227,7 +227,6 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
               {t(
                 "Nested documents are not shared on the web. Toggle sharing to enable access. This will be the default behavior in the future."
               )}
-              .
             </span>
           </Text>
         ) : null}

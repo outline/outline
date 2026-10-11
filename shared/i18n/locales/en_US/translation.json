@@ -1854,7 +1854,7 @@
   "to try again – if the problem persists please contact support.": "to try again – if the problem persists please contact support.",
   "Go to export": "Go to export",
   "Here’s your requested data export from {{ appName }}": "Here’s your requested data export from {{ appName }}",
-  "Your requested data export is complete, you can download from the link below in a browser that is logged into your account.": "Your requested data export is complete, you can download from the link below in a browser that is logged into your account.",
+  "Your requested data export is complete. You can download it from the link below in a browser that is logged into your account.": "Your requested data export is complete. You can download it from the link below in a browser that is logged into your account.",
   "This export will be available to download for {{ days }} days.": "This export will be available to download for {{ days }} days.",
   "Download export": "Download export",
   "The {{ groupName }} group was mentioned in “{{ documentTitle }}”": "The {{ groupName }} group was mentioned in “{{ documentTitle }}”",
