@@ -1,5 +1,5 @@
 import { compact, uniqBy } from "es-toolkit";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";

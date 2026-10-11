@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { UserRole } from "@shared/types";
 import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";

@@ -5,7 +5,7 @@ import type { AddressInfo } from "node:net";
 import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
-import Router from "koa-router";
+import Router from "@koa/router";
 import stoppable from "stoppable";
 import { toError } from "@shared/utils/error";
 import env from "./env";

@@ -1,7 +1,7 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
+import Router from "@koa/router";
 import env from "@server/env";
 import { ValidationError, NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";

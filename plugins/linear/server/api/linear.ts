@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { ValidationError } from "@server/errors";

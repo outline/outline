@@ -1,5 +1,5 @@
 import path from "node:path";
-import Router from "koa-router";
+import Router from "@koa/router";
 import contentDisposition from "content-disposition";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";

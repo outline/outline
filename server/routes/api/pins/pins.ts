@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
 import auth from "@server/middlewares/authentication";

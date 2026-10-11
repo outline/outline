@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { IntegrationType, UserRole } from "@shared/types";
