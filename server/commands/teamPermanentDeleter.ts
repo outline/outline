@@ -139,7 +139,7 @@ async function destroyTeamData(team: Team) {
   await destroyInBatches(Collection, { teamId });
   await destroyInBatches(Document.unscoped(), { teamId });
 
-  // Destory team-relation models
+  // Destroy team-relation models
   await sequelize.transaction(async (transaction) => {
     await AuthenticationProvider.destroy({
       where: {

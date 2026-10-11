@@ -153,9 +153,9 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     const eventName = this.eventName(eventType);
 
     return `
-${this.t(`"{{ documentTitle }}" {{ eventName }}`, { documentTitle: document.titleWithDefault, eventName })}
+${this.t("“{{ documentTitle }}” {{ eventName }}", { documentTitle: document.titleWithDefault, eventName })}
 
-${this.t(`{{ actorName }} {{ eventName }} the document "{{ documentTitle }}"`, { actorName, eventName, documentTitle: document.titleWithDefault })}${
+${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName, eventName, documentTitle: document.titleWithDefault })}${
       collection?.name
         ? `, ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
         : ""

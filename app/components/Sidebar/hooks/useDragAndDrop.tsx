@@ -577,7 +577,7 @@ export function useDropToReorderDocument(
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
         toast.message(
           t(
-            "You can't reorder documents in an alphabetically sorted collection"
+            "You can’t reorder documents in an alphabetically sorted collection"
           )
         );
         return;

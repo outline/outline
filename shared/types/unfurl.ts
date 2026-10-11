@@ -51,7 +51,7 @@ export type UnfurlResponse = {
     avatarUrl: string | null;
     /** Used to create mentioned user's avatar if no avatar URL provided */
     color: string;
-    /** Mentiond user's recent activity */
+    /** Mentioned user's recent activity */
     lastActive: string;
   };
   [UnfurlResourceType.Group]: {

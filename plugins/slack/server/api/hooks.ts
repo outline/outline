@@ -103,7 +103,7 @@ router.post(
             }
 
             unfurls[link.url] = {
-              title: t(`Comment by {{ author }} on "{{ title }}"`, {
+              title: t("Comment by {{ author }} on “{{ title }}”", {
                 author: comment.createdBy.name,
                 title: doc.title,
                 ...opts(user),
@@ -212,7 +212,7 @@ router.post(
         attachments: [
           {
             text: t(
-              "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.",
+              "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.",
               {
                 command: `/outline keyword`,
                 command2: `/outline`,
@@ -280,7 +280,7 @@ router.post(
       }
 
       ctx.body = {
-        text: t(`This is what we found for "{{ term }}"`, {
+        text: t("This is what we found for “{{ term }}”", {
           ...opts(user),
           term: text,
         }),
@@ -288,7 +288,7 @@ router.post(
       };
     } else {
       ctx.body = {
-        text: t(`No results for "{{ term }}"`, {
+        text: t("No results for “{{ term }}”", {
           ...opts(user),
           term: text,
         }),

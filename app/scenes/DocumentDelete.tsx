@@ -104,7 +104,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
       <Text as="p" type="secondary">
         {nestedDocumentsCount < 1 ? (
           <Trans
-            defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>."
+            defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history."
             values={{
               documentTitle: document.titleWithDefault,
             }}

@@ -7,7 +7,7 @@ type Props = {
 };
 
 /**
- * Asyncronously load required polyfills. Should wrap the React tree.
+ * Asynchronously load required polyfills. Should wrap the React tree.
  */
 export const LazyPolyfill: React.FC<Props> = ({ children }: Props) => {
   const [isLoaded, setIsLoaded] = React.useState(false);

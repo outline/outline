@@ -127,7 +127,7 @@ function Webhooks() {
       <Text as="p" type="secondary">
         <Trans>
           Webhooks can be used to notify your application when events happen in{" "}
-          {{ appName }}. Events are sent as a https request with a JSON payload
+          {{ appName }}. Events are sent as an HTTPS request with a JSON payload
           in near real-time.
         </Trans>
       </Text>

@@ -362,7 +362,7 @@ function Login({ children, onBack }: Props) {
         ) : (
           <>
             <StyledHeading as="h2" centered>
-              {t("Login to {{ authProviderName }}", {
+              {t("Log in to {{ authProviderName }}", {
                 authProviderName: config.name || env.APP_NAME,
               })}
             </StyledHeading>

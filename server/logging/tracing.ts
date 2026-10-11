@@ -188,7 +188,7 @@ const traceClass = (config?: TraceConfig) =>
  *
  * @param config Optional configuration for the span that will be created for this trace.
  */
-// Going to rely on inferrence do its thing for this function
+// Going to rely on inference to do its thing for this function
 // oxlint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function trace(config?: TraceConfig) {
   function traceDecorator(target: Constructor): void;

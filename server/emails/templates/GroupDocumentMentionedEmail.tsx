@@ -156,7 +156,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
           <Heading>{this.t("Your group was mentioned")}</Heading>
           <p>
             {this.t(
-              `{{ actorName }} mentioned the "{{ groupName }}" group in the document`,
+              "{{ actorName }} mentioned the “{{ groupName }}” group in the document",
               { actorName, groupName }
             )}{" "}
             <a href={documentLink}>{document.titleWithDefault}</a>.
