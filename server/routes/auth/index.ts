@@ -20,14 +20,16 @@ router.use(passport.initialize());
 
 // dynamically register available authentication provider routes
 void (async () => {
-  for (const provider of AuthenticationHelper.providers) {
-    const resolvedRouter = await provider.value.router;
+  const resolvedRouters = await Promise.all(
+    AuthenticationHelper.providers.map((provider) =>
+      Promise.resolve(provider.value.router)
+    )
+  );
+
+  router.use(authMiddleware({ optional: true }));
+  for (const resolvedRouter of resolvedRouters) {
     if (resolvedRouter) {
-      router.use(
-        "/",
-        authMiddleware({ optional: true }),
-        resolvedRouter.routes()
-      );
+      router.use("/", resolvedRouter.routes());
     }
   }
 })();
