@@ -378,16 +378,13 @@ function StarredLink({ star }: Props) {
   // when navigating.
   const isActive = useComputed(
     () =>
-      star.documentId === ui.activeDocumentId ||
-      star.collectionId === ui.activeCollectionId,
+      star.documentId
+        ? star.documentId === ui.activeDocumentId
+        : star.collectionId === ui.activeCollectionId,
     [star, ui]
   );
   const [expanded, setExpanded] = useState(
-    () =>
-      (star.documentId
-        ? star.documentId === ui.activeDocumentId
-        : star.collectionId === ui.activeCollectionId) &&
-      sidebarContext === activeSidebarContext
+    isActive && sidebarContext === activeSidebarContext
   );
 
   const { event: disclosureEvent, onDisclosureClick } =
