@@ -37,7 +37,7 @@ const EmojiMenu = (props: Props) => {
     () =>
       emojiSearch({ customEmojis: emojis.orderedData, query: search })
         .map((item) => {
-          // We snake_case the shortcode for backwards compatability with gemoji to
+          // We snake_case the shortcode for backwards compatibility with gemoji to
           // avoid multiple formats being written into documents.
           const id = emojiMartToGemoji[item.id] || item.id;
           const type = determineIconType(id);

@@ -202,7 +202,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         ) : (
           <Trans>
             You can edit the name of this group at any time, however doing so
-            too often might confuse your team mates.
+            too often might confuse your teammates.
           </Trans>
         )}
       </Text>

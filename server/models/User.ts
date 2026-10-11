@@ -442,7 +442,7 @@ class User extends ParanoidModel<
   };
 
   /**
-   * Returns the value of the givem preference
+   * Returns the value of the given preference
    *
    * @param preference The user preference to retrieve
    * @returns The preference value if set, else the default value.

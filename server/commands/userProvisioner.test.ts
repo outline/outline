@@ -385,7 +385,7 @@ describe("userProvisioner", () => {
 
     const result = await userProvisioner(ctx, {
       name: invite.name,
-      email: "external@ExamPle.com", // ensure that email is case insensistive
+      email: "external@ExamPle.com", // ensure that email is case insensitive
       emailVerified: true,
       teamId: invite.teamId,
     });

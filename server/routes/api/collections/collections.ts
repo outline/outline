@@ -312,7 +312,7 @@ router.post(
 
     if (!membership) {
       ctx.throw(
-        InvalidRequestError("This Group is not a part of the collection")
+        InvalidRequestError("This group is not a part of the collection")
       );
     }
 

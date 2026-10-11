@@ -430,7 +430,7 @@ describe("#subscriptions.info", () => {
     expect(response1.message).toEqual("Authorization error");
   });
 
-  it("should not provide infomation on invalid events", async () => {
+  it("should not provide information on invalid events", async () => {
     const creator = await buildUser();
 
     const subscriber = await buildUser({ teamId: creator.teamId });

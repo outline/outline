@@ -35,7 +35,7 @@ export async function loadPolyfills() {
 }
 
 /**
- * Detect ResizeObserver compatability.
+ * Detect ResizeObserver compatibility.
  *
  * @returns true if the current browser supports ResizeObserver
  */

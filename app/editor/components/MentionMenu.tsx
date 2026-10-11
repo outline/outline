@@ -220,7 +220,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
           const user = users.get(item.attrs.modelId);
           toast.message(
             t(
-              "{{ userName }} won't be notified, as they do not have access to this document",
+              "{{ userName }} won’t be notified, as they do not have access to this document",
               {
                 userName: item.attrs.label,
               }
@@ -235,7 +235,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         const group = groups.get(item.attrs.modelId);
         toast.message(
           t(
-            `Members of "{{ groupName }}" that have access to this document will be notified`,
+            "Members of “{{ groupName }}” that have access to this document will be notified",
             {
               groupName: item.attrs.label,
             }

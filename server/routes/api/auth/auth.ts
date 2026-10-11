@@ -28,7 +28,7 @@ const router = new Router();
 
 router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // If self hosted AND there is only one team then that team becomes the
-  // brand for the knowledge base and it's guest signin option is used for the
+  // brand for the knowledge base and its guest sign-in option is used for the
   // root login page.
   if (!env.isCloudHosted) {
     const team = await Team.scope("withAuthenticationProviders").findOne({

@@ -94,7 +94,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
     >
       <Text as="p" type="secondary">
         {t(
-          "Square images with transparent backgrounds work best. If your image is too large, we'll try to resize it for you."
+          "Square images with transparent backgrounds work best. If your image is too large, we’ll try to resize it for you."
         )}
       </Text>
 

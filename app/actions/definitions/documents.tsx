@@ -491,7 +491,7 @@ export const starDocument = createAction({
       (document) => document.star(),
       (documents, succeeded, t) =>
         documents.length > 1
-          ? t("{{ count }} documents starred", { count: succeeded })
+          ? t("{{ count }} document starred", { count: succeeded })
           : undefined
     );
     setPersistedState(getHeaderExpandedKey("starred"), true);
@@ -519,7 +519,7 @@ export const unstarDocument = createAction({
       (document) => document.unstar(),
       (documents, succeeded, t) =>
         documents.length > 1
-          ? t("{{ count }} documents unstarred", { count: succeeded })
+          ? t("{{ count }} document unstarred", { count: succeeded })
           : undefined
     ),
 });
@@ -587,7 +587,7 @@ export const unpublishDocument = createAction({
           ? t("Unpublished {{ documentName }}", {
               documentName: documents[0].noun,
             })
-          : t("{{ count }} documents unpublished", { count: succeeded })
+          : t("{{ count }} document unpublished", { count: succeeded })
     ),
 });
 
@@ -989,7 +989,7 @@ export const pinDocumentToCollection = createAction({
       (documents, succeeded, t) =>
         documents.length === 1
           ? t("Pinned to collection")
-          : t("{{ count }} documents pinned", { count: succeeded })
+          : t("{{ count }} document pinned", { count: succeeded })
     ),
 });
 
@@ -1050,7 +1050,7 @@ export const unpinDocument = createAction({
       (documents, succeeded, t) =>
         documents.length === 1
           ? t("Unpinned")
-          : t("{{ count }} documents unpinned", { count: succeeded })
+          : t("{{ count }} document unpinned", { count: succeeded })
     ),
 });
 
@@ -1373,7 +1373,7 @@ export const searchDocumentsForQueryActionFactory = (query: string) =>
   createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
-      t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
+      t("Search documents for “{{ searchQuery }}”", { searchQuery: query }),
     analyticsName: "Search documents",
     section: SearchResultsSection,
     priority: -1,
@@ -1475,7 +1475,7 @@ export const archiveDocument = createAction({
               toast.success(
                 documents.length === 1
                   ? t("Document archived")
-                  : t("{{ count }} documents archived", { count: succeeded })
+                  : t("{{ count }} document archived", { count: succeeded })
               );
             }
           }}
@@ -1508,7 +1508,7 @@ export const restoreDocument = createAction({
           ? t("{{ documentName }} restored", {
               documentName: capitalize(documents[0].noun),
             })
-          : t("{{ count }} documents restored", { count: succeeded })
+          : t("{{ count }} document restored", { count: succeeded })
     ),
 });
 
@@ -1618,7 +1618,7 @@ export const deleteDocument = createAction({
             );
             if (succeeded) {
               toast.success(
-                t("{{ count }} documents moved to trash", { count: succeeded })
+                t("{{ count }} document moved to trash", { count: succeeded })
               );
             }
           }}

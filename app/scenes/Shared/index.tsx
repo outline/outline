@@ -218,7 +218,7 @@ function SharedScene() {
               config?.name && isCloudHosted ? (
                 <Content>
                   {t(
-                    "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
+                    "{{ teamName }} is using {{ appName }} to share documents, please log in to continue.",
                     {
                       teamName: config.name,
                       appName: env.APP_NAME,
