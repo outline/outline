@@ -3,7 +3,7 @@ import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
 import Router from "@koa/router";
-import send from "koa-send";
+import { send } from "@koa/send";
 import { languages } from "@shared/i18n";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";

@@ -316,6 +316,32 @@ describe("content security policy", () => {
   });
 });
 
+describe("/locales/:lng.json", () => {
+  it("should serve the translation file with cache headers", async () => {
+    const res = await server.get("/locales/en_US.json");
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(res.headers.get("cache-control")).toEqual("public, max-age=604800");
+    expect(res.headers.get("etag")).toBeTruthy();
+    expect(res.headers.get("last-modified")).toBeTruthy();
+    expect(res.headers.get("access-control-allow-origin")).toEqual("*");
+    const body = await res.json();
+    expect(typeof body).toEqual("object");
+  });
+
+  it("should return 404 for an unknown language", async () => {
+    const res = await server.get("/locales/xx_XX.json");
+    expect(res.status).toEqual(404);
+  });
+
+  it("should not serve files outside the locales directory", async () => {
+    const res = await server.get("/locales/..%2F..%2Fpackage.json");
+    expect(res.status).toEqual(404);
+    const body = await res.text();
+    expect(body).not.toContain("dependencies");
+  });
+});
+
 describe("scanner path 404s", () => {
   it.each([
     "/.well-known/gpc.json",
