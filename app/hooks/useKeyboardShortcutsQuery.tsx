@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import KeyboardShortcuts from "~/components/KeyboardShortcuts";
 import useQuery from "./useQuery";
 import useStores from "./useStores";
 

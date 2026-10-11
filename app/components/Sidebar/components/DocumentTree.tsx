@@ -17,8 +17,9 @@ import useStores from "~/hooks/useStores";
 import { useScrollMargin } from "../hooks/useScrollMargin";
 import DocumentLink from "./DocumentLink";
 import { useDraggedItemId, useSidebarScrollElement } from "./DragActiveContext";
-import { useSidebarContext } from "./SidebarContext";
+import { isActiveSidebarContext, useSidebarContext } from "./SidebarContext";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 // Approximate rendered row height, rows are measured once mounted.
 const ROW_HEIGHT = 30;
@@ -174,9 +175,10 @@ export const DocumentTree = observer(function DocumentTree({
   // rendered in multiple contexts (collections/starred/shared) doesn't jump to
   // an unexpected section; when no context is set, fall back to the collections
   // tree alone.
-  const isScrollContext =
-    activeSidebarContext === sidebarContext ||
-    (!activeSidebarContext && sidebarContext === "collections");
+  const isScrollContext = isActiveSidebarContext(
+    sidebarContext,
+    activeSidebarContext
+  );
 
   React.useLayoutEffect(() => {
     const element = containerRef.current?.querySelector(
@@ -201,6 +203,21 @@ export const DocumentTree = observer(function DocumentTree({
       void documents.fetchChildDocuments(activeNodeId);
     }
   }, [documents, activeNodeId, activeHasChildren, sidebarContext]);
+
+  const getNavigationItems = React.useCallback(
+    () =>
+      rows.map((row) => ({
+        id: row.node.id,
+        url: row.node.url,
+        title: row.node.title,
+        sidebarContext,
+        collapsedChildren: expansion.isExpanded(row.node.id)
+          ? undefined
+          : row.node.children,
+      })),
+    [rows, expansion, sidebarContext]
+  );
+  useSidebarNavigation(containerRef, getNavigationItems);
 
   // Collapse documents that no longer have children, so that they do not show
   // as expanded when a child is added again.

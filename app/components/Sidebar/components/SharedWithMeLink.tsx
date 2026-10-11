@@ -31,6 +31,7 @@ import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 type Props = {
   membership: UserMembership | GroupMembership;
@@ -154,6 +155,25 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   );
 
   const displayChildDocuments = expanded && !isDragging;
+
+  const getNavigationItems = React.useCallback(
+    () =>
+      document
+        ? [
+            {
+              id: document.id,
+              url: document.path,
+              title: document.title,
+              sidebarContext,
+              collapsedChildren: displayChildDocuments
+                ? undefined
+                : membershipDocuments,
+            },
+          ]
+        : [],
+    [document, sidebarContext, displayChildDocuments, membershipDocuments]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
 
   if (!document) {
     return null;

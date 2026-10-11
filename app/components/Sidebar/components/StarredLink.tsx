@@ -47,6 +47,7 @@ import SidebarDisclosureContext, {
   useSidebarDisclosure,
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 type Props = {
   star: Star;
@@ -110,6 +111,21 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : emptyChildDocuments;
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  const getNavigationItems = React.useCallback(
+    () => [
+      {
+        id: document.id,
+        url: document.path,
+        title: document.title,
+        sidebarContext,
+        collapsedChildren: displayChildDocuments ? undefined : childDocuments,
+      },
+    ],
+    [document, sidebarContext, displayChildDocuments, childDocuments]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
   const expansion = useSidebarExpansionState(childDocuments);
 
   const handleCascadeExpand = React.useCallback(() => {
@@ -202,6 +218,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         documentId={document.id}
         document={document}
         to={{ pathname: document.path, state: { sidebarContext } }}
+        parentRef={parentRef}
         depth={0}
         icon={icon}
         canEdit={can.update}
@@ -394,11 +411,22 @@ function StarredLink({ star }: Props) {
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
 
+  // The sidebar context is unique to the star, so a starred document also
+  // expands when one of its descendants is active in it.
   React.useEffect(() => {
-    if (isActive && sidebarContext === activeSidebarContext) {
+    if (
+      (isActive || star.documentId) &&
+      sidebarContext === activeSidebarContext
+    ) {
       setExpanded(true);
     }
-  }, [isActive, activeDocumentId, sidebarContext, activeSidebarContext]);
+  }, [
+    isActive,
+    activeDocumentId,
+    star.documentId,
+    sidebarContext,
+    activeSidebarContext,
+  ]);
 
   useEffect(() => {
     if (documentId) {
