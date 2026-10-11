@@ -19,6 +19,7 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 import type { ActionWithChildren } from "~/types";
 
 export type CollectionRowProps = {
@@ -74,8 +75,8 @@ export type CollectionRowProps = {
   /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
   newChildDepth?: number;
 
-  /** Ref forwarded to the outer Relative; for drag hover timers. */
-  parentRef?: React.Ref<HTMLDivElement>;
+  /** Ref forwarded to the outer Relative; for drag hover timers and keyboard navigation. */
+  parentRef: React.RefObject<HTMLDivElement | null>;
   /** Drop target connector for "change collection" / reorder. */
   dropRef?: React.Ref<HTMLDivElement>;
   /** Whether the row is an active drop target (visual highlight). */
@@ -205,6 +206,20 @@ function CollectionRow({
       ),
     [parentRef, dropRef]
   );
+
+  const getNavigationItems = React.useCallback(
+    () => [
+      {
+        id: collection.id,
+        url: collection.path,
+        title: collection.name,
+        sidebarContext,
+        collapsedChildren: expanded ? undefined : collection.sortedDocuments,
+      },
+    ],
+    [collection, sidebarContext, expanded]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
 
   const sidebarLinkElement = (
     <SidebarLink

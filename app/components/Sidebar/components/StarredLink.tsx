@@ -46,6 +46,7 @@ import SidebarDisclosureContext, {
   useSidebarDisclosure,
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 type Props = {
   star: Star;
@@ -109,6 +110,21 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : emptyChildDocuments;
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  const getNavigationItems = React.useCallback(
+    () => [
+      {
+        id: document.id,
+        url: document.path,
+        title: document.title,
+        sidebarContext,
+        collapsedChildren: displayChildDocuments ? undefined : childDocuments,
+      },
+    ],
+    [document, sidebarContext, displayChildDocuments, childDocuments]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
   const expansion = useSidebarExpansionState(
     childDocuments,
     documents.active?.id
@@ -204,6 +220,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         documentId={document.id}
         document={document}
         to={{ pathname: document.path, state: { sidebarContext } }}
+        parentRef={parentRef}
         depth={0}
         icon={icon}
         canEdit={can.update}
@@ -386,9 +403,12 @@ function StarredLink({ star }: Props) {
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
 
+  // The sidebar context is unique to the star, so an active document in it is
+  // the starred document or one of its descendants.
   React.useEffect(() => {
     if (
-      star.documentId === ui.activeDocumentId &&
+      star.documentId &&
+      ui.activeDocumentId &&
       sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);

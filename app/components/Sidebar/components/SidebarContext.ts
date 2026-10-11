@@ -20,6 +20,21 @@ export const groupSidebarContext = (groupId: string): SidebarContextType =>
 export const starredSidebarContext = (modelId: string): SidebarContextType =>
   `starred-${modelId}`;
 
+/**
+ * Whether a sidebar context matches the active sidebar context. When no context
+ * is active, the collections context is treated as active.
+ *
+ * @param sidebarContext the context to check.
+ * @param activeSidebarContext the active context.
+ * @returns true if the context is active.
+ */
+export const isActiveSidebarContext = (
+  sidebarContext: SidebarContextType,
+  activeSidebarContext: SidebarContextType
+): boolean =>
+  sidebarContext === activeSidebarContext ||
+  (!activeSidebarContext && sidebarContext === "collections");
+
 export const determineSidebarContext = ({
   document,
   user,
