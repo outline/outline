@@ -13,7 +13,9 @@ import type GroupMembership from "~/models/GroupMembership";
 import type UserMembership from "~/models/UserMembership";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import { useComputed } from "~/hooks/useComputed";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import { useScrollMargin } from "../hooks/useScrollMargin";
 import DocumentLink from "./DocumentLink";
 import { useDraggedItemId, useSidebarScrollElement } from "./DragActiveContext";
@@ -29,6 +31,17 @@ const OVERSCAN = 10;
 const estimateSize = () => ROW_HEIGHT;
 
 const noAdjustment = () => false;
+
+// Alt+Shift+Arrow selects text, so other modifiers must not be held.
+const isAltArrow = (event: KeyboardEvent) =>
+  (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+  event.altKey &&
+  !event.shiftKey &&
+  !event.metaKey &&
+  !event.ctrlKey;
+
+// The shortcut also works while the document editor has focus.
+const keyDownOptions = { allowInTextInput: true };
 
 interface Props {
   /** The documents at the root of the tree. */
@@ -194,6 +207,37 @@ export const DocumentTree = observer(function DocumentTree({
       void documents.fetchChildDocuments(activeNodeId);
     }
   }, [documents, activeNodeId, activeHasChildren, sidebarContext]);
+
+  // Move to the adjacent visible row of the tree that contains the active
+  // document.
+  const handleNavigate = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (activeIndex === -1 || !isScrollContext) {
+        return;
+      }
+      const offset = event.key === "ArrowUp" ? -1 : 1;
+      const row = rows[activeIndex + offset];
+      if (!row) {
+        return;
+      }
+
+      // Moving up into a collapsed document goes to its last descendant.
+      let node = row.node;
+      if (offset < 0 && !expansion.isExpanded(node.id)) {
+        while (node.children.length) {
+          node = node.children[node.children.length - 1];
+        }
+      }
+
+      event.preventDefault();
+      history.push({
+        pathname: node.url,
+        state: { title: node.title, sidebarContext },
+      });
+    },
+    [activeIndex, isScrollContext, rows, sidebarContext, expansion]
+  );
+  useKeyDown(isAltArrow, handleNavigate, keyDownOptions);
 
   // Collapse documents that no longer have children, so that they do not show
   // as expanded when a child is added again.
