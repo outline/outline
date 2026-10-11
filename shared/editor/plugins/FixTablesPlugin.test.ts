@@ -7,6 +7,7 @@ import {
   th,
   tr,
 } from "@shared/test/editor";
+import { TableMap } from "prosemirror-tables";
 import { FixTablesPlugin } from "./FixTablesPlugin";
 
 describe("FixTablesPlugin", () => {
@@ -242,6 +243,29 @@ describe("FixTablesPlugin", () => {
       // Second row: first column th preserved, second converted
       expect(newTable.child(1).child(0).type.name).toBe("th");
       expect(newTable.child(1).child(1).type.name).toBe("td");
+    });
+  });
+
+  describe("cell span fixing", () => {
+    it("should reset invalid spans so every cell is in the table map", () => {
+      const testDoc = doc([
+        table([tr([td("A", { rowspan: 0 }), td("B", { colspan: 0 })])]),
+        table([tr([td("C"), td("D")])]),
+      ]);
+      const state = createEditorState(testDoc, [new FixTablesPlugin()]);
+
+      // Edit both tables so the clean table is checked after the broken one.
+      const { state: newState } = state.applyTransaction(
+        state.tr.insertText("y", 18).insertText("x", 4)
+      );
+
+      const newTable = newState.doc.firstChild!;
+      const map = TableMap.get(newTable);
+      newTable.firstChild!.forEach((cell, offset) => {
+        expect(cell.attrs.colspan).toBe(1);
+        expect(cell.attrs.rowspan).toBe(1);
+        expect(() => map.findCell(1 + offset)).not.toThrow();
+      });
     });
   });
 
