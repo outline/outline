@@ -316,6 +316,47 @@ describe("content security policy", () => {
   });
 });
 
+describe("/locales/:lng.json", () => {
+  it("should serve the translation file with cache headers", async () => {
+    const res = await server.get("/locales/en_US.json");
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(res.headers.get("cache-control")).toEqual("public, max-age=604800");
+    expect(res.headers.get("etag")).toBeTruthy();
+    expect(res.headers.get("last-modified")).toBeTruthy();
+    expect(res.headers.get("access-control-allow-origin")).toEqual("*");
+    const body = await res.json();
+    expect(typeof body).toEqual("object");
+  });
+
+  it("should return 404 for an unknown language", async () => {
+    const res = await server.get("/locales/xx_XX.json");
+    expect(res.status).toEqual(404);
+  });
+});
+
+describe("public assets", () => {
+  it.each([
+    "/images/..%2F..%2Fpackage.json",
+    "/fonts/..%2F..%2F..%2Fpackage.json",
+    "/email/%2e%2e%2f%2e%2e%2fpackage.json",
+    "/images/..%5C..%5Cpackage.json",
+  ])(
+    "should not serve files outside the public directory for %s",
+    async (path) => {
+      const res = await server.get(path);
+      expect(res.status).toEqual(403);
+      const body = await res.text();
+      expect(body).not.toContain("dependencies");
+    }
+  );
+
+  it("should reject paths with null bytes", async () => {
+    const res = await server.get("/images/logo.png%00.txt");
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("scanner path 404s", () => {
   it.each([
     "/.well-known/gpc.json",
