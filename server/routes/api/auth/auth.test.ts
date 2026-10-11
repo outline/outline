@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { addMonths } from "date-fns";
 import { Scope } from "@shared/types";
+import type { Sessions } from "@shared/utils/sessions";
 import { parseSessionsCookie } from "@shared/utils/sessions";
 import {
   buildApiKey,
@@ -66,6 +67,7 @@ describe("#auth.info", () => {
   });
 
   it("adds the current workspace to the sessions cookie when missing", async () => {
+    const before = addMonths(new Date(), 3).getTime();
     const user = await buildUser();
     const res = await server.post("/api/auth.info", user, {
       headers: { Host: "app.outline.dev" },
@@ -82,7 +84,53 @@ describe("#auth.info", () => {
       url: body.data.team.url,
       expiresAt: expect.any(String),
     });
+    const expiresAt = Date.parse(sessions[user.teamId].expiresAt || "");
+    expect(expiresAt).toBeGreaterThanOrEqual(before);
+    expect(expiresAt).toBeLessThanOrEqual(addMonths(new Date(), 3).getTime());
   });
+
+  it.each(["missing", "legacy", "dated"])(
+    "uses the token expiry when the current workspace entry is %s",
+    async (entry) => {
+      const team = await buildTeam();
+      const otherTeam = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const expires = addMonths(new Date(), 1);
+      const otherExpires = addMonths(new Date(), 2);
+      const otherSession = {
+        name: otherTeam.name,
+        logoUrl: otherTeam.avatarUrl,
+        url: otherTeam.url,
+        expiresAt: otherExpires.toISOString(),
+      };
+      const sessions: Sessions = { [otherTeam.id]: otherSession };
+      if (entry !== "missing") {
+        sessions[team.id] = {
+          name: team.name,
+          logoUrl: team.avatarUrl,
+          url: team.url,
+          ...(entry === "dated"
+            ? { expiresAt: addMonths(new Date(), 3).toISOString() }
+            : {}),
+        };
+      }
+      const res = await server.post("/api/auth.info", {
+        headers: {
+          Host: "app.outline.dev",
+          Authorization: `Bearer ${user.getSessionToken(expires)}`,
+          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
+        },
+      });
+      expect(res.status).toEqual(200);
+      const cookies = res.headers.raw()["set-cookie"];
+      const cookie = cookies.find((value) => value.startsWith("sessions="));
+      const value = cookie?.split(";")[0].slice("sessions=".length);
+      const written = parseSessionsCookie(decodeURIComponent(value || "{}"));
+      expect(written[team.id].expiresAt).toEqual(expires.toISOString());
+      expect(written[otherTeam.id]).toEqual(otherSession);
+      expect(cookie).toContain(`expires=${otherExpires.toUTCString()}`);
+    }
+  );
 
   it("does not write a sessions cookie when workspace details are unchanged", async () => {
     const team = await buildTeam();

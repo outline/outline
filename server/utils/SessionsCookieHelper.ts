@@ -90,15 +90,18 @@ export class SessionsCookieHelper {
 
   /**
    * Removes unavailable workspaces and refreshes their details from the database.
-   * Existing entry expiry dates are preserved when workspace details change.
+   * Uses the authenticated token expiry for the current workspace and preserves
+   * other entry expiry dates when workspace details change.
    *
    * @param ctx the Koa context.
    * @param currentTeam the authenticated workspace to include if missing.
+   * @param currentTeamExpiresAt the authenticated token expiry, when available.
    * @returns the active workspaces in cookie order.
    */
   public static async reconcile(
     ctx: Context,
-    currentTeam?: Team
+    currentTeam?: Team,
+    currentTeamExpiresAt?: Date
   ): Promise<Team[]> {
     if (!this.canWrite(ctx)) {
       return [];
@@ -128,7 +131,12 @@ export class SessionsCookieHelper {
         name: team.name,
         logoUrl: team.avatarUrl,
         url: team.url,
-        expiresAt: sessions[id]?.expiresAt ?? expires.toISOString(),
+        expiresAt:
+          (id === currentTeam?.id
+            ? currentTeamExpiresAt?.toISOString()
+            : undefined) ??
+          sessions[id]?.expiresAt ??
+          expires.toISOString(),
       };
       activeTeams.push(team);
     }
