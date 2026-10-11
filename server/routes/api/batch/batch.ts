@@ -103,7 +103,7 @@ function resolveStack(method: string): Middleware[] | undefined {
 function createSubContext(
   ctx: AppContext,
   method: string,
-  body: Record<string, unknown>
+  body: T.BatchRequestBody
 ) {
   const sub: AppContext = Object.create(ctx);
   // A shallow copy so middleware writes (auth, transaction) don't leak between
@@ -170,7 +170,7 @@ function createSubContext(
 async function dispatch(
   ctx: AppContext,
   method: string,
-  body: Record<string, unknown>
+  body: T.BatchRequestBody
 ): Promise<BatchResult> {
   const stack = resolveStack(method);
   if (!stack) {

@@ -22,6 +22,7 @@ import { TeamPreference } from "@shared/types";
 import { ClientMetadataHelper } from "@server/utils/oauth/ClientMetadataHelper";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
+import { RequestHelper } from "@server/utils/RequestHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 import registrationAuth from "./middlewares/registrationAuth";
@@ -50,8 +51,9 @@ router.post(
   auth({ type: AuthenticationType.APP }),
   async (ctx) => {
     const { user } = ctx.state.auth;
-    const clientId = ctx.request.body.client_id;
-    if (!clientId) {
+    const body = RequestHelper.getBodyObject(ctx.request);
+    const clientId = body.client_id;
+    if (typeof clientId !== "string" || !clientId) {
       throw ValidationError("Missing client_id");
     }
 
@@ -67,8 +69,9 @@ router.post(
     // redirect URI, so PKCE with S256 is required.
     if (
       client.isCIMD &&
-      (!ctx.request.body.code_challenge ||
-        ctx.request.body.code_challenge_method?.trim() !== "S256")
+      (!body.code_challenge ||
+        typeof body.code_challenge_method !== "string" ||
+        body.code_challenge_method.trim() !== "S256")
     ) {
       throw ValidationError("PKCE with code_challenge_method S256 is required");
     }

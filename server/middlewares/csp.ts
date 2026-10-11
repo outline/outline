@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import type { Context, Next } from "koa";
-import { contentSecurityPolicy } from "koa-helmet";
+import helmet from "koa-helmet";
 import { asyncNoop } from "es-toolkit";
 import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
@@ -133,10 +133,8 @@ export default function createCSPMiddleware(options?: CSPOptions) {
       // allow additional sources for the response, see `allowScriptSrc` and
       // `allowStyleSrc`.
       if (!ctx.res.headersSent) {
-        // Note: workerSrc is included even though it's missing from the
-        // koa-helmet type definitions — the underlying helmet supports it. The
-        // service worker is served from the same origin as the document, which
-        // may be a custom domain that is not present in scriptSrc.
+        // The service worker is served from the same origin as the document,
+        // which may be a custom domain that is not present in scriptSrc.
         const directives = {
           baseUri: ["'none'"],
           defaultSrc,
@@ -164,7 +162,13 @@ export default function createCSPMiddleware(options?: CSPOptions) {
           connectSrc: ["*"],
         };
 
-        await contentSecurityPolicy({ directives })(ctx, asyncNoop);
+        // Helmet's default directives are not merged in, they include
+        // frame-ancestors and form-action restrictions that break embeds and
+        // OAuth redirects.
+        await helmet.contentSecurityPolicy({ useDefaults: false, directives })(
+          ctx,
+          asyncNoop
+        );
       }
     }
   };

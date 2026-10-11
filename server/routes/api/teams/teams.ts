@@ -118,11 +118,12 @@ router.post(
   "teams.create",
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
+  validate(T.TeamsCreateSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.TeamsCreateSchemaReq>) => {
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
-    const { name } = ctx.request.body;
+    const { name } = ctx.input.body;
 
     const existingTeam = await Team.scope(
       "withAuthenticationProviders"
