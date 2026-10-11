@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
+import { addMonths } from "date-fns";
 import { isNil } from "es-toolkit/compat";
 import {
   action,
@@ -9,11 +10,16 @@ import {
   observable,
   runInAction,
 } from "mobx";
-import { getCookie, setCookie } from "tiny-cookie";
+import { getCookie, removeCookie, setCookie } from "tiny-cookie";
 import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import {
+  getActiveSessions,
+  getSessionsCookieExpiry,
+  parseSessionsCookie,
+} from "@shared/utils/sessions";
 import type RootStore from "~/stores/RootStore";
 import Team from "~/models/Team";
 import env from "~/env";
@@ -367,12 +373,29 @@ export default class AuthStore extends Store<Team> {
     // remove session record on apex cookie
     const team = this.team;
 
-    if (team) {
-      const sessions = JSON.parse(getCookie("sessions") || "{}");
+    if (
+      team &&
+      isCloudHosted &&
+      !parseDomain(window.location.hostname).custom
+    ) {
+      const sessions = getActiveSessions(
+        parseSessionsCookie(getCookie("sessions") || "{}"),
+        addMonths(new Date(), 3)
+      );
       delete sessions[team.id];
-      setCookie("sessions", JSON.stringify(sessions), {
+      const expires = getSessionsCookieExpiry(sessions);
+      const options = {
         domain: getCookieDomain(window.location.hostname, isCloudHosted),
-      });
+        path: "/",
+      };
+      if (expires) {
+        setCookie("sessions", JSON.stringify(sessions), {
+          ...options,
+          expires,
+        });
+      } else {
+        removeCookie("sessions", options);
+      }
     }
 
     if (
