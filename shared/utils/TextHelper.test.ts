@@ -27,6 +27,24 @@ describe("TextHelper", () => {
 
       expect(result).toBe("Hello January 1, 2021");
     });
+
+    it.each([
+      "John Doe",
+      "Jane $$ Doe",
+      "Jane $& Doe",
+      "Jane $` Doe",
+      "Jane $' Doe",
+    ])(
+      "should insert the author name %s literally at every occurrence",
+      (name) => {
+        const result = TextHelper.replaceTemplateVariables(
+          "Before {author}, after {author}.",
+          { ...user, name }
+        );
+
+        expect(result).toBe(`Before ${name}, after ${name}.`);
+      }
+    );
   });
 
   describe("codePointLength", () => {
