@@ -150,7 +150,19 @@ export function ActionContextProvider({
       ...(isCommandBar !== undefined ? { isCommandBar } : {}),
       ...(isButton !== undefined ? { isButton } : {}),
       ...(event !== undefined ? { event } : {}),
-      ...(sidebarContext !== undefined ? { sidebarContext } : {}),
+
+      // Read from this provider's history, which is the pane's own history
+      // inside a split view.
+      get location() {
+        return history.location;
+      },
+      get sidebarContext() {
+        return (
+          sidebarContext ??
+          parentContext?.sidebarContext ??
+          history.location.state?.sidebarContext
+        );
+      },
       get activeCollectionId() {
         return valueCollectionId ?? baseContext.activeCollectionId;
       },
