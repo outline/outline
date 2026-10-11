@@ -120,7 +120,7 @@ const BaseSearchSchema = DateFilterSchema.extend({
   /** Min words to be shown in the results snippets */
   snippetMinWords: z.number().prefault(20),
 
-  /** Max words to be accomodated in the results snippets */
+  /** Max words to be accommodated in the results snippets */
   snippetMaxWords: z.number().prefault(30),
 });
 

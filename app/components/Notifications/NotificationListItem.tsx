@@ -80,7 +80,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
                 {notification.actor?.name ?? t("Unknown")}
               </Text>{" "}
               {notification.eventText(t)}{" "}
-              <Text weight="bold">{notification.subject}</Text>
+              <Text weight="bold">{notification.subject(t)}</Text>
             </Text>
             <Text type="tertiary" size="xsmall">
               <Time dateTime={notification.createdAt} addSuffix />{" "}

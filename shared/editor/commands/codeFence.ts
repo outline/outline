@@ -60,7 +60,7 @@ export const moveToNextNewline: Command = (state, dispatch) => {
 };
 
 /**
- * Replace the selection with a newline character preceeded by a number of
+ * Replace the selection with a newline character preceded by a number of
  * spaces to have the new line align with the code on the previous. This is
  * standard code editor behavior.
  *

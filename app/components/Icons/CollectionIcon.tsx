@@ -1,10 +1,9 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
-import { getLuminance } from "polished";
 import Icon from "@shared/components/Icon";
 import { colorPalette } from "@shared/constants";
+import useContrastColor from "@shared/hooks/useContrastColor";
 import type Collection from "~/models/Collection";
-import useStores from "~/hooks/useStores";
 
 type Props = {
   /** The collection to show an icon for */
@@ -25,19 +24,11 @@ function ResolvedCollectionIcon({
   size,
   className,
 }: Props) {
-  const { ui } = useStores();
+  const contrastColor = useContrastColor();
 
   if (!collection.icon || collection.icon === "collection") {
-    // If the chosen icon color is very dark then we invert it in dark mode
-    // otherwise it will be impossible to see against the dark background.
-    const collectionColor = collection.color ?? colorPalette[0];
     const color =
-      inputColor ||
-      (ui.resolvedTheme === "dark" && collectionColor !== "currentColor"
-        ? getLuminance(collectionColor) > 0.09
-          ? collectionColor
-          : "currentColor"
-        : collectionColor);
+      inputColor || contrastColor(collection.color ?? colorPalette[0]);
 
     const Component = collection.isPrivate
       ? PrivateCollectionIcon

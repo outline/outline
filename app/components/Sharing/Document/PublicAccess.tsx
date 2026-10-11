@@ -148,24 +148,27 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
           <>
             {sharedParent && !document.isDraft ? (
               sharedParent.collectionId ? (
-                <Trans>
-                  Anyone with the link can access because the containing
-                  collection,{" "}
-                  <UnderlinedLink
-                    to={`/collection/${sharedParent.collectionId}`}
-                  >
-                    {sharedParent.sourceTitle}
-                  </UnderlinedLink>
-                  , is shared
-                </Trans>
+                <Trans
+                  defaults="Anyone with the link can access because the containing collection, <link>{{ sourceTitle }}</link>, is shared"
+                  values={{ sourceTitle: sharedParent.sourceTitle }}
+                  components={{
+                    link: (
+                      <UnderlinedLink
+                        to={`/collection/${sharedParent.collectionId}`}
+                      />
+                    ),
+                  }}
+                />
               ) : (
-                <Trans>
-                  Anyone with the link can access because the parent document,{" "}
-                  <UnderlinedLink to={`/doc/${sharedParent.documentId}`}>
-                    {sharedParent.sourceTitle}
-                  </UnderlinedLink>
-                  , is shared
-                </Trans>
+                <Trans
+                  defaults="Anyone with the link can access because the parent document, <link>{{ sourceTitle }}</link>, is shared"
+                  values={{ sourceTitle: sharedParent.sourceTitle }}
+                  components={{
+                    link: (
+                      <UnderlinedLink to={`/doc/${sharedParent.documentId}`} />
+                    ),
+                  }}
+                />
               )
             ) : (
               t("Allow anyone with the link to access")
@@ -222,9 +225,8 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
             <StyledInfoIcon color={theme.textTertiary} />
             <span>
               {t(
-                "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
+                "Nested documents are not shared on the web. Toggle sharing to enable access. This will be the default behavior in the future."
               )}
-              .
             </span>
           </Text>
         ) : null}

@@ -176,7 +176,7 @@ export const moveTemplateToWorkspace = createAction({
       toast.success(t("Template moved"));
       stores.dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn't move the template, try again?"));
+      toast.error(t("Couldn’t move the template, try again?"));
     }
   },
 });

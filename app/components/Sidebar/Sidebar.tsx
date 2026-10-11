@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
@@ -10,7 +10,6 @@ import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import usePrevious from "~/hooks/usePrevious";
 import { useResizeHandle } from "~/hooks/useResizeHandle";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
@@ -55,8 +54,7 @@ function Sidebar({
   const { t } = useTranslation();
   const theme = useTheme();
   const { ui } = useStores();
-  const location = useLocation();
-  const previousLocation = usePrevious(location);
+  const history = useHistory();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobile = useMobile();
   const width = ui.sidebarWidth;
@@ -250,11 +248,15 @@ function Sidebar({
     ui.setSidebarResizing(isResizing);
   }, [ui, isResizing]);
 
-  React.useEffect(() => {
-    if (location !== previousLocation) {
-      ui.hideMobileSidebar();
-    }
-  }, [ui, location, previousLocation]);
+  // Subscribe to history rather than the location, so that the sidebar does
+  // not re-render on every navigation.
+  React.useEffect(
+    () =>
+      history.listen(() => {
+        ui.hideMobileSidebar();
+      }),
+    [ui, history]
+  );
 
   const style = React.useMemo(
     () => ({

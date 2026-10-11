@@ -78,8 +78,8 @@ export const createTeam = createAction({
 export const desktopLoginTeam = dialogActionFactory({
   analyticsName: "Login to workspace",
   section: TeamSection,
-  name: (t) => t("Login to workspace"),
-  title: (t) => t("Login to workspace"),
+  name: (t) => t("Log in to workspace"),
+  title: (t) => t("Log in to workspace"),
   content: () => <LoginDialog />,
   icon: <ArrowIcon />,
   keywords: "change switch workspace organization team",

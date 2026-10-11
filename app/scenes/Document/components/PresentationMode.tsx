@@ -5,6 +5,7 @@ import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { canUseElementFullscreen } from "@shared/utils/browser";
 import { s, depths, hover } from "@shared/styles";
 import { cloneDeep } from "es-toolkit/compat";
@@ -426,7 +427,7 @@ const SlideContent = styled.div`
 
   .image-wrapper,
   .image-wrapper img,
-  .mermaid-diagram-wrapper {
+  .${EditorStyleHelper.mermaidDiagram} {
     pointer-events: none !important;
   }
 

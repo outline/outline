@@ -48,6 +48,14 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
             label: t("Forward"),
           },
           {
+            shortcut: <KeyboardShortcut keys={["alt", "up"]} />,
+            label: t("Previous document in sidebar"),
+          },
+          {
+            shortcut: <KeyboardShortcut keys={["alt", "down"]} />,
+            label: t("Next document in sidebar"),
+          },
+          {
             shortcut: <KeyboardShortcut keys={["n"]} />,
             label: t("New document"),
           },

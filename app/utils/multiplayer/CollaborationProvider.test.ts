@@ -158,41 +158,66 @@ describe("CollaborationProvider", () => {
     expect(events).toHaveLength(1);
   });
 
-  it("reports when local persistence stops", () => {
-    provider.destroy();
-    const listeners = new Set<() => void>();
-    const localProvider = {
-      stopped: false,
-      onStop: (listener: () => void) => {
-        listeners.add(listener);
-        return () => {
-          listeners.delete(listener);
-        };
-      },
-    };
-    provider = new CollaborationProvider({
-      url: "ws://localhost",
-      name: "test",
-      document: doc,
-      connect: false,
-      localProvider,
-    });
-    provider.on("syncStateChange", (event: SyncStateEvent) => {
-      events.push(event);
-    });
-    expect(provider.hasLocalPersistence).toBe(true);
+  describe("with local persistence", () => {
+    let stopLocalProvider: () => void;
 
-    edit();
-    expect(events.at(-1)).toEqual({
-      hasUnsyncedChanges: true,
-      hasLocalPersistence: true,
+    beforeEach(() => {
+      provider.destroy();
+      const listeners = new Set<() => void>();
+      stopLocalProvider = () => listeners.forEach((listener) => listener());
+      provider = new CollaborationProvider({
+        url: "ws://localhost",
+        name: "test",
+        document: doc,
+        connect: false,
+        localProvider: {
+          stopped: false,
+          onStop: (listener: () => void) => {
+            listeners.add(listener);
+            return () => {
+              listeners.delete(listener);
+            };
+          },
+        },
+      });
+      provider.on("syncStateChange", (event: SyncStateEvent) => {
+        events.push(event);
+      });
     });
 
-    listeners.forEach((listener) => listener());
-    expect(provider.hasLocalPersistence).toBe(false);
-    expect(events.at(-1)).toEqual({
-      hasUnsyncedChanges: true,
-      hasLocalPersistence: false,
+    it("does not report edits made before the first sync", () => {
+      expect(provider.hasLocalPersistence).toBe(true);
+
+      edit();
+
+      expect(provider.hasPendingChanges).toBe(false);
+      expect(events).toEqual([]);
+    });
+
+    it("reports edits made after the connection drops", () => {
+      provider.synced = true;
+      provider.synced = false;
+
+      edit();
+
+      expect(provider.hasPendingChanges).toBe(true);
+      expect(events.at(-1)).toEqual({
+        hasUnsyncedChanges: true,
+        hasLocalPersistence: true,
+      });
+    });
+
+    it("reports edits made before the first sync when local persistence stops", () => {
+      edit();
+      expect(provider.hasPendingChanges).toBe(false);
+
+      stopLocalProvider();
+
+      expect(provider.hasLocalPersistence).toBe(false);
+      expect(events.at(-1)).toEqual({
+        hasUnsyncedChanges: true,
+        hasLocalPersistence: false,
+      });
     });
   });
 

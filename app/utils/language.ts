@@ -5,11 +5,21 @@ import { isRTLLanguage } from "@shared/utils/rtl";
 import Desktop from "./Desktop";
 
 /**
- * Detects the user's language based on the browser's language settings.
+ * Detects the user's language based on the browser's language settings. A
+ * language without a region, such as "ja", resolves to its most likely region.
  *
  * @returns The user's language in CLDR format (en_US)
  */
 export function detectLanguage() {
+  try {
+    const { language, region } = new Intl.Locale(navigator.language).maximize();
+    if (region) {
+      return `${language}_${region}` as keyof typeof locales;
+    }
+  } catch (_err) {
+    // invalid language tag, fall back to splitting the string
+  }
+
   const [ln, r] = navigator.language.split("-");
   const region = (r || ln).toUpperCase();
   return `${ln}_${region}` as keyof typeof locales;

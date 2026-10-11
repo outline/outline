@@ -56,7 +56,7 @@ export default class ExportSuccessEmail extends BaseEmail<
   }
 
   protected preview() {
-    return this.t("Here's your request data export from {{ appName }}", {
+    return this.t("Here’s your requested data export from {{ appName }}", {
       appName: env.APP_NAME,
     });
   }
@@ -67,7 +67,7 @@ export default class ExportSuccessEmail extends BaseEmail<
     return `
 ${this.t("Your Data Export")}
 
-${this.t("Your requested data export is complete, you can download from the link below in a browser that is logged into your account.")}
+${this.t("Your requested data export is complete. You can download it from the link below in a browser that is logged into your account.")}
 
 ${this.t("This export will be available to download for {{ days }} days.", { days: FileOperation.expiryDays })}
 
@@ -89,7 +89,7 @@ ${downloadLink}
           <Heading>{this.t("Your Data Export")}</Heading>
           <p>
             {this.t(
-              "Your requested data export is complete - you can download from the link below in a browser that is logged into your account."
+              "Your requested data export is complete. You can download it from the link below in a browser that is logged into your account."
             )}
           </p>
           <p>

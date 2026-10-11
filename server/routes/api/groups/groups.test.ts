@@ -30,6 +30,32 @@ describe("#groups.create", () => {
     expect(body.data.description).toEqual(description);
     expect(body.data.externalId).toEqual("123");
   });
+
+  it("should create a group with an icon and color", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/groups.create", user, {
+      body: {
+        name: "Design",
+        icon: "beaker",
+        color: "#FF5C80",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.icon).toEqual("beaker");
+    expect(body.data.color).toEqual("#FF5C80");
+  });
+
+  it("should not allow an invalid color", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/groups.create", user, {
+      body: {
+        name: "Design",
+        color: "red",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
 });
 
 describe("#groups.update", () => {
@@ -98,6 +124,35 @@ describe("#groups.update", () => {
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe("Test");
       expect(body.data.externalId).toBe("123");
+    });
+
+    it("allows admin to change the icon and color", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          icon: "😀",
+          color: null,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.icon).toBe("😀");
+      expect(body.data.color).toBeNull();
+    });
+
+    it("allows admin to remove the icon", async () => {
+      await group.update({ icon: "beaker", color: "#FF5C80" });
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          icon: null,
+          color: null,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.icon).toBeNull();
+      expect(body.data.color).toBeNull();
     });
   });
 
@@ -239,6 +294,20 @@ describe("#groups.update", () => {
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data.disableMentions).toEqual(true);
+    });
+
+    it("allows changing the icon and color", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          icon: "beaker",
+          color: "#FF5C80",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.icon).toEqual("beaker");
+      expect(body.data.color).toEqual("#FF5C80");
     });
   });
 });

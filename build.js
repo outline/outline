@@ -1,5 +1,5 @@
 /* oxlint-disable no-console */
-/* oxlint-disable @typescript-oxlint/no-var-requires */
+/* oxlint-disable typescript/no-require-imports */
 /* oxlint-disable no-undef */
 const { exec } = require("child_process");
 const { readdirSync, existsSync } = require("fs");
@@ -32,6 +32,7 @@ async function build() {
 
   await Promise.all([
     execAsync("rm -rf ./build/server"),
+    execAsync("rm -rf ./build/shared"),
     execAsync("rm -rf ./build/plugins"),
   ]);
 
@@ -79,6 +80,7 @@ async function build() {
       "cp ./server/static/error.prod.html ./build/server/error.prod.html"
     ),
     execAsync("cp package.json ./build"),
+    execAsync("cp -R ./shared/i18n/locales ./build/shared/i18n"),
     ...d.map(async (plugin) =>
       execAsync(
         `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json 2>/dev/null || :`

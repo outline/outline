@@ -1,5 +1,6 @@
 import type { Notification } from "@server/models";
 import type { APIContext } from "@server/types";
+import presentGroup from "./group";
 import presentUser from "./user";
 import { presentComment, presentDocument } from ".";
 
@@ -28,6 +29,10 @@ export default async function presentNotification(
       : undefined,
     revisionId: notification.revisionId,
     collectionId: notification.collectionId,
+    groupId: notification.groupId,
+    group: notification.group
+      ? await presentGroup(notification.group)
+      : undefined,
     data: notification.data,
   };
 }

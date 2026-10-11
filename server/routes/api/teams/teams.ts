@@ -65,7 +65,7 @@ router.post(
   auth(),
   async (ctx: APIContext) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { user } = ctx.state.auth;

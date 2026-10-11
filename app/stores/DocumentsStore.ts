@@ -297,10 +297,7 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   get(id: string): Document | undefined {
-    return id
-      ? (this.data.get(id) ??
-          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
-      : undefined;
+    return this.getByIdOrUrlId(id);
   }
 
   @computed

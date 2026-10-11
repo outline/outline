@@ -85,7 +85,7 @@ const ImageUpload: React.FC<Props> = ({
         if (!converted) {
           onError(
             t(
-              "Your browser cannot read HEIC images, please convert it to JPEG or PNG first"
+              "Your browser cannot read HEIC images, please convert the image to JPEG or PNG first"
             )
           );
           return;

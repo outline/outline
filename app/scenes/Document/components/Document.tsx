@@ -1,9 +1,10 @@
+import type { Location } from "history";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Prompt, useHistory, useLocation } from "react-router-dom";
+import { Prompt, matchPath, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -12,6 +13,7 @@ import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType, TOCPosition, TeamPreference } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -33,7 +35,11 @@ import isTextInput from "~/utils/isTextInput";
 import Logger from "~/utils/Logger";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
-import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
+import {
+  documentHistoryPath,
+  documentEditPath,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -332,7 +338,18 @@ function DocumentScene({
     });
   };
 
-  const handleBlockNavigation = () => {
+  const handleBlockNavigation = (nextLocation: Location) => {
+    // Moving between views of this document, such as edit mode or a heading
+    // anchor, keeps the editor mounted, but a revision view replaces it.
+    const isLeaving =
+      !parseDocumentSlug(nextLocation.pathname)?.endsWith(document.urlId) ||
+      !!matchPath<{ revisionId?: string }>(
+        nextLocation.pathname,
+        matchDocumentHistory
+      )?.params.revisionId;
+    if (!isLeaving) {
+      return true;
+    }
     if (isUploading && !isEditorDirty) {
       return t(
         `Images are still uploading.\nAre you sure you want to discard them?`

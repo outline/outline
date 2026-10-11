@@ -16,6 +16,7 @@ import {
   runInAction,
 } from "mobx";
 import pluralize from "pluralize";
+import { isUUID } from "validator";
 import { Pagination } from "@shared/constants";
 import { type JSONObject } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
@@ -610,6 +611,27 @@ export default abstract class Store<T extends Model> {
   filter = (predicate: ListPredicate<T>): T[] =>
     // @ts-expect-error not sure why T is incompatible
     filter(this.orderedData, predicate);
+
+  /**
+   * Get an item from the store by ID, or by the urlId at the end of a URL
+   * slug. A UUID cannot end with a urlId, so the slower search by urlId is
+   * skipped for UUIDs, and observers do not track every item in the store.
+   *
+   * @param id the ID or URL slug of the item.
+   * @returns the matching item, if it is in the store.
+   */
+  protected getByIdOrUrlId(id: string): T | undefined {
+    const item = this.data.get(id);
+    if (item || !id || isUUID(id)) {
+      return item;
+    }
+    return this.orderedData.find(
+      (model) =>
+        "urlId" in model &&
+        typeof model.urlId === "string" &&
+        id.endsWith(model.urlId)
+    );
+  }
 
   /**
    * Fetch a page of items from the API and add them to the store, along with

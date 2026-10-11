@@ -37,6 +37,7 @@ import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
+import { SidebarNavigationProvider } from "./components/SidebarNavigation";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
@@ -137,16 +138,18 @@ function AppSidebar() {
         </Overflow>
         <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
-            {sectionOrder.map((section) => (
-              <DraggableSection key={section} section={section}>
-                {sectionContent[section]}
-              </DraggableSection>
-            ))}
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
-              </Section>
-            )}
+            <SidebarNavigationProvider>
+              {sectionOrder.map((section) => (
+                <DraggableSection key={section} section={section}>
+                  {sectionContent[section]}
+                </DraggableSection>
+              ))}
+              {can.createDocument && (
+                <Section auto>
+                  <ArchiveLink />
+                </Section>
+              )}
+            </SidebarNavigationProvider>
             <Section>
               {can.createDocument && <TrashLink />}
               <DismissableSidebarAction

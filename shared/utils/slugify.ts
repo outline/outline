@@ -10,7 +10,8 @@ slug.defaults.mode = "rfc3986";
  * @returns The slugified text
  */
 export default function slugify(text: string): string {
-  return slug(text, {
+  // slug throws on malformed strings, so replace unpaired surrogates first.
+  return slug(text.toWellFormed(), {
     remove: /[.]/g,
   });
 }

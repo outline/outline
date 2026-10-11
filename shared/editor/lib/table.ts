@@ -23,7 +23,7 @@ const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 /**
  * Validates an alignment attribute value.
  *
- * @param value The value to validate.
+ * @param value the value to validate.
  * @returns true if the value is a safe alignment or null.
  */
 export const isValidCellAlignment = (
@@ -33,13 +33,23 @@ export const isValidCellAlignment = (
   (typeof value === "string" && ALLOWED_ALIGNMENTS.has(value));
 
 /**
+ * Validates a colspan or rowspan attribute value. A cell with any other span
+ * is left out of the table map and cannot be found by position.
+ *
+ * @param value the value to validate.
+ * @returns true if the value is a positive integer.
+ */
+export const isValidCellSpan = (value: unknown): value is number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 1;
+
+/**
  * Validates a table cell's `marks` attribute against the given schema. Checks
  * that the value is an array of well-formed mark objects whose type exists in
  * the schema, and — for `background` marks — that the color is a valid hex
  * value. `null` and `undefined` are both considered valid (the attribute is
  * optional).
  *
- * @param value The value to validate.
+ * @param value the value to validate.
  * @param schema The editor schema, used to check mark types are registered.
  *               Optional — when absent, mark-type registration is not checked.
  * @returns true if the value is a valid marks array, null, or undefined.
@@ -108,13 +118,15 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
     widthAttr && /^\d+(,\d+)*$/.test(widthAttr)
       ? widthAttr.split(",").map(Number)
       : null;
-  const colspan = Number(dom.getAttribute("colspan") || 1);
+  const colspanAttr = Number(dom.getAttribute("colspan"));
+  const colspan = isValidCellSpan(colspanAttr) ? colspanAttr : 1;
+  const rowspanAttr = Number(dom.getAttribute("rowspan"));
 
   const bgColor = dom.getAttribute("data-bgcolor") ?? getCellBackground(dom);
 
   return {
     colspan,
-    rowspan: Number(dom.getAttribute("rowspan") || 1),
+    rowspan: isValidCellSpan(rowspanAttr) ? rowspanAttr : 1,
     colwidth: widths && widths.length === colspan ? widths : null,
     alignment:
       dom.style.textAlign === "center"

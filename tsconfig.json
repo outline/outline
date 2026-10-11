@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
+    "lib": ["dom", "es2020", "es2024.string", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolvePackageJsonExports": false,

@@ -29,7 +29,9 @@ export class PlanHelper {
     ],
     [Plan.Business]: Object.values(PlanFeature),
     [Plan.Enterprise]: Object.values(PlanFeature),
-    [Plan.Legacy]: Object.values(PlanFeature),
+    [Plan.Legacy]: Object.values(PlanFeature).filter(
+      (feature) => feature !== PlanFeature.GroupSync
+    ),
   };
 
   /**
