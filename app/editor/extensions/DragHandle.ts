@@ -184,11 +184,13 @@ export default class DragHandle extends Extension {
             const offsetX = GUTTER_OFFSET[next.kind];
 
             // Center the icon on the first line of text when the block has
-            // one, otherwise align it with the top of the block.
+            // one, or on blocks shorter than the handle, otherwise align it
+            // with the top of the block.
             const lineMiddle =
-              next.element === view.nodeDOM(next.pos)
+              (next.element === view.nodeDOM(next.pos)
                 ? getFirstLineMiddle(view, next.pos, rect)
-                : null;
+                : null) ??
+              (rect.height < HANDLE_SIZE ? rect.top + rect.height / 2 : null);
 
             // RTL blocks lay out their gutter on the right, so mirror the
             // handle to the opposite edge to match the rest of the editor's

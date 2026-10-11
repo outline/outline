@@ -1721,7 +1721,7 @@ hr::before {
   content: "";
   display: block;
   position: absolute;
-  border-top: 1px solid ${props.theme.horizontalRule};
+  border-top: 1px solid ${props.theme.divider};
   top: 0.5em;
   left: 0;
   right: 0;
@@ -1732,7 +1732,11 @@ hr.page-break {
 }
 
 hr.page-break::before {
-  border-top: 1px dashed ${props.theme.horizontalRule};
+  border-top: 1px dashed ${props.theme.divider};
+}
+
+hr.ProseMirror-selectednode::before {
+  border-top-color: ${props.theme.text};
 }
 
 .math-inline .math-src .ProseMirror,
