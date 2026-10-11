@@ -293,7 +293,11 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
                   } else if (
                     extensionState.open &&
                     extensionState.trigger !== null &&
-                    (!allowSpaces || !extensionState.query)
+                    extensionState.triggerPos !== null &&
+                    (!allowSpaces ||
+                      fromPos - 1 <=
+                        extensionState.triggerPos +
+                          extensionState.trigger.length)
                   ) {
                     extensionState.open = false;
                   }
