@@ -225,7 +225,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.3.0",
-    "react-dropzone": "^11.7.1",
+    "react-dropzone": "^20.1.2",
     "react-hook-form": "^7.85.0",
     "react-i18next": "^12.3.1",
     "react-is": "^19.3.0",

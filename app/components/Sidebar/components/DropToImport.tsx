@@ -68,11 +68,12 @@ const ImportDropzone = observer(function ImportDropzone({
 
   return (
     <Dropzone
-      accept={documents.importFileTypesString}
+      accept={documents.importFileTypesAccept}
       onDropAccepted={handleFiles}
       onDropRejected={handleRejection}
       noClick
       multiple
+      noPaste
     >
       {({ getRootProps, getInputProps, isDragActive }) => (
         <DropzoneContainer
