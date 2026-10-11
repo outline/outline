@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";

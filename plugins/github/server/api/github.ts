@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { find } from "es-toolkit/compat";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";

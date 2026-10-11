@@ -1,6 +1,6 @@
 import path from "node:path";
 import { glob } from "glob";
-import type Router from "koa-router";
+import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
@@ -111,7 +111,9 @@ export class PluginManager {
       Logger.debug(
         "plugins",
         `Plugin(type=${plugin.type}) registered ${
-          "name" in plugin.value ? plugin.value.name : ""
+          "name" in plugin.value && typeof plugin.value.name === "string"
+            ? plugin.value.name
+            : ""
         } ${plugin.description ? `(${plugin.description})` : ""}`
       );
     }

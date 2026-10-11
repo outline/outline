@@ -2,7 +2,7 @@ import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
 import jwt from "jsonwebtoken";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Profile } from "passport";
 import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";

@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { compact, isEmpty } from "es-toolkit/compat";
 import { Op, Sequelize, type WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";

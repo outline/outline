@@ -6,7 +6,7 @@ import type {
   RESTGetCurrentUserGuildMemberResult,
 } from "discord-api-types/v10";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 
 import { Strategy } from "passport-oauth2";
 import { toError } from "@shared/utils/error";

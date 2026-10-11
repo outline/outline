@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";

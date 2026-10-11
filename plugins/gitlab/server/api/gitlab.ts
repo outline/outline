@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Op } from "sequelize";
 import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";

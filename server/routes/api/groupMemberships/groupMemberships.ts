@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { uniqBy } from "es-toolkit/compat";
 import { Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
