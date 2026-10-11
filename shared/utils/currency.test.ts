@@ -75,6 +75,11 @@ describe("parseCurrency", () => {
     expect(parseCurrency("-1.234,50 €")).toBe(-1234.5);
   });
 
+  it("parses negative values with a trailing sign", () => {
+    expect(parseCurrency("500- €")).toBe(-500);
+    expect(parseCurrency("$1,234.56-")).toBe(-1234.56);
+  });
+
   it("handles whitespace", () => {
     expect(parseCurrency("  $100  ")).toBe(100);
     expect(parseCurrency("$ 100")).toBe(100);
