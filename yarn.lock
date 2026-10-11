@@ -15699,7 +15699,7 @@ __metadata:
     prosemirror-view: "npm:^1.42.3"
     proxy-from-env: "npm:^1.1.0"
     query-string: "npm:^9.5.0"
-    rate-limiter-flexible: "npm:^2.4.2"
+    rate-limiter-flexible: "npm:^11.2.1"
     react: "npm:^19.3.0"
     react-avatar-editor: "npm:^15.1.0"
     react-colorful: "npm:^5.8.0"
@@ -17146,10 +17146,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rate-limiter-flexible@npm:^2.4.2":
-  version: 2.4.2
-  resolution: "rate-limiter-flexible@npm:2.4.2"
-  checksum: 10c0/ab3f9a1fdd58c9c49e4e7bea59b7faa5488cc4b50f742e5d3569aa54376f94f136e9a69e8424374be658fc92187717659288b76559b18cd50bf9061df62b256f
+"rate-limiter-flexible@npm:^11.2.1":
+  version: 11.2.1
+  resolution: "rate-limiter-flexible@npm:11.2.1"
+  checksum: 10c0/854b526a567f7213d521e6e64fb5632c647dfc441cbd4949a14719c8dadd3d09a02bafbe56748d562771a36e7db8cb394f42e87d3c26006f65eb70016c1c16b6
   languageName: node
   linkType: hard
 
