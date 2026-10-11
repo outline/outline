@@ -925,6 +925,18 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       submenu,
     });
 
+  // Keep the items rendered on mobile until the drawer has animated closed.
+  const [isDrawerVisible, setDrawerVisible] = React.useState(false);
+  if (isActive && !isDrawerVisible) {
+    setDrawerVisible(true);
+  }
+
+  const handleDrawerAnimationEnd = React.useCallback((open: boolean) => {
+    if (!open) {
+      setDrawerVisible(false);
+    }
+  }, []);
+
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
       if (!open) {
@@ -1092,7 +1104,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   if (isMobile) {
     return (
       <>
-        <Drawer open={isActive} onOpenChange={handleOpenChange}>
+        <Drawer
+          open={isActive}
+          onOpenChange={handleOpenChange}
+          onAnimationEnd={handleDrawerAnimationEnd}
+        >
           <DrawerContent aria-describedby={undefined}>
             <DrawerTitle hidden>
               {Array.isArray(props.trigger) ? props.trigger[0] : props.trigger}
@@ -1122,7 +1138,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   id={listboxId}
                   aria-label={t("Suggestions")}
                 >
-                  {renderItems()}
+                  {isDrawerVisible && renderItems()}
                 </List>
               )}
             </MobileScrollable>
