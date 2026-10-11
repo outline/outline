@@ -95,6 +95,10 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Do not import React unless it is used directly.
 - Use styled-components for component styling.
 - Ensure high accessibility (a11y) standards using ARIA roles and semantic HTML.
+- In components that stay mounted across navigation (layout, sidebar, command bar), do not use `useLocation`. Use `useLocationSelector` to select only the value you need, or read `history.location` in effects and handlers.
+- Give stable props to memoized and `observer` components, especially list rows. Do not create new arrays, objects, or JSX on each render; use shared constants for empty arrays.
+- Do not read `ref.current` during render to pass it to props or context. Keep the element in state with a callback ref.
+- If the initial value of `useState` reads observables, use a lazy initializer. Otherwise the expression runs, and subscribes, on every render.
 
 ## MobX State Management
 
@@ -103,6 +107,10 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Use `observable`, `action`, and `computed` decorators appropriately.
 - Prefer computed values over manual calculations in render.
 - Keep business logic in stores, not components.
+- Do not read an observable during render only for an effect or a per-item check. Use `useComputed` to derive a narrow value (e.g. `isActive`) so only affected components re-render.
+- Use `observable.map` rather than a set when observers check membership by key. `ObservableSet.has()` tracks the whole set, so any change re-renders every observer.
+- Store lookups called for each row of a list must not scan a computed list such as `orderedData`, as this subscribes the component to every item in the store.
+- A context value provided near the app root must not change on navigation. Expose frequently changing store values as getters read on access, not values read during render.
 
 ## Database & ORM
 

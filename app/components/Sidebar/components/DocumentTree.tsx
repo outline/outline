@@ -68,6 +68,15 @@ export const DocumentTree = observer(function DocumentTree({
   const scrollMargin = useScrollMargin(containerRef, scrollElement);
   const activeDocument = documents.active;
 
+  // Read on its own so that the rows are not rebuilt when the active document
+  // changes, unless an open draft is involved.
+  const activeDraft = useComputed(() => {
+    const active = documents.active;
+    return collection && active?.isDraft && active.isActive
+      ? active
+      : undefined;
+  }, [collection, documents]);
+
   const rows = useComputed(
     () =>
       flattenExpandedTree({
@@ -77,15 +86,13 @@ export const DocumentTree = observer(function DocumentTree({
         isExpanded: (nodeId) => expansion.isExpanded(nodeId),
         getChildren: (node) => {
           // Show an unpublished draft below its parent while it is open.
-          const active = documents.active;
           if (
             collection &&
-            active?.isDraft &&
-            active.isActive &&
-            active.parentDocumentId === node.id
+            activeDraft &&
+            activeDraft.parentDocumentId === node.id
           ) {
             return sortNavigationNodes(
-              [active.asNavigationNode, ...node.children],
+              [activeDraft.asNavigationNode, ...node.children],
               collection.sort,
               false
             );
@@ -93,7 +100,7 @@ export const DocumentTree = observer(function DocumentTree({
           return node.children;
         },
       }),
-    [nodes, depth, parentId, collection, expansion, documents]
+    [nodes, depth, parentId, collection, expansion, activeDraft]
   );
 
   const activeIndex = React.useMemo(

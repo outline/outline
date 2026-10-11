@@ -90,7 +90,8 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
     extensionState: ExtensionState,
     openRegex: RegExp,
     enabledInMarks: boolean,
-    triggerLength: number
+    triggerLength: number,
+    allowSpaces: boolean
   ) {
     const key = new PluginKey<PluginState>("suggestions-menu");
 
@@ -278,7 +279,7 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
                 fromPos,
                 fromPos,
                 openRegex,
-                (state, match) => {
+                action((state, match) => {
                   if (
                     match &&
                     (enabledInMarks ||
@@ -289,9 +290,19 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
                       cursorPos: fromPos,
                       canOpen: true,
                     });
+                  } else if (
+                    extensionState.open &&
+                    extensionState.trigger !== null &&
+                    extensionState.triggerPos !== null &&
+                    (!allowSpaces ||
+                      fromPos - 1 <=
+                        extensionState.triggerPos +
+                          extensionState.trigger.length)
+                  ) {
+                    extensionState.open = false;
                   }
                   return null;
-                }
+                })
               );
             }, 0);
           }
