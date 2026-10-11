@@ -8,6 +8,7 @@ import type Document from "~/models/Document";
 import DocumentsLoader from "~/components/DocumentsLoader";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
+import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
@@ -45,15 +46,17 @@ function CollectionLinkChildren({
   // Documents sit one level below the collection, with a minimum that leaves
   // room for their own disclosure to the left of the label.
   const childDepth = Math.max(depth + 1, 2);
-  const { documents, ui } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
-  const activeDocument = documents.active;
+  // Scoped to this collection so that other collections do not re-render when
+  // the active document changes.
+  const activeDocument = useComputed(() => {
+    const active = documents.active;
+    return active?.collectionId === collection.id ? active : undefined;
+  }, [documents, collection]);
   const childDocuments = useCollectionDocuments(collection, activeDocument);
 
-  const expansion = useSidebarExpansionState(
-    childDocuments,
-    ui.activeDocumentId
-  );
+  const expansion = useSidebarExpansionState(childDocuments);
 
   // Handle collection-level alt-click cascade from DraggableCollectionLink
   const handleCascadeExpand = useCallback(() => {

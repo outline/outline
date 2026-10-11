@@ -53,7 +53,7 @@ function SharedSidebar({ share }: Props) {
     () => (rootNode ? [rootNode] : undefined),
     [rootNode]
   );
-  const expansion = useSidebarExpansionState(rootChildren, ui.activeDocumentId);
+  const expansion = useSidebarExpansionState(rootChildren);
 
   useEffect(() => {
     ui.tocVisible = share.showTOC;

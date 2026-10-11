@@ -4,7 +4,6 @@ import { useHistory } from "react-router-dom";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
 import type { RefHandle } from "~/components/EditableTitle";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
@@ -23,7 +22,6 @@ type Props = {
   collection: Collection;
   expanded?: boolean;
   onDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
-  activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
   depth?: number;
   onClick?: () => void;
