@@ -241,9 +241,9 @@ describe("DocumentHelper", () => {
         includeStyles: false,
       });
 
-      expect(result).toContain('data-heading-prefix="1"');
+      expect(result).toContain('data-heading-prefix="1."');
       expect(result).toContain('data-heading-prefix="1.1"');
-      expect(result).toContain('data-heading-prefix="2"');
+      expect(result).toContain('data-heading-prefix="2."');
     });
 
     it("should not number headings without the document preference", async () => {
@@ -273,7 +273,7 @@ describe("DocumentHelper", () => {
         includeStyles: false,
       });
 
-      expect(result).toContain('data-heading-prefix="1"');
+      expect(result).toContain('data-heading-prefix="1."');
       expect(result).toContain('data-heading-prefix="1.1"');
     });
 

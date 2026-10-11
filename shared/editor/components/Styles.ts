@@ -742,7 +742,6 @@ width: 100%;
   [data-heading-prefix]::before {
     content: attr(data-heading-prefix);
     color: ${props.theme.text};
-    opacity: 0.75;
     margin-inline-end: 0.25em;
   }
 
@@ -1156,6 +1155,9 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
     &:hover:not(.placeholder):not([data-heading-prefix])::before,
     &.${EditorStyleHelper.dragHandleTarget}:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
+    }
+    &[data-heading-prefix]::before {
+      opacity: ${props.readOnly ? 1 : 0.75};
     }
   }
 }
