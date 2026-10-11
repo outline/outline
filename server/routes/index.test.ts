@@ -333,12 +333,27 @@ describe("/locales/:lng.json", () => {
     const res = await server.get("/locales/xx_XX.json");
     expect(res.status).toEqual(404);
   });
+});
 
-  it("should not serve files outside the locales directory", async () => {
-    const res = await server.get("/locales/..%2F..%2Fpackage.json");
-    expect(res.status).toEqual(404);
-    const body = await res.text();
-    expect(body).not.toContain("dependencies");
+describe("public assets", () => {
+  it.each([
+    "/images/..%2F..%2Fpackage.json",
+    "/fonts/..%2F..%2F..%2Fpackage.json",
+    "/email/%2e%2e%2f%2e%2e%2fpackage.json",
+    "/images/..%5C..%5Cpackage.json",
+  ])(
+    "should not serve files outside the public directory for %s",
+    async (path) => {
+      const res = await server.get(path);
+      expect(res.status).toEqual(403);
+      const body = await res.text();
+      expect(body).not.toContain("dependencies");
+    }
+  );
+
+  it("should reject paths with null bytes", async () => {
+    const res = await server.get("/images/logo.png%00.txt");
+    expect(res.status).toEqual(400);
   });
 });
 
