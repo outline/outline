@@ -42,7 +42,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">=20.19 <21 || 22 || 24 <24.17.0 || 26 <26.3.1"
+    "node": ">=20.19 <21 || >=22.12 <23 || 24 <24.17.0 || 26 <26.3.1"
   },
   "repository": {
     "type": "git",
@@ -248,7 +248,7 @@
     "sequelize-cli": "^6.6.5",
     "sequelize-strict-attributes": "^1.0.2",
     "sequelize-typescript": "^2.1.6",
-    "slug": "^5.3.0",
+    "slug": "^11.0.1",
     "slugify": "^1.6.9",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.4",
