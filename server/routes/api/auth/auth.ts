@@ -20,6 +20,7 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import { getJWTPayload } from "@server/utils/jwt";
 import { SessionsCookieHelper } from "@server/utils/SessionsCookieHelper";
 import RateLimiter from "@server/utils/RateLimiter";
 import type * as T from "./schema";
@@ -120,7 +121,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 const NON_SSO_SERVICES = ["email", "passkeys"];
 
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
-  const { user, service, type } = ctx.state.auth;
+  const { user, service, type, token } = ctx.state.auth;
   const [team, groups, availableTeams] = await Promise.all([
     Team.scope("withDomains").findByPk(user.teamId, {
       rejectOnEmpty: true,
@@ -128,9 +129,14 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     user.groups(),
     user.availableTeams(),
   ]);
+  const expiresAt =
+    type === AuthenticationType.APP
+      ? getJWTPayload(token).expiresAt
+      : undefined;
   const signedInTeams = await SessionsCookieHelper.reconcile(
     ctx,
-    type === AuthenticationType.APP ? team : undefined
+    type === AuthenticationType.APP ? team : undefined,
+    typeof expiresAt === "string" ? new Date(expiresAt) : undefined
   );
   const signedInTeamIds = new Set(signedInTeams.map((team) => team.id));
 
