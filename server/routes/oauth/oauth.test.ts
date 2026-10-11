@@ -6,6 +6,7 @@ import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
 import type { User } from "@server/models";
 import { OAuthClient } from "@server/models";
+import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import { mcpHeaders, mcpRequest } from "@server/test/McpHelper";
 import { server as msw } from "@server/test/msw";
 import {
@@ -26,6 +27,10 @@ describe("#oauth.register", () => {
   beforeEach(async () => {
     subdomain = buildSubdomain();
     team = await buildTeam({ subdomain });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should register a public client", async () => {
@@ -102,7 +107,8 @@ describe("#oauth.register", () => {
     expect(client!.clientType).toEqual("confidential");
   });
 
-  it("should include client_uri and logo_uri in response", async () => {
+  it("should include client_uri and upload logo_uri in the background", async () => {
+    const schedule = vi.spyOn(UploadOAuthClientLogoTask.prototype, "schedule");
     const res = await server.post("/oauth/register", {
       body: {
         client_name: "Branded Client",
@@ -118,7 +124,14 @@ describe("#oauth.register", () => {
     expect(res.status).toEqual(201);
     const body = await res.json();
     expect(body.client_uri).toEqual("https://example.com");
-    expect(body.logo_uri).toEqual("https://example.com/logo.png");
+    expect(body.logo_uri).toBeUndefined();
+
+    const client = await OAuthClient.findByClientId(body.client_id);
+    expect(client?.avatarUrl).toBeNull();
+    expect(schedule).toHaveBeenCalledWith({
+      oauthClientId: client?.id,
+      logoUrl: "https://example.com/logo.png",
+    });
   });
 
   it("should accept registration without client_name", async () => {

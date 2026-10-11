@@ -12,6 +12,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
+import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
 import type { APIContext } from "@server/types";
@@ -234,11 +235,19 @@ router.post(
       redirectUris: redirect_uris,
       clientType,
       developerUrl: client_uri ?? null,
-      avatarUrl: logo_uri ?? null,
       published: false,
       teamId: team.id,
       createdById: null,
     });
+
+    // The logo is copied to file storage in the background, so the consent
+    // screen never loads it from a host that the client controls.
+    if (logo_uri) {
+      await new UploadOAuthClientLogoTask().schedule({
+        oauthClientId: client.id,
+        logoUrl: logo_uri,
+      });
+    }
 
     Logger.info("authentication", "OAuth client registered", {
       clientId: client.clientId,
@@ -287,11 +296,23 @@ router.put(
     client.name = client_name;
     client.redirectUris = redirect_uris;
     client.developerUrl = client_uri ?? null;
-    client.avatarUrl = logo_uri ?? null;
+    if (!logo_uri) {
+      client.avatarUrl = null;
+    }
 
     // Rotate registration access token per RFC 7592 recommendation
     client.rotateRegistrationAccessToken();
     await client.saveWithCtx(ctx);
+
+    // The stored logo is kept until the background task replaces it.
+    if (logo_uri) {
+      ctx.state.transaction.afterCommit(async () => {
+        await new UploadOAuthClientLogoTask().schedule({
+          oauthClientId: client.id,
+          logoUrl: logo_uri,
+        });
+      });
+    }
 
     ctx.body = presentDCRClient(team.url, client, {
       includeRegistrationAccessToken: true,

@@ -10,6 +10,7 @@ import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { OAuthClient, Share, Team } from "@server/models";
+import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import fetch from "@server/utils/fetch";
 import { OAuthHelper } from "./OAuthHelper";
 
@@ -126,37 +127,18 @@ export class ClientMetadataHelper {
       return null;
     }
 
+    let client: OAuthClient | null;
+    let logoUrl: string | undefined;
     try {
       const { document, expiresAt } =
         await ClientMetadataHelper.fetchMetadataDocument(clientId);
-      const attributes = {
-        name: document.client_name,
-        redirectUris: document.redirect_uris,
-        developerUrl: document.client_uri ?? null,
-        avatarUrl: document.logo_uri ?? null,
-        clientType: "public" as const,
-        published: false,
-        metadataExpiresAt: expiresAt,
-      };
-
-      if (existing) {
-        return await existing.update(attributes);
-      }
-
-      try {
-        return await OAuthClient.create({
-          ...attributes,
-          clientId,
-          teamId: null,
-          createdById: null,
-        });
-      } catch (err) {
-        // A concurrent request for the same URL created the row first.
-        if (err instanceof UniqueConstraintError) {
-          return await OAuthClient.findByClientId(clientId);
-        }
-        throw err;
-      }
+      client = await ClientMetadataHelper.saveClient(
+        clientId,
+        existing,
+        document,
+        expiresAt
+      );
+      logoUrl = document.logo_uri;
     } catch (err) {
       // An existing client is kept so that issued tokens continue to work,
       // but it cannot be authorized again until a fetch succeeds.
@@ -166,6 +148,22 @@ export class ClientMetadataHelper {
       });
       return null;
     }
+
+    if (client && logoUrl) {
+      try {
+        await new UploadOAuthClientLogoTask().schedule({
+          oauthClientId: client.id,
+          logoUrl,
+        });
+      } catch (err) {
+        // The logo is optional, so it must not block authorization.
+        Logger.warn("Failed to schedule OAuth client logo upload", {
+          clientId,
+          error: errToString(err),
+        });
+      }
+    }
+    return client;
   }
 
   /**
@@ -364,5 +362,51 @@ export class ClientMetadataHelper {
       ClientMetadataHelper.maxCacheDuration
     );
     return new Date(now.getTime() + clamped);
+  }
+
+  /**
+   * Create or update the cached client for a metadata document. The logo is
+   * not stored here, it is copied to file storage by a background task.
+   *
+   * @param clientId The metadata document URL.
+   * @param existing The cached client, if there is one.
+   * @param document The validated metadata document.
+   * @param expiresAt When the cached document expires.
+   * @returns The saved client.
+   */
+  private static async saveClient(
+    clientId: string,
+    existing: OAuthClient | null,
+    document: MetadataDocument,
+    expiresAt: Date
+  ): Promise<OAuthClient | null> {
+    const attributes = {
+      name: document.client_name,
+      redirectUris: document.redirect_uris,
+      developerUrl: document.client_uri ?? null,
+      clientType: "public" as const,
+      published: false,
+      metadataExpiresAt: expiresAt,
+      ...(!document.logo_uri && { avatarUrl: null }),
+    };
+
+    if (existing) {
+      return existing.update(attributes);
+    }
+
+    try {
+      return await OAuthClient.create({
+        ...attributes,
+        clientId,
+        teamId: null,
+        createdById: null,
+      });
+    } catch (err) {
+      // A concurrent request for the same URL created the row first.
+      if (err instanceof UniqueConstraintError) {
+        return OAuthClient.findByClientId(clientId);
+      }
+      throw err;
+    }
   }
 }

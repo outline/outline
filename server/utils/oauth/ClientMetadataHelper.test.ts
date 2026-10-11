@@ -4,6 +4,7 @@ import { Minute, Day } from "@shared/utils/time";
 import { TeamPreference } from "@shared/types";
 import type { Team } from "@server/models";
 import { OAuthClient } from "@server/models";
+import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import {
   buildMetadataDocumentOAuthClient,
   buildOAuthClient,
@@ -279,6 +280,10 @@ describe("ClientMetadataHelper", () => {
       team = await buildTeam();
     });
 
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it("should not fetch when the team has turned MCP off", async () => {
       const clientId = buildClientId();
       const mock = mockDocument(clientId, buildDocument(clientId));
@@ -317,7 +322,7 @@ describe("ClientMetadataHelper", () => {
       expect(client?.name).toEqual("Example MCP Client");
       expect(client?.redirectUris).toEqual(["https://example.com/callback"]);
       expect(client?.developerUrl).toEqual("https://example.com");
-      expect(client?.avatarUrl).toEqual("https://example.com/logo.png");
+      expect(client?.avatarUrl).toBeNull();
       expect(client?.clientType).toEqual("public");
       expect(client?.published).toBe(false);
       expect(client?.teamId).toBeNull();
@@ -384,6 +389,58 @@ describe("ClientMetadataHelper", () => {
 
       expect(second?.id).toEqual(first?.id);
       expect(mock.requests()).toEqual(2);
+    });
+
+    it("should upload the logo in the background", async () => {
+      const schedule = vi.spyOn(
+        UploadOAuthClientLogoTask.prototype,
+        "schedule"
+      );
+      const clientId = buildClientId();
+      mockDocument(clientId, buildDocument(clientId));
+
+      const client = await ClientMetadataHelper.findOrFetchByClientId(
+        clientId,
+        team
+      );
+
+      expect(schedule).toHaveBeenCalledWith({
+        oauthClientId: client?.id,
+        logoUrl: "https://example.com/logo.png",
+      });
+    });
+
+    it("should keep the stored logo when the document still has one", async () => {
+      const cached = await buildMetadataDocumentOAuthClient({
+        avatarUrl: "/api/files.get?key=public/oauth-clients/abc/logo.png",
+        metadataExpiresAt: new Date(Date.now() - 1000),
+      });
+      mockDocument(cached.clientId, buildDocument(cached.clientId));
+
+      const client = await ClientMetadataHelper.findOrFetchByClientId(
+        cached.clientId,
+        team
+      );
+
+      expect(client?.avatarUrl).toEqual(cached.avatarUrl);
+    });
+
+    it("should remove the logo when the document no longer has one", async () => {
+      const cached = await buildMetadataDocumentOAuthClient({
+        avatarUrl: "/api/files.get?key=public/oauth-clients/abc/logo.png",
+        metadataExpiresAt: new Date(Date.now() - 1000),
+      });
+      mockDocument(
+        cached.clientId,
+        buildDocument(cached.clientId, { logo_uri: undefined })
+      );
+
+      const client = await ClientMetadataHelper.findOrFetchByClientId(
+        cached.clientId,
+        team
+      );
+
+      expect(client?.avatarUrl).toBeNull();
     });
 
     it("should keep the cached client when a new fetch fails", async () => {
