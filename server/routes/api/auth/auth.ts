@@ -20,7 +20,7 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
-import { getSessionsInCookie } from "@server/utils/authentication";
+import { SessionsCookieHelper } from "@server/utils/SessionsCookieHelper";
 import RateLimiter from "@server/utils/RateLimiter";
 import type * as T from "./schema";
 
@@ -121,21 +121,18 @@ const NON_SSO_SERVICES = ["email", "passkeys"];
 
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const { user, service, type } = ctx.state.auth;
-  const sessions = getSessionsInCookie(ctx);
-  const signedInTeamIds = Object.keys(sessions);
-
-  const [team, groups, signedInTeams, availableTeams] = await Promise.all([
+  const [team, groups, availableTeams] = await Promise.all([
     Team.scope("withDomains").findByPk(user.teamId, {
       rejectOnEmpty: true,
     }),
     user.groups(),
-    Team.findAll({
-      where: {
-        id: signedInTeamIds,
-      },
-    }),
     user.availableTeams(),
   ]);
+  const signedInTeams = await SessionsCookieHelper.reconcile(
+    ctx,
+    type === AuthenticationType.APP ? team : undefined
+  );
+  const signedInTeamIds = new Set(signedInTeams.map((team) => team.id));
 
   // If the user did not _just_ sign in then we need to check if they continue
   // to have access to the workspace they are signed into. This only applies
@@ -174,7 +171,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         (availableTeam) =>
           presentAvailableTeam(
             availableTeam,
-            signedInTeamIds.includes(availableTeam.id) ||
+            signedInTeamIds.has(availableTeam.id) ||
               availableTeam.id === user.teamId
           )
       ),
