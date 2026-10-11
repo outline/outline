@@ -12,19 +12,31 @@ import { isValidCellSpan } from "../lib/table";
  * - Header cells should only exist in the first row or column
  * - Cells should span at least one row and column
  */
-export class FixTablesPlugin extends Plugin {
+export class FixTablesPlugin extends Plugin<boolean> {
   constructor() {
     super({
+      state: {
+        // Whether any document change has been applied since load
+        init: () => false,
+        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
+      },
       appendTransaction: (_transactions, oldState, state) => {
+        if (oldState.doc === state.doc) {
+          return undefined;
+        }
+
         const tr = state.tr;
         const check = (node: Node, pos: number) => {
           if (node.type.spec.tableRole === "table") {
             this.fixTable(state, node, pos, tr);
           }
         };
-        if (!oldState) {
+
+        // Tables loaded in a bad state are repaired on the first edit. After
+        // that only changed tables are checked.
+        if (!this.getState(oldState)) {
           state.doc.descendants(check);
-        } else if (oldState.doc !== state.doc) {
+        } else {
           changedDescendants(oldState.doc, state.doc, 0, check);
         }
         return tr.docChanged ? tr : undefined;

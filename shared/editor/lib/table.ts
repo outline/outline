@@ -23,7 +23,7 @@ const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 /**
  * Validates an alignment attribute value.
  *
- * @param value The value to validate.
+ * @param value the value to validate.
  * @returns true if the value is a safe alignment or null.
  */
 export const isValidCellAlignment = (
@@ -36,7 +36,7 @@ export const isValidCellAlignment = (
  * Validates a colspan or rowspan attribute value. A cell with any other span
  * is left out of the table map and cannot be found by position.
  *
- * @param value The value to validate.
+ * @param value the value to validate.
  * @returns true if the value is a positive integer.
  */
 export const isValidCellSpan = (value: unknown): value is number =>
@@ -49,7 +49,7 @@ export const isValidCellSpan = (value: unknown): value is number =>
  * value. `null` and `undefined` are both considered valid (the attribute is
  * optional).
  *
- * @param value The value to validate.
+ * @param value the value to validate.
  * @param schema The editor schema, used to check mark types are registered.
  *               Optional — when absent, mark-type registration is not checked.
  * @returns true if the value is a valid marks array, null, or undefined.

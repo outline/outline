@@ -2,6 +2,7 @@ import {
   createEditorState,
   createEditorStateWithSelection,
   doc,
+  p,
   table,
   td,
   th,
@@ -267,6 +268,20 @@ describe("FixTablesPlugin", () => {
         expect(() => map.findCell(1 + offset)).not.toThrow();
       });
     });
+
+    it("should repair tables loaded in a bad state on the first edit", () => {
+      const testDoc = doc([table([tr([td("A", { rowspan: 0 })])]), p("Text")]);
+      const state = createEditorState(testDoc, [new FixTablesPlugin()]);
+
+      // Edit outside of the table
+      const newState = state.apply(
+        state.tr.insertText("x", state.doc.firstChild!.nodeSize + 1)
+      );
+
+      expect(
+        newState.doc.firstChild!.firstChild!.firstChild!.attrs.rowspan
+      ).toBe(1);
+    });
   });
 
   describe("edge cases", () => {
@@ -283,7 +298,7 @@ describe("FixTablesPlugin", () => {
       }).not.toThrow();
     });
 
-    it("should only fix tables that have changed (optimization)", () => {
+    it("should fix unchanged tables on the first edit", () => {
       // Create two tables, each with th in wrong positions
       const table1 = table([
         tr([th("H1"), th("H2")]),
@@ -292,7 +307,7 @@ describe("FixTablesPlugin", () => {
 
       const table2 = table([
         tr([th("H1"), th("H2"), th("H3")]),
-        tr([th("R1"), th("Wrong"), th("Wrong")]), // Would be td if changed
+        tr([th("R1"), th("Wrong"), th("Wrong")]), // Should be td
       ]);
 
       const testDoc = doc([table1, table2]);
@@ -301,22 +316,17 @@ describe("FixTablesPlugin", () => {
       // Insert text only in the first table - second table is unchanged
       const newState = state.apply(state.tr.insertText("x", 5));
 
-      // Check first table - fixed because it was modified
       const newTable1 = newState.doc.child(0);
-      expect(newTable1.child(0).child(0).type.name).toBe("th");
       expect(newTable1.child(0).child(1).type.name).toBe("th");
       expect(newTable1.child(1).child(0).type.name).toBe("th");
       expect(newTable1.child(1).child(1).type.name).toBe("td");
 
-      // Check second table - NOT fixed because it wasn't changed
-      // This is intentional optimization via changedDescendants
+      // Tables loaded in a bad state are fixed even when they did not change
       const newTable2 = newState.doc.child(1);
-      expect(newTable2.child(0).child(0).type.name).toBe("th");
-      expect(newTable2.child(0).child(1).type.name).toBe("th");
       expect(newTable2.child(0).child(2).type.name).toBe("th");
       expect(newTable2.child(1).child(0).type.name).toBe("th");
-      expect(newTable2.child(1).child(1).type.name).toBe("th"); // Still th - not changed
-      expect(newTable2.child(1).child(2).type.name).toBe("th"); // Still th - not changed
+      expect(newTable2.child(1).child(1).type.name).toBe("td");
+      expect(newTable2.child(1).child(2).type.name).toBe("td");
     });
 
     it("should not modify document when no fixes needed", () => {
