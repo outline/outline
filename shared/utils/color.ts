@@ -1,4 +1,5 @@
-import md5 from "crypto-js/md5";
+import { md5 } from "@noble/hashes/legacy.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import { darken, getLuminance, parseToHsl, parseToRgb } from "polished";
 import theme from "../styles/theme";
 import type { RgbaColor } from "polished/lib/types/color";
@@ -24,7 +25,7 @@ export const validateColorHex = (color: string) =>
   /^#(?:[0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(color);
 
 export const stringToColor = (input: string) => {
-  const inputAsNumber = parseInt(md5(input).toString(), 16);
+  const inputAsNumber = parseInt(bytesToHex(md5(utf8ToBytes(input))), 16);
   return palette[inputAsNumber % palette.length];
 };
 
