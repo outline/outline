@@ -200,6 +200,22 @@ describe.runIf(typeof document !== "undefined")("getCellAttrs", () => {
     ]);
   });
 
+  it("reads valid spans and falls back to 1 for invalid spans", () => {
+    expect(cell({ colspan: "2", rowspan: "3" })).toMatchObject({
+      colspan: 2,
+      rowspan: 3,
+    });
+    expect(cell({})).toMatchObject({ colspan: 1, rowspan: 1 });
+    expect(cell({ colspan: "0", rowspan: "0" })).toMatchObject({
+      colspan: 1,
+      rowspan: 1,
+    });
+    expect(cell({ colspan: "1.5", rowspan: "abc" })).toMatchObject({
+      colspan: 1,
+      rowspan: 1,
+    });
+  });
+
   it("ignores near-white and transparent cell backgrounds", () => {
     expect(cell({ style: "background-color: #ffffff" }).marks).toBe(undefined);
     expect(cell({ style: "background-color: transparent" }).marks).toBe(
