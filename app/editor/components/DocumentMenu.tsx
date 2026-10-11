@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import useStores from "~/hooks/useStores";
 import type { MentionMenuItem } from "~/editor/menus/mention";
 import {
@@ -31,8 +31,9 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
   const { auth, documents } = useStores();
   const { props: editorProps } = useEditor();
   const actorId = auth.currentUserId;
-  const location = useLocation();
-  const documentId = parseDocumentSlug(location.pathname);
+  const documentId = useLocationSelector((location) =>
+    parseDocumentSlug(location.pathname)
+  );
 
   // Spaces are allowed in the search term, so it may have trailing whitespace.
   const query = search.trim();

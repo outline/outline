@@ -4,7 +4,7 @@ import { useDirection } from "@radix-ui/react-direction";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Router, useLocation } from "react-router-dom";
+import { Router } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
@@ -17,6 +17,7 @@ import {
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
 import { useResizeHandle } from "~/hooks/useResizeHandle";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import useStores from "~/hooks/useStores";
 import history, { patchLocation, toLocationDescriptor } from "~/utils/history";
 import type { SplitViewPane } from "~/utils/splitView";
@@ -42,11 +43,12 @@ type Props = {
  */
 export const SplitView = observer(function SplitView({ children }: Props) {
   const { ui } = useStores();
-  const location = useLocation();
   const isMobile = useMobile();
   const direction = useDirection();
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const splitPath = isMobile ? undefined : getSplitPath(location.search);
+  const splitPath = useLocationSelector((location) =>
+    isMobile ? undefined : getSplitPath(location.search)
+  );
   const focusedPane = getFocusedSplitPane();
 
   // Return focus to the primary pane and reset the secondary pane's sidebar

@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from "uuid";
 import { runInAction } from "mobx";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { MentionType } from "@shared/types";
 import {
@@ -29,6 +28,7 @@ import {
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import type Model from "~/models/base/Model";
 import { client } from "~/utils/ApiClient";
 import { useEditor } from "./EditorContext";
@@ -53,8 +53,9 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const { auth, documents, users, collections, groups } = useStores();
   const { props: editorProps } = useEditor();
   const actorId = auth.currentUserId;
-  const location = useLocation();
-  const documentId = parseDocumentSlug(location.pathname);
+  const documentId = useLocationSelector((location) =>
+    parseDocumentSlug(location.pathname)
+  );
   const userLocale = useUserLocale();
   const maxResultsInSection = search ? 25 : 5;
 
