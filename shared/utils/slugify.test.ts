@@ -12,6 +12,7 @@ describe("slugify", () => {
   it("should transliterate non-latin characters", () => {
     expect(slugify("Café résumé")).toBe("cafe-resume");
     expect(slugify("Привет мир")).toBe("privet-mir");
+    expect(slugify("θεός")).toBe("theos");
   });
 
   it("should keep surrogate pairs", () => {
