@@ -1,6 +1,6 @@
 import type { Attrs, Node, Schema } from "prosemirror-model";
 import { TableMap, type MutableAttrs } from "prosemirror-tables";
-import type { EditorView } from "prosemirror-view";
+import { Decoration, type EditorView } from "prosemirror-view";
 import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
 import type { TableLayout, NodeAttrMark } from "../types";
@@ -367,6 +367,24 @@ export function getColumnSizes(node: Node | null, colspan: number): number[] {
     return colwidth;
   }
   return Array.from({ length: colspan }, () => 1);
+}
+
+/**
+ * Create a widget decoration at the start of a table cell, such as a grip or
+ * an insert button. The widget is placed before the cell content, so
+ * ProseMirror does not mistake it for the first block of the cell.
+ *
+ * @param cellPos The position of the cell.
+ * @param toDOM The function or element that renders the widget.
+ * @param spec The widget options.
+ * @returns The widget decoration.
+ */
+export function cellWidget(
+  cellPos: number,
+  toDOM: Parameters<typeof Decoration.widget>[1],
+  spec?: Parameters<typeof Decoration.widget>[2]
+): Decoration {
+  return Decoration.widget(cellPos + 1, toDOM, { ...spec, side: -1 });
 }
 
 const spanTrackers = new WeakMap<globalThis.Node, () => void>();

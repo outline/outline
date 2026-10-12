@@ -2,6 +2,7 @@ import { Schema } from "prosemirror-model";
 import { TableMap } from "prosemirror-tables";
 import { doc, table, td, tr } from "@shared/test/editor";
 import {
+  cellWidget,
   getCellAttrs,
   getCellSpan,
   getCellsStartingInColumn,
@@ -256,5 +257,18 @@ describe("getCellSpan", () => {
       cell(2, 1),
     ]);
     expect(getCellsStartingInColumn(map, 2)).toEqual([cell(1, 2), cell(2, 2)]);
+  });
+});
+
+describe("cellWidget", () => {
+  it("places the widget at the start of the cell, before its content", () => {
+    const toDOM = () => {
+      throw new Error("Not rendered");
+    };
+    const widget = cellWidget(1, toDOM, { key: "grip" });
+
+    expect(widget.from).toBe(2);
+    expect(widget.spec.side).toBe(-1);
+    expect(widget.spec.key).toBe("grip");
   });
 });
