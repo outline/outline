@@ -425,11 +425,13 @@ export function useDropToChangeCollection(
  * Hook for shared logic that allows dropping documents to reparent
  *
  * @param node The NavigationNode model to drop.
+ * @param collection The collection that contains the node, if known.
  * @param setExpanded A function to expand the parent node.
  * @param parentRef A ref to the parent element that will be used to detect when the user is no longer hovering..
  */
 export function useDropToReparentDocument(
   node: NavigationNode | undefined,
+  collection: Collection | undefined,
   setExpanded: () => void,
   parentRef: React.RefObject<HTMLDivElement | null>
 ) {
@@ -447,22 +449,24 @@ export function useDropToReparentDocument(
         return;
       }
 
-      const collection = node.collectionId
-        ? collections.get(node.collectionId)
-        : undefined;
+      const collectionId =
+        node.collectionId ?? documents.get(node.id)?.collectionId;
+      const targetCollection =
+        collection ??
+        (collectionId ? collections.get(collectionId) : undefined);
       const prevCollection = collections.get(item.collectionId);
 
       if (
-        collection &&
+        targetCollection &&
         prevCollection &&
-        prevCollection.permission !== collection.permission
+        prevCollection.permission !== targetCollection.permission
       ) {
         dialogs.openModal({
           title: t("Change permissions?"),
           content: (
             <ConfirmMoveDialog
               item={item}
-              collection={collection}
+              collection={targetCollection}
               parentDocumentId={node.id}
             />
           ),

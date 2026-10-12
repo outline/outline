@@ -188,6 +188,7 @@ const DocumentLink = observer(function DocumentLink({
   const parentRef = React.useRef<HTMLDivElement>(null);
   const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
     node,
+    collection,
     handleExpand,
     parentRef
   );
