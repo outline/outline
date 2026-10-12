@@ -244,7 +244,7 @@ export default ({ mode }: ConfigEnv) =>
               },
               {
                 name: "vendor-styled",
-                test: /node_modules[\\/](styled-components|stylis)/,
+                test: /node_modules[\\/](styled-components|stylis|@emotion[\\/](is-prop-valid|memoize))/,
                 priority: 22,
               },
               {

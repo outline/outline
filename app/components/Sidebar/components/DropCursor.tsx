@@ -53,7 +53,7 @@ const Cursor = styled.div<{
   background: transparent;
   ${(props) => (props.position === "top" ? "top: -7px;" : "bottom: -7px;")}
 
-  ::after {
+  &::after {
     background: ${(props) => props.theme.accent};
     position: absolute;
     top: 6px;

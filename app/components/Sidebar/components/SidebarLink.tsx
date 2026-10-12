@@ -227,6 +227,7 @@ function SidebarLink({
 
   return (
     <Link
+      as={NavLink}
       $isActiveDrop={isActiveDrop}
       $isDraft={isDraft}
       $disabled={disabled}
@@ -243,7 +244,6 @@ function SidebarLink({
       to={to!}
       href={href}
       className={className}
-      // @ts-expect-error spread props cause overload mismatch with styled NavLink
       ref={ref}
       {...rest}
     >
@@ -277,7 +277,7 @@ const HiddenDisclosure = styled(Disclosure)`
   margin-inline-start: -2px;
 `;
 
-const Link = styled(NavLink)<{
+const Link = styled.a<{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
