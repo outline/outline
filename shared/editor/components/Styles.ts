@@ -1000,6 +1000,15 @@ th .image .image-wrapper img {
   caret-color: transparent;
 }
 
+/* Text blocks selected with the drag handle do not get an outline. */
+.ProseMirror-selectednode:not(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, hr) {
+  outline: 2px solid ${props.readOnly ? "transparent" : props.theme.selected};
+
+  @media print {
+    outline: none;
+  }
+}
+
 .ProseMirror.dragging .ProseMirror-selectednode,
 .ProseMirror .${EditorStyleHelper.draggingSource} {
   opacity: 0.25;
