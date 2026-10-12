@@ -28,7 +28,7 @@ export function useSidebarLabelAndIcon({
   const collection =
     !document && collectionId ? collections.get(collectionId) : undefined;
 
-  const title = document?.titleWithDefault;
+  const title = document?.displayTitle;
   const documentIcon = document?.icon;
   const initial = document?.initial;
   const color = document?.color;

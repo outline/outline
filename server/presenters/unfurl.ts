@@ -114,7 +114,7 @@ const presentDocument = (
     url: url ?? `${document.url}${anchor ?? ""}`,
     type: UnfurlResourceType.Document,
     id: document.id,
-    title: document.titleWithDefault,
+    title: document.displayTitle,
     summary: sectionSummary || document.getSummary(),
     lastActivityByViewer: viewer
       ? presentLastActivityInfoFor(document, viewer)

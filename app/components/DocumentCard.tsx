@@ -127,7 +127,7 @@ function DocumentCard(props: Props) {
             to={{
               pathname: document.path,
               state: {
-                title: document.titleWithDefault,
+                title: document.displayTitle,
               },
             }}
           >
@@ -169,8 +169,8 @@ function DocumentCard(props: Props) {
               <div>
                 <Heading dir={document.dir}>
                   {hasEmojiInTitle
-                    ? document.titleWithDefault.replace(document.icon!, "")
-                    : document.titleWithDefault}
+                    ? document.displayTitle.replace(document.icon!, "")
+                    : document.displayTitle}
                 </Heading>
                 <DocumentMeta size="xsmall">
                   {isRecentlyUpdated ? (

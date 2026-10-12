@@ -371,8 +371,8 @@ function DocumentScene({
 
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
   const pageTitle = hasEmojiInTitle
-    ? document.titleWithDefault.replace(document.icon!, "")
-    : document.titleWithDefault;
+    ? document.displayTitle.replace(document.icon!, "")
+    : document.displayTitle;
   const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
 
   const fullWidthTransformOffsetStyle = {

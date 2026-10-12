@@ -49,7 +49,7 @@ export function toSearchRecord(
 ): SearchIndexDocument {
   return {
     id: doc.id,
-    title: doc.titleWithDefault,
+    title: doc.displayTitle,
     url: doc.url,
     text: doc.data ? getPlainText(doc) : stripHighlightTags(context),
     icon: doc.icon,

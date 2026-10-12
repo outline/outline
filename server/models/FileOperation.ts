@@ -151,7 +151,7 @@ class FileOperation extends ParanoidModel<
     const source =
       "document" in options
         ? {
-            name: options.document.titleWithDefault,
+            name: options.document.displayTitle,
             documentId: options.document.id,
             teamId: options.document.teamId,
           }

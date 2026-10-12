@@ -106,7 +106,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
           <Trans
             defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history."
             values={{
-              documentTitle: document.titleWithDefault,
+              documentTitle: document.displayTitle,
             }}
             components={{
               em: <strong />,
@@ -117,7 +117,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
             count={nestedDocumentsCount}
             defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>."
             values={{
-              documentTitle: document.titleWithDefault,
+              documentTitle: document.displayTitle,
               any: nestedDocumentsCount,
             }}
             components={{

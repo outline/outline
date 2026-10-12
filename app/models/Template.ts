@@ -185,13 +185,13 @@ export default class Template extends ParanoidModel implements Searchable {
     return addDays(new Date(this.deletedAt), 30).toString();
   }
 
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || i18n.t("Untitled");
   }
 
   @computed
   get initial(): string {
-    return (this.titleWithDefault?.charAt(0) ?? "?").toUpperCase();
+    return (this.displayTitle?.charAt(0) ?? "?").toUpperCase();
   }
 
   @computed

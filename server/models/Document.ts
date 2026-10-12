@@ -1107,7 +1107,7 @@ class Document extends ArchivableModel<
    *
    * @returns boolean
    */
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || "Untitled";
   }
 

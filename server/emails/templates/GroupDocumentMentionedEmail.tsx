@@ -103,7 +103,7 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
       `The {{ groupName }} group was mentioned in “{{ documentTitle }}”`,
       {
         groupName,
-        documentTitle: document.titleWithDefault,
+        documentTitle: document.displayTitle,
       }
     );
   }
@@ -135,7 +135,7 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
     groupName,
   }: Props): string {
     return `
-${this.t(`{{ actorName }} mentioned the “{{ groupName }}” group in the document “{{ documentTitle }}”.`, { actorName, groupName, documentTitle: document.titleWithDefault })}
+${this.t(`{{ actorName }} mentioned the “{{ groupName }}” group in the document “{{ documentTitle }}”.`, { actorName, groupName, documentTitle: document.displayTitle })}
 
 ${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
@@ -159,7 +159,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
               "{{ actorName }} mentioned the “{{ groupName }}” group in the document",
               { actorName, groupName }
             )}{" "}
-            <a href={documentLink}>{document.titleWithDefault}</a>.
+            <a href={documentLink}>{document.displayTitle}</a>.
           </p>
           {body && (
             <>
