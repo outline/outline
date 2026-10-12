@@ -517,6 +517,19 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeUpdate
+  static checkPersonal(model: Collection) {
+    if (!model.ownerId) {
+      return;
+    }
+    if (model.changed("name")) {
+      throw ValidationError("A personal collection cannot be renamed");
+    }
+    if (model.changed("permission") && model.permission) {
+      throw ValidationError("A personal collection must stay private");
+    }
+  }
+
+  @BeforeUpdate
   static async checkIndex(
     model: Collection,
     options: UpdateOptions<Collection>

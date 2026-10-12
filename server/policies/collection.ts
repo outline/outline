@@ -275,6 +275,16 @@ allow(User, "archive", Collection, (user, collection) =>
   )
 );
 
+// Pins are shown on the collection page, which a personal collection does not
+// have.
+allow(User, "pin", Collection, (user, collection) =>
+  and(
+    //
+    !collection?.isPersonal,
+    can(user, "update", collection)
+  )
+);
+
 // Only the owner is a member of a personal collection, documents in it are
 // shared through document memberships instead.
 allow(User, "manageUsers", Collection, (user, collection) =>

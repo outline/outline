@@ -40,7 +40,7 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "update", collection);
+      authorize(user, "pin", collection);
       authorize(user, "pin", document);
     } else {
       authorize(user, "pinToHome", document);

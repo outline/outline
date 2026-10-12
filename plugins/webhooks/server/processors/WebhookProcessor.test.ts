@@ -1,12 +1,13 @@
 import {
   buildAdmin,
+  buildAttachment,
   buildDocument,
   buildPersonalCollection,
   buildUser,
   buildWebhookSubscription,
 } from "@server/test/factories";
 import { mockTaskSchedule } from "@server/test/support";
-import type { DocumentEvent, UserEvent } from "@server/types";
+import type { AttachmentEvent, DocumentEvent, UserEvent } from "@server/types";
 import WebhookProcessor from "./WebhookProcessor";
 
 const ip = "127.0.0.1";
@@ -140,7 +141,7 @@ describe("WebhookProcessor", () => {
     });
   });
 
-  it("only schedules events in a personal collection for its owner", async () => {
+  it("does not schedule events in a personal collection", async () => {
     const owner = await buildUser();
     const admin = await buildAdmin({ teamId: owner.teamId });
     const personal = await buildPersonalCollection(owner);
@@ -149,18 +150,14 @@ describe("WebhookProcessor", () => {
       userId: owner.id,
       collectionId: personal.id,
     });
-    await buildWebhookSubscription({
-      teamId: owner.teamId,
-      createdById: admin.id,
-      url: "http://example.com",
-      events: ["*"],
-    });
-    const ownSubscription = await buildWebhookSubscription({
-      teamId: owner.teamId,
-      createdById: owner.id,
-      url: "http://example.com",
-      events: ["*"],
-    });
+    for (const createdById of [admin.id, owner.id]) {
+      await buildWebhookSubscription({
+        teamId: owner.teamId,
+        createdById,
+        url: "http://example.com",
+        events: ["*"],
+      });
+    }
     const processor = new WebhookProcessor();
 
     const event: DocumentEvent = {
@@ -176,10 +173,39 @@ describe("WebhookProcessor", () => {
     schedule.mockClear();
     await processor.perform(event);
 
-    expect(schedule).toHaveBeenCalledTimes(1);
-    expect(schedule).toHaveBeenCalledWith({
-      event,
-      subscriptionId: ownSubscription.id,
+    expect(schedule).not.toHaveBeenCalled();
+  });
+
+  it("does not schedule attachment events in a personal collection", async () => {
+    const owner = await buildUser();
+    const personal = await buildPersonalCollection(owner);
+    const document = await buildDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: personal.id,
     });
+    const attachment = await buildAttachment({
+      teamId: owner.teamId,
+      userId: owner.id,
+      documentId: document.id,
+    });
+    await buildWebhookSubscription({
+      teamId: owner.teamId,
+      url: "http://example.com",
+      events: ["*"],
+    });
+
+    const event: AttachmentEvent = {
+      name: "attachments.create",
+      modelId: attachment.id,
+      teamId: owner.teamId,
+      actorId: owner.id,
+      ip,
+      data: { name: attachment.name },
+    };
+    schedule.mockClear();
+    await new WebhookProcessor().perform(event);
+
+    expect(schedule).not.toHaveBeenCalled();
   });
 });

@@ -71,6 +71,7 @@ import type {
   WebhookSubscriptionEvent,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
+import { WebhookEventHelper } from "../helpers/WebhookEventHelper";
 import type { WebhookPayload } from "../presenters/webhook";
 import presentWebhook from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
@@ -145,6 +146,16 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (!subscription.enabled) {
       Logger.info("task", `WebhookSubscription was disabled before delivery`, {
+        event: event.name,
+        subscriptionId: subscription.id,
+      });
+      return;
+    }
+
+    // Checked again, as a document can move into a personal collection after
+    // the delivery was queued.
+    if (await WebhookEventHelper.isInPersonalCollection(event)) {
+      Logger.info("task", `Skipped webhook for personal collection event`, {
         event: event.name,
         subscriptionId: subscription.id,
       });

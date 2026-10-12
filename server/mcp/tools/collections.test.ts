@@ -1,6 +1,10 @@
 import { DeprecationValidation } from "@shared/validations";
 import { Collection } from "@server/models";
-import { buildCollection, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildPersonalCollection,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import {
   buildOAuthUser,
@@ -115,6 +119,20 @@ describe("collection tools", () => {
 
     await collection.reload();
     expect(collection.description).toEqual("Updated description");
+  });
+
+  it("update_collection does not rename a personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildPersonalCollection(user);
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+      name: "Notes",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await collection.reload();
+    expect(collection.name).toEqual("Personal");
   });
 
   it("update_collection errors when no fields are provided to update", async () => {
