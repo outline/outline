@@ -218,6 +218,24 @@ export function isLoopbackUri(uri: string | undefined): boolean {
 }
 
 /**
+ * Returns the hostname of a URL. Internationalized hostnames are returned in
+ * their punycode form.
+ *
+ * @param url the URL to parse.
+ * @returns the hostname, or undefined if the URL cannot be parsed.
+ */
+export function getHostname(url: string | undefined): string | undefined {
+  if (!url) {
+    return undefined;
+  }
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Temporary prefix applied to links in document that are not yet persisted.
  */
 export const creatingUrlPrefix = "creating#";

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
-import { isLoopbackUri } from "@shared/utils/urls";
+import { getHostname, isLoopbackUri } from "@shared/utils/urls";
 import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import ButtonLarge from "~/components/ButtonLarge";
@@ -75,14 +75,16 @@ function inputScopes(scope?: string): string[] {
  * Returns the hostname of a client ID metadata document URL.
  *
  * @param clientId the OAuth client_id parameter.
- * @returns the hostname, or undefined if the client does not use a metadata document.
+ * @returns the punycode hostname, or undefined if the client does not use a metadata document.
  */
 function metadataDocumentHost(clientId: string) {
-  return clientId.startsWith(
-    OAuthClientValidation.metadataDocumentClientIdPrefix
-  )
-    ? parseDomain(clientId).host
-    : undefined;
+  if (
+    !clientId.startsWith(OAuthClientValidation.metadataDocumentClientIdPrefix)
+  ) {
+    return undefined;
+  }
+
+  return getHostname(clientId);
 }
 
 /**

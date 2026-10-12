@@ -441,6 +441,30 @@ describe("#urlRegex", () => {
   });
 });
 
+describe("#getHostname", () => {
+  it("should return the hostname", () => {
+    expect(urlsUtils.getHostname("https://Example.com:8080/a?b=c")).toBe(
+      "example.com"
+    );
+  });
+
+  it("should return internationalized hostnames as punycode", () => {
+    expect(urlsUtils.getHostname("https://аpple.com/client.json")).toBe(
+      "xn--pple-43d.com"
+    );
+  });
+
+  it("should keep brackets on IPv6 hostnames", () => {
+    expect(urlsUtils.getHostname("http://[::1]:3000/callback")).toBe("[::1]");
+  });
+
+  it("should return undefined for unparseable input", () => {
+    expect(urlsUtils.getHostname("not a url")).toBeUndefined();
+    expect(urlsUtils.getHostname("")).toBeUndefined();
+    expect(urlsUtils.getHostname(undefined)).toBeUndefined();
+  });
+});
+
 describe("#removeUrlFragment", () => {
   it("should remove a hash fragment", () => {
     expect(

@@ -5,6 +5,7 @@ import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { errToString } from "@shared/utils/error";
 import { Day, Minute, Second } from "@shared/utils/time";
+import { getHostname } from "@shared/utils/urls";
 import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
@@ -121,8 +122,10 @@ export class ClientMetadataHelper {
 
     // Users can upload content to this installation, so a document hosted
     // here could impersonate a client.
+    const hostname = getHostname(clientId);
     if (
-      await ClientMetadataHelper.isInstallationHost(new URL(clientId).hostname)
+      !hostname ||
+      (await ClientMetadataHelper.isInstallationHost(hostname))
     ) {
       return null;
     }
@@ -244,13 +247,7 @@ export class ClientMetadataHelper {
       env.CDN_URL,
       env.AWS_S3_UPLOAD_BUCKET_URL,
       env.AWS_S3_ACCELERATE_URL,
-    ].flatMap((url) => {
-      try {
-        return url ? [new URL(url).hostname.toLowerCase()] : [];
-      } catch {
-        return [];
-      }
-    });
+    ].flatMap((url) => getHostname(url) ?? []);
     if (storageHosts.includes(host)) {
       return true;
     }
