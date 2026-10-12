@@ -87,7 +87,7 @@ allow(User, "download", Collection, (actor, collection) =>
 );
 
 // A personal collection cannot be starred, as it has no page to link to.
-allow(User, "star", Collection, (user, collection) =>
+allow(User, ["star", "unstar"], Collection, (user, collection) =>
   and(
     //
     !collection?.isPersonal,
@@ -97,7 +97,7 @@ allow(User, "star", Collection, (user, collection) =>
 
 allow(
   User,
-  ["readDocument", "unstar", "subscribe", "unsubscribe"],
+  ["readDocument", "subscribe", "unsubscribe"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {

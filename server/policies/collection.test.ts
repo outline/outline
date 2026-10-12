@@ -634,6 +634,7 @@ describe("personal collection", () => {
     expect(abilities.shareDocument).toBeTruthy();
     expect(abilities.share).toEqual(false);
     expect(abilities.star).toEqual(false);
+    expect(abilities.unstar).toEqual(false);
     expect(abilities.createTemplate).toEqual(false);
     expect(abilities.manageTemplate).toEqual(false);
     expect(abilities.manageUsers).toEqual(false);
