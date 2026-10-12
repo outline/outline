@@ -1,4 +1,6 @@
 import type { Job, JobOptions } from "bull";
+import { errToString } from "@shared/utils/error";
+import Logger from "@server/logging/Logger";
 import { taskQueue } from "../../";
 
 export enum TaskPriority {
@@ -25,6 +27,28 @@ export abstract class BaseTask<T extends object> {
       },
       { ...options, jobId, ...this.options }
     );
+  }
+
+  /**
+   * Schedule this task when its work is optional. A failure to add the job is
+   * logged, not thrown, so that it does not fail the caller.
+   *
+   * @param props Properties to be used by the task
+   * @param options Job options such as priority and retry strategy, as defined by Bull.
+   * @returns A promise that resolves to the job, or undefined if it was not added
+   */
+  public async scheduleOptional(
+    props: T,
+    options?: JobOptions
+  ): Promise<Job | undefined> {
+    try {
+      return await this.schedule(props, options);
+    } catch (err) {
+      Logger.warn(`Failed to schedule ${this.constructor.name}`, {
+        error: errToString(err),
+      });
+      return undefined;
+    }
   }
 
   /**

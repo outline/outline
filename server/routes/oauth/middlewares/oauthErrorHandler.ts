@@ -58,7 +58,12 @@ export default function oauthErrorHandler() {
         let errorType = "server_error";
         if (status === 400) {
           errorType = "invalid_request";
-        } else if (status === 401) {
+        } else if (
+          status === 401 ||
+          (err instanceof Error &&
+            "id" in err &&
+            err.id === "invalid_client_metadata")
+        ) {
           errorType = "invalid_client";
         }
 

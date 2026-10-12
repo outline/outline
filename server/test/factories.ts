@@ -5,6 +5,7 @@ import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
+import { Hour } from "@shared/utils/time";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
   CollectionPermission,
@@ -845,14 +846,14 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
 }
 
 export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
-  if (!overrides.teamId) {
+  if (overrides.teamId === undefined) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
   if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
-      teamId: overrides.teamId,
+      teamId: overrides.teamId ?? undefined,
     });
     overrides.createdById = user.id;
   }
@@ -872,6 +873,26 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
       silent: overrides.createdAt || overrides.updatedAt ? true : false,
     }
   );
+}
+
+/**
+ * Build an OAuth client that is identified by a client ID metadata document.
+ *
+ * @param overrides Attributes to override on the client.
+ * @returns The created OAuth client.
+ */
+export async function buildMetadataDocumentOAuthClient(
+  overrides: Partial<OAuthClient> = {}
+) {
+  return buildOAuthClient({
+    clientId: `https://${randomUUID()}.example.com/oauth/client.json`,
+    clientType: "public",
+    published: false,
+    teamId: null,
+    createdById: null,
+    metadataExpiresAt: new Date(Date.now() + Hour.ms),
+    ...overrides,
+  });
 }
 
 export async function buildOAuthAuthorizationCode({

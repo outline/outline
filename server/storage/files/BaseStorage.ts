@@ -10,6 +10,7 @@ import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Minute, Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { ImageHelper } from "@server/models/helpers/ImageHelper";
 import type { RequestInit } from "@server/utils/fetch";
 import fetch, { chromeUserAgent, Headers } from "@server/utils/fetch";
 import type { AppContext } from "@server/types";
@@ -190,7 +191,9 @@ export default abstract class BaseStorage {
    * @param key The path to store the file at
    * @param acl The ACL to use
    * @param init Optional fetch options to use
-   * @param options Optional upload options
+   * @param options Optional upload options. When imagesOnly is set, only PNG,
+   * JPEG, GIF and WebP files are stored, with the content type detected from
+   * the file data
    * @returns A promise that resolves when the file is uploaded
    */
   public async storeFromUrl(
@@ -198,7 +201,7 @@ export default abstract class BaseStorage {
     key: string,
     acl: string,
     init?: RequestInit,
-    options?: { maxUploadSize?: number }
+    options?: { maxUploadSize?: number; imagesOnly?: boolean }
   ): Promise<
     | {
         url: string;
@@ -277,6 +280,18 @@ export default abstract class BaseStorage {
     const contentLength = buffer.byteLength;
     if (contentLength === 0) {
       return;
+    }
+
+    if (options?.imagesOnly) {
+      const imageType = ImageHelper.detectType(buffer);
+      if (!imageType) {
+        Logger.info("utils", "URL to upload is not a supported image", {
+          url,
+          key,
+        });
+        return;
+      }
+      contentType = imageType.contentType;
     }
 
     try {

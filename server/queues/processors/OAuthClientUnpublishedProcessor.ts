@@ -14,6 +14,10 @@ export default class OAuthClientUnpublishedProcessor extends BaseProcessor {
       const oauthClient = await OAuthClient.findByPk(event.modelId, {
         rejectOnEmpty: true,
       });
+      if (!oauthClient.teamId) {
+        return;
+      }
+
       const users = await User.findAll({
         attributes: ["id"],
         where: {
