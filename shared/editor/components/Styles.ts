@@ -2146,6 +2146,11 @@ table {
     background: ${props.theme.accent};
     cursor: var(--pointer);
 
+    /* above the grips while the insert line is shown */
+    &:hover {
+      z-index: 3;
+    }
+
     &:hover::after {
       width: 16px;
       height: 16px;

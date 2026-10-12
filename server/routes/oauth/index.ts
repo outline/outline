@@ -118,16 +118,24 @@ router.post(
     const clientId = ctx.input.body.client_id;
     const clientSecret = ctx.input.body.client_secret;
 
-    // Because we disabled client authentication for refresh_token grant type at the library
-    // initialization, we need to manually enforce it here for confidential clients.
-    if (grantType === "refresh_token" && !clientSecret) {
-      if (!refreshToken) {
+    // Only client_secret_post is advertised, but the library also reads HTTP
+    // Basic credentials, so reject them to keep the checks below complete.
+    if (/^\s*basic\b/i.test(ctx.request.get("authorization"))) {
+      throw ValidationError(
+        "Unsupported client authentication method, send credentials in the request body"
+      );
+    }
+
+    // The library does not require a client secret for the refresh_token grant
+    // or for PKCE requests, so we enforce it here for confidential clients.
+    if (!clientSecret) {
+      if (grantType === "refresh_token" && !refreshToken) {
         throw ValidationError(
           "Missing refresh_token for refresh_token grant type"
         );
       }
       if (!clientId) {
-        throw ValidationError("Missing client_id for refresh_token grant type");
+        throw ValidationError("Missing client_id");
       }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
