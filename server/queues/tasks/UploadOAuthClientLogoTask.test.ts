@@ -29,41 +29,6 @@ const mockLogo = (
 };
 
 describe("UploadOAuthClientLogoTask", () => {
-  describe("detectImageType", () => {
-    it("should detect raster images from their leading bytes", () => {
-      expect(UploadOAuthClientLogoTask.detectImageType(png)?.contentType).toBe(
-        "image/png"
-      );
-      expect(
-        UploadOAuthClientLogoTask.detectImageType(
-          Buffer.from([0xff, 0xd8, 0xff, 0xe0])
-        )?.contentType
-      ).toBe("image/jpeg");
-      expect(
-        UploadOAuthClientLogoTask.detectImageType(Buffer.from("GIF89a..."))
-          ?.contentType
-      ).toBe("image/gif");
-      expect(
-        UploadOAuthClientLogoTask.detectImageType(
-          Buffer.from("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ")
-        )?.contentType
-      ).toBe("image/webp");
-    });
-
-    it("should not detect SVG or HTML", () => {
-      expect(
-        UploadOAuthClientLogoTask.detectImageType(
-          Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>')
-        )
-      ).toBeUndefined();
-      expect(
-        UploadOAuthClientLogoTask.detectImageType(
-          Buffer.from("<html><script>alert(1)</script></html>")
-        )
-      ).toBeUndefined();
-    });
-  });
-
   describe("perform", () => {
     it("should store the logo and update the client", async () => {
       const client = await buildMetadataDocumentOAuthClient();

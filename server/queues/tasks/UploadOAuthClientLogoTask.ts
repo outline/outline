@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import Logger from "@server/logging/Logger";
 import { OAuthClient } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import { ImageHelper } from "@server/models/helpers/ImageHelper";
 import FileStorage from "@server/storage/files";
 import fetch from "@server/utils/fetch";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -11,11 +12,6 @@ interface Props {
   oauthClientId: string;
   /** The remote logo URL that the client provided. */
   logoUrl: string;
-}
-
-interface ImageType {
-  contentType: string;
-  extension: string;
 }
 
 /**
@@ -30,41 +26,6 @@ export default class UploadOAuthClientLogoTask extends BaseTask<Props> {
 
   /** The maximum time to wait for a logo. */
   public static fetchTimeout = 5000;
-
-  /**
-   * Detect a supported raster image from its leading bytes. The content type
-   * that the remote host sends is not trusted, and SVG is never accepted
-   * because it can contain scripts.
-   *
-   * @param body The image data.
-   * @returns The image type, or undefined if it is not a supported image.
-   */
-  public static detectImageType(body: Buffer): ImageType | undefined {
-    const startsWith = (bytes: number[]) =>
-      bytes.every((byte, index) => body[index] === byte);
-
-    if (startsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
-      return { contentType: "image/png", extension: "png" };
-    }
-    if (startsWith([0xff, 0xd8, 0xff])) {
-      return { contentType: "image/jpeg", extension: "jpg" };
-    }
-    if (
-      body
-        .subarray(0, 6)
-        .toString("ascii")
-        .match(/^GIF8[79]a$/)
-    ) {
-      return { contentType: "image/gif", extension: "gif" };
-    }
-    if (
-      body.subarray(0, 4).toString("ascii") === "RIFF" &&
-      body.subarray(8, 12).toString("ascii") === "WEBP"
-    ) {
-      return { contentType: "image/webp", extension: "webp" };
-    }
-    return undefined;
-  }
 
   public async perform({ oauthClientId, logoUrl }: Props) {
     const client = await OAuthClient.findByPk(oauthClientId);
@@ -89,7 +50,7 @@ export default class UploadOAuthClientLogoTask extends BaseTask<Props> {
     }
 
     const body = await res.buffer();
-    const imageType = UploadOAuthClientLogoTask.detectImageType(body);
+    const imageType = ImageHelper.detectType(body);
     if (!imageType) {
       Logger.info("task", "OAuth client logo is not a supported image", {
         oauthClientId,

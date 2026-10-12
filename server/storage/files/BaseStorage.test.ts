@@ -254,6 +254,41 @@ describe("BaseStorage", () => {
       });
     });
 
+    describe("imagesOnly", () => {
+      it("should store a supported image with the detected content type", async () => {
+        const gif = Buffer.from("GIF89a...").toString("base64");
+
+        const result = await storage.storeFromUrl(
+          `data:image/png;base64,${gif}`,
+          "test-key",
+          "public-read",
+          undefined,
+          { imagesOnly: true }
+        );
+
+        expect(result?.contentType).toBe("image/gif");
+        expect(storage.storedFiles).toHaveLength(1);
+        expect(storage.storedFiles[0].contentType).toBe("image/gif");
+      });
+
+      it("should not store an SVG", async () => {
+        const svg = Buffer.from(
+          '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+        ).toString("base64");
+
+        const result = await storage.storeFromUrl(
+          `data:image/png;base64,${svg}`,
+          "test-key",
+          "public-read",
+          undefined,
+          { imagesOnly: true }
+        );
+
+        expect(result).toBeUndefined();
+        expect(storage.storedFiles).toHaveLength(0);
+      });
+    });
+
     describe("internal URL handling", () => {
       it("should return undefined for URLs already on the storage provider", async () => {
         const result = await storage.storeFromUrl(
