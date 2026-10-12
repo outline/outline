@@ -174,10 +174,12 @@ allow(User, "createChildDocument", Document, (actor, document) =>
   )
 );
 
+// Pins and insights are not shown for documents in a personal collection.
 allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
   and(
     !document?.isDraft,
     !actor.isGuest,
+    !document?.collection?.isPersonal,
     can(actor, "update", document),
     can(actor, "update", document?.collection)
   )
