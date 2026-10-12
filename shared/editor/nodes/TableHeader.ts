@@ -14,6 +14,7 @@ import { addColumnBefore, selectColumn } from "../commands/table";
 import { isMobile } from "../../utils/browser";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import {
+  cellWidget,
   getCellAttrs,
   getCellSpan,
   getColumnSizes,
@@ -185,8 +186,8 @@ function buildColumnDragIndicator(
     ? EditorStyleHelper.tableDragIndicatorRight
     : EditorStyleHelper.tableDragIndicatorLeft;
 
-  return Decoration.widget(
-    pos + 1,
+  return cellWidget(
+    pos,
     () => {
       const indicator = document.createElement("div");
       indicator.className = className;
@@ -276,8 +277,8 @@ export default class TableHeader extends Node {
         first: index === 0,
       });
 
-      return Decoration.widget(
-        pos + 1,
+      return cellWidget(
+        pos,
         (view, getPos) => {
           const plus = document.createElement("a");
           plus.role = "button";
@@ -349,8 +350,8 @@ export default class TableHeader extends Node {
           });
 
           decorations.push(
-            Decoration.widget(
-              pos + 1,
+            cellWidget(
+              pos,
               (view, getPos) => {
                 const grip = document.createElement("a");
                 grip.role = "button";
