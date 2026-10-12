@@ -3,11 +3,11 @@ import { Scope } from "@shared/types";
 import { OAuthAuthentication, OAuthAuthorizationCode } from "@server/models";
 import {
   buildOAuthAuthentication,
+  buildOAuthAuthorizationCode,
   buildOAuthClient,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer, toFormData } from "@server/test/support";
-import { hash } from "@server/utils/crypto";
 
 const server = getTestServer();
 
@@ -319,10 +319,7 @@ describe("#oauth.token", () => {
         grantId,
       });
 
-      const code = await OAuthAuthorizationCode.create({
-        authorizationCodeHash: "hash",
-        scope: [Scope.Read],
-        redirectUri: client.redirectUris[0],
+      const code = await buildOAuthAuthorizationCode({
         oauthClientId: client.id,
         userId: user.id,
         expiresAt: new Date(Date.now() + 10000),
@@ -421,29 +418,44 @@ describe("#oauth.token", () => {
   });
 
   describe("authorization_code grant", () => {
-    const buildCodeGrant = async () => {
+    const codeVerifier = crypto.randomBytes(32).toString("base64url");
+    const codeChallenge = crypto
+      .createHash("sha256")
+      .update(codeVerifier)
+      .digest("base64url");
+
+    const buildCodeGrant = async ({
+      clientType = "confidential",
+      pkce = false,
+    }: {
+      clientType?: "confidential" | "public";
+      pkce?: boolean;
+    } = {}) => {
       const user = await buildUser();
       const client = await buildOAuthClient({
         teamId: user.teamId,
-        clientType: "confidential",
+        clientType,
       });
       const grantId = crypto.randomUUID();
       const code = crypto.randomBytes(32).toString("hex");
 
-      await OAuthAuthorizationCode.create({
-        authorizationCodeHash: hash(code),
-        scope: [Scope.Read],
-        redirectUri: client.redirectUris[0],
+      await buildOAuthAuthorizationCode({
+        code,
         oauthClientId: client.id,
         userId: user.id,
         expiresAt: new Date(Date.now() + 10000),
         grantId,
+        ...(pkce ? { codeChallenge, codeChallengeMethod: "S256" } : {}),
       });
 
-      const exchange = () =>
+      const exchange = (
+        overrides: Record<string, string | undefined> = {},
+        headers: Record<string, string> = {}
+      ) =>
         server.post("/oauth/token", {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
+            ...headers,
           },
           body: toFormData({
             grant_type: "authorization_code",
@@ -451,6 +463,8 @@ describe("#oauth.token", () => {
             redirect_uri: client.redirectUris[0],
             client_id: client.clientId,
             client_secret: client.clientSecret,
+            ...(pkce ? { code_verifier: codeVerifier } : {}),
+            ...overrides,
           }),
         });
 
@@ -481,6 +495,65 @@ describe("#oauth.token", () => {
         },
       });
       expect(count).toEqual(1);
+    });
+
+    it("should exchange a PKCE code with client_secret for a confidential client", async () => {
+      const { exchange } = await buildCodeGrant({ pkce: true });
+
+      const res = await exchange();
+      expect(res.status).toEqual(200);
+    });
+
+    it("should exchange a PKCE code without client_secret for a public client", async () => {
+      const { exchange } = await buildCodeGrant({
+        clientType: "public",
+        pkce: true,
+      });
+
+      const res = await exchange({ client_secret: undefined });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should error when a confidential client exchanges a PKCE code without client_secret", async () => {
+      const { grantId, exchange } = await buildCodeGrant({ pkce: true });
+
+      const res = await exchange({ client_secret: undefined });
+      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(body.error_description).toContain(
+        "Missing client_secret for confidential client"
+      );
+
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(0);
+    });
+
+    it("should error when client credentials are sent with basic auth", async () => {
+      const { client, grantId, exchange } = await buildCodeGrant({
+        pkce: true,
+      });
+      const credentials = Buffer.from(`${client.clientId}:`).toString("base64");
+
+      const res = await exchange(
+        { client_id: undefined, client_secret: undefined },
+        { Authorization: `Basic ${credentials}` }
+      );
+      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(body.error_description).toContain(
+        "Unsupported client authentication method"
+      );
+
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(0);
     });
 
     it("should reject a replayed authorization code", async () => {
