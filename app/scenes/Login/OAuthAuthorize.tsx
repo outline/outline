@@ -266,7 +266,7 @@ function Authorize() {
         <Text type="tertiary" as="p">
           {isLoopback && clientHost ? (
             <Trans
-              defaults="You will be redirected to a local application after authorizing. <em>{{ clientHost }}</em> cannot confirm that this application belongs to it, only continue if you started this connection yourself."
+              defaults="You will be redirected to a local application that <em>{{ clientHost }}</em> cannot verify. Only continue if you started this connection."
               values={{ clientHost }}
               components={{ em: <strong /> }}
             />
