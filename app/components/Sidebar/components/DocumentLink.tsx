@@ -32,7 +32,7 @@ import {
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
-import { indentForDepth } from "./SidebarLink";
+import { childDepthFor, indentForDepth } from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
 
@@ -213,7 +213,9 @@ const DocumentLink = observer(function DocumentLink({
   // dragged skips the position after itself, which would be a no-op.
   const targetsBelow = React.useMemo<DropTarget[]>(() => {
     if (expanded && hasChildren) {
-      return [{ parentDocumentId: node.id, index: 0, depth: depth + 1 }];
+      return [
+        { parentDocumentId: node.id, index: 0, depth: childDepthFor(depth) },
+      ];
     }
     const afterSelf = isDragging
       ? []

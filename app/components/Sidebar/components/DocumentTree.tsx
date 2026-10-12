@@ -6,7 +6,10 @@ import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import type { NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import { flattenExpandedTree } from "@shared/utils/tree";
+import {
+  flattenExpandedTree,
+  type FlattenedTreeNode,
+} from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
@@ -79,27 +82,30 @@ export const DocumentTree = observer(function DocumentTree({
 
   const rows = useComputed(
     () =>
-      flattenExpandedTree({
-        nodes,
-        depth,
-        parentId,
-        isExpanded: (nodeId) => expansion.isExpanded(nodeId),
-        getChildren: (node) => {
-          // Show an unpublished draft below its parent while it is open.
-          if (
-            collection &&
-            activeDraft &&
-            activeDraft.parentDocumentId === node.id
-          ) {
-            return sortNavigationNodes(
-              [activeDraft.asNavigationNode, ...node.children],
-              collection.sort,
-              false
-            );
-          }
-          return node.children;
-        },
-      }),
+      withChildDepth(
+        flattenExpandedTree({
+          nodes,
+          depth,
+          parentId,
+          isExpanded: (nodeId) => expansion.isExpanded(nodeId),
+          getChildren: (node) => {
+            // Show an unpublished draft below its parent while it is open.
+            if (
+              collection &&
+              activeDraft &&
+              activeDraft.parentDocumentId === node.id
+            ) {
+              return sortNavigationNodes(
+                [activeDraft.asNavigationNode, ...node.children],
+                collection.sort,
+                false
+              );
+            }
+            return node.children;
+          },
+        }),
+        depth
+      ),
     [nodes, depth, parentId, collection, expansion, activeDraft]
   );
 
@@ -273,3 +279,28 @@ export const DocumentTree = observer(function DocumentTree({
     </div>
   );
 });
+
+/**
+ * Moves the descendants of root rows at depth 0 one level deeper, so that the
+ * rows match childDepthFor.
+ *
+ * @param rows The flattened rows of the tree.
+ * @param depth The depth of the root rows.
+ * @returns the rows with adjusted depths.
+ */
+function withChildDepth(
+  rows: FlattenedTreeNode[],
+  depth: number
+): FlattenedTreeNode[] {
+  if (depth !== 0) {
+    return rows;
+  }
+
+  const adjust = (row: FlattenedTreeNode): FlattenedTreeNode =>
+    row.depth === 0 ? row : { ...row, depth: row.depth + 1 };
+
+  return rows.map((row) => ({
+    ...adjust(row),
+    trailingAncestors: row.trailingAncestors.map(adjust),
+  }));
+}
