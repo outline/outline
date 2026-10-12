@@ -18,6 +18,7 @@ import {
   yDocToProsemirrorJSON,
 } from "y-prosemirror";
 import * as Y from "yjs";
+import { StyleSheetProvider } from "@shared/components/StyleSheetProvider";
 import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
 import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
@@ -686,7 +687,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // touch process globals, so it stays outside the export lock below.
     try {
       html = renderToString(
-        sheet.collectStyles(
+        <StyleSheetProvider sheet={sheet.instance}>
           <ThemeProvider theme={light}>
             <>
               {options?.includeStyles === false ? (
@@ -699,7 +700,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
               )}
             </>
           </ThemeProvider>
-        )
+        </StyleSheetProvider>
       );
       styleTags = sheet.getStyleTags();
     } catch (error) {

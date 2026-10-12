@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
-import styled, { css, useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
@@ -430,7 +430,7 @@ const Container = styled(Flex)<ContainerProps>`
         props.$collapsed ? `calc(100% - 8px)` : 0});
     }
 
-    ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
+    ${(props: ContainerProps) => props.$isHovering && hoverStyles(props)}
 
     &:hover {
       ${ToggleButton} {

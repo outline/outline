@@ -2832,7 +2832,7 @@ li > .${EditorStyleHelper.toggleBlock} {
 }
 `;
 
-const EditorContainer = styled.div<Props>`
+const EditorContainer = styled.div<Omit<Props, "theme">>`
   ${style}
   ${mathStyle}
   ${codeMarkCursor}
