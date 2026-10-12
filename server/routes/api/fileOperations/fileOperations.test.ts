@@ -1,9 +1,11 @@
 // @vitest-isolate true
 import {
   CollectionPermission,
+  FileOperationFormat,
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
+import { createContext } from "@server/context";
 import {
   Collection,
   User,
@@ -658,5 +660,48 @@ describe("personal collection exports", () => {
       });
       expect(own.status).toEqual(302);
     }
+  });
+
+  it("should keep a document export private after the document moves", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const owner = await buildUser({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+    const shared = await buildCollection({ teamId: team.id, userId: owner.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: personal.id,
+    });
+    const fileOperation = await FileOperation.createExport(
+      createContext({ user: owner }),
+      { document, format: FileOperationFormat.MarkdownZip }
+    );
+    fileOperation.state = FileOperationState.Complete;
+    await fileOperation.save();
+    expect(fileOperation.options?.personalOwnerId).toEqual(owner.id);
+
+    document.collectionId = shared.id;
+    await document.save();
+
+    const list = await server.post("/api/fileOperations.list", admin, {
+      body: { type: FileOperationType.Export },
+    });
+    const body = await list.json();
+    expect(body.data.map((f: { id: string }) => f.id)).not.toContain(
+      fileOperation.id
+    );
+
+    const redirect = await server.post("/api/fileOperations.redirect", admin, {
+      body: { id: fileOperation.id },
+      redirect: "manual",
+    });
+    expect(redirect.status).toEqual(403);
+
+    const own = await server.post("/api/fileOperations.redirect", owner, {
+      body: { id: fileOperation.id },
+      redirect: "manual",
+    });
+    expect(own.status).toEqual(302);
   });
 });

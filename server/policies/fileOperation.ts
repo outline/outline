@@ -40,6 +40,12 @@ function canAccessSource(actor: User, fileOperation: FileOperation) {
  * or of the documents in them.
  */
 function isOwnerIfPersonalSource(actor: User, fileOperation: FileOperation) {
+  // The owner at the time of the export applies, also after the source moved.
+  const personalOwnerId = fileOperation.options?.personalOwnerId;
+  if (personalOwnerId && personalOwnerId !== actor.id) {
+    return false;
+  }
+
   const collection =
     fileOperation.collection ?? fileOperation.document?.collection;
   return !collection?.isPersonal || isCollectionOwner(actor, collection);

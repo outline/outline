@@ -38,6 +38,8 @@ export type FileOperationOptions = {
   includeAttachments?: boolean;
   includePrivate?: boolean;
   permission?: CollectionPermission | null;
+  /** The owner of the personal collection that was exported, if any. */
+  personalOwnerId?: string;
 };
 
 type AdditionalFindOptions = {
@@ -157,12 +159,29 @@ class FileOperation extends ParanoidModel<
   ): Promise<FileOperation> {
     const { user } = ctx.state.auth;
     const format = options.format ?? FileOperationFormat.MarkdownZip;
+
+    // The owner is stored on the export, as a document can move out of the
+    // personal collection after it was exported.
+    const sourceCollectionId =
+      "document" in options
+        ? options.document.collectionId
+        : options.collection?.id;
+    const sourceCollection = sourceCollectionId
+      ? await Collection.unscoped().findOne({
+          attributes: ["ownerId"],
+          where: { id: sourceCollectionId },
+          transaction: ctx.state.transaction,
+        })
+      : null;
+    const personalOwnerId = sourceCollection?.ownerId ?? undefined;
+
     const source =
       "document" in options
         ? {
             name: options.document.titleWithDefault,
             documentId: options.document.id,
             teamId: options.document.teamId,
+            options: personalOwnerId ? { personalOwnerId } : null,
           }
         : {
             name: options.collection?.name || options.team.name,
@@ -171,6 +190,7 @@ class FileOperation extends ParanoidModel<
             options: {
               includeAttachments: options.includeAttachments ?? true,
               includePrivate: options.includePrivate ?? true,
+              ...(personalOwnerId ? { personalOwnerId } : {}),
             },
           };
     const { name, ...attributes } = source;

@@ -62,6 +62,12 @@ router.post(
             { "$document.collection.ownerId$": user.id },
           ],
         },
+        {
+          [Op.or]: [
+            { "options.personalOwnerId": null },
+            { "options.personalOwnerId": user.id },
+          ],
+        },
       ],
     };
     const team = await Team.findByPk(user.teamId);
