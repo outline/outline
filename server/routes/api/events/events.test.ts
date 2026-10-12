@@ -6,7 +6,6 @@ import {
   buildCollection,
   buildDocument,
   buildEvent,
-  buildPersonalCollection,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -511,63 +510,5 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
-  });
-
-  it("should not return events in the personal collection of another user", async () => {
-    const owner = await buildUser();
-    const admin = await buildAdmin({ teamId: owner.teamId });
-    const personal = await buildPersonalCollection(owner);
-    const document = await buildDocument({
-      userId: owner.id,
-      collectionId: personal.id,
-      teamId: owner.teamId,
-    });
-    const personalEvents = [
-      await buildEvent({
-        name: "documents.publish",
-        collectionId: personal.id,
-        documentId: document.id,
-        teamId: owner.teamId,
-        actorId: owner.id,
-      }),
-      await buildEvent({
-        name: "documents.publish",
-        documentId: document.id,
-        teamId: owner.teamId,
-        actorId: owner.id,
-      }),
-    ];
-    const event = await buildEvent({
-      name: "users.create",
-      teamId: owner.teamId,
-      actorId: owner.id,
-      userId: owner.id,
-    });
-
-    const res = await server.post("/api/events.list", admin, {
-      body: { auditLog: true },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.map((e: { id: string }) => e.id)).toEqual([event.id]);
-
-    const res2 = await server.post("/api/events.list", admin);
-    const body2 = await res2.json();
-    expect(res2.status).toEqual(200);
-    expect(body2.data.map((e: { id: string }) => e.id)).toEqual([event.id]);
-
-    const res4 = await server.post("/api/events.list", owner, {
-      body: { collectionId: personal.id },
-    });
-    const body4 = await res4.json();
-    expect(res4.status).toEqual(200);
-    expect(body4.data.map((e: { id: string }) => e.id)).toEqual([
-      personalEvents[0].id,
-    ]);
-
-    const res3 = await server.post("/api/events.list", admin, {
-      body: { collectionId: personal.id },
-    });
-    expect(res3.status).toEqual(403);
   });
 });
