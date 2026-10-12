@@ -1,5 +1,5 @@
 import dns from "node:dns";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { traceFunction } from "@server/logging/tracing";
 import isUUID from "validator/lib/isUUID";
 import { MentionType, UnfurlResourceType } from "@shared/types";

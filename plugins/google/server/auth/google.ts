@@ -1,6 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { capitalize } from "es-toolkit/compat";
 import type { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";

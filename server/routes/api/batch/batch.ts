@@ -1,7 +1,7 @@
 import { chunk, omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
-import Router from "koa-router";
+import Router from "@koa/router";
 import auth from "@server/middlewares/authentication";
 import {
   defaultRateLimiter,

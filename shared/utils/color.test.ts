@@ -1,4 +1,21 @@
-import { ensureContrast, toColorFormats, validateColorHex } from "./color";
+import {
+  ensureContrast,
+  palette,
+  stringToColor,
+  toColorFormats,
+  validateColorHex,
+} from "./color";
+
+describe("stringToColor", () => {
+  it("returns a stable palette color for the input", () => {
+    expect(stringToColor("pdf")).toBe(palette[2]);
+    expect(stringToColor("a@b.com")).toBe(palette[8]);
+    expect(stringToColor("Ünïcødé 😀")).toBe(palette[2]);
+    expect(stringToColor("3f2504e0-4f89-41d3-9a0c-0305e82c3301")).toBe(
+      palette[12]
+    );
+  });
+});
 
 describe("validateColorHex", () => {
   it("accepts 3-digit hex", () => {

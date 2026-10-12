@@ -1,7 +1,12 @@
 import { addMonths } from "date-fns";
 import { buildUser, buildCollection } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import {
+  getTestServer,
+  setCloudHosted,
+  setSelfHosted,
+} from "@server/test/support";
 import { getJWTPayload } from "@server/utils/jwt";
+import { verifyOAuthState } from "@server/utils/oauthState";
 
 const server = getTestServer();
 
@@ -71,5 +76,25 @@ describe("auth/redirect", () => {
     });
 
     expect(res.status).toEqual(401);
+  });
+});
+
+describe("auth provider routes", () => {
+  beforeEach(setSelfHosted);
+  afterEach(setCloudHosted);
+
+  it("should include the signed-in actor in the OAuth state", async () => {
+    const user = await buildUser();
+    const res = await server.get("/auth/google", {
+      redirect: "manual",
+      headers: {
+        Cookie: `accessToken=${user.getSessionToken()}`,
+      },
+    });
+    expect(res.status).toEqual(302);
+
+    const location = new URL(res.headers.get("location") ?? "");
+    const state = verifyOAuthState(location.searchParams.get("state") ?? "");
+    expect(state.actorId).toEqual(user.id);
   });
 });

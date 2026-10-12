@@ -1,6 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { toError } from "@shared/utils/error";

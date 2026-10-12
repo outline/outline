@@ -1,5 +1,5 @@
 import { subHours, subMinutes } from "date-fns";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { uniqBy } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";

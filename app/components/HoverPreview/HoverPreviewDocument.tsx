@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { richExtensions } from "@shared/editor/nodes";
 import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Editor from "~/components/Editor";
@@ -76,7 +77,10 @@ const HoverPreviewDocument = observer(
     }
 
     return (
-      <Preview to={`${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`}>
+      <Preview
+        as={Link}
+        to={`${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`}
+      >
         {content}
       </Preview>
     );

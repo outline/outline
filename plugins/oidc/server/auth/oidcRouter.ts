@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import JWT from "jsonwebtoken";
 import type { Context, Request } from "koa";
-import type Router from "koa-router";
+import type Router from "@koa/router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";

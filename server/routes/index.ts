@@ -2,8 +2,8 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
-import Router from "koa-router";
-import send from "koa-send";
+import Router from "@koa/router";
+import { send } from "@koa/send";
 import { languages } from "@shared/i18n";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
@@ -25,33 +25,40 @@ const koa = new Koa();
 const router = new Router();
 
 // serve public assets
-router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
-  let done;
+router.use(
+  ["/images/{*path}", "/email/{*path}", "/fonts/{*path}"],
+  async (ctx, next) => {
+    let done;
 
-  if (ctx.method === "HEAD" || ctx.method === "GET") {
-    try {
-      done = await send(ctx, ctx.path, {
-        root: path.resolve(__dirname, "../../../public"),
-        // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: Day.ms * 7,
-        setHeaders: (res) => {
-          res.setHeader("Access-Control-Allow-Origin", "*");
-        },
-      });
-    } catch (err) {
-      if (!(err instanceof Error && "status" in err && err.status === 404)) {
-        throw err;
+    if (ctx.method === "HEAD" || ctx.method === "GET") {
+      try {
+        done = await send(ctx, ctx.path, {
+          root: path.resolve(__dirname, "../../../public"),
+          // 7 day expiry, these assets are mostly static but do not contain a hash
+          maxAge: Day.ms * 7,
+          setHeaders: (res) => {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+          },
+        });
+      } catch (err) {
+        if (!(err instanceof Error && "status" in err && err.status === 404)) {
+          throw err;
+        }
       }
     }
-  }
 
-  if (!done) {
-    await next();
+    if (!done) {
+      await next();
+    }
   }
-});
+);
 
 router.use(
-  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  [
+    "/share/:shareId",
+    "/share/:shareId/doc/:documentSlug",
+    "/share/:shareId/{*path}",
+  ],
   (ctx) => {
     const redirectPath = ctx.path.replace(/^\/share/, "/s");
     ctx.redirect(redirectPath + ctx.request.URL.search);
@@ -60,7 +67,7 @@ router.use(
 );
 
 if (env.isProduction) {
-  router.get("/static/*", async (ctx) => {
+  router.get("/static/{*path}", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
       if (!pathname) {
@@ -129,7 +136,7 @@ router.get(
   renderShare
 );
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
-router.get("/s/:shareId/*", shareDomains(), renderShare);
+router.get("/s/:shareId/{*path}", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
@@ -167,7 +174,7 @@ function isPublicAppPath(path: string) {
 }
 
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("{/*path}", async (ctx, next) => {
   if (isInvalidAppPath(ctx.path)) {
     ctx.status = 404;
     return;
