@@ -87,7 +87,7 @@ export default class CollectionsStore extends IndexedStore<Collection> {
   get all(): Collection[] {
     return sortBy(
       Array.from(this.data.values()),
-      (collection) => collection.name
+      (collection) => collection.displayName
     );
   }
 

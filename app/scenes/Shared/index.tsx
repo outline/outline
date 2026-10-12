@@ -138,7 +138,7 @@ function SharedScene() {
 
   const pageTitle =
     model instanceof Collection
-      ? model.name
+      ? model.displayName
       : model instanceof Document
         ? model.title
         : undefined;

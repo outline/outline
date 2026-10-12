@@ -256,7 +256,7 @@ class Notification extends Model {
       return this.document?.title ?? t("a document");
     }
     if (this.collectionId) {
-      return this.collection?.name ?? t("a collection");
+      return this.collection?.displayName ?? t("a collection");
     }
     if (this.groupId) {
       return this.group?.name ?? t("a group");

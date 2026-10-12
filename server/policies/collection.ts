@@ -86,9 +86,18 @@ allow(User, "download", Collection, (actor, collection) =>
   )
 );
 
+// A personal collection cannot be starred, as it has no page to link to.
+allow(User, "star", Collection, (user, collection) =>
+  and(
+    //
+    !collection?.isPersonal,
+    can(user, "readDocument", collection)
+  )
+);
+
 allow(
   User,
-  ["readDocument", "star", "unstar", "subscribe", "unsubscribe"],
+  ["readDocument", "unstar", "subscribe", "unsubscribe"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {
@@ -220,10 +229,9 @@ allow(
       !!collection?.isActive,
       isTeamModel(user, collection),
       isTeamMutable(user),
-      isCollectionWritable(user, collection),
-      isOwnerIfPersonal(user, collection),
+      // Templates in a personal collection would only be visible to its owner.
+      !collection?.isPersonal,
       or(
-        isCollectionOwner(user, collection),
         isTeamAdmin(user, collection),
         includesMembership(collection, [CollectionPermission.Admin]),
         and(

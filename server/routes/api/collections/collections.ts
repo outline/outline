@@ -650,6 +650,9 @@ router.post(
     if (collection.isPersonal && permission) {
       throw InvalidRequestError("A personal collection must stay private");
     }
+    if (collection.isPersonal && name !== undefined) {
+      throw InvalidRequestError("A personal collection cannot be renamed");
+    }
 
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.

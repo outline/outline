@@ -145,7 +145,7 @@ export const AccessControlList = observer(
               ) : usersInCollection ? (
                 <ListItem
                   image={<CollectionSquircle collection={collection} />}
-                  title={collection.name}
+                  title={collection.displayName}
                   subtitle={t("Everyone in the collection")}
                   actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
                 />

@@ -73,7 +73,7 @@ export const openCollection = createActionWithChildren({
         // Note: using url which includes the slug rather than id here to bust
         // cache if the collection is renamed
         id: collection.path,
-        name: collection.name,
+        name: collection.displayName,
         icon: <ColorCollectionIcon collection={collection} />,
         section: CollectionSection,
         to: collection.path,

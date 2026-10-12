@@ -1545,7 +1545,7 @@ export const restoreDocumentToCollection = createActionWithChildren({
     const actions = collections.orderedData.map((collection) => {
       const can = policies.abilities(collection.id);
       return createAction({
-        name: collection.name,
+        name: collection.displayName,
         section: ActiveDocumentSection,
         icon: <CollectionIcon collection={collection} />,
         visible: can.createDocument,

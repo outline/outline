@@ -1,3 +1,4 @@
+import i18n from "i18next";
 import invariant from "invariant";
 import {
   action,
@@ -120,7 +121,18 @@ export default class Collection extends ParanoidModel {
   archivedBy?: User = undefined;
   @computed
   get searchContent(): string {
-    return this.name;
+    return this.displayName;
+  }
+
+  /**
+   * The name to show for the collection. A personal collection is always shown
+   * with a translated name, whatever name is stored.
+   *
+   * @returns the name to display.
+   */
+  @computed
+  get displayName(): string {
+    return this.isPersonal ? i18n.t("Personal") : this.name;
   }
 
   /** Returns whether the collection is empty, or undefined if not loaded. */
@@ -212,7 +224,7 @@ export default class Collection extends ParanoidModel {
   /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
-    return (this.name?.charAt(0) ?? "?").toUpperCase();
+    return (this.displayName?.charAt(0) ?? "?").toUpperCase();
   }
 
   @computed

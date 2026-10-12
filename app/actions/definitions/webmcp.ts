@@ -30,7 +30,11 @@ export const getCurrentContext = createAction({
           }
         : undefined,
       collection: collection
-        ? { id: collection.id, name: collection.name, path: collection.path }
+        ? {
+            id: collection.id,
+            name: collection.displayName,
+            path: collection.path,
+          }
         : undefined,
     });
   },

@@ -150,7 +150,7 @@ const CollectionScene = observer(function CollectionScene_() {
   return (
     <Scene
       centered={false}
-      textTitle={collection.name}
+      textTitle={collection.displayName}
       left={
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
@@ -166,7 +166,7 @@ const CollectionScene = observer(function CollectionScene_() {
       title={
         <>
           <CollectionIcon collection={collection} expanded />
-          &nbsp;{collection.name}
+          &nbsp;{collection.displayName}
         </>
       }
       actions={

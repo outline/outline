@@ -30,7 +30,7 @@ export default function useCollectionTrees(): NavigationNode[] {
 function getCollectionTree(collection: Collection): NavigationNode {
   const root: NavigationNode = {
     id: collection.id,
-    title: collection.name,
+    title: collection.displayName,
     url: collection.path,
     type: NavigationNodeType.Collection,
     collectionId: collection.id,

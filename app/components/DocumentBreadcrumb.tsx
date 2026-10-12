@@ -38,8 +38,8 @@ export function documentBreadcrumbParts(
   let collectionLabel: string | undefined;
   if (document.isCollectionDeleted) {
     collectionLabel = t("Deleted Collection");
-  } else if (document.collection?.name) {
-    collectionLabel = document.collection.name;
+  } else if (document.collection?.displayName) {
+    collectionLabel = document.collection.displayName;
   }
 
   return {
@@ -264,7 +264,7 @@ const CollectionName = observer(function CollectionName_({
       <ContextMenu action={menuAction} ariaLabel={t("Collection options")}>
         <Name>
           {icon}
-          <NameText>{collection.name}</NameText>
+          <NameText>{collection.displayName}</NameText>
         </Name>
       </ContextMenu>
     </ActionContextProvider>

@@ -6272,7 +6272,10 @@ describe("#documents.create", () => {
   });
 
   it("should not create the personal collection when turned off", async () => {
-    const user = await buildUser();
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/documents.create", user, {
       body: { collectionId: "personal", title: "First", publish: true },
     });

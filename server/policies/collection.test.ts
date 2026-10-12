@@ -633,6 +633,9 @@ describe("personal collection", () => {
     expect(abilities.export).toBeTruthy();
     expect(abilities.shareDocument).toBeTruthy();
     expect(abilities.share).toEqual(false);
+    expect(abilities.star).toEqual(false);
+    expect(abilities.createTemplate).toEqual(false);
+    expect(abilities.manageTemplate).toEqual(false);
     expect(abilities.manageUsers).toEqual(false);
     expect(abilities.duplicate).toEqual(false);
     expect(abilities.archive).toEqual(false);
@@ -718,12 +721,12 @@ describe("personal collection", () => {
     const member = await buildUser({ teamId: team.id });
     const viewer = await buildUser({ teamId: team.id, role: UserRole.Viewer });
     const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
-    expect(serialize(member, team).createPersonalCollection).toEqual(false);
-
-    team.setPreference(TeamPreference.PersonalDocs, true);
-    await team.save();
     expect(serialize(member, team).createPersonalCollection).toBeTruthy();
     expect(serialize(viewer, team).createPersonalCollection).toEqual(false);
     expect(serialize(guest, team).createPersonalCollection).toEqual(false);
+
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    expect(serialize(member, team).createPersonalCollection).toEqual(false);
   });
 });

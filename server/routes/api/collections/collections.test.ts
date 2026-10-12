@@ -2773,7 +2773,7 @@ describe("personal collections", () => {
     expect(res3.status).toEqual(403);
   });
 
-  it("should not allow the owner to make it public", async () => {
+  it("should not allow the owner to make it public or rename it", async () => {
     const owner = await buildUser();
     const personal = await buildPersonalCollection(owner);
 
@@ -2785,10 +2785,12 @@ describe("personal collections", () => {
     const res2 = await server.post("/api/collections.update", owner, {
       body: { id: personal.id, name: "Notes" },
     });
-    const body2 = await res2.json();
-    expect(res2.status).toEqual(200);
-    expect(body2.data.name).toEqual("Notes");
-    expect(body2.data.permission).toEqual(null);
+    expect(res2.status).toEqual(400);
+
+    const res3 = await server.post("/api/collections.update", owner, {
+      body: { id: personal.id, sort: { field: "index", direction: "asc" } },
+    });
+    expect(res3.status).toEqual(200);
   });
 
   it("should not allow the owner to archive, delete or duplicate it", async () => {
