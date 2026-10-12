@@ -358,7 +358,8 @@ export const OAuthInterface: RefreshTokenModel &
    * @returns True if the URI is valid, false otherwise.
    */
   async validateRedirectUri(uri, client) {
-    if (!client.redirectUris?.includes(uri)) {
+    const redirectUris = [client.redirectUris ?? []].flat();
+    if (!OAuthHelper.isRegisteredRedirectUri(redirectUris, uri)) {
       return false;
     }
 

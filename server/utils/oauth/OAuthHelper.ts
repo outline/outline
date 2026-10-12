@@ -89,6 +89,42 @@ export class OAuthHelper {
   }
 
   /**
+   * Whether a requested redirect URI matches one of the registered redirect
+   * URIs. Loopback URIs match on any port, because native apps choose a free
+   * port at run time (RFC 8252 §7.3). All other URIs must match exactly.
+   *
+   * @param redirectUris - the registered redirect URIs.
+   * @param uri - the requested redirect URI.
+   * @returns true if the URI matches a registered redirect URI.
+   */
+  public static isRegisteredRedirectUri(
+    redirectUris: string[],
+    uri: string
+  ): boolean {
+    if (redirectUris.includes(uri)) {
+      return true;
+    }
+    if (!isLoopbackUri(uri)) {
+      return false;
+    }
+
+    const withoutPort = (value: string) => {
+      try {
+        const url = new URL(value);
+        url.port = "";
+        return url.toString();
+      } catch {
+        return undefined;
+      }
+    };
+    const requested = withoutPort(uri);
+    return redirectUris.some(
+      (registered) =>
+        isLoopbackUri(registered) && withoutPort(registered) === requested
+    );
+  }
+
+  /**
    * Returns the origin that identifies this deployment as an OAuth issuer and
    * resource server. Cloud-hosted deployments use the request origin so each
    * team subdomain is its own issuer; self-hosted deployments use the

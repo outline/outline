@@ -17,6 +17,7 @@ import {
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { ClientMetadataHelper } from "@server/utils/oauth/ClientMetadataHelper";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -92,7 +93,13 @@ router.post(
     }
     authorize(user, "read", oauthClient);
 
-    if (redirectUri && !oauthClient.redirectUris.includes(redirectUri)) {
+    if (
+      redirectUri &&
+      !OAuthHelper.isRegisteredRedirectUri(
+        oauthClient.redirectUris,
+        redirectUri
+      )
+    ) {
       throw ValidationError("redirect_uri is invalid");
     }
 

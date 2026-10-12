@@ -900,6 +900,40 @@ describe("client ID metadata documents", () => {
     expect(res.headers.get("location")).toBeNull();
   });
 
+  it("should authorize a loopback redirect URI on another port", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    msw.use(
+      http.get(clientId, () =>
+        HttpResponse.json({
+          client_id: clientId,
+          client_name: "Example CLI",
+          redirect_uris: ["http://localhost/callback"],
+        })
+      )
+    );
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      headers: { host: `${subdomain}.outline.dev` },
+      body: {
+        client_id: clientId,
+        response_type: "code",
+        redirect_uri: "http://localhost:54321/callback",
+        state: "state",
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      },
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toMatch(
+      /^http:\/\/localhost:54321\/callback\?code=/
+    );
+  });
+
   it("should not authorize a redirect URI missing from the document", async () => {
     const subdomain = buildSubdomain();
     const team = await buildTeam({ subdomain });
