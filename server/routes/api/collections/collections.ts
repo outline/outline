@@ -14,6 +14,7 @@ import {
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
+import personalCollectionLoader from "@server/commands/personalCollectionLoader";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -119,13 +120,7 @@ router.post(
   transaction(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
-
-    let collection = await Collection.findPersonal(user, { transaction });
-    if (!collection) {
-      authorize(user, "createPersonalCollection", user.team);
-      collection = await Collection.findOrCreatePersonal(ctx);
-    }
+    const collection = await personalCollectionLoader(ctx);
 
     ctx.body = {
       data: await presentCollection(ctx, collection),

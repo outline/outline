@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PersonalCollectionId } from "@shared/constants";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator, {
@@ -368,8 +369,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       "create_document",
       {
         title: "Create document",
-        description:
-          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
+        description: `Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Use the collectionId "${PersonalCollectionId}" to place the document in the user's personal collection, which only they can see and which is created if it does not exist yet. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.`,
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -394,7 +394,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             'The name of the file the content was read from, e.g. "notes.md". Recorded on the document and shown to users as the file it was imported from, so only set it when the content genuinely came from a file. Also used as the title when the content has no heading and no title is given.'
           ),
           collectionId: optionalString().describe(
-            "The collection to place the document in."
+            `The collection to place the document in, or "${PersonalCollectionId}" for the user's personal collection.`
           ),
           parentDocumentId: optionalString().describe(
             "The parent document ID to nest this document under."

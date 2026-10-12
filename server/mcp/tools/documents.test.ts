@@ -1,5 +1,10 @@
 import { DeprecationValidation } from "@shared/validations";
-import { CollectionPermission, DocumentPermission, Scope } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  Scope,
+  TeamPreference,
+} from "@shared/types";
 import {
   buildUser,
   buildViewer,
@@ -11,6 +16,7 @@ import {
 } from "@server/test/factories";
 import {
   Attachment,
+  Collection,
   Document,
   GroupMembership,
   SearchQuery,
@@ -384,6 +390,26 @@ describe("list_documents", () => {
 });
 
 describe("create_document", () => {
+  it("creates in the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    user.team.setPreference(TeamPreference.PersonalDocs, true);
+    await user.team.save();
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Personal Document",
+      collectionId: "personal",
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    const collection = await Collection.findOne({
+      where: { ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(document.collectionId).toEqual(collection.id);
+  });
+
   it("creates in a collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
