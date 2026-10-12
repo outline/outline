@@ -532,8 +532,10 @@ describe("#oauth.token", () => {
       expect(count).toEqual(0);
     });
 
-    it("should error when a confidential client sends an empty basic auth password with PKCE", async () => {
-      const { client, exchange } = await buildCodeGrant({ pkce: true });
+    it("should error when client credentials are sent with basic auth", async () => {
+      const { client, grantId, exchange } = await buildCodeGrant({
+        pkce: true,
+      });
       const credentials = Buffer.from(`${client.clientId}:`).toString("base64");
 
       const res = await exchange(
@@ -543,21 +545,15 @@ describe("#oauth.token", () => {
       expect(res.status).toEqual(400);
       const body = await res.json();
       expect(body.error_description).toContain(
-        "Missing client_secret for confidential client"
+        "Unsupported client authentication method"
       );
-    });
 
-    it("should exchange a code with client credentials in basic auth", async () => {
-      const { client, exchange } = await buildCodeGrant({ pkce: true });
-      const credentials = Buffer.from(
-        `${client.clientId}:${client.clientSecret}`
-      ).toString("base64");
-
-      const res = await exchange(
-        { client_id: undefined, client_secret: undefined },
-        { Authorization: `Basic ${credentials}` }
-      );
-      expect(res.status).toEqual(200);
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(0);
     });
 
     it("should reject a replayed authorization code", async () => {

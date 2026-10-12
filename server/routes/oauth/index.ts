@@ -98,10 +98,16 @@ router.post(
   async (ctx: APIContext<T.TokenReq>) => {
     const grantType = ctx.input.body.grant_type;
     const refreshToken = ctx.input.body.refresh_token;
-    const { clientId, clientSecret } = OAuthHelper.getClientCredentials(
-      ctx,
-      ctx.input.body
-    );
+    const clientId = ctx.input.body.client_id;
+    const clientSecret = ctx.input.body.client_secret;
+
+    // Only client_secret_post is advertised, but the library also reads HTTP
+    // Basic credentials, so reject them to keep the checks below complete.
+    if (/^\s*basic\b/i.test(ctx.request.get("authorization"))) {
+      throw ValidationError(
+        "Unsupported client authentication method, send credentials in the request body"
+      );
+    }
 
     // The library does not require a client secret for the refresh_token grant
     // or for PKCE requests, so we enforce it here for confidential clients.
