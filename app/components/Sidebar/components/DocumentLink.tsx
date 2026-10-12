@@ -1,5 +1,6 @@
 import type { Location } from "history";
 import { observer } from "mobx-react";
+import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
@@ -172,10 +173,16 @@ const DocumentLink = observer(function DocumentLink({
   const color = document?.color || node.color;
   const initial = document?.initial || node.title.charAt(0).toUpperCase();
 
+  // Rows at the top level of a section show the default icon, so that they
+  // align with the other rows in the sidebar.
   const iconElement = React.useMemo(
     () =>
-      icon ? <Icon value={icon} color={color} initial={initial} /> : undefined,
-    [icon, color, initial]
+      icon ? (
+        <Icon value={icon} color={color} initial={initial} />
+      ) : depth === 0 ? (
+        <DocumentIcon outline={isDraft} />
+      ) : undefined,
+    [icon, color, initial, depth, isDraft]
   );
 
   const [{ isDragging }, drag] = useDragDocument(

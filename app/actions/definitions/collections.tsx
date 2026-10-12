@@ -65,7 +65,9 @@ export const openCollection = createActionWithChildren({
   shortcut: ["o", "c"],
   icon: <CollectionIcon />,
   children: ({ stores }) => {
-    const collections = stores.collections.orderedData;
+    const collections = stores.collections.orderedData.filter(
+      (collection) => !collection.isPersonal
+    );
     return collections.map((collection) =>
       createInternalLinkAction({
         // Note: using url which includes the slug rather than id here to bust

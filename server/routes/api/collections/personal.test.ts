@@ -519,6 +519,27 @@ describe("personal collection access matrix", () => {
   });
 });
 
+describe("personal collection document presenter", () => {
+  it("should include the owner for the owner and collaborators", async () => {
+    for (const key of ["owner", "readCollaborator"] as const) {
+      const res = await post(key, "documents.info", {
+        id: fixture.documents.nested.id,
+      });
+      const body = await res.json();
+      expect({ key, ownerId: body.data.ownerId }).toEqual({
+        key,
+        ownerId: fixture.users.owner.id,
+      });
+    }
+
+    const res = await post("owner", "documents.info", {
+      id: fixture.publicDocument.id,
+    });
+    const body = await res.json();
+    expect(body.data.ownerId).toBeNull();
+  });
+});
+
 describe("personal collection with personal documents turned off", () => {
   it("should keep documents readable and stop edits", async () => {
     const { user, accessToken } = await buildOAuthUser();

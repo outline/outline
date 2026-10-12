@@ -98,7 +98,7 @@ const CollectionScene = observer(function CollectionScene_() {
   }, [collection, collection?.name, history, id, match.url]);
 
   useEffect(() => {
-    if (collection) {
+    if (collection && !collection.isPersonal) {
       ui.setActiveCollection(collection.id);
     }
 
@@ -138,6 +138,11 @@ const CollectionScene = observer(function CollectionScene_() {
   }
   if (!collection) {
     return <Loading />;
+  }
+
+  // A personal collection is only shown in the sidebar, it has no page.
+  if (collection.isPersonal) {
+    return <Error404 />;
   }
 
   const showOverview = can.update || hasDescription;

@@ -93,17 +93,19 @@ function CollectionLinkChildren({
               prefetchDocument={prefetchDocument}
             />
           )}
-          {childDocuments?.length === 0 && !children && (
-            <SidebarLink
-              label={
-                <Text type="tertiary" size="small" italic>
-                  {t("Empty")}
-                </Text>
-              }
-              onClick={() => history.push(collection.url)}
-              depth={childDepth}
-            />
-          )}
+          {childDocuments?.length === 0 &&
+            !children &&
+            !collection.isPersonal && (
+              <SidebarLink
+                label={
+                  <Text type="tertiary" size="small" italic>
+                    {t("Empty")}
+                  </Text>
+                }
+                onClick={() => history.push(collection.url)}
+                depth={childDepth}
+              />
+            )}
         </DocumentsLoader>
       </Folder>
     </SidebarExpansionContext.Provider>
