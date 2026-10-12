@@ -10,6 +10,7 @@ import {
   buildViewer,
   buildCollection,
   buildDocument,
+  buildDraftDocument,
   buildTemplate,
   buildOAuthAuthentication,
   buildGroup,
@@ -630,6 +631,30 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it("publishes a draft to the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      publish: true,
+      collectionId: "personal",
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    const personal = await Collection.findOne({
+      where: { ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    await document.reload();
+    expect(document.collectionId).toEqual(personal.id);
+    expect(document.publishedAt).not.toBeNull();
+  });
+
   it("updates title and text", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -817,6 +842,32 @@ describe("update_document", () => {
 });
 
 describe("move_document", () => {
+  it("moves a document to the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      collectionId: "personal",
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    const personal = await Collection.findOne({
+      where: { ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    await document.reload();
+    expect(document.collectionId).toEqual(personal.id);
+  });
+
   it("moves to a different collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection1 = await buildCollection({

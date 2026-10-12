@@ -1,3 +1,4 @@
+import { PersonalCollectionId } from "@shared/constants";
 import { createContext } from "@server/context";
 import { Collection } from "@server/models";
 import { authorize } from "@server/policies";
@@ -41,4 +42,23 @@ export default async function personalCollectionLoader(
       })
     )
   );
+}
+
+/**
+ * Resolves the collectionId "personal" to the id of the personal collection of
+ * the acting user, which is created when it does not exist yet. Other values
+ * are returned unchanged.
+ *
+ * @param ctx the API context containing the acting user.
+ * @param collectionId the requested collectionId.
+ * @returns the resolved collectionId.
+ * @throws AuthorizationError when the collection does not exist and the user
+ * may not create it.
+ */
+export async function resolvePersonalCollectionId<
+  T extends string | null | undefined,
+>(ctx: APIContext, collectionId: T): Promise<T | string> {
+  return collectionId === PersonalCollectionId
+    ? (await personalCollectionLoader(ctx)).id
+    : collectionId;
 }

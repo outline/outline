@@ -36,6 +36,23 @@ describe("collection tools", () => {
     expect(match!.url).toMatch(/^https?:\/\//);
   });
 
+  it("list_collections marks the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const personal = await buildPersonalCollection(user);
+
+    const res = await callMcpTool(server, accessToken, "list_collections");
+    const data = parseMcpListContent<{ id: string; isPersonal: boolean }>(
+      res?.result?.content
+    );
+
+    expect(data.find((c) => c.id === personal.id)?.isPersonal).toBe(true);
+    expect(data.find((c) => c.id === collection.id)?.isPersonal).toBe(false);
+  });
+
   it("list_collections filters by name ignoring case", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

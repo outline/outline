@@ -7,6 +7,7 @@ import documentCreator, {
   authorizeDocumentPublish,
 } from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
+import { resolvePersonalCollectionId } from "@server/commands/personalCollectionLoader";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Collection, Document, SearchQuery, Template } from "@server/models";
@@ -520,7 +521,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .describe("The unique identifier of the document to move."),
           collectionId: optionalString().describe(
-            "The destination collection ID. Required if parentDocumentId is not provided."
+            `The destination collection ID, or "${PersonalCollectionId}" for the user's personal collection. Required if parentDocumentId is not provided.`
           ),
           parentDocumentId: optionalString().describe(
             "The ID of the document to nest this document under. The document will be moved to the parent's collection."
@@ -552,7 +553,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             authorize(user, "move", document);
 
-            let collectionId = input.collectionId;
+            let collectionId = await resolvePersonalCollectionId(
+              ctx,
+              input.collectionId
+            );
 
             if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
@@ -644,7 +648,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             'Required when editMode is "patch". The exact markdown substring to find in the document. This should be copied verbatim from the document\'s existing markdown content. The first occurrence will be replaced with the text parameter. Can span multiple blocks (paragraphs, headings, etc).'
           ),
           collectionId: optionalString().describe(
-            "The collection ID to publish a draft to, required when publishing a draft that has no collection."
+            `The collection ID to publish a draft to, or "${PersonalCollectionId}" for the user's personal collection. Required when publishing a draft that has no collection.`
           ),
           icon: z
             .string()
@@ -696,8 +700,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
           } else {
             authorize(user, "update", document);
 
+            const collectionId = await resolvePersonalCollectionId(
+              ctx,
+              input.collectionId
+            );
+
             if (input.publish) {
-              await authorizeDocumentPublish(ctx, document, input.collectionId);
+              await authorizeDocumentPublish(ctx, document, collectionId);
             }
 
             const { revisionCount } = document;
@@ -705,6 +714,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             updated = await documentUpdater(ctx, {
               document,
               ...input,
+              collectionId,
             });
 
             // Every save increments revisionCount, so an unchanged count means
