@@ -1,5 +1,13 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  InstanceDestroyOptions,
+  InstanceUpdateOptions,
+  Transaction,
+} from "sequelize";
 import {
+  AfterDestroy,
+  AfterUpdate,
   Column,
   DataType,
   BelongsTo,
@@ -12,7 +20,9 @@ import {
   Unique,
 } from "sequelize-typescript";
 import { randomString } from "@shared/random";
+import { errToString } from "@shared/utils/error";
 import { OAuthClientValidation } from "@shared/validations";
+import Logger from "@server/logging/Logger";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
@@ -23,6 +33,8 @@ import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
 import IsUrlList from "@server/models/validators/IsUrlList";
 import Length from "@server/models/validators/Length";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import FileStorage from "@server/storage/files";
 import type { FindOptions } from "sequelize";
 
 @Table({
@@ -223,7 +235,98 @@ class OAuthClient extends ParanoidModel<
     }
   }
 
+  @AfterUpdate
+  public static async deleteReplacedLogo(
+    model: OAuthClient,
+    options: InstanceUpdateOptions
+  ) {
+    if (model.changed("avatarUrl")) {
+      await OAuthClient.deleteUnusedLogo(
+        model.previous("avatarUrl"),
+        options.transaction
+      );
+    }
+  }
+
+  @AfterDestroy
+  public static async deleteLogo(
+    model: OAuthClient,
+    options: InstanceDestroyOptions
+  ) {
+    await OAuthClient.deleteUnusedLogo(model.avatarUrl, options.transaction);
+  }
+
   // static methods
+
+  /**
+   * Returns the storage key for a logo copied from a client's logo URL. Keys
+   * are content addressed, so clients that share a logo share one file.
+   *
+   * @param hash The SHA-256 hash of the logo, in hex.
+   * @param extension The file extension of the logo.
+   * @returns The storage key.
+   */
+  public static logoKey(hash: string, extension: string) {
+    return `${Buckets.public}/oauth-clients/${hash}/logo.${extension}`;
+  }
+
+  /**
+   * Returns the storage key of a copied logo from its URL.
+   *
+   * @param avatarUrl The avatar URL of a client.
+   * @returns The storage key, or undefined if the URL is not a copied logo.
+   */
+  public static logoKeyFromUrl(avatarUrl: string | null | undefined) {
+    const key = avatarUrl?.match(
+      /public\/oauth-clients\/[0-9a-f]{64}\/[^/]+$/
+    )?.[0];
+    if (!key) {
+      return undefined;
+    }
+
+    // Only a URL that this installation built can name a file to delete.
+    return FileStorage.getUrlForKey(key) === avatarUrl ? key : undefined;
+  }
+
+  /**
+   * Delete a copied logo from file storage when no client uses it. When a
+   * transaction is given, this runs after it commits.
+   *
+   * @param avatarUrl The avatar URL that a client no longer uses.
+   * @param transaction The transaction of the change, if any.
+   */
+  private static async deleteUnusedLogo(
+    avatarUrl: string | null | undefined,
+    transaction?: Transaction | null
+  ) {
+    const key = OAuthClient.logoKeyFromUrl(avatarUrl);
+    if (!avatarUrl || !key) {
+      return;
+    }
+
+    const deleteFile = async () => {
+      try {
+        const inUse = await OAuthClient.unscoped().count({
+          where: { avatarUrl },
+        });
+        if (inUse === 0) {
+          await FileStorage.deleteFile(key);
+        }
+      } catch (err) {
+        // A failed delete must not fail the change to the client.
+        Logger.warn("Failed to delete OAuth client logo from storage", {
+          key,
+          error: errToString(err),
+        });
+      }
+    };
+
+    if (transaction) {
+      (transaction.parent || transaction).afterCommit(deleteFile);
+    } else {
+      await deleteFile();
+    }
+  }
 
   /**
    * Whether a client identifier is the URL of a client ID metadata document.

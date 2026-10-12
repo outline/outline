@@ -153,18 +153,10 @@ export class ClientMetadataHelper {
     }
 
     if (client && logoUrl) {
-      try {
-        await new UploadOAuthClientLogoTask().schedule({
-          oauthClientId: client.id,
-          logoUrl,
-        });
-      } catch (err) {
-        // The logo is optional, so it must not block authorization.
-        Logger.warn("Failed to schedule OAuth client logo upload", {
-          clientId,
-          error: errToString(err),
-        });
-      }
+      await UploadOAuthClientLogoTask.scheduleOptional({
+        oauthClientId: client.id,
+        logoUrl,
+      });
     }
     return client;
   }
@@ -312,7 +304,7 @@ export class ClientMetadataHelper {
    * Returns when a cached metadata document expires, using HTTP caching
    * semantics. `no-store` and `no-cache` expire the document at once.
    * Otherwise the freshness lifetime comes from `max-age` or `Expires`, less
-   * the `Age` of the response, and is clamped between the minimum and maximum
+   * the current age of the response, and is clamped between the minimum and maximum
    * cache durations.
    *
    * @param headers The response headers.
@@ -340,18 +332,24 @@ export class ClientMetadataHelper {
       .map((directive) => directive.match(/^max-age\s*=\s*"?(\d+)"?$/))
       .find(Boolean);
     const expires = headers.get("expires");
-    const age = parseInt(headers.get("age") ?? "", 10) || 0;
+    const date = new Date(headers.get("date") ?? "").getTime();
+    const responseTime = Number.isNaN(date) ? now.getTime() : date;
+
+    // The current age is the larger of the Age header and the time since the
+    // Date header (RFC 9111 section 4.2.3).
+    const age = Math.max(
+      (parseInt(headers.get("age") ?? "", 10) || 0) * Second.ms,
+      now.getTime() - responseTime
+    );
     let duration = 0;
 
     if (maxAge) {
       duration = parseInt(maxAge[1], 10) * Second.ms;
     } else if (expires) {
       const expiresAt = new Date(expires).getTime();
-      const date = new Date(headers.get("date") ?? "").getTime();
-      const responseTime = Number.isNaN(date) ? now.getTime() : date;
       duration = Number.isNaN(expiresAt) ? 0 : expiresAt - responseTime;
     }
-    duration -= age * Second.ms;
+    duration -= age;
 
     const clamped = clamp(
       duration,

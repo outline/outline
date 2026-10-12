@@ -1,4 +1,5 @@
 import { subDays, subHours } from "date-fns";
+import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { OAuthClientValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
@@ -23,8 +24,8 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
 
     const metadataDocumentPattern = `${OAuthClientValidation.metadataDocumentClientIdPrefix}%`;
 
-    const count = await OAuthClient.unscoped().destroy({
-      where: {
+    const count = await this.destroyClients(
+      {
         createdById: null,
         clientId: { [Op.notLike]: metadataDocumentPattern },
         [Op.or]: [
@@ -39,23 +40,21 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
           },
         ],
       },
-      limit,
-      force: true,
-    });
+      limit
+    );
 
-    const metadataCount = await OAuthClient.unscoped().destroy({
-      where: {
+    const metadataCount = await this.destroyClients(
+      {
         clientId: { [Op.like]: metadataDocumentPattern },
         createdAt: { [Op.lt]: neverUsedCutoff },
         [Op.and]: [
           Sequelize.literal(
-            `NOT EXISTS (SELECT 1 FROM oauth_authentications oa WHERE oa."oauthClientId" = "oauth_clients"."id" AND oa."deletedAt" IS NULL AND (oa."accessTokenExpiresAt" > NOW() OR oa."refreshTokenExpiresAt" > NOW()))`
+            `NOT EXISTS (SELECT 1 FROM oauth_authentications oa WHERE oa."oauthClientId" = "oauth_client"."id" AND oa."deletedAt" IS NULL AND (oa."accessTokenExpiresAt" > NOW() OR oa."refreshTokenExpiresAt" > NOW()))`
           ),
         ],
       },
-      limit,
-      force: true,
-    });
+      limit
+    );
 
     if (count > 0 || metadataCount > 0) {
       Logger.info("task", `Deleted dynamic OAuth clients`, {
@@ -76,5 +75,34 @@ export default class CleanupDynamicOAuthClientsTask extends CronTask {
       attempts: 1,
       priority: TaskPriority.Background,
     };
+  }
+
+  /**
+   * Permanently delete up to a limit of matching clients. Each client runs
+   * its destroy hooks, which delete logos that are no longer used.
+   *
+   * @param where The clients to delete.
+   * @param limit The maximum number of clients to delete.
+   * @returns The number of clients deleted.
+   */
+  private async destroyClients(
+    where: WhereOptions<OAuthClient>,
+    limit: number
+  ) {
+    const clients = await OAuthClient.unscoped().findAll({
+      attributes: ["id"],
+      where,
+      limit,
+      paranoid: false,
+    });
+    if (clients.length === 0) {
+      return 0;
+    }
+
+    return OAuthClient.unscoped().destroy({
+      where: { id: clients.map((client) => client.id) },
+      individualHooks: true,
+      force: true,
+    });
   }
 }

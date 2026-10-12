@@ -231,7 +231,7 @@ describe("ClientMetadataHelper", () => {
       expect(expiresAt.getTime() - now.getTime()).toEqual(60 * Minute.ms);
     });
 
-    it("should measure Expires from the Date header", () => {
+    it("should not cache past Expires when the Date header is old", () => {
       const date = new Date(now.getTime() - 30 * Minute.ms);
       const expiresAt = ClientMetadataHelper.cacheExpiry(
         headers({
@@ -240,7 +240,28 @@ describe("ClientMetadataHelper", () => {
         }),
         now
       );
-      expect(expiresAt.getTime() - now.getTime()).toEqual(90 * Minute.ms);
+      expect(expiresAt.getTime() - now.getTime()).toEqual(60 * Minute.ms);
+    });
+
+    it("should count the time since the Date header as age for max-age", () => {
+      const date = new Date(now.getTime() - 30 * Minute.ms);
+      const expiresAt = ClientMetadataHelper.cacheExpiry(
+        headers({ "Cache-Control": "max-age=5400", Date: date.toUTCString() }),
+        now
+      );
+      expect(expiresAt.getTime() - now.getTime()).toEqual(60 * Minute.ms);
+    });
+
+    it("should use the Age header when it is larger than the time since Date", () => {
+      const expiresAt = ClientMetadataHelper.cacheExpiry(
+        headers({
+          "Cache-Control": "max-age=7200",
+          Age: "3600",
+          Date: now.toUTCString(),
+        }),
+        now
+      );
+      expect(expiresAt.getTime() - now.getTime()).toEqual(60 * Minute.ms);
     });
 
     it.each(["no-store", "no-cache", "no-cache, max-age=86400"])(

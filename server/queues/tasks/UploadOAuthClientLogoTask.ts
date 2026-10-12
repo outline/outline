@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
+import { errToString } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import { OAuthClient } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { ImageHelper } from "@server/models/helpers/ImageHelper";
 import FileStorage from "@server/storage/files";
 import fetch from "@server/utils/fetch";
@@ -26,6 +26,23 @@ export default class UploadOAuthClientLogoTask extends BaseTask<Props> {
 
   /** The maximum time to wait for a logo. */
   public static fetchTimeout = 5000;
+
+  /**
+   * Schedule a logo upload. A failure is logged, not thrown, because the logo
+   * is optional and must not fail the request that changed the client.
+   *
+   * @param props the task props.
+   */
+  public static async scheduleOptional(props: Props) {
+    try {
+      await new UploadOAuthClientLogoTask().schedule(props);
+    } catch (err) {
+      Logger.warn("Failed to schedule OAuth client logo upload", {
+        oauthClientId: props.oauthClientId,
+        error: errToString(err),
+      });
+    }
+  }
 
   public async perform({ oauthClientId, logoUrl }: Props) {
     const client = await OAuthClient.findByPk(oauthClientId);
@@ -64,20 +81,19 @@ export default class UploadOAuthClientLogoTask extends BaseTask<Props> {
       return;
     }
 
-    const key = `${Buckets.public}/oauth-clients/${hash}/logo.${imageType.extension}`;
-    const url = (await FileStorage.getFileExists(key))
-      ? FileStorage.getUrlForKey(key)
-      : await FileStorage.store({
-          body,
-          contentType: imageType.contentType,
-          contentLength: body.byteLength,
-          key,
-          acl: "public-read",
-        });
-
-    if (url) {
-      await client.update({ avatarUrl: url });
+    const key = OAuthClient.logoKey(hash, imageType.extension);
+    if (!(await FileStorage.getFileExists(key))) {
+      await FileStorage.store({
+        body,
+        contentType: imageType.contentType,
+        contentLength: body.byteLength,
+        key,
+        acl: "public-read",
+      });
     }
+
+    // Always the canonical URL, so the client hooks can find the key to delete.
+    await client.update({ avatarUrl: FileStorage.getUrlForKey(key) });
   }
 
   public get options() {

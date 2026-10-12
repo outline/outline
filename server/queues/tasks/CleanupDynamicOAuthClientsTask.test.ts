@@ -1,6 +1,7 @@
 import { subDays, subHours } from "date-fns";
 import { Scope } from "@shared/types";
 import { OAuthClient } from "@server/models";
+import FileStorage from "@server/storage/files";
 import {
   buildMetadataDocumentOAuthClient,
   buildOAuthAuthentication,
@@ -180,5 +181,52 @@ describe("CleanupDynamicOAuthClientsTask", () => {
     });
 
     expect(await clientExists(client)).toBe(true);
+  });
+
+  it("should delete the logo of a deleted client", async () => {
+    const deleteFile = vi.spyOn(FileStorage, "deleteFile");
+    const key = OAuthClient.logoKey("b".repeat(64), "png");
+    await buildMetadataDocumentOAuthClient({
+      avatarUrl: FileStorage.getUrlForKey(key),
+      createdAt: subDays(new Date(), 3),
+    });
+
+    const task = new CleanupDynamicOAuthClientsTask();
+    await task.perform({
+      limit: 100,
+      partition: { partitionIndex: 0, partitionCount: 1 },
+    });
+
+    expect(deleteFile).toHaveBeenCalledWith(key);
+    deleteFile.mockRestore();
+  });
+
+  it("should only run delete hooks for clients within the limit", async () => {
+    const deleteFile = vi.spyOn(FileStorage, "deleteFile");
+    const keys = ["c", "d"].map((char) =>
+      OAuthClient.logoKey(char.repeat(64), "png")
+    );
+    const clients = await Promise.all(
+      keys.map((key) =>
+        buildOAuthClient({
+          createdById: null,
+          avatarUrl: FileStorage.getUrlForKey(key),
+          createdAt: subDays(new Date(), 3),
+        })
+      )
+    );
+
+    const task = new CleanupDynamicOAuthClientsTask();
+    await task.perform({
+      limit: 1,
+      partition: { partitionIndex: 0, partitionCount: 1 },
+    });
+
+    // Other tests can leave clients that match, so count only these.
+    const remaining = await Promise.all(clients.map(clientExists));
+    const deleted = remaining.filter((exists) => !exists).length;
+    expect(deleted).toBeLessThanOrEqual(1);
+    expect(deleteFile).toHaveBeenCalledTimes(deleted);
+    deleteFile.mockRestore();
   });
 });
