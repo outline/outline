@@ -50,23 +50,6 @@ export default class CollectionsStore extends IndexedStore<Collection> {
       : undefined;
   }
 
-  /**
-   * Fetches the personal collection of the current user, and creates it on the
-   * server if the user does not have one yet.
-   *
-   * @returns The personal Collection
-   */
-  @action
-  fetchPersonal = async (): Promise<Collection> => {
-    const res = await client.post("/collections.personal");
-    invariant(res?.data, "Data should be available");
-
-    return runInAction(() => {
-      this.addPolicies(res.policies);
-      return this.add(res.data);
-    });
-  };
-
   @override
   get orderedData(): Collection[] {
     return super.orderedData.filter((collection) => {

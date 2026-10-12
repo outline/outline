@@ -3,12 +3,9 @@ import {
   CollectionStatusFilter,
   DocumentPermission,
   Scope,
-  TeamPreference,
-  UserRole,
 } from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
 import {
-  Collection,
   Document,
   UserMembership,
   GroupMembership,
@@ -2709,58 +2706,7 @@ describe("#collections.restore", () => {
   });
 });
 
-describe("#collections.personal", () => {
-  const buildTeamWithPersonalDocs = async () => {
-    const team = await buildTeam();
-    team.setPreference(TeamPreference.PersonalDocs, true);
-    await team.save();
-    return team;
-  };
-
-  it("should create the personal collection once", async () => {
-    const team = await buildTeamWithPersonalDocs();
-    const user = await buildUser({ teamId: team.id });
-
-    const res = await server.post("/api/collections.personal", user);
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.ownerId).toEqual(user.id);
-    expect(body.data.permission).toEqual(null);
-    expect(body.policies[0].abilities.createDocument).toBeTruthy();
-    expect(body.policies[0].abilities.manageUsers).toEqual(false);
-
-    const res2 = await server.post("/api/collections.personal", user);
-    const body2 = await res2.json();
-    expect(res2.status).toEqual(200);
-    expect(body2.data.id).toEqual(body.data.id);
-    expect(
-      await Collection.count({ where: { teamId: team.id, ownerId: user.id } })
-    ).toEqual(1);
-  });
-
-  it("should not create a personal collection when turned off", async () => {
-    const user = await buildUser();
-    const res = await server.post("/api/collections.personal", user);
-    expect(res.status).toEqual(403);
-  });
-
-  it("should return an existing personal collection when turned off", async () => {
-    const user = await buildUser();
-    const collection = await buildPersonalCollection(user);
-    const res = await server.post("/api/collections.personal", user);
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(collection.id);
-    expect(body.policies[0].abilities.createDocument).toEqual(false);
-  });
-
-  it("should not create a personal collection for a guest", async () => {
-    const team = await buildTeamWithPersonalDocs();
-    const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
-    const res = await server.post("/api/collections.personal", guest);
-    expect(res.status).toEqual(403);
-  });
-
+describe("personal collections", () => {
   it("should not list the personal collection of another user", async () => {
     const team = await buildTeam();
     const owner = await buildUser({ teamId: team.id });

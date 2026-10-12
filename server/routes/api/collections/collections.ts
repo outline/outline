@@ -14,7 +14,6 @@ import {
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
-import personalCollectionLoader from "@server/commands/personalCollectionLoader";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -110,21 +109,6 @@ router.post(
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
-    };
-  }
-);
-
-router.post(
-  "collections.personal",
-  auth(),
-  transaction(),
-  async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
-    const collection = await personalCollectionLoader(ctx);
-
-    ctx.body = {
-      data: await presentCollection(ctx, collection),
-      policies: presentPolicies(user, [collection]),
     };
   }
 );

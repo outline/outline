@@ -3,6 +3,7 @@ import { DocumentIcon, PlusIcon } from "outline-icons";
 import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { PersonalCollectionId } from "@shared/constants";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { DocumentValidation } from "@shared/validations";
@@ -62,18 +63,21 @@ export const PersonalDocs = observer(function PersonalDocs() {
 
   const handleNewDoc = useCallback(
     async (title: string) => {
-      // The personal collection is created the first time it is needed.
-      const personal = collection ?? (await collections.fetchPersonal());
+      // The personal collection is created with the first document.
       const newDocument = await documents.create(
         {
-          collectionId: personal.id,
+          collectionId: collection?.id ?? PersonalCollectionId,
           title,
           fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
           data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
-      personal.addDocument(newDocument);
+      if (newDocument.collectionId) {
+        const personal =
+          collection ?? (await collections.fetch(newDocument.collectionId));
+        personal.addDocument(newDocument);
+      }
       history.push({
         pathname: documentEditPath(newDocument),
         state: { sidebarContext: "personal" },
