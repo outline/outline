@@ -56,6 +56,36 @@ export class OAuthHelper {
   }
 
   /**
+   * Returns the client credentials of a token request. Credentials in an HTTP
+   * Basic authorization header take precedence over those in the body, in the
+   * same order that the OAuth server library reads them.
+   *
+   * @param ctx - the Koa request context.
+   * @param body - the parsed request body.
+   * @returns the client ID and secret, if present.
+   */
+  public static getClientCredentials(
+    ctx: Context,
+    body: { client_id?: string; client_secret?: string }
+  ): { clientId?: string; clientSecret?: string } {
+    const match = /^ *basic +([A-Za-z0-9._~+/-]+=*) *$/i.exec(
+      ctx.request.get("authorization")
+    );
+    if (match) {
+      const decoded = Buffer.from(match[1], "base64").toString();
+      const index = decoded.indexOf(":");
+      if (index !== -1) {
+        return {
+          clientId: decoded.slice(0, index),
+          clientSecret: decoded.slice(index + 1),
+        };
+      }
+    }
+
+    return { clientId: body.client_id, clientSecret: body.client_secret };
+  }
+
+  /**
    * Returns the origin that identifies this deployment as an OAuth issuer and
    * resource server. Cloud-hosted deployments use the request origin so each
    * team subdomain is its own issuer; self-hosted deployments use the

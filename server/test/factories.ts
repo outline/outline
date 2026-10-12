@@ -874,9 +874,13 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
   );
 }
 
-export async function buildOAuthAuthorizationCode(
-  overrides: Partial<OAuthAuthorizationCode> = {}
-) {
+export async function buildOAuthAuthorizationCode({
+  code = randomString(32),
+  ...overrides
+}: Partial<OAuthAuthorizationCode> & {
+  /** The plaintext code, used to exchange the code in a test. */
+  code?: string;
+} = {}) {
   if (!overrides.userId) {
     const user = await buildUser();
     overrides.userId = user.id;
@@ -885,8 +889,6 @@ export async function buildOAuthAuthorizationCode(
   if (!overrides.expiresAt) {
     overrides.expiresAt = new Date();
   }
-
-  const code = randomString(32);
 
   let client;
   if (overrides.oauthClientId) {

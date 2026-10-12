@@ -98,19 +98,21 @@ router.post(
   async (ctx: APIContext<T.TokenReq>) => {
     const grantType = ctx.input.body.grant_type;
     const refreshToken = ctx.input.body.refresh_token;
-    const clientId = ctx.input.body.client_id;
-    const clientSecret = ctx.input.body.client_secret;
+    const { clientId, clientSecret } = OAuthHelper.getClientCredentials(
+      ctx,
+      ctx.input.body
+    );
 
-    // Because we disabled client authentication for refresh_token grant type at the library
-    // initialization, we need to manually enforce it here for confidential clients.
-    if (grantType === "refresh_token" && !clientSecret) {
-      if (!refreshToken) {
+    // The library does not require a client secret for the refresh_token grant
+    // or for PKCE requests, so we enforce it here for confidential clients.
+    if (!clientSecret) {
+      if (grantType === "refresh_token" && !refreshToken) {
         throw ValidationError(
           "Missing refresh_token for refresh_token grant type"
         );
       }
       if (!clientId) {
-        throw ValidationError("Missing client_id for refresh_token grant type");
+        throw ValidationError("Missing client_id");
       }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
