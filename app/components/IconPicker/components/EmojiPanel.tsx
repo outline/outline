@@ -26,6 +26,7 @@ const GRID_HEIGHT = 410;
 
 type Props = {
   panelWidth: number;
+  icon?: string | null;
   query: string;
   panelActive: boolean;
   height?: number;
@@ -35,6 +36,7 @@ type Props = {
 
 const EmojiPanel = ({
   panelWidth,
+  icon,
   query,
   panelActive,
   onEmojiChange,
@@ -188,6 +190,7 @@ const EmojiPanel = ({
         width={panelWidth}
         height={height - 48 - PREVIEW_HEIGHT}
         data={templateData}
+        selected={icon}
         onIconSelect={handleEmojiSelection}
         onIconActive={handleEmojiActive}
         onOverflowChange={setHasMoreBelow}

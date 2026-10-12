@@ -50,6 +50,8 @@ type Props = {
   height: number;
   /** Data to be displayed in the grid */
   data: DataNode[];
+  /** Value of the currently selected icon or emoji */
+  selected?: string | null;
   /** Content to display when search results are empty */
   empty?: React.ReactNode;
   /** Callback when an icon is selected */
@@ -66,6 +68,7 @@ function GridTemplate({
   width,
   height,
   data,
+  selected,
   empty,
   onIconSelect,
   onIconActive,
@@ -106,6 +109,7 @@ function GridTemplate({
             <IconButton
               key={item.name}
               onClick={() => onIconSelect({ id: item.name, value: item.name })}
+              aria-current={item.name === selected ? "true" : undefined}
               onMouseEnter={handleActive}
               onFocus={handleActive}
               style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
@@ -125,6 +129,7 @@ function GridTemplate({
           <IconButton
             key={item.id}
             onClick={() => onIconSelect({ id: item.id, value: item.value })}
+            aria-current={item.value === selected ? "true" : undefined}
             onMouseEnter={handleActive}
             onFocus={handleActive}
           >
