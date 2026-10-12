@@ -450,10 +450,10 @@ const emailStyle = (props: Props) => css`
  */
 const textStyle = () => css`
   /* Southeast Asian scripts */
-  :lang(th),  /* Thai */
-    :lang(lo),  /* Lao */
-    :lang(km),  /* Khmer */
-    :lang(my) {
+  &:lang(th),  /* Thai */
+    &:lang(lo),  /* Lao */
+    &:lang(km),  /* Khmer */
+    &:lang(my) {
     /* Burmese */
     p {
       line-height: 1.7;
@@ -466,16 +466,16 @@ const textStyle = () => css`
   }
 
   /* South Asian scripts */
-  :lang(hi),  /* Hindi */
-    :lang(mr),  /* Marathi */
-    :lang(ne),  /* Nepali */
-    :lang(bn),  /* Bengali */
-    :lang(gu),  /* Gujarati */
-    :lang(pa),  /* Punjabi */
-    :lang(te),  /* Telugu */
-    :lang(ta),  /* Tamil */
-    :lang(ml),  /* Malayalam */
-    :lang(si) {
+  &:lang(hi),  /* Hindi */
+    &:lang(mr),  /* Marathi */
+    &:lang(ne),  /* Nepali */
+    &:lang(bn),  /* Bengali */
+    &:lang(gu),  /* Gujarati */
+    &:lang(pa),  /* Punjabi */
+    &:lang(te),  /* Telugu */
+    &:lang(ta),  /* Tamil */
+    &:lang(ml),  /* Malayalam */
+    &:lang(si) {
     /* Sinhala */
     p {
       line-height: 1.7;
@@ -488,7 +488,7 @@ const textStyle = () => css`
   }
 
   /* Tibetan and related scripts */
-  :lang(bo) {
+  &:lang(bo) {
     p {
       line-height: 1.8;
     }
@@ -500,10 +500,10 @@ const textStyle = () => css`
   }
 
   /* Middle Eastern scripts */
-  :lang(ar),  /* Arabic */
-    :lang(fa),  /* Persian */
-    :lang(ur),  /* Urdu */
-    :lang(he) {
+  &:lang(ar),  /* Arabic */
+    &:lang(fa),  /* Persian */
+    &:lang(ur),  /* Urdu */
+    &:lang(he) {
     /* Hebrew */
     p {
       line-height: 1.6;
@@ -511,8 +511,8 @@ const textStyle = () => css`
   }
 
   /* Ethiopic and other complex scripts */
-  :lang(am),  /* Amharic */
-    :lang(mn) {
+  &:lang(am),  /* Amharic */
+    &:lang(mn) {
     /* Mongolian */
     p {
       line-height: 1.7;
@@ -525,9 +525,9 @@ const textStyle = () => css`
   }
 
   /* East Asian scripts */
-  :lang(zh),  /* Chinese */
-    :lang(ja),  /* Japanese */
-    :lang(ko) {
+  &:lang(zh),  /* Chinese */
+    &:lang(ja),  /* Japanese */
+    &:lang(ko) {
     /* Korean */
     p {
       line-height: 1.8;
@@ -1048,11 +1048,11 @@ p:has(> .component-image > .image-left-50, > .component-image > .image-right-50)
 
 // In static HTML the parser lifts floats out of their paragraph, leaving empty ones
 p:empty:has(+ .image-left-50, + .image-right-50),
-:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak + p:empty {
+&:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak + p:empty {
   min-height: 0;
 }
 
-:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak {
+&:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak {
   display: none;
 }
 
