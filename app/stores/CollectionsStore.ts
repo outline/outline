@@ -31,10 +31,41 @@ export default class CollectionsStore extends IndexedStore<Collection> {
       : undefined;
   }
 
+  /** Active collections, other than the personal collection. */
   @computed
   get allActive() {
-    return this.orderedData.filter((c) => c.isActive);
+    return this.orderedData.filter((c) => c.isActive && !c.isPersonal);
   }
+
+  /**
+   * Returns the personal collection of the current user, if it was loaded.
+   *
+   * @returns The personal Collection or undefined
+   */
+  @computed
+  get personal(): Collection | undefined {
+    const userId = this.rootStore.auth.user?.id;
+    return userId
+      ? this.orderedData.find((c) => c.ownerId === userId)
+      : undefined;
+  }
+
+  /**
+   * Fetches the personal collection of the current user, and creates it on the
+   * server if the user does not have one yet.
+   *
+   * @returns The personal Collection
+   */
+  @action
+  fetchPersonal = async (): Promise<Collection> => {
+    const res = await client.post("/collections.personal");
+    invariant(res?.data, "Data should be available");
+
+    return runInAction(() => {
+      this.addPolicies(res.policies);
+      return this.add(res.data);
+    });
+  };
 
   @override
   get orderedData(): Collection[] {

@@ -6,6 +6,8 @@ export enum SidebarSection {
   SharedWithMe = "shared",
   /** The collections section. */
   Collections = "collections",
+  /** The user's own personal documents section. */
+  Personal = "personal",
 }
 
 /** User-level preferences. */

@@ -60,6 +60,10 @@ export default class Collection extends ParanoidModel {
   @Field
   @observable
   permission?: CollectionPermission = undefined;
+
+  /** The user that owns this collection, if it is a personal collection. */
+  @observable
+  ownerId: string | null;
   /**
    * Whether public sharing is enabled for the collection. Note this can also be disabled at the
    * workspace level.
@@ -141,6 +145,15 @@ export default class Collection extends ParanoidModel {
    */
   get isPrivate(): boolean {
     return this.permission === null;
+  }
+
+  /**
+   * Whether this collection is the personal collection of a user.
+   *
+   * @returns boolean
+   */
+  get isPersonal(): boolean {
+    return !!this.ownerId;
   }
 
   @computed

@@ -166,7 +166,9 @@ const CollectionScene = observer(function CollectionScene_() {
       }
       actions={
         <>
-          <MembershipPreview collection={collection} />
+          {!collection.isPersonal && (
+            <MembershipPreview collection={collection} />
+          )}
           <Actions
             collection={collection}
             isEditing={isEditRoute}

@@ -125,7 +125,9 @@ export const editCollectionPermissions = createAction({
   section: ActiveCollectionSection,
   icon: <PadlockIcon />,
   visible: ({ getActivePolicies }) =>
-    getActivePolicies(Collection).some((policy) => policy.abilities.update),
+    getActivePolicies(Collection).some(
+      (policy) => policy.abilities.manageUsers
+    ),
   perform: ({ t, getActiveModel, stores }) => {
     const collection = getActiveModel(Collection);
     if (!collection) {

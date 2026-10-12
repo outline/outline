@@ -30,6 +30,8 @@ type Props = {
   expanded: boolean;
   /** Indentation depth of the parent collection. */
   depth?: number;
+  /** Indentation depth of the child documents, defaults to below the collection. */
+  childDepth?: number;
   /** Function to prefetch a document by ID. */
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
   /** Element to display above the child documents */
@@ -40,12 +42,13 @@ function CollectionLinkChildren({
   collection,
   expanded,
   depth = 0,
+  childDepth: childDepthProp,
   prefetchDocument,
   children,
 }: Props) {
   // Documents sit one level below the collection, with a minimum that leaves
   // room for their own disclosure to the left of the label.
-  const childDepth = Math.max(depth + 1, 2);
+  const childDepth = childDepthProp ?? Math.max(depth + 1, 2);
   const { documents } = useStores();
   const { t } = useTranslation();
   // Scoped to this collection so that other collections do not re-render when
