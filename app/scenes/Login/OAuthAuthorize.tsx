@@ -263,7 +263,7 @@ function Authorize() {
             )
           )}
         </ul>
-        <Text type="tertiary" as="p" style={{ wordBreak: "break-all" }}>
+        <Text type="tertiary" as="p">
           {isLoopback && clientHost ? (
             <Trans
               defaults="You will be redirected to a local application after authorizing. <em>{{ clientHost }}</em> cannot confirm that this application belongs to it, only continue if you started this connection yourself."
@@ -281,7 +281,7 @@ function Authorize() {
                 redirectUri,
               }}
               components={{
-                em: <strong />,
+                em: <RedirectUri />,
               }}
             />
           )}
@@ -334,6 +334,11 @@ const StyledHeading = styled(Heading).attrs({
   centered: true,
 })`
   margin-top: 0;
+`;
+
+// Only the URL may break mid-word, so long URLs wrap without splitting prose.
+const RedirectUri = styled.strong`
+  word-break: break-all;
 `;
 
 const Pre = styled.pre`
