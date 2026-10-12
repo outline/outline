@@ -1,9 +1,12 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
+import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { colorPalette } from "@shared/constants";
 import useContrastColor from "@shared/hooks/useContrastColor";
+import Avatar from "~/components/Avatar/Avatar";
 import type Collection from "~/models/Collection";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   /** The collection to show an icon for */
@@ -25,6 +28,18 @@ function ResolvedCollectionIcon({
   className,
 }: Props) {
   const contrastColor = useContrastColor();
+  const { users } = useStores();
+  const owner = collection.ownerId ? users.get(collection.ownerId) : undefined;
+
+  // A personal collection always shows the avatar of its owner.
+  if (owner) {
+    const iconSize = size ?? 24;
+    return (
+      <AvatarWrapper $size={iconSize} className={className}>
+        <Avatar model={owner} size={Math.round((iconSize * 2) / 3)} />
+      </AvatarWrapper>
+    );
+  }
 
   if (!collection.icon || collection.icon === "collection") {
     const color =
@@ -54,5 +69,14 @@ function ResolvedCollectionIcon({
     />
   );
 }
+
+const AvatarWrapper = styled.span<{ $size: number }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: ${(props) => props.$size}px;
+  height: ${(props) => props.$size}px;
+`;
 
 export default observer(ResolvedCollectionIcon);
