@@ -180,6 +180,10 @@ export default abstract class ExportTask extends BaseTask<Props> {
 
     const where: WhereOptions<Collection> = {
       teamId: user.teamId,
+      // Never include the personal collections of other users.
+      ownerId: {
+        [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }],
+      },
     };
 
     if (!fileOperation.options?.includePrivate) {

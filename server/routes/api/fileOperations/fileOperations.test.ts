@@ -16,6 +16,7 @@ import {
   buildCollection,
   buildDocument,
   buildFileOperation,
+  buildPersonalCollection,
   buildTeam,
   buildUser,
 } from "@server/test/factories";
@@ -591,5 +592,71 @@ describe("#fileOperations.delete", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+});
+
+describe("personal collection exports", () => {
+  it("should not show or allow admins to download them", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const owner = await buildUser({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: personal.id,
+    });
+    const collectionExport = await buildFileOperation({
+      state: FileOperationState.Complete,
+      type: FileOperationType.Export,
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: personal.id,
+    });
+    const documentExport = await buildFileOperation({
+      state: FileOperationState.Complete,
+      type: FileOperationType.Export,
+      teamId: team.id,
+      userId: owner.id,
+      documentId: document.id,
+    });
+    const workspaceExport = await buildFileOperation({
+      state: FileOperationState.Complete,
+      type: FileOperationType.Export,
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/fileOperations.list", admin, {
+      body: { type: FileOperationType.Export },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((f: { id: string }) => f.id)).toEqual([
+      workspaceExport.id,
+    ]);
+
+    for (const fileOperation of [collectionExport, documentExport]) {
+      const info = await server.post("/api/fileOperations.info", admin, {
+        body: { id: fileOperation.id },
+      });
+      expect(info.status).toEqual(403);
+
+      const redirect = await server.post(
+        "/api/fileOperations.redirect",
+        admin,
+        {
+          body: { id: fileOperation.id },
+          redirect: "manual",
+        }
+      );
+      expect(redirect.status).toEqual(403);
+
+      const own = await server.post("/api/fileOperations.redirect", owner, {
+        body: { id: fileOperation.id },
+        redirect: "manual",
+      });
+      expect(own.status).toEqual(302);
+    }
   });
 });

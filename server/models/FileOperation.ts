@@ -78,9 +78,18 @@ type CreateExportOptions =
     {
       model: Document.unscoped(),
       as: "document",
-      attributes: ["id", "title"],
+      attributes: ["id", "title", "collectionId"],
       required: false,
       paranoid: false,
+      include: [
+        {
+          model: Collection.unscoped(),
+          as: "collection",
+          attributes: ["id", "ownerId"],
+          required: false,
+          paranoid: false,
+        },
+      ],
     },
   ],
 }))

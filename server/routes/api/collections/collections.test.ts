@@ -1,6 +1,16 @@
-import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
+import {
+  CollectionPermission,
+  CollectionStatusFilter,
+  TeamPreference,
+  UserRole,
+} from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
-import { Document, UserMembership, GroupMembership } from "@server/models";
+import {
+  Collection,
+  Document,
+  UserMembership,
+  GroupMembership,
+} from "@server/models";
 import {
   buildUser,
   buildViewer,
@@ -9,6 +19,7 @@ import {
   buildCollection,
   buildDocument,
   buildTeam,
+  buildPersonalCollection,
 } from "@server/test/factories";
 import { getTestServer, mockTaskSchedule } from "@server/test/support";
 
@@ -2688,5 +2699,158 @@ describe("#collections.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
     expect(body.data.index).not.toBe("P");
+  });
+});
+
+describe("#collections.personal", () => {
+  const buildTeamWithPersonalDocs = async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    return team;
+  };
+
+  it("should create the personal collection once", async () => {
+    const team = await buildTeamWithPersonalDocs();
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/collections.personal", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerId).toEqual(user.id);
+    expect(body.data.permission).toEqual(null);
+    expect(body.policies[0].abilities.createDocument).toBeTruthy();
+    expect(body.policies[0].abilities.manageUsers).toEqual(false);
+
+    const res2 = await server.post("/api/collections.personal", user);
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data.id).toEqual(body.data.id);
+    expect(
+      await Collection.count({ where: { teamId: team.id, ownerId: user.id } })
+    ).toEqual(1);
+  });
+
+  it("should not create a personal collection when turned off", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.personal", user);
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return an existing personal collection when turned off", async () => {
+    const user = await buildUser();
+    const collection = await buildPersonalCollection(user);
+    const res = await server.post("/api/collections.personal", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(collection.id);
+    expect(body.policies[0].abilities.createDocument).toEqual(false);
+  });
+
+  it("should not create a personal collection for a guest", async () => {
+    const team = await buildTeamWithPersonalDocs();
+    const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
+    const res = await server.post("/api/collections.personal", guest);
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not list the personal collection of another user", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+    const own = await buildPersonalCollection(admin);
+
+    for (const body of [{}, { includeListOnly: true }]) {
+      const res = await server.post("/api/collections.list", admin, { body });
+      const json = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = json.data.map((c: { id: string }) => c.id);
+      expect(ids).not.toContain(personal.id);
+      expect(ids).toContain(own.id);
+    }
+
+    const res = await server.post("/api/collections.list", owner);
+    const json = await res.json();
+    expect(json.data.map((c: { id: string }) => c.id)).toEqual([personal.id]);
+  });
+
+  it("should not return the personal collection of another user", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+
+    for (const route of [
+      "collections.info",
+      "collections.memberships",
+      "collections.group_memberships",
+      "collections.export",
+      "collections.update",
+      "collections.archive",
+      "collections.delete",
+    ]) {
+      const res = await server.post(`/api/${route}`, admin, {
+        body: { id: personal.id },
+      });
+      expect({ route, status: res.status }).toEqual({ route, status: 403 });
+    }
+  });
+
+  it("should not allow membership changes", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+
+    const res = await server.post("/api/collections.add_user", owner, {
+      body: { id: personal.id, userId: member.id },
+    });
+    expect(res.status).toEqual(403);
+
+    const res2 = await server.post("/api/collections.add_group", owner, {
+      body: { id: personal.id, groupId: group.id },
+    });
+    expect(res2.status).toEqual(403);
+
+    const res3 = await server.post("/api/collections.remove_user", owner, {
+      body: { id: personal.id, userId: owner.id },
+    });
+    expect(res3.status).toEqual(403);
+  });
+
+  it("should not allow the owner to make it public", async () => {
+    const owner = await buildUser();
+    const personal = await buildPersonalCollection(owner);
+
+    const res = await server.post("/api/collections.update", owner, {
+      body: { id: personal.id, permission: CollectionPermission.ReadWrite },
+    });
+    expect(res.status).toEqual(400);
+
+    const res2 = await server.post("/api/collections.update", owner, {
+      body: { id: personal.id, name: "Notes" },
+    });
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data.name).toEqual("Notes");
+    expect(body2.data.permission).toEqual(null);
+  });
+
+  it("should not allow the owner to archive, delete or duplicate it", async () => {
+    const owner = await buildUser();
+    const personal = await buildPersonalCollection(owner);
+
+    for (const route of [
+      "collections.archive",
+      "collections.delete",
+      "collections.duplicate",
+    ]) {
+      const res = await server.post(`/api/${route}`, owner, {
+        body: { id: personal.id },
+      });
+      expect({ route, status: res.status }).toEqual({ route, status: 403 });
+    }
   });
 });

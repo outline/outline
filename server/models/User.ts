@@ -500,6 +500,10 @@ class User extends ParanoidModel<
         attributes: ["id"],
         where: {
           teamId: this.teamId,
+          // Only the owner can access a personal collection.
+          ownerId: {
+            [Op.or]: [{ [Op.is]: null }, { [Op.eq]: this.id }],
+          },
           [Op.or]: [
             ...(this.isGuest
               ? []

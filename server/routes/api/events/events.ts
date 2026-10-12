@@ -1,13 +1,14 @@
 import Router from "@koa/router";
 import { intersection } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Event, User, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEvent } from "@server/presenters";
+import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -59,8 +60,43 @@ router.post(
     }
 
     // Non-admins must specify either documentId or collectionId to use the read policy
-    if (!user.isAdmin && !documentId && !collectionId) {
-      authorize(user, "listAllEvents", user.team);
+    if (!documentId && !collectionId) {
+      if (!user.isAdmin) {
+        authorize(user, "listAllEvents", user.team);
+      }
+
+      // Exclude events in the personal collections of other users.
+      const personalCollections = `SELECT "id" FROM "collections" WHERE "teamId" = ${sequelize.escape(
+        user.teamId
+      )} AND "ownerId" IS NOT NULL AND "ownerId" != ${sequelize.escape(user.id)}`;
+
+      where = {
+        ...where,
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { collectionId: { [Op.is]: null } },
+              {
+                collectionId: {
+                  [Op.notIn]: Sequelize.literal(`(${personalCollections})`),
+                },
+              },
+            ],
+          },
+          {
+            [Op.or]: [
+              { documentId: { [Op.is]: null } },
+              {
+                documentId: {
+                  [Op.notIn]: Sequelize.literal(
+                    `(SELECT "id" FROM "documents" WHERE "collectionId" IN (${personalCollections}))`
+                  ),
+                },
+              },
+            ],
+          },
+        ],
+      };
     }
 
     if (documentId) {

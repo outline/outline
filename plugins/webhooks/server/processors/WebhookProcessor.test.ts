@@ -1,6 +1,12 @@
-import { buildUser, buildWebhookSubscription } from "@server/test/factories";
+import {
+  buildAdmin,
+  buildDocument,
+  buildPersonalCollection,
+  buildUser,
+  buildWebhookSubscription,
+} from "@server/test/factories";
 import { mockTaskSchedule } from "@server/test/support";
-import type { UserEvent } from "@server/types";
+import type { DocumentEvent, UserEvent } from "@server/types";
 import WebhookProcessor from "./WebhookProcessor";
 
 const ip = "127.0.0.1";
@@ -131,6 +137,49 @@ describe("WebhookProcessor", () => {
       };
 
       expect(await WebhookProcessor.shouldQueue(event)).toBe(false);
+    });
+  });
+
+  it("only schedules events in a personal collection for its owner", async () => {
+    const owner = await buildUser();
+    const admin = await buildAdmin({ teamId: owner.teamId });
+    const personal = await buildPersonalCollection(owner);
+    const document = await buildDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: personal.id,
+    });
+    await buildWebhookSubscription({
+      teamId: owner.teamId,
+      createdById: admin.id,
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const ownSubscription = await buildWebhookSubscription({
+      teamId: owner.teamId,
+      createdById: owner.id,
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const processor = new WebhookProcessor();
+
+    const event: DocumentEvent = {
+      name: "documents.update",
+      documentId: document.id,
+      collectionId: personal.id,
+      teamId: owner.teamId,
+      actorId: owner.id,
+      ip,
+      createdAt: new Date().toISOString(),
+      data: { done: true },
+    };
+    schedule.mockClear();
+    await processor.perform(event);
+
+    expect(schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledWith({
+      event,
+      subscriptionId: ownSubscription.id,
     });
   });
 });

@@ -114,6 +114,27 @@ router.post(
 );
 
 router.post(
+  "collections.personal",
+  auth(),
+  transaction(),
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    let collection = await Collection.findPersonal(user, { transaction });
+    if (!collection) {
+      authorize(user, "createPersonalCollection", user.team);
+      collection = await Collection.findOrCreatePersonal(ctx);
+    }
+
+    ctx.body = {
+      data: await presentCollection(ctx, collection),
+      policies: presentPolicies(user, [collection]),
+    };
+  }
+);
+
+router.post(
   "collections.duplicate",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
@@ -246,7 +267,7 @@ router.post(
       Collection.findByPk(id, { userId: user.id, transaction }),
       Group.findByPk(groupId, { transaction }),
     ]);
-    authorize(user, "update", collection);
+    authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
     let membership = await GroupMembership.findOne({
@@ -302,7 +323,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", collection);
+    authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
     const [membership] = await collection.$get("groupMemberships", {
@@ -404,7 +425,7 @@ router.post(
       Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
-    authorize(actor, "update", collection);
+    authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
     let membership = await UserMembership.findOne({
@@ -454,7 +475,7 @@ router.post(
       Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
-    authorize(actor, "update", collection);
+    authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
     const [membership] = await collection.$get("memberships", {
@@ -647,6 +668,10 @@ router.post(
       return;
     }
 
+    if (collection.isPersonal && permission) {
+      throw InvalidRequestError("A personal collection must stay private");
+    }
+
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.
     if (
@@ -807,6 +832,10 @@ router.post(
     // are not a member of, so they must be able to see them listed.
     if (!user.isAdmin || !(includeListOnly || includeArchived)) {
       where[Op.and].push({ id: collectionIds });
+    } else {
+      where[Op.and].push({
+        ownerId: { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }] },
+      });
     }
 
     if (filter) {
