@@ -8,10 +8,11 @@ import { Day, Minute, Second } from "@shared/utils/time";
 import { getHostname } from "@shared/utils/urls";
 import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
-import { AuthorizationError } from "@server/errors";
+import { AuthorizationError, InvalidClientMetadataError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { OAuthClient, Share, Team } from "@server/models";
 import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
+import type { Response } from "@server/utils/fetch";
 import fetch from "@server/utils/fetch";
 import { OAuthHelper } from "./OAuthHelper";
 
@@ -91,9 +92,12 @@ export class ClientMetadataHelper {
    *
    * @param clientId The public client identifier.
    * @param team The team of the user that requests the client.
-   * @returns The OAuth client, or null if it is not found or not valid.
+   * @returns The OAuth client, or null if it is not found or the client_id is
+   *   not a valid metadata document URL.
    * @throws AuthorizationError if the client is a metadata document and the
    *   team has turned MCP off.
+   * @throws InvalidClientMetadataError if the metadata document cannot be
+   *   fetched or is not valid.
    */
   public static async findOrFetchByClientId(
     clientId: string,
@@ -130,30 +134,21 @@ export class ClientMetadataHelper {
       return null;
     }
 
-    let client: OAuthClient | null;
-    let logoUrl: string | undefined;
-    try {
-      const { document, expiresAt } =
-        await ClientMetadataHelper.fetchMetadataDocument(clientId);
-      client = await ClientMetadataHelper.saveClient(
-        clientId,
-        existing,
-        document,
-        expiresAt
-      );
-      logoUrl = document.logo_uri;
-    } catch (err) {
-      // An existing client is kept so that issued tokens continue to work,
-      // but it cannot be authorized again until a fetch succeeds.
-      Logger.warn("Failed to load OAuth client metadata document", {
-        clientId,
-        error: errToString(err),
-      });
-      return null;
-    }
+    // An existing client is kept when the fetch fails, so that issued tokens
+    // continue to work, but it cannot be authorized again until a fetch
+    // succeeds.
+    const { document, expiresAt } =
+      await ClientMetadataHelper.fetchMetadataDocument(clientId);
+    const client = await ClientMetadataHelper.saveClient(
+      clientId,
+      existing,
+      document,
+      expiresAt
+    );
+    const logoUrl = document.logo_uri;
 
     if (client && logoUrl) {
-      await UploadOAuthClientLogoTask.scheduleOptional({
+      await new UploadOAuthClientLogoTask().scheduleOptional({
         oauthClientId: client.id,
         logoUrl,
       });
@@ -260,25 +255,42 @@ export class ClientMetadataHelper {
    *
    * @param clientId The metadata document URL.
    * @returns The validated document and the time the cached copy expires.
-   * @throws An error if the document cannot be fetched or is not valid.
+   * @throws InvalidClientMetadataError if the document cannot be fetched or
+   *   is not valid.
    */
   public static async fetchMetadataDocument(clientId: string): Promise<{
     document: MetadataDocument;
     expiresAt: Date;
   }> {
-    const res = await fetch(clientId, {
-      method: "GET",
-      redirect: "manual",
-      // Special-use addresses are never allowed, even when the installation
-      // allows them for other integrations (draft section 8.6).
-      allowIPAddressList: [],
-      size: ClientMetadataHelper.maxDocumentSize,
-      signal: AbortSignal.timeout(ClientMetadataHelper.fetchTimeout),
-      headers: { Accept: "application/json" },
-    });
+    let res: Response;
+    let text: string;
+    try {
+      res = await fetch(clientId, {
+        method: "GET",
+        redirect: "manual",
+        // Special-use addresses are never allowed, even when the installation
+        // allows them for other integrations (draft section 8.6).
+        allowIPAddressList: [],
+        size: ClientMetadataHelper.maxDocumentSize,
+        signal: AbortSignal.timeout(ClientMetadataHelper.fetchTimeout),
+        headers: { Accept: "application/json" },
+      });
+      text = await res.text();
+    } catch (err) {
+      // Network errors can describe internal hosts, so they are only logged.
+      Logger.warn("Failed to fetch OAuth client metadata document", {
+        clientId,
+        error: errToString(err),
+      });
+      throw InvalidClientMetadataError(
+        "The client metadata document could not be fetched"
+      );
+    }
 
     if (res.status !== 200) {
-      throw new Error(`Unexpected response status ${res.status}`);
+      throw InvalidClientMetadataError(
+        `The client metadata document responded with status ${res.status}`
+      );
     }
 
     const contentType = res.headers.get("content-type")?.split(";")[0].trim();
@@ -286,12 +298,33 @@ export class ClientMetadataHelper {
       !contentType ||
       !/^application\/(?:[\w.-]+\+)?json$/i.test(contentType)
     ) {
-      throw new Error(`Unexpected content type ${contentType}`);
+      throw InvalidClientMetadataError(
+        `The client metadata document must be JSON, not ${contentType ?? "an unknown type"}`
+      );
     }
 
-    const document = MetadataDocumentSchema.parse(JSON.parse(await res.text()));
+    let json: unknown;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw InvalidClientMetadataError(
+        "The client metadata document is not valid JSON"
+      );
+    }
+
+    const result = MetadataDocumentSchema.safeParse(json);
+    if (!result.success) {
+      const issue = result.error.issues[0];
+      throw InvalidClientMetadataError(
+        `The client metadata document is invalid: ${issue.path.join(".") || "document"} ${issue.message}`
+      );
+    }
+
+    const document = result.data;
     if (document.client_id !== clientId) {
-      throw new Error("client_id does not match the document URL");
+      throw InvalidClientMetadataError(
+        "The client_id in the client metadata document does not match its URL"
+      );
     }
 
     return {

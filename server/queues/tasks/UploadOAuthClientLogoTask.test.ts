@@ -45,7 +45,7 @@ describe("UploadOAuthClientLogoTask", () => {
       expect(client.avatarUrl).not.toContain("example.com");
     });
 
-    it("should share one file between clients with the same logo", async () => {
+    it("should store a separate file for each client", async () => {
       const first = await buildMetadataDocumentOAuthClient();
       const second = await buildMetadataDocumentOAuthClient();
       const logoUrl = buildLogoUrl();
@@ -56,7 +56,8 @@ describe("UploadOAuthClientLogoTask", () => {
       await task.perform({ oauthClientId: second.id, logoUrl });
 
       await Promise.all([first.reload(), second.reload()]);
-      expect(second.avatarUrl).toEqual(first.avatarUrl);
+      expect(first.avatarUrl).toContain(first.id);
+      expect(second.avatarUrl).toContain(second.id);
     });
 
     it("should not store content that is not an image", async () => {

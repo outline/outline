@@ -305,6 +305,14 @@ describe("ClientMetadataHelper", () => {
       vi.restoreAllMocks();
     });
 
+    const expectInvalidMetadata = (clientId: string, message?: string) =>
+      expect(
+        ClientMetadataHelper.findOrFetchByClientId(clientId, team)
+      ).rejects.toMatchObject({
+        id: "invalid_client_metadata",
+        ...(message && { message: expect.stringContaining(message) }),
+      });
+
     it("should not fetch when the team has turned MCP off", async () => {
       const clientId = buildClientId();
       const mock = mockDocument(clientId, buildDocument(clientId));
@@ -415,7 +423,7 @@ describe("ClientMetadataHelper", () => {
     it("should upload the logo in the background", async () => {
       const schedule = vi.spyOn(
         UploadOAuthClientLogoTask.prototype,
-        "schedule"
+        "scheduleOptional"
       );
       const clientId = buildClientId();
       mockDocument(clientId, buildDocument(clientId));
@@ -470,12 +478,7 @@ describe("ClientMetadataHelper", () => {
       });
       mockDocument(cached.clientId, "error", { status: 500 });
 
-      const client = await ClientMetadataHelper.findOrFetchByClientId(
-        cached.clientId,
-        team
-      );
-
-      expect(client).toBeNull();
+      await expectInvalidMetadata(cached.clientId, "status 500");
       const reloaded = await OAuthClient.findByPk(cached.id);
       expect(reloaded?.name).toEqual(cached.name);
       expect(reloaded?.metadataExpiresAt).toEqual(cached.metadataExpiresAt);
@@ -510,9 +513,7 @@ describe("ClientMetadataHelper", () => {
       const clientId = buildClientId();
       mockDocument(clientId, buildDocument(clientId), { status });
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId);
     });
 
     it("should not follow redirects", async () => {
@@ -530,9 +531,7 @@ describe("ClientMetadataHelper", () => {
         )
       );
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId, "status 302");
       expect(mock.requests()).toEqual(0);
     });
 
@@ -545,36 +544,28 @@ describe("ClientMetadataHelper", () => {
         })
       );
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId, "could not be fetched");
     });
 
     it("should reject invalid JSON", async () => {
       const clientId = buildClientId();
       mockDocument(clientId, "{ not json");
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId, "not valid JSON");
     });
 
     it("should reject a client_id that does not match the URL", async () => {
       const clientId = buildClientId();
       mockDocument(clientId, buildDocument(buildClientId()));
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId, "does not match its URL");
     });
 
     it("should reject a document with a client_secret", async () => {
       const clientId = buildClientId();
       mockDocument(clientId, buildDocument(clientId, { client_secret: "abc" }));
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId);
     });
 
     it.each(["client_secret_post", "client_secret_basic", "private_key_jwt"])(
@@ -586,9 +577,7 @@ describe("ClientMetadataHelper", () => {
           buildDocument(clientId, { token_endpoint_auth_method: method })
         );
 
-        expect(
-          await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-        ).toBeNull();
+        await expectInvalidMetadata(clientId);
       }
     );
 
@@ -603,9 +592,7 @@ describe("ClientMetadataHelper", () => {
         })
       );
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId);
       expect(await OAuthClient.findByClientId(clientId)).toBeNull();
     });
 
@@ -627,9 +614,7 @@ describe("ClientMetadataHelper", () => {
       const clientId = buildClientId();
       mockDocument(clientId, buildDocument(clientId, { redirect_uris: [] }));
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId);
     });
 
     it("should reject an http redirect URI", async () => {
@@ -641,9 +626,7 @@ describe("ClientMetadataHelper", () => {
         })
       );
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId);
     });
 
     it("should reject a document that is not JSON", async () => {
@@ -652,9 +635,7 @@ describe("ClientMetadataHelper", () => {
         headers: { "Content-Type": "text/plain" },
       });
 
-      expect(
-        await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
-      ).toBeNull();
+      await expectInvalidMetadata(clientId, "must be JSON");
     });
 
     it("should accept a structured JSON content type", async () => {

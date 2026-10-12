@@ -23,6 +23,7 @@ import {
   AuthorizationError,
   BadRequestError,
   NotFoundError,
+  UnprocessableEntityError,
 } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
@@ -168,6 +169,13 @@ function Authorize() {
                 "The OAuth client could not be loaded, please check the redirect URI is valid"
               )}
               <Pre>{redirectUri}</Pre>
+            </Text>
+          ) : clientError instanceof UnprocessableEntityError ? (
+            <Text as="p" type="secondary">
+              {t(
+                "The OAuth client could not be loaded from its metadata document"
+              )}
+              <Pre>{clientError.message}</Pre>
             </Text>
           ) : clientError instanceof AuthorizationError ? (
             <Text as="p" type="secondary">

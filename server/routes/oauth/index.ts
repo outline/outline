@@ -244,12 +244,12 @@ router.post(
     // The logo is copied to file storage in the background, so the consent
     // screen never loads it from a host that the client controls.
     if (logo_uri) {
-      ctx.state.transaction.afterCommit(() =>
-        UploadOAuthClientLogoTask.scheduleOptional({
+      ctx.state.transaction.afterCommit(async () => {
+        await new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
-        })
-      );
+        });
+      });
     }
 
     Logger.info("authentication", "OAuth client registered", {
@@ -309,12 +309,12 @@ router.put(
 
     // The stored logo is kept until the background task replaces it.
     if (logo_uri) {
-      ctx.state.transaction.afterCommit(() =>
-        UploadOAuthClientLogoTask.scheduleOptional({
+      ctx.state.transaction.afterCommit(async () => {
+        await new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
-        })
-      );
+        });
+      });
     }
 
     ctx.body = presentDCRClient(team.url, client, {

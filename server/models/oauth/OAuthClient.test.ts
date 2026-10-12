@@ -65,49 +65,71 @@ describe("OAuthClient", () => {
   });
 
   describe("logos", () => {
-    const buildLogoUrl = () =>
+    const buildHash = () => randomUUID().replace(/-/g, "").repeat(2);
+    const buildLogoUrl = (clientId: string) =>
       FileStorage.getUrlForKey(
-        OAuthClient.logoKey(randomUUID().replace(/-/g, "").repeat(2), "png")
+        OAuthClient.logoKey(clientId, buildHash(), "png")
       );
+    const buildClientWithLogo = () => {
+      const id = randomUUID();
+      return buildMetadataDocumentOAuthClient({
+        id,
+        avatarUrl: buildLogoUrl(id),
+      });
+    };
 
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it("should find the key of a copied logo", () => {
-      const key = OAuthClient.logoKey("a".repeat(64), "png");
+    it("should find the key of a copied logo", async () => {
+      const client = await buildMetadataDocumentOAuthClient();
+      const key = OAuthClient.logoKey(client.id, "a".repeat(64), "png");
 
-      expect(OAuthClient.logoKeyFromUrl(FileStorage.getUrlForKey(key))).toBe(
-        key
-      );
+      expect(client.logoKeyFromUrl(FileStorage.getUrlForKey(key))).toBe(key);
     });
 
-    it("should not find a key in a URL that names the same path elsewhere", () => {
-      const key = OAuthClient.logoKey("a".repeat(64), "png");
+    it("should not find a key in a URL on another host", async () => {
+      const client = await buildMetadataDocumentOAuthClient();
+      const key = OAuthClient.logoKey(client.id, "a".repeat(64), "png");
 
       expect(
-        OAuthClient.logoKeyFromUrl(`https://evil.example.com/${key}`)
+        client.logoKeyFromUrl(`https://evil.example.com/${key}`)
       ).toBeUndefined();
-      expect(OAuthClient.logoKeyFromUrl(null)).toBeUndefined();
+      expect(client.logoKeyFromUrl(null)).toBeUndefined();
+    });
+
+    it("should not find a key for the logo of another client", async () => {
+      const client = await buildMetadataDocumentOAuthClient();
+
+      expect(client.logoKeyFromUrl(buildLogoUrl(randomUUID()))).toBeUndefined();
+    });
+
+    it("should not find a key that leaves the folder of the client", async () => {
+      const client = await buildMetadataDocumentOAuthClient();
+      const key = `${OAuthClient.logoKeyPrefix(client.id)}..`;
+
+      expect(
+        client.logoKeyFromUrl(FileStorage.getUrlForKey(key))
+      ).toBeUndefined();
     });
 
     it("should delete the logo when the client is deleted", async () => {
       const deleteFile = vi.spyOn(FileStorage, "deleteFile");
-      const avatarUrl = buildLogoUrl();
-      const client = await buildMetadataDocumentOAuthClient({ avatarUrl });
+      const client = await buildClientWithLogo();
+      const key = client.logoKeyFromUrl(client.avatarUrl);
 
       await client.destroy({ force: true });
 
-      expect(deleteFile).toHaveBeenCalledWith(
-        OAuthClient.logoKeyFromUrl(avatarUrl)
-      );
+      expect(deleteFile).toHaveBeenCalledWith(key);
     });
 
-    it("should keep a logo that another client uses", async () => {
+    it("should not delete the logo of another client", async () => {
       const deleteFile = vi.spyOn(FileStorage, "deleteFile");
-      const avatarUrl = buildLogoUrl();
-      const client = await buildMetadataDocumentOAuthClient({ avatarUrl });
-      await buildMetadataDocumentOAuthClient({ avatarUrl });
+      const other = await buildClientWithLogo();
+      const client = await buildMetadataDocumentOAuthClient({
+        avatarUrl: other.avatarUrl,
+      });
 
       await client.destroy();
 
@@ -116,21 +138,17 @@ describe("OAuthClient", () => {
 
     it("should delete a replaced logo", async () => {
       const deleteFile = vi.spyOn(FileStorage, "deleteFile");
-      const avatarUrl = buildLogoUrl();
-      const client = await buildMetadataDocumentOAuthClient({ avatarUrl });
+      const client = await buildClientWithLogo();
+      const key = client.logoKeyFromUrl(client.avatarUrl);
 
-      await client.update({ avatarUrl: buildLogoUrl() });
+      await client.update({ avatarUrl: buildLogoUrl(client.id) });
 
-      expect(deleteFile).toHaveBeenCalledWith(
-        OAuthClient.logoKeyFromUrl(avatarUrl)
-      );
+      expect(deleteFile).toHaveBeenCalledWith(key);
     });
 
     it("should not delete a logo when the transaction rolls back", async () => {
       const deleteFile = vi.spyOn(FileStorage, "deleteFile");
-      const client = await buildMetadataDocumentOAuthClient({
-        avatarUrl: buildLogoUrl(),
-      });
+      const client = await buildClientWithLogo();
 
       await expect(
         sequelize.transaction(async (transaction) => {

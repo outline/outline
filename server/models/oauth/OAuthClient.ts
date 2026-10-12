@@ -216,6 +216,63 @@ class OAuthClient extends ParanoidModel<
     return OAuthClient.isMetadataDocumentClientId(this.clientId);
   }
 
+  /**
+   * Returns the storage key of a logo that was copied for this client.
+   *
+   * @param avatarUrl An avatar URL of this client.
+   * @returns The storage key, or undefined if the URL is not a copied logo.
+   */
+  public logoKeyFromUrl(avatarUrl: string | null | undefined) {
+    const prefix = OAuthClient.logoKeyPrefix(this.id);
+    const index = avatarUrl?.lastIndexOf(prefix) ?? -1;
+    if (!avatarUrl || index === -1) {
+      return undefined;
+    }
+
+    const key = avatarUrl.slice(index);
+    if (!/^[0-9a-f]{64}\.[^/]+$/.test(key.slice(prefix.length))) {
+      return undefined;
+    }
+
+    // Only a URL that this installation built can name a file to delete.
+    return FileStorage.getUrlForKey(key) === avatarUrl ? key : undefined;
+  }
+
+  /**
+   * Delete a logo that was copied for this client from file storage. When a
+   * transaction is given, this runs after it commits.
+   *
+   * @param avatarUrl The avatar URL that this client no longer uses.
+   * @param transaction The transaction of the change, if any.
+   */
+  private async deleteLogoFile(
+    avatarUrl: string | null | undefined,
+    transaction?: Transaction | null
+  ) {
+    const key = this.logoKeyFromUrl(avatarUrl);
+    if (!key) {
+      return;
+    }
+
+    const deleteFile = async () => {
+      try {
+        await FileStorage.deleteFile(key);
+      } catch (err) {
+        // A failed delete must not fail the change to the client.
+        Logger.warn("Failed to delete OAuth client logo from storage", {
+          key,
+          error: errToString(err),
+        });
+      }
+    };
+
+    if (transaction) {
+      (transaction.parent || transaction).afterCommit(deleteFile);
+    } else {
+      await deleteFile();
+    }
+  }
+
   // hooks
 
   @BeforeCreate
@@ -241,7 +298,7 @@ class OAuthClient extends ParanoidModel<
     options: InstanceUpdateOptions
   ) {
     if (model.changed("avatarUrl")) {
-      await OAuthClient.deleteUnusedLogo(
+      await model.deleteLogoFile(
         model.previous("avatarUrl"),
         options.transaction
       );
@@ -253,79 +310,33 @@ class OAuthClient extends ParanoidModel<
     model: OAuthClient,
     options: InstanceDestroyOptions
   ) {
-    await OAuthClient.deleteUnusedLogo(model.avatarUrl, options.transaction);
+    await model.deleteLogoFile(model.avatarUrl, options.transaction);
   }
 
   // static methods
 
   /**
-   * Returns the storage key for a logo copied from a client's logo URL. Keys
-   * are content addressed, so clients that share a logo share one file.
+   * Returns the storage key for a logo copied from a client's logo URL. Each
+   * client has its own files, and the hash changes the URL when the logo
+   * changes so that caches do not show an old logo.
    *
+   * @param clientId The ID of the client.
    * @param hash The SHA-256 hash of the logo, in hex.
    * @param extension The file extension of the logo.
    * @returns The storage key.
    */
-  public static logoKey(hash: string, extension: string) {
-    return `${Buckets.public}/oauth-clients/${hash}/logo.${extension}`;
+  public static logoKey(clientId: string, hash: string, extension: string) {
+    return `${OAuthClient.logoKeyPrefix(clientId)}${hash}.${extension}`;
   }
 
   /**
-   * Returns the storage key of a copied logo from its URL.
+   * Returns the storage key prefix for the logos of a client.
    *
-   * @param avatarUrl The avatar URL of a client.
-   * @returns The storage key, or undefined if the URL is not a copied logo.
+   * @param clientId The ID of the client.
+   * @returns The storage key prefix, with a trailing slash.
    */
-  public static logoKeyFromUrl(avatarUrl: string | null | undefined) {
-    const key = avatarUrl?.match(
-      /public\/oauth-clients\/[0-9a-f]{64}\/[^/]+$/
-    )?.[0];
-    if (!key) {
-      return undefined;
-    }
-
-    // Only a URL that this installation built can name a file to delete.
-    return FileStorage.getUrlForKey(key) === avatarUrl ? key : undefined;
-  }
-
-  /**
-   * Delete a copied logo from file storage when no client uses it. When a
-   * transaction is given, this runs after it commits.
-   *
-   * @param avatarUrl The avatar URL that a client no longer uses.
-   * @param transaction The transaction of the change, if any.
-   */
-  private static async deleteUnusedLogo(
-    avatarUrl: string | null | undefined,
-    transaction?: Transaction | null
-  ) {
-    const key = OAuthClient.logoKeyFromUrl(avatarUrl);
-    if (!avatarUrl || !key) {
-      return;
-    }
-
-    const deleteFile = async () => {
-      try {
-        const inUse = await OAuthClient.unscoped().count({
-          where: { avatarUrl },
-        });
-        if (inUse === 0) {
-          await FileStorage.deleteFile(key);
-        }
-      } catch (err) {
-        // A failed delete must not fail the change to the client.
-        Logger.warn("Failed to delete OAuth client logo from storage", {
-          key,
-          error: errToString(err),
-        });
-      }
-    };
-
-    if (transaction) {
-      (transaction.parent || transaction).afterCommit(deleteFile);
-    } else {
-      await deleteFile();
-    }
+  public static logoKeyPrefix(clientId: string) {
+    return `${Buckets.public}/oauth-clients/${clientId}/`;
   }
 
   /**

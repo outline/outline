@@ -291,7 +291,7 @@ describe("oauthClients.info", () => {
     expect(requests).toEqual(0);
   });
 
-  it("should return 404 when a metadata document cannot be fetched", async () => {
+  it("should return a distinct error when a metadata document cannot be fetched", async () => {
     const user = await buildUser();
     const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
     msw.use(http.get(clientId, () => new HttpResponse(null, { status: 404 })));
@@ -300,7 +300,10 @@ describe("oauthClients.info", () => {
       body: { clientId },
     });
 
-    expect(res.status).toEqual(404);
+    const body = await res.json();
+    expect(res.status).toEqual(422);
+    expect(body.error).toEqual("invalid_client_metadata");
+    expect(body.message).toContain("status 404");
   });
 
   it("should validate redirectUri parameter", async () => {

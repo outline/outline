@@ -108,7 +108,10 @@ describe("#oauth.register", () => {
   });
 
   it("should include client_uri and upload logo_uri in the background", async () => {
-    const schedule = vi.spyOn(UploadOAuthClientLogoTask.prototype, "schedule");
+    const schedule = vi.spyOn(
+      UploadOAuthClientLogoTask.prototype,
+      "scheduleOptional"
+    );
     const res = await server.post("/oauth/register", {
       body: {
         client_name: "Branded Client",
@@ -885,6 +888,23 @@ describe("client ID metadata documents", () => {
     );
   });
 
+  it("should return a distinct error when the metadata document cannot be loaded", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
+    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
+    msw.use(
+      http.get(clientId, () => new HttpResponse("error", { status: 503 }))
+    );
+
+    const res = await authorize(user, subdomain, clientId);
+    expect(res.status).toEqual(422);
+    expect(res.headers.get("location")).toBeNull();
+    const body = await res.json();
+    expect(body.error).toEqual("invalid_client");
+    expect(body.error_description).toContain("status 503");
+  });
+
   it("should not authorize a metadata document client when MCP is disabled", async () => {
     const subdomain = buildSubdomain();
     const team = await buildTeam({
@@ -1008,16 +1028,5 @@ describe("client ID metadata documents", () => {
     const res = await authorize(user, subdomain, clientId);
     expect(res.status).toEqual(403);
     expect(requests).toEqual(0);
-  });
-
-  it("should not authorize when the document cannot be fetched", async () => {
-    const subdomain = buildSubdomain();
-    const team = await buildTeam({ subdomain });
-    const user = await buildUser({ teamId: team.id });
-    const clientId = `https://${randomUUID()}.example.com/oauth/client.json`;
-    msw.use(http.get(clientId, () => new HttpResponse(null, { status: 404 })));
-
-    const res = await authorize(user, subdomain, clientId);
-    expect(res.status).toEqual(403);
   });
 });
