@@ -302,6 +302,11 @@ allow(User, "unpublish", Document, (user, document) => {
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
+
+  // Documents in a personal collection are already private to the owner.
+  if (document.collection.isPersonal) {
+    return false;
+  }
   if (cannot(user, "updateDocument", document.collection)) {
     return false;
   }

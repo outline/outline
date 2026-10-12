@@ -811,6 +811,7 @@ describe("personal collection", () => {
     expect(abilities.delete).toBeTruthy();
     expect(abilities.share).toBeTruthy();
     expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.unpublish).toEqual(false);
     expect(abilities.updateInsights).toEqual(false);
     expect(abilities.pin).toEqual(false);
     expect(abilities.unpin).toEqual(false);
