@@ -114,4 +114,15 @@ export class ProsemirrorHelper {
     );
     return text;
   };
+
+  /**
+   * Returns the plain text of each heading in the document.
+   *
+   * @param document The document to read headings from.
+   * @returns The heading texts, in document order.
+   */
+  static getHeadings = (document: HasData) =>
+    SharedProsemirrorHelper.getHeadings(
+      Node.fromJSON(schema, document.data)
+    ).map((heading) => heading.title);
 }
