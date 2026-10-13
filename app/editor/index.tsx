@@ -268,6 +268,8 @@ export class Editor extends React.PureComponent<
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
+  private renderFrame?: number;
+  private lastRenderTime = 0;
 
   /**
    * The markdown serializer for the editor schema, created on first use.
@@ -390,6 +392,9 @@ export class Editor extends React.PureComponent<
 
   public componentWillUnmount(): void {
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
+    if (this.renderFrame !== undefined) {
+      cancelAnimationFrame(this.renderFrame);
+    }
     this.view?.destroy();
     this.mutationObserver?.disconnect();
     this.handleEditorDestroy();
@@ -628,12 +633,7 @@ export class Editor extends React.PureComponent<
         }
 
         self.handleEditorInit();
-
-        self.calculateDir();
-
-        // Because Prosemirror and React are not linked we must tell React that
-        // a render is needed whenever the Prosemirror state changes.
-        self.forceUpdate();
+        self.scheduleRender();
       },
     });
 
@@ -707,6 +707,29 @@ export class Editor extends React.PureComponent<
     return (
       trim ? ProsemirrorHelper.trim(this.view.state.doc) : this.view.state.doc
     ).toJSON();
+  };
+
+  /**
+   * Because Prosemirror and React are not linked we must tell React that a
+   * render is needed whenever the Prosemirror state changes. Renders are
+   * coalesced into an animation frame so that they stay out of the input path.
+   */
+  private scheduleRender = () => {
+    if (this.renderFrame === undefined) {
+      this.renderFrame = requestAnimationFrame(this.handleRenderFrame);
+    }
+  };
+
+  private handleRenderFrame = (time: number) => {
+    if (time - this.lastRenderTime < MinRenderInterval) {
+      this.renderFrame = requestAnimationFrame(this.handleRenderFrame);
+      return;
+    }
+
+    this.renderFrame = undefined;
+    this.lastRenderTime = time;
+    this.calculateDir();
+    this.forceUpdate();
   };
 
   private calculateDir = () => {
@@ -1203,6 +1226,9 @@ export class Editor extends React.PureComponent<
     );
   }
 }
+
+/** Minimum time in milliseconds between renders caused by transactions. */
+const MinRenderInterval = 50;
 
 const StyledEditorContainer = styled(Styles)<{
   userId?: string;
