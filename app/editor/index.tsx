@@ -59,7 +59,6 @@ import { headingPrefixPluginKey } from "@shared/editor/extensions/HeadingPrefix"
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import { getDataTransferFiles } from "@shared/utils/files";
-import { AttachmentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
@@ -839,15 +838,7 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    // Insert all files as attachments if any of the files are not images.
-    const isAttachment = files.some(
-      (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
-    );
-
-    return insertFiles(view, event, pos, files, {
-      ...this.props,
-      isAttachment,
-    });
+    return insertFiles(view, event, pos, files, this.props);
   };
 
   /**

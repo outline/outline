@@ -27,6 +27,23 @@ export default class FileHelper {
   }
 
   /**
+   * Returns the file with a content type guessed from its extension when the
+   * platform did not report one.
+   *
+   * @param file The file to check.
+   * @returns The original file, or a copy with the guessed content type.
+   */
+  static withContentType(file: File): File {
+    if (file.type) {
+      return file;
+    }
+
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const type = FileHelper.videoContentTypes[extension];
+    return type ? new File([file], file.name, { type }) : file;
+  }
+
+  /**
    * Checks if a file is an audio file.
    *
    * @param contentType The content type of the file
@@ -428,4 +445,12 @@ export default class FileHelper {
 
     return new File([bytes], filename, { type: mimeType });
   }
+
+  private static videoContentTypes: Record<string, string> = {
+    m4v: "video/mp4",
+    mov: "video/quicktime",
+    mp4: "video/mp4",
+    ogv: "video/ogg",
+    webm: "video/webm",
+  };
 }
