@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type Document from "~/models/Document";
 import { LRUCache } from "@shared/utils/LRUCache";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import {
   SearchIndex,
@@ -30,9 +31,12 @@ function getContent(doc: Document): DocumentContent {
   if (cached?.updatedAt === updatedAt) {
     return cached;
   }
+  const node = ProsemirrorHelper.toNode(doc);
   const content = {
-    text: ProsemirrorHelper.toPlainText(doc),
-    headings: ProsemirrorHelper.getHeadings(doc),
+    text: SharedProsemirrorHelper.toPlainText(node),
+    headings: SharedProsemirrorHelper.getHeadings(node).map(
+      (heading) => heading.title
+    ),
   };
   contentCache.set(doc.id, { updatedAt, ...content });
   return content;

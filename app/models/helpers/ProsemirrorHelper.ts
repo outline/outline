@@ -116,13 +116,10 @@ export class ProsemirrorHelper {
   };
 
   /**
-   * Returns the plain text of each heading in the document.
+   * Returns the ProseMirror node for the document data.
    *
-   * @param document The document to read headings from.
-   * @returns The heading texts, in document order.
+   * @param document The document to parse.
+   * @returns The parsed node.
    */
-  static getHeadings = (document: HasData) =>
-    SharedProsemirrorHelper.getHeadings(
-      Node.fromJSON(schema, document.data)
-    ).map((heading) => heading.title);
+  static toNode = (document: HasData) => Node.fromJSON(schema, document.data);
 }
