@@ -1,16 +1,23 @@
 import { DeprecationValidation } from "@shared/validations";
-import { CollectionPermission, DocumentPermission, Scope } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  Scope,
+  TeamPreference,
+} from "@shared/types";
 import {
   buildUser,
   buildViewer,
   buildCollection,
   buildDocument,
+  buildDraftDocument,
   buildTemplate,
   buildOAuthAuthentication,
   buildGroup,
 } from "@server/test/factories";
 import {
   Attachment,
+  Collection,
   Document,
   GroupMembership,
   SearchQuery,
@@ -384,6 +391,26 @@ describe("list_documents", () => {
 });
 
 describe("create_document", () => {
+  it("creates in the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    user.team.setPreference(TeamPreference.PersonalDocs, true);
+    await user.team.save();
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Personal Document",
+      collectionId: "personal",
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    const collection = await Collection.findOne({
+      where: { ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(document.collectionId).toEqual(collection.id);
+  });
+
   it("creates in a collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -604,6 +631,54 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it("does not create the personal collection when it is not used", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: "Renamed",
+      collectionId: "personal",
+    });
+    expect(res?.result?.isError).toBeFalsy();
+    expect(await Collection.count({ where: { ownerId: user.id } })).toEqual(0);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+  });
+
+  it("publishes a draft to the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      publish: true,
+      collectionId: "personal",
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    const personal = await Collection.findOne({
+      where: { ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    await document.reload();
+    expect(document.collectionId).toEqual(personal.id);
+    expect(document.publishedAt).not.toBeNull();
+  });
+
   it("updates title and text", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -791,6 +866,32 @@ describe("update_document", () => {
 });
 
 describe("move_document", () => {
+  it("moves a document to the personal collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      collectionId: "personal",
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    const personal = await Collection.findOne({
+      where: { ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    await document.reload();
+    expect(document.collectionId).toEqual(personal.id);
+  });
+
   it("moves to a different collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection1 = await buildCollection({

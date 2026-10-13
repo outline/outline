@@ -25,7 +25,7 @@ function NewChildDocumentMenu({ document }: Props) {
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
-  const collectionName = collection ? collection.name : t("collection");
+  const collectionName = collection ? collection.displayName : t("collection");
 
   const actions = React.useMemo(
     () => [

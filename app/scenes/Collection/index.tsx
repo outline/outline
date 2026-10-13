@@ -98,7 +98,7 @@ const CollectionScene = observer(function CollectionScene_() {
   }, [collection, collection?.name, history, id, match.url]);
 
   useEffect(() => {
-    if (collection) {
+    if (collection && !collection.isPersonal) {
       ui.setActiveCollection(collection.id);
     }
 
@@ -140,12 +140,17 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Loading />;
   }
 
+  // A personal collection is only shown in the sidebar, it has no page.
+  if (collection.isPersonal) {
+    return <Error404 />;
+  }
+
   const showOverview = can.update || hasDescription;
 
   return (
     <Scene
       centered={false}
-      textTitle={collection.name}
+      textTitle={collection.displayName}
       left={
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
@@ -161,12 +166,14 @@ const CollectionScene = observer(function CollectionScene_() {
       title={
         <>
           <CollectionIcon collection={collection} expanded />
-          &nbsp;{collection.name}
+          &nbsp;{collection.displayName}
         </>
       }
       actions={
         <>
-          <MembershipPreview collection={collection} />
+          {!collection.isPersonal && (
+            <MembershipPreview collection={collection} />
+          )}
           <Actions
             collection={collection}
             isEditing={isEditRoute}

@@ -65,6 +65,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** Whether users can create documents in a personal collection. */
+  PersonalDocs = "personalDocs",
 }
 
 /** Workspace preference values, keyed by preference. */
@@ -83,4 +85,5 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.PersonalDocs]?: boolean;
 };

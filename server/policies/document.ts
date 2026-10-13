@@ -6,7 +6,15 @@ import {
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
+import {
+  and,
+  isCollectionOwner,
+  isCollectionWritable,
+  isTeamAdmin,
+  isTeamModel,
+  isTeamMutable,
+  or,
+} from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>
   and(
@@ -79,7 +87,7 @@ allow(User, "share", Document, (actor, document) =>
     !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
-    or(!document?.collection, can(actor, "share", document?.collection))
+    or(!document?.collection, can(actor, "shareDocument", document?.collection))
   )
 );
 
@@ -88,6 +96,7 @@ allow(User, "update", Document, (actor, document) =>
     !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
+    isCollectionWritable(actor, document?.collection),
     or(
       includesMembership(document, [
         DocumentPermission.ReadWrite,
@@ -140,17 +149,20 @@ allow(User, "duplicate", Document, (actor, document) =>
 );
 
 allow(User, "move", Document, (actor, document) =>
-  and(
-    can(actor, "update", document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById),
-      and(!!document?.isDraft && !document?.collection)
-    )
+  or(
+    and(
+      can(actor, "update", document),
+      or(
+        includesMembership(document, [
+          DocumentPermission.ReadWrite,
+          DocumentPermission.Admin,
+        ]),
+        can(actor, "updateDocument", document?.collection),
+        and(!!document?.isDraft && actor.id === document?.createdById),
+        and(!!document?.isDraft && !document?.collection)
+      )
+    ),
+    and(!!document?.isActive, isPersonalOwner(actor, document))
   )
 );
 
@@ -162,10 +174,12 @@ allow(User, "createChildDocument", Document, (actor, document) =>
   )
 );
 
+// Pins and insights are not shown for documents in a personal collection.
 allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
   and(
     !document?.isDraft,
     !actor.isGuest,
+    !document?.collection?.isPersonal,
     can(actor, "update", document),
     can(actor, "update", document?.collection)
   )
@@ -173,9 +187,9 @@ allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
 
 allow(User, "pinToHome", Document, (actor, document) =>
   and(
-    //
     !document?.isDraft,
     !!document?.isActive,
+    !document?.collection?.isPersonal,
     isTeamAdmin(actor, document),
     isTeamMutable(actor)
   )
@@ -189,6 +203,7 @@ allow(User, "delete", Document, (actor, document) =>
     or(
       can(actor, "unarchive", document),
       can(actor, "update", document),
+      isPersonalOwner(actor, document),
       and(!document?.collection, actor.id === document?.createdById)
     )
   )
@@ -215,7 +230,11 @@ allow(User, "permanentDelete", Document, (actor, document) =>
     !actor.isGuest,
     !!document?.isDeleted,
     isTeamModel(actor, document),
-    isTeamAdmin(actor, document)
+    isTeamAdmin(actor, document),
+    or(
+      !document?.collection?.isPersonal,
+      isCollectionOwner(actor, document?.collection)
+    )
   )
 );
 
@@ -223,11 +242,16 @@ allow(User, "archive", Document, (actor, document) =>
   and(
     !document?.isDraft,
     !!document?.isActive,
-    can(actor, "update", document),
     or(
-      includesMembership(document, [DocumentPermission.Admin]),
-      and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      can(actor, "updateDocument", document?.collection)
+      and(
+        can(actor, "update", document),
+        or(
+          includesMembership(document, [DocumentPermission.Admin]),
+          and(isTeamAdmin(actor, document), can(actor, "read", document)),
+          can(actor, "updateDocument", document?.collection)
+        )
+      ),
+      isPersonalOwner(actor, document)
     )
   )
 );
@@ -278,11 +302,32 @@ allow(User, "unpublish", Document, (user, document) => {
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
+
+  // Documents in a personal collection are already private to the owner.
+  if (document.collection.isPersonal) {
+    return false;
+  }
   if (cannot(user, "updateDocument", document.collection)) {
     return false;
   }
   return user.teamId === document.teamId;
 });
+
+/**
+ * Check if the actor owns the personal collection that the document is in. The
+ * owner can always move, archive and delete these documents, also when the
+ * collection is read-only.
+ *
+ * @param actor The actor to check.
+ * @param document The document to check.
+ * @returns True if the actor owns the personal collection of the document.
+ */
+function isPersonalOwner(actor: User, document: Document | null) {
+  return !!and(
+    isTeamMutable(actor),
+    isCollectionOwner(actor, document?.collection)
+  );
+}
 
 function includesMembership(
   document: Document | null,

@@ -83,7 +83,7 @@ function DraggableCollectionLink({ collection, belowCollection }: Props) {
     type: "collection",
     item: () => ({
       id: collection.id,
-      title: collection.name,
+      title: collection.displayName,
       icon: <CollectionIcon collection={collection} />,
     }),
     collect: (monitor) => ({

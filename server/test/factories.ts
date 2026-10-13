@@ -338,6 +338,27 @@ export async function buildCollection(
   });
 }
 
+/**
+ * Build the personal collection of a user.
+ *
+ * @param owner The user that owns the collection.
+ * @param overrides Attributes to set on the collection.
+ * @returns the personal collection.
+ */
+export async function buildPersonalCollection(
+  owner: User,
+  overrides: Partial<Collection> = {}
+) {
+  return buildCollection({
+    name: "Personal",
+    ...overrides,
+    teamId: owner.teamId,
+    userId: owner.id,
+    ownerId: owner.id,
+    permission: null,
+  });
+}
+
 export async function buildGroup(
   overrides: Partial<Group> & { userId?: string } = {}
 ) {

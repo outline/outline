@@ -65,13 +65,15 @@ export const openCollection = createActionWithChildren({
   shortcut: ["o", "c"],
   icon: <CollectionIcon />,
   children: ({ stores }) => {
-    const collections = stores.collections.orderedData;
+    const collections = stores.collections.orderedData.filter(
+      (collection) => !collection.isPersonal
+    );
     return collections.map((collection) =>
       createInternalLinkAction({
         // Note: using url which includes the slug rather than id here to bust
         // cache if the collection is renamed
         id: collection.path,
-        name: collection.name,
+        name: collection.displayName,
         icon: <ColorCollectionIcon collection={collection} />,
         section: CollectionSection,
         to: collection.path,
@@ -125,7 +127,9 @@ export const editCollectionPermissions = createAction({
   section: ActiveCollectionSection,
   icon: <PadlockIcon />,
   visible: ({ getActivePolicies }) =>
-    getActivePolicies(Collection).some((policy) => policy.abilities.update),
+    getActivePolicies(Collection).some(
+      (policy) => policy.abilities.manageUsers
+    ),
   perform: ({ t, getActiveModel, stores }) => {
     const collection = getActiveModel(Collection);
     if (!collection) {

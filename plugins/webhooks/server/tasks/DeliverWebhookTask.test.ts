@@ -8,11 +8,14 @@ import {
 import { server } from "@server/test/msw";
 import { WebhookDelivery } from "@server/models";
 import {
+  buildCollection,
+  buildDocument,
+  buildPersonalCollection,
   buildUser,
   buildWebhookDelivery,
   buildWebhookSubscription,
 } from "@server/test/factories";
-import type { UserEvent } from "@server/types";
+import type { DocumentEvent, UserEvent } from "@server/types";
 import DeliverWebhookTask, {
   isExpectedNetworkError,
 } from "./DeliverWebhookTask";
@@ -40,6 +43,50 @@ const captureWebhook = (
 };
 
 describe("DeliverWebhookTask", () => {
+  test("should not deliver events in a personal collection", async () => {
+    const owner = await buildUser();
+    const subscription = await buildWebhookSubscription({
+      teamId: owner.teamId,
+      createdById: owner.id,
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const previous = await buildCollection({
+      teamId: owner.teamId,
+      userId: owner.id,
+    });
+    const personal = await buildPersonalCollection(owner);
+    const document = await buildDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: personal.id,
+    });
+    const captured = captureWebhook("http://example.com");
+
+    // The event was queued before the document moved to the personal collection.
+    const event: DocumentEvent = {
+      name: "documents.update",
+      documentId: document.id,
+      collectionId: previous.id,
+      teamId: owner.teamId,
+      actorId: owner.id,
+      ip,
+      createdAt: new Date().toISOString(),
+      data: { done: true },
+    };
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event,
+    });
+
+    expect(captured.length).toBe(0);
+    expect(
+      await WebhookDelivery.count({
+        where: { webhookSubscriptionId: subscription.id },
+      })
+    ).toBe(0);
+  });
+
   test("should hit the subscription url and record a delivery", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",

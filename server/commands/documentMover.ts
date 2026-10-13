@@ -190,6 +190,21 @@ async function documentMover(
     });
 
     await pin?.destroyWithCtx(ctx);
+
+    // Pins are not shown for documents in a personal collection, so any pin of
+    // the moved documents, including pins to home, is removed.
+    if (newCollection?.isPersonal) {
+      const pins = await Pin.findAll({
+        where: {
+          documentId: [document.id, ...childDocumentIds],
+        },
+        transaction,
+        lock: Transaction.LOCK.UPDATE,
+      });
+      for (const personalPin of pins) {
+        await personalPin.destroyWithCtx(ctx);
+      }
+    }
   }
 
   result.documents.push(document);

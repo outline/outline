@@ -196,6 +196,7 @@ export async function signIn(
         where: {
           id: defaultCollectionId,
           teamId: team.id,
+          ownerId: null,
         },
         transaction,
       });

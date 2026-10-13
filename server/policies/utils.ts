@@ -1,8 +1,12 @@
 import env from "@server/env";
-import type { User } from "@server/models";
+import type { Collection, User } from "@server/models";
 import { Team, type Group } from "@server/models";
 import type Model from "@server/models/base/Model";
-import { GroupPermission, type PlanFeature } from "@shared/types";
+import {
+  GroupPermission,
+  TeamPreference,
+  type PlanFeature,
+} from "@shared/types";
 import invariant from "invariant";
 
 type Args = boolean | string | Args[];
@@ -78,6 +82,42 @@ export function isTeamAdmin(
   model: Model | null | undefined
 ): model is Model {
   return !!and(isTeamModel(actor, model), actor.isAdmin);
+}
+
+/**
+ * Check if the actor owns the personal collection.
+ *
+ * @param actor The actor to check
+ * @param collection The collection to check
+ * @returns True if the collection is personal and owned by the actor
+ */
+export function isCollectionOwner(
+  actor: User,
+  collection: Collection | null | undefined
+): boolean {
+  return (
+    !!collection?.ownerId &&
+    isTeamModel(actor, collection) &&
+    collection.ownerId === actor.id
+  );
+}
+
+/**
+ * Check if documents in the collection can be changed. A personal collection
+ * is read-only when the team turns personal documents off.
+ *
+ * @param actor The actor to check
+ * @param collection The collection to check
+ * @returns True if documents in the collection can be changed
+ */
+export function isCollectionWritable(
+  actor: User,
+  collection: Collection | null | undefined
+): boolean {
+  return (
+    !collection?.ownerId ||
+    !!actor.team?.getPreference(TeamPreference.PersonalDocs)
+  );
 }
 
 /**

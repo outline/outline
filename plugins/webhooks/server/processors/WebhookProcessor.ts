@@ -1,6 +1,7 @@
 import { WebhookSubscription } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type { Event } from "@server/types";
+import { WebhookEventHelper } from "../helpers/WebhookEventHelper";
 import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 
 export default class WebhookProcessor extends BaseProcessor {
@@ -40,6 +41,12 @@ export default class WebhookProcessor extends BaseProcessor {
     const applicableSubscriptions = subscriptions.filter((subscription) =>
       WebhookSubscription.matchEvent(subscription.events, event.name)
     );
+    if (
+      !applicableSubscriptions.length ||
+      (await WebhookEventHelper.isInPersonalCollection(event))
+    ) {
+      return;
+    }
 
     await Promise.all(
       applicableSubscriptions.map((subscription) =>

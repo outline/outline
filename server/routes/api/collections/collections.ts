@@ -246,7 +246,7 @@ router.post(
       Collection.findByPk(id, { userId: user.id, transaction }),
       Group.findByPk(groupId, { transaction }),
     ]);
-    authorize(user, "update", collection);
+    authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
     let membership = await GroupMembership.findOne({
@@ -302,7 +302,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", collection);
+    authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
     const [membership] = await collection.$get("groupMemberships", {
@@ -404,7 +404,7 @@ router.post(
       Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
-    authorize(actor, "update", collection);
+    authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
     let membership = await UserMembership.findOne({
@@ -454,7 +454,7 @@ router.post(
       Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
-    authorize(actor, "update", collection);
+    authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
     const [membership] = await collection.$get("memberships", {
@@ -807,6 +807,10 @@ router.post(
     // are not a member of, so they must be able to see them listed.
     if (!user.isAdmin || !(includeListOnly || includeArchived)) {
       where[Op.and].push({ id: collectionIds });
+    } else {
+      where[Op.and].push({
+        ownerId: { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }] },
+      });
     }
 
     if (filter) {

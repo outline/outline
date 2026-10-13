@@ -1,4 +1,5 @@
 import type { Optional } from "utility-types";
+import { PersonalCollectionId } from "@shared/constants";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Collection, Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -6,6 +7,7 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { assertPresent } from "@server/validation";
+import personalCollectionLoader from "./personalCollectionLoader";
 
 type Props = Optional<
   Pick<
@@ -50,7 +52,9 @@ type CreateLocation = {
  * the collection and parent document it will belong to. Shared by the
  * documents.create API route and the MCP create_document tool so that both
  * enforce identical permissions, including the team-level check that prevents
- * viewers and guests from creating drafts with no collection.
+ * viewers and guests from creating drafts with no collection. The collectionId
+ * "personal" refers to the personal collection of the user, which is created
+ * when it does not exist yet.
  *
  * @param ctx the API context containing the acting user.
  * @param location the requested collection and/or parent document.
@@ -83,10 +87,13 @@ export async function authorizeDocumentCreate(
   }
 
   if (collectionId) {
-    const collection = await Collection.findByPk(collectionId, {
-      userId: user.id,
-      transaction,
-    });
+    const collection =
+      collectionId === PersonalCollectionId
+        ? await personalCollectionLoader(ctx)
+        : await Collection.findByPk(collectionId, {
+            userId: user.id,
+            transaction,
+          });
     authorize(user, "createDocument", collection);
     return { collection };
   }

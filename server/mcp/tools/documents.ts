@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PersonalCollectionId } from "@shared/constants";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator, {
@@ -6,6 +7,7 @@ import documentCreator, {
   authorizeDocumentPublish,
 } from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
+import { resolvePersonalCollectionId } from "@server/commands/personalCollectionLoader";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Collection, Document, SearchQuery, Template } from "@server/models";
@@ -368,8 +370,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       "create_document",
       {
         title: "Create document",
-        description:
-          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
+        description: `Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Use the collectionId "${PersonalCollectionId}" to place the document in the user's personal collection, which only they can see and which is created if it does not exist yet. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.`,
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -394,7 +395,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             'The name of the file the content was read from, e.g. "notes.md". Recorded on the document and shown to users as the file it was imported from, so only set it when the content genuinely came from a file. Also used as the title when the content has no heading and no title is given.'
           ),
           collectionId: optionalString().describe(
-            "The collection to place the document in."
+            `The collection to place the document in, or "${PersonalCollectionId}" for the user's personal collection.`
           ),
           parentDocumentId: optionalString().describe(
             "The parent document ID to nest this document under."
@@ -520,7 +521,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .describe("The unique identifier of the document to move."),
           collectionId: optionalString().describe(
-            "The destination collection ID. Required if parentDocumentId is not provided."
+            `The destination collection ID, or "${PersonalCollectionId}" for the user's personal collection. Required if parentDocumentId is not provided.`
           ),
           parentDocumentId: optionalString().describe(
             "The ID of the document to nest this document under. The document will be moved to the parent's collection."
@@ -552,7 +553,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             authorize(user, "move", document);
 
-            let collectionId = input.collectionId;
+            // A parent decides the collection, so the personal collection is
+            // only resolved, and created, when there is no parent.
+            let collectionId = input.parentDocumentId
+              ? input.collectionId
+              : await resolvePersonalCollectionId(ctx, input.collectionId);
 
             if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
@@ -644,7 +649,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             'Required when editMode is "patch". The exact markdown substring to find in the document. This should be copied verbatim from the document\'s existing markdown content. The first occurrence will be replaced with the text parameter. Can span multiple blocks (paragraphs, headings, etc).'
           ),
           collectionId: optionalString().describe(
-            "The collection ID to publish a draft to, required when publishing a draft that has no collection."
+            `The collection ID to publish a draft to, or "${PersonalCollectionId}" for the user's personal collection. Required when publishing a draft that has no collection.`
           ),
           icon: z
             .string()
@@ -696,8 +701,17 @@ export function documentTools(server: McpServer, scopes: string[]) {
           } else {
             authorize(user, "update", document);
 
+            // The collection is only used when publishing a draft that has
+            // none, so the personal collection is only created in that case.
+            const collectionId =
+              input.collectionId === PersonalCollectionId
+                ? input.publish && !document.collectionId
+                  ? await resolvePersonalCollectionId(ctx, input.collectionId)
+                  : undefined
+                : input.collectionId;
+
             if (input.publish) {
-              await authorizeDocumentPublish(ctx, document, input.collectionId);
+              await authorizeDocumentPublish(ctx, document, collectionId);
             }
 
             const { revisionCount } = document;
@@ -705,6 +719,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             updated = await documentUpdater(ctx, {
               document,
               ...input,
+              collectionId,
             });
 
             // Every save increments revisionCount, so an unchanged count means

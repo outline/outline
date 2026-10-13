@@ -72,6 +72,7 @@ router.get(
         where: {
           id: defaultCollectionId,
           teamId: team.id,
+          ownerId: null,
         },
       });
 

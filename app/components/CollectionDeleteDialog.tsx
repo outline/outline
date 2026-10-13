@@ -44,7 +44,7 @@ function CollectionDeleteDialog({ collection, onSubmit }: Props) {
           <Trans
             defaults="Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash."
             values={{
-              collectionName: collection.name,
+              collectionName: collection.displayName,
             }}
             components={{
               em: <strong />,
@@ -56,7 +56,7 @@ function CollectionDeleteDialog({ collection, onSubmit }: Props) {
             <Trans
               defaults="Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page."
               values={{
-                collectionName: collection.name,
+                collectionName: collection.displayName,
               }}
               components={{
                 em: <strong />,

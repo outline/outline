@@ -1,6 +1,7 @@
 import type formidable from "formidable";
 import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
+import { PersonalCollectionId } from "@shared/constants";
 import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   DirectionFilter,
@@ -560,8 +561,10 @@ export const DocumentsImportSchema = BaseSchema.extend({
         ])
         .optional(),
 
-      /** Import docs to this collection */
-      collectionId: z.uuid().nullish(),
+      /** Import docs to this collection, or "personal" for the personal collection */
+      collectionId: z
+        .union([z.uuid(), z.literal(PersonalCollectionId)])
+        .nullish(),
 
       /** Import under this parent doc */
       parentDocumentId: z.uuid().nullish(),
@@ -603,8 +606,10 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
-    /** Collection to create document within  */
-    collectionId: z.uuid().nullish(),
+    /** Collection to create document within, or "personal" for the personal collection */
+    collectionId: z
+      .union([z.uuid(), z.literal(PersonalCollectionId)])
+      .nullish(),
 
     /** Index to create the document at within the collection */
     index: z.number().optional(),

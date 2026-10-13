@@ -185,6 +185,8 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         .concat(
           collections
             .findByQuery(search, { maxResults: maxResultsInSection, weight })
+            // A personal collection has no page for a mention to link to.
+            .filter((collection) => !collection.isPersonal)
             .map((collection) => collectionMentionItem(collection, actorId))
         )
         .concat(

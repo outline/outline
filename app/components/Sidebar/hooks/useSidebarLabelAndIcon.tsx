@@ -33,7 +33,7 @@ export function useSidebarLabelAndIcon({
   const initial = document?.initial;
   const color = document?.color;
   const isDraft = document?.isDraft;
-  const collectionName = collection?.name;
+  const collectionName = collection?.displayName;
 
   return React.useMemo(() => {
     if (document) {
