@@ -773,10 +773,9 @@ describe("#groups.memberships", () => {
     expect(res.status).toEqual(200);
     expect(body.data.groupMemberships.length).toEqual(1);
     expect(body.data.groupMemberships[0].createdById).toEqual(admin.id);
+    expect(body.data.groupMemberships[0].createdBy.id).toEqual(admin.id);
     expect(body.data.groupMemberships[0].createdAt).toBeTruthy();
-    expect(body.data.users.map((u: { id: string }) => u.id).sort()).toEqual(
-      [admin.id, user.id].sort()
-    );
+    expect(body.data.users.map((u: { id: string }) => u.id)).toEqual([user.id]);
   });
 
   it("should allow filtering members in group by name", async () => {
