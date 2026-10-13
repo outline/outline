@@ -74,7 +74,8 @@ const insertFiles = async function (
 
   const filesToUpload = (
     await Promise.all(
-      files.map(async (file) => {
+      files.map(async (original) => {
+        const file = FileHelper.withContentType(original);
         const isImage =
           FileHelper.isImage(file.type) &&
           !options.isAttachment &&
