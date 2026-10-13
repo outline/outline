@@ -631,6 +631,30 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it("does not create the personal collection when it is not used", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: "Renamed",
+      collectionId: "personal",
+    });
+    expect(res?.result?.isError).toBeFalsy();
+    expect(await Collection.count({ where: { ownerId: user.id } })).toEqual(0);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+  });
+
   it("publishes a draft to the personal collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const document = await buildDraftDocument({

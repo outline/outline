@@ -553,10 +553,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             authorize(user, "move", document);
 
-            let collectionId = await resolvePersonalCollectionId(
-              ctx,
-              input.collectionId
-            );
+            // A parent decides the collection, so the personal collection is
+            // only resolved, and created, when there is no parent.
+            let collectionId = input.parentDocumentId
+              ? input.collectionId
+              : await resolvePersonalCollectionId(ctx, input.collectionId);
 
             if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
@@ -700,10 +701,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
           } else {
             authorize(user, "update", document);
 
-            const collectionId = await resolvePersonalCollectionId(
-              ctx,
-              input.collectionId
-            );
+            // The collection is only used when publishing a draft that has
+            // none, so the personal collection is only created in that case.
+            const collectionId =
+              input.collectionId === PersonalCollectionId
+                ? input.publish && !document.collectionId
+                  ? await resolvePersonalCollectionId(ctx, input.collectionId)
+                  : undefined
+                : input.collectionId;
 
             if (input.publish) {
               await authorizeDocumentPublish(ctx, document, collectionId);
