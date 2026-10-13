@@ -20,6 +20,12 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   skipInitialAnimation?: boolean;
 }
 
+const slideTransition: Transition = {
+  type: "spring",
+  bounce: 0,
+  duration: sidebarAppearDuration / 1000,
+};
+
 function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
@@ -89,11 +95,13 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
         duration: sidebarAppearDuration / 1000,
       };
 
+  // The reserved width changes in one step so that the content beside the
+  // sidebar reflows once, rather than on every frame of the animation.
   const animationProps = {
     initial: skipInitialAnimation
       ? false
       : {
-          width: 0,
+          width: ui.sidebarRightWidth,
           opacity: 0.9,
         },
     animate: {
@@ -102,18 +110,26 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       opacity: 1,
     },
     exit: {
-      width: 0,
       opacity: 0,
+      transition: slideTransition,
     },
   };
 
   // The inner element is positioned out of flow, so it must follow the same width to stay in step
-  // with the container it visually fills.
+  // with the container it visually fills. It slides into place with a transform, which does not
+  // cause layout.
+  const offscreenX =
+    direction === "rtl" ? -ui.sidebarRightWidth : ui.sidebarRightWidth;
   const positionAnimationProps = {
-    initial: false,
+    initial: skipInitialAnimation ? false : { x: offscreenX },
     animate: {
-      transition,
+      transition: { ...transition, x: slideTransition },
       width: ui.sidebarRightWidth - (windowScrollbarWidth ?? 0),
+      x: 0,
+    },
+    exit: {
+      x: offscreenX,
+      transition: slideTransition,
     },
   };
 
