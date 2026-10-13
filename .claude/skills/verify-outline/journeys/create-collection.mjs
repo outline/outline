@@ -1,6 +1,6 @@
 // Create a collection from the sidebar "New collection" dialog.
 // Args: name= (default "Verify Collection <time>").
-export default async ({ page, click, step, psql, args, log }) => {
+export default async ({ page, click, step, psql, literal, args, log }) => {
   const name = args.name ?? `Verify Collection ${Date.now()}`;
 
   await page.goto("/home");
@@ -19,7 +19,7 @@ export default async ({ page, click, step, psql, args, log }) => {
   await page.getByRole("link", { name: `Expand ${name}` }).waitFor();
   await step("collection-page");
 
-  const rows = psql(`select name from collections where name = '${name.replace(/'/g, "''")}' and "deletedAt" is null`);
+  const rows = psql(`select name from collections where name = ${literal(name)} and "deletedAt" is null`);
   log("db:", rows);
   if (rows.length !== 1) {
     throw new Error(`expected 1 collection row named ${name}, got ${rows.length}`);

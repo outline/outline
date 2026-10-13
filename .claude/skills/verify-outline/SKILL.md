@@ -103,11 +103,11 @@ node $V/scripts/drive.mjs <run-id> <journey.mjs> [--headed] [--fresh] [-- key=va
 ```
 
 - The journey modules are in `$V/journeys/`. Each default-exports
-  `async ({ page, context, url, step, click, psql, args, log }) => value`.
+  `async ({ page, context, url, step, click, psql, literal, args, log }) => value`.
   `page` already has `baseURL` set, so `page.goto("/home")` works.
   `step(name, page?)` saves a numbered screenshot. `click(locator)`
   moves the pointer over the element, waits, then clicks (see the rules below). `psql(sql)` returns rows
-  (`a|b|c`). `value` is written to `result.json`.
+  (`a|b|c`). Put values into SQL with `literal(value)`, never raw. `value` is written to `result.json`.
 - The session persists per run in `runs/<id>/browser-state.json`. `--fresh`
   starts signed out.
 - Browser lookup: `OUTLINE_VERIFY_PLAYWRIGHT` (path to a playwright-core

@@ -5,9 +5,10 @@
 //   drive.mjs <run-id> <journey.mjs> [--headed] [--fresh] [-- key=value ...]
 //
 // The journey module default-exports
-//   `async ({ page, context, url, step, click, psql, args, log }) => value`
+//   `async ({ page, context, url, step, click, psql, literal, args, log }) => value`
 // step(name, page?) saves a numbered screenshot, click(locator) hovers first, psql(sql) returns rows of
-// read-only SQL, args holds the key=value pairs, value lands in result.json.
+// read-only SQL, literal(value) quotes a string for that SQL, args holds the key=value pairs, value
+// lands in result.json.
 // Cookies persist per run in <run-dir>/browser-state.json, so a journey run
 // after `setup-workspace.mjs` is already signed in. --fresh ignores them.
 //
@@ -171,13 +172,17 @@ function psql(sql) {
     .split("\n")
     .filter(Boolean);
 }
+/** Quote a string as a SQL literal for psql(). */
+function literal(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
 const log = (...a) => console.log("  ", ...a);
 
 const journey = (await import(pathToFileURL(path.resolve(journeyPath)).href)).default;
 let result = { journey: journeyName, url, ok: false };
 console.log(`drive ${journeyName} -> ${url} (playwright ${from}, chrome ${executablePath ?? "default"})`);
 try {
-  const value = await journey({ page, context, url, step, click, psql, args, log });
+  const value = await journey({ page, context, url, step, click, psql, literal, args, log });
   result = { ...result, ok: true, value: value ?? null };
 } catch (err) {
   result.error = String(err?.stack ?? err);

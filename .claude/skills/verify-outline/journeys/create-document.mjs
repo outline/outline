@@ -1,7 +1,9 @@
 // Create a document in a collection through the editor, then prove the title
 // and body persisted (reload + database).
 // Args: collection= (name of an existing collection, required), title=, body=.
-export default async ({ page, click, step, psql, args, log }) => {
+// The editor applies input rules such as smart quotes to body=, so the checks
+// use the text that the editor shows.
+export default async ({ page, click, step, psql, literal, args, log }) => {
   if (!args.collection) {
     throw new Error("collection= is required; run create-collection.mjs first");
   }
@@ -9,7 +11,7 @@ export default async ({ page, click, step, psql, args, log }) => {
   // a numeric marker can never be found through search.
   const marker = `verify${Array.from({ length: 8 }, () => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")}`;
   const title = args.title ?? `Verify Doc ${marker}`;
-  const body = args.body ?? `Body text ${marker}`;
+  const typed = args.body ?? `Body text ${marker}`;
 
   await page.goto("/home");
   await page.waitForLoadState("networkidle");
@@ -27,15 +29,20 @@ export default async ({ page, click, step, psql, args, log }) => {
   await titleBox.click();
   await page.keyboard.type(title);
   await page.keyboard.press("Enter");
-  await page.keyboard.type(body);
-  await page.getByRole("textbox", { name: "Editor content" }).getByText(body).waitFor();
+  await page.keyboard.type(typed);
+  const body = (await page.getByRole("textbox", { name: "Editor content" }).locator("p").first().innerText()).trim();
+  if (body !== typed) {
+    log("editor changed body to:", body);
+  }
   await step("typed");
 
   // Title saves over the API, body over the collaboration websocket; poll the DB.
+  // jsonb text escapes strings as JSON does, so search for the escaped body.
+  const escapedBody = JSON.stringify(body).slice(1, -1);
   let row = [];
   for (let i = 0; i < 30; i++) {
     row = psql(
-      `select title, "publishedAt" is not null, content::text like '%${body}%' from documents where title = '${title}' and "deletedAt" is null`
+      `select title, "publishedAt" is not null, strpos(content::text, ${literal(escapedBody)}) > 0 from documents where title = ${literal(title)} and "deletedAt" is null`
     );
     if (row[0]?.endsWith("|t|t")) {
       break;

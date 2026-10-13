@@ -2,7 +2,7 @@
 // link in a signed-out browser context and read the content.
 // Args: doc= (document path such as /doc/slug-id, required), expect= (body text
 // the public page must show, required).
-export default async ({ page, click, context, step, psql, args, log }) => {
+export default async ({ page, click, context, step, psql, literal, args, log }) => {
   if (!args.doc || !args.expect) {
     throw new Error("doc= and expect= are required");
   }
@@ -24,7 +24,7 @@ export default async ({ page, click, context, step, psql, args, log }) => {
   await step("share-dialog-published");
 
   const rows = psql(
-    `select s.id, s.published from shares s join documents d on d.id = s."documentId" where d."urlId" = '${docId}' and s."revokedAt" is null`
+    `select s.id, s.published from shares s join documents d on d.id = s."documentId" where d."urlId" = ${literal(docId)} and s."revokedAt" is null`
   );
   log("db:", rows);
   const [shareId, published] = (rows[0] ?? "").split("|");
@@ -36,7 +36,8 @@ export default async ({ page, click, context, step, psql, args, log }) => {
   try {
     const pub = await anon.newPage();
     await pub.goto(`/s/${shareId}`);
-    await pub.getByText(args.expect).first().waitFor({ timeout: 15000 });
+    // Scope to main: the server also renders a screen-reader-only copy.
+    await pub.getByRole("main").getByText(args.expect).first().waitFor({ timeout: 15000 });
     const cookies = (await anon.cookies()).map((c) => c.name);
     if (cookies.includes("accessToken")) {
       throw new Error("anonymous context unexpectedly holds an accessToken");

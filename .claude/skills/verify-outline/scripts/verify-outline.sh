@@ -95,18 +95,9 @@ cmd_up() {
   ')"
   [[ -z "$missing" ]] || { rm -rf "$dir"; die "node_modules in $REPO does not match its package.json (missing: $missing); run yarn install there or use a checkout that matches"; }
 
-  local pg="outline-verify-$id-pg" redis="outline-verify-$id-redis"
-  docker run -d --name "$pg" --label outline-verify="$id" \
-    -e POSTGRES_USER=user -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=outline \
-    -p 127.0.0.1::5432 "$PG_IMAGE" >/dev/null
-  docker run -d --name "$redis" --label outline-verify="$id" \
-    -p 127.0.0.1::6379 "$REDIS_IMAGE" >/dev/null
-  log "started containers $pg, $redis"
-  local port pg_port redis_port
+  # Write state before any container starts, so `down` can always clean up.
+  local pg="outline-verify-$id-pg" redis="outline-verify-$id-redis" port
   port="$(free_port)"
-  pg_port="$(docker port "$pg" 5432/tcp | head -1 | sed 's/.*://')"
-  redis_port="$(docker port "$redis" 6379/tcp | head -1 | sed 's/.*://')"
-
   cat >"$dir/state.env" <<EOF
 RUN_ID=$id
 RUN_DIR=$dir
@@ -116,12 +107,24 @@ PORT=$port
 URL=http://localhost:$port
 PG_CONTAINER=$pg
 REDIS_CONTAINER=$redis
-DATABASE_URL=postgres://user:pass@127.0.0.1:$pg_port/outline
-REDIS_URL=redis://127.0.0.1:$redis_port
 SECRET_KEY=$(openssl rand -hex 32)
 UTILS_SECRET=$(openssl rand -hex 32)
 SERVER_LOG=$dir/server.log
 PID_FILE=$dir/server.pid
+EOF
+
+  docker run -d --name "$pg" --label outline-verify="$id" \
+    -e POSTGRES_USER=user -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=outline \
+    -p 127.0.0.1::5432 "$PG_IMAGE" >/dev/null
+  docker run -d --name "$redis" --label outline-verify="$id" \
+    -p 127.0.0.1::6379 "$REDIS_IMAGE" >/dev/null
+  log "started containers $pg, $redis"
+  local pg_port redis_port
+  pg_port="$(docker port "$pg" 5432/tcp | head -1 | sed 's/.*://')"
+  redis_port="$(docker port "$redis" 6379/tcp | head -1 | sed 's/.*://')"
+  cat >>"$dir/state.env" <<EOF
+DATABASE_URL=postgres://user:pass@127.0.0.1:$pg_port/outline
+REDIS_URL=redis://127.0.0.1:$redis_port
 EOF
   load_state "$id"
 
