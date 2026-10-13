@@ -66,6 +66,11 @@ function usePosition({
     }
   });
 
+  // Measuring the selection forces a layout, so skip it while hidden.
+  if (!active || !menuRef.current) {
+    return defaultPosition;
+  }
+
   // based on the start and end of the selection calculate the position at
   // the center top
   let fromPos;
@@ -122,10 +127,6 @@ function usePosition({
       selectionBounds.left = bounds.right;
       selectionBounds.right = bounds.right;
     }
-  }
-
-  if (!active || !menuRef.current || !menuHeight) {
-    return defaultPosition;
   }
 
   // tables are an oddity, and need their own positioning logic
