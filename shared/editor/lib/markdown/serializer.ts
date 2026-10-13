@@ -570,7 +570,7 @@ export class MarkdownSerializerState {
     if (startOfLine) {
       str = str
         .replace(/^[:#\-*+]/, "\\$&")
-        .replace(/^(\d+)\./, "$1\\.")
+        .replace(/^(\d+)\.(?=\s|$)/, "$1\\.")
         .replace(/^([a-z])\.(?=\s)/i, "$1\\.");
     }
 
