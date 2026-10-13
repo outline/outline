@@ -11,6 +11,12 @@ const doc = (content: ProsemirrorData[]): ProsemirrorData => ({
   content,
 });
 
+const heading = (text: string, level: number): ProsemirrorData => ({
+  type: "heading",
+  attrs: { level },
+  content: [{ type: "text", text }],
+});
+
 const render = (data: ProsemirrorData) => {
   const node = ProsemirrorHelper.toStaticNode(data);
   if (!node) {
@@ -138,6 +144,52 @@ describe("ProsemirrorHelper", () => {
 
     it("should return undefined for invalid data", () => {
       expect(render(doc([paragraph([{ type: "text" }])]))).toBeUndefined();
+    });
+  });
+
+  describe("getHeadingTitle", () => {
+    it("finds the heading that an anchor points at", () => {
+      expect(
+        ProsemirrorHelper.getHeadingTitle(
+          { data: doc([heading("Q3 goals", 2)]) },
+          "h-q3-goals"
+        )
+      ).toBe("Q3 goals");
+    });
+
+    it("finds a heading through the percent encoding a url puts on its anchor", () => {
+      expect(
+        ProsemirrorHelper.getHeadingTitle(
+          { data: doc([heading("\u306b\u307b\u3093\u3054", 2)]) },
+          "h-%E3%81%AB%E3%81%BB%E3%82%93%E3%81%94"
+        )
+      ).toBe("\u306b\u307b\u3093\u3054");
+    });
+
+    it("returns undefined when the heading no longer exists", () => {
+      expect(
+        ProsemirrorHelper.getHeadingTitle(
+          { data: doc([heading("Q4 goals", 2)]) },
+          "h-q3-goals"
+        )
+      ).toBeUndefined();
+    });
+
+    it("distinguishes repeated headings by the suffix on their anchor", () => {
+      const repeated = {
+        data: doc([
+          heading("Goals", 2),
+          heading("Timeline", 2),
+          heading("Goals", 3),
+        ]),
+      };
+
+      expect(ProsemirrorHelper.getHeadingTitle(repeated, "h-goals-1")).toBe(
+        "Goals"
+      );
+      expect(
+        ProsemirrorHelper.getHeadingTitle(repeated, "h-goals-2")
+      ).toBeUndefined();
     });
   });
 });
