@@ -15,6 +15,7 @@ import type { RefHandle } from "~/components/EditableTitle";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
+import { useComputed } from "~/hooks/useComputed";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import usePolicy from "~/hooks/usePolicy";
@@ -35,7 +36,7 @@ import SidebarExpansionContext, {
 } from "./SidebarExpansionContext";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -46,6 +47,7 @@ import SidebarDisclosureContext, {
   useSidebarDisclosure,
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 type Props = {
   star: Star;
@@ -109,10 +111,22 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : emptyChildDocuments;
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
-  const expansion = useSidebarExpansionState(
-    childDocuments,
-    documents.active?.id
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  const getNavigationItems = React.useCallback(
+    () => [
+      {
+        id: document.id,
+        url: document.path,
+        title: document.title,
+        sidebarContext,
+        collapsedChildren: displayChildDocuments ? undefined : childDocuments,
+      },
+    ],
+    [document, sidebarContext, displayChildDocuments, childDocuments]
   );
+  useSidebarNavigation(parentRef, getNavigationItems);
+  const expansion = useSidebarExpansionState(childDocuments);
 
   const handleCascadeExpand = React.useCallback(() => {
     if (childDocuments.length) {
@@ -204,10 +218,11 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         documentId={document.id}
         document={document}
         to={{ pathname: document.path, state: { sidebarContext } }}
+        parentRef={parentRef}
         depth={0}
         icon={icon}
         canEdit={can.update}
-        labelText={document.titleWithDefault}
+        labelText={document.displayTitle}
         onTitleChange={handleTitleChange}
         editableTitleRef={editableTitleRef}
         expanded={expanded}
@@ -229,19 +244,13 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
           <SidebarExpansionContext.Provider value={expansion}>
             <Relative>
               <Folder expanded={displayChildDocuments}>
-                {childDocuments.map((node, index) => (
-                  <DocumentLink
-                    key={node.id}
-                    node={node}
-                    collection={documentCollection}
-                    activeDocument={documents.active}
-                    prefetchDocument={documents.prefetchDocument}
-                    isDraft={node.isDraft}
-                    depth={2}
-                    index={index}
-                    parentId={document.id}
-                  />
-                ))}
+                <DocumentTree
+                  nodes={childDocuments}
+                  depth={2}
+                  parentId={document.id}
+                  collection={documentCollection}
+                  prefetchDocument={documents.prefetchDocument}
+                />
               </Folder>
               {cursor}
             </Relative>
@@ -344,7 +353,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           onExpand={handleExpand}
           onClickIntent={handlePrefetch}
           canEdit={can.update}
-          labelText={collection.name}
+          labelText={collection.displayName}
           onTitleChange={handleTitleChange}
           editableTitleRef={editableTitleRef}
           contextAction={contextMenuAction}
@@ -356,11 +365,15 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           dropRef={dropRef}
           isActiveDropTarget={isOver && canDrop}
         >
-          <CollectionLinkChildren
-            collection={collection}
-            expanded={displayChildDocuments}
-            prefetchDocument={documents.prefetchDocument}
-          />
+          {(newChild) => (
+            <CollectionLinkChildren
+              collection={collection}
+              expanded={displayChildDocuments}
+              prefetchDocument={documents.prefetchDocument}
+            >
+              {newChild}
+            </CollectionLinkChildren>
+          )}
         </CollectionRow>
       </Draggable>
       <Relative>{cursor}</Relative>
@@ -378,33 +391,39 @@ function StarredLink({ star }: Props) {
   const sidebarContext = starredSidebarContext(
     star.documentId ?? star.collectionId ?? ""
   );
+  // Computed so that only the stars that become active or inactive re-render
+  // when navigating.
+  const isActive = useComputed(
+    () =>
+      star.documentId
+        ? star.documentId === ui.activeDocumentId
+        : star.collectionId === ui.activeCollectionId,
+    [star, ui]
+  );
+  const activeDocumentId = useComputed(
+    () => (isActive ? ui.activeDocumentId : undefined),
+    [isActive, ui]
+  );
   const [expanded, setExpanded] = useState(
-    (star.documentId
-      ? star.documentId === ui.activeDocumentId
-      : star.collectionId === ui.activeCollectionId) &&
-      sidebarContext === activeSidebarContext
+    isActive && sidebarContext === activeSidebarContext
   );
 
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
 
+  // The sidebar context is unique to the star, so a starred document also
+  // expands when one of its descendants is active in it.
   React.useEffect(() => {
     if (
-      star.documentId === ui.activeDocumentId &&
-      sidebarContext === activeSidebarContext
-    ) {
-      setExpanded(true);
-    } else if (
-      star.collectionId === ui.activeCollectionId &&
+      (isActive || star.documentId) &&
       sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);
     }
   }, [
+    isActive,
+    activeDocumentId,
     star.documentId,
-    star.collectionId,
-    ui.activeDocumentId,
-    ui.activeCollectionId,
     sidebarContext,
     activeSidebarContext,
   ]);
@@ -456,21 +475,31 @@ function StarredLink({ star }: Props) {
   const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
 
-  const cursor = (
-    <>
-      {reorderStarProps.isDragging && (
-        <DropCursor
-          isActiveDrop={reorderStarProps.isOverCursor}
-          innerRef={dropToReorderRef}
-        />
-      )}
-      {createStarProps.isDragging && (
-        <DropCursor
-          isActiveDrop={createStarProps.isOverCursor}
-          innerRef={dropToStarRef}
-        />
-      )}
-    </>
+  const cursor = React.useMemo(
+    () => (
+      <>
+        {reorderStarProps.isDragging && (
+          <DropCursor
+            isActiveDrop={reorderStarProps.isOverCursor}
+            innerRef={dropToReorderRef}
+          />
+        )}
+        {createStarProps.isDragging && (
+          <DropCursor
+            isActiveDrop={createStarProps.isOverCursor}
+            innerRef={dropToStarRef}
+          />
+        )}
+      </>
+    ),
+    [
+      reorderStarProps.isDragging,
+      reorderStarProps.isOverCursor,
+      dropToReorderRef,
+      createStarProps.isDragging,
+      createStarProps.isOverCursor,
+      dropToStarRef,
+    ]
   );
 
   if (document) {

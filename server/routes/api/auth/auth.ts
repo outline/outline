@@ -1,5 +1,5 @@
 import { subHours, subMinutes } from "date-fns";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { uniqBy } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
@@ -28,7 +28,7 @@ const router = new Router();
 
 router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // If self hosted AND there is only one team then that team becomes the
-  // brand for the knowledge base and it's guest signin option is used for the
+  // brand for the knowledge base and its guest sign-in option is used for the
   // root login page.
   if (!env.isCloudHosted) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
@@ -197,6 +197,7 @@ router.post(
       userId: user.id,
       data: {
         name: user.name,
+        reason: "manual",
       },
     });
 

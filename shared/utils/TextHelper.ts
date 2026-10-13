@@ -12,11 +12,11 @@ interface User {
 
 export class TextHelper {
   /**
-   * Replaces template variables in the given text with the current date and time.
+   * Replaces template variables with the current date, time, and author name.
    *
-   * @param text The text to replace the variables in
-   * @param user The user to get the language/locale from
-   * @returns The text with the variables replaced
+   * @param text the text to replace the variables in.
+   * @param user the user to get the author name and language from.
+   * @returns the text with the variables replaced.
    */
   static replaceTemplateVariables(text: string, user: User) {
     const locales = user.language
@@ -27,7 +27,7 @@ export class TextHelper {
       .replace(/{date}/g, getCurrentDateAsString(locales))
       .replace(/{time}/g, getCurrentTimeAsString(locales))
       .replace(/{datetime}/g, getCurrentDateTimeAsString(locales))
-      .replace(/{author}/g, user.name);
+      .replace(/{author}/g, () => user.name);
   }
 
   /**

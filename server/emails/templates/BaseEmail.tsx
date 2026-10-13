@@ -51,7 +51,7 @@ export default abstract class BaseEmail<
   protected abstract get category(): EmailMessageCategory;
 
   /**
-   * Schedule this email type to be sent asyncronously by a worker.
+   * Schedule this email type to be sent asynchronously by a worker.
    *
    * @param options Options to pass to the Bull queue
    * @returns A promise that resolves once the email is placed on the task queue
@@ -152,7 +152,7 @@ export default abstract class BaseEmail<
       : undefined;
 
     // Check if notification is considerably delayed and annotate
-    // the subject. This is incase of extended downtime or queue backlogs
+    // the subject. This is in case of extended downtime or queue backlogs
     let subject = this.subject(data);
     if (notification) {
       if (notification.createdAt < subMinutes(new Date(), 30)) {
@@ -335,7 +335,7 @@ export default abstract class BaseEmail<
       return undefined;
     }
 
-    // Process user mentions to ensure they are uptodate with database
+    // Process user mentions to ensure they are up to date with the database
     const processedNode = ProsemirrorHelper.toProsemirror(
       await ProsemirrorHelper.processMentions(node)
     );

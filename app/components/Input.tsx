@@ -197,6 +197,7 @@ function Input(
   const internalRef = React.useRef<
     HTMLInputElement | HTMLTextAreaElement | null
   >(null);
+  const generatedId = React.useId();
   const [focused, setFocused] = React.useState(false);
   const [charCount, setCharCount] = React.useState(() => {
     if (typeof props.value === "string") {
@@ -284,6 +285,7 @@ function Input(
     onRequestSubmit,
     children,
     ref,
+    id = generatedId,
     ...rest
   } = props;
 
@@ -310,7 +312,7 @@ function Input(
 
   return (
     <Wrapper className={className} short={short} flex={flex}>
-      <label>
+      <label htmlFor={id}>
         {label &&
           (labelHidden ? (
             <VisuallyHidden.Root>{wrappedLabel}</VisuallyHidden.Root>
@@ -335,6 +337,7 @@ function Input(
               $maxHeight={maxHeight}
               aria-label={fallbackAriaLabel}
               {...rest}
+              id={id}
               // set it after "rest" to override props from spread.
               maxLength={maxLength}
               onKeyDown={handleKeyDown}
@@ -353,6 +356,7 @@ function Input(
               type={type}
               aria-label={fallbackAriaLabel}
               {...rest}
+              id={id}
               // set it after "rest" to override "onKeyDown" and "onChange" from prop.
               maxLength={maxLength}
               onKeyDown={handleKeyDown}

@@ -56,6 +56,9 @@ interface Props<
   /** Array of items to display in the list */
   items?: T[];
 
+  /** ID of an item that must be included in the rendered page. */
+  activeItemId?: string;
+
   /** CSS class name to apply to the list container */
   className?: string;
 
@@ -112,6 +115,7 @@ const PaginatedList = <T extends PaginatedItem>({
   empty = null,
   loading = null,
   items = [],
+  activeItemId,
   className,
   renderItem,
   renderError,
@@ -134,6 +138,17 @@ const PaginatedList = <T extends PaginatedItem>({
   const [renderCount, setRenderCount] = React.useState(Pagination.defaultLimit);
   const [offset, setOffset] = React.useState(0);
   const [allowLoadMore, setAllowLoadMore] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!activeItemId) {
+      return;
+    }
+
+    const activeIndex = items.findIndex((item) => item.id === activeItemId);
+    if (activeIndex >= 0) {
+      setRenderCount((count) => Math.max(count, activeIndex + 1));
+    }
+  }, [items, activeItemId]);
 
   const reset = React.useCallback(() => {
     setOffset(0);

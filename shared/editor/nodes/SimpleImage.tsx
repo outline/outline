@@ -95,8 +95,13 @@ export default class SimpleImage extends Node {
   handleClick =
     ({ view, getPos }: ComponentProps) =>
     () => {
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       this.editor.updateActiveLightboxImage(
-        LightboxImageFactory.createLightboxImage(view, getPos())
+        LightboxImageFactory.createLightboxImage(view, pos)
       );
     };
 

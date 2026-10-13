@@ -1,4 +1,5 @@
 import queryString from "query-string";
+import { sharedModelPath as sharedModelPathBase } from "@shared/utils/routeHelpers";
 import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
 import type Document from "~/models/Document";
@@ -299,11 +300,7 @@ export function searchPath({
  * @returns the path to the shared model.
  */
 export function sharedModelPath(shareId: string, modelPath?: string) {
-  if (shareId === env.ROOT_SHARE_ID) {
-    return modelPath ? modelPath : "/";
-  }
-
-  return modelPath ? `/s/${shareId}${modelPath}` : `/s/${shareId}`;
+  return sharedModelPathBase(shareId, modelPath, env.ROOT_SHARE_ID);
 }
 
 /**

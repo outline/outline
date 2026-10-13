@@ -119,6 +119,36 @@ export const GroupMembersTable = observer(function GroupMembersTable({
         },
         {
           type: "data",
+          id: "addedAt",
+          header: t("Added"),
+          sortable: false,
+          accessor: (user) =>
+            groupUsers.membership(group.id, user.id)?.createdAt ?? "",
+          component: (user) => {
+            const membership = groupUsers.membership(group.id, user.id);
+            if (!membership?.createdAt) {
+              return null;
+            }
+            return (
+              <Time
+                dateTime={membership.createdAt}
+                tooltipDetail={
+                  membership.createdBy && !group.isExternallyManaged
+                    ? t("Added by {{ userName }}", {
+                        userName: membership.createdBy.name,
+                      })
+                    : undefined
+                }
+                addSuffix
+                shorten
+              />
+            );
+          },
+          width: "1fr",
+          hideOnMobile: true,
+        },
+        {
+          type: "data",
           id: "role",
           header: t("Role"),
           sortable: false,

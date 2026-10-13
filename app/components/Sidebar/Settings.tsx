@@ -3,11 +3,12 @@ import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -23,7 +24,7 @@ function SettingsSidebar() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
-  const location = useLocation();
+  const pathname = useLocationSelector((location) => location.pathname);
   const configs = useSettingsConfig();
 
   const groupedConfig = groupBy(
@@ -60,7 +61,7 @@ function SettingsSidebar() {
                     active={
                       item.path.startsWith(settingsPath("templates")) ||
                       item.path.startsWith(settingsPath("groups"))
-                        ? location.pathname.startsWith(item.path)
+                        ? pathname.startsWith(item.path)
                         : undefined
                     }
                     icon={<item.icon />}

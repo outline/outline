@@ -1,8 +1,10 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
-import { getLuminance } from "polished";
+import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { colorPalette } from "@shared/constants";
+import useContrastColor from "@shared/hooks/useContrastColor";
+import Avatar from "~/components/Avatar/Avatar";
 import type Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 
@@ -25,19 +27,23 @@ function ResolvedCollectionIcon({
   size,
   className,
 }: Props) {
-  const { ui } = useStores();
+  const contrastColor = useContrastColor();
+  const { users } = useStores();
+  const owner = collection.ownerId ? users.get(collection.ownerId) : undefined;
+
+  // A personal collection always shows the avatar of its owner.
+  if (owner) {
+    const iconSize = size ?? 24;
+    return (
+      <AvatarWrapper $size={iconSize} className={className}>
+        <Avatar model={owner} size={Math.round((iconSize * 2) / 3)} />
+      </AvatarWrapper>
+    );
+  }
 
   if (!collection.icon || collection.icon === "collection") {
-    // If the chosen icon color is very dark then we invert it in dark mode
-    // otherwise it will be impossible to see against the dark background.
-    const collectionColor = collection.color ?? colorPalette[0];
     const color =
-      inputColor ||
-      (ui.resolvedTheme === "dark" && collectionColor !== "currentColor"
-        ? getLuminance(collectionColor) > 0.09
-          ? collectionColor
-          : "currentColor"
-        : collectionColor);
+      inputColor || contrastColor(collection.color ?? colorPalette[0]);
 
     const Component = collection.isPrivate
       ? PrivateCollectionIcon
@@ -63,5 +69,14 @@ function ResolvedCollectionIcon({
     />
   );
 }
+
+const AvatarWrapper = styled.span<{ $size: number }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: ${(props) => props.$size}px;
+  height: ${(props) => props.$size}px;
+`;
 
 export default observer(ResolvedCollectionIcon);

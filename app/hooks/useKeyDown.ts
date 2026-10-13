@@ -1,7 +1,10 @@
 import { useContext, useEffect } from "react";
 import { isModKey } from "@shared/utils/keyboard";
 import { SplitViewContext } from "~/components/SplitView/context";
-import { isKeyboardWidget } from "~/utils/isKeyboardWidget";
+import {
+  isKeyboardWidget,
+  isWithinKeyboardWidget,
+} from "~/utils/isKeyboardWidget";
 import { getFocusedSplitPane } from "~/utils/splitView";
 
 type Callback = (event: KeyboardEvent) => void;
@@ -14,6 +17,12 @@ export type Options = {
    * input, such as a text input, menu, or dialog.
    */
   allowInInput?: boolean;
+  /**
+   * Fire when focus is inside a text input, such as the editor, but not inside
+   * a widget such as a menu or dialog. Keys that the input already handled are
+   * ignored.
+   */
+  allowInTextInput?: boolean;
   /** Require the platform modifier key (Cmd on macOS, Ctrl elsewhere) to be held. */
   metaKey?: boolean;
   /** Require the Alt/Option key to be held. */
@@ -124,6 +133,9 @@ window.addEventListener("keydown", (event) => {
   // Radix UI's DismissableLayer) so we only break on preventDefault calls made
   // by our own callbacks.
   const wasDefaultPrevented = event.defaultPrevented;
+  const isWidget = isKeyboardWidget(event.target);
+  const allowsTextInput =
+    !wasDefaultPrevented && !isWithinKeyboardWidget(event.target);
 
   // reverse so that the last registered callbacks get executed first
   for (const registered of [...callbacks].reverse()) {
@@ -132,8 +144,9 @@ window.addEventListener("keydown", (event) => {
     }
 
     if (
-      !isKeyboardWidget(event.target) ||
+      !isWidget ||
       registered.options?.allowInInput ||
+      (registered.options?.allowInTextInput && allowsTextInput) ||
       isModKey(event)
     ) {
       registered.callback(event);

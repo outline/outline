@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
@@ -233,13 +233,16 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, description, externalId, disableMentions } = ctx.input.body;
+    const { name, description, icon, color, externalId, disableMentions } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
       description,
+      icon,
+      color,
       externalId,
       disableMentions,
       teamId: user.teamId,
@@ -371,10 +374,17 @@ router.post(
     );
 
     if (groupIds.length) {
-      await Group.destroy({
-        where: { id: groupIds },
+      const groups = await Group.findAll({
+        where: { id: groupIds, teamId: user.teamId },
         transaction,
+        lock: transaction.LOCK.UPDATE,
       });
+
+      // Each group is destroyed individually so that a delete event is
+      // emitted, which revokes the access that its members were granted.
+      for (const group of groups) {
+        await group.destroyWithCtx(ctx);
+      }
     }
 
     ctx.body = {
@@ -427,6 +437,14 @@ router.post(
       GroupUser.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
+        include: [
+          ...options.include,
+          {
+            model: User,
+            as: "createdBy",
+            required: false,
+          },
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),

@@ -227,9 +227,7 @@ function DocumentEditor(props: Props) {
         readOnly={readOnly}
         documentId={document.id}
         title={
-          !document.title && readOnly
-            ? document.titleWithDefault
-            : document.title
+          !document.title && readOnly ? document.displayTitle : document.title
         }
         icon={document.icon}
         color={iconColor}

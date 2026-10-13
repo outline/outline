@@ -1,5 +1,5 @@
 import JWT from "jsonwebtoken";
-import Router from "koa-router";
+import Router from "@koa/router";
 import mime from "mime-types";
 import contentDisposition from "content-disposition";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -69,6 +69,7 @@ router.post(
     const declaredSize = Number(attachment.size);
 
     if (file.size > declaredSize) {
+      await attachment.destroy();
       throw ValidationError(
         `The uploaded file exceeds the declared size of ${bytesToHumanReadable(
           declaredSize
@@ -79,6 +80,7 @@ router.post(
     try {
       await attachment.writeFile(file);
     } catch (err) {
+      await attachment.destroy();
       if (err instanceof Error && err.message.includes("permission denied")) {
         throw Error(
           `Permission denied writing to "${key}". Check the host machine file system permissions.`

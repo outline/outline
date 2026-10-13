@@ -1,9 +1,9 @@
 import { useRegisterActions } from "kbar";
 import { flattenDeep } from "es-toolkit/compat";
-import { useLocation } from "react-router-dom";
 import { actionToKBar } from "~/actions";
 import type { ActionVariant } from "~/types";
 import useActionContext from "./useActionContext";
+import { useLocationSelector } from "./useLocationSelector";
 import useWebMCPActions from "./useWebMCPActions";
 
 /**
@@ -17,7 +17,7 @@ export default function useCommandBarActions(
   actions: ActionVariant[],
   additionalDeps: React.DependencyList = []
 ) {
-  const location = useLocation();
+  const pathname = useLocationSelector((location) => location.pathname);
   const context = useActionContext({
     isCommandBar: true,
   });
@@ -30,7 +30,7 @@ export default function useCommandBarActions(
 
   useRegisterActions(registerable, [
     registerable.map((r) => r.id).join(""),
-    location.pathname,
+    pathname,
     ...additionalDeps,
   ]);
 }

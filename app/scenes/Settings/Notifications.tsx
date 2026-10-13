@@ -124,6 +124,14 @@ function Notifications() {
       ),
     },
     {
+      event: NotificationEventType.AddUserToGroup,
+      icon: <GroupIcon />,
+      title: t("Group membership"),
+      description: t(
+        "Receive a notification when you are added to or removed from a group"
+      ),
+    },
+    {
       event: NotificationEventType.ExportCompleted,
       icon: <CheckboxIcon checked />,
       title: t("Export completed"),

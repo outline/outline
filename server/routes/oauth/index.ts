@@ -1,7 +1,7 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
+import Router from "@koa/router";
 import env from "@server/env";
 import { ValidationError, NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
@@ -10,14 +10,17 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { OAuthAuthorizationCode, OAuthClient, Team } from "@server/models";
+import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
+import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { TeamPreference } from "@shared/types";
+import { ClientMetadataHelper } from "@server/utils/oauth/ClientMetadataHelper";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import { getTeamFromContext } from "@server/utils/passport";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
@@ -52,8 +55,23 @@ router.post(
       throw ValidationError("Missing client_id");
     }
 
-    const client = await OAuthClient.findByClientId(clientId);
+    // Metadata document clients are fetched again here when the cached copy
+    // has expired, so that the redirect URI check uses fresh data.
+    const client = await ClientMetadataHelper.findOrFetchByClientId(
+      clientId,
+      user.team
+    );
     authorize(user, "read", client);
+
+    // Metadata document clients are public and cannot prove a loopback
+    // redirect URI, so PKCE with S256 is required.
+    if (
+      client.isCIMD &&
+      (!ctx.request.body.code_challenge ||
+        ctx.request.body.code_challenge_method?.trim() !== "S256")
+    ) {
+      throw ValidationError("PKCE with code_challenge_method S256 is required");
+    }
 
     // Note: These objects are mutated by the OAuth2Server library
     const request = new OAuth2Server.Request({
@@ -100,16 +118,24 @@ router.post(
     const clientId = ctx.input.body.client_id;
     const clientSecret = ctx.input.body.client_secret;
 
-    // Because we disabled client authentication for refresh_token grant type at the library
-    // initialization, we need to manually enforce it here for confidential clients.
-    if (grantType === "refresh_token" && !clientSecret) {
-      if (!refreshToken) {
+    // Only client_secret_post is advertised, but the library also reads HTTP
+    // Basic credentials, so reject them to keep the checks below complete.
+    if (/^\s*basic\b/i.test(ctx.request.get("authorization"))) {
+      throw ValidationError(
+        "Unsupported client authentication method, send credentials in the request body"
+      );
+    }
+
+    // The library does not require a client secret for the refresh_token grant
+    // or for PKCE requests, so we enforce it here for confidential clients.
+    if (!clientSecret) {
+      if (grantType === "refresh_token" && !refreshToken) {
         throw ValidationError(
           "Missing refresh_token for refresh_token grant type"
         );
       }
       if (!clientId) {
-        throw ValidationError("Missing client_id for refresh_token grant type");
+        throw ValidationError("Missing client_id");
       }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
@@ -182,6 +208,7 @@ router.post(
   "/register",
   validate(T.RegisterSchema),
   rateLimiter(RateLimiterStrategy.FivePerHour),
+  transaction(),
   async (ctx: APIContext<T.RegisterReq>) => {
     if (env.OAUTH_DISABLE_DCR) {
       throw NotFoundError();
@@ -206,10 +233,9 @@ router.post(
       throw NotFoundError();
     }
 
-    const clientType =
-      token_endpoint_auth_method === "client_secret_post"
-        ? "confidential"
-        : "public";
+    const clientType = OAuthHelper.clientTypeForAuthMethod(
+      token_endpoint_auth_method
+    );
 
     const client = await OAuthClient.createWithCtx(ctx, {
       // RFC 7591 makes client_name optional; fall back to a generic label so
@@ -218,11 +244,21 @@ router.post(
       redirectUris: redirect_uris,
       clientType,
       developerUrl: client_uri ?? null,
-      avatarUrl: logo_uri ?? null,
       published: false,
       teamId: team.id,
       createdById: null,
     });
+
+    // The logo is copied to file storage in the background, so the consent
+    // screen never loads it from a host that the client controls.
+    if (logo_uri) {
+      ctx.state.transaction.afterCommit(async () => {
+        await new UploadOAuthClientLogoTask().scheduleOptional({
+          oauthClientId: client.id,
+          logoUrl: logo_uri,
+        });
+      });
+    }
 
     Logger.info("authentication", "OAuth client registered", {
       clientId: client.clientId,
@@ -241,9 +277,10 @@ router.post(
 
 router.get("/register/:clientId", registrationAuth(), async (ctx) => {
   const client: OAuthClient = ctx.state.oauthClient;
-  const team = await Team.findByPk(client.teamId, {
-    rejectOnEmpty: true,
-  });
+  const team = await client.$get("team");
+  if (!team) {
+    throw NotFoundError();
+  }
 
   ctx.body = presentDCRClient(team.url, client, {
     includeRegistrationAccessToken: false,
@@ -260,19 +297,33 @@ router.put(
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
 
-    const team = await Team.findByPk(client.teamId, {
-      rejectOnEmpty: true,
+    const team = await client.$get("team", {
       transaction: ctx.state.transaction,
     });
+    if (!team) {
+      throw NotFoundError();
+    }
 
     client.name = client_name;
     client.redirectUris = redirect_uris;
     client.developerUrl = client_uri ?? null;
-    client.avatarUrl = logo_uri ?? null;
+    if (!logo_uri) {
+      client.avatarUrl = null;
+    }
 
     // Rotate registration access token per RFC 7592 recommendation
     client.rotateRegistrationAccessToken();
     await client.saveWithCtx(ctx);
+
+    // The stored logo is kept until the background task replaces it.
+    if (logo_uri) {
+      ctx.state.transaction.afterCommit(async () => {
+        await new UploadOAuthClientLogoTask().scheduleOptional({
+          oauthClientId: client.id,
+          logoUrl: logo_uri,
+        });
+      });
+    }
 
     ctx.body = presentDCRClient(team.url, client, {
       includeRegistrationAccessToken: true,

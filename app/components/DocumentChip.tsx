@@ -34,7 +34,7 @@ export const DocumentChip = observer(function DocumentChip_({
   const { icon, color } = document;
   const canPin = usePolicy(pin);
   const canDocument = usePolicy(document);
-  const title = document.titleWithDefault;
+  const title = document.displayTitle;
   const isEmoji = determineIconType(icon) === IconType.Emoji;
 
   // Pins in a collection are governed by the document policy, pins on home by

@@ -106,7 +106,7 @@ export default class CommentCreatedEmail extends BaseEmail<
 
     return `${parentComment ? this.t("Re") + ": " : ""}${this.t(
       "New comment on “{{ documentTitle }}” - {{ trimmedText }}",
-      { documentTitle: document.titleWithDefault, trimmedText }
+      { documentTitle: document.displayTitle, trimmedText }
     )}`;
   }
 
@@ -140,11 +140,11 @@ export default class CommentCreatedEmail extends BaseEmail<
     const action = isReply
       ? this.t("{{ actorName }} replied to a thread in “{{ documentTitle }}”", {
           actorName,
-          documentTitle: document.titleWithDefault,
+          documentTitle: document.displayTitle,
         })
       : this.t("{{ actorName }} commented on “{{ documentTitle }}”", {
           actorName,
-          documentTitle: document.titleWithDefault,
+          documentTitle: document.displayTitle,
         });
     const inCollection = collection?.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
@@ -178,12 +178,12 @@ ${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {isReply
               ? this.t("{{ actorName }} replied to a thread in", { actorName })
               : this.t("{{ actorName }} commented on", { actorName })}{" "}
-            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
+            <a href={threadLink}>{document.displayTitle}</a>{" "}
             {collection?.name
               ? this.t("in the {{ collectionName }} collection", {
                   collectionName: collection.name,

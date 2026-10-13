@@ -64,6 +64,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   private static readonly QUOTED_QUERY_REGEX = /"([^"]*)"/g;
 
   /**
+   * Cached regex pattern for identifier-like terms, words joined by "." or "_".
+   */
+  private static readonly IDENTIFIER_REGEX =
+    /^[\p{L}\p{N}]+(?:[._][\p{L}\p{N}]+)+$/u;
+
+  /**
    * Cached regex pattern for break characters.
    */
   private static readonly BREAK_CHARS_REGEX = new RegExp(
@@ -710,20 +716,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     if (options.query) {
       // find words that look like urls, these should be treated separately as the postgres full-text
       // index will generally not match them.
-      let likelyUrls = getUrls(options.query);
+      const likelyUrls = getUrls(options.query);
 
-      // remove likely urls, and escape the rest of the query.
-      let limitedQuery = PostgresSearchProvider.escapeQuery(
-        likelyUrls
-          .reduce((q, url) => q.replace(url, ""), options.query)
-          .slice(0, PostgresSearchProvider.maxQueryLength)
-          .trim()
-      );
-
-      // Escape the URLs
-      likelyUrls = likelyUrls.map((url) =>
-        PostgresSearchProvider.escapeQuery(url)
-      );
+      // remove likely urls from the query.
+      let limitedQuery = likelyUrls
+        .reduce((q, url) => q.replace(url, ""), options.query)
+        .slice(0, PostgresSearchProvider.maxQueryLength)
+        .trim();
 
       // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
       const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
@@ -736,36 +735,82 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
 
       for (const match of iLikeQueries) {
-        // only escape % and _ as backslashes were already escaped above.
-        const pattern = `%${match.replace(/[%_]/g, "\\$&")}%`;
-        where[Op.and].push({
-          [Op.or]: [
-            {
-              title: {
-                [Op.iLike]: pattern,
-              },
-            },
-            {
-              text: {
-                [Op.iLike]: pattern,
-              },
-            },
-          ],
-        });
+        where[Op.and].push(PostgresSearchProvider.buildContainsMatch(match));
       }
 
       if (limitedQuery || iLikeQueries.length === 0) {
-        where[Op.and].push(
-          Sequelize.fn(
-            `"searchVector" @@ to_tsquery`,
-            "english",
-            Sequelize.literal(":query")
-          )
-        );
+        where[Op.and].push(PostgresSearchProvider.buildTextMatch(limitedQuery));
       }
     }
 
     return where;
+  }
+
+  /**
+   * Builds the full-text condition for the unquoted part of a query. Terms
+   * that look like identifiers, such as "config.ws_value", also match as
+   * literal text, as the postgres parser does not always split them into the
+   * same lexemes in a document as in a query.
+   *
+   * @param query the unquoted part of the user search query.
+   * @returns the where condition.
+   */
+  private static buildTextMatch(query: string): WhereOptions<Document> {
+    const fullTextMatch = Sequelize.fn(
+      `"searchVector" @@ to_tsquery`,
+      "english",
+      Sequelize.literal(":query")
+    );
+    const terms = query.split(/\s+/).filter(Boolean);
+    const identifiers = terms
+      .filter((term) => PostgresSearchProvider.IDENTIFIER_REGEX.test(term))
+      .slice(0, 3);
+
+    if (!identifiers.length) {
+      return fullTextMatch;
+    }
+
+    const conditions: WhereOptions<Document>[] = identifiers.map((term) =>
+      PostgresSearchProvider.buildContainsMatch(term)
+    );
+    const remainder = terms
+      .filter((term) => !identifiers.includes(term))
+      .join(" ");
+
+    if (remainder) {
+      const remainderQuery = Sequelize.fn(
+        "to_tsquery",
+        "english",
+        PostgresSearchProvider.webSearchQuery(remainder)
+      );
+
+      // a remainder of only stop words gives an empty tsquery, which matches nothing.
+      conditions.push({
+        [Op.or]: [
+          Sequelize.fn(`"searchVector" @@`, remainderQuery),
+          Sequelize.where(Sequelize.fn("numnode", remainderQuery), 0),
+        ],
+      });
+    }
+
+    return { [Op.or]: [fullTextMatch, { [Op.and]: conditions }] };
+  }
+
+  /**
+   * Builds a condition that matches documents whose title or text contains
+   * the term as literal, case-insensitive text.
+   *
+   * @param term the term to match.
+   * @returns the where condition.
+   */
+  private static buildContainsMatch(term: string): WhereOptions<Document> {
+    const pattern = QueryHelper.likeContains(term);
+    return {
+      [Op.or]: [
+        { title: { [Op.iLike]: pattern } },
+        { text: { [Op.iLike]: pattern } },
+      ],
+    };
   }
 
   private static buildResponse({
@@ -852,13 +897,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         // combination, so we never hand to_tsquery an operator with no
         // operand (e.g. a tail of "&\" would leave a dangling "&").
         .replace(/[&\\]+$/, "")
+        // A leading single quote can also leave a join with no operand.
+        .replace(/^&+/, "")
     );
-  }
-
-  private static escapeQuery(query: string): string {
-    // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-    // see: https://github.com/sequelize/sequelize/issues/2950
-    return query.replace(/\\/g, "\\\\");
   }
 
   /**

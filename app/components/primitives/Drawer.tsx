@@ -100,6 +100,10 @@ const StyledContent = styled(m.div)`
   ${borderRadius(8)}
 
   background: ${s("menuBackground")};
+
+  @media print {
+    display: none;
+  }
 `;
 
 const StyledInnerContent = styled(Flex)`

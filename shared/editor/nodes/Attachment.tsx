@@ -93,13 +93,24 @@ export default class Attachment extends Node {
     ({ getPos }: ComponentProps) =>
     () => {
       const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
+      const $pos = view.state.doc.resolve(pos);
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     ({ width }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
@@ -109,6 +120,10 @@ export default class Attachment extends Node {
       const { doc, tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = doc.resolve(pos);
       const dimensions = resolvePDFDimensions(width);
 

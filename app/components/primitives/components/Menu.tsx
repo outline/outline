@@ -98,11 +98,11 @@ export const MenuButton = styled.button<MenuButtonProps>`
   ${BaseMenuItemCSS}
 `;
 
-export const MenuInternalLink = styled(Link)`
+export const MenuInternalLink = styled(Link)<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
 `;
 
-export const MenuExternalLink = styled.a`
+export const MenuExternalLink = styled.a<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
 `;
 

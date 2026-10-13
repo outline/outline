@@ -105,16 +105,16 @@ export default class ShareDocumentUpdatedEmail extends BaseEmail<
   }
 
   protected subject({ documentTitle }: Props) {
-    return this.t(`"{{ documentTitle }}" updated`, { documentTitle });
+    return this.t("“{{ documentTitle }}” updated", { documentTitle });
   }
 
   protected preview({ documentTitle }: Props): string {
-    return this.t('"{{ documentTitle }}" has been updated.', { documentTitle });
+    return this.t("“{{ documentTitle }}” has been updated.", { documentTitle });
   }
 
   protected renderAsText({ documentTitle, shareUrl }: Props): string {
     return `
-${this.t(`"{{ documentTitle }}" updated`, { documentTitle })}
+${this.t("“{{ documentTitle }}” updated", { documentTitle })}
 
 ${this.t("A document you subscribed to has been updated.")}
 
@@ -134,7 +134,7 @@ ${this.t("View Document")}: ${shareUrl}
 
         <Body>
           <Heading>
-            {this.t(`"{{ documentTitle }}" updated`, { documentTitle })}
+            {this.t("“{{ documentTitle }}” updated", { documentTitle })}
           </Heading>
           <p>
             {this.t("A document you subscribed to has been updated.")}{" "}

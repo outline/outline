@@ -63,7 +63,7 @@ function GitLab() {
       {isTruthyQueryValue(installRequest) && (
         <Notice>
           <Trans>
-            The owner of GitLab account has been requested to install the
+            The owner of the GitLab account has been requested to install the
             application. Once approved, the connection will be completed.
           </Trans>
         </Notice>
@@ -71,8 +71,8 @@ function GitLab() {
       <Text as="p">
         <Trans>
           Enable previews of GitLab issues and merge requests in documents by
-          connecting a GitLab organization or specific repositories to {appName}
-          .
+          connecting a GitLab organization or specific repositories to{" "}
+          {{ appName }}.
         </Trans>
       </Text>
 

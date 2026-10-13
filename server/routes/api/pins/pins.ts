@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
 import auth from "@server/middlewares/authentication";
@@ -40,7 +40,7 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "update", collection);
+      authorize(user, "pin", collection);
       authorize(user, "pin", document);
     } else {
       authorize(user, "pinToHome", document);

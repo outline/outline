@@ -923,6 +923,13 @@ class Document extends ArchivableModel<
       AdditionalFindOptions = {}
   ): Promise<Document | null> {
     if (typeof id !== "string") {
+      if (options.rejectOnEmpty) {
+        throw options.rejectOnEmpty instanceof Error
+          ? options.rejectOnEmpty
+          : new EmptyResultError(
+              `Document doesn't exist with id: ${String(id)}`
+            );
+      }
       return null;
     }
 
@@ -956,44 +963,34 @@ class Document extends ArchivableModel<
       },
     ]);
 
+    let document: Document | null = null;
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+
     if (isUUID(id)) {
-      const document = await scope.findOne({
+      document = await scope.findOne({
         ...rest,
         where: {
           id,
         },
         rejectOnEmpty: false,
       });
-
-      if (!document && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
-      }
-
-      return document;
-    }
-
-    const match = id.match(UrlHelper.SLUG_URL_REGEX);
-    if (match) {
-      const document = await scope.findOne({
+    } else if (match) {
+      document = await scope.findOne({
         ...rest,
         where: {
           urlId: match[1],
         },
         rejectOnEmpty: false,
       });
-
-      if (!document && rest.rejectOnEmpty) {
-        throw rest.rejectOnEmpty instanceof Error
-          ? rest.rejectOnEmpty
-          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
-      }
-
-      return document;
     }
 
-    return null;
+    if (!document && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`Document doesn't exist with id: ${id}`);
+    }
+
+    return document;
   }
 
   /**
@@ -1110,7 +1107,7 @@ class Document extends ArchivableModel<
    *
    * @returns boolean
    */
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || "Untitled";
   }
 
@@ -1555,44 +1552,82 @@ class Document extends ArchivableModel<
   toNavigationNode = async (
     options?: FindOptions<Document> & { includeArchived?: boolean }
   ): Promise<NavigationNode> => {
+    const root = this.toShallowNavigationNode();
+
     // Checking if the record is new is a performance optimization – new docs cannot have children
-    const childDocuments = this.isNewRecord
-      ? []
-      : await (this.constructor as typeof Document).unscoped().findAll({
-          where: options?.includeArchived
-            ? {
-                teamId: this.teamId,
-                parentDocumentId: this.id,
-                publishedAt: {
-                  [Op.ne]: null,
-                },
-              }
-            : {
-                teamId: this.teamId,
-                parentDocumentId: this.id,
-                publishedAt: {
-                  [Op.ne]: null,
-                },
-                archivedAt: {
-                  [Op.is]: null,
-                },
-              },
+    if (this.isNewRecord) {
+      return root;
+    }
+
+    // Load the subtree one level at a time, selecting only the columns that
+    // the navigation node needs.
+    const visited = new Set([this.id]);
+    let parents = new Map([[this.id, root]]);
+
+    while (parents.size > 0) {
+      const childDocuments = await (this.constructor as typeof Document)
+        .unscoped()
+        .findAll({
+          attributes: [
+            "id",
+            "title",
+            "urlId",
+            "icon",
+            "color",
+            "parentDocumentId",
+          ],
+          where: {
+            teamId: this.teamId,
+            parentDocumentId: Array.from(parents.keys()),
+            publishedAt: {
+              [Op.ne]: null,
+            },
+            ...(options?.includeArchived
+              ? {}
+              : {
+                  archivedAt: {
+                    [Op.is]: null,
+                  },
+                }),
+          },
           transaction: options?.transaction,
         });
 
-    const children = await Promise.all(
-      childDocuments.map((child) => child.toNavigationNode(options))
-    );
+      const nextParents = new Map<string, NavigationNode>();
 
-    return {
-      id: this.id,
-      title: this.title,
-      url: this.url,
-      icon: isNil(this.icon) ? undefined : this.icon,
-      color: isNil(this.color) ? undefined : this.color,
-      children,
-    };
+      for (const child of childDocuments) {
+        if (visited.has(child.id) || !child.parentDocumentId) {
+          continue;
+        }
+        visited.add(child.id);
+
+        const node = child.toShallowNavigationNode();
+        parents.get(child.parentDocumentId)?.children.push(node);
+        nextParents.set(child.id, node);
+      }
+
+      parents = nextParents;
+    }
+
+    return root;
   };
+
+  /**
+   * Returns a NavigationNode for this document without loading its children.
+   *
+   * @param children the child nodes to include.
+   * @returns the NavigationNode.
+   */
+  toShallowNavigationNode = (
+    children: NavigationNode[] = []
+  ): NavigationNode => ({
+    id: this.id,
+    title: this.title,
+    url: this.url,
+    icon: isNil(this.icon) ? undefined : this.icon,
+    color: isNil(this.color) ? undefined : this.color,
+    children,
+  });
 
   private restoreArchivedWithChildren = async (
     ctx: APIContext,

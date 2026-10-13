@@ -6,7 +6,7 @@ import {
 } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { randomBytes } from "node:crypto";
 import { toError } from "@shared/utils/error";
 import { User, UserPasskey, Team } from "@server/models";
@@ -15,6 +15,7 @@ import validate from "@server/middlewares/validate";
 import env from "@server/env";
 import { AuthorizationError, ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 import { signIn } from "@server/utils/authentication";
@@ -91,7 +92,7 @@ const getAuthenticationChallengeKey = (challengeId: string): string =>
 
 router.post(
   "passkeys.generateRegistrationOptions",
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
     authorize(user, "createUserPasskey", user.team);
@@ -130,7 +131,7 @@ router.post(
 
 router.post(
   "passkeys.verifyRegistration",
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysVerifyRegistrationSchema),
   async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
     const { user } = ctx.state.auth;

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
 import { createContext } from "@server/context";
@@ -568,6 +569,23 @@ describe("#findByPk", () => {
         rejectOnEmpty: error,
       })
     ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is malformed", async () => {
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
+
+    const error = new Error("does not exist");
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: error })
+    ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is not a string", async () => {
+    await expect(
+      Collection.findByPk(123, { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
   });
 
   it("should not return documentStructure by default", async () => {

@@ -98,14 +98,14 @@ export default class PasteHandler extends Extension {
 
             if (!this.shiftKey) {
               // If the HTML on the clipboard is from Prosemirror then the best
-              // compatability is to just use the HTML parser, regardless of
+              // compatibility is to just use the HTML parser, regardless of
               // whether it "looks" like Markdown, see: outline/outline#2416
               if (html?.includes("data-pm-slice")) {
                 return false;
               }
 
               // If the HTML on the clipboard is from Claude then the best
-              // compatability is to just use the HTML parser.
+              // compatibility is to just use the HTML parser.
               if (html?.includes("font-claude-response-body")) {
                 return false;
               }
@@ -149,7 +149,7 @@ export default class PasteHandler extends Extension {
                                 state.schema.nodes.mention.create({
                                   type: MentionType.Document,
                                   modelId: document.id,
-                                  label: document.titleWithDefault,
+                                  label: document.displayTitle,
                                   id: uuidv4(),
                                   anchorId: trimmedHash.length
                                     ? trimmedHash
@@ -164,7 +164,7 @@ export default class PasteHandler extends Extension {
                               IconType.Emoji;
 
                             const title = `${hasEmoji ? document.icon + " " : ""}${
-                              document.titleWithDefault
+                              document.displayTitle
                             }`;
 
                             this.insertLink(`${document.path}${hash}`, title);
@@ -197,7 +197,7 @@ export default class PasteHandler extends Extension {
                                 state.schema.nodes.mention.create({
                                   type: MentionType.Collection,
                                   modelId: collection.id,
-                                  label: collection.name,
+                                  label: collection.displayName,
                                   id: uuidv4(),
                                 })
                               )
@@ -209,7 +209,7 @@ export default class PasteHandler extends Extension {
                               IconType.Emoji;
 
                             const title = `${hasEmoji ? collection.icon + " " : ""}${
-                              collection.name
+                              collection.displayName
                             }`;
 
                             this.insertLink(`${collection.path}${hash}`, title);

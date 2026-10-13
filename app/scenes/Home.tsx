@@ -117,7 +117,7 @@ function Home() {
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}
               fetch={documents.fetchRecentlyUpdated}
-              empty={<Empty>{t("Weird, this shouldn't ever be empty")}</Empty>}
+              empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
               showCollection
             />
           </Route>
@@ -140,7 +140,9 @@ function Home() {
               documents={documents.createdByUser(userId)}
               fetch={documents.fetchOwned}
               options={{
-                userId,
+                filters: [
+                  { field: "createdById", operator: "eq", value: userId },
+                ],
               }}
               empty={
                 <Empty>{t("You haven’t created any documents yet")}</Empty>

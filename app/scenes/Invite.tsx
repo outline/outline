@@ -128,7 +128,7 @@ function Invite({ onSubmit }: Props) {
         content={
           <>
             {collections.nonPrivate.map((collection) => (
-              <li key={collection.id}>{collection.name}</li>
+              <li key={collection.id}>{collection.displayName}</li>
             ))}
           </>
         }

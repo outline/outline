@@ -1,6 +1,6 @@
 /* global File Promise */
 import type { PluginSimple } from "markdown-it";
-import { observable } from "mobx";
+import { observable, runInAction } from "mobx";
 import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
@@ -26,7 +26,7 @@ import {
 import type { Decoration, NodeViewConstructor } from "prosemirror-view";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import type { DefaultTheme, ThemeProps } from "styled-components";
+import type { DefaultTheme } from "styled-components";
 import styled, { css } from "styled-components";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import insertFiles from "@shared/editor/commands/insertFiles";
@@ -36,6 +36,7 @@ import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
 import type { AnyExtension, AnyExtensionClass } from "@shared/editor/lib/types";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { inputRules } from "@shared/editor/lib/inputRules";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -213,7 +214,7 @@ type State = {
  * ~/components/Editor instead.
  */
 export class Editor extends React.PureComponent<
-  Props & ThemeProps<DefaultTheme>,
+  Props & { theme: DefaultTheme },
   State
 > {
   static defaultProps = {
@@ -246,9 +247,6 @@ export class Editor extends React.PureComponent<
   wrapperRef = React.createRef<HTMLDivElement>();
   view: EditorView;
   schema: Schema;
-  serializer: MarkdownSerializer;
-  parser: MarkdownParser;
-  pasteParser: MarkdownParser;
   plugins: Plugin[];
   keymaps: Plugin[];
   inputRules: InputRule[];
@@ -260,6 +258,9 @@ export class Editor extends React.PureComponent<
   nodeRenderers = observable.set<NodeViewRenderer<ComponentProps>>();
   decorationRenderers = observable.set<PortalRenderer>();
   private portalDestroyers = new WeakMap<HTMLElement, () => void>();
+  private cachedSerializer?: MarkdownSerializer;
+  private cachedParser?: MarkdownParser;
+  private cachedPasteParser?: MarkdownParser;
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -267,6 +268,32 @@ export class Editor extends React.PureComponent<
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
+
+  /**
+   * The markdown serializer for the editor schema, created on first use.
+   */
+  public get serializer(): MarkdownSerializer {
+    this.cachedSerializer ??= this.createSerializer();
+    return this.cachedSerializer;
+  }
+
+  /**
+   * The markdown parser for the editor schema, created on first use.
+   */
+  public get parser(): MarkdownParser {
+    this.cachedParser ??= this.createParser();
+    return this.cachedParser;
+  }
+
+  /**
+   * The markdown parser used for pasted content, created on first use.
+   */
+  public get pasteParser(): MarkdownParser {
+    this.cachedPasteParser ??= this.props.readOnly
+      ? this.parser
+      : this.createPasteParser();
+    return this.cachedPasteParser;
+  }
 
   /**
    * We use componentDidMount instead of constructor as the init method requires
@@ -297,6 +324,11 @@ export class Editor extends React.PureComponent<
     if (this.props.value && prevProps.value !== this.props.value) {
       const newState = this.createState(this.props.value);
       this.view.updateState(newState);
+
+      // Positions held by the lightbox refer to the previous document.
+      if (this.state.activeLightboxImage) {
+        this.updateActiveLightboxImage(null);
+      }
     }
 
     // When transitioning from readOnly to editable, reinitialize to create
@@ -370,8 +402,9 @@ export class Editor extends React.PureComponent<
     this.schema = this.createSchema();
     this.plugins = this.createPlugins();
     this.rulePlugins = this.createRulePlugins();
-    this.serializer = this.createSerializer();
-    this.parser = this.createParser();
+    this.cachedSerializer = undefined;
+    this.cachedParser = undefined;
+    this.cachedPasteParser = undefined;
     this.nodeViews = this.createNodeViews();
 
     this.widgets = this.createWidgets();
@@ -379,14 +412,14 @@ export class Editor extends React.PureComponent<
     if (this.props.readOnly) {
       this.keymaps = [];
       this.inputRules = [];
-      this.pasteParser = this.parser;
     } else {
       this.keymaps = this.createKeymaps();
       this.inputRules = this.createInputRules();
-      this.pasteParser = this.createPasteParser();
     }
 
-    this.view = this.createView();
+    // Node views register their renderers as they are created, batch them so
+    // that React renders them once.
+    this.view = runInAction(() => this.createView());
     this.commands = this.createCommands();
     this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
   }
@@ -424,7 +457,7 @@ export class Editor extends React.PureComponent<
           (
             node: ProsemirrorNode,
             view: EditorView,
-            getPos: () => number,
+            getPos: () => number | undefined,
             decorations: Decoration[]
           ) =>
             new ComponentView(extension.component, {
@@ -503,7 +536,9 @@ export class Editor extends React.PureComponent<
         ...this.keymaps,
         anchorPlugin(),
         dropCursor({
-          color: this.props.theme.cursor,
+          color: this.props.theme.accent,
+          width: 2,
+          class: EditorStyleHelper.dropCursor,
         }),
         gapCursor(),
         inputRules({
@@ -522,6 +557,10 @@ export class Editor extends React.PureComponent<
 
     // Looks like Markdown
     if (typeof content === "string") {
+      // An empty document needs no parsing, the state fills in the default.
+      if (!content) {
+        return undefined;
+      }
       return this.parser.parse(content) || undefined;
     }
 
@@ -569,7 +608,8 @@ export class Editor extends React.PureComponent<
         const { state, transactions } =
           this.state.applyTransaction(transaction);
 
-        this.updateState(state);
+        // Batch node view renderer changes so that React renders them once.
+        runInAction(() => this.updateState(state));
 
         // If any of the transactions being dispatched resulted in the doc
         // changing then call our own change handler to let the outside world
@@ -670,13 +710,19 @@ export class Editor extends React.PureComponent<
   };
 
   private calculateDir = () => {
-    if (!this.elementRef.current) {
+    const element = this.elementRef.current;
+    if (!element) {
       return;
     }
 
+    // Prefer the closest dir attribute, computing the style forces a style
+    // recalculation of the whole document.
+    const dir = element.closest("[dir]")?.getAttribute("dir");
     const isRTL =
       this.props.dir === "rtl" ||
-      getComputedStyle(this.elementRef.current).direction === "rtl";
+      (dir === "auto" || !dir
+        ? getComputedStyle(element).direction === "rtl"
+        : dir === "rtl");
 
     if (this.state.isRTL !== isRTL) {
       this.setState({ isRTL });
@@ -1121,7 +1167,7 @@ export class Editor extends React.PureComponent<
   }
 }
 
-const EditorContainer = styled(Styles)<{
+const StyledEditorContainer = styled(Styles)<{
   userId?: string;
   focusedCommentId?: string;
   hoveredCommentId?: string;
@@ -1179,6 +1225,10 @@ const EditorContainer = styled(Styles)<{
       }
     `}
 `;
+
+// The editor re-renders on every transaction, memoize the container so that
+// its large stylesheet is not regenerated when the props have not changed.
+const EditorContainer = React.memo(StyledEditorContainer);
 
 function LazyLoadedEditor({
   ref,

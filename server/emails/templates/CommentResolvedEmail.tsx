@@ -95,7 +95,7 @@ export default class CommentResolvedEmail extends BaseEmail<
 
   protected subject({ document }: Props) {
     return this.t("Resolved a comment thread in “{{ documentTitle }}”", {
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
     });
   }
 
@@ -116,7 +116,7 @@ export default class CommentResolvedEmail extends BaseEmail<
   }: Props): string {
     const action = this.t(
       "{{ actorName }} resolved a comment thread on “{{ documentTitle }}”",
-      { actorName, documentTitle: document.titleWithDefault }
+      { actorName, documentTitle: document.displayTitle }
     );
     const inCollection = collection.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
@@ -145,10 +145,10 @@ export default class CommentResolvedEmail extends BaseEmail<
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {this.t("{{ actorName }} resolved a comment on", { actorName })}{" "}
-            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
+            <a href={threadLink}>{document.displayTitle}</a>{" "}
             {collection.name
               ? this.t("in the {{ collectionName }} collection", {
                   collectionName: collection.name,

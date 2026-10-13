@@ -118,6 +118,21 @@ describe("Team", () => {
       expect(team.previousSubdomains?.[0]).toEqual(originalSubdomain);
       expect(team.previousSubdomains?.[1]).toEqual(subdomain);
     });
+
+    it("should persist every previous subdomain", async () => {
+      const id = randomUUID();
+      const subdomains = [1, 2, 3, 4, 5].map((n) => `sub${n}-${id}`);
+      const team = await buildTeam({ subdomain: subdomains[0] });
+
+      for (const subdomain of subdomains.slice(1)) {
+        await team.update({ subdomain });
+      }
+
+      await team.reload();
+      expect(team.previousSubdomains).toEqual(subdomains.slice(1, 4));
+      expect((await Team.findBySubdomain(subdomains[3]))?.id).toEqual(team.id);
+      expect(await Team.findBySubdomain(subdomains[0])).toBeNull();
+    });
   });
 
   describe("publicAvatarUrl", () => {

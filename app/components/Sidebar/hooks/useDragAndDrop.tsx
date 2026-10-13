@@ -394,7 +394,7 @@ export function useDropToChangeCollection(
                 "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
                 {
                   documentName: item.title,
-                  collectionName: collection.name,
+                  collectionName: collection.displayName,
                 }
               )
             );
@@ -425,11 +425,13 @@ export function useDropToChangeCollection(
  * Hook for shared logic that allows dropping documents to reparent
  *
  * @param node The NavigationNode model to drop.
+ * @param collection The collection that contains the node, if known.
  * @param setExpanded A function to expand the parent node.
  * @param parentRef A ref to the parent element that will be used to detect when the user is no longer hovering..
  */
 export function useDropToReparentDocument(
   node: NavigationNode | undefined,
+  collection: Collection | undefined,
   setExpanded: () => void,
   parentRef: React.RefObject<HTMLDivElement | null>
 ) {
@@ -437,10 +439,6 @@ export function useDropToReparentDocument(
   const { documents, collections, dialogs, policies } = useStores();
   const hasChildDocuments = !!node?.children.length;
   const document = node ? documents.get(node.id) : undefined;
-  const pathToNode = React.useMemo(
-    () => document?.pathTo.map((item) => item.id),
-    [document]
-  );
 
   const startHover = useHover(parentRef, setExpanded);
 
@@ -451,22 +449,24 @@ export function useDropToReparentDocument(
         return;
       }
 
-      const collection = node.collectionId
-        ? collections.get(node.collectionId)
-        : undefined;
+      const collectionId =
+        node.collectionId ?? documents.get(node.id)?.collectionId;
+      const targetCollection =
+        collection ??
+        (collectionId ? collections.get(collectionId) : undefined);
       const prevCollection = collections.get(item.collectionId);
 
       if (
-        collection &&
+        targetCollection &&
         prevCollection &&
-        prevCollection.permission !== collection.permission
+        prevCollection.permission !== targetCollection.permission
       ) {
         dialogs.openModal({
           title: t("Change permissions?"),
           content: (
             <ConfirmMoveDialog
               item={item}
-              collection={collection}
+              collection={targetCollection}
               parentDocumentId={node.id}
             />
           ),
@@ -504,7 +504,10 @@ export function useDropToReparentDocument(
         return true; // optimistic, in case the document is not loaded yet; server will check for permissions before performing the move.
       }
 
-      return document.isActive && !!pathToNode && !pathToNode.includes(item.id);
+      return (
+        document.isActive &&
+        !document.pathTo.some((ancestor) => ancestor.id === item.id)
+      );
     },
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
@@ -578,7 +581,7 @@ export function useDropToReorderDocument(
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
         toast.message(
           t(
-            "You can't reorder documents in an alphabetically sorted collection"
+            "You can’t reorder documents in an alphabetically sorted collection"
           )
         );
         return;

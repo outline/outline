@@ -91,8 +91,8 @@ export type ComponentProps = {
   isSelected: boolean;
   /** Whether the editor is editable. */
   isEditable: boolean;
-  /** A function that returns the current position of the node in the document. */
-  getPos: () => number;
+  /** A function that returns the current position of the node in the document, or undefined once the node view is destroyed. */
+  getPos: () => number | undefined;
   /** The decorations applied to the node. */
   decorations: Decoration[];
   /** Ref callback marking the element that ProseMirror-managed content is mounted within. */

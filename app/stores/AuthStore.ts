@@ -110,7 +110,7 @@ export default class AuthStore extends Store<Team> {
     });
 
     // listen to the localstorage value changing in other tabs to react to
-    // signin/signout events in other tabs and follow suite.
+    // signin/signout events in other tabs and follow suit.
     window.addEventListener("storage", (event) => {
       if (event.key === this.name && event.newValue) {
         const newData: PersistedData | null = JSON.parse(event.newValue);

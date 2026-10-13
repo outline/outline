@@ -52,6 +52,12 @@ export const CSRF = {
   fieldName: "_csrf",
 };
 
+/**
+ * A collectionId that refers to the personal collection of the current user,
+ * which is created when it does not exist yet.
+ */
+export const PersonalCollectionId = "personal";
+
 /** The maximum number of sub-requests permitted in a single `/batch` request. */
 export const BatchMaxRequests = 25;
 
@@ -97,6 +103,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
+  [TeamPreference.PersonalDocs]: true,
 };
 
 export const DocumentPreferenceDefaults: DocumentPreferences = {

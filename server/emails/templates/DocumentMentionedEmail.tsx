@@ -94,7 +94,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
 
   protected subject({ document }: Props) {
     return this.t(`Mentioned you in “{{ documentTitle }}”`, {
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
     });
   }
 
@@ -119,7 +119,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return `
 ${this.t("You were mentioned")}
 
-${this.t(`{{ actorName }} mentioned you in the document “{{ documentTitle }}”.`, { actorName, documentTitle: document.titleWithDefault })}
+${this.t(`{{ actorName }} mentioned you in the document “{{ documentTitle }}”.`, { actorName, documentTitle: document.displayTitle })}
 
 ${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
@@ -142,7 +142,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
             {this.t("{{ actorName }} mentioned you in the document", {
               actorName,
             })}{" "}
-            <a href={documentLink}>{document.titleWithDefault}</a>.
+            <a href={documentLink}>{document.displayTitle}</a>.
           </p>
           {body && (
             <>

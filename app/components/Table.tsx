@@ -442,7 +442,7 @@ function TableViewInner<TData extends RowData>({
           bottomOffset={-rowHeight * 5}
         />
       )}
-      {isEmpty && <Empty>{t("No results")}</Empty>}
+      {isEmpty && <NoResults>{t("No results")}</NoResults>}
     </>
   );
 }
@@ -589,6 +589,10 @@ const SelectAllCheckbox = observer(function SelectAllCheckbox_({
 }) {
   const checked = count > 0 && selection.size === count;
 
+  if (count === 0) {
+    return null;
+  }
+
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (selection.isActive) {
@@ -643,6 +647,11 @@ function Placeholder({
     </DelayedMount>
   );
 }
+
+const NoResults = styled(Empty)`
+  display: block;
+  margin-top: 8px;
+`;
 
 const DescSortIcon = styled(CollapsedIcon)`
   margin-left: -2px;

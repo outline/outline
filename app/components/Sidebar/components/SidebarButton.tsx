@@ -10,7 +10,10 @@ import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import { HStack } from "~/components/primitives/HStack";
 
-export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
+export type SidebarButtonProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "title"
+> & {
   position?: "top" | "bottom";
   title?: React.ReactNode;
   image: React.ReactNode;

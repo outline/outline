@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { NotificationEventType, UserRole } from "@shared/types";
@@ -27,6 +27,7 @@ import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -159,11 +160,11 @@ router.post(
 router.post(
   "users.updateEmail",
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { user: actor } = ctx.state.auth;
@@ -201,12 +202,12 @@ router.post(
 router.get(
   "users.updateEmail",
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   transaction(),
   validate(T.UsersUpdateEmailConfirmSchema),
   async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { transaction } = ctx.state;
@@ -571,7 +572,7 @@ router.post(
   auth(),
   async (ctx: APIContext) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { user } = ctx.state.auth;

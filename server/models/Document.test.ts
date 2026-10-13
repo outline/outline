@@ -313,6 +313,76 @@ describe("#findAllChildDocumentIds", () => {
   });
 });
 
+describe("#toNavigationNode", () => {
+  it("should build the nested tree of published children", async () => {
+    const collection = await buildCollection();
+    const props = {
+      teamId: collection.teamId,
+      collectionId: collection.id,
+    };
+    const root = await buildDocument({ ...props, title: "Root" });
+    const childA = await buildDocument({
+      ...props,
+      parentDocumentId: root.id,
+      title: "Child A",
+    });
+    const childB = await buildDocument({
+      ...props,
+      parentDocumentId: root.id,
+      title: "Child B",
+    });
+    const grandchild = await buildDocument({
+      ...props,
+      parentDocumentId: childA.id,
+      title: "Grandchild",
+    });
+    await buildDraftDocument({ ...props, parentDocumentId: root.id });
+
+    const node = await root.toNavigationNode();
+
+    expect(node.id).toBe(root.id);
+    expect(node.url).toBe(root.url);
+    expect(node.children.map((child) => child.id).sort()).toEqual(
+      [childA.id, childB.id].sort()
+    );
+
+    const nodeA = node.children.find((child) => child.id === childA.id);
+    expect(nodeA?.title).toBe("Child A");
+    expect(nodeA?.url).toBe(childA.url);
+    expect(nodeA?.children).toEqual([
+      {
+        id: grandchild.id,
+        title: "Grandchild",
+        url: grandchild.url,
+        icon: undefined,
+        color: undefined,
+        children: [],
+      },
+    ]);
+  });
+
+  it("should only include archived children when requested", async () => {
+    const collection = await buildCollection();
+    const root = await buildDocument({
+      teamId: collection.teamId,
+      collectionId: collection.id,
+    });
+    const archived = await buildDocument({
+      teamId: collection.teamId,
+      collectionId: collection.id,
+      parentDocumentId: root.id,
+      archivedAt: new Date(),
+    });
+
+    expect((await root.toNavigationNode()).children).toEqual([]);
+    expect(
+      (await root.toNavigationNode({ includeArchived: true })).children.map(
+        (child) => child.id
+      )
+    ).toEqual([archived.id]);
+  });
+});
+
 describe("#findAllParentDocumentIds", () => {
   test("should return empty array if there is no parent", async () => {
     const document = await buildDocument();
@@ -642,6 +712,20 @@ describe("#findByPk", () => {
 
     await expect(
       Document.findByPk("0e8280ea-7b4c-40e5-98ba-ec8a2f00f5e8", {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).rejects.toThrow(EmptyResultError);
+
+    await expect(
+      Document.findByPk("not a valid id", {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).rejects.toThrow(EmptyResultError);
+
+    await expect(
+      Document.findByPk(123, {
         userId: user.id,
         rejectOnEmpty: true,
       })

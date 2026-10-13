@@ -1,10 +1,11 @@
-import { CollectionPermission, UserRole } from "@shared/types";
+import { CollectionPermission, TeamPreference, UserRole } from "@shared/types";
 import { UserMembership, Collection } from "@server/models";
 import {
   buildUser,
   buildTeam,
   buildCollection,
   buildAdmin,
+  buildPersonalCollection,
 } from "@server/test/factories";
 import { serialize } from "./index";
 
@@ -605,5 +606,128 @@ describe("manage templates", () => {
       expect(abilities.createTemplate).toBeTruthy();
       expect(abilities.manageTemplate).toBeTruthy();
     });
+  });
+});
+
+describe("personal collection", () => {
+  const buildPersonal = async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    const owner = await buildUser({ teamId: team.id });
+    const collection = await buildPersonalCollection(owner);
+    return { team, owner, collection };
+  };
+
+  it("should allow the owner to use but not share or remove it", async () => {
+    const { owner, collection } = await buildPersonal();
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: owner.id,
+    });
+    const abilities = serialize(owner, reloaded);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.readDocument).toBeTruthy();
+    expect(abilities.createDocument).toBeTruthy();
+    expect(abilities.updateDocument).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.export).toBeTruthy();
+    expect(abilities.shareDocument).toBeTruthy();
+    expect(abilities.share).toEqual(false);
+    expect(abilities.star).toEqual(false);
+    expect(abilities.unstar).toEqual(false);
+    expect(abilities.createTemplate).toEqual(false);
+    expect(abilities.manageTemplate).toEqual(false);
+    expect(abilities.manageUsers).toEqual(false);
+    expect(abilities.duplicate).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.move).toEqual(false);
+  });
+
+  it("should allow nothing for a workspace admin", async () => {
+    const { team, collection } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: admin.id,
+    });
+    const abilities = serialize(admin, reloaded);
+    for (const [ability, value] of Object.entries(abilities)) {
+      expect({ ability, value }).toEqual({ ability, value: false });
+    }
+  });
+
+  it("should allow nothing for a workspace admin with a membership", async () => {
+    const { team, owner, collection } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    await UserMembership.create({
+      collectionId: collection.id,
+      userId: admin.id,
+      permission: CollectionPermission.Admin,
+      createdById: owner.id,
+    });
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: admin.id,
+    });
+    const abilities = serialize(admin, reloaded);
+    for (const [ability, value] of Object.entries(abilities)) {
+      expect({ ability, value }).toEqual({ ability, value: false });
+    }
+  });
+
+  it("should allow nothing for another member", async () => {
+    const { team, collection } = await buildPersonal();
+    const member = await buildUser({ teamId: team.id });
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: member.id,
+    });
+    const abilities = serialize(member, reloaded);
+    for (const [ability, value] of Object.entries(abilities)) {
+      expect({ ability, value }).toEqual({ ability, value: false });
+    }
+  });
+
+  it("should be read-only when personal documents are turned off", async () => {
+    const { team, owner, collection } = await buildPersonal();
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    owner.team = team;
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: owner.id,
+    });
+    const abilities = serialize(owner, reloaded);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.readDocument).toBeTruthy();
+    expect(abilities.createDocument).toEqual(false);
+    expect(abilities.updateDocument).toEqual(false);
+    expect(abilities.createTemplate).toEqual(false);
+  });
+
+  it("should become an ordinary private collection without an owner", async () => {
+    const { team, collection } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    collection.ownerId = null;
+    await collection.save();
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: admin.id,
+    });
+    const abilities = serialize(admin, reloaded);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.readDocument).toEqual(false);
+  });
+
+  it("should allow only members to create a personal collection", async () => {
+    const team = await buildTeam();
+    const member = await buildUser({ teamId: team.id });
+    const viewer = await buildUser({ teamId: team.id, role: UserRole.Viewer });
+    const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
+    expect(serialize(member, team).createPersonalCollection).toBeTruthy();
+    expect(serialize(viewer, team).createPersonalCollection).toEqual(false);
+    expect(serialize(guest, team).createPersonalCollection).toEqual(false);
+
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    expect(serialize(member, team).createPersonalCollection).toEqual(false);
   });
 });

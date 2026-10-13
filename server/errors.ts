@@ -251,6 +251,15 @@ export function UnprocessableEntityError(
   });
 }
 
+export function InvalidClientMetadataError(
+  message = "The client metadata document is invalid"
+) {
+  return httpErrors(422, message, {
+    id: "invalid_client_metadata",
+    isReportable: false,
+  });
+}
+
 export function RequestTimeoutError(
   message = "Request took too long to complete"
 ) {

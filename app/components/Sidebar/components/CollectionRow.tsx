@@ -19,6 +19,7 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 import type { ActionWithChildren } from "~/types";
 
 export type CollectionRowProps = {
@@ -74,15 +75,18 @@ export type CollectionRowProps = {
   /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
   newChildDepth?: number;
 
-  /** Ref forwarded to the outer Relative; for drag hover timers. */
-  parentRef?: React.Ref<HTMLDivElement>;
+  /** Ref forwarded to the outer Relative; for drag hover timers and keyboard navigation. */
+  parentRef: React.RefObject<HTMLDivElement | null>;
   /** Drop target connector for "change collection" / reorder. */
   dropRef?: React.Ref<HTMLDivElement>;
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 
-  /** Content rendered after the row (e.g. CollectionLinkChildren). */
-  children?: React.ReactNode;
+  /**
+   * Renders the content after the row (e.g. CollectionLinkChildren), given the
+   * inline new document input to show above the child documents.
+   */
+  children: (newChild: React.ReactNode) => React.ReactNode;
 };
 
 function CollectionRow({
@@ -161,7 +165,7 @@ function CollectionRow({
 
   const labelElement = canEdit ? (
     <EditableTitle
-      title={labelText ?? collection.name}
+      title={labelText ?? collection.displayName}
       onSubmit={onTitleChange ?? (async () => undefined)}
       isEditing={isEditing}
       onEditing={setIsEditing}
@@ -170,7 +174,7 @@ function CollectionRow({
       ref={editableTitleRef}
     />
   ) : (
-    collection.name
+    collection.displayName
   );
 
   const iconElement = icon ?? (
@@ -203,6 +207,20 @@ function CollectionRow({
     [parentRef, dropRef]
   );
 
+  const getNavigationItems = React.useCallback(
+    () => [
+      {
+        id: collection.id,
+        url: collection.path,
+        title: collection.displayName,
+        sidebarContext,
+        collapsedChildren: expanded ? undefined : collection.sortedDocuments,
+      },
+    ],
+    [collection, sidebarContext, expanded]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
+
   const sidebarLinkElement = (
     <SidebarLink
       // @ts-expect-error react-router type is wrong, string component is fine.
@@ -234,26 +252,27 @@ function CollectionRow({
           {sidebarLinkElement}
         </DropToImport>
       </Relative>
-      {isAddingNewChild && onCreateChild && (
-        <SidebarLink
-          isActive={() => true}
-          depth={newChildDepth ?? Math.max(depth + 1, 2)}
-          ellipsis={false}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewChildSubmit}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
-        />
+      {children(
+        isAddingNewChild && onCreateChild ? (
+          <SidebarLink
+            isActive={() => true}
+            depth={newChildDepth ?? Math.max(depth + 1, 2)}
+            ellipsis={false}
+            label={
+              <EditableTitle
+                title=""
+                canUpdate
+                isEditing
+                placeholder={`${t("New doc")}…`}
+                onCancel={closeAddingNewChild}
+                onSubmit={handleNewChildSubmit}
+                maxLength={DocumentValidation.maxTitleLength}
+                ref={newChildTitleRef}
+              />
+            }
+          />
+        ) : undefined
       )}
-      {children}
     </ActionContextProvider>
   );
 }

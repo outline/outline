@@ -217,6 +217,7 @@ async function accountProvisioner(
       const count = await Collection.count({
         where: {
           teamId: team.id,
+          ownerId: null,
         },
       });
       provision = count === 0;

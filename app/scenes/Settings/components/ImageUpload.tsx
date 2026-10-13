@@ -14,7 +14,7 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useStores from "~/hooks/useStores";
-import { uploadFile, dataUrlToBlob } from "~/utils/files";
+import { uploadFile, dataUrlToBlob, toDropzoneAccept } from "~/utils/files";
 import { ImageHelper } from "~/utils/ImageHelper";
 
 export type Props = {
@@ -85,7 +85,7 @@ const ImageUpload: React.FC<Props> = ({
         if (!converted) {
           onError(
             t(
-              "Your browser cannot read HEIC images, please convert it to JPEG or PNG first"
+              "Your browser cannot read HEIC images, please convert the image to JPEG or PNG first"
             )
           );
           return;
@@ -111,7 +111,7 @@ const ImageUpload: React.FC<Props> = ({
   );
 
   const { getRootProps, getInputProps } = useDropzone({
-    accept: AttachmentValidation.avatarInputContentTypes.join(", "),
+    accept: avatarAccept,
     onDropAccepted,
   });
 
@@ -196,6 +196,10 @@ const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
       </Flex>
     );
   }
+);
+
+const avatarAccept = toDropzoneAccept(
+  AttachmentValidation.avatarInputContentTypes
 );
 
 const AvatarEditorContainer = styled(Flex)`

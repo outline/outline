@@ -18,6 +18,7 @@ import { LightboxImageFactory } from "../lib/Lightbox";
 import { hashString } from "../../utils/string";
 import { LRUCache } from "../../utils/LRUCache";
 import { sanitizeUrl } from "../../utils/urls";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { isModKey } from "../../utils/keyboard";
 
 export const pluginKey = new PluginKey("mermaid");
@@ -96,13 +97,16 @@ class MermaidRenderer {
   readonly element: HTMLElement;
   readonly elementId: string;
 
+  /** The cache key of the diagram rendered, or being rendered, into the element. */
+  private renderedKey?: string;
+
   constructor() {
     this.diagramId = uuidv4();
-    this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
+    this.elementId = `${EditorStyleHelper.mermaidDiagram}-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
-    this.element.classList.add("mermaid-diagram-wrapper");
+    this.element.classList.add(EditorStyleHelper.mermaidDiagram);
   }
 
   render = async (block: { node: Node; pos: number }, isDark: boolean) => {
@@ -110,6 +114,11 @@ class MermaidRenderer {
     const text = block.node.textContent;
 
     const cacheKey = hashString(`${isDark ? "dark" : "light"}-${text}`);
+    if (this.renderedKey === cacheKey) {
+      return;
+    }
+    this.renderedKey = cacheKey;
+
     const cached = cache.get(cacheKey);
     if (cached) {
       element.classList.remove("parse-error", "empty");
@@ -174,6 +183,11 @@ class MermaidRenderer {
 
       const { svg, bindFunctions } = await mermaid.render(tempId, text);
 
+      // A newer render replaced this one while it was in progress.
+      if (this.renderedKey !== cacheKey) {
+        return;
+      }
+
       element.classList.remove("parse-error", "empty");
       element.innerHTML = svg;
 
@@ -204,6 +218,12 @@ class MermaidRenderer {
         cache.set(cacheKey, element.innerHTML);
       }
     } catch (error) {
+      if (this.renderedKey !== cacheKey) {
+        return;
+      }
+
+      // Allow a later state change to retry the render.
+      this.renderedKey = undefined;
       const isEmpty = block.node.textContent.trim().length === 0;
 
       if (isEmpty) {
@@ -416,9 +436,24 @@ export default function Mermaid({
 
         const node = state.selection.$head.parent;
         const previousNode = oldState.selection.$head.parent;
+
+        // For a NodeSelection, $head.parent resolves to the selection's
+        // parent — so also inspect the selected node and its descendants to
+        // catch e.g. drag-and-drop of a container that holds a diagram.
+        const selectedNode =
+          state.selection instanceof NodeSelection
+            ? state.selection.node
+            : null;
+        const previousSelectedNode =
+          oldState.selection instanceof NodeSelection
+            ? oldState.selection.node
+            : null;
         const codeBlockChanged =
           transaction.docChanged &&
-          (isMermaid(node) || isMermaid(previousNode));
+          (isMermaid(node) ||
+            isMermaid(previousNode) ||
+            containsMermaid(selectedNode) ||
+            containsMermaid(previousSelectedNode));
 
         // @ts-expect-error accessing private field.
         const isPaste = transaction.meta?.paste;
@@ -475,10 +510,6 @@ export default function Mermaid({
         NodeSelection.create(newState.doc, codeBlock.pos)
       );
     },
-    view: (view) => {
-      view.dispatch(view.state.tr.setMeta(pluginKey, { loaded: true }));
-      return {};
-    },
     props: {
       decorations(state) {
         return this.getState(state)?.decorationSet;
@@ -527,7 +558,9 @@ export default function Mermaid({
         },
         mousedown(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const diagram = target?.closest(
+            `.${EditorStyleHelper.mermaidDiagram}`
+          );
           if (!diagram) {
             return false;
           }
@@ -577,7 +610,9 @@ export default function Mermaid({
         },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const diagram = target?.closest(
+            `.${EditorStyleHelper.mermaidDiagram}`
+          );
           if (!diagram) {
             return false;
           }
@@ -605,4 +640,22 @@ export default function Mermaid({
       },
     },
   });
+}
+
+function containsMermaid(node: Node | null): boolean {
+  if (!node) {
+    return false;
+  }
+  if (isMermaid(node)) {
+    return true;
+  }
+  let found = false;
+  node.descendants((child) => {
+    if (found) {
+      return false;
+    }
+    found = isMermaid(child);
+    return !found;
+  });
+  return found;
 }

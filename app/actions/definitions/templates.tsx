@@ -84,7 +84,7 @@ export const deleteTemplate = dialogActionFactory({
           <Trans
             defaults="Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent."
             values={{
-              templateName: templates[0].titleWithDefault,
+              templateName: templates[0].displayTitle,
             }}
             components={{
               em: <strong />,
@@ -176,7 +176,7 @@ export const moveTemplateToWorkspace = createAction({
       toast.success(t("Template moved"));
       stores.dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn't move the template, try again?"));
+      toast.error(t("Couldn’t move the template, try again?"));
     }
   },
 });

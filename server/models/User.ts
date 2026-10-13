@@ -442,7 +442,7 @@ class User extends ParanoidModel<
   };
 
   /**
-   * Returns the value of the givem preference
+   * Returns the value of the given preference
    *
    * @param preference The user preference to retrieve
    * @returns The preference value if set, else the default value.
@@ -500,6 +500,10 @@ class User extends ParanoidModel<
         attributes: ["id"],
         where: {
           teamId: this.teamId,
+          // Only the owner can access a personal collection.
+          ownerId: {
+            [Op.or]: [{ [Op.is]: null }, { [Op.eq]: this.id }],
+          },
           [Op.or]: [
             ...(this.isGuest
               ? []

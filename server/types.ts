@@ -1,5 +1,5 @@
 import type { ParameterizedContext, DefaultContext } from "koa";
-import type { IRouterParamContext } from "koa-router";
+import type { RouterContext } from "@koa/router";
 import type { InferAttributes, Model, Transaction } from "sequelize";
 import type { z } from "zod";
 import type {
@@ -92,11 +92,12 @@ export type BaseRes = unknown;
 export interface APIContext<
   ReqT = Partial<BaseReq>,
   ResT = BaseRes,
-> extends ParameterizedContext<
-  AppState,
-  DefaultContext & IRouterParamContext<AppState>,
-  ResT
-> {
+> extends RouterContext<AppState, DefaultContext, ResT> {
+  // Router internals are left untyped so that handlers with a narrower context
+  // remain assignable to route middleware.
+  router: never;
+  matched?: never;
+
   /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
@@ -163,13 +164,21 @@ export type UserEvent = BaseEvent<User> &
     | {
         name:
           | "users.signin"
-          | "users.signout"
           | "users.update"
           | "users.suspend"
           | "users.activate"
           | "users.delete"
           | "users.invite_accepted";
         userId: string;
+      }
+    | {
+        name: "users.signout";
+        userId: string;
+        data?: {
+          name: string;
+          /** What caused the sign out, absent on events from older versions. */
+          reason?: "manual" | "sso_revoked";
+        };
       }
     | {
         name: "users.create" | "users.promote" | "users.demote";

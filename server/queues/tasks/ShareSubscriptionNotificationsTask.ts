@@ -72,7 +72,7 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
         await new ShareDocumentUpdatedEmail({
           to: subscription.email,
           shareSubscriptionId: subscription.id,
-          documentTitle: document.titleWithDefault,
+          documentTitle: document.displayTitle,
           shareUrl,
           revisionId: event.modelId,
         }).schedule();

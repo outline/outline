@@ -94,6 +94,10 @@ let baseDomain;
       association: "accessRequest",
       required: false,
     },
+    {
+      association: "group",
+      required: false,
+    },
   ],
 }))
 @Table({

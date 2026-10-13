@@ -124,10 +124,14 @@ async function groupsSyncer(
     }
 
     // Add user to group if not already a member
-    const [, membershipCreated] = await GroupUser.findOrCreateWithCtx(ctx, {
-      where: { groupId: externalGroup.groupId!, userId: user.id },
-      defaults: { createdById: user.id },
-    });
+    const [, membershipCreated] = await GroupUser.findOrCreateWithCtx(
+      ctx,
+      {
+        where: { groupId: externalGroup.groupId!, userId: user.id },
+        defaults: { createdById: user.id },
+      },
+      { name: "add_user" }
+    );
 
     if (membershipCreated) {
       result.membershipsAdded++;
@@ -170,7 +174,7 @@ async function groupsSyncer(
   for (const stale of staleExternalGroups) {
     const membership = stale.group?.groupUsers?.[0];
     if (membership) {
-      await membership.destroyWithCtx(ctx);
+      await membership.destroyWithCtx(ctx, { name: "remove_user" });
       result.membershipsRemoved++;
     }
   }

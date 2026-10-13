@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
-import { useLocation } from "react-router-dom";
 import { EditorAwareHTML5Backend } from "~/components/EditorAwareHTML5Backend";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
@@ -14,6 +13,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import useWebMCPActions from "~/hooks/useWebMCPActions";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import history from "~/utils/history";
@@ -40,8 +40,12 @@ type Props = {
 
 const AuthenticatedLayout: React.FC<Props> = ({ children }: Props) => {
   const { ui, auth } = useStores();
-  const location = useLocation();
-  const layoutRef = React.useRef<HTMLDivElement>(null);
+  const isSettings = useLocationSelector((location) =>
+    location.pathname.startsWith(settingsPath())
+  );
+  // State rather than a ref, so that portals receive the element once mounted.
+  const [layoutElement, setLayoutElement] =
+    React.useState<HTMLDivElement | null>(null);
   const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
@@ -87,8 +91,6 @@ const AuthenticatedLayout: React.FC<Props> = ({ children }: Props) => {
     return <ErrorSuspended />;
   }
 
-  const isSettings = location.pathname.startsWith(settingsPath());
-
   const sidebar = (
     <Fade>
       <React.Suspense fallback={null}>
@@ -103,13 +105,13 @@ const AuthenticatedLayout: React.FC<Props> = ({ children }: Props) => {
   return (
     <DocumentContextProvider>
       <RightSidebarProvider>
-        <PortalContext.Provider value={layoutRef.current}>
+        <PortalContext.Provider value={layoutElement}>
           <DndProvider backend={EditorAwareHTML5Backend}>
             <Layout
               title={team.name}
               sidebar={sidebar}
               sidebarCanCollapse={!isSettings}
-              ref={layoutRef}
+              ref={setLayoutElement}
             >
               <RegisterKeyDown trigger="n" handler={goToNewDocument} />
               <RegisterKeyDown trigger="t" handler={goToSearch} />

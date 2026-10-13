@@ -30,7 +30,7 @@ function NewTemplateMenu() {
       collections.orderedData.map((collection) => {
         const canCollection = policies.abilities(collection.id);
         return createInternalLinkAction({
-          name: collection.name,
+          name: collection.displayName,
           section: DocumentSection,
           icon: <CollectionIcon collection={collection} />,
           visible: !!canCollection.createTemplate,

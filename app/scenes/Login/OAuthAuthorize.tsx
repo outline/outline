@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { isLoopbackUri } from "~/utils/urls";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
+import { getHostname, isLoopbackUri } from "@shared/utils/urls";
+import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
@@ -22,6 +23,7 @@ import {
   AuthorizationError,
   BadRequestError,
   NotFoundError,
+  UnprocessableEntityError,
 } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
@@ -68,6 +70,22 @@ function inputScopes(scope?: string): string[] {
   }
 
   return scope.split(" ").filter(Boolean);
+}
+
+/**
+ * Returns the hostname of a client ID metadata document URL.
+ *
+ * @param clientId the OAuth client_id parameter.
+ * @returns the punycode hostname, or undefined if the client does not use a metadata document.
+ */
+function metadataDocumentHost(clientId: string) {
+  if (
+    !clientId.startsWith(OAuthClientValidation.metadataDocumentClientIdPrefix)
+  ) {
+    return undefined;
+  }
+
+  return getHostname(clientId);
 }
 
 /**
@@ -152,6 +170,13 @@ function Authorize() {
               )}
               <Pre>{redirectUri}</Pre>
             </Text>
+          ) : clientError instanceof UnprocessableEntityError ? (
+            <Text as="p" type="secondary">
+              {t(
+                "The OAuth client could not be loaded from its metadata document"
+              )}
+              <Pre>{clientError.message}</Pre>
+            </Text>
           ) : clientError instanceof AuthorizationError ? (
             <Text as="p" type="secondary">
               {t(
@@ -182,6 +207,8 @@ function Authorize() {
   }
 
   const { name, developerName, developerUrl } = response.data;
+  const clientHost = metadataDocumentHost(response.data.clientId);
+  const isLoopback = isLoopbackUri(redirectUri);
 
   return (
     <Background>
@@ -219,6 +246,15 @@ function Authorize() {
             />
           </Text>
         )}
+        {clientHost && (
+          <Text type="secondary" as="p" style={{ marginTop: -12 }}>
+            <Trans
+              defaults="App details from <em>{{ clientHost }}</em>"
+              values={{ clientHost }}
+              components={{ em: <strong /> }}
+            />
+          </Text>
+        )}
         <Text type="secondary" as="p">
           {t(
             "{{ appName }} will be able to access your account and perform the following actions",
@@ -237,8 +273,14 @@ function Authorize() {
             )
           )}
         </ul>
-        <Text type="tertiary" as="p" style={{ wordBreak: "break-all" }}>
-          {isLoopbackUri(redirectUri) ? (
+        <Text type="tertiary" as="p">
+          {isLoopback && clientHost ? (
+            <Trans
+              defaults="You will be redirected to a local application that <em>{{ clientHost }}</em> cannot verify. Only continue if you started this connection."
+              values={{ clientHost }}
+              components={{ em: <strong /> }}
+            />
+          ) : isLoopback ? (
             <Trans>
               You will be redirected to a local application after authorizing.
             </Trans>
@@ -249,7 +291,7 @@ function Authorize() {
                 redirectUri,
               }}
               components={{
-                em: <strong />,
+                em: <RedirectUri />,
               }}
             />
           )}
@@ -302,6 +344,11 @@ const StyledHeading = styled(Heading).attrs({
   centered: true,
 })`
   margin-top: 0;
+`;
+
+// Only the URL may break mid-word, so long URLs wrap without splitting prose.
+const RedirectUri = styled.strong`
+  word-break: break-all;
 `;
 
 const Pre = styled.pre`

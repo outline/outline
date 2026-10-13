@@ -1,5 +1,6 @@
 import { CollectionPermission } from "@shared/types";
 import AuthenticationExtension from "@server/collaboration/AuthenticationExtension";
+import { buildDocument } from "@server/test/factories";
 import type { CollectionUserEvent } from "@server/types";
 import CollaborationAuthorizationProcessor from "./CollaborationAuthorizationProcessor";
 
@@ -113,4 +114,76 @@ describe("CollaborationAuthorizationProcessor", () => {
 
     expect(spy).toHaveBeenCalledWith({ groupId: "group-id" });
   });
+
+  it.each([
+    "documents.archive",
+    "documents.unarchive",
+    "documents.delete",
+  ] as const)("should invalidate the document tree on %s", async (name) => {
+    const spy = invalidate();
+    const document = await buildDocument();
+    const child = await buildDocument({
+      teamId: document.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: document.id,
+    });
+    const grandchild = await buildDocument({
+      teamId: document.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: child.id,
+    });
+    // Descendants are already in their new state when the event is processed.
+    await grandchild.destroy();
+
+    await processor.perform({
+      name,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      ip: null,
+      documentId: document.id,
+      collectionId: document.collectionId!,
+    });
+
+    expect(spy).toHaveBeenCalledWith({
+      documentIds: [document.id, child.id, grandchild.id],
+    });
+  });
+
+  it("should invalidate the document on documents.permanent_delete", async () => {
+    const spy = invalidate();
+
+    await processor.perform({
+      name: "documents.permanent_delete",
+      teamId: "team-id",
+      actorId: "actor-id",
+      ip: null,
+      documentId: "document-id",
+      collectionId: "collection-id",
+    });
+
+    expect(spy).toHaveBeenCalledWith({ documentIds: ["document-id"] });
+  });
+
+  it.each([
+    "users.demote",
+    "users.suspend",
+    "users.delete",
+    "users.signout",
+  ] as const)(
+    "should invalidate all of the user's connections on %s",
+    async (name) => {
+      const spy = invalidate();
+
+      await processor.perform({
+        name,
+        teamId: "team-id",
+        actorId: "actor-id",
+        ip: null,
+        userId: "user-id",
+        data: { name: "User" },
+      });
+
+      expect(spy).toHaveBeenCalledWith({ userIds: ["user-id"] });
+    }
+  );
 });

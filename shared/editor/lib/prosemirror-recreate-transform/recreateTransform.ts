@@ -170,7 +170,7 @@ export class RecreateTransform {
     const toNode = toDoc.nodeAt(start) as Node;
 
     if (!start) {
-      // @note this completly updates all attributes in one step, by completely replacing node
+      // @note this completely updates all attributes in one step, by completely replacing node
       const nodeType = fromNode.type === toNode.type ? null : toNode.type;
       try {
         this.tr.setNodeMarkup(start, nodeType, toNode.attrs, toNode.marks);

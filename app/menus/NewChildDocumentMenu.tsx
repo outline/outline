@@ -25,7 +25,7 @@ function NewChildDocumentMenu({ document }: Props) {
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
-  const collectionName = collection ? collection.name : t("collection");
+  const collectionName = collection ? collection.displayName : t("collection");
 
   const actions = React.useMemo(
     () => [
@@ -50,7 +50,7 @@ function NewChildDocumentMenu({ document }: Props) {
           <Trans
             defaults="New document in <em>{{ collectionName }}</em>"
             values={{
-              collectionName: document.titleWithDefault,
+              collectionName: document.displayTitle,
             }}
             components={{
               em: <strong />,
@@ -66,7 +66,7 @@ function NewChildDocumentMenu({ document }: Props) {
       collectionName,
       canCollection.createDocument,
       document.id,
-      document.titleWithDefault,
+      document.displayTitle,
       document.collectionId,
     ]
   );

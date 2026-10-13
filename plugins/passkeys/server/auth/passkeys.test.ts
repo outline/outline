@@ -1,5 +1,9 @@
+import { buildApiKey, buildTeam, buildUser } from "@server/test/factories";
+import { getTestServer } from "@server/test/support";
 import type { APIContext } from "@server/types";
 import { getExpectedOrigin, getPasskeyLoginRedirect } from "./passkeys";
+
+const server = getTestServer();
 
 describe("getExpectedOrigin", () => {
   // Helper to mock APIContext for testing
@@ -111,5 +115,54 @@ describe("getPasskeyLoginRedirect", () => {
     expect(getPasskeyLoginRedirect(["desktop", "web"])).toBe(
       "/?method=passkey&client=web"
     );
+  });
+});
+
+describe("#passkeys.generateRegistrationOptions", () => {
+  it("should return registration options for a session", async () => {
+    const team = await buildTeam({ passkeysEnabled: true });
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post(
+      "/auth/passkeys.generateRegistrationOptions",
+      user
+    );
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.challenge).toBeTruthy();
+  });
+
+  it("should not allow an API key", async () => {
+    const team = await buildTeam({ passkeysEnabled: true });
+    const user = await buildUser({ teamId: team.id });
+    const apiKey = await buildApiKey({ userId: user.id });
+    const res = await server.post(
+      "/auth/passkeys.generateRegistrationOptions",
+      {
+        headers: { authorization: `Bearer ${apiKey.value}` },
+      }
+    );
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Invalid authentication type");
+  });
+});
+
+describe("#passkeys.verifyRegistration", () => {
+  it("should not allow an API key", async () => {
+    const team = await buildTeam({ passkeysEnabled: true });
+    const user = await buildUser({ teamId: team.id });
+    const apiKey = await buildApiKey({ userId: user.id });
+    const res = await server.post("/auth/passkeys.verifyRegistration", {
+      headers: { authorization: `Bearer ${apiKey.value}` },
+      body: {},
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Invalid authentication type");
   });
 });

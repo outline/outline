@@ -151,7 +151,7 @@ function PasskeysSettings() {
       <Text as="p" type="secondary">
         <Trans>
           Passkeys allow you to sign in safely without a password using your
-          device's biometric authentication (Face ID, Touch ID, Windows Hello)
+          device’s biometric authentication (Face ID, Touch ID, Windows Hello)
           or security key.
         </Trans>
       </Text>
@@ -182,7 +182,7 @@ function PasskeysSettings() {
         </>
       ) : (
         <Text as="p" type="secondary">
-          {t("You don't have any passkeys yet.")}
+          {t("You don’t have any passkeys yet.")}
         </Text>
       )}
     </Scene>

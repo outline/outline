@@ -5,6 +5,7 @@ import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
+import { Hour } from "@shared/utils/time";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
   CollectionPermission,
@@ -334,6 +335,27 @@ export async function buildCollection(
     description: faker.lorem.words(4),
     createdById: overrides.userId,
     ...overrides,
+  });
+}
+
+/**
+ * Build the personal collection of a user.
+ *
+ * @param owner The user that owns the collection.
+ * @param overrides Attributes to set on the collection.
+ * @returns the personal collection.
+ */
+export async function buildPersonalCollection(
+  owner: User,
+  overrides: Partial<Collection> = {}
+) {
+  return buildCollection({
+    name: "Personal",
+    ...overrides,
+    teamId: owner.teamId,
+    userId: owner.id,
+    ownerId: owner.id,
+    permission: null,
   });
 }
 
@@ -845,14 +867,14 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
 }
 
 export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
-  if (!overrides.teamId) {
+  if (overrides.teamId === undefined) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
   if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
-      teamId: overrides.teamId,
+      teamId: overrides.teamId ?? undefined,
     });
     overrides.createdById = user.id;
   }
@@ -874,9 +896,33 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
   );
 }
 
-export async function buildOAuthAuthorizationCode(
-  overrides: Partial<OAuthAuthorizationCode> = {}
+/**
+ * Build an OAuth client that is identified by a client ID metadata document.
+ *
+ * @param overrides Attributes to override on the client.
+ * @returns The created OAuth client.
+ */
+export async function buildMetadataDocumentOAuthClient(
+  overrides: Partial<OAuthClient> = {}
 ) {
+  return buildOAuthClient({
+    clientId: `https://${randomUUID()}.example.com/oauth/client.json`,
+    clientType: "public",
+    published: false,
+    teamId: null,
+    createdById: null,
+    metadataExpiresAt: new Date(Date.now() + Hour.ms),
+    ...overrides,
+  });
+}
+
+export async function buildOAuthAuthorizationCode({
+  code = randomString(32),
+  ...overrides
+}: Partial<OAuthAuthorizationCode> & {
+  /** The plaintext code, used to exchange the code in a test. */
+  code?: string;
+} = {}) {
   if (!overrides.userId) {
     const user = await buildUser();
     overrides.userId = user.id;
@@ -885,8 +931,6 @@ export async function buildOAuthAuthorizationCode(
   if (!overrides.expiresAt) {
     overrides.expiresAt = new Date();
   }
-
-  const code = randomString(32);
 
   let client;
   if (overrides.oauthClientId) {

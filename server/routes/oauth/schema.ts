@@ -1,5 +1,6 @@
 import z from "zod";
 import { OAuthClientValidation } from "@shared/validations";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { BaseSchema } from "../api/schema";
 
 export const TokenSchema = BaseSchema.extend({
@@ -49,11 +50,13 @@ export const RegisterSchema = BaseSchema.extend({
       .optional(),
     redirect_uris: redirectUris,
     grant_types: z
-      .array(z.enum(["authorization_code", "refresh_token"]))
+      .array(z.enum(OAuthHelper.grantTypes))
       .default(["authorization_code"]),
-    response_types: z.array(z.enum(["code"])).default(["code"]),
+    response_types: z
+      .array(z.enum(OAuthHelper.responseTypes))
+      .default([...OAuthHelper.responseTypes]),
     token_endpoint_auth_method: z
-      .enum(["none", "client_secret_post"])
+      .enum(OAuthHelper.tokenEndpointAuthMethods)
       .default("none"),
     scope: z.string().optional(),
     client_uri: z

@@ -2,8 +2,8 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
-import Router from "koa-router";
-import send from "koa-send";
+import Router from "@koa/router";
+import { send } from "@koa/send";
 import { languages } from "@shared/i18n";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
@@ -12,6 +12,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
+import { getSessionRedirectUrl } from "@server/utils/authentication";
 import { getTeamFromContext } from "@server/utils/passport";
 import { isInvalidAppPath } from "@server/utils/url";
 import apexRedirect from "../middlewares/apexRedirect";
@@ -24,33 +25,40 @@ const koa = new Koa();
 const router = new Router();
 
 // serve public assets
-router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
-  let done;
+router.use(
+  ["/images/{*path}", "/email/{*path}", "/fonts/{*path}"],
+  async (ctx, next) => {
+    let done;
 
-  if (ctx.method === "HEAD" || ctx.method === "GET") {
-    try {
-      done = await send(ctx, ctx.path, {
-        root: path.resolve(__dirname, "../../../public"),
-        // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: Day.ms * 7,
-        setHeaders: (res) => {
-          res.setHeader("Access-Control-Allow-Origin", "*");
-        },
-      });
-    } catch (err) {
-      if (!(err instanceof Error && "status" in err && err.status === 404)) {
-        throw err;
+    if (ctx.method === "HEAD" || ctx.method === "GET") {
+      try {
+        done = await send(ctx, ctx.path, {
+          root: path.resolve(__dirname, "../../../public"),
+          // 7 day expiry, these assets are mostly static but do not contain a hash
+          maxAge: Day.ms * 7,
+          setHeaders: (res) => {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+          },
+        });
+      } catch (err) {
+        if (!(err instanceof Error && "status" in err && err.status === 404)) {
+          throw err;
+        }
       }
     }
-  }
 
-  if (!done) {
-    await next();
+    if (!done) {
+      await next();
+    }
   }
-});
+);
 
 router.use(
-  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  [
+    "/share/:shareId",
+    "/share/:shareId/doc/:documentSlug",
+    "/share/:shareId/{*path}",
+  ],
   (ctx) => {
     const redirectPath = ctx.path.replace(/^\/share/, "/s");
     ctx.redirect(redirectPath + ctx.request.URL.search);
@@ -59,7 +67,7 @@ router.use(
 );
 
 if (env.isProduction) {
-  router.get("/static/*", async (ctx) => {
+  router.get("/static/{*path}", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
       if (!pathname) {
@@ -128,7 +136,7 @@ router.get(
   renderShare
 );
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
-router.get("/s/:shareId/*", shareDomains(), renderShare);
+router.get("/s/:shareId/{*path}", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
@@ -152,8 +160,21 @@ router.get("/sitemap.xml", async (ctx) => {
   }
 });
 
+// Client routes that render without an authenticated session.
+const publicAppPaths = [
+  "/",
+  "/create",
+  "/logout",
+  "/desktop-redirect",
+  "/oauth/authorize",
+];
+
+function isPublicAppPath(path: string) {
+  return publicAppPaths.includes(path.replace(/\/+$/, "") || "/");
+}
+
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("{/*path}", async (ctx, next) => {
   if (isInvalidAppPath(ctx.path)) {
     ctx.status = 404;
     return;
@@ -177,6 +198,16 @@ router.get("*", async (ctx, next) => {
       if (env.isProduction && ctx.hostname !== parseDomain(env.URL).host) {
         ctx.redirect(env.URL);
         return;
+      }
+
+      // Links to app paths on the root domain, such as those in emails, are
+      // sent on to the workspace the browser is signed in to.
+      if (!team && !isPublicAppPath(ctx.path)) {
+        const url = await getSessionRedirectUrl(ctx);
+        if (url) {
+          ctx.redirect(url);
+          return;
+        }
       }
     }
 
@@ -204,7 +235,9 @@ router.get("*", async (ctx, next) => {
       publicBranding && team?.description ? team.description : undefined,
     analytics,
     shortcutIcon:
-      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
+      publicBranding && team?.avatarUrl
+        ? ((await team.publicAvatarUrl()) ?? undefined)
+        : undefined,
   });
 });
 
@@ -219,6 +252,11 @@ if (env.SENTRY_DSN) {
 
 koa.use(async (ctx, next) => {
   ctx.set("Timing-Allow-Origin", timingOrigins.join(", "));
+
+  // Allow the JS Self-Profiling API to be used for local performance work.
+  if (env.isDevelopment) {
+    ctx.set("Document-Policy", "js-profiling");
+  }
   await next();
 });
 

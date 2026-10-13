@@ -431,13 +431,19 @@ export default class Mention extends Node {
   }
 
   handleChangeDate =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     (modelId: string) => {
       const { view } = this.editor;
       const { tr } = view.state;
       const pos = getPos();
 
-      if (node.attrs.modelId === modelId) {
+      if (pos === undefined || node.attrs.modelId === modelId) {
         return;
       }
 
@@ -450,10 +456,23 @@ export default class Mention extends Node {
     };
 
   handleChangeUnfurl =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
       const { view } = this.editor;
       const { tr } = view.state;
+
+      // Only unfurls of a resource the mention can represent are stored, others
+      // such as documents depend on the viewer and change between views.
+      const unfurledType = MentionTypeForResource[unfurl.type];
+      if (!unfurledType) {
+        return;
+      }
 
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
@@ -470,9 +489,7 @@ export default class Mention extends Node {
       // The resource an external link points at is only known once it has been
       // unfurled, so narrow a generic URL mention to the type it turned out to
       // be – an issue, pull request or project.
-      const unfurledType = MentionTypeForResource[unfurl.type];
       if (
-        unfurledType &&
         node.attrs.type === MentionType.URL &&
         unfurledType !== node.attrs.type
       ) {
@@ -480,6 +497,10 @@ export default class Mention extends Node {
       }
 
       const pos = getPos();
+
+      if (pos === undefined) {
+        return;
+      }
 
       if (!isMatch(node.attrs, overrides)) {
         const transaction = tr.setNodeMarkup(pos, undefined, {

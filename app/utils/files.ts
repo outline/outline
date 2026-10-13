@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import type { Accept } from "react-dropzone";
 import { AttachmentPreset } from "@shared/types";
 import { dataUrlToBlob } from "@shared/utils/files";
 import { client } from "./ApiClient";
@@ -147,6 +148,26 @@ export const uploadFile = async (
 };
 
 export { dataUrlToBlob };
+
+/**
+ * Converts a list of mime types and file extensions to the accept map used by
+ * react-dropzone. The map is flattened into a single accept attribute, so the
+ * extensions are grouped under the first mime type.
+ *
+ * @param types the mime types and file extensions, such as "image/png" or ".png".
+ * @returns the accept map.
+ */
+export const toDropzoneAccept = (types: readonly string[]): Accept => {
+  const mimeTypes = types.filter((type) => !type.startsWith("."));
+  const extensions = types.filter((type) => type.startsWith("."));
+
+  return Object.fromEntries(
+    mimeTypes.map((mimeType, index) => [
+      mimeType,
+      index === 0 ? extensions : [],
+    ])
+  );
+};
 
 /**
  * Header names the browser controls itself - it silently ignores an attempt to

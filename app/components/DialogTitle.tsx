@@ -60,7 +60,7 @@ export const DialogTitle = observer(function DialogTitle_({
       <Subject type="secondary" size="small">
         {icon}
         <Text type="secondary" ellipsis>
-          {isDocument ? model.titleWithDefault : model.name}
+          {isDocument ? model.displayTitle : model.displayName}
         </Text>
       </Subject>
     </Wrapper>

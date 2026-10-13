@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import JWT from "jsonwebtoken";
 import type { Context, Request } from "koa";
-import type Router from "koa-router";
+import type Router from "@koa/router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
@@ -193,7 +193,7 @@ export function createOIDCRouter(
             // remove the TLD and form a subdomain from the remaining
             const subdomain = slugifyDomain(domain);
 
-            // Claim name can be overriden using an env variable.
+            // Claim name can be overridden using an env variable.
             // Default is 'preferred_username' as per OIDC spec.
             // This will default to the profile.preferred_username, but will fall back to preferred_username from the id_token
             const username =

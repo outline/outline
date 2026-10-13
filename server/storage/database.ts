@@ -5,7 +5,6 @@ import type {
   InferAttributes,
   InferCreationAttributes,
   Transaction,
-  TransactionOptions,
 } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
@@ -52,6 +51,14 @@ const QueryCanceledErrorCode = "57014";
 
 /** Headroom between the statement timeout and the HTTP request timeout. */
 const StatementTimeoutMargin = 500;
+
+/** Sequelize types the query generator as unknown; this narrows to the single
+ * method used to begin a transaction. */
+interface QueryGeneratorWithTransaction {
+  startTransactionQuery(
+    transaction: Transaction & { parent?: Transaction }
+  ): string;
+}
 
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
@@ -324,60 +331,34 @@ export function createMigrationRunner(
 }
 
 /**
- * Wraps `sequelize.transaction()` so that every transaction issues
- * `SET LOCAL statement_timeout` immediately after it begins. Using `SET LOCAL`
+ * Appends `SET LOCAL statement_timeout` to the statement that begins each
+ * transaction, so that both are sent in a single round trip. Using `SET LOCAL`
  * scopes the value to the transaction, preventing it from leaking to other
  * consumers (e.g. background workers) sharing the same underlying connection
  * via pgbouncer's transaction pooling.
+ *
+ * @param instance the Sequelize instance to modify.
+ * @param timeoutMs the statement timeout in milliseconds.
+ * @returns the modified Sequelize instance.
  */
 export function applyStatementTimeoutToTransactions(
   instance: Sequelize,
   timeoutMs: number
 ) {
-  const origTransaction = instance.transaction.bind(
-    instance
-  ) as Sequelize["transaction"];
+  const queryGenerator = instance.getQueryInterface()
+    .queryGenerator as QueryGeneratorWithTransaction;
+  const origStartTransactionQuery =
+    queryGenerator.startTransactionQuery.bind(queryGenerator);
 
-  const setLocalTimeout = (t: Transaction) =>
-    instance.query(`SET LOCAL statement_timeout = ${timeoutMs}`, {
-      transaction: t,
-    });
+  queryGenerator.startTransactionQuery = (transaction) => {
+    const sql = origStartTransactionQuery(transaction);
 
-  instance.transaction = (async (
-    optionsOrCallback?:
-      | TransactionOptions
-      | ((t: Transaction) => PromiseLike<unknown>),
-    maybeCallback?: (t: Transaction) => PromiseLike<unknown>
-  ) => {
-    const autoCallback =
-      typeof optionsOrCallback === "function"
-        ? optionsOrCallback
-        : maybeCallback;
-    const options =
-      typeof optionsOrCallback === "function" ? undefined : optionsOrCallback;
-
-    if (autoCallback) {
-      return origTransaction(options as TransactionOptions, async (t) => {
-        await setLocalTimeout(t);
-        return autoCallback(t);
-      });
+    // Savepoints inherit the value set when the outer transaction began.
+    if (transaction.parent) {
+      return sql;
     }
-
-    const t = await origTransaction(options);
-    try {
-      await setLocalTimeout(t);
-    } catch (err) {
-      // Roll back so the started transaction does not linger on the pooled
-      // connection until idle-in-transaction timeout closes it.
-      try {
-        await t.rollback();
-      } catch {
-        // Ignore rollback failure; the original error is more informative.
-      }
-      throw err;
-    }
-    return t;
-  }) as typeof instance.transaction;
+    return `${sql} SET LOCAL statement_timeout = ${timeoutMs};`;
+  };
 
   return instance;
 }

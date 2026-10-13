@@ -27,7 +27,7 @@ export const SizeWarning = ({ document }: Props) => {
         <Centered>
           <strong>{t("Warning")}</strong>
           <br />
-          {t("This document is large which may affect performance")}
+          {t("This document is large, which may affect performance")}
         </Centered>
       }
     >

@@ -1,14 +1,14 @@
 import { noop } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import DocumentsLoader from "~/components/DocumentsLoader";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
+import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
@@ -16,15 +16,12 @@ import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
-import DocumentLink from "./DocumentLink";
+import { DocumentTree } from "./DocumentTree";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
 import { useSidebarDisclosure } from "./SidebarDisclosureContext";
 import SidebarLink from "./SidebarLink";
-
-// The number of child documents to initially render
-const DEFAULT_PAGE_SIZE = 50;
 
 type Props = {
   /** The collection to render the children of. */
@@ -33,6 +30,8 @@ type Props = {
   expanded: boolean;
   /** Indentation depth of the parent collection. */
   depth?: number;
+  /** Indentation depth of the child documents, defaults to below the collection. */
+  childDepth?: number;
   /** Function to prefetch a document by ID. */
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
   /** Element to display above the child documents */
@@ -43,35 +42,24 @@ function CollectionLinkChildren({
   collection,
   expanded,
   depth = 0,
+  childDepth: childDepthProp,
   prefetchDocument,
   children,
 }: Props) {
   // Documents sit one level below the collection, with a minimum that leaves
   // room for their own disclosure to the left of the label.
-  const childDepth = Math.max(depth + 1, 2);
-  const pageSize = DEFAULT_PAGE_SIZE;
-  const { documents, ui } = useStores();
+  const childDepth = childDepthProp ?? Math.max(depth + 1, 2);
+  const { documents } = useStores();
   const { t } = useTranslation();
-  const activeDocument = documents.active;
+  // Scoped to this collection so that other collections do not re-render when
+  // the active document changes.
+  const activeDocument = useComputed(() => {
+    const active = documents.active;
+    return active?.collectionId === collection.id ? active : undefined;
+  }, [documents, collection]);
   const childDocuments = useCollectionDocuments(collection, activeDocument);
-  const [showing, setShowing] = useState(pageSize);
 
-  useEffect(() => {
-    if (!expanded) {
-      setShowing(pageSize);
-    }
-  }, [expanded, pageSize]);
-
-  const showMore = useCallback(() => {
-    if (childDocuments && childDocuments.length > showing) {
-      setShowing((value) => value + pageSize);
-    }
-  }, [childDocuments, showing, pageSize]);
-
-  const expansion = useSidebarExpansionState(
-    childDocuments,
-    ui.activeDocumentId
-  );
+  const expansion = useSidebarExpansionState(childDocuments);
 
   // Handle collection-level alt-click cascade from DraggableCollectionLink
   const handleCascadeExpand = useCallback(() => {
@@ -97,32 +85,27 @@ function CollectionLinkChildren({
               <Loading />
             </ResizingHeightContainer>
           )}
-          {childDocuments?.slice(0, showing).map((node, index) => (
-            <DocumentLink
-              key={node.id}
-              node={node}
-              collection={collection}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={node.isDraft}
-              depth={childDepth}
-              index={index}
-            />
-          ))}
-          {childDocuments?.length === 0 && !children && (
-            <SidebarLink
-              label={
-                <Text type="tertiary" size="small" italic>
-                  {t("Empty")}
-                </Text>
-              }
-              onClick={() => history.push(collection.url)}
-              depth={childDepth}
-            />
-          )}
           {childDocuments && (
-            <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
+            <DocumentTree
+              nodes={childDocuments}
+              depth={childDepth}
+              collection={collection}
+              prefetchDocument={prefetchDocument}
+            />
           )}
+          {childDocuments?.length === 0 &&
+            !children &&
+            !collection.isPersonal && (
+              <SidebarLink
+                label={
+                  <Text type="tertiary" size="small" italic>
+                    {t("Empty")}
+                  </Text>
+                }
+                onClick={() => history.push(collection.url)}
+                depth={childDepth}
+              />
+            )}
         </DocumentsLoader>
       </Folder>
     </SidebarExpansionContext.Provider>

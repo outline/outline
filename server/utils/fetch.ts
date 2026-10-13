@@ -110,18 +110,27 @@ const validateTargetURL = async (
  *
  * @param url The url to fetch
  * @param init The fetch init object
+ * @param init.allowIPAddressList Private IP addresses or CIDR ranges that may
+ *   be requested. Defaults to the ALLOWED_PRIVATE_IP_ADDRESSES environment
+ *   variable; pass an empty list to block every private address.
  * @returns The response
  */
 export default async function fetch(
   url: string,
   init?: RequestInit & {
     allowPrivateIPAddress?: boolean;
+    allowIPAddressList?: string[];
     timeout?: number;
   }
 ): Promise<Response> {
   Logger.silly("http", `Network request to ${url}`, init);
 
-  const { allowPrivateIPAddress, timeout, ...rest } = init || {};
+  const {
+    allowPrivateIPAddress,
+    allowIPAddressList = env.ALLOWED_PRIVATE_IP_ADDRESSES ?? [],
+    timeout,
+    ...rest
+  } = init || {};
 
   // Create AbortController for timeout if specified
   let abortController: AbortController | undefined;
@@ -151,10 +160,7 @@ export default async function fetch(
     if (getProxyForUrl(parsedURL.href)) {
       await validateTargetURL(
         parsedURL,
-        {
-          allowPrivateIPAddress,
-          allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES ?? [],
-        },
+        { allowPrivateIPAddress, allowIPAddressList },
         signal
       );
     }
@@ -168,7 +174,11 @@ export default async function fetch(
       ...rest,
       headers,
       signal,
-      agent: buildAgent(url, { signal, allowPrivateIPAddress }),
+      agent: buildAgent(url, {
+        signal,
+        allowPrivateIPAddress,
+        allowIPAddressList,
+      }),
     });
 
     if (!response.ok) {
@@ -263,6 +273,7 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * @param options Options controlling agent behavior.
  * @param options.signal An abort signal used to destroy the agent on cancellation or timeout.
  * @param options.allowPrivateIPAddress Whether to allow requests to private IP addresses.
+ * @param options.allowIPAddressList Private IP addresses or CIDR ranges that may be requested.
  * @returns An http or https agent configured for the URL.
  */
 function buildAgent(
@@ -270,6 +281,7 @@ function buildAgent(
   options: {
     signal?: AbortSignal | null;
     allowPrivateIPAddress?: boolean;
+    allowIPAddressList?: string[];
   } = {}
 ) {
   const agentOptions = { ...DefaultOptions };
@@ -277,11 +289,11 @@ function buildAgent(
   const proxyURL = getProxyForUrl(parsedURL.href);
   let agent: https.Agent | http.Agent | undefined;
 
-  // Add allowIPAddressList from environment configuration
   const filteringOptions = {
     ...agentOptions,
     allowPrivateIPAddress: options.allowPrivateIPAddress,
-    allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES ?? [],
+    allowIPAddressList:
+      options.allowIPAddressList ?? env.ALLOWED_PRIVATE_IP_ADDRESSES ?? [],
   };
 
   if (proxyURL) {

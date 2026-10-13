@@ -9,6 +9,7 @@ import {
   runInAction,
 } from "mobx";
 import { computedFn, now } from "mobx-utils";
+import type { Accept } from "react-dropzone";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   AttachmentPreset,
@@ -30,7 +31,7 @@ import type {
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { extname, uploadFile } from "~/utils/files";
+import { extname, toDropzoneAccept, uploadFile } from "~/utils/files";
 
 type FetchPageParams = PaginationParams & {
   template?: boolean;
@@ -92,14 +93,11 @@ export default class DocumentsStore extends Store<Document> {
     "application/pdf",
   ];
 
+  importFileTypesAccept: Accept = toDropzoneAccept(this.importFileTypes);
+
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
     makeObservable(this);
-  }
-
-  @computed
-  get importFileTypesString(): string {
-    return this.importFileTypes.join(",");
   }
 
   @computed
@@ -297,10 +295,7 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   get(id: string): Document | undefined {
-    return id
-      ? (this.data.get(id) ??
-          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
-      : undefined;
+    return this.getByIdOrUrlId(id);
   }
 
   @computed

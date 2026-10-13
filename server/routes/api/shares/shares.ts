@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -554,7 +554,7 @@ router.post(
       share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
     await new ShareSubscriptionConfirmEmail({
       to: email,
-      documentTitle: document?.titleWithDefault ?? "",
+      documentTitle: document?.displayTitle ?? "",
       confirmUrl,
       teamName: usePublicBranding ? share.team?.name : undefined,
     }).schedule();

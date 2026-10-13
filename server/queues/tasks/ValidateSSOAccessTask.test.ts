@@ -1,5 +1,5 @@
 import { subMinutes } from "date-fns";
-import { UserAuthentication } from "@server/models";
+import { Event, UserAuthentication } from "@server/models";
 import { buildUser } from "@server/test/factories";
 import { mockTaskSchedule } from "@server/test/support";
 import SyncUserGroupsTask from "./SyncUserGroupsTask";
@@ -42,5 +42,31 @@ describe("ValidateSSOAccessTask", () => {
     await new ValidateSSOAccessTask().perform({ userId: user.id });
 
     expect(schedule).not.toHaveBeenCalled();
+  });
+
+  it("should revoke sessions and sign out when access is no longer valid", async () => {
+    const { user } = await setup({
+      lastValidatedAt: subMinutes(new Date(), 10),
+    });
+    const { jwtSecret } = user;
+    vi.spyOn(UserAuthentication.prototype, "validateAccess").mockResolvedValue(
+      false
+    );
+    const scheduleEvent = vi.spyOn(Event, "schedule");
+
+    await new ValidateSSOAccessTask().perform({ userId: user.id });
+
+    await user.reload();
+    expect(user.jwtSecret).not.toEqual(jwtSecret);
+    expect(scheduleEvent).toHaveBeenCalledWith({
+      name: "users.signout",
+      userId: user.id,
+      actorId: user.id,
+      teamId: user.teamId,
+      data: {
+        name: user.name,
+        reason: "sso_revoked",
+      },
+    });
   });
 });

@@ -170,7 +170,7 @@ function DocumentListItem(props: Props) {
         pathname: documentPath(document),
         search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
         state: {
-          title: document.titleWithDefault,
+          title: document.displayTitle,
           sidebarContext,
         },
       }}
@@ -213,7 +213,7 @@ function DocumentListItem(props: Props) {
         <Content>
           <Heading dir={document.dir}>
             <Title
-              text={document.titleWithDefault}
+              text={document.displayTitle}
               highlight={highlight}
               dir={document.dir}
             />

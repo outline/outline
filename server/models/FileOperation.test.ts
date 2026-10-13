@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { EmptyResultError } from "sequelize";
 import {
   FileOperationFormat,
   FileOperationState,
@@ -116,6 +117,12 @@ describe("FileOperation", () => {
           rejectOnEmpty: error,
         })
       ).rejects.toThrow(error);
+    });
+
+    it("should throw when rejectOnEmpty is set and the id is not a string", async () => {
+      await expect(
+        FileOperation.findByPk(123, { rejectOnEmpty: true })
+      ).rejects.toThrow(EmptyResultError);
     });
   });
 });

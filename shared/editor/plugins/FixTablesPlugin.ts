@@ -3,30 +3,43 @@ import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { TableMap } from "prosemirror-tables";
 import { changedDescendants } from "../lib/changedDescendants";
-import { getCellsInColumn } from "../queries/table";
+import { isValidCellSpan } from "../lib/table";
 
 /**
  * A ProseMirror plugin that fixes various ways that tables can end up in an incorrect state:
  *
  * - The last column in a table should fill the remaining width
  * - Header cells should only exist in the first row or column
+ * - Cells should span at least one row and column
  */
-export class FixTablesPlugin extends Plugin {
+export class FixTablesPlugin extends Plugin<boolean> {
   constructor() {
     super({
+      state: {
+        // Whether any document change has been applied since load
+        init: () => false,
+        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
+      },
       appendTransaction: (_transactions, oldState, state) => {
-        let tr: Transaction | undefined;
+        if (oldState.doc === state.doc) {
+          return undefined;
+        }
+
+        const tr = state.tr;
         const check = (node: Node, pos: number) => {
           if (node.type.spec.tableRole === "table") {
-            tr = this.fixTable(state, node, pos, tr);
+            this.fixTable(state, node, pos, tr);
           }
         };
-        if (!oldState) {
+
+        // Tables loaded in a bad state are repaired on the first edit. After
+        // that only changed tables are checked.
+        if (!this.getState(oldState)) {
           state.doc.descendants(check);
-        } else if (oldState.doc !== state.doc) {
+        } else {
           changedDescendants(oldState.doc, state.doc, 0, check);
         }
-        return tr;
+        return tr.docChanged ? tr : undefined;
       },
     });
   }
@@ -35,22 +48,23 @@ export class FixTablesPlugin extends Plugin {
     state: EditorState,
     table: Node,
     pos: number,
-    tr: Transaction | undefined
-  ): Transaction | undefined {
-    let fixed = false;
+    tr: Transaction
+  ) {
     const map = TableMap.get(table);
-    if (!tr) {
-      tr = state.tr;
-    }
 
     // If the table has only one column, remove the colwidth attribute on all cells
     if (map.width === 1) {
-      const cells = getCellsInColumn(0)(state);
-      cells.forEach((cellPos) => {
+      const cells = map.cellsInRect({
+        left: 0,
+        top: 0,
+        right: 1,
+        bottom: map.height,
+      });
+      cells.forEach((offset) => {
+        const cellPos = pos + 1 + offset;
         const node = state.doc.nodeAt(cellPos);
         if (node?.attrs.colwidth) {
-          fixed = true;
-          tr = tr!.setNodeMarkup(cellPos, undefined, {
+          tr.setNodeMarkup(cellPos, undefined, {
             ...node?.attrs,
             colwidth: null,
           });
@@ -71,15 +85,21 @@ export class FixTablesPlugin extends Plugin {
       const cellPos = cellPositions[i];
       const cell = table.nodeAt(cellPos);
       if (cell && cell.type === state.schema.nodes.th) {
-        fixed = true;
-        tr = tr!.setNodeMarkup(
-          cellPos + pos + 1,
-          state.schema.nodes.td,
-          cell.attrs
-        );
+        tr.setNodeMarkup(cellPos + pos + 1, state.schema.nodes.td, cell.attrs);
       }
     }
 
-    return fixed ? tr : undefined;
+    // Cells with an invalid span are left out of the table map, so reset them
+    // to a single row and column.
+    table.forEach((row, rowOffset) => {
+      row.forEach((cell, cellOffset) => {
+        const cellPos = pos + 1 + rowOffset + 1 + cellOffset;
+        for (const name of ["colspan", "rowspan"]) {
+          if (!isValidCellSpan(cell.attrs[name])) {
+            tr.setNodeAttribute(cellPos, name, 1);
+          }
+        }
+      });
+    });
   }
 }

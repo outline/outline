@@ -5,6 +5,7 @@ import { Team, TeamDomain } from "@server/models";
 import {
   buildTeam,
   buildAdmin,
+  buildApiKey,
   buildUser,
   buildInvite,
   buildViewer,
@@ -1127,6 +1128,25 @@ describe("#users.updateEmail", () => {
       expect(res.status).toEqual(401);
       expect(body).toMatchSnapshot();
     });
+
+    it("should not allow an API key", async () => {
+      const spy = vi.spyOn(ConfirmUpdateEmail.prototype, "schedule");
+      onTestFinished(() => spy.mockRestore());
+      const user = await buildUser();
+      const apiKey = await buildApiKey({ userId: user.id });
+      const res = await server.post("/api/users.updateEmail", {
+        headers: { authorization: `Bearer ${apiKey.value}` },
+        body: {
+          email: faker.internet.email(),
+        },
+      });
+
+      const body = await res.json();
+
+      expect(res.status).toEqual(403);
+      expect(body.message).toEqual("Invalid authentication type");
+      expect(spy).not.toHaveBeenCalled();
+    });
   });
 
   describe("get", () => {
@@ -1142,6 +1162,28 @@ describe("#users.updateEmail", () => {
 
       await user.reload();
       expect(user.email).toEqual(email);
+    });
+
+    it("should not allow an API key", async () => {
+      const user = await buildUser();
+      const previousEmail = user.email;
+      const apiKey = await buildApiKey({ userId: user.id });
+      const res = await server.get(
+        `/api/users.updateEmail?code=${user.getEmailUpdateToken(
+          faker.internet.email()
+        )}&follow=true`,
+        {
+          redirect: "manual",
+          headers: { authorization: `Bearer ${apiKey.value}` },
+        }
+      );
+
+      const body = await res.json();
+
+      expect(res.status).toEqual(403);
+      expect(body.message).toEqual("Invalid authentication type");
+      await user.reload();
+      expect(user.email).toEqual(previousEmail);
     });
   });
 });

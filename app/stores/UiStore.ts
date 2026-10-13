@@ -130,7 +130,7 @@ class UiStore {
   setPresentingDocument = (document: Document | null): void => {
     this.presentationData = document
       ? {
-          title: document.titleWithDefault,
+          title: document.displayTitle,
           icon: document.icon,
           color: document.color,
           data: document.data,
