@@ -81,6 +81,26 @@ function GridTemplate({
   // 24px padding for the Grid Container
   const itemsPerRow = Math.max(1, Math.floor((width - 24) / buttonSize));
 
+  const [lastClicked, setLastClicked] = React.useState<{
+    category: DataNode["category"];
+    value: string;
+  }>();
+
+  // Highlight the selection in only one category: the one it was clicked in,
+  // otherwise the first category that contains it.
+  const containsSelected = (node: DataNode) =>
+    node.icons.some((icon) => valueOf(icon) === selected);
+  const selectedCategory = selected
+    ? (
+        data.find(
+          (node) =>
+            lastClicked?.value === selected &&
+            node.category === lastClicked.category &&
+            containsSelected(node)
+        ) ?? data.find(containsSelected)
+      )?.category
+    : undefined;
+
   const gridItems = compact(
     data.flatMap((node) => {
       const category = (
@@ -103,13 +123,19 @@ function GridTemplate({
 
       const items = node.icons.map((item) => {
         const handleActive = () => onIconActive?.(item);
+        const handleSelect = (id: string, value: string) => {
+          setLastClicked({ category: node.category, value });
+          onIconSelect({ id, value });
+        };
+        const isSelected =
+          node.category === selectedCategory && valueOf(item) === selected;
 
         if (item.type === IconType.SVG) {
           return (
             <IconButton
               key={item.name}
-              onClick={() => onIconSelect({ id: item.name, value: item.name })}
-              aria-current={item.name === selected ? "true" : undefined}
+              onClick={() => handleSelect(item.name, item.name)}
+              aria-current={isSelected ? "true" : undefined}
               onMouseEnter={handleActive}
               onFocus={handleActive}
               style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
@@ -128,8 +154,8 @@ function GridTemplate({
         return (
           <IconButton
             key={item.id}
-            onClick={() => onIconSelect({ id: item.id, value: item.value })}
-            aria-current={item.value === selected ? "true" : undefined}
+            onClick={() => handleSelect(item.id, item.value)}
+            aria-current={isSelected ? "true" : undefined}
             onMouseEnter={handleActive}
             onFocus={handleActive}
           >
@@ -165,6 +191,9 @@ function GridTemplate({
     />
   );
 }
+
+const valueOf = (icon: IconNode) =>
+  icon.type === IconType.SVG ? icon.name : icon.value;
 
 const CategoryName = styled(Text)`
   grid-column: 1 / -1;
