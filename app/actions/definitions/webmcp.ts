@@ -25,7 +25,7 @@ export const getCurrentContext = createAction({
       document: document
         ? {
             id: document.id,
-            title: document.titleWithDefault,
+            title: document.displayTitle,
             path: document.url,
           }
         : undefined,
@@ -69,7 +69,7 @@ export const searchWorkspace = createAction({
     return JSON.stringify(
       results.map((result) => ({
         id: result.document.id,
-        title: result.document.titleWithDefault,
+        title: result.document.displayTitle,
         path: result.document.url,
         context: result.context,
       }))

@@ -50,7 +50,7 @@ function NewChildDocumentMenu({ document }: Props) {
           <Trans
             defaults="New document in <em>{{ collectionName }}</em>"
             values={{
-              collectionName: document.titleWithDefault,
+              collectionName: document.displayTitle,
             }}
             components={{
               em: <strong />,
@@ -66,7 +66,7 @@ function NewChildDocumentMenu({ document }: Props) {
       collectionName,
       canCollection.createDocument,
       document.id,
-      document.titleWithDefault,
+      document.displayTitle,
       document.collectionId,
     ]
   );

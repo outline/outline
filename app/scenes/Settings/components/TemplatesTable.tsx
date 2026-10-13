@@ -89,7 +89,7 @@ export function TemplatesTable(props: Props) {
           type: "data",
           id: "title",
           header: t("Title"),
-          accessor: (template) => template.titleWithDefault,
+          accessor: (template) => template.displayTitle,
           component: (template) => <TemplateLink template={template} />,
           width: "4fr",
         },
@@ -167,9 +167,9 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
         <ShapesIcon size={24} color={theme.textSecondary} />
       )}
       {can.update ? (
-        <Title>{template.titleWithDefault}</Title>
+        <Title>{template.displayTitle}</Title>
       ) : (
-        <Text>{template.titleWithDefault}</Text>
+        <Text>{template.displayTitle}</Text>
       )}
       {template.isDraft && (
         <Tooltip content={t("Only visible to you")} placement="top">

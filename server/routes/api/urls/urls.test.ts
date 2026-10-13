@@ -226,7 +226,7 @@ describe("#urls.unfurl", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Document);
-    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.title).toEqual(document.displayTitle);
     expect(body.id).toEqual(document.id);
   });
 
@@ -348,7 +348,7 @@ Install instructions here.`
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Document);
-    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.title).toEqual(document.displayTitle);
     expect(body.id).toEqual(document.id);
   });
 
@@ -372,7 +372,7 @@ Install instructions here.`
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Document);
-    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.title).toEqual(document.displayTitle);
     expect(body.id).toEqual(document.id);
   });
 
@@ -395,7 +395,7 @@ Install instructions here.`
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Document);
-    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.title).toEqual(document.displayTitle);
     expect(body.id).toEqual(document.id);
   });
 

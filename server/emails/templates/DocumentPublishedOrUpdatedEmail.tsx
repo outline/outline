@@ -118,7 +118,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
   protected subject({ document, eventType }: Props) {
     return this.t(`“{{ documentTitle }}” {{ eventName }}`, {
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
       eventName: this.eventName(eventType),
     });
   }
@@ -153,9 +153,9 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     const eventName = this.eventName(eventType);
 
     return `
-${this.t("“{{ documentTitle }}” {{ eventName }}", { documentTitle: document.titleWithDefault, eventName })}
+${this.t("“{{ documentTitle }}” {{ eventName }}", { documentTitle: document.displayTitle, eventName })}
 
-${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName, eventName, documentTitle: document.titleWithDefault })}${
+${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName, eventName, documentTitle: document.displayTitle })}${
       collection?.name
         ? `, ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
         : ""
@@ -188,7 +188,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
         <Body>
           <Heading>
             {this.t(`“{{ documentTitle }}” {{ eventName }}`, {
-              documentTitle: document.titleWithDefault,
+              documentTitle: document.displayTitle,
               eventName,
             })}
           </Heading>
@@ -197,7 +197,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
               actorName,
               eventName,
             })}{" "}
-            <a href={documentLink}>{document.titleWithDefault}</a>
+            <a href={documentLink}>{document.displayTitle}</a>
             {collection?.name ? (
               <>
                 ,{" "}

@@ -84,7 +84,7 @@ export const deleteTemplate = dialogActionFactory({
           <Trans
             defaults="Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent."
             values={{
-              templateName: templates[0].titleWithDefault,
+              templateName: templates[0].displayTitle,
             }}
             components={{
               em: <strong />,

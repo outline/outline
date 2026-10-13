@@ -238,7 +238,7 @@ function ReferenceListItem({
   const { icon, color } = document;
   const isEmoji = determineIconType(icon) === IconType.Emoji;
   const title =
-    document instanceof Document ? document.titleWithDefault : document.title;
+    document instanceof Document ? document.displayTitle : document.title;
   const initial = title.charAt(0).toUpperCase();
   const showContextMenu = document instanceof Document && !!user;
 

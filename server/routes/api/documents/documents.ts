@@ -1055,7 +1055,7 @@ router.post(
     const extension =
       contentType === "text/markdown" ? "md" : mime.extension(contentType);
 
-    const fileName = slugify(document.titleWithDefault);
+    const fileName = slugify(document.displayTitle);
     const attachmentIds = ProsemirrorHelper.parseAttachmentIds(
       DocumentHelper.toProsemirror(document)
     );

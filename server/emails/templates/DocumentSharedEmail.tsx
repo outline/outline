@@ -59,7 +59,7 @@ export default class DocumentSharedEmail extends BaseEmail<
   protected subject({ actorName, document }: Props) {
     return this.t(`{{ actorName }} shared “{{ documentTitle }}” with you`, {
       actorName,
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
     });
   }
 
@@ -73,7 +73,7 @@ export default class DocumentSharedEmail extends BaseEmail<
 
   protected renderAsText({ actorName, teamUrl, document }: Props): string {
     return `
-${this.t(`{{ actorName }} shared “{{ documentTitle }}” with you.`, { actorName, documentTitle: document.titleWithDefault })}
+${this.t(`{{ actorName }} shared “{{ documentTitle }}” with you.`, { actorName, documentTitle: document.displayTitle })}
 
 ${this.t("View Document")}: ${teamUrl}${document.path}
 `;
@@ -96,13 +96,13 @@ ${this.t("View Document")}: ${teamUrl}${document.path}
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {this.t("{{ actorName }} invited you to {{ permission }} the", {
               actorName,
               permission,
             })}{" "}
-            <a href={documentUrl}>{document.titleWithDefault}</a>{" "}
+            <a href={documentUrl}>{document.displayTitle}</a>{" "}
             {this.t("document")}.
           </p>
           <p>

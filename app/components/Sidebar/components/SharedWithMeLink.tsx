@@ -184,7 +184,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const label =
     determineIconType(docIcon) === IconType.Emoji
       ? document.title.replace(docIcon!, "")
-      : document.titleWithDefault;
+      : document.displayTitle;
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
