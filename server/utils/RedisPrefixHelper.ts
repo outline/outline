@@ -91,4 +91,16 @@ export class RedisPrefixHelper {
   public static getLogoutTokenKey(provider: string, sessionId: string) {
     return `auth:logout:${provider}:${sessionId}`;
   }
+
+  /**
+   * Gets key for recording a consumed provider logout token, used to reject a
+   * token that is presented more than once.
+   *
+   * @param provider The auth provider id (e.g. "oidc").
+   * @param tokenId The unique token identifier to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getLogoutTokenReplayKey(provider: string, tokenId: string) {
+    return `auth:logout:${provider}:replay:${tokenId}`;
+  }
 }
