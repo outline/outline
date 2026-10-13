@@ -213,7 +213,7 @@
     "prosemirror-schema-list": "^1.5.1",
     "prosemirror-state": "^1.4.4",
     "prosemirror-tables": "^1.8.5",
-    "prosemirror-transform": "1.10.5",
+    "prosemirror-transform": "1.12.2",
     "prosemirror-view": "^1.42.3",
     "proxy-from-env": "^1.1.0",
     "query-string": "^9.5.0",
@@ -360,7 +360,7 @@
   "resolutions": {
     "@types/react": "19.3.0",
     "@types/koa": "2.15.1",
-    "prosemirror-transform": "1.10.5",
+    "prosemirror-transform": "1.12.2",
     "prismjs": "1.30.0",
     "zod": "^4.5.4",
     "@types/markdown-it": "14.2.0",
