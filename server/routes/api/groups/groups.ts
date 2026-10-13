@@ -1,4 +1,3 @@
-import { compact, uniqBy } from "es-toolkit";
 import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -451,20 +450,13 @@ router.post(
       }),
     ]);
 
-    const users = uniqBy(
-      compact(
-        groupUsers.flatMap((groupUser) => [groupUser.user, groupUser.createdBy])
-      ),
-      (u) => u.id
-    );
-
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
         groupMemberships: groupUsers.map((groupUser) =>
           presentGroupUser(groupUser, { includeUser: true })
         ),
-        users: users.map((u) => presentUser(u)),
+        users: groupUsers.map((groupUser) => presentUser(groupUser.user)),
       },
     };
   }

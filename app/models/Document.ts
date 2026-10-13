@@ -136,6 +136,12 @@ export default class Document extends ArchivableModel implements Searchable {
   collection?: Collection;
 
   /**
+   * The owner of the personal collection that this document is in, if any.
+   */
+  @observable
+  ownerId?: string | null;
+
+  /**
    * The title of the document.
    */
   @Field

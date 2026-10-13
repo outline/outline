@@ -125,6 +125,8 @@ yarn sequelize migration:create --name=add-field-to-table
 - Use transactions for multi-table operations.
 - Add appropriate indexes for query performance.
 - Always handle database errors gracefully.
+- When updating Sequelize array or JSON attributes, replace the value instead of mutating it in place; reload the model in tests to verify persistence rather than trusting its in-memory state.
+- Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
 
 ## API Design
 
@@ -142,12 +144,15 @@ yarn sequelize migration:create --name=add-field-to-table
 - Use cancan-style ability checks.
 - Use authenticated middleware for protected routes.
 - Always verify user permissions before data access.
+- Set account email and passkey management routes to `AuthenticationType.APP`; API-key authentication must not change login credentials or authenticators.
 
 ## Real-time Collaboration
 
 - WebSocket connections for real-time updates.
 - Use Y.js for collaborative editing.
 - Handle connection state changes gracefully.
+- For bulk deletions that drive authorization or WebSocket processing, load affected models in the transaction and delete each with request context so downstream processors receive the expected per-item events.
+- Do not persist viewer-specific unfurls in shared document mentions; only store unfurls that map to a stable mention type.
 
 ## Documentation
 

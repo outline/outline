@@ -429,7 +429,9 @@ class Collection extends ParanoidModel<
     const total = await this.count({
       where: {
         teamId: model.teamId,
+        ownerId: null,
       },
+      transaction: options.transaction,
     });
     if (total === 1) {
       throw ValidationError("Cannot delete last collection");
@@ -515,6 +517,19 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeUpdate
+  static checkPersonal(model: Collection) {
+    if (!model.ownerId) {
+      return;
+    }
+    if (model.changed("name")) {
+      throw ValidationError("A personal collection cannot be renamed");
+    }
+    if (model.changed("permission") && model.permission) {
+      throw ValidationError("A personal collection must stay private");
+    }
+  }
+
+  @BeforeUpdate
   static async checkIndex(
     model: Collection,
     options: UpdateOptions<Collection>
@@ -568,6 +583,15 @@ class Collection extends ParanoidModel<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   archivedById?: string | null;
+
+  /** The user that owns this collection, if it is a personal collection. */
+  @BelongsTo(() => User, "ownerId")
+  owner?: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  ownerId: string | null;
 
   @HasMany(() => Document, "collectionId")
   documents: Document[];
@@ -751,6 +775,7 @@ class Collection extends ParanoidModel<
     return this.findOne({
       where: {
         teamId: user.teamId,
+        ownerId: null,
         id,
       },
       order: [
@@ -763,6 +788,81 @@ class Collection extends ParanoidModel<
   }
 
   /**
+   * Find the personal collection of a user, with the memberships of the user
+   * loaded.
+   *
+   * @param user The user that owns the collection.
+   * @param options Additional options for the query.
+   * @returns the personal collection, or null if the user has none.
+   */
+  static async findPersonal(
+    user: User,
+    options: Omit<FindOptions<Collection>, "where"> = {}
+  ) {
+    return this.scope([
+      "defaultScope",
+      { method: ["withMembership", user.id] },
+    ]).findOne({
+      ...options,
+      where: {
+        teamId: user.teamId,
+        ownerId: user.id,
+      },
+    });
+  }
+
+  /**
+   * Find the personal collection of the user in the context, and create it if
+   * the user does not have one yet. The caller must authorize the creation.
+   *
+   * @param ctx The request context with the acting user and a transaction.
+   * @returns the personal collection of the user.
+   */
+  static async findOrCreatePersonal(ctx: APIContext): Promise<Collection> {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const existing = await this.findPersonal(user, { transaction });
+    if (existing) {
+      return existing;
+    }
+
+    await LockHelper.acquire(
+      this.sequelize!,
+      `collections:personal:${user.teamId}:${user.id}`,
+      transaction
+    );
+
+    const locked = await this.findPersonal(user, { transaction });
+    if (locked) {
+      return locked;
+    }
+
+    const collection = await this.createWithCtx(ctx, {
+      name: "Personal",
+      teamId: user.teamId,
+      createdById: user.id,
+      ownerId: user.id,
+      permission: null,
+    });
+
+    // The owner membership is created without hooks, so clear the cache here.
+    const invalidate = () =>
+      CacheHelper.clearData(RedisPrefixHelper.getUserCollectionIdsKey(user.id));
+    if (transaction) {
+      transaction.afterCommit(invalidate);
+    } else {
+      await invalidate();
+    }
+
+    return this.findByPk(collection.id, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+  }
+
+  /**
    * Convenience method to return if a collection is considered private.
    * This means that a membership is required to view it rather than just being
    * a workspace member.
@@ -771,6 +871,16 @@ class Collection extends ParanoidModel<
    */
   get isPrivate() {
     return !this.permission;
+  }
+
+  /**
+   * Whether this collection is the personal collection of a user. A personal
+   * collection is private and only its owner can see or manage it.
+   *
+   * @returns boolean
+   */
+  get isPersonal() {
+    return !!this.ownerId;
   }
 
   /**

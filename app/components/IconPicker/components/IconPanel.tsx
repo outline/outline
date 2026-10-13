@@ -24,6 +24,7 @@ const GRID_HEIGHT = 314 - PREVIEW_HEIGHT;
 type Props = {
   panelWidth: number;
   initial: string;
+  icon: string | null;
   color: string;
   query: string;
   panelActive: boolean;
@@ -35,6 +36,7 @@ type Props = {
 const IconPanel = ({
   panelWidth,
   initial,
+  icon,
   color,
   query,
   panelActive,
@@ -153,6 +155,7 @@ const IconPanel = ({
         width={panelWidth}
         height={GRID_HEIGHT}
         data={templateData}
+        selected={icon}
         onIconSelect={handleIconSelection}
         onIconActive={handleIconActive}
         onOverflowChange={setHasMoreBelow}

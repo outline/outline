@@ -97,7 +97,7 @@ export function TemplatesTable(props: Props) {
           type: "data",
           id: "collectionId",
           header: t("Visibility"),
-          accessor: (template) => template.collection?.name,
+          accessor: (template) => template.collection?.displayName,
           component: (template) => <Permission template={template} />,
           width: "2fr",
         },
@@ -198,7 +198,9 @@ const Permission = observer(({ template }: { template: Template }) => {
       {template.collection ? (
         <CollectionIcon collection={template.collection} />
       ) : null}
-      {template.collectionId ? template.collection?.name : t("Workspace")}
+      {template.collectionId
+        ? template.collection?.displayName
+        : t("Workspace")}
     </Flex>
   );
 });

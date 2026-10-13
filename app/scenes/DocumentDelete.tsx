@@ -59,7 +59,10 @@ function DocumentDelete({ document, onSubmit }: Props) {
             }
           }
 
-          const path = collection ? collectionPath(collection) : homePath();
+          const path =
+            collection && !collection.isPersonal
+              ? collectionPath(collection)
+              : homePath();
           history.push(path);
         }
 

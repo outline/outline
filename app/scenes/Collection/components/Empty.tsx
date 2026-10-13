@@ -12,7 +12,7 @@ type Props = {
 };
 
 function EmptyCollection({ collection }: Props) {
-  const collectionName = collection ? collection.name : "";
+  const collectionName = collection ? collection.displayName : "";
 
   return (
     <Fade>

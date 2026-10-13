@@ -394,7 +394,7 @@ export function useDropToChangeCollection(
                 "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
                 {
                   documentName: item.title,
-                  collectionName: collection.name,
+                  collectionName: collection.displayName,
                 }
               )
             );

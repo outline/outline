@@ -165,7 +165,7 @@ function CollectionRow({
 
   const labelElement = canEdit ? (
     <EditableTitle
-      title={labelText ?? collection.name}
+      title={labelText ?? collection.displayName}
       onSubmit={onTitleChange ?? (async () => undefined)}
       isEditing={isEditing}
       onEditing={setIsEditing}
@@ -174,7 +174,7 @@ function CollectionRow({
       ref={editableTitleRef}
     />
   ) : (
-    collection.name
+    collection.displayName
   );
 
   const iconElement = icon ?? (
@@ -212,7 +212,7 @@ function CollectionRow({
       {
         id: collection.id,
         url: collection.path,
-        title: collection.name,
+        title: collection.displayName,
         sidebarContext,
         collapsedChildren: expanded ? undefined : collection.sortedDocuments,
       },

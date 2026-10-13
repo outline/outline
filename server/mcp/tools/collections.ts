@@ -28,11 +28,14 @@ import {
  * @param collection - the collection to present.
  * @returns the presented collection object.
  */
-export function presentCollection(collection: Collection) {
-  return presentCollectionBase(undefined, collection, {
-    includeData: false,
-    includeText: true,
-  });
+export async function presentCollection(collection: Collection) {
+  return {
+    ...(await presentCollectionBase(undefined, collection, {
+      includeData: false,
+      includeText: true,
+    })),
+    isPersonal: collection.isPersonal,
+  };
 }
 
 /**

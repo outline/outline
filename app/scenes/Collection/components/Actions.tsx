@@ -53,7 +53,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
 
   return (
     <>
-      {(!isEditing || !user?.separateEditMode) && (
+      {(!isEditing || !user?.separateEditMode) && !collection.isPersonal && (
         <Action>
           <ShareButton collection={collection} />
         </Action>

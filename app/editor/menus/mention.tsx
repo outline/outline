@@ -128,7 +128,7 @@ export function collectionMentionItem(
     ) : (
       <CollectionIcon />
     ),
-    title: collection.name,
+    title: collection.displayName,
     section: CollectionsSection,
     appendSpace: true,
     attrs: {
@@ -136,7 +136,7 @@ export function collectionMentionItem(
       type: MentionType.Collection,
       modelId: collection.id,
       actorId,
-      label: collection.name,
+      label: collection.displayName,
     },
   };
 }

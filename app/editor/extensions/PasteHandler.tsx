@@ -197,7 +197,7 @@ export default class PasteHandler extends Extension {
                                 state.schema.nodes.mention.create({
                                   type: MentionType.Collection,
                                   modelId: collection.id,
-                                  label: collection.name,
+                                  label: collection.displayName,
                                   id: uuidv4(),
                                 })
                               )
@@ -209,7 +209,7 @@ export default class PasteHandler extends Extension {
                               IconType.Emoji;
 
                             const title = `${hasEmoji ? collection.icon + " " : ""}${
-                              collection.name
+                              collection.displayName
                             }`;
 
                             this.insertLink(`${collection.path}${hash}`, title);
