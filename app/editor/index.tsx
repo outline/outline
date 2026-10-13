@@ -394,6 +394,7 @@ export class Editor extends React.PureComponent<
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
     if (this.renderFrame !== undefined) {
       cancelAnimationFrame(this.renderFrame);
+      this.renderFrame = undefined;
     }
     this.view?.destroy();
     this.mutationObserver?.disconnect();
