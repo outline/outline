@@ -826,6 +826,25 @@ describe("PostgresSearchProvider", () => {
       expect(total).toBe(0);
     });
 
+    it("should handle a query that starts with a quote after an identifier", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        text: "When dsws_config.2.ws_fp4tofp8_cvt == 1",
+      });
+      const { total } = await provider.searchForUser(user, {
+        query: "ws_fp4tofp8_cvt ' foo",
+      });
+      expect(total).toBe(0);
+    });
+
     it("should return context that is not shifted by earlier highlights", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
@@ -1717,6 +1736,11 @@ describe("PostgresSearchProvider", () => {
         `"plugins"`
       );
     });
+
+    it("should strip a leading join operator", () => {
+      expect(PostgresSearchProvider.webSearchQuery("' foo")).toBe("foo:*");
+    });
+
     it("should not escape colons outside of a phrase", () => {
       // pg-tsquery drops an unquoted colon but keeps a preceding backslash,
       // so escaping here would leave a dangling "\" operand.

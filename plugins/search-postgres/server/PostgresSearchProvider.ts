@@ -897,6 +897,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         // combination, so we never hand to_tsquery an operator with no
         // operand (e.g. a tail of "&\" would leave a dangling "&").
         .replace(/[&\\]+$/, "")
+        // A leading single quote can also leave a join with no operand.
+        .replace(/^&+/, "")
     );
   }
 
