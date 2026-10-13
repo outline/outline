@@ -5,6 +5,7 @@ import fetch from "@server/utils/fetch";
 export interface AccessToken {
   /** The bearer token value. */
   value: string;
+
   /** When the token expires, in milliseconds since the epoch. */
   expiresAt: number;
 }
@@ -47,6 +48,7 @@ export async function fetchAccessToken(
 
   return {
     value: data.access_token,
+
     // Expire a minute early so a token is never used as it lapses.
     expiresAt:
       Date.now() +

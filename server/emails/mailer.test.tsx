@@ -82,6 +82,7 @@ describe("Mailer", () => {
     expect(provider.mime).toContain("Subject: Welcome to Outline");
     expect(provider.mime).toContain("To: user@example.com");
     expect(provider.mime).toContain("From: Outline <outline@example.com>");
+
     // Both the rendered HTML and the plain text alternative.
     expect(provider.mime).toContain("Hello there");
     expect(provider.mime).toContain("text/html");
@@ -89,6 +90,7 @@ describe("Mailer", () => {
 
   it("should keep the inline logo attachment on the provider path", async () => {
     env.EMAIL_PROVIDER = "capturing";
+
     // The logo is only attached for self hosted installations.
     env.URL = "https://wiki.example.com";
 
@@ -125,6 +127,7 @@ describe("Mailer", () => {
     });
 
     expect(provider.mime).toContain("X-Test-Tag: InviteEmail");
+
     // The SMTP provider detection must not also apply.
     expect(provider.mime).not.toContain("X-SES-MESSAGE-TAGS");
   });

@@ -42,6 +42,7 @@ export class SESEmailProvider extends BaseEmailProvider {
     await client.send(
       new sdk.SendEmailCommand({
         Content: { Raw: { Data: mime } },
+
         // Supplied explicitly so that the envelope, rather than the message
         // headers, decides who the message is actually delivered to.
         FromEmailAddress: envelope.from || undefined,

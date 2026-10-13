@@ -93,6 +93,7 @@ describe("GmailEmailProvider", () => {
     expect(sends[0].headers.get("authorization")).toBe("Bearer token-1");
 
     const { raw } = JSON.parse(sends[0].body);
+
     // Standard base64 would risk + and / being mangled in a JSON string.
     expect(raw).toMatch(/^[A-Za-z0-9_-]+$/);
 
@@ -194,6 +195,7 @@ describe("GmailEmailProvider", () => {
     await expect(send()).rejects.toThrow(
       /GOOGLE_MAIL_CLIENT_EMAIL and GOOGLE_MAIL_PRIVATE_KEY are required/
     );
+
     // The message must name the Workspace requirement, since this cannot work
     // with a personal Gmail account however it is configured.
     await expect(send()).rejects.toThrow(

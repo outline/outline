@@ -67,6 +67,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
+
           // Signals that the body is a base64-encoded MIME message rather than
           // a JSON message resource.
           "Content-Type": "text/plain",

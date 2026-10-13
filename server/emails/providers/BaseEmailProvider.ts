@@ -8,6 +8,7 @@ import { InternalError } from "@server/errors";
 export interface EmailTags {
   /** The broad category of the email, e.g. "notification". */
   category: string;
+
   /** The specific template name, e.g. "InviteEmail". */
   template: string;
 }

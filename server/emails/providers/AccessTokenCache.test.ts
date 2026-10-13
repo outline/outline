@@ -30,6 +30,7 @@ describe("AccessTokenCache", () => {
     const request = vi.fn().mockImplementation(() =>
       Promise.resolve({
         value: `token-${++count}`,
+
         // Already expired, so it is never reused.
         expiresAt: Date.now() - 1,
       })
@@ -79,6 +80,7 @@ describe("AccessTokenCache", () => {
         new Promise((resolve) => {
           count += 1;
           const value = `token-${count}`;
+
           // The first token is already expired, so the concurrent callers
           // below all observe a stale cache entry at the same time.
           const expiresAt = count === 1 ? Date.now() - 1 : Date.now() + 60_000;

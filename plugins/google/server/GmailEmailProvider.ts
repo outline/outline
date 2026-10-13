@@ -69,6 +69,7 @@ export class GmailEmailProvider extends BaseEmailProvider {
     }
 
     const mime = await this.getMimeMessage(message);
+
     // The mailbox is identified by the token's subject, so addressing "me"
     // cannot disagree with the account being impersonated.
     const accessToken = await this.tokens.get(mailbox);
@@ -79,6 +80,7 @@ export class GmailEmailProvider extends BaseEmailProvider {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
+
       // Gmail expects the message web-safe encoded rather than as standard
       // base64, so that it survives being carried in a JSON string.
       body: JSON.stringify({ raw: mime.toString("base64url") }),
