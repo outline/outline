@@ -26,7 +26,8 @@ describe("#hooks.unfurl", () => {
   const buildSlackIntegration = async (
     user: User,
     type: IntegrationType,
-    scopes: string[]
+    scopes: string[],
+    createdAt?: Date
   ) => {
     const authentication = await IntegrationAuthentication.create({
       service: IntegrationService.Slack,
@@ -40,16 +41,18 @@ describe("#hooks.unfurl", () => {
       userId: user.id,
       type,
       authenticationId: authentication.id,
+      createdAt,
     });
     return { integration, authentication };
   };
 
-  const buildCommandIntegration = (user: User) =>
-    buildSlackIntegration(user, IntegrationType.Command, [
-      "commands",
-      "links:read",
-      "links:write",
-    ]);
+  const buildCommandIntegration = (user: User, createdAt?: Date) =>
+    buildSlackIntegration(
+      user,
+      IntegrationType.Command,
+      ["commands", "links:read", "links:write"],
+      createdAt
+    );
 
   const buildPostIntegration = (user: User) =>
     buildSlackIntegration(user, IntegrationType.Post, ["incoming-webhook"]);
@@ -109,6 +112,26 @@ describe("#hooks.unfurl", () => {
     const res = await unfurl(user, document);
     expect(res.status).toEqual(200);
     expect(Slack.post).toHaveBeenCalledTimes(1);
+    expect(Slack.post).toHaveBeenCalledWith(
+      "chat.unfurl",
+      expect.objectContaining({ token: authentication.token })
+    );
+  });
+
+  it("should use the newest command integration", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const { authentication } = await buildCommandIntegration(
+      user,
+      new Date("2026-02-01T00:00:00Z")
+    );
+    await buildCommandIntegration(user, new Date("2026-01-01T00:00:00Z"));
+
+    const res = await unfurl(user, document);
+    expect(res.status).toEqual(200);
     expect(Slack.post).toHaveBeenCalledWith(
       "chat.unfurl",
       expect.objectContaining({ token: authentication.token })
