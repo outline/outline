@@ -20,7 +20,6 @@ import {
   Team,
   SearchQuery,
   Integration,
-  IntegrationAuthentication,
   AuthenticationProvider,
   Comment,
 } from "@server/models";
@@ -63,23 +62,22 @@ router.post(
       return;
     }
 
-    const auth = await IntegrationAuthentication.findOne({
+    const integration = await Integration.scope("withAuthentication").findOne({
       where: {
         service: IntegrationService.Slack,
+        type: IntegrationType.Command,
         teamId: user.teamId,
       },
+      order: [["createdAt", "DESC"]],
     });
 
-    if (!auth) {
-      Logger.debug(
-        "plugins",
-        "No Slack integration authentication found for team",
-        {
-          teamId: user.teamId,
-        }
-      );
+    if (!integration) {
+      Logger.debug("plugins", "No Slack command integration found for team", {
+        teamId: user.teamId,
+      });
       return;
     }
+
     // get content for unfurled links
     const unfurls: Record<
       string,
@@ -122,7 +120,7 @@ router.post(
     }
 
     await Slack.post("chat.unfurl", {
-      token: auth.token,
+      token: integration.authentication.token,
       channel: event.channel,
       ts: event.message_ts,
       unfurls,
