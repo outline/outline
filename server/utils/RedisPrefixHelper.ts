@@ -91,4 +91,14 @@ export class RedisPrefixHelper {
   public static getLogoutTokenKey(provider: string, sessionId: string) {
     return `auth:logout:${provider}:${sessionId}`;
   }
+
+  /**
+   * Gets key for marking an email sign-in token as used.
+   *
+   * @param tokenHash The SHA-256 hash of the sign-in token.
+   * @returns the cache key string.
+   */
+  public static getEmailSigninTokenKey(tokenHash: string) {
+    return `auth:email-signin:${tokenHash}`;
+  }
 }
