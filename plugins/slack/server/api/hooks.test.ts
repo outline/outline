@@ -1,7 +1,12 @@
 import { randomString } from "@shared/random";
 import { IntegrationService } from "@shared/types";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
-import { buildDocument, buildTeam, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import env from "../env";
 import * as Slack from "../slack";
@@ -297,9 +302,94 @@ describe("#hooks.interactive", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.response_type).toEqual("in_channel");
-    expect(body.attachments.length).toEqual(1);
-    expect(body.attachments[0].title).toEqual(document.title);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.blocks.length).toBeGreaterThan(0);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should not post a document from another team", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      title: "Secret document from another team",
+    });
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      user: {
+        id: user.authentications[0].providerId,
+      },
+      team: {
+        id: team.authenticationProviders[0].providerId,
+      },
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.replace_original).toEqual(false);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should not post a document in a collection the user cannot access", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      title: "Secret document in a private collection",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      user: {
+        id: user.authentications[0].providerId,
+      },
+      team: {
+        id: team.authenticationProviders[0].providerId,
+      },
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.replace_original).toEqual(false);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should error if payload has no user or team", async () => {
+    const document = await buildDocument();
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should error if incorrect verification token", async () => {
