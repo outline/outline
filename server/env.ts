@@ -935,6 +935,13 @@ export class Environment {
     return this.ENVIRONMENT === "test";
   }
 
+  /**
+   * Returns the port that the Vite development server listens on.
+   */
+  public get vitePort() {
+    return this.PORT + 1;
+  }
+
   protected toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }
