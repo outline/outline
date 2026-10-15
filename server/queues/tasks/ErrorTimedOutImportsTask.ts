@@ -13,7 +13,6 @@ import { CronTask, TaskInterval } from "./base/CronTask";
  */
 export default class ErrorTimedOutImportsTask extends CronTask {
   public async perform({ limit }: Props) {
-    // TODO: Hardcoded right now, configurable later
     const thresholdHours = 24;
     const cutOffTime = subHours(new Date(), thresholdHours);
     const importsErrored: Record<string, boolean> = {};
