@@ -1,4 +1,3 @@
-/* oxlint-disable lines-between-class-members */
 import { compact, isNil, uniq } from "es-toolkit/compat";
 import type {
   Identifier,

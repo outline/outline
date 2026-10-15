@@ -108,20 +108,13 @@ export const uploadFile = async (
           xhr.setRequestHeader(key, value);
         }
       }
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo...
-      xhr.send(file.blob ? file.file : file);
+      xhr.send(file);
     } else {
       const formData = new FormData();
       for (const key in data.form) {
         formData.append(key, data.form[key]);
       }
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo...
-      if (file.blob) {
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo...
-        formData.append("file", file.file);
-      } else {
-        formData.append("file", file);
-      }
+      formData.append("file", file);
 
       // Do not send credentials if uploading to a different origin, as the
       // combination of CORS and cookies will cause preflight request failure.

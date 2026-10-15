@@ -91,7 +91,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
                 groupsCount,
                 count: groupsCount,
               }),
-        delay: 250,
+        delayDuration: 250,
       }}
       width="auto"
       height="auto"

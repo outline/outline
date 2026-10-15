@@ -130,7 +130,6 @@ function wrapInNativeError(err: any): Error {
   if (typeof err === "object") {
     try {
       errMsg = JSON.stringify(err);
-      // oxlint-disable-next-line no-empty
     } catch (_err) {
       // Ignore
     }

@@ -90,7 +90,7 @@ function Features() {
                   />
                 </Text>
                 <Input readOnly value={mcpEndpoint}>
-                  <Tooltip content={t("Copy URL")} placement="top">
+                  <Tooltip content={t("Copy URL")}>
                     <CopyToClipboard text={mcpEndpoint} onCopy={handleCopied}>
                       <NudeButton type="button" style={{ marginRight: 3 }}>
                         <CopyIcon color={theme.placeholder} size={18} />

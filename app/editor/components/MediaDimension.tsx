@@ -248,7 +248,7 @@ export function MediaDimension() {
     };
   }, [nodeType]);
 
-  // hacky debounce for checking error.
+  // Debounce validation so errors are not shown while typing.
   useEffect(() => {
     const timeout = setTimeout(() => {
       const isWidthError = localDimension.width

@@ -1,4 +1,3 @@
-/* oxlint-disable */
 import { vi } from "vitest";
 
 export const client = {

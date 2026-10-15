@@ -36,7 +36,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const handleStartImport = React.useCallback(async () => {
     setSubmitting();
 
-    // TODO: This can send the page info + permission once we overcome the search timeout issues.
+    // Root pages are fetched on the server to avoid Notion search timeouts.
     const input: ImportInput<IntegrationService.Notion> = [{ permission }];
 
     try {

@@ -98,7 +98,6 @@ export class NotionClient {
     let retries = 0;
     let serverErrorRetries = 0;
 
-    // oxlint-disable-next-line no-constant-condition
     while (true) {
       try {
         await this.limiter();

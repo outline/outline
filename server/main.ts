@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-misused-promises */
 import http from "node:http";
 import https from "node:https";
 import type { AddressInfo } from "node:net";

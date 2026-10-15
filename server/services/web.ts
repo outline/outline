@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-var-requires */
 import { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";

@@ -677,8 +677,9 @@ class User extends ParanoidModel<
     );
 
   /**
-   * Returns a temporary token that is only used for logging in from an email
-   * It can only be used to sign in once and has a medium length expiry
+   * Returns a temporary token that is only used for logging in from an email.
+   * It can only be used to sign in once, from the IP address that requested
+   * it, and expires after 10 minutes.
    *
    * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token

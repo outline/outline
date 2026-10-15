@@ -66,7 +66,7 @@ function ConnectionStatus() {
           </Centered>
         )
       }
-      placement="bottom"
+      side="bottom"
     >
       <Fade>
         <Button width="auto">

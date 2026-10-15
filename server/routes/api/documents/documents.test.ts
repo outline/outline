@@ -5415,7 +5415,6 @@ describe("#documents.move", () => {
 
   it("should move the document", async () => {
     const user = await buildUser();
-    // const admin = await buildAdmin({ teamId: user.teamId });
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,

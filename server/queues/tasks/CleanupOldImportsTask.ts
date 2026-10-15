@@ -11,7 +11,6 @@ import { CronTask, TaskInterval } from "./base/CronTask";
  */
 export default class CleanupOldImportsTask extends CronTask {
   public async perform() {
-    // TODO: Hardcoded right now, configurable later
     const retentionDays = 1;
     const cutoffDate = subDays(new Date(), retentionDays);
     const maxImportsPerTask = 1000;

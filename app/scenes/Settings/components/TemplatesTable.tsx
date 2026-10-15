@@ -172,7 +172,7 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
         <Text>{template.displayTitle}</Text>
       )}
       {template.isDraft && (
-        <Tooltip content={t("Only visible to you")} placement="top">
+        <Tooltip content={t("Only visible to you")}>
           <Badge>{t("Draft")}</Badge>
         </Tooltip>
       )}
