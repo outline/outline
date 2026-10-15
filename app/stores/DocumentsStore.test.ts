@@ -1,4 +1,3 @@
-/* oxlint-disable */
 import stores from "~/stores";
 
 describe("DocumentsStore", () => {

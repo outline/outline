@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
 import { snakeCase } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";

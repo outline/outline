@@ -153,7 +153,6 @@ export const Suggestions = observer(function Suggestions({
       return {
         title: suggestion.name,
         subtitle: (
-          // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
           <span onClick={(ev) => ev.stopPropagation()}>
             <GroupMembersPopover group={suggestion}>
               <StyledButtonLink>

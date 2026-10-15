@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-var-requires */
 import { find } from "es-toolkit/compat";
 import env from "@server/env";
 import type Team from "@server/models/Team";
