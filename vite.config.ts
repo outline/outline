@@ -11,6 +11,9 @@ import environment from "./server/utils/environment";
 let httpsConfig: ServerOptions["https"] | undefined;
 let host: string | undefined;
 
+// The Vite dev server listens on the port after the app server.
+const port = (parseInt(environment.PORT ?? "", 10) || 3000) + 1;
+
 if (environment.NODE_ENV === "development") {
   host = host = new URL(environment.URL!).hostname;
 
@@ -40,7 +43,8 @@ export default ({ mode }: ConfigEnv) =>
     publicDir: "./server/static",
     base: (environment.CDN_URL ?? "") + "/static/",
     server: {
-      port: 3001,
+      port,
+      strictPort: true,
       host: true,
       https: httpsConfig,
       allowedHosts: host ? [host] : undefined,
