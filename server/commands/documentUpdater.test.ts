@@ -7,7 +7,7 @@ import {
 } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { type Document, Event } from "@server/models";
-import { parser } from "@server/editor";
+import { parser, schema } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { buildDocument, buildUser } from "@server/test/factories";
@@ -2024,6 +2024,63 @@ describe("documentUpdater", () => {
           { type: "text", text: " text" },
         ],
       });
+    });
+
+    it("should insert replacement text verbatim inside a code block", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        text: "```bash\nfirst line\necho start\n  echo indented\nlast line\n```",
+      });
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "echo `date`\n  echo indented",
+        TextEditMode.Patch,
+        "echo start\n  echo indented"
+      );
+      const content = result.content!.content!;
+
+      expect(content).toHaveLength(1);
+      expect(content[0]).toMatchObject({
+        type: "code_block",
+        content: [
+          {
+            type: "text",
+            text: "first line\necho `date`\n  echo indented\nlast line",
+          },
+        ],
+      });
+      expect(content[0].content![0].marks).toBeUndefined();
+      expect(() => schema.nodeFromJSON(result.content!).check()).not.toThrow();
+    });
+
+    it("should not apply marks when patching a single line in a code block", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        text: "```python\nclass A:\n    def init(self):\n        pass\n```",
+      });
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "def __init__(self):",
+        TextEditMode.Patch,
+        "def init(self):"
+      );
+      const content = result.content!.content!;
+
+      expect(content).toHaveLength(1);
+      expect(content[0]).toMatchObject({
+        type: "code_block",
+        content: [
+          {
+            type: "text",
+            text: "class A:\n    def __init__(self):\n        pass",
+          },
+        ],
+      });
+      expect(content[0].content![0].marks).toBeUndefined();
     });
 
     it("should preserve ordered list container attrs when patching an item", async () => {
