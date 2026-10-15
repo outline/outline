@@ -300,8 +300,7 @@ export default abstract class Store<T extends Model> {
           if (deleteBehavior === "cascade") {
             store.remove(item.id, options);
           } else if (deleteBehavior === "null") {
-            // @ts-expect-error TODO
-            item[relation.idKey] = null;
+            Reflect.set(item, relation.idKey, null);
           }
         });
       }
@@ -349,8 +348,7 @@ export default abstract class Store<T extends Model> {
           if (archiveBehavior === "cascade") {
             store.addToArchive(item);
           } else if (archiveBehavior === "null") {
-            // @ts-expect-error TODO
-            item[relation.idKey] = null;
+            Reflect.set(item, relation.idKey, null);
           }
         });
       }

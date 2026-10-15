@@ -409,15 +409,7 @@ export async function buildDraftDocument(
 }
 
 export async function buildDocument(
-  // Omission first, addition later?
-  // This is actually a workaround to allow
-  // passing collectionId as null. Ideally, it
-  // should be updated in the Document model itself
-  // but that'd cascade and require further changes
-  // beyond the scope of what's required now
-  overrides: Omit<Partial<Document>, "collectionId"> & { userId?: string } & {
-    collectionId?: string | null;
-  } = {}
+  overrides: Partial<Document> & { userId?: string } = {}
 ) {
   if (!overrides.teamId) {
     const team = await buildTeam();

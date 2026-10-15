@@ -27,11 +27,7 @@ export function SearchHighlightChip() {
   }
 
   return (
-    <Tooltip
-      content={t("Clear search highlight")}
-      shortcut="Esc"
-      placement="bottom"
-    >
+    <Tooltip content={t("Clear search highlight")} shortcut="Esc" side="bottom">
       <Chip
         type="button"
         onClick={handleClick}

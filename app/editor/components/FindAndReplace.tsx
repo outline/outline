@@ -411,7 +411,7 @@ export default function FindAndReplace({
       <Tooltip
         content={t("Previous match")}
         shortcut="Shift+Enter"
-        placement="bottom"
+        side="bottom"
       >
         <ButtonLarge
           disabled={disabled}
@@ -424,7 +424,7 @@ export default function FindAndReplace({
           <CaretUpIcon />
         </ButtonLarge>
       </Tooltip>
-      <Tooltip content={t("Next match")} shortcut="Enter" placement="bottom">
+      <Tooltip content={t("Next match")} shortcut="Enter" side="bottom">
         <ButtonLarge
           disabled={disabled}
           onClick={() => {
@@ -440,7 +440,7 @@ export default function FindAndReplace({
         <Tooltip
           content={t("Replace options")}
           shortcut={`${altDisplay}+${metaDisplay}+f`}
-          placement="bottom"
+          side="bottom"
         >
           <ButtonLarge onClick={handleMore} aria-label={t("Replace options")}>
             <ReplaceIcon color={theme.textSecondary} />
@@ -489,7 +489,7 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Match case")}
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
-                  placement="bottom"
+                  side="bottom"
                 >
                   <ButtonSmall
                     onClick={handleCaseSensitive}
@@ -503,7 +503,7 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Enable regex")}
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
-                  placement="bottom"
+                  side="bottom"
                 >
                   <ButtonSmall
                     onClick={handleRegex}
@@ -538,11 +538,7 @@ export default function FindAndReplace({
                   onRequestSubmit={handleReplaceAll}
                   onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
                 />
-                <Tooltip
-                  content={t("Replace")}
-                  shortcut="Enter"
-                  placement="bottom"
-                >
+                <Tooltip content={t("Replace")} shortcut="Enter" side="bottom">
                   <Button onClick={handleReplace} disabled={disabled} neutral>
                     {t("Replace")}
                   </Button>
@@ -550,7 +546,7 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Replace all")}
                   shortcut={`${metaDisplay}+Enter`}
-                  placement="bottom"
+                  side="bottom"
                 >
                   <Button
                     onClick={handleReplaceAll}

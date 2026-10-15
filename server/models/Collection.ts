@@ -1,4 +1,3 @@
-/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {

@@ -1,4 +1,3 @@
-/* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";

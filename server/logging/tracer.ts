@@ -99,7 +99,6 @@ export function addTags(
 export function getRootSpanFromRequestContext(
   context: PrivateDatadogContext
 ): Span | null {
-  // oxlint-disable-next-line no-undef
   return context?.req?._datadog?.span ?? null;
 }
 

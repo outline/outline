@@ -1,4 +1,3 @@
-/* oxlint-disable react/prop-types */
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { Props as TooltipProps } from "~/components/Tooltip";

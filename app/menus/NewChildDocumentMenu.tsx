@@ -74,7 +74,7 @@ function NewChildDocumentMenu({ document }: Props) {
   const rootAction = useMenuAction(actions);
 
   return (
-    <Tooltip content={t("New document")} shortcut="n" placement="bottom">
+    <Tooltip content={t("New document")} shortcut="n" side="bottom">
       <DropdownMenu
         action={rootAction}
         align="end"

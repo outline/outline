@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
@@ -323,7 +322,6 @@ export class MarkdownSerializerState {
           return info && info.expelEnclosingWhitespace;
         })
       ) {
-        // oxlint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
         const [, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(node.text);
         leading += lead;
         trailing = trail;

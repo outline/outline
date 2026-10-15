@@ -81,7 +81,6 @@ describe("Mention serialization", () => {
         {
           type: MentionType.Issue,
           label: "Epic 1",
-          // oxlint-disable-next-line no-script-url
           href: "javascript:alert(1)",
         },
         { commonMark: true }

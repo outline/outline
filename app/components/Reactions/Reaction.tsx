@@ -150,7 +150,7 @@ const Reaction: React.FC<Props> = ({
   );
 
   return tooltipContent ? (
-    <Tooltip content={tooltipContent} placement="bottom">
+    <Tooltip content={tooltipContent} side="bottom">
       {DisplayedEmoji}
     </Tooltip>
   ) : (
