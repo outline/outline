@@ -186,7 +186,7 @@ function CollectionRow({
   const menuElement = menuVisible ? (
     <Fade>
       {canCreateChild && (
-        <Tooltip content={t("New doc")} delay={500}>
+        <Tooltip content={t("New doc")}>
           <NudeButton
             aria-label={t("New nested document")}
             onClick={handleAddChild}

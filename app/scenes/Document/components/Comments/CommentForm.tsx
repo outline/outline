@@ -411,7 +411,7 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </HStack>
-              <Tooltip content={t("Upload image")} placement="top">
+              <Tooltip content={t("Upload image")}>
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />
                 </NudeButton>

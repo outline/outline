@@ -223,7 +223,7 @@ function DocumentListItem(props: Props) {
             {document.isDraft &&
               showDraft &&
               (isInteractive ? (
-                <Tooltip content={t("Only visible to you")} placement="top">
+                <Tooltip content={t("Only visible to you")}>
                   <Badge>{t("Draft")}</Badge>
                 </Tooltip>
               ) : (

@@ -52,7 +52,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
             ? t("Only members with access can view")
             : t("All members in the workspace can view")
         }
-        placement="bottom"
+        side="bottom"
       >
         <IconLabel align="center">
           {collection.isPrivate ? (
@@ -66,10 +66,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
       {isPubliclyShared && (
         <>
           <Separator />
-          <Tooltip
-            content={t("Anyone with the link can view")}
-            placement="bottom"
-          >
+          <Tooltip content={t("Anyone with the link can view")} side="bottom">
             <IconLabel align="center">
               <GlobeIcon size={18} />
               {t("Publicly shared")}

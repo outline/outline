@@ -95,7 +95,6 @@ export const Header: React.FC<Props> = ({
                   hideOnActionDisabled
                   tooltip={{
                     content: resolve<string>(primaryAction.name, actionContext),
-                    delay: 500,
                   }}
                 >
                   {resolve<React.ReactNode>(primaryAction.icon, actionContext)}

@@ -521,7 +521,7 @@ function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
   return (
     <MenuProvider variant="dropdown">
       <Menu>
-        <Tooltip content={label} placement="bottom">
+        <Tooltip content={label} side="bottom">
           <MenuTrigger aria-label={label}>
             <ColumnOptions>
               <SettingsIcon size={18} />

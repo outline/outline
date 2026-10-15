@@ -92,7 +92,7 @@ function SharedDocumentHeader({ document }: Props) {
             : `${t("Show contents")} (${t("available when headings are added")})`
       }
       shortcut={`Ctrl+${altDisplay}+h`}
-      placement="bottom"
+      side="bottom"
     >
       <TocButton
         aria-label={t("Show contents")}

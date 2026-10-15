@@ -294,7 +294,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
     <Container ref={containerRef} $background={theme.background} $idle={isIdle}>
       <TopBar $idle={isIdle}>
         <Flex align="center" gap={12}>
-          <Tooltip content={t("Previous slide")} delay={500}>
+          <Tooltip content={t("Previous slide")}>
             <Button onClick={goPrev} disabled={currentSlide === 0}>
               <ArrowLeftIcon />
             </Button>
@@ -302,7 +302,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
           <SlideCounter>
             {currentSlide + 1} / {totalSlides}
           </SlideCounter>
-          <Tooltip content={t("Next slide")} delay={500}>
+          <Tooltip content={t("Next slide")}>
             <Button
               onClick={goNext}
               disabled={currentSlide === totalSlides - 1}
@@ -313,7 +313,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         </Flex>
         <RightButtons>
           {supportsFullscreen && (
-            <Tooltip content={t("Toggle fullscreen")} delay={500}>
+            <Tooltip content={t("Toggle fullscreen")}>
               <Button onClick={toggleFullscreen}>
                 {isFullscreen ? (
                   <ShrinkIcon color="currentColor" />
@@ -323,7 +323,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
               </Button>
             </Tooltip>
           )}
-          <Tooltip content={t("Close")} delay={500}>
+          <Tooltip content={t("Close")}>
             <Button onClick={onClose}>
               <CloseIcon />
             </Button>

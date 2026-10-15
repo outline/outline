@@ -35,7 +35,7 @@ function SharedCollection({ collection }: Props) {
 
   const editAction = (
     <Action>
-      <Tooltip content={t("Edit collection")} shortcut="e" placement="bottom">
+      <Tooltip content={t("Edit collection")} shortcut="e" side="bottom">
         <Button
           as={Link}
           icon={<EditIcon />}
