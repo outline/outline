@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.",
   "Comment by {{ author }} on “{{ title }}”": "{{ author }} hozzászólása ehhez: „{{ title }}”",
+  "You do not have access to this document": "Nincs hozzáférése ehhez a dokumentumhoz",
   "How to use {{ command }}": "How to use {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "A munkaterület kereséséhez használja ezt: {{ command }}.\nA súgó szövegének megjelenítéséhez írja be: {{ command2 }} help.",
   "Post to Channel": "Post to Channel",
