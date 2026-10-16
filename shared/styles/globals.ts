@@ -184,7 +184,7 @@ export default createGlobalStyle<Props>`
     appearance: none;
     border: 0;
     padding: 0;
-    position: fixed;
+    position: absolute;
     width: 24px;
     height: 24px;
     cursor: grab;

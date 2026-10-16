@@ -197,13 +197,18 @@ export default class DragHandle extends Extension {
             // :dir(rtl) handling.
             const isRTL =
               window.getComputedStyle(next.element).direction === "rtl";
-            handle.style.top =
+            const top =
               lineMiddle === null
-                ? `${rect.top - ICON_OFFSET_Y}px`
-                : `${lineMiddle - ICON_CENTER_Y}px`;
-            handle.style.left = isRTL
-              ? `${rect.right + offsetX - HANDLE_SIZE}px`
-              : `${rect.left - offsetX}px`;
+                ? rect.top - ICON_OFFSET_Y
+                : lineMiddle - ICON_CENTER_Y;
+            const left = isRTL
+              ? rect.right + offsetX - HANDLE_SIZE
+              : rect.left - offsetX;
+
+            // Position in document coordinates so that the browser scrolls
+            // the handle with the page, rather than after the scroll event.
+            handle.style.top = `${top + window.scrollY}px`;
+            handle.style.left = `${left + window.scrollX}px`;
             handle.classList.remove("dragging");
             handle.classList.add("visible");
           };
