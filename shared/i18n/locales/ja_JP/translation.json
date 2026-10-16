@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Slack ワークスペースから Outline のスラッシュコマンドが削除されます。よろしいですか？",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "{{appName}} コレクションを Slack のチャンネルに接続します。ドキュメントが公開または更新されると、Slack にメッセージが投稿されます。",
   "Comment by {{ author }} on “{{ title }}”": "{{ author }} が「{{ title }}」にコメント",
+  "You do not have access to this document": "このドキュメントにアクセスする権限がありません",
   "How to use {{ command }}": "{{ command }} の使用方法",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "ワークスペースを検索するには {{ command }} を使用します。\n{{ command2 }} help と入力すると、このヘルプテキストが表示されます。",
   "Post to Channel": "チャンネルに投稿",
