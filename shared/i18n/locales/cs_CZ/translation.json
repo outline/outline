@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Tím z pracovního prostoru ve Slacku odstraníte příkaz Outline. Opravdu?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Propojte kolekce {{appName}} s kanály na Slacku. Oznámení budou odesílána automaticky při zveřejnění nebo úpravě dokumentu.",
   "Comment by {{ author }} on “{{ title }}”": "Komentář uživatele {{ author }} k dokumentu „{{ title }}“",
+  "You do not have access to this document": "You do not have access to this document",
   "How to use {{ command }}": "Jak používat {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "K prohledávání pracovního prostoru použijte {{ command }}.\nZadáním {{ command2 }} help zobrazíte tuto nápovědu.",
   "Post to Channel": "Odeslat do kanálu",
