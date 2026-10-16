@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "此操作将从您的 Slack 工作区中解除安装 Outline 斜杠命令。是否确认继续？",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "将 {{appName}} 文档集连接到 Slack 频道，当文档发布或更新时，消息将自动发布到 Slack。",
   "Comment by {{ author }} on “{{ title }}”": "{{ author }} 对“{{ title }}”的评论",
+  "You do not have access to this document": "您无权访问此文档",
   "How to use {{ command }}": "如何使用 {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "要搜索您的工作区，请使用 {{ command }}。\n输入 {{ command2 }} help 以显示此帮助文本。",
   "Post to Channel": "发布到频道…",
