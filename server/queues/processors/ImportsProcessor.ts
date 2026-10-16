@@ -771,7 +771,9 @@ export default abstract class ImportsProcessor<
       }
     }
 
-    idMap[externalId] = internalId ?? randomUUID();
+    // Mentions are transformed concurrently, so another call can assign an id
+    // while the lookup above is awaited. Keep the first id assigned.
+    idMap[externalId] ??= randomUUID();
     return idMap[externalId];
   }
 
