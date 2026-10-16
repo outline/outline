@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Dette vil fjerne Outline skråstregskommandoen fra dit Slack arbejdsområde. Er du sikker?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Forbind {{appName}} samlinger til Slack kanaler. Beskeder vil automatisk blive sendt til Slack når dokumenter bliver publiceret eller opdateret.",
   "Comment by {{ author }} on “{{ title }}”": "Kommentar af {{ author }} til “{{ title }}”",
+  "You do not have access to this document": "Du har ikke adgang til dette dokument",
   "How to use {{ command }}": "Sådan bruger du {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "Brug {{ command }} for at søge i dit arbejdsområde.\nSkriv {{ command2 }} help for at få vist denne hjælpetekst.",
   "Post to Channel": "Send til kanal",
