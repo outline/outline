@@ -11,13 +11,13 @@ import { configDefaults, defineConfig } from "vitest/config";
 delete process.env.SSL_CERT_FILE;
 
 const aliases = {
-  "@server": path.resolve(__dirname, "./server"),
-  "@shared": path.resolve(__dirname, "./shared"),
-  "~": path.resolve(__dirname, "./app"),
-  plugins: path.resolve(__dirname, "./plugins"),
+  "@server": path.resolve(import.meta.dirname, "./server"),
+  "@shared": path.resolve(import.meta.dirname, "./shared"),
+  "~": path.resolve(import.meta.dirname, "./app"),
+  plugins: path.resolve(import.meta.dirname, "./plugins"),
 };
 
-const fileMock = path.resolve(__dirname, "./__mocks__/fileMock.js");
+const fileMock = path.resolve(import.meta.dirname, "./__mocks__/fileMock.js");
 
 // Mirrors the server build's SWC config (.swcrc). `decoratorMetadata` stays off
 // because every @Column has an explicit DataType, and emitting it would throw
@@ -67,11 +67,11 @@ const serverTestFiles = [
 const ISOLATED_MARKER = "@vitest-isolate true";
 
 const isolatedServerTestFiles = globSync(serverTestFiles, {
-  cwd: __dirname,
+  cwd: import.meta.dirname,
   posix: true,
 }).filter((file) => {
   const header = fs
-    .readFileSync(path.join(__dirname, file), "utf8")
+    .readFileSync(path.join(import.meta.dirname, file), "utf8")
     .slice(0, 512);
   return header.includes(ISOLATED_MARKER);
 });

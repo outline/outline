@@ -42,8 +42,8 @@ jobs:
               - '!shared/i18n/locales/**'
             config:
               - '.github/**'
-              - 'vite.config.ts'
-              - 'vitest.config.ts'
+              - 'vite.config.mts'
+              - 'vitest.config.mts'
             server:
               - 'server/**'
               - 'shared/**'
