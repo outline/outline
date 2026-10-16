@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Esto eliminará el comando de barra inclinada de Outline de tu espacio de trabajo de Slack. ¿Estás seguro?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Conecta las colecciones de {{appName}} a canales de Slack. Se publicarán mensajes automáticamente en Slack cuando los documentos se publiquen o actualicen.",
   "Comment by {{ author }} on “{{ title }}”": "Comentario de {{ author }} en “{{ title }}”",
+  "You do not have access to this document": "You do not have access to this document",
   "How to use {{ command }}": "Cómo utilizar {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "Para buscar en tu espacio de trabajo, usa {{ command }}.\nEscribe {{ command2 }} help para mostrar este texto de ayuda.",
   "Post to Channel": "Publicar en Canal",
