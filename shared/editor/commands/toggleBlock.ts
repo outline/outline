@@ -296,6 +296,50 @@ export const toggleBlock: Command = (state, dispatch) => {
   return true;
 };
 
+/**
+ * Unfold every folded toggle block that hides the given position in its body.
+ *
+ * @param pos the document position to reveal.
+ * @returns a command that unfolds the toggle blocks, or false when none hide the position.
+ */
+export const unfoldToggleBlocksAt =
+  (pos: number): Command =>
+  (state, dispatch) => {
+    const pluginState = toggleFoldPluginKey.getState(state);
+    if (!pluginState) {
+      return false;
+    }
+
+    const $pos = state.doc.resolve(pos);
+    const isToggle = isToggleBlock(state);
+    const targets: number[] = [];
+
+    for (let d = $pos.depth; d > 0; d--) {
+      const node = $pos.node(d);
+
+      // The head is the first child and stays visible when folded.
+      if (
+        isToggle(node) &&
+        pluginState.foldedIds.has(node.attrs.id) &&
+        $pos.index(d) > 0
+      ) {
+        targets.push($pos.before(d));
+      }
+    }
+
+    if (!targets.length) {
+      return false;
+    }
+
+    dispatch?.(
+      state.tr.setMeta(toggleFoldPluginKey, {
+        type: Action.UNFOLD,
+        at: targets,
+      })
+    );
+    return true;
+  };
+
 export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
   if (!$cursor) {

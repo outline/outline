@@ -55,8 +55,8 @@ export enum Action {
 
 interface FoldAction {
   type: Action;
-  /** Position of the target block; omitted to target every toggle block. */
-  at?: number;
+  /** Position of the target blocks; omitted to target every toggle block. */
+  at?: number | number[];
   /** Whether toggle blocks nested inside the target are included. */
   nested?: boolean;
 }
@@ -511,7 +511,7 @@ export default class ToggleBlock extends Node {
   }
 
   /**
-   * Resolve the toggle blocks an action applies to: the block at the given
+   * Resolve the toggle blocks an action applies to: the block at each given
    * position, that block and every toggle block nested inside it when
    * `nested` is set, or every toggle block in the document when no position
    * is given.
@@ -532,6 +532,12 @@ export default class ToggleBlock extends Node {
 
     if (action.at === undefined) {
       return findBlockNodes(doc, true).filter(isToggle);
+    }
+
+    if (Array.isArray(action.at)) {
+      return action.at.flatMap((at) =>
+        this.resolveTargets(doc, { ...action, at })
+      );
     }
 
     const at = action.at;
