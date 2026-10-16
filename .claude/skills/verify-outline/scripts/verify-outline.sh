@@ -147,7 +147,7 @@ EOF
   (cd "$SRC" && node build.js) >"$RUN_DIR/build-server.log" 2>&1 ||
     die "server build failed, see $RUN_DIR/build-server.log"
   log "building frontend (vite)"
-  (cd "$SRC" && NODE_ENV=production VITE_CJS_IGNORE_WARNING=true node_modules/.bin/vite build) \
+  (cd "$SRC" && NODE_ENV=production node_modules/.bin/vite build) \
     >"$RUN_DIR/build-app.log" 2>&1 || die "frontend build failed, see $RUN_DIR/build-app.log"
 
   log "migrating database"

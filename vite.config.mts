@@ -1,39 +1,42 @@
 import fs from "node:fs";
 import path from "node:path";
+import dotenv from "@dotenvx/dotenvx";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import type { ConfigEnv, ServerOptions } from "vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import environment from "./server/utils/environment";
 
-let httpsConfig: ServerOptions["https"] | undefined;
-let host: string | undefined;
+export default ({ mode }: ConfigEnv) => {
+  const env = loadEnvironment();
 
-// The Vite dev server listens on the port after the app server.
-const port = (parseInt(environment.PORT ?? "", 10) || 3000) + 1;
+  let httpsConfig: ServerOptions["https"] | undefined;
+  let host: string | undefined;
 
-if (environment.NODE_ENV === "development") {
-  host = host = new URL(environment.URL!).hostname;
+  // The Vite dev server listens on the port after the app server.
+  const port = (parseInt(env("PORT") ?? "", 10) || 3000) + 1;
 
-  try {
-    httpsConfig = {
-      key: fs.readFileSync("./server/config/certs/private.key"),
-      cert: fs.readFileSync("./server/config/certs/public.cert"),
-    };
-  } catch (_err) {
-    // oxlint-disable-next-line no-console
-    console.warn("No local SSL certs found, HTTPS will not be available");
+  if (env("NODE_ENV") === "development") {
+    const url = env("URL");
+    host = url ? new URL(url).hostname : undefined;
+
+    try {
+      httpsConfig = {
+        key: fs.readFileSync("./server/config/certs/private.key"),
+        cert: fs.readFileSync("./server/config/certs/public.cert"),
+      };
+    } catch {
+      // oxlint-disable-next-line no-console
+      console.warn("No local SSL certs found, HTTPS will not be available");
+    }
   }
-}
 
-export default ({ mode }: ConfigEnv) =>
-  defineConfig({
-    // The local .env file can set NODE_ENV=development in process.env via the
-    // environment import above, which would cause Vite to bundle development
-    // builds of dependencies such as React. Derive the bundled value from the
-    // Vite mode instead so `vite build` always bundles production dependencies.
+  return defineConfig({
+    // The local .env file can set NODE_ENV=development, which would cause Vite
+    // to bundle development builds of dependencies such as React. Derive the
+    // bundled value from the Vite mode instead so `vite build` always bundles
+    // production dependencies.
     define: {
       "process.env.NODE_ENV": JSON.stringify(
         mode === "development" ? "development" : "production"
@@ -41,7 +44,7 @@ export default ({ mode }: ConfigEnv) =>
     },
     root: "./",
     publicDir: "./server/static",
-    base: (environment.CDN_URL ?? "") + "/static/",
+    base: (env("CDN_URL") ?? "") + "/static/",
     server: {
       port,
       strictPort: true,
@@ -50,7 +53,7 @@ export default ({ mode }: ConfigEnv) =>
       allowedHosts: host ? [host] : undefined,
       cors: true,
       fs:
-        environment.NODE_ENV === "development"
+        env("NODE_ENV") === "development"
           ? {
               // Allow serving files from one level up to the project root
               allow: [".."],
@@ -68,7 +71,7 @@ export default ({ mode }: ConfigEnv) =>
           globPatterns: ["**/*.{css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${environment.CDN_URL ?? ""}/static/`,
+            "": `${env("CDN_URL") ?? ""}/static/`,
           },
           skipWaiting: true,
           clientsClaim: true,
@@ -189,8 +192,8 @@ export default ({ mode }: ConfigEnv) =>
     ],
     resolve: {
       alias: {
-        "~": path.resolve(__dirname, "./app"),
-        "@shared": path.resolve(__dirname, "./shared"),
+        "~": path.resolve(import.meta.dirname, "./app"),
+        "@shared": path.resolve(import.meta.dirname, "./shared"),
       },
     },
     build: {
@@ -282,3 +285,56 @@ export default ({ mode }: ConfigEnv) =>
       },
     },
   });
+};
+
+/**
+ * Loads the .env files with the same precedence as server/utils/environment.ts.
+ * That file cannot be imported here, as Vite loads it as CommonJS.
+ *
+ * @returns a getter for a variable, where process.env takes precedence and an
+ *   unset variable is read from the file named by its `_FILE` variable.
+ */
+function loadEnvironment(): (key: string) => string | undefined {
+  const read = (file: string) => {
+    const filePath = path.resolve(import.meta.dirname, file);
+    return fs.existsSync(filePath)
+      ? dotenv.parse(fs.readFileSync(filePath, "utf8"))
+      : {};
+  };
+
+  const envDefault = read(".env");
+  const nodeEnvs = [process.env.NODE_ENV, envDefault.NODE_ENV];
+  const isDevelopment = nodeEnvs.includes("development");
+
+  // Load environment specific variables, in reverse order of precedence.
+  const environment = ["production", "development", "local", "test"]
+    .filter(
+      (env) => nodeEnvs.includes(env) || (env === "local" && isDevelopment)
+    )
+    .reduce<Record<string, string>>(
+      (acc, env) => ({ ...acc, ...read(`.env.${env}`) }),
+      {}
+    );
+
+  const merged: Record<string, string | undefined> = {
+    ...envDefault,
+    ...environment,
+    ...process.env,
+  };
+
+  return (key) => {
+    const value = merged[key];
+    const filePath = merged[`${key}_FILE`];
+    if (value !== undefined || !filePath) {
+      return value;
+    }
+
+    try {
+      return fs.readFileSync(filePath, "utf8").trim();
+    } catch {
+      // oxlint-disable-next-line no-console
+      console.error(`Failed to read file for ${key}_FILE`);
+      return undefined;
+    }
+  };
+}
