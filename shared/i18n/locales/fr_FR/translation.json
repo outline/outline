@@ -1730,7 +1730,7 @@
   "You can manage your passkeys at any time": "Vous pouvez gérer vos clés d’accès à tout moment",
   "If you have any concerns about your account security, please contact a workspace admin.": "Si vous avez des préoccupations concernant la sécurité de votre compte, contactez un administrateur de l’espace de travail.",
   "Manage Passkeys": "Gérer les clés d’accès",
-  "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.": "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.",
+  "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.": "Importez un fichier zip de documents Markdown exportés depuis Slab : les collections, publications, images et pièces jointes seront importées. Dans Slab, ouvrez les paramètres d’administration et utilisez l’option <1>Exporter</1> pour télécharger une archive de votre contenu.",
   "Drag and drop the zip file exported from Slab, or click to upload": "Glissez-déposez le fichier zip exporté depuis Slab, ou cliquez pour le téléverser",
   "Import a zip file of Markdown documents exported from Slab": "Importer un fichier zip de documents Markdown exportés depuis Slab",
   "Add to Slack": "Ajouter à Slack",
