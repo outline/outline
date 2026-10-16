@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.",
   "Comment by {{ author }} on “{{ title }}”": "ความคิดเห็นโดย {{ author }} ใน “{{ title }}”",
+  "You do not have access to this document": "คุณไม่มีสิทธิ์เข้าถึงเอกสารนี้",
   "How to use {{ command }}": "How to use {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "หากต้องการค้นหาพื้นที่ทำงานของคุณ ให้ใช้ {{ command }}\nพิมพ์ {{ command2 }} help เพื่อแสดงข้อความช่วยเหลือนี้",
   "Post to Channel": "Post to Channel",
