@@ -30,6 +30,7 @@ import type { DefaultTheme } from "styled-components";
 import styled, { css } from "styled-components";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import insertFiles from "@shared/editor/commands/insertFiles";
+import { unfoldToggleBlocksAt } from "@shared/editor/commands/toggleBlock";
 import { draftCommentAnchorPluginKey } from "@shared/editor/plugins/DraftCommentAnchorPlugin";
 import Styles from "@shared/editor/components/Styles";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
@@ -885,6 +886,42 @@ export class Editor extends React.PureComponent<
    * @returns A list of comments in the document
    */
   public getComments = () => ProsemirrorHelper.getComments(this.view.state.doc);
+
+  /**
+   * Unfold any collapsed toggle blocks that hide the start of a comment.
+   *
+   * @param commentId the id of the comment to reveal.
+   */
+  public revealComment = (commentId: string) => {
+    const { state, dispatch } = this.view;
+
+    let commentPos: number | undefined;
+    state.doc.descendants((node, pos) => {
+      if (commentPos !== undefined) {
+        return false;
+      }
+
+      const hasComment =
+        node.marks.some(
+          (m) =>
+            m.type === state.schema.marks.comment && m.attrs.id === commentId
+        ) ||
+        (isArray(node.attrs?.marks) &&
+          (node.attrs.marks as ProsemirrorMark[]).some(
+            (m) => m.type === "comment" && m.attrs?.id === commentId
+          ));
+
+      if (hasComment) {
+        commentPos = pos;
+        return false;
+      }
+      return true;
+    });
+
+    if (commentPos !== undefined) {
+      unfoldToggleBlocksAt(commentPos)(state, dispatch);
+    }
+  };
 
   /**
    * Remove all marks related to a specific comment from the document.
