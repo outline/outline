@@ -331,11 +331,9 @@ function loadEnvironment(): (key: string) => string | undefined {
 
     try {
       return fs.readFileSync(filePath, "utf8").trim();
-    } catch (err) {
+    } catch {
       // oxlint-disable-next-line no-console
-      console.error(
-        `Failed to read file for ${key}_FILE (${filePath}): ${(err as Error).message}`
-      );
+      console.error(`Failed to read file for ${key}_FILE`);
       return undefined;
     }
   };
