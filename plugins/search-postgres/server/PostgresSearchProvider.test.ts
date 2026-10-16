@@ -954,6 +954,49 @@ describe("PostgresSearchProvider", () => {
       expect(results[0].context).toContain("or<b>chestration</b>");
     });
 
+    it("should keep urls separate when retrying as a quoted query", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Platform",
+        text: "Container orchestration, see https://example.com for more",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "https://example.com chestration",
+      });
+      expect(results.map((result) => result.document.id)).toEqual([
+        document.id,
+      ]);
+    });
+
+    it("should retry as a quoted query at the maximum query length", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const query = "bc".repeat(PostgresSearchProvider.maxQueryLength / 2);
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Platform",
+        text: `a${query}`,
+      });
+      const { results } = await provider.searchForUser(user, { query });
+      expect(results.map((result) => result.document.id)).toEqual([
+        document.id,
+      ]);
+    });
+
     it("should not retry as a quoted query for short or stop word queries", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
@@ -966,10 +1009,10 @@ describe("PostgresSearchProvider", () => {
         userId: user.id,
         collectionId: collection.id,
         title: "Box",
-        text: "Gather together where it is",
+        text: "Gather together inside, where it is nothing",
       });
 
-      for (const query of ["o", "the", "The ", "it is"]) {
+      for (const query of ["o", "the", "The ", "it is", "to", "in", "not"]) {
         const { total } = await provider.searchForUser(user, { query });
         expect(total).toBe(0);
       }

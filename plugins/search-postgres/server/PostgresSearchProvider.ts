@@ -8,7 +8,7 @@ import type {
   Order,
   WhereOptions,
 } from "sequelize";
-import { Op, Sequelize } from "sequelize";
+import { Op, QueryTypes, Sequelize } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import type { SearchableModel } from "@shared/types";
 import { DirectionFilter, SortFilter } from "@shared/types";
@@ -470,14 +470,24 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     options: RankedSearchOptions
   ): Promise<RankedSearch> {
     const search = await PostgresSearchProvider.runRankedSearch(options);
-    const query = options.query?.trim();
+    const { query } = options;
+
+    if (search.results.length || !query || query.includes('"')) {
+      return search;
+    }
+
+    // URLs already match as literal text, so only the remaining text is quoted.
+    const urls = getUrls(query);
+    const text = urls
+      .reduce((q, url) => q.replace(url, " "), query)
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, PostgresSearchProvider.maxQueryLength - 2)
+      .trim();
 
     if (
-      search.results.length ||
-      !query ||
-      query.length < 2 ||
-      query.includes('"') ||
-      PostgresSearchProvider.isOnlyStopWords(query)
+      text.length < 2 ||
+      (await PostgresSearchProvider.isOnlyStopWords(text))
     ) {
       return search;
     }
@@ -498,8 +508,25 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     return PostgresSearchProvider.runRankedSearch({
       ...options,
-      query: `"${query}"`,
+      query: [`"${text}"`, ...urls].join(" "),
     });
+  }
+
+  /**
+   * Returns true when the full-text parser keeps no terms from the query, as
+   * Postgres drops stop words.
+   */
+  private static async isOnlyStopWords(query: string): Promise<boolean> {
+    const [row] = await sequelizeReadOnly.query<{ nodes: number }>(
+      `SELECT numnode(to_tsquery('english', :query)) AS nodes`,
+      {
+        replacements: {
+          query: PostgresSearchProvider.webSearchQuery(query),
+        },
+        type: QueryTypes.SELECT,
+      }
+    );
+    return row?.nodes === 0;
   }
 
   private static async runRankedSearch({
@@ -1020,13 +1047,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         ? segment.replace(/[\\:]/g, "\\$&")
         : segment.replace(/\\/g, "\\\\")
     );
-  }
-
-  private static isOnlyStopWords(query: string): boolean {
-    return query
-      .toLowerCase()
-      .split(/\s+/)
-      .every((word) => PostgresSearchProvider.STOP_WORDS.has(word));
   }
 
   private static removeStopWords(query: string): string {
