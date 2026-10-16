@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "این کار دستور Slash Outline را از فضای کاری Slack شما حذف می‌کند. آیا مطمئن هستید؟",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "مجموعه‌های {{appName}} را به کانال‌های Slack متصل کنید. پیام‌ها به‌صورت خودکار هنگام انتشار یا به‌روزرسانی اسناد در Slack ارسال خواهند شد.",
   "Comment by {{ author }} on “{{ title }}”": "نظر {{ author }} دربارهٔ «{{ title }}»",
+  "You do not have access to this document": "شما به این سند دسترسی ندارید",
   "How to use {{ command }}": "نحوه استفاده از {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "برای جستجو در فضای کاری‌تان از {{ command }} استفاده کنید.\nبرای نمایش این متن راهنما، {{ command2 }} help را تایپ کنید.",
   "Post to Channel": "ارسال به کانال",
