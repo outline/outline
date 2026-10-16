@@ -918,6 +918,15 @@ export class Editor extends React.PureComponent<
       return true;
     });
 
+    // Pending comments from users without edit access exist only as decorations.
+    commentPos ??= draftCommentAnchorPluginKey
+      .getState(state)
+      ?.decorations.find(
+        undefined,
+        undefined,
+        (spec) => spec.id === commentId
+      )[0]?.from;
+
     if (commentPos !== undefined) {
       unfoldToggleBlocksAt(commentPos)(state, dispatch);
     }
