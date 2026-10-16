@@ -9,16 +9,17 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default ({ mode }: ConfigEnv) => {
-  const environment = loadEnvironment();
+  const env = loadEnvironment();
 
   let httpsConfig: ServerOptions["https"] | undefined;
   let host: string | undefined;
 
   // The Vite dev server listens on the port after the app server.
-  const port = (parseInt(environment.PORT ?? "", 10) || 3000) + 1;
+  const port = (parseInt(env("PORT") ?? "", 10) || 3000) + 1;
 
-  if (environment.NODE_ENV === "development") {
-    host = environment.URL ? new URL(environment.URL).hostname : undefined;
+  if (env("NODE_ENV") === "development") {
+    const url = env("URL");
+    host = url ? new URL(url).hostname : undefined;
 
     try {
       httpsConfig = {
@@ -43,7 +44,7 @@ export default ({ mode }: ConfigEnv) => {
     },
     root: "./",
     publicDir: "./server/static",
-    base: (environment.CDN_URL ?? "") + "/static/",
+    base: (env("CDN_URL") ?? "") + "/static/",
     server: {
       port,
       strictPort: true,
@@ -52,7 +53,7 @@ export default ({ mode }: ConfigEnv) => {
       allowedHosts: host ? [host] : undefined,
       cors: true,
       fs:
-        environment.NODE_ENV === "development"
+        env("NODE_ENV") === "development"
           ? {
               // Allow serving files from one level up to the project root
               allow: [".."],
@@ -70,7 +71,7 @@ export default ({ mode }: ConfigEnv) => {
           globPatterns: ["**/*.{css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${environment.CDN_URL ?? ""}/static/`,
+            "": `${env("CDN_URL") ?? ""}/static/`,
           },
           skipWaiting: true,
           clientsClaim: true,
@@ -290,9 +291,10 @@ export default ({ mode }: ConfigEnv) => {
  * Loads the .env files with the same precedence as server/utils/environment.ts.
  * That file cannot be imported here, as Vite loads it as CommonJS.
  *
- * @returns the merged environment, where process.env takes precedence.
+ * @returns a getter for a variable, where process.env takes precedence and an
+ *   unset variable is read from the file named by its `_FILE` variable.
  */
-function loadEnvironment(): Record<string, string | undefined> {
+function loadEnvironment(): (key: string) => string | undefined {
   const read = (file: string) => {
     const filePath = path.resolve(import.meta.dirname, file);
     return fs.existsSync(filePath)
@@ -314,5 +316,27 @@ function loadEnvironment(): Record<string, string | undefined> {
       {}
     );
 
-  return { ...envDefault, ...environment, ...process.env };
+  const merged: Record<string, string | undefined> = {
+    ...envDefault,
+    ...environment,
+    ...process.env,
+  };
+
+  return (key) => {
+    const value = merged[key];
+    const filePath = merged[`${key}_FILE`];
+    if (value !== undefined || !filePath) {
+      return value;
+    }
+
+    try {
+      return fs.readFileSync(filePath, "utf8").trim();
+    } catch (err) {
+      // oxlint-disable-next-line no-console
+      console.error(
+        `Failed to read file for ${key}_FILE (${filePath}): ${(err as Error).message}`
+      );
+      return undefined;
+    }
+  };
 }
