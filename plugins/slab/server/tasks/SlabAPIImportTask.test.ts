@@ -208,6 +208,29 @@ describe("SlabAPIImportTask#resolveLinkedDocument", () => {
     ).toBe("doc-4");
   });
 
+  it("prefers an exact slug over a match without hyphens", () => {
+    const map = { "Team/Oncall.md": "doc-a", "Team/On Call.md": "doc-b" };
+    expect(
+      task.resolveLink("https://walkers.slab.com/posts/oncall-abc12345", map)
+    ).toBe("doc-a");
+    expect(
+      task.resolveLink("https://walkers.slab.com/posts/on-call-abc12345", map)
+    ).toBe("doc-b");
+  });
+
+  it("does not resolve a slug that more than one document has", () => {
+    const map = {
+      "Engineering/Weekly Sync.md": "doc-a",
+      "Product/Weekly Sync.md": "doc-b",
+    };
+    expect(
+      task.resolveLink(
+        "https://walkers.slab.com/posts/weekly-sync-abc12345",
+        map
+      )
+    ).toBe(undefined);
+  });
+
   it("returns undefined when no document matches", () => {
     expect(
       task.resolveLink(
@@ -356,21 +379,43 @@ describe("convertSlabFileLinks", () => {
     });
   });
 
-  it("keeps a container valid when its leading paragraph is a file link", () => {
+  it("keeps a toggle's leading paragraph when it is only a file link", () => {
     const { schema } = ProsemirrorHelper.toProsemirror("").type;
+    const fileLink = (text: string) =>
+      schema.text(text, [schema.marks.link.create({ href: signedFileUrl })]);
     const toggle = schema.nodes.container_toggle.create(undefined, [
-      schema.nodes.paragraph.create(
-        undefined,
-        schema.text("Spec.pdf", [
-          schema.marks.link.create({ href: signedFileUrl }),
-        ])
-      ),
-      schema.nodes.paragraph.create(undefined, schema.text("Body")),
+      schema.nodes.paragraph.create(undefined, fileLink("Spec.pdf")),
+      schema.nodes.paragraph.create(undefined, fileLink("Body.pdf")),
     ]);
     const doc = schema.nodes.doc.create(undefined, toggle);
     const out = convertSlabFileLinks(doc);
 
     expect(() => out.check()).not.toThrow();
+    const content = out.child(0).toJSON().content;
+    expect(content.map((n: { type: string }) => n.type)).toEqual([
+      "paragraph",
+      "attachment",
+      "paragraph",
+      "attachment",
+    ]);
+    expect(out.child(0).child(0).textContent).toBe("Spec.pdf");
+    expect(out.rangeHasMark(0, out.nodeSize - 2, schema.marks.link)).toBe(
+      false
+    );
+  });
+
+  it("converts a file link in a heading and keeps the heading text", () => {
+    const doc = ProsemirrorHelper.toProsemirror(
+      `## Download [Report](${signedFileUrl})`
+    );
+    const out = convertSlabFileLinks(doc);
+
+    expect(out.child(0).type.name).toBe("heading");
+    expect(out.child(0).textContent).toBe("Download Report");
+    expect(out.child(1).toJSON()).toMatchObject({
+      type: "attachment",
+      attrs: { href: signedFileUrl, title: "Report.pdf" },
+    });
   });
 
   it("names a bare URL link after the file", () => {

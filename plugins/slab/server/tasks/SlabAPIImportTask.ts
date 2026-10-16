@@ -12,6 +12,11 @@ import type { ZipTreeNode } from "@server/utils/ZipHelper";
 // remains a valid override of MarkdownAPIImportTask's Markdown-typed method.
 type Service = IntegrationService.Markdown | IntegrationService.Slab;
 
+interface SlugIndex {
+  exact: Map<string, string | null>;
+  unhyphenated: Map<string, string | null>;
+}
+
 /**
  * Gets the slug of the post that a Slab post URL points to, e.g.
  * `https://team.slab.com/posts/my-post-title-w7rkjimy` gives "my-post-title".
@@ -101,9 +106,9 @@ export function isSlabFileUrl(href: string): boolean {
 
 /**
  * Converts links to Slab-hosted files into attachment nodes so the import
- * pipeline downloads and re-hosts them. A paragraph's file links are added as
- * attachment blocks after it. When the paragraph holds other content, the
- * link text stays in it as plain text; otherwise the paragraph is removed.
+ * pipeline downloads and re-hosts them. The file links in a paragraph or
+ * heading are added as attachment blocks after it, and the link text stays in
+ * it as plain text. A paragraph that holds only file links is removed.
  *
  * @param doc The converted ProseMirror document.
  * @returns The document with Slab file links replaced by attachments.
@@ -116,7 +121,7 @@ export function convertSlabFileLinks(doc: Node): Node {
     return doc;
   }
 
-  const transformParagraph = (node: Node): Node[] => {
+  const transformTextblock = (node: Node, keepText: boolean): Node[] => {
     // Link text by href, so a link split over several text nodes (e.g. by
     // bold text) gives one attachment.
     const files = new Map<string, string>();
@@ -156,26 +161,38 @@ export function convertSlabFileLinks(doc: Node): Node {
       })
     );
 
-    return hasOtherContent
+    return hasOtherContent || keepText
       ? [node.copy(Fragment.fromArray(remaining)), ...attachments]
       : attachments;
   };
 
   const transformContent = (parent: Node): Fragment => {
-    const nodes: Node[] = [];
+    const build = (keepText: boolean) => {
+      const nodes: Node[] = [];
+      parent.content.forEach((node) => {
+        if (node.type.name === "paragraph" || node.type.name === "heading") {
+          nodes.push(
+            ...transformTextblock(
+              node,
+              keepText || node.type.name === "heading"
+            )
+          );
+        } else {
+          nodes.push(node.isLeaf ? node : node.copy(transformContent(node)));
+        }
+      });
+      return Fragment.fromArray(nodes);
+    };
 
-    parent.content.forEach((node) => {
-      if (node.type.name === "paragraph") {
-        nodes.push(...transformParagraph(node));
-      } else {
-        nodes.push(node.isLeaf ? node : node.copy(transformContent(node)));
-      }
-    });
+    const content = build(false);
+    if (parent.type.validContent(content)) {
+      return content;
+    }
 
-    // Some containers require a leading paragraph (e.g. a toggle block's
-    // summary), keep the original content when the result is not valid.
-    const content = Fragment.fromArray(nodes);
-    return parent.type.validContent(content) ? content : parent.content;
+    // Some containers require a leading text block (e.g. a toggle block's
+    // summary), so keep the link text in place and add the attachments after.
+    const kept = build(true);
+    return parent.type.validContent(kept) ? kept : parent.content;
   };
 
   return doc.copy(transformContent(doc));
@@ -260,38 +277,45 @@ export default class SlabAPIImportTask extends MarkdownAPIImportTask {
     docMap: Record<string, string>
   ): string | undefined {
     const slug = slugFromPostUrl(href, label);
-    return slug
-      ? this.documentsBySlug(docMap).get(unhyphenate(slug))
-      : undefined;
+    if (!slug) {
+      return undefined;
+    }
+
+    // Prefer an exact match, then a match without hyphens. Ambiguous slugs
+    // are not resolved, so the link is left as it was.
+    const { exact, unhyphenated } = this.documentsBySlug(docMap);
+    const match = exact.has(slug)
+      ? exact.get(slug)
+      : unhyphenated.get(unhyphenate(slug));
+    return match ?? undefined;
   }
 
   protected transformDocument(doc: Node): Node {
     return convertSlabFileLinks(doc);
   }
 
-  private slugIndexes = new WeakMap<
-    Record<string, string>,
-    Map<string, string>
-  >();
+  private slugIndexes = new WeakMap<Record<string, string>, SlugIndex>();
 
   /**
-   * Map of slugified document title to externalId, built once per docMap.
-   * Slugs are stored without hyphens, see {@link unhyphenate}. When two
-   * documents have the same slug, the first in the tree is used.
+   * Maps of slugified document title to externalId, with and without hyphens,
+   * built once per docMap. A slug that more than one document has maps to
+   * null.
    */
-  private documentsBySlug(docMap: Record<string, string>): Map<string, string> {
+  private documentsBySlug(docMap: Record<string, string>): SlugIndex {
     let index = this.slugIndexes.get(docMap);
     if (index) {
       return index;
     }
 
-    index = new Map();
+    index = { exact: new Map(), unhyphenated: new Map() };
+    const add = (map: Map<string, string | null>, slug: string, id: string) =>
+      map.set(slug, map.has(slug) ? null : id);
+
     for (const [pathInZip, id] of Object.entries(docMap)) {
-      const slug = unhyphenate(
-        slugify(deserializeFilename(path.parse(pathInZip).name))
-      );
-      if (slug && !index.has(slug)) {
-        index.set(slug, id);
+      const slug = slugify(deserializeFilename(path.parse(pathInZip).name));
+      if (slug) {
+        add(index.exact, slug, id);
+        add(index.unhyphenated, unhyphenate(slug), id);
       }
     }
 
