@@ -62,7 +62,15 @@ export async function start(id: number, disconnect: () => void) {
     app.use(logger((str) => Logger.info("http", str)));
   }
 
-  app.use(helmet());
+  // Cross-origin isolation headers are left off, as attachments, avatars, and
+  // CDN assets are loaded across origins and from custom domains.
+  app.use(
+    helmet({
+      crossOriginOpenerPolicy: false,
+      crossOriginResourcePolicy: false,
+      originAgentCluster: false,
+    })
+  );
 
   // catch errors in one place, automatically set status and response headers
   onerror(app);

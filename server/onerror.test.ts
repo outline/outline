@@ -1,4 +1,5 @@
 // @vitest-isolate true
+import { errors as formidableErrors } from "formidable";
 import type Koa from "koa";
 import { DatabaseError } from "sequelize";
 import type { Mock } from "vitest";
@@ -134,6 +135,19 @@ describe("onerror", () => {
     };
     error.status = 500;
     error.type = "stream.not.readable";
+
+    app.context.onerror.call(ctx, error);
+
+    expect(requestErrorHandler).not.toHaveBeenCalled();
+    expect(ctx.status).toBe(499);
+    expect(ctx.body).toContain("client_closed_request");
+  });
+
+  it("should convert an aborted multipart upload into a client closed request", () => {
+    const error = new formidableErrors.default(
+      "Request aborted",
+      formidableErrors.aborted
+    );
 
     app.context.onerror.call(ctx, error);
 
