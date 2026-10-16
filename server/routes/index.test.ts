@@ -54,6 +54,43 @@ describe("/s/:id", () => {
     expect(body).toContain(`<title>${document.title}</title>`);
   });
 
+  it("should allow indexing of a published share that opts in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: true,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<meta name="robots" content="index, follow" />`);
+  });
+
+  it("should prevent indexing of a share that does not opt in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: false,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
+  it("should prevent indexing when share does not exist", async () => {
+    const res = await server.get(`/s/junk`);
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
   it("should return document title in html when loading published share with nested doc route", async () => {
     const document = await buildDocument();
     const share = await buildShare({
@@ -376,6 +413,18 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(404);
     expect(body).not.toContain("<title>");
   });
+
+  it.each(["/", "/login", "/some-app-route"])(
+    "prevents indexing of the app shell at %s",
+    async (path) => {
+      const res = await server.get(path);
+      const body = await res.text();
+      expect(res.status).toEqual(200);
+      expect(body).toContain(
+        `<meta name="robots" content="noindex, nofollow" />`
+      );
+    }
+  );
 
   it("still serves the app shell for legitimate unknown paths", async () => {
     const res = await server.get("/some-app-route");
