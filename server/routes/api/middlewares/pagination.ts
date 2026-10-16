@@ -79,10 +79,16 @@ export default function pagination() {
       throw InvalidRequestError(`Pagination offset must be a valid number`);
     }
 
-    const limit = rawLimit ? Math.trunc(Number(rawLimit)) : opts.defaultLimit;
-    const offset = rawOffset
-      ? Math.trunc(Number(rawOffset))
-      : opts.defaultOffset;
+    const limit = rawLimit ? parseInteger(rawLimit) : opts.defaultLimit;
+    const offset = rawOffset ? parseInteger(rawOffset) : opts.defaultOffset;
+
+    if (isNaN(limit)) {
+      throw InvalidRequestError(`Pagination limit must be a valid number`);
+    }
+
+    if (isNaN(offset)) {
+      throw InvalidRequestError(`Pagination offset must be a valid number`);
+    }
 
     if (limit > opts.maxLimit) {
       throw InvalidRequestError(
@@ -112,3 +118,8 @@ export default function pagination() {
     return next();
   };
 }
+
+const parseInteger = (value: unknown) =>
+  typeof value === "string" || typeof value === "number"
+    ? parseInt(String(value), 10)
+    : NaN;
