@@ -9,6 +9,7 @@ import {
   PlusIcon,
   PrintIcon,
   PublishIcon,
+  SettingsIcon,
   TrashIcon,
 } from "outline-icons";
 import { Trans } from "react-i18next";
@@ -50,6 +51,16 @@ export const createTemplate = createInternalLinkAction({
   visible: ({ currentTeamId, stores }) =>
     !!stores.policies.abilities(currentTeamId!).createTemplate,
   to: newTemplatePath(),
+});
+
+export const manageTemplates = createInternalLinkAction({
+  name: ({ t }) => t("Manage templates"),
+  analyticsName: "Manage templates",
+  section: TemplateSection,
+  icon: <SettingsIcon />,
+  visible: ({ currentTeamId, stores }) =>
+    !!stores.policies.abilities(currentTeamId!).readTemplate,
+  to: settingsPath("templates"),
 });
 
 export const deleteTemplate = dialogActionFactory({
