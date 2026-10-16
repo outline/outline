@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Bu, Outline slash komutunu Slack çalışma alanınızdan kaldıracaktır. Emin misiniz?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "{{appName}} koleksiyonlarını Slack kanallarına bağlayın. Belgeler yayınlandığında veya güncellendiğinde mesajlar otomatik olarak Slack'e gönderilecektir.",
   "Comment by {{ author }} on “{{ title }}”": "{{ author }} tarafından “{{ title }}” hakkında yorum",
+  "You do not have access to this document": "You do not have access to this document",
   "How to use {{ command }}": "{{ command }} nasıl kullanılır",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "Çalışma alanınızda arama yapmak için {{ command }} kullanın.\nBu yardım metnini görüntülemek için {{ command2 }} help yazın.",
   "Post to Channel": "Kanala Gönder",
