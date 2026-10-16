@@ -1315,12 +1315,50 @@ export class DocumentHelper {
       return undefined;
     }
 
-    // Parse the replacement markdown and extract inline content only when it
-    // resolves to a single textblock. Multi-block or non-textblock content
-    // should fall back to block-level replacement rather than being silently
-    // truncated during inline patching. Markdown parsing can trim whitespace,
-    // so when the parsed result is plain text we use the raw replacement
-    // string to preserve exact whitespace.
+    const replacementContent = DocumentHelper.inlineReplacementContent(
+      blockNode,
+      replacementText
+    );
+
+    if (!replacementContent) {
+      return undefined;
+    }
+
+    // Splice: keep inline content before match + replacement + after match.
+    const inlineBefore = blockNode.content.cut(0, pmInlineFrom);
+    const inlineAfter = blockNode.content.cut(pmInlineTo);
+    const content = inlineBefore.append(replacementContent).append(inlineAfter);
+
+    if (!blockNode.type.validContent(content)) {
+      return undefined;
+    }
+
+    return blockNode.copy(content);
+  }
+
+  /**
+   * Build the inline content that replaces a match inside a textblock. Code
+   * blocks take the replacement verbatim. Other textblocks parse it as
+   * markdown, and use the raw string when the result is plain text so that
+   * whitespace is kept.
+   *
+   * @param blockNode The textblock node containing the match.
+   * @param replacementText The replacement text.
+   * @returns The inline content, or undefined if the replacement is not a
+   *   single textblock.
+   */
+  private static inlineReplacementContent(
+    blockNode: Node,
+    replacementText: string
+  ): Fragment | undefined {
+    if (blockNode.type.spec.code) {
+      return replacementText
+        ? Fragment.from(schema.text(replacementText))
+        : Fragment.empty;
+    }
+
+    // Multi-block or non-textblock content falls back to block-level
+    // replacement rather than being silently truncated.
     const parsed = parser.parse(replacementText);
     const firstBlock = parsed.firstChild;
 
@@ -1328,25 +1366,15 @@ export class DocumentHelper {
       return undefined;
     }
 
-    let replacementContent: Fragment;
-
     if (
       firstBlock.content.childCount === 1 &&
       firstBlock.firstChild?.isText &&
       !firstBlock.firstChild.marks.length
     ) {
-      // Plain text replacement — use the raw string to avoid whitespace trimming
-      replacementContent = Fragment.from(schema.text(replacementText));
-    } else {
-      replacementContent = firstBlock.content;
+      return Fragment.from(schema.text(replacementText));
     }
 
-    // Splice: keep inline content before match + replacement + after match.
-    const inlineBefore = blockNode.content.cut(0, pmInlineFrom);
-    const inlineAfter = blockNode.content.cut(pmInlineTo);
-    return blockNode.copy(
-      inlineBefore.append(replacementContent).append(inlineAfter)
-    );
+    return firstBlock.content;
   }
 
   /**
