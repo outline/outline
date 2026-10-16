@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "פעולה זו תסיר את פקודת הנטוי Outline מסביבת העבודה Slack שלך. אתה בטוח?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "חבר אוספים {{appName}} לערוצי Slack. הודעות יפורסמו אוטומטית ב-Slack כאשר מסמכים יתפרסמו או יעודכנו.",
   "Comment by {{ author }} on “{{ title }}”": "תגובה מאת {{ author }} על „{{ title }}”",
+  "You do not have access to this document": "אין לך גישה למסמך זה",
   "How to use {{ command }}": "כיצד להשתמש ב-{{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "כדי לחפש בסביבת העבודה שלך, השתמש ב-{{ command }}.\nהקלד {{ command2 }} help כדי להציג טקסט עזרה זה.",
   "Post to Channel": "פרסם לערוץ",
