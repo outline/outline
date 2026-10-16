@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Kết nối {{appName}} bộ sưu tập với các kênh Slack. Tin nhắn sẽ tự động được đăng lên Slack khi tài liệu được xuất bản hoặc cập nhật.",
   "Comment by {{ author }} on “{{ title }}”": "Bình luận của {{ author }} về “{{ title }}”",
+  "You do not have access to this document": "Bạn không có quyền truy cập tài liệu này",
   "How to use {{ command }}": "How to use {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "Để tìm kiếm trong không gian làm việc, hãy dùng {{ command }}.\nNhập {{ command2 }} help để hiển thị văn bản trợ giúp này.",
   "Post to Channel": "Đăng lên Kênh",
