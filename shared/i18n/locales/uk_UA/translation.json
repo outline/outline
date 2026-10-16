@@ -1748,7 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Підключіть {{appName}} колекцій до каналів Slack. Повідомлення будуть автоматично опубліковані в Slack, коли документи будуть опубліковані або оновлені.",
   "Comment by {{ author }} on “{{ title }}”": "Коментар від {{ author }} до «{{ title }}»",
-  "You do not have access to this document": "You do not have access to this document",
+  "You do not have access to this document": "У вас немає доступу до цього документа",
   "How to use {{ command }}": "Як використовувати {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "Щоб шукати в робочому просторі, використовуйте {{ command }}.\nВведіть {{ command2 }} help, щоб відобразити цей текст довідки.",
   "Post to Channel": "Опублікувати в каналі",
