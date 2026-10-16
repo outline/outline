@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Això eliminarà l'ordre de barra inclinada de l'Outline del vostre espai de treball Slack. N'esteu segur?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Connecteu les col·leccions de {{appName}} als canals de Slack. Els missatges es publicaran automàticament a Slack quan es publiquin o actualitzin els documents.",
   "Comment by {{ author }} on “{{ title }}”": "Comentari de {{ author }} a “{{ title }}”",
+  "You do not have access to this document": "No teniu accés a aquest document",
   "How to use {{ command }}": "Com utilitzar {{ command }}",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "Per cercar a l'espai de treball, feu servir {{ command }}.\nEscriviu {{ command2 }} help per mostrar aquest text d'ajuda.",
   "Post to Channel": "Publica al canal",
