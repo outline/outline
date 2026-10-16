@@ -96,7 +96,7 @@ export const renderApp = async (
     canonical = "",
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
-    allowIndexing = true,
+    allowIndexing = false,
   } = options;
 
   if (ctx.request.path === "/realtime/") {
