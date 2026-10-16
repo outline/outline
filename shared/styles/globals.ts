@@ -188,8 +188,7 @@ export default createGlobalStyle<Props>`
     width: 24px;
     height: 24px;
     cursor: grab;
-    opacity: 0;
-    pointer-events: none;
+    display: none;
     transition: background-color 150ms ease-in-out;
     background-color: ${s("textTertiary")};
     mask-image: url("${dragHandleIcon}");
@@ -206,8 +205,7 @@ export default createGlobalStyle<Props>`
     }
 
     &.visible {
-      opacity: 1;
-      pointer-events: auto;
+      display: block;
     }
 
     &.visible.dragging {

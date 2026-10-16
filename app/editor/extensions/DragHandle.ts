@@ -205,6 +205,17 @@ export default class DragHandle extends Extension {
               ? rect.right + offsetX - HANDLE_SIZE
               : rect.left - offsetX;
 
+            // Hide the handle past the viewport edge, such as when an inner
+            // scroll container clips its block, so it does not grow the page.
+            const { clientWidth, clientHeight } = document.documentElement;
+            if (
+              top + HANDLE_SIZE > clientHeight ||
+              left + HANDLE_SIZE > clientWidth
+            ) {
+              handle.classList.remove("visible", "dragging");
+              return;
+            }
+
             // Position in document coordinates so that the browser scrolls
             // the handle with the page, rather than after the scroll event.
             handle.style.top = `${top + window.scrollY}px`;
