@@ -1748,6 +1748,7 @@
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "이것은 당신의 Slack 워크스페이스로부터 Outline 슬래시 명령어를 제거할 것입니다. 계속하시겠습니까?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "{{appName}} 컬렉션을 Slack 채널에 연결합니다. 문서가 게시되거나 업데이트되면 메시지가 자동으로 Slack에 게시됩니다.",
   "Comment by {{ author }} on “{{ title }}”": "“{{ title }}”에 대한 {{ author }}님의 댓글",
+  "You do not have access to this document": "이 문서에 액세스할 수 없습니다",
   "How to use {{ command }}": "{{ command }} 사용 방법",
   "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.": "워크스페이스를 검색하려면 {{ command }} 명령어를 사용하세요.\n도움말을 표시하려면 {{ command2 }} help를 입력하세요.",
   "Post to Channel": "채널에 게시하기",
