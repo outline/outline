@@ -394,6 +394,17 @@ export class Environment {
   // Third-party services
 
   /**
+   * The provider used to deliver email. Defaults to "smtp", which connects to
+   * the SMTP server configured below. Alternative providers, such as those that
+   * deliver over a vendor API, can be registered via plugins. Values are
+   * case-insensitive, and are validated against the registered providers when
+   * the server starts.
+   */
+  @IsOptional()
+  public EMAIL_PROVIDER =
+    this.toOptionalString(environment.EMAIL_PROVIDER)?.toLowerCase() ?? "smtp";
+
+  /**
    * The host of your SMTP server for enabling emails.
    */
   @CannotUseWith("SMTP_SERVICE")
@@ -407,9 +418,16 @@ export class Environment {
   @IsInCaseInsensitive(Object.keys(wellKnownServices))
   public SMTP_SERVICE = this.toOptionalString(environment.SMTP_SERVICE);
 
+  /**
+   * Whether email delivery is configured. True when an SMTP server is set, when
+   * a provider other than SMTP has been selected, or in development where a
+   * test account is generated automatically.
+   */
   @Public
   public EMAIL_ENABLED =
-    !!(this.SMTP_HOST || this.SMTP_SERVICE) || this.isDevelopment;
+    !!(this.SMTP_HOST || this.SMTP_SERVICE) ||
+    this.EMAIL_PROVIDER !== "smtp" ||
+    this.isDevelopment;
 
   /**
    * Optional hostname of the client, used for identifying to the server
