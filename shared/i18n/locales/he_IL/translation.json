@@ -1730,7 +1730,7 @@
   "You can manage your passkeys at any time": "אתה יכול לנהל את המפתחות שלך בכל עת",
   "If you have any concerns about your account security, please contact a workspace admin.": "אם יש לך חששות לגבי אבטחת החשבון שלך, צור קשר עם מנהל סביבת עבודה.",
   "Manage Passkeys": "נהל מפתחות סיסמה",
-  "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.": "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.",
+  "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.": "ייבוא קובץ ZIP של מסמכי Markdown שיוצאו מ־Slab – אוספים, פוסטים, תמונות וקבצים מצורפים ייובאו. ב־Slab, פתחו את הגדרות הניהול והשתמשו באפשרות <1>ייצוא</1> כדי להוריד ארכיון של התוכן שלכם.",
   "Drag and drop the zip file exported from Slab, or click to upload": "Drag and drop the zip file exported from Slab, or click to upload",
   "Import a zip file of Markdown documents exported from Slab": "Import a zip file of Markdown documents exported from Slab",
   "Add to Slack": "הוסף ל-Slack",
