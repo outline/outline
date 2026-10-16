@@ -1730,7 +1730,7 @@
   "You can manage your passkeys at any time": "Geçiş anahtarlarınızı istediğiniz zaman yönetebilirsiniz",
   "If you have any concerns about your account security, please contact a workspace admin.": "Hesap güvenliğinizle ilgili endişeniz varsa bir çalışma alanı yöneticisiyle iletişime geçin.",
   "Manage Passkeys": "Geçiş anahtarlarını yönet",
-  "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.": "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.",
+  "Import a zip file of Markdown documents exported from Slab – collections, posts, images, and attachments will be imported. In Slab, open the admin settings and use the <1>Export</1> option to download an archive of your content.": "Slab'den dışa aktarılan Markdown belgelerini içeren bir ZIP dosyasını içe aktarın; koleksiyonlar, gönderiler, görseller ve ekler içe aktarılacaktır. Slab'de yönetici ayarlarını açın ve içeriğinizin arşivini indirmek için <1>Dışa Aktar</1> seçeneğini kullanın.",
   "Drag and drop the zip file exported from Slab, or click to upload": "Slab'den dışa aktarılan ZIP dosyasını sürükleyip bırakın veya yüklemek için tıklayın",
   "Import a zip file of Markdown documents exported from Slab": "Slab'den dışa aktarılan Markdown belgelerinin ZIP dosyasını içe aktarın",
   "Add to Slack": "Slack'e Ekle",
