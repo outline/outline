@@ -162,8 +162,6 @@ export type Props = {
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
-  /** Callback when file upload progress changes */
-  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
   onCreateLink?: (
     params: Properties<Document>,

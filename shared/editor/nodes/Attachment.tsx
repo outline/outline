@@ -188,13 +188,8 @@ export default class Attachment extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const {
-          uploadFile,
-          onFileUploadStart,
-          onFileUploadStop,
-          onFileUploadProgress,
-          onNotice,
-        } = this.editor.props;
+        const { uploadFile, onFileUploadStart, onFileUploadStop, onNotice } =
+          this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace attachments");
@@ -220,7 +215,6 @@ export default class Attachment extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
-            onFileUploadProgress,
             onNotice,
             replaceExisting: true,
             attrs: {

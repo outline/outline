@@ -54,38 +54,31 @@ interface UploadPlaceholderState {
   localSources: ReadonlyMap<string, string>;
 }
 
-/** Node views rendered for placeholder widgets, keyed by their DOM element. */
-const placeholderViews = new WeakMap<globalThis.Node, NodeView>();
+/** The displayed placeholders of an upload. */
+interface UploadPlaceholderElements {
+  /** Placeholder elements, with the node view that renders each. */
+  views: Map<HTMLElement, NodeView | undefined>;
+  /** Fraction of the upload that is complete. */
+  progress?: number;
+}
 
-/** Placeholder elements, keyed by the identifier of their upload. */
-const placeholderElements = new Map<string, Set<HTMLElement>>();
-
-/** Fraction of each upload that is complete, keyed by its identifier. */
-const uploadProgress = new Map<string, number>();
+/** Displayed placeholders, keyed by the identifier of their upload. */
+const placeholders = new Map<string, UploadPlaceholderElements>();
 
 /** CSS property that holds the fraction of an upload that is complete. */
 const progressProperty = "--upload-progress";
 
 /**
- * Get the name of the attribute that holds the URL of the file of a node.
+ * Get the name of the attribute that holds the URL of the file of a node. Nodes
+ * with a `src` display their file, so they display it from a local URL while it
+ * uploads and after. Nodes with an `href` link to their file, and the content
+ * security policy does not allow PDF previews to embed local URLs.
  *
  * @param type The node type.
  * @returns the attribute name.
  */
 export function getUrlAttr(type: NodeType): "src" | "href" {
   return type.spec.attrs && "src" in type.spec.attrs ? "src" : "href";
-}
-
-/**
- * Whether a node displays its file from a local URL while it uploads and after.
- * Attachments link to their file, and the content security policy does not
- * allow PDF previews to embed local URLs.
- *
- * @param node The node to check.
- * @returns true if the node displays its file from a local URL.
- */
-function displaysFile(node: ProsemirrorNode): boolean {
-  return node.type.name === "image" || node.type.name === "video";
 }
 
 /**
@@ -127,16 +120,13 @@ function renderUploadingNode(
   element.inert = true;
   element.setAttribute("aria-busy", "true");
 
-  const progress = uploadProgress.get(id);
-  if (progress !== undefined) {
-    element.style.setProperty(progressProperty, String(progress));
-  }
-
-  const elements = placeholderElements.get(id) ?? new Set<HTMLElement>();
-  placeholderElements.set(id, elements.add(element));
-
-  if (nodeView) {
-    placeholderViews.set(element, nodeView);
+  const placeholder: UploadPlaceholderElements = placeholders.get(id) ?? {
+    views: new Map(),
+  };
+  placeholders.set(id, placeholder);
+  placeholder.views.set(element, nodeView);
+  if (placeholder.progress !== undefined) {
+    element.style.setProperty(progressProperty, String(placeholder.progress));
   }
   return element;
 }
@@ -148,15 +138,15 @@ function renderUploadingNode(
  * @param id The identifier of the upload.
  */
 function destroyUploadingNode(dom: globalThis.Node, id: string) {
-  placeholderViews.get(dom)?.destroy?.();
-  placeholderViews.delete(dom);
-
-  const elements = placeholderElements.get(id);
-  if (dom instanceof HTMLElement) {
-    elements?.delete(dom);
+  const placeholder = placeholders.get(id);
+  if (!placeholder || !(dom instanceof HTMLElement)) {
+    return;
   }
-  if (elements?.size === 0) {
-    placeholderElements.delete(id);
+
+  placeholder.views.get(dom)?.destroy?.();
+  placeholder.views.delete(dom);
+  if (placeholder.views.size === 0) {
+    placeholders.delete(id);
   }
 }
 
@@ -224,7 +214,7 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
         // its file shows the local file, others show that they are uploading.
         const template = type.create(add.attrs);
         const objectUrl =
-          !add.src && add.file && displaysFile(template)
+          !add.src && add.file && getUrlAttr(type) === "src"
             ? URL.createObjectURL(add.file)
             : undefined;
         const previewUrl = add.src ?? objectUrl;
@@ -265,18 +255,16 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
 
       if (action?.remove) {
         const { id, node } = action.remove;
-        uploadProgress.delete(id);
         set = set.remove(
           set.find(undefined, undefined, (spec) => spec.id === id)
         );
 
         // An uploaded node continues to display the local file, so that the
         // file does not load again from storage.
-        const url: string | undefined = node?.attrs[getUrlAttr(node.type)];
-        const localSrc =
-          node && url && displaysFile(node)
-            ? removing.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
-            : undefined;
+        const url: string | undefined = node?.attrs.src;
+        const localSrc = url
+          ? removing.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
+          : undefined;
         if (url && localSrc) {
           localSources = new Map(localSources).set(url, localSrc);
         }
@@ -379,10 +367,13 @@ export function getDisplayUrl(
  * @param fraction The fraction of the upload that is complete, from 0 to 1
  */
 export function setUploadProgress(id: string, fraction: number) {
-  uploadProgress.set(id, fraction);
-  placeholderElements
-    .get(id)
-    ?.forEach((element) =>
-      element.style.setProperty(progressProperty, String(fraction))
-    );
+  const placeholder = placeholders.get(id);
+  if (!placeholder) {
+    return;
+  }
+
+  placeholder.progress = fraction;
+  placeholder.views.forEach((_view, element) =>
+    element.style.setProperty(progressProperty, String(fraction))
+  );
 }

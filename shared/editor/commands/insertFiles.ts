@@ -28,8 +28,6 @@ export type Options = {
   onFileUploadStart?: () => void;
   /** Callback fired when the user completes a file upload */
   onFileUploadStop?: () => void;
-  /** Callback fired when file upload progress changes */
-  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback fired to surface a notice to the user */
   onNotice?: EditorNotice;
   /** Attributes to overwrite */
@@ -57,12 +55,7 @@ const insertFiles = async function (
   files: File[],
   options: Options
 ) {
-  const {
-    uploadFile,
-    onFileUploadStart,
-    onFileUploadStop,
-    onFileUploadProgress,
-  } = options;
+  const { uploadFile, onFileUploadStart, onFileUploadStop } = options;
 
   // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
@@ -179,10 +172,7 @@ const insertFiles = async function (
     // happening in the background in parallel.
     uploadFile?.(upload.file, {
       id: upload.id,
-      onProgress: (progress) => {
-        setUploadProgress(upload.id, progress);
-        onFileUploadProgress?.(upload.id, progress);
-      },
+      onProgress: (progress) => setUploadProgress(upload.id, progress),
     })
       // then this should be able to get the full URL as well
       .then((src) => {
