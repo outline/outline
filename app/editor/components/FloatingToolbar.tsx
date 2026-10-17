@@ -56,7 +56,7 @@ function usePosition({
 
   // Measure the menu width after DOM updates to ensure accurate positioning.
   // Runs after every render by design, the width comparison prevents a loop.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     if (menuRef.current) {
       const width = menuRef.current.offsetWidth;

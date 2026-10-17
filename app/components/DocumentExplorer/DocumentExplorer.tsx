@@ -163,7 +163,7 @@ function DocumentExplorer({
         setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue]);
   const baseDepth = nodes.reduce(
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),

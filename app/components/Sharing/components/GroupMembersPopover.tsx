@@ -32,7 +32,7 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
   // when group membership changes in the store.
   const members = React.useMemo(
     () => groupUsers.inGroup(group.id),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [groupUsers.orderedData, group.id]
   );
 

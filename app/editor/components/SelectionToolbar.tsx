@@ -130,7 +130,7 @@ export const SelectionToolbar = observer(function SelectionToolbar(
     }
     // `activeToolbar` is read to decide whether the link toolbar should stay
     // open, re-running when it changes would fight the user's own selection.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     readOnly,
     isActive,

@@ -117,7 +117,7 @@ export const Suggestions = observer(function Suggestions({
     ];
     // The store collections listed below are observable dependencies, they
     // are what recompute the suggestions when the underlying data changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     getSuggestionForEmail,
     users,

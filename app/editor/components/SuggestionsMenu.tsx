@@ -280,7 +280,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     } else {
       selectionRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isActive, props.search]);
 
   React.useEffect(() => {

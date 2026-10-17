@@ -325,7 +325,7 @@ export function useDocumentSave({
   // Initial dirty check on mount
   useEffect(() => {
     updateIsDirty();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When readOnly changes from true to false, recalculate dirty state
@@ -364,7 +364,7 @@ export function useDocumentSave({
         });
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

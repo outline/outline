@@ -174,7 +174,7 @@ function History() {
       .getByDocumentId(document.id)
       .filter((revision: Revision) => revision.id !== latestRevisionId)
       .slice(0, revisionsOffset);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [document, revisions.orderedData, revisionsOffset]);
 
   // The revisions list is lightweight and omits document content, so load the
@@ -208,7 +208,7 @@ function History() {
       document
         ? events.getByDocumentId(document.id).slice(0, eventsOffset)
         : [],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [document, events.orderedData, eventsOffset]
   );
 

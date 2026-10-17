@@ -67,7 +67,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @param maxUploadSize The maximum upload size in bytes
    * @param contentType The content type of the file
-   * @returns The presigned post object to use on the client (TODO: Abstract away from S3)
+   * @returns The presigned post object to use on the client
    */
   public abstract getPresignedPost(
     ctx: AppContext,

@@ -349,7 +349,6 @@ router.post(
     const { verified, authenticationInfo } = verification;
 
     if (verified && authenticationInfo) {
-      // Update counter
       passkey.counter = authenticationInfo.newCounter;
       passkey.lastActiveAt = new Date();
       await passkey.save({ silent: true });

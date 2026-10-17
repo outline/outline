@@ -52,7 +52,7 @@ export default function useEmbeds(loadIfMissing = false) {
 
         return e;
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [integrations.orderedData, team?.preferences]
   );
 }
