@@ -10,13 +10,14 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
+import useClickIntent from "~/hooks/useClickIntent";
 import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const SharePopover = lazyWithRetry(
-  () => import("~/components/Sharing/Document")
+  () => import("~/components/Sharing/Document/SharePopover")
 );
 
 type Props = {
@@ -46,6 +47,16 @@ function ShareButton({ document }: Props) {
     [preload, reset]
   );
 
+  const handleIntent = useCallback(() => {
+    preload();
+    void SharePopover.preload();
+  }, [preload]);
+  const {
+    ref: intentRef,
+    handleMouseEnter,
+    handleMouseLeave,
+  } = useClickIntent(handleIntent, { predict: true });
+
   const closePopover = useCallback(() => {
     handleOpenChange(false);
   }, [handleOpenChange]);
@@ -59,7 +70,13 @@ function ShareButton({ document }: Props) {
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger>
-        <Button icon={icon} neutral onMouseEnter={preload}>
+        <Button
+          ref={intentRef}
+          icon={icon}
+          neutral
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {t("Share")} {domain && <>&middot; {domain}</>}
         </Button>
       </PopoverTrigger>
