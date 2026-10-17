@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { addMonths, subDays } from "date-fns";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { parseSessionsCookie } from "@shared/utils/sessions";
 import env from "@server/env";
 import {
   buildShare,
@@ -571,6 +573,51 @@ describe("root domain session redirects", () => {
       });
       expect(res.status).toEqual(200);
     }
+  });
+
+  it("should clean and refresh the cookie before rendering the workspace chooser", async () => {
+    const team = await buildTeam({
+      name: "Updated workspace",
+      subdomain: `updated-${randomUUID()}`,
+      domain: `docs-${randomUUID()}.example.com`,
+    });
+    const suspended = await buildTeam({ suspendedAt: new Date() });
+    const expiresAt = addMonths(new Date(), 1).toISOString();
+    const stale = {
+      name: "Old workspace",
+      logoUrl: null,
+      url: "https://old.outline.dev",
+    };
+    const res = await server.get("/oauth/authorize?client_id=x", {
+      headers: {
+        Host: host,
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team.id]: { ...stale, expiresAt },
+            [suspended.id]: stale,
+            [randomUUID()]: stale,
+            [randomUUID()]: {
+              ...stale,
+              expiresAt: subDays(new Date(), 1).toISOString(),
+            },
+            invalid: stale,
+          })
+        )}`,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(200);
+    const cookies = res.headers.raw()["set-cookie"];
+    const cookie = cookies.find((value) => value.startsWith("sessions="));
+    const value = cookie?.split(";")[0].slice("sessions=".length);
+    expect(parseSessionsCookie(decodeURIComponent(value || "{}"))).toEqual({
+      [team.id]: {
+        name: team.name,
+        logoUrl: team.avatarUrl,
+        url: team.url,
+        expiresAt,
+      },
+    });
   });
 
   it("should not redirect without a sessions cookie", async () => {

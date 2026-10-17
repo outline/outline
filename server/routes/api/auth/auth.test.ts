@@ -1,7 +1,9 @@
-// @vitest-isolate true
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
+import { addMonths } from "date-fns";
 import { Scope } from "@shared/types";
+import type { Sessions } from "@shared/utils/sessions";
+import { parseSessionsCookie } from "@shared/utils/sessions";
 import {
   buildApiKey,
   buildOAuthAuthentication,
@@ -12,23 +14,13 @@ import {
 } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
-const mockTeamInSessionId = randomUUID();
-
-vi.mock("@server/utils/authentication", () => ({
-  getSessionsInCookie() {
-    return { [mockTeamInSessionId]: {} };
-  },
-}));
-
 const server = getTestServer();
 
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
-    const team3 = await buildTeam({
-      id: mockTeamInSessionId,
-    });
+    const team3 = await buildTeam();
 
     const user = await buildUser({ teamId: team.id });
     await buildUser();
@@ -36,7 +28,20 @@ describe("#auth.info", () => {
       teamId: team2.id,
       email: user.email,
     });
-    const res = await server.post("/api/auth.info", user);
+    const res = await server.post("/api/auth.info", user, {
+      headers: {
+        Host: "app.outline.dev",
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team3.id]: {
+              name: team3.name,
+              logoUrl: team3.avatarUrl,
+              url: team3.url,
+            },
+          })
+        )}`,
+      },
+    });
     const body = await res.json();
     expect(res.status).toEqual(200);
 
@@ -51,6 +56,114 @@ describe("#auth.info", () => {
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
     expect(body.data.team.allowedDomains).toEqual([]);
+    expect(
+      body.data.availableTeams.find((t: { id: string }) => t.id === team3.id)
+        .isSignedIn
+    ).toBe(true);
+    expect(
+      body.data.availableTeams.find((t: { id: string }) => t.id === team2.id)
+        .isSignedIn
+    ).toBe(false);
+  });
+
+  it("adds the current workspace to the sessions cookie when missing", async () => {
+    const before = addMonths(new Date(), 3).getTime();
+    const user = await buildUser();
+    const res = await server.post("/api/auth.info", user, {
+      headers: { Host: "app.outline.dev" },
+    });
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    const cookies = res.headers.raw()["set-cookie"];
+    const cookie = cookies.find((value) => value.startsWith("sessions="));
+    const value = cookie?.split(";")[0].slice("sessions=".length);
+    const sessions = parseSessionsCookie(decodeURIComponent(value || "{}"));
+    expect(sessions[user.teamId]).toMatchObject({
+      name: body.data.team.name,
+      logoUrl: body.data.team.avatarUrl,
+      url: body.data.team.url,
+      expiresAt: expect.any(String),
+    });
+    const expiresAt = Date.parse(sessions[user.teamId].expiresAt || "");
+    expect(expiresAt).toBeGreaterThanOrEqual(before);
+    expect(expiresAt).toBeLessThanOrEqual(addMonths(new Date(), 3).getTime());
+  });
+
+  it.each(["missing", "legacy", "dated"])(
+    "uses the token expiry when the current workspace entry is %s",
+    async (entry) => {
+      const team = await buildTeam();
+      const otherTeam = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const expires = addMonths(new Date(), 1);
+      const otherExpires = addMonths(new Date(), 2);
+      const otherSession = {
+        name: otherTeam.name,
+        logoUrl: otherTeam.avatarUrl,
+        url: otherTeam.url,
+        expiresAt: otherExpires.toISOString(),
+      };
+      const sessions: Sessions = { [otherTeam.id]: otherSession };
+      if (entry !== "missing") {
+        sessions[team.id] = {
+          name: team.name,
+          logoUrl: team.avatarUrl,
+          url: team.url,
+          ...(entry === "dated"
+            ? { expiresAt: addMonths(new Date(), 3).toISOString() }
+            : {}),
+        };
+      }
+      const res = await server.post("/api/auth.info", {
+        headers: {
+          Host: "app.outline.dev",
+          Authorization: `Bearer ${user.getSessionToken(expires)}`,
+          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
+        },
+      });
+      expect(res.status).toEqual(200);
+      const cookies = res.headers.raw()["set-cookie"];
+      const cookie = cookies.find((value) => value.startsWith("sessions="));
+      const value = cookie?.split(";")[0].slice("sessions=".length);
+      const written = parseSessionsCookie(decodeURIComponent(value || "{}"));
+      expect(written[team.id].expiresAt).toEqual(expires.toISOString());
+      expect(written[otherTeam.id]).toEqual(otherSession);
+      expect(cookie).toContain(`expires=${otherExpires.toUTCString()}`);
+    }
+  );
+
+  it("does not write a sessions cookie when workspace details are unchanged", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/auth.info", user, {
+      headers: {
+        Host: "app.outline.dev",
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team.id]: {
+              name: team.name,
+              logoUrl: team.avatarUrl,
+              url: team.url,
+              expiresAt: addMonths(new Date(), 1).toISOString(),
+            },
+          })
+        )}`,
+      },
+    });
+    expect(res.status).toEqual(200);
+    const cookies = res.headers.raw()["set-cookie"];
+    expect(cookies?.some((value) => value.startsWith("sessions="))).toBeFalsy();
+  });
+
+  it("does not write a sessions cookie on a custom domain", async () => {
+    const team = await buildTeam({ domain: faker.internet.domainName() });
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/auth.info", user, {
+      headers: { Host: team.domain || "docs.example.com" },
+    });
+    expect(res.status).toEqual(200);
+    const cookies = res.headers.raw()["set-cookie"];
+    expect(cookies?.some((value) => value.startsWith("sessions="))).toBeFalsy();
   });
 
   it("should return a collaboration token for a session", async () => {
