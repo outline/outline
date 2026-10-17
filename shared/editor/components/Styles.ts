@@ -23,18 +23,13 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
-const uploadedFadeIn = keyframes`
-  from { opacity: 0.5; }
-  to { opacity: 1; }
-`;
-
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
-const uploadFrame = ".image-wrapper, .video-wrapper, .widget, .pdf-wrapper";
+const uploadFrame = `.image-wrapper, .${EditorStyleHelper.videoWrapper}, .widget, .pdf-wrapper`;
 
 /** The content of a file in the editor, without its frame or hidden controls. */
 const uploadContent = [
   `.image-wrapper > :is(a, img, .${EditorStyleHelper.imageHandle})`,
-  ".video-wrapper > video",
+  `.${EditorStyleHelper.videoWrapper} > video`,
   ".widget > *",
   ".pdf-wrapper > :is(:first-child, embed)",
 ].join(", ");
@@ -908,7 +903,20 @@ th .image .image-wrapper img {
 }
 
 .${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {
-  animation: ${uploadedFadeIn} 250ms ease-in-out;
+  /* Starts halfway through, from the opacity of the placeholder */
+  animation: ${fadeIn} 500ms linear -250ms;
+}
+
+.${EditorStyleHelper.uploadStatus} {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .${EditorStyleHelper.uploadReplaced} {

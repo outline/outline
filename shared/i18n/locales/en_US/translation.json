@@ -1934,6 +1934,7 @@
   "Double click to edit": "Double click to edit",
   "Loading": "Loading",
   "Error loading data": "Error loading data",
+  "Uploading {{ name }}": "Uploading {{ name }}",
   "Show {{ count }} completed": "Show {{ count }} completed",
   "Show {{ count }} completed_plural": "Show {{ count }} completed",
   "Hide completed": "Hide completed",

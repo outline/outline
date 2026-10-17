@@ -23,11 +23,17 @@ export class EditorStyleHelper {
   /** Node that is displayed while its file uploads */
   static readonly uploadPlaceholder = "upload-placeholder";
 
+  /** Status of an upload for assistive technology, not displayed */
+  static readonly uploadStatus = "upload-status";
+
   /** Node that is hidden while an upload replaces it */
   static readonly uploadReplaced = "upload-replaced";
 
   /** Node that has just finished uploading */
   static readonly uploadComplete = "upload-complete";
+
+  /** Wrapper of a video, around the video element */
+  static readonly videoWrapper = "video-wrapper";
 
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";

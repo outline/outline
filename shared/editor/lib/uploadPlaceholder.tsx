@@ -3,6 +3,7 @@ import type {
   Node as ProsemirrorNode,
   NodeType,
 } from "prosemirror-model";
+import { t } from "i18next";
 import { DOMSerializer } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
@@ -56,7 +57,7 @@ interface UploadPlaceholderState {
 
 /** The displayed placeholders of an upload. */
 interface UploadPlaceholderElements {
-  /** Placeholder elements, with the node view that renders each. */
+  /** Placeholder and status elements, with the node view that renders each. */
   views: Map<HTMLElement, NodeView | undefined>;
   /** Fraction of the upload that is complete. */
   progress?: number;
@@ -118,17 +119,65 @@ function renderUploadingNode(
 
   element.classList.add(EditorStyleHelper.uploadPlaceholder);
   element.inert = true;
-  element.setAttribute("aria-busy", "true");
+  return addPlaceholderElement(id, element, nodeView);
+}
 
+/**
+ * Render the status of an upload for assistive technology, as the placeholder
+ * of the upload is inert.
+ *
+ * @param id The identifier of the upload.
+ * @param name The name of the file that is uploading.
+ * @returns the DOM element to display.
+ */
+function renderUploadStatus(id: string, name: string | undefined): HTMLElement {
+  const element = document.createElement("span");
+  element.className = EditorStyleHelper.uploadStatus;
+  element.setAttribute("role", "progressbar");
+  element.setAttribute(
+    "aria-label",
+    name ? t("Uploading {{ name }}", { name }) : t("Uploading")
+  );
+  element.setAttribute("aria-valuemin", "0");
+  element.setAttribute("aria-valuemax", "100");
+  return addPlaceholderElement(id, element);
+}
+
+/**
+ * Track an element that displays an upload, and show the progress so far.
+ *
+ * @param id The identifier of the upload.
+ * @param element The element.
+ * @param nodeView The node view that renders the element, if any.
+ * @returns the element.
+ */
+function addPlaceholderElement(
+  id: string,
+  element: HTMLElement,
+  nodeView?: NodeView
+): HTMLElement {
   const placeholder: UploadPlaceholderElements = placeholders.get(id) ?? {
     views: new Map(),
   };
   placeholders.set(id, placeholder);
   placeholder.views.set(element, nodeView);
   if (placeholder.progress !== undefined) {
-    element.style.setProperty(progressProperty, String(placeholder.progress));
+    showProgress(element, placeholder.progress);
   }
   return element;
+}
+
+/**
+ * Show the progress of an upload on an element that displays it.
+ *
+ * @param element The element.
+ * @param fraction The fraction of the upload that is complete.
+ */
+function showProgress(element: HTMLElement, fraction: number) {
+  element.style.setProperty(progressProperty, String(fraction));
+  if (element.getAttribute("role") === "progressbar") {
+    element.setAttribute("aria-valuenow", String(Math.round(fraction * 100)));
+  }
 }
 
 /**
@@ -162,7 +211,6 @@ function findObjectUrls(set: DecorationSet): string[] {
     .map((deco) => deco.spec.objectUrl);
 }
 
-// based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
   state: {
     init(): UploadPlaceholderState {
@@ -222,17 +270,20 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
           ? type.create({ ...add.attrs, [getUrlAttr(type)]: previewUrl })
           : template;
 
-        const widget = Decoration.widget(
-          add.pos,
-          (view) => renderUploadingNode(view, node, add.id),
-          {
-            id: add.id,
-            key: `upload-${add.id}`,
-            objectUrl,
-            destroy: (dom: globalThis.Node) =>
-              destroyUploadingNode(dom, add.id),
-          }
-        );
+        const destroy = (dom: globalThis.Node) =>
+          destroyUploadingNode(dom, add.id);
+        const widgets = [
+          Decoration.widget(
+            add.pos,
+            (view) => renderUploadingNode(view, node, add.id),
+            { id: add.id, key: `upload-${add.id}`, objectUrl, destroy }
+          ),
+          Decoration.widget(
+            add.pos,
+            () => renderUploadStatus(add.id, add.file?.name),
+            { id: add.id, key: `upload-status-${add.id}`, side: 1, destroy }
+          ),
+        ];
 
         // A replaced node is hidden while the upload displays in its place.
         const nodeAfter = add.replaceExisting
@@ -246,10 +297,10 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
               { class: EditorStyleHelper.uploadReplaced },
               { id: add.id }
             ),
-            widget,
+            ...widgets,
           ]);
         } else {
-          set = set.add(tr.doc, [widget]);
+          set = set.add(tr.doc, widgets);
         }
       }
 
@@ -309,11 +360,27 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
     },
   },
   view(editorView) {
+    // The local URLs are tracked here, as the view can be given a new state
+    // that does not hold them before it is destroyed.
+    let localSources = uploadPlaceholder.getState(
+      editorView.state
+    )?.localSources;
+
     return {
+      update(view) {
+        const next = uploadPlaceholder.getState(view.state)?.localSources;
+        if (next === localSources) {
+          return;
+        }
+        localSources?.forEach((url, key) => {
+          if (next?.get(key) !== url) {
+            URL.revokeObjectURL(url);
+          }
+        });
+        localSources = next;
+      },
       destroy() {
-        uploadPlaceholder
-          .getState(editorView.state)
-          ?.localSources.forEach((url) => URL.revokeObjectURL(url));
+        localSources?.forEach((url) => URL.revokeObjectURL(url));
       },
     };
   },
@@ -374,6 +441,6 @@ export function setUploadProgress(id: string, fraction: number) {
 
   placeholder.progress = fraction;
   placeholder.views.forEach((_view, element) =>
-    element.style.setProperty(progressProperty, String(fraction))
+    showProgress(element, fraction)
   );
 }
