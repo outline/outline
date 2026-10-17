@@ -50,6 +50,14 @@ interface UploadPlaceholderAction {
 /** How long an uploaded node keeps the class that fades it in, in milliseconds. */
 const uploadedDuration = 1000;
 
+/** State of the upload placeholder plugin. */
+interface UploadPlaceholderState {
+  /** Placeholders and uploaded node decorations. */
+  decorations: DecorationSet;
+  /** Local URLs of files uploaded in this editor, keyed by their URL in storage. */
+  localSources: ReadonlyMap<string, string>;
+}
+
 /** Node views rendered for placeholder widgets, keyed by their DOM element. */
 const placeholderViews = new WeakMap<globalThis.Node, NodeView>();
 
@@ -97,12 +105,20 @@ function renderUploadingNode(
 }
 
 // based on the example at: https://prosemirror.net/examples/upload/
-const uploadPlaceholder = new Plugin({
+const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
   state: {
-    init() {
-      return DecorationSet.empty;
+    init(): UploadPlaceholderState {
+      return { decorations: DecorationSet.empty, localSources: new Map() };
     },
-    apply(this: Plugin, tr, set: DecorationSet, _oldState, newState) {
+    apply(
+      this: Plugin,
+      tr,
+      value: UploadPlaceholderState,
+      _oldState,
+      newState
+    ): UploadPlaceholderState {
+      let set = value.decorations;
+      let { localSources } = value;
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
       const action: UploadPlaceholderAction | undefined = tr.getMeta(this);
@@ -163,7 +179,7 @@ const uploadPlaceholder = new Plugin({
           const $pos = tr.doc.resolve(add.pos);
           const nodeAfter = $pos.nodeAfter;
           if (!nodeAfter) {
-            return set;
+            return { decorations: set, localSources };
           }
 
           // Media is hidden and replaced by a preview of the upload.
@@ -212,17 +228,27 @@ const uploadPlaceholder = new Plugin({
       }
 
       if (action?.remove) {
-        const { id } = action.remove;
+        const { id, node } = action.remove;
         const found = set.find(undefined, undefined, (spec) => spec.id === id);
+
+        // An uploaded video continues to play from the local file, so that it
+        // does not load again from storage.
+        const localSrc =
+          node?.type.name === "video" && node.attrs.src
+            ? found.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
+            : undefined;
+        if (node && localSrc) {
+          localSources = new Map(localSources).set(node.attrs.src, localSrc);
+        }
+
         found.forEach((deco) => {
-          if (deco.spec.objectUrl) {
+          if (deco.spec.objectUrl && deco.spec.objectUrl !== localSrc) {
             URL.revokeObjectURL(deco.spec.objectUrl);
           }
         });
         set = set.remove(found);
 
         // Fade in the uploaded node from the opacity of its placeholder.
-        const { node } = action.remove;
         if (node && removedFrom !== undefined) {
           const start = tr.mapping.map(removedFrom, -1);
           const end = Math.min(start + node.nodeSize + 1, tr.doc.content.size);
@@ -241,13 +267,22 @@ const uploadPlaceholder = new Plugin({
           });
         }
       }
-      return set;
+      return { decorations: set, localSources };
     },
   },
   props: {
     decorations(state) {
-      return this.getState(state);
+      return this.getState(state)?.decorations;
     },
+  },
+  view(editorView) {
+    return {
+      destroy() {
+        uploadPlaceholder
+          .getState(editorView.state)
+          ?.localSources.forEach((url) => URL.revokeObjectURL(url));
+      },
+    };
   },
 });
 
@@ -264,10 +299,27 @@ export function findPlaceholder(
   state: EditorState,
   id: string
 ): [number, number] | null {
-  const decos = uploadPlaceholder.getState(state);
+  const decos = uploadPlaceholder.getState(state)?.decorations;
   const found = decos?.find(undefined, undefined, (spec) => spec.id === id);
 
   // When the upload replaces a node, its range is the placeholder position.
   const deco = found?.find((d) => d.to > d.from) ?? found?.[0];
   return deco ? [deco.from, deco.to] : null;
+}
+
+/**
+ * Get the local URL to display an uploaded file with, in the editor that
+ * uploaded it. The document keeps the URL of the file in storage.
+ *
+ * @param state The editor state
+ * @param src The URL of the file in storage
+ * @returns The local URL, or undefined if the file was not uploaded here
+ */
+export function getLocalSrc(
+  state: EditorState,
+  src: string | null | undefined
+): string | undefined {
+  return src
+    ? uploadPlaceholder.getState(state)?.localSources.get(src)
+    : undefined;
 }
