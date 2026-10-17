@@ -1,4 +1,5 @@
 import { t } from "i18next";
+import { TextSelection } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import type { EditorView } from "prosemirror-view";
 import type { EditorNotice } from "../types";
@@ -156,6 +157,14 @@ const insertFiles = async function (
         replaceExisting: options.replaceExisting,
       },
     });
+
+    // the replaced node is hidden, so it must not stay selected
+    const replaced = options.replaceExisting ? tr.doc.nodeAt(pos) : null;
+    if (replaced) {
+      tr.setSelection(
+        TextSelection.near(tr.doc.resolve(pos + replaced.nodeSize))
+      );
+    }
     view.dispatch(tr);
 
     // start uploading the file to the server. Using "then" syntax
