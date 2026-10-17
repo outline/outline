@@ -14,7 +14,10 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import * as Y from "yjs";
-import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import {
+  DocumentTooLarge,
+  EditorUpdateError,
+} from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -199,7 +202,10 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     provider.on("close", (ev: ConnectionMessageEvent) => {
       if ("code" in ev.event) {
         // Note other close code are handled internally by the library
-        if (ev.event.code === EditorUpdateError.code) {
+        if (
+          ev.event.code === EditorUpdateError.code ||
+          ev.event.code === DocumentTooLarge.code
+        ) {
           provider.shouldConnect = false;
         }
 
