@@ -117,6 +117,7 @@ const Content = styled.p<{ $width: number; $isSelected: boolean }>`
   max-width: 100%;
 
   &:empty {
+    box-sizing: content-box;
     height: 16px;
     overflow: hidden;
     transition:
