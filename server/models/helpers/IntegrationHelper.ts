@@ -1,5 +1,7 @@
 import { uniq } from "es-toolkit/compat";
 import { IntegrationService, type IntegrationType } from "@shared/types";
+import { getInstallationUrl } from "@shared/utils/integrations";
+import { urlRegex } from "@shared/utils/urls";
 import env from "@server/env";
 import type Integration from "@server/models/Integration";
 
@@ -7,6 +9,24 @@ import type Integration from "@server/models/Integration";
  * Helper class for working with integrations.
  */
 export default class IntegrationHelper {
+  /**
+   * Whether a url is served by one of the given embed integrations, for example
+   * a self-hosted diagrams.net installation.
+   *
+   * @param url The url to check.
+   * @param integrations The team's embed integrations.
+   * @returns true if the url matches a configured installation.
+   */
+  public static isConfiguredEmbedUrl(
+    url: string,
+    integrations: Integration<IntegrationType.Embed>[]
+  ): boolean {
+    return integrations.some(
+      (integration) =>
+        !!urlRegex(getInstallationUrl(integration.settings))?.test(url)
+    );
+  }
+
   /**
    * Returns the script sources that must be allowed by the Content Security
    * Policy for the given analytics integrations to load.
