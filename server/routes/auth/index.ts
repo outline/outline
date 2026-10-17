@@ -3,6 +3,8 @@ import { addMonths } from "date-fns";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
+import { ChatRouter } from "@server/chat/ChatRouter";
+import { ChatService } from "@server/chat/ChatService";
 import { AuthenticationError } from "@server/errors";
 import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
@@ -31,6 +33,9 @@ void (async () => {
     if (resolvedRouter) {
       router.use("/", resolvedRouter.routes());
     }
+  }
+  for (const provider of ChatService.getProviders()) {
+    router.use("/", ChatRouter.createInstallRouter(provider).routes());
   }
 })();
 

@@ -2,6 +2,8 @@ import path from "node:path";
 import { glob } from "glob";
 import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
+import type { BaseChatProvider } from "@server/chat/BaseChatProvider";
+import type { ChatAnswerProvider } from "@server/chat/ChatAnswerProvider";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -34,6 +36,8 @@ export enum PluginPriority {
 export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
+  ChatAnswerProvider = "chatAnswerProvider",
+  ChatProvider = "chatProvider",
   EmailTemplate = "emailTemplate",
   IssueProvider = "issueProvider",
   Processor = "processor",
@@ -52,6 +56,8 @@ export enum Hook {
 type PluginValueMap = {
   [Hook.API]: Router;
   [Hook.AuthProvider]: { router: Router | Promise<Router>; id: string };
+  [Hook.ChatAnswerProvider]: ChatAnswerProvider;
+  [Hook.ChatProvider]: BaseChatProvider;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: typeof BaseEmail<any>;
   [Hook.IssueProvider]: BaseIssueProvider;

@@ -4,6 +4,8 @@ import bodyParser from "koa-body";
 import Router from "@koa/router";
 import type { UserAgentContext } from "koa-useragent";
 import userAgent from "koa-useragent";
+import { ChatRouter } from "@server/chat/ChatRouter";
+import { ChatService } from "@server/chat/ChatService";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
@@ -86,6 +88,9 @@ api.use(verifyCSRFToken());
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
   router.use("/", hook.value.routes())
+);
+ChatService.getProviders().forEach((provider) =>
+  router.use("/", ChatRouter.createWebhookRouter(provider).routes())
 );
 
 // routes

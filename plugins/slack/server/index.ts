@@ -1,9 +1,8 @@
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
-import hooks from "./api/hooks";
 import router from "./auth/slack";
 import env from "./env";
-import SlackProcessor from "./processors/SlackProcessor";
+import { SlackChatProvider } from "./SlackChatProvider";
 
 const enabled = !!env.SLACK_CLIENT_ID && !!env.SLACK_CLIENT_SECRET;
 
@@ -16,12 +15,8 @@ if (enabled) {
     },
     {
       ...config,
-      type: Hook.API,
-      value: hooks,
-    },
-    {
-      type: Hook.Processor,
-      value: SlackProcessor,
+      type: Hook.ChatProvider,
+      value: new SlackChatProvider(),
     },
   ]);
 }
