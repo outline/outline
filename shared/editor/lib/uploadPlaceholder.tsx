@@ -29,11 +29,22 @@ interface UploadPlaceholderAdd {
   replaceExisting?: boolean;
 }
 
+/** Describes a placeholder to remove when its upload completes or fails. */
+interface UploadPlaceholderRemove {
+  /** Unique identifier of the upload. */
+  id: string;
+  /** The node inserted by the same transaction in place of the placeholder. */
+  node?: ProsemirrorNode;
+}
+
 /** Meta attached to a transaction to add or remove placeholders. */
 interface UploadPlaceholderAction {
   add?: UploadPlaceholderAdd;
-  remove?: { id: string };
+  remove?: UploadPlaceholderRemove;
 }
+
+/** How long an uploaded node keeps the class that fades it in, in milliseconds. */
+const uploadedDuration = 1000;
 
 /** Node views rendered for placeholder widgets, keyed by their DOM element. */
 const placeholderViews = new WeakMap<globalThis.Node, NodeView>();
@@ -91,7 +102,24 @@ const uploadPlaceholder = new Plugin({
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
       const action: UploadPlaceholderAction | undefined = tr.getMeta(this);
+      const removedFrom = action?.remove
+        ? set.find(
+            undefined,
+            undefined,
+            (spec) => spec.id === action.remove?.id
+          )[0]?.from
+        : undefined;
       set = mapDecorations(set, tr, newState, !!action);
+
+      const now = Date.now();
+      const expired = set.find(
+        undefined,
+        undefined,
+        (spec) => spec.uploadedUntil !== undefined && spec.uploadedUntil < now
+      );
+      if (expired.length) {
+        set = set.remove(expired);
+      }
 
       if (action?.add) {
         const { add } = action;
@@ -179,6 +207,26 @@ const uploadPlaceholder = new Plugin({
           }
         });
         set = set.remove(found);
+
+        // Fade in the uploaded node from the opacity of its placeholder.
+        const { node } = action.remove;
+        if (node && removedFrom !== undefined) {
+          const start = tr.mapping.map(removedFrom, -1);
+          const end = Math.min(start + node.nodeSize + 1, tr.doc.content.size);
+          tr.doc.nodesBetween(start, end, (child, pos) => {
+            if (child === node) {
+              set = set.add(tr.doc, [
+                Decoration.node(
+                  pos,
+                  pos + node.nodeSize,
+                  { class: EditorStyleHelper.mediaUploaded },
+                  { uploadedUntil: now + uploadedDuration }
+                ),
+              ]);
+            }
+            return child !== node;
+          });
+        }
       }
       return set;
     },

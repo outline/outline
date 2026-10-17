@@ -23,6 +23,11 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+const uploadedFadeIn = keyframes`
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+`;
+
 export const pulse = (color: string) => keyframes`
   0% { box-shadow: 0 0 0 1px ${color} }
   50% { box-shadow: 0 0 0 4px ${color} }
@@ -856,6 +861,10 @@ th .image .image-wrapper img {
   opacity: 0.5;
   pointer-events: none;
   user-select: none;
+}
+
+.${EditorStyleHelper.mediaUploaded} {
+  animation: ${uploadedFadeIn} 250ms ease-in-out;
 }
 
 .file.placeholder {

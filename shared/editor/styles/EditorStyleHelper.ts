@@ -17,6 +17,9 @@ export class EditorStyleHelper {
   /** Image or video that is displayed while it uploads */
   static readonly mediaUploading = "media-uploading";
 
+  /** Image or video that has just finished uploading */
+  static readonly mediaUploaded = "media-uploaded";
+
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";
 

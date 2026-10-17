@@ -183,17 +183,16 @@ const insertFiles = async function (
             }
 
             const [from, to] = result;
+            const node = schema.nodes.image.create({
+              ...upload.attrs,
+              src,
+            });
             view.dispatch(
               view.state.tr
-                .replaceWith(
-                  from,
-                  to || from,
-                  schema.nodes.image.create({
-                    ...upload.attrs,
-                    src,
-                  })
-                )
-                .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
+                .replaceWith(from, to || from, node)
+                .setMeta(uploadPlaceholderPlugin, {
+                  remove: { id: upload.id, node },
+                })
             );
           };
 
@@ -214,17 +213,16 @@ const insertFiles = async function (
             return;
           }
 
+          const node = schema.nodes.video.create({
+            ...upload.attrs,
+            src,
+          });
           view.dispatch(
             view.state.tr
-              .replaceWith(
-                from,
-                to || from,
-                schema.nodes.video.create({
-                  ...upload.attrs,
-                  src,
-                })
-              )
-              .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
+              .replaceWith(from, to || from, node)
+              .setMeta(uploadPlaceholderPlugin, {
+                remove: { id: upload.id, node },
+              })
           );
         } else {
           const result = findPlaceholder(view.state, upload.id);
