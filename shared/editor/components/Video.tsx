@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { sanitizeUrl } from "../../utils/urls";
-import { getLocalSrc } from "../lib/uploadPlaceholder";
+import { getMediaSrc } from "../lib/uploadPlaceholder";
 import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
@@ -43,9 +43,7 @@ export default function Video(props: Props) {
         style={style}
       >
         <StyledVideo
-          src={sanitizeUrl(
-            getLocalSrc(props.view.state, node.attrs.src) ?? node.attrs.src
-          )}
+          src={sanitizeUrl(getMediaSrc(props.view.state, node.attrs.src))}
           title={node.attrs.title}
           // Reserves the aspect ratio of the video before its metadata loads.
           width={width || undefined}

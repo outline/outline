@@ -188,6 +188,7 @@ export class UploadPlugin extends Plugin {
                 let nodeSize = 0;
                 let attrs = {};
                 let dimensions: { width?: number; height?: number } | undefined;
+                let file: File | undefined;
 
                 state.doc.nodesBetween(
                   0,
@@ -214,7 +215,7 @@ export class UploadPlugin extends Plugin {
 
                 if (pos !== -1) {
                   const isBase64 = upload.originalSrc.startsWith("data:");
-                  const file = isBase64
+                  file = isBase64
                     ? dataUrlToFile(upload.originalSrc, "pasted-image")
                     : undefined;
                   dimensions =
@@ -275,7 +276,11 @@ export class UploadPlugin extends Plugin {
                   dimensions ??= await FileHelper.getImageDimensions(
                     await FileHelper.getFileForUrl(url)
                   );
-                  await FileHelper.loadImage(url);
+                  // Without a local file the image displays from storage, so
+                  // it is loaded before it replaces the placeholder.
+                  if (!file) {
+                    await FileHelper.loadImage(url);
+                  }
 
                   const result = findPlaceholder(view.state, upload.id);
                   if (result && !view.isDestroyed) {

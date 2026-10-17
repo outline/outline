@@ -1,7 +1,7 @@
 import { createEditorState, doc, p, schema } from "@shared/test/editor";
 import uploadPlaceholder, {
   findPlaceholder,
-  getLocalSrc,
+  getMediaSrc,
 } from "./uploadPlaceholder";
 
 const src = "https://example.com/video.mp4";
@@ -124,15 +124,37 @@ describe("uploadPlaceholder", () => {
       );
     }
 
-    it("keeps the local file of an uploaded video", () => {
+    it("displays an uploaded video from the local file", () => {
       const state = uploadFile(true);
-      expect(getLocalSrc(state, src)).toBe("blob:local");
+      expect(getMediaSrc(state, src)).toBe("blob:local");
       expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     });
 
-    it("frees the local file of an uploaded image", () => {
+    it("displays an uploaded image from the local file", () => {
       const state = uploadFile(false);
-      expect(getLocalSrc(state, src)).toBeUndefined();
+      expect(getMediaSrc(state, src)).toBe("blob:local");
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+    });
+
+    it("displays other files from storage", () => {
+      const state = uploadFile(true);
+      expect(getMediaSrc(state, "https://example.com/other.mp4")).toBe(
+        "https://example.com/other.mp4"
+      );
+    });
+
+    it("frees the local file when the upload fails", () => {
+      let state = createEditorState(doc([p("one"), p("")]), [
+        uploadPlaceholder,
+      ]);
+      state = state.apply(
+        state.tr.setMeta(uploadPlaceholder, {
+          add: { id: "upload", pos: 5, isImage: true, file: new File([], "f") },
+        })
+      );
+      state = state.apply(
+        state.tr.setMeta(uploadPlaceholder, { remove: { id: "upload" } })
+      );
       expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:local");
     });
   });

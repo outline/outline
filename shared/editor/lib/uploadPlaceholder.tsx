@@ -231,12 +231,11 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
         const { id, node } = action.remove;
         const found = set.find(undefined, undefined, (spec) => spec.id === id);
 
-        // An uploaded video continues to play from the local file, so that it
+        // Uploaded media continues to display from the local file, so that it
         // does not load again from storage.
-        const localSrc =
-          node?.type.name === "video" && node.attrs.src
-            ? found.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
-            : undefined;
+        const localSrc = node?.attrs.src
+          ? found.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
+          : undefined;
         if (node && localSrc) {
           localSources = new Map(localSources).set(node.attrs.src, localSrc);
         }
@@ -308,18 +307,20 @@ export function findPlaceholder(
 }
 
 /**
- * Get the local URL to display an uploaded file with, in the editor that
- * uploaded it. The document keeps the URL of the file in storage.
+ * Get the URL to display an image or video with. In the editor that uploaded
+ * the file this is a local URL, so that the file does not load again from
+ * storage. The document keeps the URL of the file in storage.
  *
  * @param state The editor state
  * @param src The URL of the file in storage
- * @returns The local URL, or undefined if the file was not uploaded here
+ * @returns The URL to display the file with
  */
-export function getLocalSrc(
+export function getMediaSrc(
   state: EditorState,
   src: string | null | undefined
 ): string | undefined {
-  return src
-    ? uploadPlaceholder.getState(state)?.localSources.get(src)
-    : undefined;
+  if (!src) {
+    return undefined;
+  }
+  return uploadPlaceholder.getState(state)?.localSources.get(src) ?? src;
 }

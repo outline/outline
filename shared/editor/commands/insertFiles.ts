@@ -179,40 +179,15 @@ const insertFiles = async function (
         if (view.isDestroyed) {
           return;
         }
-        if (upload.isImage) {
-          // Load the uploaded image first, so that it displays at once.
-          await FileHelper.loadImage(src);
-
-          const result = findPlaceholder(view.state, upload.id);
-          if (result === null || view.isDestroyed) {
-            return;
-          }
-
-          const [from, to] = result;
-          const node = schema.nodes.image.create({
-            ...upload.attrs,
-            src,
-          });
-          view.dispatch(
-            view.state.tr
-              .replaceWith(from, to || from, node)
-              .setMeta(uploadPlaceholderPlugin, {
-                remove: { id: upload.id, node },
-              })
-          );
-        } else if (upload.isVideo) {
+        if (upload.isImage || upload.isVideo) {
           const result = findPlaceholder(view.state, upload.id);
           if (result === null) {
             return;
           }
 
+          // the editor continues to display the local file, see getMediaSrc
           const [from, to] = result;
-
-          if (view.isDestroyed) {
-            return;
-          }
-
-          const node = schema.nodes.video.create({
+          const node = type.create({
             ...upload.attrs,
             src,
           });
