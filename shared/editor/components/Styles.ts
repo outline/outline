@@ -25,7 +25,7 @@ export const fadeIn = keyframes`
 
 /** A file that is added to the document scales in. */
 const uploadScaleIn = keyframes`
-  from { transform: scale(0.97); }
+  from { transform: scale(0.98); }
   to { transform: scale(1); }
 `;
 
