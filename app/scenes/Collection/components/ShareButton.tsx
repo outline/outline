@@ -48,6 +48,11 @@ function ShareButton({ collection }: Props) {
     [preload, reset]
   );
 
+  const handleMouseEnter = useCallback(() => {
+    preload();
+    void SharePopover.preload();
+  }, [preload]);
+
   const closePopover = useCallback(() => {
     handleOpenChange(false);
   }, [handleOpenChange]);
@@ -65,7 +70,7 @@ function ShareButton({ collection }: Props) {
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger>
-        <Button icon={icon} neutral onMouseEnter={preload}>
+        <Button icon={icon} neutral onMouseEnter={handleMouseEnter}>
           {t("Share")}
         </Button>
       </PopoverTrigger>
