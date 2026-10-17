@@ -1,3 +1,4 @@
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { DeprecationValidation } from "@shared/validations";
 import {
   CollectionPermission,
@@ -391,6 +392,28 @@ describe("list_documents", () => {
 });
 
 describe("create_document", () => {
+  it("attributes Markdown mentions to the authenticated user", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const mentioned = await buildUser({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Mentions",
+      collectionId: collection.id,
+      text: `@[${mentioned.name}](mention://user/${mentioned.id})`,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(DocumentHelper.parseMentions(document)).toEqual([
+      expect.objectContaining({ modelId: mentioned.id, actorId: user.id }),
+    ]);
+  });
+
   it("creates in the personal collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     user.team.setPreference(TeamPreference.PersonalDocs, true);
@@ -631,6 +654,26 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it("attributes Markdown mentions to the authenticated editor", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const author = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: author.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: `@[Author](mention://user/${author.id})`,
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    await document.reload();
+    expect(DocumentHelper.parseMentions(document)).toEqual([
+      expect.objectContaining({ modelId: author.id, actorId: user.id }),
+    ]);
+  });
+
   it("does not create the personal collection when it is not used", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
