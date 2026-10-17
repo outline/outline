@@ -4,7 +4,7 @@ import { insertPoint } from "prosemirror-transform";
 /**
  * Find the position to insert a node of the given type near a position that can
  * be inside text. Block nodes are inserted before or after the textblock that
- * contains the position, rather than splitting it.
+ * contains the position, whichever side is nearer, rather than splitting it.
  *
  * @param doc The document to insert into.
  * @param pos The requested position.
@@ -21,13 +21,10 @@ export function findBlockInsertPos(
     return pos;
   }
 
-  // At the start or end of a textblock, including an empty one.
-  const point = insertPoint(doc, pos, type);
-  if (point !== null) {
-    return point;
-  }
+  const isNearStart = $pos.parentOffset <= $pos.parent.content.size / 2;
+  const edge = isNearStart ? $pos.start() : $pos.end();
 
-  // In the middle of text, below the textblock.
-  const after = $pos.after();
-  return insertPoint(doc, after, type) ?? after;
+  return (
+    insertPoint(doc, edge, type) ?? (isNearStart ? $pos.before() : $pos.after())
+  );
 }
