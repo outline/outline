@@ -256,7 +256,7 @@ export const SelectionToolbar = observer(function SelectionToolbar(
   items = items.map((item) => {
     if (item.children && Array.isArray(item.children)) {
       item.children = item.children.map((child) => {
-        if (child.name === "editImageUrl") {
+        if (child.name === "editImageUrl" || child.name === "editVideoUrl") {
           child.onClick = () => {
             setActiveToolbar(Toolbar.Media);
           };

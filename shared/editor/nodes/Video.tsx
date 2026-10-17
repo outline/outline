@@ -5,10 +5,13 @@ import type {
   NodeType,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
+import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
+import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
 import Caption from "../components/Caption";
 import VideoComponent from "../components/Video";
@@ -225,7 +228,98 @@ export default class Video extends Node {
   );
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
+    return {
+      video: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs),
+      deleteVideo: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.deleteSelection());
+        return true;
+      },
+      replaceVideo: (): Command => (state) => {
+        if (
+          !(state.selection instanceof NodeSelection) ||
+          state.selection.node.type !== type
+        ) {
+          return false;
+        }
+        const { view } = this.editor;
+        const {
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
+          onFileUploadProgress,
+          onNotice,
+        } = this.editor.props;
+
+        if (!uploadFile) {
+          throw new Error("uploadFile prop is required to replace videos");
+        }
+
+        // create an input element and click to trigger picker
+        const inputElement = document.createElement("input");
+        inputElement.type = "file";
+        inputElement.accept = "video/*";
+        inputElement.onchange = (event) => {
+          const files = getEventFiles(event);
+          void insertFiles(view, event, state.selection.from, files, {
+            uploadFile,
+            onFileUploadStart,
+            onFileUploadStop,
+            onFileUploadProgress,
+            onNotice,
+            replaceExisting: true,
+          });
+        };
+        inputElement.click();
+        return true;
+      },
+      downloadVideo: (): Command => (state) => {
+        if (
+          !(state.selection instanceof NodeSelection) ||
+          state.selection.node.type !== type
+        ) {
+          return false;
+        }
+        const src = sanitizeUrl(state.selection.node.attrs.src);
+        if (!src) {
+          return false;
+        }
+
+        // create a temporary link node and click it
+        const link = document.createElement("a");
+        link.href = src;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        document.body.appendChild(link);
+        link.click();
+
+        // cleanup
+        document.body.removeChild(link);
+        return true;
+      },
+      resizeVideo:
+        ({ width, height }: { width: number; height: number }): Command =>
+        (state, dispatch) => {
+          if (
+            !(state.selection instanceof NodeSelection) ||
+            state.selection.node.type !== type
+          ) {
+            return false;
+          }
+
+          const { selection } = state;
+          const tr = state.tr
+            .setNodeMarkup(selection.from, undefined, {
+              ...selection.node.attrs,
+              width,
+              height,
+            })
+            .setMeta("addToHistory", true);
+
+          const $pos = tr.doc.resolve(selection.from);
+          dispatch?.(tr.setSelection(new NodeSelection($pos)));
+          return true;
+        },
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
