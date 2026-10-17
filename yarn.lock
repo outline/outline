@@ -5459,6 +5459,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rollup/rollup-linux-x64-gnu@npm:^4.41.1":
+  version: 4.64.6
+  resolution: "@rollup/rollup-linux-x64-gnu@npm:4.64.6"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@rollup/rollup-linux-x64-musl@npm:4.60.4":
   version: 4.60.4
   resolution: "@rollup/rollup-linux-x64-musl@npm:4.60.4"
@@ -13178,6 +13185,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js.foresight@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "js.foresight@npm:4.2.1"
+  dependencies:
+    position-observer: "npm:^1.0.3"
+    tabbable: "npm:^6.4.0"
+  checksum: 10c0/f92f1ffd8af2e3e18dc217becc90cc69250f4c7a5d3c4473d51dd10dde48fb0fe257184d99e91508c7b83af65c9ad5bca294c03f181eec3ea29e704fc77043e8
+  languageName: node
+  linkType: hard
+
 "jsdom@npm:^22.1.0":
   version: 22.1.0
   resolution: "jsdom@npm:22.1.0"
@@ -15435,6 +15452,7 @@ __metadata:
     is-printable-key-event: "npm:^1.0.0"
     iso-639-3: "npm:^3.0.1"
     js-yaml: "npm:^4.3.2"
+    js.foresight: "npm:^4.2.1"
     jsdom: "npm:^22.1.0"
     jsonwebtoken: "npm:^9.0.3"
     katex: "npm:^0.18.2"
@@ -16472,6 +16490,18 @@ __metadata:
   version: 2.1.11
   resolution: "pony-cause@npm:2.1.11"
   checksum: 10c0/d5db6489ec42f8fcce0fd9ad2052be98cd8f63814bf32819694ec1f4c6a01bc3be6181050d83bc79e95272174a5b9776d1c2af1fa79ef51e0ccc0f97c22b1420
+  languageName: node
+  linkType: hard
+
+"position-observer@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "position-observer@npm:1.0.3"
+  dependencies:
+    "@rollup/rollup-linux-x64-gnu": "npm:^4.41.1"
+  dependenciesMeta:
+    "@rollup/rollup-linux-x64-gnu":
+      optional: true
+  checksum: 10c0/8bf5a80998bcd02c0d3d4cfab7d32e6c6d77571ccf0ae1c355bd7e8c5dac5224be23d03a07220eeff1a0414f5104f29b48344f47bba58d5495689bfdd5ffe75d
   languageName: node
   linkType: hard
 
@@ -19150,6 +19180,13 @@ __metadata:
     systeminformation: lib/cli.js
   checksum: 10c0/7a0a400db03539fa2163033eba8dbb04f3c2c6357b9e8720dd5abef8a20d6a7b85b943b3fe028bbfa0e9d01b8982e658bedb7c5e200eabdf2546beb002872f8e
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
+  languageName: node
+  linkType: hard
+
+"tabbable@npm:^6.4.0":
+  version: 6.5.0
+  resolution: "tabbable@npm:6.5.0"
+  checksum: 10c0/7d778af05a3093800265831198cad9d0024f3d65cdd4405007490f7430b42ff4e80060b4679f45281fb96ddbddc5fb895e8ea36e3ebdc811051e14acc9c7c02c
   languageName: node
   linkType: hard
 

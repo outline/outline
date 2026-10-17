@@ -11,6 +11,7 @@ import {
 } from "~/components/primitives/Popover";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
+import useClickIntent from "~/hooks/useClickIntent";
 import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import { preventDefault } from "~/utils/events";
@@ -48,10 +49,15 @@ function ShareButton({ collection }: Props) {
     [preload, reset]
   );
 
-  const handleMouseEnter = useCallback(() => {
+  const handleIntent = useCallback(() => {
     preload();
     void SharePopover.preload();
   }, [preload]);
+  const {
+    ref: intentRef,
+    handleMouseEnter,
+    handleMouseLeave,
+  } = useClickIntent(handleIntent, { predict: true });
 
   const closePopover = useCallback(() => {
     handleOpenChange(false);
@@ -70,7 +76,13 @@ function ShareButton({ collection }: Props) {
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger>
-        <Button icon={icon} neutral onMouseEnter={handleMouseEnter}>
+        <Button
+          ref={intentRef}
+          icon={icon}
+          neutral
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {t("Share")}
         </Button>
       </PopoverTrigger>

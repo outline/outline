@@ -55,7 +55,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Callback fired when the link is clicked */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
-  onClickIntent?: React.MouseEventHandler<HTMLElement>;
+  onClickIntent?: () => void;
   /** Callback fired when the disclosure icon is clicked */
   onDisclosureClick?: React.MouseEventHandler<HTMLElement>;
   /** Icon to display on the left side of the link */
