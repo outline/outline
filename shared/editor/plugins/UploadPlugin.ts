@@ -253,7 +253,7 @@ export class UploadPlugin extends Plugin {
                             file,
                             src: isBase64 ? undefined : upload.originalSrc,
                             pos: currentPos,
-                            isImage: true,
+                            type: "image",
                             attrs: { ...attrs, ...dimensions },
                           },
                         })

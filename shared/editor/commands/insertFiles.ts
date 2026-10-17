@@ -7,6 +7,7 @@ import FileHelper from "../lib/FileHelper";
 import { findBlockInsertPos } from "../queries/findBlockInsertPos";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
+  getUrlAttr,
 } from "../lib/uploadPlaceholder";
 
 export type Options = {
@@ -102,7 +103,12 @@ const insertFiles = async function (
 
         const dimensions = await getDimensions?.(file);
 
-        // the attributes of the node the upload becomes, without the src
+        // the node type and attributes the upload becomes, without the URL
+        const type = isImage
+          ? schema.nodes.image
+          : isVideo
+            ? schema.nodes.video
+            : schema.nodes.attachment;
         const attrs = isImage
           ? {
               source: await FileHelper.getImageSourceAttr(file),
@@ -115,13 +121,18 @@ const insertFiles = async function (
                 ...dimensions,
                 ...options.attrs,
               }
-            : undefined;
+            : {
+                title: file.name ?? t("Untitled"),
+                size: file.size,
+                contentType: file.type,
+                preview: false,
+                ...options.attrs,
+              };
 
         return {
           id: uuidv4(),
+          type,
           attrs,
-          isImage,
-          isVideo,
           file,
         };
       })
@@ -137,11 +148,7 @@ const insertFiles = async function (
   // the user might have dropped multiple files at once, we need to loop
   for (const upload of filesToUpload) {
     const { tr } = view.state;
-    const type = upload.isImage
-      ? schema.nodes.image
-      : upload.isVideo
-        ? schema.nodes.video
-        : schema.nodes.attachment;
+    const { type } = upload;
 
     tr.setMeta(uploadPlaceholderPlugin, {
       add: {
@@ -151,8 +158,7 @@ const insertFiles = async function (
           ? pos
           : findBlockInsertPos(tr.doc, pos, type),
         file: upload.file,
-        isImage: upload.isImage,
-        isVideo: upload.isVideo,
+        type: type.name,
         attrs: upload.attrs,
         replaceExisting: options.replaceExisting,
       },
@@ -175,54 +181,28 @@ const insertFiles = async function (
       onProgress: (progress) => onFileUploadProgress?.(upload.id, progress),
     })
       // then this should be able to get the full URL as well
-      .then(async (src) => {
+      .then((src) => {
         if (view.isDestroyed) {
           return;
         }
-        if (upload.isImage || upload.isVideo) {
-          const result = findPlaceholder(view.state, upload.id);
-          if (result === null) {
-            return;
-          }
-
-          // the editor continues to display the local file, see getMediaSrc
-          const [from, to] = result;
-          const node = type.create({
-            ...upload.attrs,
-            src,
-          });
-          view.dispatch(
-            view.state.tr
-              .replaceWith(from, to || from, node)
-              .setMeta(uploadPlaceholderPlugin, {
-                remove: { id: upload.id, node },
-              })
-          );
-        } else {
-          const result = findPlaceholder(view.state, upload.id);
-          if (result === null) {
-            return;
-          }
-
-          const [from, to] = result;
-
-          view.dispatch(
-            view.state.tr
-              .replaceWith(
-                from,
-                to || from,
-                schema.nodes.attachment.create({
-                  href: src,
-                  title: upload.file.name ?? t("Untitled"),
-                  size: upload.file.size,
-                  contentType: upload.file.type,
-                  preview: false,
-                  ...options.attrs,
-                })
-              )
-              .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
-          );
+        const result = findPlaceholder(view.state, upload.id);
+        if (result === null) {
+          return;
         }
+
+        // the editor continues to display the local file, see getDisplayUrl
+        const [from, to] = result;
+        const node = type.create({
+          ...upload.attrs,
+          [getUrlAttr(type)]: src,
+        });
+        view.dispatch(
+          view.state.tr
+            .replaceWith(from, to || from, node)
+            .setMeta(uploadPlaceholderPlugin, {
+              remove: { id: upload.id, node },
+            })
+        );
       })
       .catch((error) => {
         // Imported dynamically so the Sentry SDK stays out of the module graph

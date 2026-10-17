@@ -20,14 +20,14 @@ export class EditorStyleHelper {
 
   static readonly imagePositionAnchor = "image-position-anchor";
 
-  /** Image or video that is displayed while it uploads */
-  static readonly mediaUploading = "media-uploading";
+  /** Node that is displayed while its file uploads */
+  static readonly uploadPlaceholder = "upload-placeholder";
 
-  /** Image or video that is hidden while an upload replaces it */
-  static readonly mediaReplaced = "media-replaced";
+  /** Node that is hidden while an upload replaces it */
+  static readonly uploadReplaced = "upload-replaced";
 
-  /** Image or video that has just finished uploading */
-  static readonly mediaUploaded = "media-uploaded";
+  /** Node that has just finished uploading */
+  static readonly uploadComplete = "upload-complete";
 
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";

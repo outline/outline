@@ -7,7 +7,7 @@ import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
-import { getMediaSrc } from "../lib/uploadPlaceholder";
+import { getDisplayUrl } from "../lib/uploadPlaceholder";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -113,7 +113,7 @@ const Image = (props: Props) => {
   const className = imageClassName({ layoutClass, width, error });
 
   const sanitizedSrc = sanitizeImageSrc(src);
-  const displaySrc = sanitizeImageSrc(getMediaSrc(props.view.state, src));
+  const displaySrc = sanitizeImageSrc(getDisplayUrl(props.view.state, src));
   const linkMarkType = props.view.state.schema.marks.link;
   const imageLink =
     find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)

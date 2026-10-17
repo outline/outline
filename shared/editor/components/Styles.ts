@@ -867,59 +867,17 @@ th .image .image-wrapper img {
   width: min(var(--image-width), 100%);
 }
 
-.${EditorStyleHelper.mediaUploading} {
+.${EditorStyleHelper.uploadPlaceholder} {
   opacity: 0.5;
   pointer-events: none;
   user-select: none;
 }
 
-.${EditorStyleHelper.mediaUploaded} {
+.${EditorStyleHelper.uploadComplete} {
   animation: ${uploadedFadeIn} 250ms ease-in-out;
 }
 
-.file.placeholder {
-  display: flex;
-  align-items: center;
-  background: ${props.theme.background};
-  box-shadow: 0 0 0 1px ${props.theme.divider};
-  white-space: nowrap;
-  border-radius: 8px;
-  padding: 6px 8px;
-  max-width: 840px;
-  cursor: default;
-
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-
-  .title,
-  .subtitle {
-    margin-left: 8px;
-  }
-
-  .title {
-    font-weight: 600;
-    font-size: 14px;
-    color:  ${props.theme.text};
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: ${props.theme.textTertiary};
-    line-height: 0;
-  }
-
-  span {
-    font-family: ${props.theme.fontFamilyMono};
-  }
-}
-
-.attachment-replacement-uploading {
-  .widget {
-    opacity: 0.5;
-  }
-}
-
-.${EditorStyleHelper.mediaReplaced} {
+.${EditorStyleHelper.uploadReplaced} {
   display: none !important;
 }
 
@@ -1296,7 +1254,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 /** An empty paragraph that holds an uploading image is not empty to the user */
-.placeholder:has(> .${EditorStyleHelper.mediaUploading})::before {
+.placeholder:has(> .${EditorStyleHelper.uploadPlaceholder})::before {
   content: none;
 }
 

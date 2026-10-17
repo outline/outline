@@ -8,8 +8,6 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import type { EditorView, NodeView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { createRoot } from "react-dom/client";
-import FileExtension from "../components/FileExtension";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { mapDecorations } from "./multiplayer";
 
@@ -23,11 +21,9 @@ interface UploadPlaceholderAdd {
   file?: File;
   /** URL to preview the upload with, a local URL for the file is used if not provided. */
   src?: string;
-  /** Whether the upload will become an image node. */
-  isImage?: boolean;
-  /** Whether the upload will become a video node. */
-  isVideo?: boolean;
-  /** Attributes of the node that the upload will become. */
+  /** Name of the node type that the upload will become. */
+  type: string;
+  /** Attributes of the node that the upload will become, without its URL. */
   attrs?: Attrs;
   /** Whether the upload replaces the node at the position. */
   replaceExisting?: boolean;
@@ -62,6 +58,28 @@ interface UploadPlaceholderState {
 const placeholderViews = new WeakMap<globalThis.Node, NodeView>();
 
 /**
+ * Get the name of the attribute that holds the URL of the file of a node.
+ *
+ * @param type The node type.
+ * @returns the attribute name.
+ */
+export function getUrlAttr(type: NodeType): "src" | "href" {
+  return type.spec.attrs && "src" in type.spec.attrs ? "src" : "href";
+}
+
+/**
+ * Whether a node displays its file from a local URL while it uploads and after.
+ * Attachments link to their file, and the content security policy does not
+ * allow PDF previews to embed local URLs.
+ *
+ * @param node The node to check.
+ * @returns true if the node displays its file from a local URL.
+ */
+function displaysFile(node: ProsemirrorNode): boolean {
+  return node.type.name === "image" || node.type.name === "video";
+}
+
+/**
  * Render a node in the same way as the editor renders it in the document, with
  * the node view when there is one, and mark it as uploading.
  *
@@ -94,7 +112,7 @@ function renderUploadingNode(
     element.appendChild(dom);
   }
 
-  element.classList.add(EditorStyleHelper.mediaUploading);
+  element.classList.add(EditorStyleHelper.uploadPlaceholder);
   element.inert = true;
   element.setAttribute("aria-busy", "true");
 
@@ -119,8 +137,7 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
     ): UploadPlaceholderState {
       let set = value.decorations;
       let { localSources } = value;
-      // See if the transaction adds or removes any placeholders – the placeholder display is
-      // different depending on if we're uploading an image, video or plain file
+      // See if the transaction adds or removes any placeholders
       const action: UploadPlaceholderAction | undefined = tr.getMeta(this);
       const removedFrom = action?.remove
         ? set.find(
@@ -143,87 +160,54 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
 
       if (action?.add) {
         const { add } = action;
-        const { schema } = newState;
-        const mediaType = add.isImage
-          ? schema.nodes.image
-          : add.isVideo
-            ? schema.nodes.video
-            : undefined;
+        const type = newState.schema.nodes[add.type];
+        if (!type) {
+          return { decorations: set, localSources };
+        }
 
         // Render the node that the upload will become, so that the switch to
-        // the uploaded node does not change the display.
-        const createWidget = (type: NodeType) => {
-          const objectUrl =
-            !add.src && add.file ? URL.createObjectURL(add.file) : undefined;
-          const node = type.create({
-            ...add.attrs,
-            src: add.src ?? objectUrl,
-          });
+        // the uploaded node does not change the display. A node that displays
+        // its file shows the local file, others show that they are uploading.
+        const template = type.create(add.attrs);
+        const objectUrl =
+          !add.src && add.file && displaysFile(template)
+            ? URL.createObjectURL(add.file)
+            : undefined;
+        const previewUrl = add.src ?? objectUrl;
+        const node = previewUrl
+          ? type.create({ ...add.attrs, [getUrlAttr(type)]: previewUrl })
+          : template;
 
-          return Decoration.widget(
-            add.pos,
-            (view) => renderUploadingNode(view, node),
-            {
-              id: add.id,
-              key: `upload-${add.id}`,
-              objectUrl,
-              destroy: (dom: globalThis.Node) => {
-                placeholderViews.get(dom)?.destroy?.();
-                placeholderViews.delete(dom);
-              },
-            }
-          );
-        };
-
-        if (add.replaceExisting) {
-          const $pos = tr.doc.resolve(add.pos);
-          const nodeAfter = $pos.nodeAfter;
-          if (!nodeAfter) {
-            return { decorations: set, localSources };
-          }
-
-          // Media is hidden and replaced by a preview of the upload.
-          const deco = Decoration.node(
-            $pos.pos,
-            $pos.pos + nodeAfter.nodeSize,
-            {
-              class: mediaType
-                ? EditorStyleHelper.mediaReplaced
-                : `${nodeAfter.type.name}-replacement-uploading`,
-            },
-            {
-              id: add.id,
-            }
-          );
-          set = set.add(
-            tr.doc,
-            mediaType ? [deco, createWidget(mediaType)] : [deco]
-          );
-        } else if (mediaType) {
-          set = set.add(tr.doc, [createWidget(mediaType)]);
-        } else if (add.file) {
-          const element = document.createElement("div");
-          element.className = "file placeholder";
-
-          const icon = document.createElement("div");
-          const title = document.createElement("div");
-          title.className = "title";
-          title.innerText = add.file.name;
-
-          const subtitle = document.createElement("div");
-          subtitle.className = "subtitle";
-          subtitle.innerText = "Uploading…";
-
-          createRoot(icon).render(<FileExtension title={add.file.name} />);
-
-          element.appendChild(icon);
-          element.appendChild(title);
-          element.appendChild(subtitle);
-
-          const deco = Decoration.widget(add.pos, element, {
+        const widget = Decoration.widget(
+          add.pos,
+          (view) => renderUploadingNode(view, node),
+          {
             id: add.id,
-          });
-          set = set.add(tr.doc, [deco]);
+            key: `upload-${add.id}`,
+            objectUrl,
+            destroy: (dom: globalThis.Node) => {
+              placeholderViews.get(dom)?.destroy?.();
+              placeholderViews.delete(dom);
+            },
+          }
+        );
+
+        // A replaced node is hidden while the upload displays in its place.
+        const nodeAfter = add.replaceExisting
+          ? tr.doc.resolve(add.pos).nodeAfter
+          : undefined;
+        if (nodeAfter) {
+          set = set.add(tr.doc, [
+            Decoration.node(
+              add.pos,
+              add.pos + nodeAfter.nodeSize,
+              { class: EditorStyleHelper.uploadReplaced },
+              { id: add.id }
+            ),
+            widget,
+          ]);
+        } else {
+          set = set.add(tr.doc, [widget]);
         }
       }
 
@@ -231,13 +215,15 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
         const { id, node } = action.remove;
         const found = set.find(undefined, undefined, (spec) => spec.id === id);
 
-        // Uploaded media continues to display from the local file, so that it
-        // does not load again from storage.
-        const localSrc = node?.attrs.src
-          ? found.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
-          : undefined;
-        if (node && localSrc) {
-          localSources = new Map(localSources).set(node.attrs.src, localSrc);
+        // An uploaded node continues to display the local file, so that the
+        // file does not load again from storage.
+        const url: string | undefined = node?.attrs[getUrlAttr(node.type)];
+        const localSrc =
+          node && url && displaysFile(node)
+            ? found.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
+            : undefined;
+        if (url && localSrc) {
+          localSources = new Map(localSources).set(url, localSrc);
         }
 
         found.forEach((deco) => {
@@ -257,7 +243,7 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
                 Decoration.node(
                   pos,
                   pos + node.nodeSize,
-                  { class: EditorStyleHelper.mediaUploaded },
+                  { class: EditorStyleHelper.uploadComplete },
                   { uploadedUntil: now + uploadedDuration }
                 ),
               ]);
@@ -307,20 +293,20 @@ export function findPlaceholder(
 }
 
 /**
- * Get the URL to display an image or video with. In the editor that uploaded
- * the file this is a local URL, so that the file does not load again from
- * storage. The document keeps the URL of the file in storage.
+ * Get the URL to display a file with. In the editor that uploaded the file this
+ * is a local URL, so that the file does not load again from storage. The
+ * document keeps the URL of the file in storage.
  *
  * @param state The editor state
- * @param src The URL of the file in storage
+ * @param url The URL of the file in storage
  * @returns The URL to display the file with
  */
-export function getMediaSrc(
+export function getDisplayUrl(
   state: EditorState,
-  src: string | null | undefined
+  url: string | null | undefined
 ): string | undefined {
-  if (!src) {
+  if (!url) {
     return undefined;
   }
-  return uploadPlaceholder.getState(state)?.localSources.get(src) ?? src;
+  return uploadPlaceholder.getState(state)?.localSources.get(url) ?? url;
 }

@@ -1,7 +1,8 @@
 import { createEditorState, doc, p, schema } from "@shared/test/editor";
 import uploadPlaceholder, {
   findPlaceholder,
-  getMediaSrc,
+  getDisplayUrl,
+  getUrlAttr,
 } from "./uploadPlaceholder";
 
 const src = "https://example.com/video.mp4";
@@ -10,7 +11,7 @@ function startUpload() {
   const state = createEditorState(doc([p("one"), p("")]), [uploadPlaceholder]);
   return state.apply(
     state.tr.setMeta(uploadPlaceholder, {
-      add: { id: "upload", pos: 5, isVideo: true, src, attrs: { width: 320 } },
+      add: { id: "upload", pos: 5, type: "video", src, attrs: { width: 320 } },
     })
   );
 }
@@ -72,7 +73,7 @@ describe("uploadPlaceholder", () => {
         add: {
           id: "upload",
           pos: 1,
-          isImage: true,
+          type: "image",
           replaceExisting: true,
           src: "https://example.com/b.png",
         },
@@ -99,7 +100,7 @@ describe("uploadPlaceholder", () => {
       URL.revokeObjectURL = revokeObjectURL;
     });
 
-    function uploadFile(isVideo: boolean) {
+    function uploadFile(type: string, attrs: Record<string, unknown> = {}) {
       let state = createEditorState(doc([p("one"), p("")]), [
         uploadPlaceholder,
       ]);
@@ -108,15 +109,14 @@ describe("uploadPlaceholder", () => {
           add: {
             id: "upload",
             pos: 5,
-            isVideo,
-            isImage: !isVideo,
+            type,
+            attrs,
             file: new File(["data"], "file"),
           },
         })
       );
-      const node = isVideo
-        ? schema.nodes.video.create({ src })
-        : schema.nodes.image.create({ src });
+      const nodeType = schema.nodes[type];
+      const node = nodeType.create({ ...attrs, [getUrlAttr(nodeType)]: src });
       return state.apply(
         state.tr
           .replaceWith(5, 5, node)
@@ -125,20 +125,30 @@ describe("uploadPlaceholder", () => {
     }
 
     it("displays an uploaded video from the local file", () => {
-      const state = uploadFile(true);
-      expect(getMediaSrc(state, src)).toBe("blob:local");
+      const state = uploadFile("video");
+      expect(getDisplayUrl(state, src)).toBe("blob:local");
       expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     });
 
     it("displays an uploaded image from the local file", () => {
-      const state = uploadFile(false);
-      expect(getMediaSrc(state, src)).toBe("blob:local");
+      const state = uploadFile("image");
+      expect(getDisplayUrl(state, src)).toBe("blob:local");
       expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     });
 
+    it("does not keep the local file of attachments", () => {
+      const state = uploadFile("attachment", {
+        title: "file.pdf",
+        contentType: "application/pdf",
+        preview: true,
+      });
+      expect(URL.createObjectURL).not.toHaveBeenCalled();
+      expect(getDisplayUrl(state, src)).toBe(src);
+    });
+
     it("displays other files from storage", () => {
-      const state = uploadFile(true);
-      expect(getMediaSrc(state, "https://example.com/other.mp4")).toBe(
+      const state = uploadFile("video");
+      expect(getDisplayUrl(state, "https://example.com/other.mp4")).toBe(
         "https://example.com/other.mp4"
       );
     });
@@ -149,7 +159,7 @@ describe("uploadPlaceholder", () => {
       ]);
       state = state.apply(
         state.tr.setMeta(uploadPlaceholder, {
-          add: { id: "upload", pos: 5, isImage: true, file: new File([], "f") },
+          add: { id: "upload", pos: 5, type: "image", file: new File([], "f") },
         })
       );
       state = state.apply(
