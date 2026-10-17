@@ -67,6 +67,25 @@ export const IssueTrackerIntegrationService = {
   Linear: IntegrationService.Linear,
 } as const;
 
+/** Integration services that are chat platforms. */
+export type ChatIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.Slack
+>;
+
+/** Runtime values of `ChatIntegrationService`. */
+export const ChatIntegrationService = {
+  Slack: IntegrationService.Slack,
+} as const;
+
+/** A link between an Outline user and a user on a chat platform. */
+export interface ChatAccountSettings {
+  /** The ID of the workspace on the chat platform. */
+  serviceTeamId: string;
+  /** The ID of the user on the chat platform. */
+  serviceUserId: string;
+}
+
 /** Integration services that can be created through the API. */
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
@@ -124,7 +143,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
             }
           : T extends IntegrationType.LinkedAccount
             ? {
-                slack?: { serviceTeamId: string; serviceUserId: string };
+                [S in ChatIntegrationService]?: ChatAccountSettings;
+              } & {
                 figma?: {
                   account: {
                     id: string;
