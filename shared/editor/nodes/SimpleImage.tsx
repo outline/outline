@@ -14,6 +14,7 @@ import { sanitizeImageSrc } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
 import type { Options } from "../commands/insertFiles";
 import insertFiles from "../commands/insertFiles";
+import { selectBlockLikeVertically } from "../commands/selectBlockLikeVertically";
 import { default as ImageComponent } from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
@@ -110,7 +111,10 @@ export default class SimpleImage extends Node {
   );
 
   keys(): Record<string, Command> {
+    const isImage = (node: ProsemirrorNode) => node.type.name === this.name;
     return {
+      ArrowUp: selectBlockLikeVertically(-1, isImage),
+      ArrowDown: selectBlockLikeVertically(1, isImage),
       Enter: (state, dispatch) => {
         const { selection } = state;
         if (
