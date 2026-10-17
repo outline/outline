@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { EditorView } from "prosemirror-view";
 import type { EditorNotice } from "../types";
 import FileHelper from "../lib/FileHelper";
+import { findBlockInsertPos } from "../queries/findBlockInsertPos";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
@@ -135,11 +136,19 @@ const insertFiles = async function (
   // the user might have dropped multiple files at once, we need to loop
   for (const upload of filesToUpload) {
     const { tr } = view.state;
+    const type = upload.isImage
+      ? schema.nodes.image
+      : upload.isVideo
+        ? schema.nodes.video
+        : schema.nodes.attachment;
 
     tr.setMeta(uploadPlaceholderPlugin, {
       add: {
         id: upload.id,
-        pos,
+        // a block placeholder must not be shown inside a paragraph
+        pos: options.replaceExisting
+          ? pos
+          : findBlockInsertPos(tr.doc, pos, type),
         file: upload.file,
         isImage: upload.isImage,
         isVideo: upload.isVideo,

@@ -1278,6 +1278,11 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   opacity: 1;
 }
 
+/** An empty paragraph that holds an uploading image is not empty to the user */
+.placeholder:has(> .${EditorStyleHelper.mediaUploading})::before {
+  content: none;
+}
+
 ${
   props.commenting
     ? `
