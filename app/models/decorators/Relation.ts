@@ -42,7 +42,9 @@ const relations = new Map<string, Map<string, RelationProperties>>(new Map());
  * @param targetClass The model class to get inverse relations for.
  * @returns A map of inverse relation properties keyed by the property name.
  */
-export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
+export const getInverseRelationsForModelClass = (
+  targetClass: Pick<typeof Model, "modelName">
+) => {
   const inverseRelations = new Map<string, InverseRelationProperties>();
 
   relations.forEach((relation, modelName) => {

@@ -455,8 +455,7 @@ export default function Mermaid({
             containsMermaid(selectedNode) ||
             containsMermaid(previousSelectedNode));
 
-        // @ts-expect-error accessing private field.
-        const isPaste = transaction.meta?.paste;
+        const isPaste = transaction.getMeta("paste");
 
         if (
           isPaste ||

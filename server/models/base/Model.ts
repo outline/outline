@@ -405,6 +405,7 @@ class Model<
    * @return The total number of results processed.
    */
   static async findAllInBatches<T extends Model>(
+    this: ModelStatic<T>,
     query: Omit<Replace<FindOptions<T>, "limit", "batchLimit">, "order"> & {
       /** The maximum number of results to return, after which the query will stop. */
       totalLimit?: number;
@@ -473,7 +474,6 @@ class Model<
         offset: currentOffset,
         where: cursor ? { [Op.and]: [rest.where ?? {}, cursor] } : rest.where,
       };
-      // @ts-expect-error this T
       results = await this.findAll<T>(findOptions);
       total += results.length;
       await callback(results, findOptions);

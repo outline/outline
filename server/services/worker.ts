@@ -129,7 +129,6 @@ export default async function init() {
           );
         }
 
-        // @ts-expect-error We will not instantiate an abstract class
         const processor = new ProcessorClass();
 
         if (processor.perform) {
@@ -182,7 +181,6 @@ export default async function init() {
 
         Logger.info("worker", `${name} running`, props);
 
-        // @ts-expect-error We will not instantiate an abstract class
         const task = new TaskClass();
 
         try {

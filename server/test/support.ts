@@ -14,7 +14,7 @@ import onerror from "@server/onerror";
 import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
-import type { APIContext } from "@server/types";
+import type { APIContext, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import TestServer from "./TestServer";
@@ -160,4 +160,15 @@ export function toFormData(
         `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
     )
     .join("&");
+}
+
+/**
+ * Types a partial request context for unit testing middleware that only reads
+ * the properties provided.
+ *
+ * @param value the partial context.
+ * @returns the value typed as a request context.
+ */
+export function buildMockContext(value: object): AppContext {
+  return value as AppContext;
 }
