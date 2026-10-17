@@ -909,10 +909,8 @@ th .image .image-wrapper img {
   }
 }
 
-.image-replacement-uploading {
-  img {
-    opacity: 0.5;
-  }
+.${EditorStyleHelper.mediaReplaced} {
+  display: none !important;
 }
 
 .image-icon {

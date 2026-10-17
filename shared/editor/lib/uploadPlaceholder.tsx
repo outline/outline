@@ -1,4 +1,8 @@
-import type { Attrs, Node as ProsemirrorNode } from "prosemirror-model";
+import type {
+  Attrs,
+  Node as ProsemirrorNode,
+  NodeType,
+} from "prosemirror-model";
 import { DOMSerializer } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
@@ -130,35 +134,17 @@ const uploadPlaceholder = new Plugin({
             ? schema.nodes.video
             : undefined;
 
-        if (add.replaceExisting) {
-          const $pos = tr.doc.resolve(add.pos);
-          const nodeAfter = $pos.nodeAfter;
-          if (!nodeAfter) {
-            return set;
-          }
-
-          const deco = Decoration.node(
-            $pos.pos,
-            $pos.pos + nodeAfter.nodeSize,
-            {
-              class: `${nodeAfter.type.name}-replacement-uploading`,
-            },
-            {
-              id: add.id,
-            }
-          );
-          set = set.add(tr.doc, [deco]);
-        } else if (mediaType) {
-          // Render the node that the upload will become, so that the switch to
-          // the uploaded node does not change the display.
+        // Render the node that the upload will become, so that the switch to
+        // the uploaded node does not change the display.
+        const createWidget = (type: NodeType) => {
           const objectUrl =
             !add.src && add.file ? URL.createObjectURL(add.file) : undefined;
-          const node = mediaType.create({
+          const node = type.create({
             ...add.attrs,
             src: add.src ?? objectUrl,
           });
 
-          const deco = Decoration.widget(
+          return Decoration.widget(
             add.pos,
             (view) => renderUploadingNode(view, node),
             {
@@ -171,7 +157,34 @@ const uploadPlaceholder = new Plugin({
               },
             }
           );
-          set = set.add(tr.doc, [deco]);
+        };
+
+        if (add.replaceExisting) {
+          const $pos = tr.doc.resolve(add.pos);
+          const nodeAfter = $pos.nodeAfter;
+          if (!nodeAfter) {
+            return set;
+          }
+
+          // Media is hidden and replaced by a preview of the upload.
+          const deco = Decoration.node(
+            $pos.pos,
+            $pos.pos + nodeAfter.nodeSize,
+            {
+              class: mediaType
+                ? EditorStyleHelper.mediaReplaced
+                : `${nodeAfter.type.name}-replacement-uploading`,
+            },
+            {
+              id: add.id,
+            }
+          );
+          set = set.add(
+            tr.doc,
+            mediaType ? [deco, createWidget(mediaType)] : [deco]
+          );
+        } else if (mediaType) {
+          set = set.add(tr.doc, [createWidget(mediaType)]);
         } else if (add.file) {
           const element = document.createElement("div");
           element.className = "file placeholder";
@@ -253,5 +266,8 @@ export function findPlaceholder(
 ): [number, number] | null {
   const decos = uploadPlaceholder.getState(state);
   const found = decos?.find(undefined, undefined, (spec) => spec.id === id);
-  return found?.length ? [found[0].from, found[0].to] : null;
+
+  // When the upload replaces a node, its range is the placeholder position.
+  const deco = found?.find((d) => d.to > d.from) ?? found?.[0];
+  return deco ? [deco.from, deco.to] : null;
 }

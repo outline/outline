@@ -53,6 +53,30 @@ describe("uploadPlaceholder", () => {
     expect(uploadPlaceholder.getState(state)?.find()).toHaveLength(0);
   });
 
+  it("uses the range of the replaced node as the placeholder position", () => {
+    const image = schema.nodes.image.create({
+      src: "https://example.com/a.png",
+    });
+    let state = createEditorState(
+      doc([schema.nodes.paragraph.create(null, image)]),
+      [uploadPlaceholder]
+    );
+    state = state.apply(
+      state.tr.setMeta(uploadPlaceholder, {
+        add: {
+          id: "upload",
+          pos: 1,
+          isImage: true,
+          replaceExisting: true,
+          src: "https://example.com/b.png",
+        },
+      })
+    );
+
+    expect(uploadPlaceholder.getState(state)?.find()).toHaveLength(2);
+    expect(findPlaceholder(state, "upload")).toEqual([1, 1 + image.nodeSize]);
+  });
+
   it("does not mark a node when the upload fails", () => {
     let state = startUpload();
     state = state.apply(

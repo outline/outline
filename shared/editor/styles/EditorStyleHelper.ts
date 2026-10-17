@@ -17,6 +17,9 @@ export class EditorStyleHelper {
   /** Image or video that is displayed while it uploads */
   static readonly mediaUploading = "media-uploading";
 
+  /** Image or video that is hidden while an upload replaces it */
+  static readonly mediaReplaced = "media-replaced";
+
   /** Image or video that has just finished uploading */
   static readonly mediaUploaded = "media-uploaded";
 
