@@ -24,14 +24,14 @@ export const fadeIn = keyframes`
 `;
 
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
-const uploadFrame = `.image-wrapper, .${EditorStyleHelper.videoWrapper}, .widget, .pdf-wrapper`;
+const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
 
 /** The content of a file in the editor, without its frame or hidden controls. */
 const uploadContent = [
-  `.image-wrapper > :is(a, img, .${EditorStyleHelper.imageHandle})`,
+  `.${EditorStyleHelper.imageWrapper} > :is(a, img, .${EditorStyleHelper.imageHandle})`,
   `.${EditorStyleHelper.videoWrapper} > video`,
   ".widget > *",
-  ".pdf-wrapper > :is(:first-child, embed)",
+  `.${EditorStyleHelper.pdfWrapper} > :is(:first-child, embed)`,
 ].join(", ");
 
 export const pulse = (color: string) => keyframes`
@@ -850,26 +850,26 @@ iframe.embed {
   }
 }
 
-.image .image-wrapper,
-.image .image-wrapper img {
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
   width: var(--image-width, auto);
 }
 
-.image .image-wrapper,
-.image .image-wrapper img {
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
   border-radius: ${EditorStyleHelper.mediaRadius};
 }
 
-.image .image-wrapper.ProseMirror-selectednode,
-.image .image-wrapper.ProseMirror-selectednode img {
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode,
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode img {
   border-radius: ${EditorStyleHelper.mediaSelectedRadius};
 }
 
 /* Inside auto-layout table cells the plain pixel width would expand the cell  */
-td .image .image-wrapper,
-th .image .image-wrapper,
-td .image .image-wrapper img,
-th .image .image-wrapper img {
+td .image .${EditorStyleHelper.imageWrapper},
+th .image .${EditorStyleHelper.imageWrapper},
+td .image .${EditorStyleHelper.imageWrapper} img,
+th .image .${EditorStyleHelper.imageWrapper} img {
   width: min(var(--image-width), 100%);
 }
 
@@ -929,7 +929,7 @@ th .image .image-wrapper img {
   clear: initial;
   vertical-align: text-bottom;
 
-  .image-wrapper {
+  .${EditorStyleHelper.imageWrapper} {
     margin: 0;
   }
 }
@@ -1045,7 +1045,7 @@ img.ProseMirror-separator {
   vertical-align: text-bottom;
 }
 
-.image-commented .image-wrapper {
+.image-commented .${EditorStyleHelper.imageWrapper} {
   outline: ${props.theme.commentedImageOutlineLight} solid 2px;
 }
 
@@ -1178,18 +1178,18 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="true"] {
-  & .image-wrapper.ProseMirror-selectednode > a {
+  & .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode > a {
     /* force zoom-in cursor if image node is selected */
     cursor: zoom-in !important;
   }
   &.ProseMirror-focused {
-    .image-wrapper:not(.ProseMirror-selectednode) > a {
+    .${EditorStyleHelper.imageWrapper}:not(.ProseMirror-selectednode) > a {
       /* prevents cursor from turning to pointer on pointer down */
       pointer-events: none;
     }
   }
   &:not(.ProseMirror-focused) {
-    .image-wrapper  {
+    .${EditorStyleHelper.imageWrapper}  {
       & > a[href] {
         cursor: pointer;
       }
@@ -1202,7 +1202,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="false"] {
-  .image-wrapper  {
+  .${EditorStyleHelper.imageWrapper}  {
     & > a[href] {
       cursor: pointer;
     }

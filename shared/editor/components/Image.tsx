@@ -224,8 +224,8 @@ const Image = (props: Props) => {
         $dragging={!!dragging}
         className={
           isSelected || dragging
-            ? "image-wrapper ProseMirror-selectednode"
-            : "image-wrapper"
+            ? `${EditorStyleHelper.imageWrapper} ProseMirror-selectednode`
+            : EditorStyleHelper.imageWrapper
         }
         style={widthStyle}
       >

@@ -32,8 +32,14 @@ export class EditorStyleHelper {
   /** Node that has just finished uploading */
   static readonly uploadComplete = "upload-complete";
 
+  /** Wrapper of an image, around the image element */
+  static readonly imageWrapper = "image-wrapper";
+
   /** Wrapper of a video, around the video element */
   static readonly videoWrapper = "video-wrapper";
+
+  /** Wrapper of a PDF preview, around the embedded document */
+  static readonly pdfWrapper = "pdf-wrapper";
 
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";

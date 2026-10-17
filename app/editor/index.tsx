@@ -1244,7 +1244,7 @@ const StyledEditorContainer = styled(Styles)<{
       }
       a#comment-${props.focusedCommentId}
       ~ span.component-image
-      div.image-wrapper {
+      div.${EditorStyleHelper.imageWrapper} {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1262,7 +1262,7 @@ const StyledEditorContainer = styled(Styles)<{
       }
       a#comment-${props.hoveredCommentId}
       ~ span.component-image
-      div.image-wrapper {
+      div.${EditorStyleHelper.imageWrapper} {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}

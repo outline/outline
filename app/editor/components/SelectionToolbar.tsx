@@ -27,6 +27,7 @@ import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 import InlineMenu from "./InlineMenu";
 import StickyBlockToolbar from "./StickyBlockToolbar";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { isModKey } from "@shared/utils/keyboard";
 
 type Props = {
@@ -274,7 +275,10 @@ export const SelectionToolbar = observer(function SelectionToolbar(
   });
 
   const handleClickOutsideLinkEditor = (ev: MouseEvent | TouchEvent) => {
-    if (ev.target instanceof Element && ev.target.closest(".image-wrapper")) {
+    if (
+      ev.target instanceof Element &&
+      ev.target.closest(`.${EditorStyleHelper.imageWrapper}`)
+    ) {
       return;
     }
     setActiveToolbar(null);
