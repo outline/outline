@@ -155,20 +155,28 @@ describe("ChatService", () => {
       ]);
     });
 
-    it("should reply later with search results when there is no answer", async () => {
-      const provider = new TestChatProvider();
-      const { event } = await commandEvent("what is this?");
-      mockAnswerProvider({
-        canAnswer: () => true,
-        answer: async () => ({ answer: "", documents: [] }),
-      });
+    it.each([
+      ["there is no answer", async () => ({ answer: "", documents: [] })],
+      [
+        "the answer fails",
+        async () => {
+          throw new Error("Timed out");
+        },
+      ],
+    ])(
+      "should reply later with search results when %s",
+      async (_name, answer) => {
+        const provider = new TestChatProvider();
+        const { event } = await commandEvent("what is this?");
+        mockAnswerProvider({ canAnswer: () => true, answer });
 
-      const result = await ChatService.handle(ctx, provider, event);
-      expect(result.type).toEqual("deferred");
+        const result = await ChatService.handle(ctx, provider, event);
+        expect(result.type).toEqual("deferred");
 
-      await vi.waitFor(() => expect(provider.replies).toHaveLength(1));
-      expect(provider.replies[0].text).toContain("No results for");
-    });
+        await vi.waitFor(() => expect(provider.replies).toHaveLength(1));
+        expect(provider.replies[0].text).toContain("No results for");
+      }
+    );
   });
 
   describe("action", () => {

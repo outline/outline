@@ -493,6 +493,10 @@ export class ChatService {
     });
   }
 
+  /**
+   * Replies with an answer, or with search results if there is no answer or
+   * the answer fails. It never rejects, so it can run detached.
+   */
   private static async replyWithAnswer<TTarget>(
     ctx: APIContext,
     provider: BaseChatProvider<TTarget>,
@@ -501,51 +505,68 @@ export class ChatService {
     query: string
   ) {
     const user = this.userOf(ctx);
+    const logContext = { service: provider.service, userId: user.id };
+
+    let message: ChatMessage | undefined;
+    try {
+      message = await this.answerMessage(ctx, provider, answerProvider, query);
+    } catch (err) {
+      Logger.error("Failed to answer chat question", toError(err), logContext);
+    }
 
     try {
-      const { answer, documents } = await answerProvider.answer(ctx, query);
-      if (!answer) {
-        await provider.reply(target, await this.search(provider, [ctx], query));
-        return;
-      }
-
-      const searchQuery = await SearchQuery.create({
-        userId: user.id,
-        teamId: user.teamId,
-        source: provider.searchSource,
-        query,
-        answer,
-        results: documents.length,
-      });
-
-      await provider.reply(target, {
-        context: t("Answer to “{{ query }}”", { query, ...opts(user) }),
-        text: answer,
-        visibility: "ephemeral",
-        cards: documents
-          .slice(0, 1)
-          .map((document) =>
-            ChatMessageHelper.documentCard(
-              document,
-              user.team,
-              document.collection
-            )
-          ),
-        actions: provider.capabilities.messageActions
-          ? [
-              {
-                id: "postAnswer",
-                label: t("Post to channel", opts(user)),
-                value: searchQuery.id,
-              },
-            ]
-          : undefined,
-      });
+      await provider.reply(
+        target,
+        message ?? (await this.search(provider, [ctx], query))
+      );
     } catch (err) {
-      Logger.error("Failed to answer chat question", toError(err), {
-        service: provider.service,
-        userId: user.id,
-      });
+      Logger.error("Failed to send chat reply", toError(err), logContext);
     }
+  }
+
+  private static async answerMessage(
+    ctx: APIContext,
+    provider: BaseChatProvider,
+    answerProvider: ChatAnswerProvider,
+    query: string
+  ): Promise<ChatMessage | undefined> {
+    const user = this.userOf(ctx);
+    const { answer, documents } = await answerProvider.answer(ctx, query);
+    if (!answer) {
+      return undefined;
+    }
+
+    const searchQuery = await SearchQuery.create({
+      userId: user.id,
+      teamId: user.teamId,
+      source: provider.searchSource,
+      query,
+      answer,
+      results: documents.length,
+    });
+
+    return {
+      context: t("Answer to “{{ query }}”", { query, ...opts(user) }),
+      text: answer,
+      visibility: "ephemeral",
+      cards: documents
+        .slice(0, 1)
+        .map((document) =>
+          ChatMessageHelper.documentCard(
+            document,
+            user.team,
+            document.collection
+          )
+        ),
+      actions: provider.capabilities.messageActions
+        ? [
+            {
+              id: "postAnswer",
+              label: t("Post to channel", opts(user)),
+              value: searchQuery.id,
+            },
+          ]
+        : undefined,
+    };
   }
 }

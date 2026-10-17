@@ -1,15 +1,13 @@
 import { differenceInMilliseconds } from "date-fns";
 import { Op } from "sequelize";
 import { IntegrationType } from "@shared/types";
-import { toError } from "@shared/utils/error";
 import { Minute } from "@shared/utils/time";
 import { sleep } from "@shared/utils/timers";
 import { ChatMessageHelper } from "@server/chat/ChatMessageHelper";
 import { ChatService } from "@server/chat/ChatService";
-import type { ChatMessage } from "@server/chat/types";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
-import { Collection, Document, Integration, Team } from "@server/models";
+import { Collection, Document, Integration } from "@server/models";
+import ChatPostDocumentTask from "../tasks/ChatPostDocumentTask";
 import type {
   DocumentEvent,
   Event,
@@ -19,8 +17,8 @@ import type {
 import BaseProcessor from "./BaseProcessor";
 
 /**
- * Posts document changes to the chat channels that are connected to a
- * collection, on every registered chat platform.
+ * Schedules posts of document changes to the chat channels that are connected
+ * to a collection, on every registered chat platform.
  */
 export default class ChatNotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -105,11 +103,8 @@ export default class ChatNotificationsProcessor extends BaseProcessor {
     if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
-    const [document, team] = await Promise.all([
-      Document.findByPk(event.documentId),
-      Team.findByPk(event.teamId),
-    ]);
-    if (!document || !team) {
+    const document = await Document.findByPk(event.documentId);
+    if (!document) {
       return;
     }
 
@@ -128,52 +123,29 @@ export default class ChatNotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    const integrations = (await Integration.findAll({
+    const eventName =
+      event.name === "documents.publish"
+        ? "documents.publish"
+        : "documents.update";
+    const integrations = await Integration.findAll({
+      attributes: ["id"],
       where: {
         teamId: document.teamId,
         collectionId: document.collectionId,
         service: services,
         type: IntegrationType.Post,
-        events: {
-          [Op.contains]: [
-            event.name === "revisions.create" ? "documents.update" : event.name,
-          ],
-        },
+        events: { [Op.contains]: [eventName] },
       },
-    })) as Integration<IntegrationType.Post>[];
-    if (!integrations.length) {
-      return;
-    }
-
-    const text =
-      event.name === "documents.publish"
-        ? `${document.createdBy.name} published "${document.displayTitle}"`
-        : `${document.updatedBy.name} updated "${document.displayTitle}"`;
-    const message: ChatMessage = {
-      text: ChatMessageHelper.escape(text),
-      visibility: "conversation",
-      cards: [
-        ChatMessageHelper.documentCard(document, team, document.collection),
-      ],
-    };
-
-    const results = await Promise.allSettled(
-      integrations.map(async (integration) => {
-        const provider = ChatService.getProvider(integration.service);
-        if (provider) {
-          await provider.postMessage(integration, message);
-        }
-      })
-    );
-
-    results.forEach((result, index) => {
-      if (result.status === "rejected") {
-        Logger.error(
-          "Failed to post chat notification",
-          toError(result.reason),
-          { integrationId: integrations[index].id }
-        );
-      }
     });
+
+    await Promise.all(
+      integrations.map((integration) =>
+        new ChatPostDocumentTask().schedule({
+          integrationId: integration.id,
+          documentId: document.id,
+          eventName,
+        })
+      )
+    );
   }
 }
