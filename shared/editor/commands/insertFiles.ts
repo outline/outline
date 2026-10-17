@@ -171,36 +171,26 @@ const insertFiles = async function (
           return;
         }
         if (upload.isImage) {
-          const newImg = new Image();
-          newImg.onload = async () => {
-            const result = findPlaceholder(view.state, upload.id);
-            if (result === null) {
-              return;
-            }
+          // Load the uploaded image first, so that it displays at once.
+          await FileHelper.loadImage(src);
 
-            if (view.isDestroyed) {
-              return;
-            }
+          const result = findPlaceholder(view.state, upload.id);
+          if (result === null || view.isDestroyed) {
+            return;
+          }
 
-            const [from, to] = result;
-            const node = schema.nodes.image.create({
-              ...upload.attrs,
-              src,
-            });
-            view.dispatch(
-              view.state.tr
-                .replaceWith(from, to || from, node)
-                .setMeta(uploadPlaceholderPlugin, {
-                  remove: { id: upload.id, node },
-                })
-            );
-          };
-
-          newImg.onerror = () => {
-            throw new Error(`Error loading image: ${src}`);
-          };
-
-          newImg.src = src;
+          const [from, to] = result;
+          const node = schema.nodes.image.create({
+            ...upload.attrs,
+            src,
+          });
+          view.dispatch(
+            view.state.tr
+              .replaceWith(from, to || from, node)
+              .setMeta(uploadPlaceholderPlugin, {
+                remove: { id: upload.id, node },
+              })
+          );
         } else if (upload.isVideo) {
           const result = findPlaceholder(view.state, upload.id);
           if (result === null) {
