@@ -23,6 +23,12 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+/** A file that is added to the document scales in. */
+const uploadScaleIn = keyframes`
+  from { transform: scale(0.97); }
+  to { transform: scale(1); }
+`;
+
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
 const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
 
@@ -900,6 +906,10 @@ th .image .${EditorStyleHelper.imageWrapper} img {
       animation: ${fadeIn} 200ms ease-in-out 2s forwards;
     }
   }
+}
+
+.${EditorStyleHelper.uploadEnter} {
+  animation: ${uploadScaleIn} 150ms ease-out;
 }
 
 .${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {

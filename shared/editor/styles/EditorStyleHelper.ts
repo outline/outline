@@ -23,6 +23,9 @@ export class EditorStyleHelper {
   /** Node that is displayed while its file uploads */
   static readonly uploadPlaceholder = "upload-placeholder";
 
+  /** Node that is displayed for the first time while its file uploads */
+  static readonly uploadEnter = "upload-enter";
+
   /** Status of an upload for assistive technology, not displayed */
   static readonly uploadStatus = "upload-status";
 

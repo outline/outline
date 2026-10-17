@@ -119,6 +119,11 @@ function renderUploadingNode(
 
   element.classList.add(EditorStyleHelper.uploadPlaceholder);
   element.inert = true;
+
+  // Only the first render animates, so that a redraw does not animate again.
+  if (!placeholders.has(id)) {
+    element.classList.add(EditorStyleHelper.uploadEnter);
+  }
   return addPlaceholderElement(id, element, nodeView);
 }
 
