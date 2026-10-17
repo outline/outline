@@ -6,6 +6,12 @@ export class EditorStyleHelper {
 
   static readonly blockRadius = "6px";
 
+  /** Corner radius of images and videos */
+  static readonly mediaRadius = "2px";
+
+  /** Corner radius of images and videos when selected */
+  static readonly mediaSelectedRadius = "8px";
+
   // Images
 
   static readonly imageHandle = "image-handle";

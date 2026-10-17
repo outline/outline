@@ -849,6 +849,16 @@ iframe.embed {
   width: var(--image-width, auto);
 }
 
+.image .image-wrapper,
+.image .image-wrapper img {
+  border-radius: ${EditorStyleHelper.mediaRadius};
+}
+
+.image .image-wrapper.ProseMirror-selectednode,
+.image .image-wrapper.ProseMirror-selectednode img {
+  border-radius: ${EditorStyleHelper.mediaSelectedRadius};
+}
+
 /* Inside auto-layout table cells the plain pixel width would expand the cell  */
 td .image .image-wrapper,
 th .image .image-wrapper,

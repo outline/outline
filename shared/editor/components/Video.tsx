@@ -2,6 +2,7 @@ import * as React from "react";
 import styled, { css } from "styled-components";
 import { sanitizeUrl } from "../../utils/urls";
 import { getMediaSrc } from "../lib/uploadPlaceholder";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
@@ -78,7 +79,7 @@ export const videoStyle = css`
   color: ${(props) => props.theme.text} !important;
   margin: -2px;
   padding: 2px;
-  border-radius: 8px;
+  border-radius: ${EditorStyleHelper.mediaRadius};
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
 `;
 
@@ -93,7 +94,7 @@ const VideoWrapper = styled.div<{ $dragging: boolean }>`
   margin-right: auto;
   white-space: nowrap;
   cursor: default;
-  border-radius: 8px;
+  border-radius: ${EditorStyleHelper.mediaRadius};
   user-select: none;
   max-width: 100%;
   overflow: hidden;
@@ -106,6 +107,11 @@ const VideoWrapper = styled.div<{ $dragging: boolean }>`
     transition-property: width, max-height;
     transition-duration: ${(props) => (props.$dragging ? "0ms" : "150ms")};
     transition-timing-function: ease-in-out;
+  }
+
+  &.ProseMirror-selectednode,
+  &.ProseMirror-selectednode video {
+    border-radius: ${EditorStyleHelper.mediaSelectedRadius};
   }
 
   &:hover {
