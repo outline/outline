@@ -25,6 +25,42 @@ const parseDimension = (value: string | null): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+/**
+ * Downloads a video through a blob URL, as videos are served inline and a
+ * plain link would open them for playback.
+ *
+ * @param src the sanitized video URL.
+ * @param title the video caption, used as the file name.
+ */
+const downloadVideo = async (src: string, title: string | null) => {
+  try {
+    const response = await fetch(src);
+    if (!response.ok) {
+      throw new Error(`Failed to download video: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const extension = blob.type.split("/")[1];
+    const name = title || "video";
+
+    // create a temporary link node and click it with our video data
+    const link = document.createElement("a");
+    link.href = url;
+    link.download =
+      extension && !name.endsWith(`.${extension}`)
+        ? `${name}.${extension}`
+        : name;
+    document.body.appendChild(link);
+    link.click();
+
+    // cleanup
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url));
+  } catch {
+    window.open(src, "_blank", "noopener,noreferrer");
+  }
+};
+
 export default class Video extends Node {
   get name() {
     return "video";
@@ -242,6 +278,7 @@ export default class Video extends Node {
           return false;
         }
         const { view } = this.editor;
+        const { node } = state.selection;
         const {
           uploadFile,
           onFileUploadStart,
@@ -267,6 +304,7 @@ export default class Video extends Node {
             onFileUploadProgress,
             onNotice,
             replaceExisting: true,
+            attrs: node.attrs.title ? { title: node.attrs.title } : undefined,
           });
         };
         inputElement.click();
@@ -279,21 +317,13 @@ export default class Video extends Node {
         ) {
           return false;
         }
-        const src = sanitizeUrl(state.selection.node.attrs.src);
+        const { node } = state.selection;
+        const src = sanitizeUrl(node.attrs.src);
         if (!src) {
           return false;
         }
 
-        // create a temporary link node and click it
-        const link = document.createElement("a");
-        link.href = src;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-
-        // cleanup
-        document.body.removeChild(link);
+        void downloadVideo(src, node.attrs.title);
         return true;
       },
       resizeVideo:
