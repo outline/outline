@@ -37,6 +37,93 @@ function updateDocumentText(document: Document, text: string) {
 }
 
 describe("revisions.create", () => {
+  describe.each([MentionType.User, MentionType.Group])(
+    "%s mentions",
+    (type) => {
+      test.each(["missing", "null", "preserved", "self"])(
+        "should use the correct actor for %s attribution",
+        async (scenario) => {
+          const actor = await buildUser();
+          const originalActor = await buildUser({ teamId: actor.teamId });
+          const recipient =
+            scenario === "self"
+              ? actor
+              : await buildUser({ teamId: actor.teamId });
+          const group =
+            type === MentionType.Group
+              ? await buildGroup({ teamId: actor.teamId })
+              : undefined;
+          if (group) {
+            await buildGroupUser({ groupId: group.id, userId: recipient.id });
+          }
+          const eventType = group
+            ? NotificationEventType.GroupMentionedInDocument
+            : NotificationEventType.MentionedInDocument;
+          recipient.setNotificationEventType(eventType);
+          await recipient.save();
+
+          const document = await buildDocument({
+            teamId: actor.teamId,
+            userId: actor.id,
+          });
+          await Revision.createFromDocument(
+            createContext({ user: actor }),
+            document
+          );
+          document.content = buildProseMirrorDoc([
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "mention",
+                  attrs: {
+                    id: "mention-attribution-test",
+                    type,
+                    modelId: group?.id ?? recipient.id,
+                    actorId:
+                      scenario === "preserved"
+                        ? originalActor.id
+                        : scenario === "null"
+                          ? null
+                          : undefined,
+                    label: "Mention",
+                  },
+                },
+              ],
+            },
+          ]).toJSON();
+          await document.save();
+          const revision = await Revision.createFromDocument(
+            createContext({ user: actor }),
+            document
+          );
+          const task = new RevisionCreatedNotificationsTask();
+          await task.perform({
+            name: "revisions.create",
+            documentId: document.id,
+            teamId: document.teamId,
+            actorId: actor.id,
+            modelId: revision.id,
+            ip,
+          });
+
+          const notifications = await Notification.findAll({
+            where: { documentId: document.id, event: eventType },
+          });
+          if (scenario === "self") {
+            expect(notifications).toHaveLength(0);
+          } else {
+            expect(notifications).toHaveLength(1);
+            expect(notifications[0].userId).toBe(recipient.id);
+            expect(notifications[0].actorId).toBe(
+              scenario === "preserved" ? originalActor.id : actor.id
+            );
+          }
+        }
+      );
+    }
+  );
+
   test("should send a notification to other collaborators", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
