@@ -23,6 +23,23 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+/** A file that is added to the document scales in. */
+const uploadScaleIn = keyframes`
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+`;
+
+/** The frame of a file in the editor, which holds the progress bar of an upload. */
+const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
+
+/** The content of a file in the editor, without its frame or hidden controls. */
+const uploadContent = [
+  `.${EditorStyleHelper.imageWrapper} > :is(a, img, .${EditorStyleHelper.imageHandle})`,
+  `.${EditorStyleHelper.videoWrapper} > video`,
+  ".widget > *",
+  `.${EditorStyleHelper.pdfWrapper} > :is(:first-child, embed)`,
+].join(", ");
+
 export const pulse = (color: string) => keyframes`
   0% { box-shadow: 0 0 0 1px ${color} }
   50% { box-shadow: 0 0 0 4px ${color} }
@@ -839,81 +856,81 @@ iframe.embed {
   }
 }
 
-.image .image-wrapper,
-.image .image-wrapper img {
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
   width: var(--image-width, auto);
 }
 
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
+  border-radius: ${EditorStyleHelper.mediaRadius};
+}
+
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode,
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode img {
+  border-radius: ${EditorStyleHelper.mediaSelectedRadius};
+}
+
 /* Inside auto-layout table cells the plain pixel width would expand the cell  */
-td .image .image-wrapper,
-th .image .image-wrapper,
-td .image .image-wrapper img,
-th .image .image-wrapper img {
+td .image .${EditorStyleHelper.imageWrapper},
+th .image .${EditorStyleHelper.imageWrapper},
+td .image .${EditorStyleHelper.imageWrapper} img,
+th .image .${EditorStyleHelper.imageWrapper} img {
   width: min(var(--image-width), 100%);
 }
 
-.image.placeholder,
-.video.placeholder {
-  position: relative;
-  background: ${props.theme.background};
-  margin-bottom: calc(28px + 1.2em);
+.${EditorStyleHelper.uploadPlaceholder} {
+  pointer-events: none;
+  user-select: none;
 
-  img,
-  video {
+  /* The content of the file is faded but not its frame, so that the progress bar on the frame is not faded */
+  :is(${uploadContent}) {
     opacity: 0.5;
   }
 
-  video {
-    border-radius: 8px;
+  /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
+  :is(${uploadFrame}) {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      z-index: 1;
+      height: 3px;
+      width: calc(var(--upload-progress, 0) * 100%);
+      background: ${props.theme.accent};
+      opacity: 0;
+      transition: width 200ms ease-out;
+      animation: ${fadeIn} 200ms ease-in-out 2s forwards;
+    }
   }
 }
 
-.file.placeholder {
-  display: flex;
-  align-items: center;
-  background: ${props.theme.background};
-  box-shadow: 0 0 0 1px ${props.theme.divider};
+.${EditorStyleHelper.uploadEnter} {
+  animation: ${uploadScaleIn} 150ms ease-out;
+}
+
+.${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {
+  /* Starts halfway through, from the opacity of the placeholder */
+  animation: ${fadeIn} 500ms linear -250ms;
+}
+
+.${EditorStyleHelper.uploadStatus} {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  border-radius: 8px;
-  padding: 6px 8px;
-  max-width: 840px;
-  cursor: default;
-
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-
-  .title,
-  .subtitle {
-    margin-left: 8px;
-  }
-
-  .title {
-    font-weight: 600;
-    font-size: 14px;
-    color:  ${props.theme.text};
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: ${props.theme.textTertiary};
-    line-height: 0;
-  }
-
-  span {
-    font-family: ${props.theme.fontFamilyMono};
-  }
+  border: 0;
 }
 
-.attachment-replacement-uploading {
-  .widget {
-    opacity: 0.5;
-  }
-}
-
-.image-replacement-uploading {
-  img {
-    opacity: 0.5;
-  }
+.${EditorStyleHelper.uploadReplaced} {
+  display: none !important;
 }
 
 .image-icon {
@@ -922,7 +939,7 @@ th .image .image-wrapper img {
   clear: initial;
   vertical-align: text-bottom;
 
-  .image-wrapper {
+  .${EditorStyleHelper.imageWrapper} {
     margin: 0;
   }
 }
@@ -1038,7 +1055,7 @@ img.ProseMirror-separator {
   vertical-align: text-bottom;
 }
 
-.image-commented .image-wrapper {
+.image-commented .${EditorStyleHelper.imageWrapper} {
   outline: ${props.theme.commentedImageOutlineLight} solid 2px;
 }
 
@@ -1171,18 +1188,18 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="true"] {
-  & .image-wrapper.ProseMirror-selectednode > a {
+  & .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode > a {
     /* force zoom-in cursor if image node is selected */
     cursor: zoom-in !important;
   }
   &.ProseMirror-focused {
-    .image-wrapper:not(.ProseMirror-selectednode) > a {
+    .${EditorStyleHelper.imageWrapper}:not(.ProseMirror-selectednode) > a {
       /* prevents cursor from turning to pointer on pointer down */
       pointer-events: none;
     }
   }
   &:not(.ProseMirror-focused) {
-    .image-wrapper  {
+    .${EditorStyleHelper.imageWrapper}  {
       & > a[href] {
         cursor: pointer;
       }
@@ -1195,7 +1212,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="false"] {
-  .image-wrapper  {
+  .${EditorStyleHelper.imageWrapper}  {
     & > a[href] {
       cursor: pointer;
     }
@@ -1286,6 +1303,11 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 .placeholder:nth-child(1)::before,
 .placeholder:nth-child(2)::before {
   opacity: 1;
+}
+
+/** An empty paragraph that holds an uploading image is not empty to the user */
+.placeholder:has(> .${EditorStyleHelper.uploadPlaceholder})::before {
+  content: none;
 }
 
 ${

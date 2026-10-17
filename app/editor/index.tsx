@@ -162,8 +162,6 @@ export type Props = {
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
-  /** Callback when file upload progress changes */
-  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
   onCreateLink?: (
     params: Properties<Document>,
@@ -1246,7 +1244,7 @@ const StyledEditorContainer = styled(Styles)<{
       }
       a#comment-${props.focusedCommentId}
       ~ span.component-image
-      div.image-wrapper {
+      div.${EditorStyleHelper.imageWrapper} {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1264,7 +1262,7 @@ const StyledEditorContainer = styled(Styles)<{
       }
       a#comment-${props.hoveredCommentId}
       ~ span.component-image
-      div.image-wrapper {
+      div.${EditorStyleHelper.imageWrapper} {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
