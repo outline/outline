@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { Scope, TeamPreference } from "@shared/types";
 import { iconNames } from "@shared/utils/IconNames";
+import Logger from "@server/logging/Logger";
 import { UserFlag } from "@server/models/User";
 import {
   buildUser,
@@ -101,6 +102,22 @@ describe("POST /mcp/", () => {
         body,
       });
       expect(res.status).toEqual(404);
+    });
+
+    it("should reject an unsupported protocol version without logging", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const warn = vi.spyOn(Logger, "warn");
+      const { body } = mcpRequest("server/discover");
+      const res = await server.post("/mcp/", {
+        headers: {
+          ...mcpHeaders(accessToken),
+          "MCP-Protocol-Version": "2026-07-28",
+        },
+        body,
+      });
+      expect(res.status).toEqual(400);
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
     });
 
     it("should handle initialize and return capabilities", async () => {
