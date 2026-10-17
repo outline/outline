@@ -1,40 +1,27 @@
-import type { Node as ProsemirrorNode } from "prosemirror-model";
-import type { Command, EditorState } from "prosemirror-state";
+import type { Node as ProsemirrorNode, ResolvedPos } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
 import { NodeSelection, Selection, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 
 /** Direction of vertical movement, -1 for up and 1 for down. */
 type Direction = -1 | 1;
 
-/** Layout queries that need the rendered editor. */
-export interface VerticalLayout {
-  /** Whether the cursor is on the first or last line of its textblock in the direction of travel. */
-  atTextblockEdge: () => boolean;
-  /** Whether the cursor is on the same visual line as the given position. */
-  onCursorLine: (pos: number, side: Direction) => boolean;
-}
-
 /**
- * A command that moves the selection up or down over inline nodes that display
- * as blocks, such as images, and selects them as a block node would be.
+ * A command that moves the selection up or down over inline nodes that are
+ * rendered as blocks, such as images, and selects them as a block node would be.
  *
  * @param dir the direction to move, -1 for up and 1 for down.
- * @param isBlockLike whether an inline node displays as a block.
+ * @param isCandidate whether an inline node can be rendered as a block.
  * @returns A prosemirror command.
  */
 export const selectBlockLikeVertically =
-  (dir: Direction, isBlockLike: (node: ProsemirrorNode) => boolean): Command =>
+  (dir: Direction, isCandidate: (node: ProsemirrorNode) => boolean): Command =>
   (state, dispatch, view) => {
     if (!view) {
       return false;
     }
 
-    const selection = findBlockLikeSelection(
-      state,
-      dir,
-      isBlockLike,
-      layoutFromView(view, dir)
-    );
+    const selection = findSelection(view, dir, isCandidate);
     if (!selection) {
       return false;
     }
@@ -44,28 +31,23 @@ export const selectBlockLikeVertically =
   };
 
 /**
- * Finds the selection that results from moving up or down when an inline node
- * that displays as a block is selected or next in the direction of travel.
+ * Finds the selection that results from moving up or down when a block-like
+ * inline node is selected or next in the direction of travel.
  *
- * @param state the editor state.
- * @param dir the direction to move, -1 for up and 1 for down.
- * @param isBlockLike whether an inline node displays as a block.
- * @param layout queries against the rendered editor.
  * @returns the new selection, or undefined to use the default behavior.
  */
-export function findBlockLikeSelection(
-  state: EditorState,
+function findSelection(
+  view: EditorView,
   dir: Direction,
-  isBlockLike: (node: ProsemirrorNode) => boolean,
-  layout: VerticalLayout
+  isCandidate: (node: ProsemirrorNode) => boolean
 ): Selection | undefined {
-  const { doc, selection } = state;
-  const matches = (node: ProsemirrorNode | null | undefined) =>
-    !!node && node.isInline && isBlockLike(node);
+  const { doc, selection } = view.state;
+  const matches = (node: ProsemirrorNode | null | undefined, pos: number) =>
+    !!node && node.isInline && isCandidate(node) && rendersAsBlock(view, pos);
 
   // Moving off a selected block-like node.
   if (selection instanceof NodeSelection) {
-    if (!matches(selection.node)) {
+    if (!matches(selection.node, selection.from)) {
       return undefined;
     }
 
@@ -74,15 +56,13 @@ export function findBlockLikeSelection(
 
     // Inline content beside the node is rendered on its own line.
     if (sibling) {
-      return matches(sibling)
-        ? NodeSelection.create(
-            doc,
-            dir > 0 ? $pos.pos : $pos.pos - sibling.nodeSize
-          )
+      const siblingPos = dir > 0 ? $pos.pos : $pos.pos - sibling.nodeSize;
+      return matches(sibling, siblingPos)
+        ? NodeSelection.create(doc, siblingPos)
         : TextSelection.create(doc, $pos.pos);
     }
 
-    return selectionInNextTextblock(state, $pos.pos, dir, matches);
+    return selectionInNextTextblock(view, $pos, dir, matches);
   }
 
   if (!(selection instanceof TextSelection) || !selection.empty) {
@@ -94,76 +74,99 @@ export function findBlockLikeSelection(
     return undefined;
   }
 
-  // A block-like node later in the same textblock, on the cursor's line.
+  // A block-like node in the same textblock, on the cursor's line.
   const parentStart = $head.start();
   let target: { node: ProsemirrorNode; pos: number } | undefined;
   $head.parent.forEach((node, offset) => {
     const pos = parentStart + offset;
-    if (!matches(node)) {
-      return;
-    }
-    if (dir > 0 && pos >= $head.pos && !target) {
+    if (dir > 0 && pos >= $head.pos && !target && matches(node, pos)) {
       target = { node, pos };
     }
-    if (dir < 0 && pos + node.nodeSize <= $head.pos) {
+    if (dir < 0 && pos + node.nodeSize <= $head.pos && matches(node, pos)) {
       target = { node, pos };
     }
   });
 
   if (target) {
     const edge = dir > 0 ? target.pos : target.pos + target.node.nodeSize;
-    if (edge === $head.pos || layout.onCursorLine(edge, dir > 0 ? -1 : 1)) {
+    if (edge === $head.pos || onCursorLine(view, edge, dir > 0 ? -1 : 1)) {
       return NodeSelection.create(doc, target.pos);
     }
     return undefined;
   }
 
-  if (!layout.atTextblockEdge()) {
+  if (!view.endOfTextblock(dir > 0 ? "down" : "up")) {
     return undefined;
   }
 
-  const next = selectionInNextTextblock(state, $head.pos, dir, matches);
+  const next = selectionInNextTextblock(view, $head, dir, matches);
   return next instanceof NodeSelection ? next : undefined;
 }
 
 /**
- * Finds the selection in the textblock after or before the textblock that
- * contains the given position, selecting a block-like node at its edge.
+ * Finds the selection in the textblock after or before the one that contains
+ * the given position, selecting a block-like node at its edge. Returns
+ * undefined when the result leaves the current table cell or is hidden.
  */
 function selectionInNextTextblock(
-  state: EditorState,
-  pos: number,
+  view: EditorView,
+  $pos: ResolvedPos,
   dir: Direction,
-  matches: (node: ProsemirrorNode | null | undefined) => boolean
+  matches: (node: ProsemirrorNode | null | undefined, pos: number) => boolean
 ): Selection | undefined {
-  const { doc } = state;
-  const $pos = doc.resolve(pos);
+  const { doc } = view.state;
   const $start = doc.resolve(dir > 0 ? $pos.after() : $pos.before());
   const next = Selection.findFrom($start, dir);
   if (!next) {
     return undefined;
   }
 
+  // Document order only matches vertical order inside the same isolating node.
+  const [min, max] = isolatingRange($pos);
+  if (next.from < min || next.to > max) {
+    return undefined;
+  }
+
   if (next instanceof TextSelection) {
-    const node = dir > 0 ? next.$head.nodeAfter : next.$head.nodeBefore;
-    if (node && matches(node)) {
-      return NodeSelection.create(
-        doc,
-        dir > 0 ? next.$head.pos : next.$head.pos - node.nodeSize
-      );
+    const { $head } = next;
+    const node = dir > 0 ? $head.nodeAfter : $head.nodeBefore;
+    const pos = dir > 0 ? $head.pos : $head.pos - (node?.nodeSize ?? 0);
+    if (matches(node, pos)) {
+      return NodeSelection.create(doc, pos);
+    }
+    if (!isRendered(view, $head.before())) {
+      return undefined;
     }
   }
 
   return next;
 }
 
-function layoutFromView(view: EditorView, dir: Direction): VerticalLayout {
-  return {
-    atTextblockEdge: () => view.endOfTextblock(dir > 0 ? "down" : "up"),
-    onCursorLine: (pos, side) => {
-      const cursor = view.coordsAtPos(view.state.selection.head);
-      const other = view.coordsAtPos(pos, side);
-      return cursor.top < other.bottom && other.top < cursor.bottom;
-    },
-  };
+function isolatingRange($pos: ResolvedPos): [number, number] {
+  for (let depth = $pos.depth; depth > 0; depth--) {
+    if ($pos.node(depth).type.spec.isolating) {
+      return [$pos.start(depth), $pos.end(depth)];
+    }
+  }
+  return [0, $pos.doc.content.size];
+}
+
+function isRendered(view: EditorView, pos: number) {
+  const dom = view.nodeDOM(pos);
+  return dom instanceof HTMLElement && dom.getClientRects().length > 0;
+}
+
+function rendersAsBlock(view: EditorView, pos: number) {
+  const dom = view.nodeDOM(pos);
+  return (
+    dom instanceof HTMLElement &&
+    dom.getClientRects().length > 0 &&
+    !getComputedStyle(dom).display.startsWith("inline")
+  );
+}
+
+function onCursorLine(view: EditorView, pos: number, side: Direction) {
+  const cursor = view.coordsAtPos(view.state.selection.head);
+  const other = view.coordsAtPos(pos, side);
+  return cursor.top < other.bottom && other.top < cursor.bottom;
 }

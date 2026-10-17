@@ -111,10 +111,10 @@ export default class SimpleImage extends Node {
   );
 
   keys(): Record<string, Command> {
-    const isBlockLike = (node: ProsemirrorNode) => this.isBlockLike(node);
+    const isImage = (node: ProsemirrorNode) => node.type.name === this.name;
     return {
-      ArrowUp: selectBlockLikeVertically(-1, isBlockLike),
-      ArrowDown: selectBlockLikeVertically(1, isBlockLike),
+      ArrowUp: selectBlockLikeVertically(-1, isImage),
+      ArrowDown: selectBlockLikeVertically(1, isImage),
       Enter: (state, dispatch) => {
         const { selection } = state;
         if (
@@ -261,15 +261,5 @@ export default class SimpleImage extends Node {
 
   get plugins() {
     return [uploadPlaceholderPlugin, new UploadPlugin(this.options)];
-  }
-
-  /**
-   * Whether the given node is an image that displays as a block.
-   *
-   * @param node the node to check.
-   * @returns true if arrow keys should treat the node as a block.
-   */
-  protected isBlockLike(node: ProsemirrorNode): boolean {
-    return node.type.name === this.name;
   }
 }

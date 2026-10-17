@@ -122,18 +122,20 @@ const Content = styled.p<{ $width: number; $isSelected: boolean }>`
     transition:
       height 150ms ease-out,
       padding 150ms ease-out,
-      opacity 150ms ease-out;
+      opacity 150ms ease-out,
+      visibility 150ms;
   }
 
   &:empty:not(:focus) {
+    min-height: 0;
     ${(props) =>
       !props.$isSelected &&
       css`
         height: 0;
-        min-height: 0;
         padding-top: 0;
         padding-bottom: 0;
         opacity: 0;
+        visibility: hidden;
       `}
   }
 
