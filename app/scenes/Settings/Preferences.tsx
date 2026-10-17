@@ -181,7 +181,7 @@ function Preferences() {
         <Trans>Manage settings that affect your personal experience.</Trans>
       </Text>
 
-      <Heading as="h2">{t("Display")}</Heading>
+      <Heading as="h2">{t("Appearance")}</Heading>
       <SettingRow
         label={t("Language")}
         name="language"
@@ -212,14 +212,14 @@ function Preferences() {
       </SettingRow>
       <SettingRow
         name="theme"
-        label={t("Appearance")}
+        label={t("Theme")}
         description={t("Choose your preferred interface color scheme.")}
       >
         <InputSelect
           options={themeOptions}
           value={ui.theme}
           onChange={handleThemeChange}
-          label={t("Appearance")}
+          label={t("Theme")}
           labelHidden
         />
       </SettingRow>

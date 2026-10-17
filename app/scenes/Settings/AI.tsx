@@ -17,7 +17,7 @@ import CopyToClipboard from "~/components/CopyToClipboard";
 import NudeButton from "~/components/NudeButton";
 import { useTheme } from "styled-components";
 
-function Features() {
+function AI() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const theme = useTheme();
@@ -53,18 +53,18 @@ function Features() {
     <Scene title={t("AI")} icon={<SparklesIcon />}>
       <Heading>{t("AI")}</Heading>
       <Text as="p" type="secondary">
-        <Trans>Manage AI and integration features for your workspace.</Trans>
+        <Trans>Control how AI features are used in the workspace.</Trans>
       </Text>
 
+      <Heading as="h2">{t("MCP server")}</Heading>
       <SettingRow
         name={TeamPreference.MCP}
-        label={t("MCP server")}
-        border={!team.getPreference(TeamPreference.MCP)}
+        label={t("Enabled")}
         description={
           <>
             <Text type="secondary" as="p">
               {t(
-                "Allow members to connect to this workspace with MCP to read and write data."
+                "Let members connect AI assistants and other apps to this workspace. Connected apps can read and edit content with the same permissions as the member who connects them."
               )}
             </Text>
             {team.getPreference(TeamPreference.MCP) && (
@@ -75,7 +75,7 @@ function Features() {
                   style={{ marginTop: 8, marginBottom: 4 }}
                 >
                   <Trans
-                    defaults="Use the following endpoint to connect to the MCP server from your app. Find out more about setup in <a>the docs</a>."
+                    defaults="Use this URL in your MCP client. See <a>the setup guide</a> for more details."
                     components={{
                       a: (
                         <Text
@@ -106,6 +106,7 @@ function Features() {
         <Switch
           id={TeamPreference.MCP}
           name={TeamPreference.MCP}
+          aria-label={t("MCP server")}
           checked={team.getPreference(TeamPreference.MCP)}
           onChange={handleMCPChange}
         />
@@ -114,12 +115,13 @@ function Features() {
       {team.getPreference(TeamPreference.MCP) && (
         <SettingRow
           name="guidanceMCP"
-          label={t("Additional guidance")}
+          label={t("Custom instructions")}
+          border={false}
           description={
             <>
               <div style={{ marginBottom: 8 }}>
                 {t(
-                  "You can use these optional instructions to tell MCP clients how to use your knowledge base."
+                  "Optional instructions that are sent to connected AI apps, for example how your workspace is organized or where to find important information."
                 )}
               </div>
               <Input
@@ -139,11 +141,12 @@ function Features() {
         />
       )}
 
+      <Heading as="h2">{t("AI answers")}</Heading>
       <SettingRow
         name="answers"
-        label={t("AI answers")}
+        label={t("Enabled")}
         description={t(
-          "Use AI to get direct answers to questions in search. This feature requires a paid license."
+          "Show AI-generated answers to questions in search, based on content in your workspace. Requires a paid license."
         )}
         border={false}
       >
@@ -153,4 +156,4 @@ function Features() {
   );
 }
 
-export default observer(Features);
+export default observer(AI);
