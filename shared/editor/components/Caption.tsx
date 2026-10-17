@@ -1,5 +1,5 @@
 import * as React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { s } from "../../styles";
 import { getDataTransferFiles } from "../../utils/files";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -116,8 +116,28 @@ const Content = styled.p<{ $width: number; $isSelected: boolean }>`
   min-width: 200px;
   max-width: 100%;
 
+  &:empty {
+    box-sizing: content-box;
+    height: 16px;
+    overflow: hidden;
+    transition:
+      height 150ms ease-out,
+      padding 150ms ease-out,
+      opacity 150ms ease-out,
+      visibility 150ms;
+  }
+
   &:empty:not(:focus) {
-    display: ${(props) => (props.$isSelected ? "block" : "none")};
+    min-height: 0;
+    ${(props) =>
+      !props.$isSelected &&
+      css`
+        height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        opacity: 0;
+        visibility: hidden;
+      `}
   }
 
   &:empty::before {
