@@ -38,6 +38,8 @@ export type Options = {
     height?: number;
     /** Alt text / caption to use when inserting image */
     alt?: string | null;
+    /** Caption to use when inserting video */
+    title?: string | null;
     /** Layout class for alignment when inserting image */
     layoutClass?: string | null;
     /** Whether to show a PDF preview embed for attachment nodes */
