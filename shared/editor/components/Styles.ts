@@ -28,6 +28,17 @@ const uploadedFadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+/** The frame of a file in the editor, which holds the progress bar of an upload. */
+const uploadFrame = ".image-wrapper, .video-wrapper, .widget, .pdf-wrapper";
+
+/** The content of a file in the editor, without its frame or hidden controls. */
+const uploadContent = [
+  `.image-wrapper > :is(a, img, .${EditorStyleHelper.imageHandle})`,
+  ".video-wrapper > video",
+  ".widget > *",
+  ".pdf-wrapper > :is(:first-child, embed)",
+].join(", ");
+
 export const pulse = (color: string) => keyframes`
   0% { box-shadow: 0 0 0 1px ${color} }
   50% { box-shadow: 0 0 0 4px ${color} }
@@ -868,12 +879,16 @@ th .image .image-wrapper img {
 }
 
 .${EditorStyleHelper.uploadPlaceholder} {
-  opacity: 0.5;
   pointer-events: none;
   user-select: none;
 
+  /* The content of the file is faded but not its frame, so that the progress bar on the frame is not faded */
+  :is(${uploadContent}) {
+    opacity: 0.5;
+  }
+
   /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
-  :is(.image-wrapper, .video-wrapper, .widget, .pdf-wrapper) {
+  :is(${uploadFrame}) {
     position: relative;
 
     &::after {
@@ -892,7 +907,7 @@ th .image .image-wrapper img {
   }
 }
 
-.${EditorStyleHelper.uploadComplete} {
+.${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {
   animation: ${uploadedFadeIn} 250ms ease-in-out;
 }
 
