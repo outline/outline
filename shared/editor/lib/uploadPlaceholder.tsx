@@ -1,9 +1,85 @@
+import type { Attrs, Node as ProsemirrorNode } from "prosemirror-model";
+import { DOMSerializer } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
+import type { EditorView, NodeView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { createRoot } from "react-dom/client";
 import FileExtension from "../components/FileExtension";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { mapDecorations } from "./multiplayer";
+
+/** Describes a placeholder to display while a file uploads. */
+interface UploadPlaceholderAdd {
+  /** Unique identifier of the upload. */
+  id: string;
+  /** Document position to display the placeholder at. */
+  pos: number;
+  /** The file that is uploading. */
+  file?: File;
+  /** URL to preview the upload with, a local URL for the file is used if not provided. */
+  src?: string;
+  /** Whether the upload will become an image node. */
+  isImage?: boolean;
+  /** Whether the upload will become a video node. */
+  isVideo?: boolean;
+  /** Attributes of the node that the upload will become. */
+  attrs?: Attrs;
+  /** Whether the upload replaces the node at the position. */
+  replaceExisting?: boolean;
+}
+
+/** Meta attached to a transaction to add or remove placeholders. */
+interface UploadPlaceholderAction {
+  add?: UploadPlaceholderAdd;
+  remove?: { id: string };
+}
+
+/** Node views rendered for placeholder widgets, keyed by their DOM element. */
+const placeholderViews = new WeakMap<globalThis.Node, NodeView>();
+
+/**
+ * Render a node in the same way as the editor renders it in the document, with
+ * the node view when there is one, and mark it as uploading.
+ *
+ * @param view The editor view.
+ * @param node The node to render.
+ * @returns the DOM element to display.
+ */
+function renderUploadingNode(
+  view: EditorView,
+  node: ProsemirrorNode
+): HTMLElement {
+  const createNodeView = view.someProp(
+    "nodeViews",
+    (nodeViews) => nodeViews[node.type.name]
+  );
+  const nodeView = createNodeView?.(
+    node,
+    view,
+    () => undefined,
+    [],
+    DecorationSet.empty
+  );
+  const dom =
+    nodeView?.dom ??
+    DOMSerializer.fromSchema(view.state.schema).serializeNode(node);
+
+  const element =
+    dom instanceof HTMLElement ? dom : document.createElement("div");
+  if (element !== dom) {
+    element.appendChild(dom);
+  }
+
+  element.classList.add(EditorStyleHelper.mediaUploading);
+  element.inert = true;
+  element.setAttribute("aria-busy", "true");
+
+  if (nodeView) {
+    placeholderViews.set(element, nodeView);
+  }
+  return element;
+}
 
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({
@@ -14,12 +90,20 @@ const uploadPlaceholder = new Plugin({
     apply(this: Plugin, tr, set: DecorationSet, _oldState, newState) {
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
-      const action = tr.getMeta(this);
+      const action: UploadPlaceholderAction | undefined = tr.getMeta(this);
       set = mapDecorations(set, tr, newState, !!action);
 
       if (action?.add) {
-        if (action.add.replaceExisting) {
-          const $pos = tr.doc.resolve(action.add.pos);
+        const { add } = action;
+        const { schema } = newState;
+        const mediaType = add.isImage
+          ? schema.nodes.image
+          : add.isVideo
+            ? schema.nodes.video
+            : undefined;
+
+        if (add.replaceExisting) {
+          const $pos = tr.doc.resolve(add.pos);
           const nodeAfter = $pos.nodeAfter;
           if (!nodeAfter) {
             return set;
@@ -32,75 +116,69 @@ const uploadPlaceholder = new Plugin({
               class: `${nodeAfter.type.name}-replacement-uploading`,
             },
             {
-              id: action.add.id,
+              id: add.id,
             }
           );
           set = set.add(tr.doc, [deco]);
-        } else if (action.add.isImage) {
-          const element = document.createElement("div");
-          element.className = "image placeholder";
-
-          const img = document.createElement("img");
-          img.src =
-            action.add.src ||
-            (action.add.file ? URL.createObjectURL(action.add.file) : "");
-          img.style.width = `${action.add.dimensions?.width}px`;
-
-          element.appendChild(img);
-
-          const deco = Decoration.widget(action.add.pos, element, {
-            id: action.add.id,
+        } else if (mediaType) {
+          // Render the node that the upload will become, so that the switch to
+          // the uploaded node does not change the display.
+          const objectUrl =
+            !add.src && add.file ? URL.createObjectURL(add.file) : undefined;
+          const node = mediaType.create({
+            ...add.attrs,
+            src: add.src ?? objectUrl,
           });
+
+          const deco = Decoration.widget(
+            add.pos,
+            (view) => renderUploadingNode(view, node),
+            {
+              id: add.id,
+              key: `upload-${add.id}`,
+              objectUrl,
+              destroy: (dom: globalThis.Node) => {
+                placeholderViews.get(dom)?.destroy?.();
+                placeholderViews.delete(dom);
+              },
+            }
+          );
           set = set.add(tr.doc, [deco]);
-        } else if (action.add.isVideo) {
-          const element = document.createElement("div");
-          element.className = "video placeholder";
-
-          const video = document.createElement("video");
-          video.src = URL.createObjectURL(action.add.file);
-          video.autoplay = false;
-          video.controls = false;
-          video.width = action.add.dimensions?.width;
-          video.height = action.add.dimensions?.height;
-
-          element.appendChild(video);
-
-          const deco = Decoration.widget(action.add.pos, element, {
-            id: action.add.id,
-          });
-          set = set.add(tr.doc, [deco]);
-        } else {
+        } else if (add.file) {
           const element = document.createElement("div");
           element.className = "file placeholder";
 
           const icon = document.createElement("div");
           const title = document.createElement("div");
           title.className = "title";
-          title.innerText = action.add.file.name;
+          title.innerText = add.file.name;
 
           const subtitle = document.createElement("div");
           subtitle.className = "subtitle";
           subtitle.innerText = "Uploading…";
 
-          createRoot(icon).render(
-            <FileExtension title={action.add.file.name} />
-          );
+          createRoot(icon).render(<FileExtension title={add.file.name} />);
 
           element.appendChild(icon);
           element.appendChild(title);
           element.appendChild(subtitle);
 
-          const deco = Decoration.widget(action.add.pos, element, {
-            id: action.add.id,
+          const deco = Decoration.widget(add.pos, element, {
+            id: add.id,
           });
           set = set.add(tr.doc, [deco]);
         }
       }
 
       if (action?.remove) {
-        set = set.remove(
-          set.find(undefined, undefined, (spec) => spec.id === action.remove.id)
-        );
+        const { id } = action.remove;
+        const found = set.find(undefined, undefined, (spec) => spec.id === id);
+        found.forEach((deco) => {
+          if (deco.spec.objectUrl) {
+            URL.revokeObjectURL(deco.spec.objectUrl);
+          }
+        });
+        set = set.remove(found);
       }
       return set;
     },

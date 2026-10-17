@@ -14,6 +14,9 @@ export class EditorStyleHelper {
 
   static readonly imagePositionAnchor = "image-position-anchor";
 
+  /** Image or video that is displayed while it uploads */
+  static readonly mediaUploading = "media-uploading";
+
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";
 

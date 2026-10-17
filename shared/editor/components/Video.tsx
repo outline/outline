@@ -44,6 +44,9 @@ export default function Video(props: Props) {
         <StyledVideo
           src={sanitizeUrl(node.attrs.src)}
           title={node.attrs.title}
+          // Reserves the aspect ratio of the video before its metadata loads.
+          width={width || undefined}
+          height={height || undefined}
           style={style}
           controls={!dragging}
         />

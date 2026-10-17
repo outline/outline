@@ -98,10 +98,26 @@ const insertFiles = async function (
             ? (f: File) => FileHelper.getVideoDimensions(f)
             : undefined;
 
+        const dimensions = await getDimensions?.(file);
+
+        // the attributes of the node the upload becomes, without the src
+        const attrs = isImage
+          ? {
+              source: await FileHelper.getImageSourceAttr(file),
+              ...dimensions,
+              ...options.attrs,
+            }
+          : isVideo
+            ? {
+                title: file.name ?? t("Untitled"),
+                ...dimensions,
+                ...options.attrs,
+              }
+            : undefined;
+
         return {
           id: uuidv4(),
-          dimensions: await getDimensions?.(file),
-          source: await FileHelper.getImageSourceAttr(file),
+          attrs,
           isImage,
           isVideo,
           file,
@@ -122,8 +138,12 @@ const insertFiles = async function (
 
     tr.setMeta(uploadPlaceholderPlugin, {
       add: {
+        id: upload.id,
         pos,
-        ...upload,
+        file: upload.file,
+        isImage: upload.isImage,
+        isVideo: upload.isVideo,
+        attrs: upload.attrs,
         replaceExisting: options.replaceExisting,
       },
     });
@@ -160,10 +180,8 @@ const insertFiles = async function (
                   from,
                   to || from,
                   schema.nodes.image.create({
+                    ...upload.attrs,
                     src,
-                    source: upload.source,
-                    ...upload.dimensions,
-                    ...options.attrs,
                   })
                 )
                 .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
@@ -193,10 +211,8 @@ const insertFiles = async function (
                 from,
                 to || from,
                 schema.nodes.video.create({
+                  ...upload.attrs,
                   src,
-                  title: upload.file.name ?? t("Untitled"),
-                  ...upload.dimensions,
-                  ...options.attrs,
                 })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })

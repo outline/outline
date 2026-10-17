@@ -255,7 +255,7 @@ export class UploadPlugin extends Plugin {
                             src: isBase64 ? undefined : upload.originalSrc,
                             pos: currentPos,
                             isImage: true,
-                            dimensions,
+                            attrs: { ...attrs, ...dimensions },
                           },
                         })
                         .delete(currentPos, currentPos + nodeSize)

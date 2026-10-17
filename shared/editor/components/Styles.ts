@@ -852,20 +852,10 @@ th .image .image-wrapper img {
   width: min(var(--image-width), 100%);
 }
 
-.image.placeholder,
-.video.placeholder {
-  position: relative;
-  background: ${props.theme.background};
-  margin-bottom: calc(28px + 1.2em);
-
-  img,
-  video {
-    opacity: 0.5;
-  }
-
-  video {
-    border-radius: 8px;
-  }
+.${EditorStyleHelper.mediaUploading} {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
 }
 
 .file.placeholder {
