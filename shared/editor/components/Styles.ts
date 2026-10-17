@@ -871,6 +871,25 @@ th .image .image-wrapper img {
   opacity: 0.5;
   pointer-events: none;
   user-select: none;
+
+  /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
+  :is(.image-wrapper, .video-wrapper, .widget, .pdf-wrapper) {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      z-index: 1;
+      height: 3px;
+      width: calc(var(--upload-progress, 0) * 100%);
+      background: ${props.theme.accent};
+      opacity: 0;
+      transition: width 200ms ease-out;
+      animation: ${fadeIn} 200ms ease-in-out 2s forwards;
+    }
+  }
 }
 
 .${EditorStyleHelper.uploadComplete} {

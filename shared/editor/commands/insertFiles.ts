@@ -8,6 +8,7 @@ import { findBlockInsertPos } from "../queries/findBlockInsertPos";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
   getUrlAttr,
+  setUploadProgress,
 } from "../lib/uploadPlaceholder";
 
 export type Options = {
@@ -178,7 +179,10 @@ const insertFiles = async function (
     // happening in the background in parallel.
     uploadFile?.(upload.file, {
       id: upload.id,
-      onProgress: (progress) => onFileUploadProgress?.(upload.id, progress),
+      onProgress: (progress) => {
+        setUploadProgress(upload.id, progress);
+        onFileUploadProgress?.(upload.id, progress);
+      },
     })
       // then this should be able to get the full URL as well
       .then((src) => {

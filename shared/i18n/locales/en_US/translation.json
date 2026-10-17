@@ -392,7 +392,6 @@
   "Show in Explorer": "Show in Explorer",
   "Show in folder": "Show in folder",
   "Open": "Open",
-  "Uploading… {{ progress }}%": "Uploading… {{ progress }}%",
   "File type not supported. Please use PNG, JPG, GIF, or WebP.": "File type not supported. Please use PNG, JPG, GIF, or WebP.",
   "File size too large. Maximum size is {{ size }}.": "File size too large. Maximum size is {{ size }}.",
   "Click or drag to replace": "Click or drag to replace",

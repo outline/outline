@@ -39,7 +39,11 @@ export default function Video(props: Props) {
   return (
     <div contentEditable={false} ref={ref}>
       <VideoWrapper
-        className={isSelected ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected
+            ? "video-wrapper ProseMirror-selectednode"
+            : "video-wrapper"
+        }
         $dragging={!!dragging}
         style={style}
       >
