@@ -251,7 +251,9 @@ export default class Heading extends Node<HeadingOptions> {
       const decorations: Decoration[] = [];
 
       doc.descendants((node, pos) => {
-        if (node.type.name === "heading") {
+        // Chrome can hide the caret after deleting an IME composition when a
+        // non-editable widget remains in the otherwise empty heading.
+        if (node.type.name === "heading" && node.content.size > 0) {
           decorations.push(
             Decoration.widget(
               // Safari requires the widget to be placed at the end of the node rather than the beginning
