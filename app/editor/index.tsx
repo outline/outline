@@ -268,6 +268,18 @@ export class Editor extends React.PureComponent<
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
+  private observableState = observable.box<EditorState | undefined>(undefined, {
+    deep: false,
+  });
+
+  /**
+   * The current editor state. Unlike `view.state` it is observable, so an
+   * observer component that reads it during render updates on every
+   * transaction, and a component that does not read it is not rendered.
+   */
+  public get editorState(): EditorState {
+    return this.observableState.get() ?? this.view.state;
+  }
 
   /**
    * The markdown serializer for the editor schema, created on first use.
@@ -302,6 +314,9 @@ export class Editor extends React.PureComponent<
   public componentDidMount() {
     this.init();
     this.handleEditorInit();
+
+    // The widgets are created by init, render again to mount them.
+    this.forceUpdate();
     window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
@@ -324,6 +339,7 @@ export class Editor extends React.PureComponent<
     if (this.props.value && prevProps.value !== this.props.value) {
       const newState = this.createState(this.props.value);
       this.view.updateState(newState);
+      this.syncObservableState();
 
       // Positions held by the lightbox refer to the previous document.
       if (this.state.activeLightboxImage) {
@@ -339,6 +355,8 @@ export class Editor extends React.PureComponent<
       this.init();
       const newState = this.createState(docJSON);
       this.view.updateState(newState);
+      this.syncObservableState();
+      this.forceUpdate();
     } else if (!prevProps.readOnly && this.props.readOnly) {
       // pass readOnly changes through to underlying editor instance
       this.view.update({
@@ -420,6 +438,7 @@ export class Editor extends React.PureComponent<
     // Node views register their renderers as they are created, batch them so
     // that React renders them once.
     this.view = runInAction(() => this.createView());
+    this.syncObservableState();
     this.commands = this.createCommands();
     this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
   }
@@ -609,7 +628,10 @@ export class Editor extends React.PureComponent<
           this.state.applyTransaction(transaction);
 
         // Batch node view renderer changes so that React renders them once.
-        runInAction(() => this.updateState(state));
+        runInAction(() => {
+          this.updateState(state);
+          self.observableState.set(state);
+        });
 
         // If any of the transactions being dispatched resulted in the doc
         // changing then call our own change handler to let the outside world
@@ -630,10 +652,6 @@ export class Editor extends React.PureComponent<
         self.handleEditorInit();
 
         self.calculateDir();
-
-        // Because Prosemirror and React are not linked we must tell React that
-        // a render is needed whenever the Prosemirror state changes.
-        self.forceUpdate();
       },
     });
 
@@ -708,6 +726,10 @@ export class Editor extends React.PureComponent<
       trim ? ProsemirrorHelper.trim(this.view.state.doc) : this.view.state.doc
     ).toJSON();
   };
+
+  private syncObservableState() {
+    runInAction(() => this.observableState.set(this.view.state));
+  }
 
   private calculateDir = () => {
     const element = this.elementRef.current;
@@ -865,7 +887,7 @@ export class Editor extends React.PureComponent<
 
   public getLightboxImages = (): LightboxImage[] => {
     const lightboxNodes = ProsemirrorHelper.getLightboxNodes(
-      this.view.state.doc
+      this.editorState.doc
     );
 
     return map(lightboxNodes, (node) =>
@@ -1139,7 +1161,7 @@ export class Editor extends React.PureComponent<
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
-    const { isRTL } = this.state;
+    const { isRTL, activeLightboxImage } = this.state;
 
     return (
       <PortalContext.Provider value={this.wrapperRef.current}>
@@ -1174,8 +1196,6 @@ export class Editor extends React.PureComponent<
                   key={String(index)}
                   rtl={isRTL}
                   readOnly={readOnly}
-                  selection={this.view.state.selection}
-                  storedMarks={this.view.state.storedMarks}
                   isEditorFocused={this.state.isEditorFocused}
                 />
               ))}
@@ -1189,14 +1209,18 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
-          {!isNull(this.state.activeLightboxImage) && (
-            <Lightbox
-              readOnly={readOnly}
-              images={this.getLightboxImages()}
-              activeImage={this.state.activeLightboxImage}
-              onUpdate={this.updateActiveLightboxImage}
-              onClose={this.view.focus.bind(this.view)}
-            />
+          {!isNull(activeLightboxImage) && (
+            <Observer>
+              {() => (
+                <Lightbox
+                  readOnly={readOnly}
+                  images={this.getLightboxImages()}
+                  activeImage={activeLightboxImage}
+                  onUpdate={this.updateActiveLightboxImage}
+                  onClose={this.view.focus.bind(this.view)}
+                />
+              )}
+            </Observer>
           )}
         </EditorContext.Provider>
       </PortalContext.Provider>
