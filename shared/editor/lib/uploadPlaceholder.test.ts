@@ -146,6 +146,52 @@ describe("uploadPlaceholder", () => {
       expect(getDisplayUrl(state, src)).toBe(src);
     });
 
+    it("displays a video that replaces an attachment from the local file", () => {
+      const attachment = schema.nodes.attachment.create({
+        href: "https://example.com/old.zip",
+        title: "old.zip",
+      });
+      // The attachment is the only node, so the mapping of the replacement
+      // also deletes the placeholder decorations.
+      let state = createEditorState(doc([attachment]), [uploadPlaceholder]);
+      state = state.apply(
+        state.tr.setMeta(uploadPlaceholder, {
+          add: {
+            id: "upload",
+            pos: 0,
+            type: "video",
+            file: new File(["data"], "file"),
+            replaceExisting: true,
+          },
+        })
+      );
+      const [from, to] = findPlaceholder(state, "upload") ?? [0, 0];
+      const node = schema.nodes.video.create({ src });
+      state = state.apply(
+        state.tr
+          .replaceWith(from, to, node)
+          .setMeta(uploadPlaceholder, { remove: { id: "upload", node } })
+      );
+
+      expect(getDisplayUrl(state, src)).toBe("blob:local");
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+    });
+
+    it("frees the local file when the placeholder is deleted", () => {
+      let state = createEditorState(doc([p("one"), p("two")]), [
+        uploadPlaceholder,
+      ]);
+      state = state.apply(
+        state.tr.setMeta(uploadPlaceholder, {
+          add: { id: "upload", pos: 6, type: "image", file: new File([], "f") },
+        })
+      );
+      state = state.apply(state.tr.delete(5, 10));
+
+      expect(findPlaceholder(state, "upload")).toBeNull();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:local");
+    });
+
     it("displays other files from storage", () => {
       const state = uploadFile("video");
       expect(getDisplayUrl(state, "https://example.com/other.mp4")).toBe(

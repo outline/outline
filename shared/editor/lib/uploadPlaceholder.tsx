@@ -160,6 +160,18 @@ function destroyUploadingNode(dom: globalThis.Node, id: string) {
   }
 }
 
+/**
+ * Find the local URLs of the files that placeholders display.
+ *
+ * @param set The decorations of the plugin.
+ * @returns the local URLs.
+ */
+function findObjectUrls(set: DecorationSet): string[] {
+  return set
+    .find(undefined, undefined, (spec) => !!spec.objectUrl)
+    .map((deco) => deco.spec.objectUrl);
+}
+
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
   state: {
@@ -177,13 +189,17 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
       let { localSources } = value;
       // See if the transaction adds or removes any placeholders
       const action: UploadPlaceholderAction | undefined = tr.getMeta(this);
-      const removedFrom = action?.remove
+
+      // Read the placeholders before mapping, as the transaction that replaces
+      // a placeholder can also delete its decorations.
+      const removing = action?.remove
         ? set.find(
             undefined,
             undefined,
             (spec) => spec.id === action.remove?.id
-          )[0]?.from
-        : undefined;
+          )
+        : [];
+      const objectUrlsBefore = findObjectUrls(set);
       set = mapDecorations(set, tr, newState, !!action);
 
       const now = Date.now();
@@ -250,27 +266,23 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
       if (action?.remove) {
         const { id, node } = action.remove;
         uploadProgress.delete(id);
-        const found = set.find(undefined, undefined, (spec) => spec.id === id);
+        set = set.remove(
+          set.find(undefined, undefined, (spec) => spec.id === id)
+        );
 
         // An uploaded node continues to display the local file, so that the
         // file does not load again from storage.
         const url: string | undefined = node?.attrs[getUrlAttr(node.type)];
         const localSrc =
           node && url && displaysFile(node)
-            ? found.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
+            ? removing.find((deco) => deco.spec.objectUrl)?.spec.objectUrl
             : undefined;
         if (url && localSrc) {
           localSources = new Map(localSources).set(url, localSrc);
         }
 
-        found.forEach((deco) => {
-          if (deco.spec.objectUrl && deco.spec.objectUrl !== localSrc) {
-            URL.revokeObjectURL(deco.spec.objectUrl);
-          }
-        });
-        set = set.remove(found);
-
         // Fade in the uploaded node from the opacity of its placeholder.
+        const removedFrom = removing[0]?.from;
         if (node && removedFrom !== undefined) {
           const start = tr.mapping.map(removedFrom, -1);
           const end = Math.min(start + node.nodeSize + 1, tr.doc.content.size);
@@ -288,6 +300,17 @@ const uploadPlaceholder: Plugin<UploadPlaceholderState> = new Plugin({
             return child !== node;
           });
         }
+      }
+      // Free the local files of placeholders that are no longer displayed,
+      // unless an uploaded node continues to display them.
+      if (objectUrlsBefore.length) {
+        const remaining = new Set(findObjectUrls(set));
+        const kept = new Set(localSources.values());
+        objectUrlsBefore.forEach((objectUrl) => {
+          if (!remaining.has(objectUrl) && !kept.has(objectUrl)) {
+            URL.revokeObjectURL(objectUrl);
+          }
+        });
       }
       return { decorations: set, localSources };
     },
