@@ -106,6 +106,7 @@ function AI() {
         <Switch
           id={TeamPreference.MCP}
           name={TeamPreference.MCP}
+          aria-label={t("MCP server")}
           checked={team.getPreference(TeamPreference.MCP)}
           onChange={handleMCPChange}
         />

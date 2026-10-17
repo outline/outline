@@ -219,7 +219,7 @@ function Preferences() {
           options={themeOptions}
           value={ui.theme}
           onChange={handleThemeChange}
-          label={t("Appearance")}
+          label={t("Theme")}
           labelHidden
         />
       </SettingRow>
