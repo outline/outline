@@ -1,5 +1,8 @@
 import type { EmbedDescriptor } from "@shared/editor/embeds";
-import { getMatchingEmbed } from "@shared/editor/lib/embeds";
+import {
+  getMatchingEmbed,
+  getMatchingEmbedOnInput,
+} from "@shared/editor/lib/embeds";
 import embeds from "@shared/editor/embeds";
 import fetch, { chromeUserAgent } from "./fetch";
 import { Second } from "@shared/utils/time";
@@ -188,15 +191,7 @@ export async function checkEmbeddability(
  * @returns True if the URL matches an embed pattern with `matchOnInput` enabled.
  */
 function isEmbedUrl(url: string, embedDescriptors: EmbedDescriptor[]): boolean {
-  for (const embed of embedDescriptors) {
-    if (!embed.matchOnInput) {
-      continue;
-    }
-    if (embed.matcher(url)) {
-      return true;
-    }
-  }
-  return false;
+  return !!getMatchingEmbedOnInput(embedDescriptors, url);
 }
 
 /**
