@@ -134,13 +134,14 @@ export default class Attachment extends Node {
   component = (props: ComponentProps) => {
     const { embedsDisabled } = this.editor.props;
     const { isSelected, isEditable, node } = props;
-    const context = node.attrs.href ? (
-      bytesToHumanReadable(node.attrs.size || "0")
-    ) : (
-      <>
-        <Trans>Uploading</Trans>…
-      </>
-    );
+    const context =
+      node.attrs.href || node.attrs.size ? (
+        bytesToHumanReadable(node.attrs.size || "0")
+      ) : (
+        <>
+          <Trans>Uploading</Trans>…
+        </>
+      );
 
     return node.attrs.preview && !embedsDisabled && isPDFAttachment(node) ? (
       <PdfViewer
