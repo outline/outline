@@ -1,4 +1,4 @@
-import type { WhereOptions } from "sequelize";
+import type { ModelStatic, WhereOptions } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import type { Team } from "@server/models";
@@ -213,20 +213,13 @@ async function destroyTeamData(team: Team) {
   });
 }
 
-interface BatchDestroyable {
-  findAllInBatches: typeof Model.findAllInBatches;
-  destroy(options: {
-    where: { id: string[] };
-    force: boolean;
-  }): Promise<number>;
-}
-
 /**
  * Permanently deletes every row of a model matching the where clause, in
  * batches of ids so that each statement is short and locks few rows.
  */
 async function destroyInBatches(
-  model: BatchDestroyable,
+  model: ModelStatic<Model & { id: string }> &
+    Pick<typeof Model, "findAllInBatches">,
   where: WhereOptions
 ): Promise<void> {
   await model.findAllInBatches<Model & { id: string }>(

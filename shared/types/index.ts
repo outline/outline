@@ -12,3 +12,4 @@ export * from "./prosemirror";
 export * from "./team";
 export * from "./unfurl";
 export * from "./user";
+export * from "./utility";

@@ -336,7 +336,6 @@ export type Permission = {
   divider?: boolean;
 };
 
-// TODO: Can we make this type driven by the @Field decorator
 export type Properties<C> = {
   [
     Property in keyof C as C[Property] extends JSONValue ? Property : never

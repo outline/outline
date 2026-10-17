@@ -16,7 +16,6 @@ export default function init() {
         continue;
       }
 
-      // @ts-expect-error We won't instantiate an abstract class
       const taskInstance = new TaskClass() as CronTask;
 
       if (taskInstance.cron.interval === schedule) {

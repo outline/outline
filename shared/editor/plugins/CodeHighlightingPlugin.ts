@@ -209,8 +209,7 @@ export function CodeHighlighting({
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
 
-        // @ts-expect-error accessing private field.
-        const isPaste = transaction.meta?.paste;
+        const isPaste = transaction.getMeta("paste");
         const langLoaded = transaction.getMeta("codeHighlighting")?.langLoaded;
 
         if (
