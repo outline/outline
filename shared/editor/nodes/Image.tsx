@@ -592,6 +592,10 @@ export default class Image extends SimpleImage {
     };
   }
 
+  protected isBlockLike(node: ProsemirrorNode): boolean {
+    return super.isBlockLike(node) && !isInlineImageIcon(node.attrs);
+  }
+
   /**
    * Users that can comment but not edit cannot write the comment mark into
    * the document, so record a pending anchor instead and let the server

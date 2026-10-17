@@ -14,6 +14,7 @@ import { sanitizeImageSrc } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
 import type { Options } from "../commands/insertFiles";
 import insertFiles from "../commands/insertFiles";
+import { selectBlockLikeVertically } from "../commands/selectBlockLikeVertically";
 import { default as ImageComponent } from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
@@ -110,7 +111,10 @@ export default class SimpleImage extends Node {
   );
 
   keys(): Record<string, Command> {
+    const isBlockLike = (node: ProsemirrorNode) => this.isBlockLike(node);
     return {
+      ArrowUp: selectBlockLikeVertically(-1, isBlockLike),
+      ArrowDown: selectBlockLikeVertically(1, isBlockLike),
       Enter: (state, dispatch) => {
         const { selection } = state;
         if (
@@ -257,5 +261,15 @@ export default class SimpleImage extends Node {
 
   get plugins() {
     return [uploadPlaceholderPlugin, new UploadPlugin(this.options)];
+  }
+
+  /**
+   * Whether the given node is an image that displays as a block.
+   *
+   * @param node the node to check.
+   * @returns true if arrow keys should treat the node as a block.
+   */
+  protected isBlockLike(node: ProsemirrorNode): boolean {
+    return node.type.name === this.name;
   }
 }
