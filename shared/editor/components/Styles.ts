@@ -3,6 +3,7 @@ import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
 import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
+import { light } from "../../styles/theme";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -61,6 +62,28 @@ const codeMarkCursor = () => css`
     position: relative;
     z-index: 1;
   }
+`;
+
+/**
+ * Builds the colors and fonts of rendered diagrams from a theme.
+ *
+ * @param theme the theme to use.
+ * @returns the CSS declarations for a diagram container.
+ */
+const diagramTheme = (theme: DefaultTheme) => css`
+  background: ${theme.codeBackground};
+  border: 1px solid ${theme.codeBorder};
+  --pele-bg: ${theme.codeBackground};
+  --pele-fg: ${theme.text};
+  --pele-muted: ${theme.textSecondary};
+  --pele-line: ${theme.textSecondary};
+  --pele-surface: ${theme.background};
+  --pele-surface-alt: ${theme.backgroundSecondary};
+  --pele-border: ${theme.inputBorder};
+  --pele-accent: ${theme.accent};
+  --pele-critical: ${theme.danger};
+  --pele-font: ${theme.fontFamily};
+  --pele-font-mono: ${theme.fontFamilyMono};
 `;
 
 const mathStyle = (props: Props) => css`
@@ -2010,20 +2033,19 @@ mark {
 }
 
 .${EditorStyleHelper.mermaidDiagram} {
+  ${diagramTheme(props.theme)}
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0.75em 0;
   min-height: 1.6em;
-  background: ${props.theme.codeBackground};
   border-radius: ${EditorStyleHelper.blockRadius};
-  border: 1px solid ${props.theme.codeBorder};
   padding: 8px;
   user-select: none;
   cursor: default;
 
-  * {
-    font-family: ${props.theme.fontFamily};
+  @media print {
+    ${diagramTheme(light)}
   }
 
   &.empty {

@@ -315,7 +315,6 @@ export class Editor extends React.PureComponent<
 
     // The widgets are created by init, render again to mount them.
     this.forceUpdate();
-    window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
       void this.scrollToAnchor(this.props.scrollTo);
@@ -405,7 +404,6 @@ export class Editor extends React.PureComponent<
   }
 
   public componentWillUnmount(): void {
-    window.removeEventListener("theme-changed", this.dispatchThemeChanged);
     this.view?.destroy();
     this.mutationObserver?.disconnect();
     this.handleEditorDestroy();
@@ -1061,10 +1059,6 @@ export class Editor extends React.PureComponent<
     const { doc } = this.view.state;
 
     return textBetween(doc, 0, doc.content.size);
-  };
-
-  private dispatchThemeChanged = (event: CustomEvent) => {
-    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
   };
 
   private handleChange = (event?: { remote: boolean }) => {

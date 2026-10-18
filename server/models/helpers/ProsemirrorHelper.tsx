@@ -60,7 +60,7 @@ export type HTMLOptions = {
   title?: string;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
-  /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
+  /** Whether to include the Mermaid diagram renderer in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
   /** Whether to include head tags in the generated HTML (defaults to true) */
   includeHead?: boolean;
@@ -815,13 +815,13 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           }
         }
 
-        // Inject mermaidjs scripts if the document contains mermaid diagrams (supports both "mermaid" and "mermaidjs")
+        // Inject the diagram renderer if the document contains mermaid diagrams (supports both "mermaid" and "mermaidjs")
         if (options?.includeMermaid) {
           const mermaidElements = dom.window.document.querySelectorAll(
             `[data-language="mermaid"] pre code, [data-language="mermaidjs"] pre code`
           );
 
-          // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
+          // Unwrap <pre> tags so the diagram source is the text of the element
           for (const el of mermaidElements) {
             const parent = el.parentNode as HTMLElement;
             if (parent) {
@@ -840,16 +840,16 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             element.setAttribute("nonce", options.cspNonce);
           }
 
-          // Inject Mermaid script
+          // Inject the diagram renderer script
           if (mermaidElements.length) {
             element.innerHTML = `
-          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-          import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
-          mermaid.registerLayoutLoaders(elkLayouts);
-          mermaid.initialize({
-            startOnLoad: true,
-            fontFamily: "inherit",
-          });
+          import { renderAsync } from 'https://cdn.jsdelivr.net/npm/pele@1/dist/esm/lazy.js';
+          const diagrams = document.querySelectorAll(".mermaid");
+          const fontFamily = getComputedStyle(document.body).fontFamily;
+          await Promise.allSettled(Array.from(diagrams, async (diagram) => {
+            const { svg } = await renderAsync(diagram.textContent, { fontFamily });
+            diagram.innerHTML = svg;
+          }));
           window.status = "ready";
         `;
           } else {

@@ -57,7 +57,7 @@ type HTMLOptions = {
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
-  /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
+  /** Whether to include the Mermaid diagram renderer in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
   /** Whether to include the doctype,head, etc in the generated HTML (defaults to false) */
   includeHead?: boolean;

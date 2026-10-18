@@ -34,10 +34,11 @@
       "@shared/*": ["./shared/*"],
       "~/*": ["./app/*"],
       "plugins/*": ["./plugins/*"],
-      // Vite 8 and its plugins ship types only via their exports map, which
+      // These packages ship types only via their exports map, which
       // resolvePackageJsonExports disables; point tsc at their declaration entries.
       "vite": ["./node_modules/vite/dist/node/index.d.ts"],
-      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"]
+      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"],
+      "pele/lazy": ["./node_modules/pele/dist/lazy.d.ts"]
     }
   },
   "exclude": ["node_modules", "build", "server/migrations"]
