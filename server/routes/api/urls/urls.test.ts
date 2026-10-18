@@ -2,6 +2,7 @@
 import type { Mock } from "vitest";
 import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
@@ -558,7 +559,7 @@ Install instructions here.`
     expect(res.status).toEqual(204);
   });
 
-  it("should cache a permanent external url error for an hour", async () => {
+  it("should cache a permanent external url error for a day", async () => {
     (Iframely.requestResource as Mock).mockResolvedValue({
       status: 403,
       error: "Iframely could not fetch the given URL.",
@@ -573,7 +574,7 @@ Install instructions here.`
     const ttl = await Redis.defaultClient.ttl(
       RedisPrefixHelper.getUnfurlKey(user.teamId, url)
     );
-    expect(ttl).toBeGreaterThan(60);
+    expect(ttl).toBeGreaterThan(Hour.seconds);
   });
 
   it("should cache a transient external url error for a minute", async () => {

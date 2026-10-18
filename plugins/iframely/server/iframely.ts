@@ -6,7 +6,7 @@ import type { UnfurlError, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 import { cdnPath } from "@shared/utils/urls";
-import { Hour } from "@shared/utils/time";
+import { Day } from "@shared/utils/time";
 
 class Iframely {
   public static defaultUrl = "https://iframe.ly";
@@ -56,7 +56,7 @@ class Iframely {
         cacheExpiry: Iframely.isPermanentError(
           "status" in data ? data.status : undefined
         )
-          ? Hour.seconds
+          ? Day.seconds
           : undefined,
       } satisfies UnfurlError;
     }
