@@ -74,41 +74,6 @@ export function getRowIndex(state: EditorState): number | undefined {
 }
 
 /**
- * Get the actual row index in the table map for a given visual row index
- * when merged cells are present.
- *
- * @param visualRowIndex The visual row index (0-based)
- * @param state The editor state
- * @returns The actual row index in the table map, or -1 if not found
- */
-export function getRowIndexInMap(
-  visualRowIndex: number,
-  state: EditorState
-): number {
-  if (!isInTable(state)) {
-    return -1;
-  }
-  const rect = selectedRect(state);
-  const cells = getCellsInColumn(0)(state);
-
-  if (visualRowIndex >= 0 && visualRowIndex < cells.length) {
-    const cellPos = cells[visualRowIndex] - rect.tableStart;
-
-    // Find the row index in the table map for this cell position
-    for (let row = 0; row < rect.map.height; row++) {
-      const rowStart = row * rect.map.width;
-      for (let col = 0; col < rect.map.width; col++) {
-        if (rect.map.map[rowStart + col] === cellPos) {
-          return row;
-        }
-      }
-    }
-  }
-
-  return -1;
-}
-
-/**
  * Get the actual row positions in the table map, accounting for merged cells.
  *
  * Iterates through each visual row and returns the position of the first unique cell in that row.
@@ -140,37 +105,6 @@ export function getRowsInTable(state: EditorState): number[] {
   }
 
   return rows;
-}
-
-/**
- * Get the actual column positions in the table map, accounting for merged cells.
- *
- * @param state The editor state
- * @returns Array of cell positions representing the first unique cell in each column
- */
-export function getColumnsInTable(state: EditorState): number[] {
-  if (!isInTable(state)) {
-    return [];
-  }
-
-  const rect = selectedRect(state);
-  const columns: number[] = [];
-  const seenCells = new Set<number>();
-
-  for (let col = 0; col < rect.map.width; col++) {
-    // Find the topmost cell in this column
-    for (let row = 0; row < rect.map.height; row++) {
-      const cellPos =
-        rect.tableStart + rect.map.map[row * rect.map.width + col];
-      if (!seenCells.has(cellPos)) {
-        columns.push(cellPos);
-        seenCells.add(cellPos);
-        break; // Only add the first unique cell per column
-      }
-    }
-  }
-
-  return columns;
 }
 
 export function getCellsInColumn(index: number) {
