@@ -624,7 +624,7 @@ router.post(
         {
           model: Document.scope([
             "withDrafts",
-            "withoutState",
+            "withoutStateOrText",
             { method: ["withMembership", userId] },
           ]),
           required: true,

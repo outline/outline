@@ -793,6 +793,43 @@ describe("#findByPk", () => {
   });
 });
 
+describe("#withMembershipScope", () => {
+  it("should not load text for documents with content", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "Hello world",
+    });
+
+    const [loaded] = await Document.withMembershipScope(user.id).findAll({
+      where: { id: document.id },
+    });
+
+    expect(loaded.content).toBeTruthy();
+    expect(loaded.text).toBeNull();
+  });
+
+  it("should load text for documents without content or state", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "Hello world",
+    });
+    await sequelize.query(
+      `UPDATE documents SET content = NULL, state = NULL WHERE id = :id`,
+      { replacements: { id: document.id } }
+    );
+
+    const [loaded] = await Document.withMembershipScope(user.id).findAll({
+      where: { id: document.id },
+    });
+
+    expect(loaded.text).toEqual("Hello world");
+  });
+});
+
 describe("findByIds", () => {
   test("should return documents by ids", async () => {
     const document1 = await buildDocument();

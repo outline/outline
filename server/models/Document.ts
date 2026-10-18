@@ -97,6 +97,15 @@ const stateIfContentEmpty: ProjectionAlias = [
   "state",
 ];
 
+// The markdown text column is only needed to deserialize documents that have
+// neither content nor state.
+const textIfContentAndStateEmpty: ProjectionAlias = [
+  Sequelize.literal(
+    `CASE WHEN document.content IS NULL AND document.state IS NULL THEN document.text ELSE NULL END`
+  ),
+  "text",
+];
+
 type AdditionalFindOptions = {
   /** The user ID to load associated permissions for. */
   userId?: string;
@@ -164,6 +173,12 @@ const publishedWhere: WhereOptions<Document> = {
     attributes: {
       exclude: ["state"],
       include: [stateIfContentEmpty],
+    },
+  },
+  withoutStateOrText: {
+    attributes: {
+      exclude: ["state", "text"],
+      include: [stateIfContentEmpty, textIfContentAndStateEmpty],
     },
   },
   withoutContent: {
@@ -890,7 +905,7 @@ class Document extends ArchivableModel<
   ) {
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
-      "withoutState",
+      "withoutStateOrText",
       {
         method: ["withViews", userId],
       },
