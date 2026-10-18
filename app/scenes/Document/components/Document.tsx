@@ -24,7 +24,6 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
-import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import useEventListener from "~/hooks/useEventListener";
@@ -395,9 +394,7 @@ function DocumentScene({
         }}
         handler={onPublish}
       />
-      <MeasuredContainer
-        as={Background}
-        name="container"
+      <Background
         column
         auto
         onDragOver={handleDragOver}
@@ -447,9 +444,7 @@ function DocumentScene({
                 </EditorContainer>
               }
             >
-              <MeasuredContainer
-                name="document"
-                as={EditorContainer}
+              <EditorContainer
                 docFullWidth={document.fullWidth}
                 showContents={showContents}
                 tocPosition={tocPos}
@@ -500,7 +495,7 @@ function DocumentScene({
                     </Editor>
                   </>
                 )}
-              </MeasuredContainer>
+              </EditorContainer>
               {showContents && (
                 <ContentsContainer
                   docFullWidth={document.fullWidth}
@@ -513,7 +508,7 @@ function DocumentScene({
           </Main>
           {children}
         </Container>
-      </MeasuredContainer>
+      </Background>
     </ErrorBoundary>
   );
 }
@@ -622,6 +617,10 @@ const EditorContainer = styled.div<EditorContainerProps>`
 const Background = styled(Container)`
   position: relative;
   background: ${s("background")};
+
+  // A container unit, unlike a measured value, does not restyle the document on resize.
+  container-type: inline-size;
+  --container-width: 100cqi;
 `;
 
 const ReferencesWrapper = styled.div`
