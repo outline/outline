@@ -157,7 +157,7 @@ class MermaidRenderer {
     this.renderedText = text;
 
     if (text.trim().length === 0) {
-      element.innerText = "Empty diagram";
+      element.innerText = t("Empty diagram");
       element.classList.remove("parse-error");
       element.classList.add("empty");
       return;
@@ -178,6 +178,7 @@ class MermaidRenderer {
       ]);
       const { theme } = this.editor.props;
       const { svg } = await renderAsync(text, {
+        // Pele measures labels with these fonts, the CSS variables only draw them.
         fontFamily: theme.fontFamily,
         fontFamilyMono: theme.fontFamilyMono,
         // Stable across renders, so cached markup stays valid.
