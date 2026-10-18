@@ -34,6 +34,19 @@ const noopSpan = {
 
 let tracer: Tracer;
 
+// The default dd-trace query string obfuscation, extended to redact the OAuth
+// authorization code that providers send to the auth callback routes.
+const queryStringObfuscation = [
+  String.raw`(?:p(?:ass)?w(?:or)?d|pass(?:_?phrase)?|secret|(?:api_?|private_?|public_?|access_?|secret_?)key(?:_?id)?|token|consumer_?(?:id|key|secret)|sign(?:ed|ature)?|auth(?:entication|orization)?)(?:(?:\s|%20)*(?:=|%3D)[^&]+|(?:"|%22)(?:\s|%20)*(?::|%3A)(?:\s|%20)*(?:"|%22)(?:%2[^2]|%[^2]|[^"%])+(?:"|%22))`,
+  String.raw`bearer(?:\s|%20)+[a-z0-9\._\-]+`,
+  String.raw`token(?::|%3A)[a-z0-9]{13}`,
+  String.raw`gh[opsu]_[0-9a-zA-Z]{36}`,
+  String.raw`ey[I-L](?:[\w=-]|%3D)+\.ey[I-L](?:[\w=-]|%3D)+(?:\.(?:[\w.+\/=-]|%3D|%2F|%2B)+)?`,
+  String.raw`[\-]{5}BEGIN(?:[a-z\s]|%20)+PRIVATE(?:\s|%20)KEY[\-]{5}[^\-]+[\-]{5}END(?:[a-z\s]|%20)+PRIVATE(?:\s|%20)KEY`,
+  String.raw`ssh-rsa(?:\s|%20)*(?:[a-z0-9\/\.+]|%2F|%5C|%2B){100,}`,
+  String.raw`(?<=^|&)code=[^&]+`,
+].join("|");
+
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer. This
 // must happen before any instrumented module is imported.
@@ -53,7 +66,8 @@ if (env.DD_API_KEY && cluster.isWorker) {
 
   // Disable per-middleware spans so that non-reportable errors are not captured
   // This is also generally excessive noise
-  tracer.use("koa", { middleware: false });
+  tracer.use("koa", { middleware: false, queryStringObfuscation });
+  tracer.use("http", { server: { queryStringObfuscation } });
 } else {
   tracer = {
     scope: () => ({
