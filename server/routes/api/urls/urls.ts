@@ -31,7 +31,7 @@ import {
 import { getTeamFromContext } from "@server/utils/passport";
 import * as T from "./schema";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { Day } from "@shared/utils/time";
+import { Day, Minute } from "@shared/utils/time";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -214,7 +214,14 @@ router.post(
           })(() => plugin.value.unfurl(url, actor))();
           if (unfurl) {
             if ("error" in unfurl) {
-              return { data: { error: true as const }, expiry: 60 };
+              return {
+                data: { error: true as const },
+                expiry:
+                  "cacheExpiry" in unfurl &&
+                  typeof unfurl.cacheExpiry === "number"
+                    ? unfurl.cacheExpiry
+                    : Minute.seconds,
+              };
             }
             return {
               data: unfurl as Unfurl,

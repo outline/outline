@@ -2,6 +2,7 @@
 import type { Mock } from "vitest";
 import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
@@ -13,7 +14,9 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
+import Redis from "@server/storage/redis";
 import { getTestServer } from "@server/test/support";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Iframely from "plugins/iframely/server/iframely";
 
 const resolveCname = vi.hoisted(
@@ -554,6 +557,43 @@ Install instructions here.`
     });
 
     expect(res.status).toEqual(204);
+  });
+
+  it("should cache a permanent external url error for a day", async () => {
+    (Iframely.requestResource as Mock).mockResolvedValue({
+      status: 403,
+      error: "Iframely could not fetch the given URL.",
+    });
+    const url = `https://${randomString(8)}.example.com`;
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: { url },
+    });
+
+    expect(res.status).toEqual(204);
+    const ttl = await Redis.defaultClient.ttl(
+      RedisPrefixHelper.getUnfurlKey(user.teamId, url)
+    );
+    expect(ttl).toBeGreaterThan(Hour.seconds);
+  });
+
+  it("should cache a transient external url error for a minute", async () => {
+    (Iframely.requestResource as Mock).mockResolvedValue({
+      status: 418,
+      error: "Iframely timed out fetching the given URL.",
+    });
+    const url = `https://${randomString(8)}.example.com`;
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: { url },
+    });
+
+    expect(res.status).toEqual(204);
+    const ttl = await Redis.defaultClient.ttl(
+      RedisPrefixHelper.getUnfurlKey(user.teamId, url)
+    );
+    expect(ttl).toBeGreaterThan(0);
+    expect(ttl).toBeLessThanOrEqual(60);
   });
 });
 
