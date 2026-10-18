@@ -13,7 +13,6 @@ import type Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
-import { MeasuredContainer } from "~/components/MeasuredContainer";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -90,7 +89,7 @@ function Overview({ collection, readOnly }: Props) {
       {collections.isSaving && <LoadingIndicator />}
       {(can.update || readOnly) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-          <MeasuredContainer name="document">
+          <div>
             <Editor
               defaultValue={collection.data}
               onChange={handleSave}
@@ -104,7 +103,7 @@ function Overview({ collection, readOnly }: Props) {
               editorStyle={editorStyle}
             />
             <div ref={childRef} />
-          </MeasuredContainer>
+          </div>
         </Suspense>
       )}
     </>
