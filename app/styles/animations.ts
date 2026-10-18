@@ -10,12 +10,6 @@ export const fadeOut = keyframes`
   to { opacity: 0; }
 `;
 
-export const fadeOutCursor = keyframes`
-  0% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
-`;
-
 export const fadeAndScaleIn = keyframes`
   from {
     opacity: 0;
@@ -73,18 +67,6 @@ export const fadeOutAndSlideRight = keyframes`
   to {
     opacity: 0;
     transform: translateX(10px);
-  }
-`;
-
-export const mobileContextMenu = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(.98) translateY(10vh);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0px);
   }
 `;
 
@@ -159,12 +141,6 @@ export const pulsate = keyframes`
 export const pulse = keyframes`
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-`;
-
-export const bigPulse = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
   100% { transform: scale(1); }
 `;
 
