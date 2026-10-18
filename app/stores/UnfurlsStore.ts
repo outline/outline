@@ -44,8 +44,33 @@ class UnfurlsStore extends Store<Unfurl<any>> {
       return unfurl;
     }
 
-    return this.unfurl<UnfurlType>({ url, documentId });
+    const emptyAt = this.emptyFetchedAt.get(url);
+    if (emptyAt && emptyAt > subMinutes(new Date(), 5).getTime()) {
+      return;
+    }
+
+    const existing = this.inflight.get(url);
+    if (existing) {
+      return existing as Promise<Unfurl<UnfurlType> | undefined>;
+    }
+
+    const promise = this.unfurl<UnfurlType>({ url, documentId });
+    this.inflight.set(url, promise);
+    try {
+      return await promise;
+    } finally {
+      this.inflight.delete(url);
+    }
   };
+
+  /** Time that a url last returned no unfurl data, keyed by url. */
+  private emptyFetchedAt = new Map<string, number>();
+
+  /** Unfurl requests that are in progress, keyed by url. */
+  private inflight = new Map<
+    string,
+    Promise<Unfurl<UnfurlResourceType> | undefined>
+  >();
 
   private refetch = <UnfurlType extends UnfurlResourceType>({
     unfurl,
@@ -79,8 +104,11 @@ class UnfurlsStore extends Store<Unfurl<any>> {
 
       // unfurls can succeed with no data.
       if (!data) {
+        this.emptyFetchedAt.set(url, Date.now());
         return;
       }
+
+      this.emptyFetchedAt.delete(url);
 
       return this.add({
         id: url,
