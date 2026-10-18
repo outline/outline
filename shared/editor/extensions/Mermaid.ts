@@ -1,6 +1,7 @@
 import { last, sortBy } from "es-toolkit/compat";
 import { t } from "i18next";
-import type { IconResolver } from "pele";
+import type { DiagramType, IconResolver, RenderOptions } from "pele";
+import type * as PeleModule from "pele/lazy";
 import { v4 as uuidv4 } from "uuid";
 import type {
   IconDefinition,
@@ -41,7 +42,16 @@ interface FontAwesomeIcons {
   brands: Map<string, IconDefinition>;
 }
 
-let fontAwesomeIcons: Promise<FontAwesomeIcons> | undefined;
+/** The loaded Font Awesome icons, set once the packs have loaded. */
+let fontAwesomeIcons: FontAwesomeIcons | undefined;
+
+let fontAwesomeLoading: Promise<void> | undefined;
+
+/** The loaded Pele module, kept so that later diagrams render synchronously. */
+let pele: typeof PeleModule | undefined;
+
+/** Renders in progress, so that editors showing the same diagram share one result. */
+const pending = new Map<string, Promise<string>>();
 
 /** Rendered diagrams, so revisited documents show them without a relayout. */
 const cache = new LRUCache<string>({
@@ -69,61 +79,119 @@ function indexIconPack(pack: IconPack): Map<string, IconDefinition> {
 /**
  * Loads the Font Awesome icon packs, once.
  *
- * @returns the indexed icon packs.
+ * @returns a promise that resolves when the icons are loaded.
  */
-function loadFontAwesomeIcons(): Promise<FontAwesomeIcons> {
-  fontAwesomeIcons ??= Promise.all([
+function loadFontAwesomeIcons(): Promise<void> {
+  fontAwesomeLoading ??= Promise.all([
     import("@fortawesome/free-solid-svg-icons"),
     import("@fortawesome/free-brands-svg-icons"),
   ]).then(
-    ([{ fas }, { fab }]) => ({
-      solid: indexIconPack(fas),
-      brands: indexIconPack(fab),
-    }),
+    ([{ fas }, { fab }]) => {
+      fontAwesomeIcons = {
+        solid: indexIconPack(fas),
+        brands: indexIconPack(fab),
+      };
+    },
     (error) => {
-      fontAwesomeIcons = undefined;
+      fontAwesomeLoading = undefined;
       throw error;
     }
   );
-  return fontAwesomeIcons;
+  return fontAwesomeLoading;
 }
 
 /**
- * Returns an icon resolver for the Font Awesome icons referenced by a diagram.
+ * Resolves a Font Awesome icon name to SVG markup.
+ *
+ * @param name the icon name, such as "fa:fa-car".
+ * @returns the icon markup, or null if the icon is unknown or not loaded.
+ */
+const resolveIcon: IconResolver = (name) => {
+  const match = name.match(fontAwesomeIconRegex);
+  if (
+    !fontAwesomeIcons ||
+    !match ||
+    match.index !== 0 ||
+    match[0].length !== name.length
+  ) {
+    return null;
+  }
+
+  const [, prefix, iconName] = match;
+  const pack =
+    prefix === "fab" || prefix === "fa-brands"
+      ? fontAwesomeIcons.brands
+      : fontAwesomeIcons.solid;
+  const iconDef = pack.get(iconName);
+  if (!iconDef) {
+    return null;
+  }
+
+  // icon array layout: [width, height, ligatures, unicode, svgPathData]
+  const [width, height, , , paths] = iconDef.icon;
+  const body = (Array.isArray(paths) ? paths : [paths])
+    .map((path) => `<path d="${path}"/>`)
+    .join("");
+  return `<svg viewBox="0 0 ${width} ${height}" fill="currentColor" stroke="none">${body}</svg>`;
+};
+
+/**
+ * Renders a diagram synchronously if Pele, the diagram type and any icons it
+ * references are already loaded.
  *
  * @param text the diagram source.
- * @returns an icon resolver, or undefined if the diagram references no icons.
+ * @param options the render options.
+ * @returns the SVG markup, or undefined if something must load first.
  */
-async function getIconResolver(
-  text: string
-): Promise<IconResolver | undefined> {
-  if (!fontAwesomeIconRegex.test(text)) {
+function renderSync(text: string, options: RenderOptions): string | undefined {
+  if (!pele || (fontAwesomeIconRegex.test(text) && !fontAwesomeIcons)) {
     return undefined;
   }
 
-  const icons = await loadFontAwesomeIcons();
+  let type: DiagramType | null = null;
+  try {
+    type = pele.detectType(text);
+  } catch (_err) {
+    return undefined;
+  }
+  if (!type || !pele.registered(type)) {
+    return undefined;
+  }
+  return pele.render(text, options).svg;
+}
 
-  return (name) => {
-    const match = name.match(fontAwesomeIconRegex);
-    if (!match || match.index !== 0 || match[0].length !== name.length) {
-      return null;
-    }
+/**
+ * Loads what a diagram needs, then renders it. Concurrent calls with the same
+ * key share one render.
+ *
+ * @param key the cache key of the diagram.
+ * @param text the diagram source.
+ * @param options the render options.
+ * @returns the SVG markup.
+ */
+function renderAsync(
+  key: string,
+  text: string,
+  options: RenderOptions
+): Promise<string> {
+  const existing = pending.get(key);
+  if (existing) {
+    return existing;
+  }
 
-    const [, prefix, iconName] = match;
-    const pack =
-      prefix === "fab" || prefix === "fa-brands" ? icons.brands : icons.solid;
-    const iconDef = pack.get(iconName);
-    if (!iconDef) {
-      return null;
-    }
+  const promise = Promise.all([
+    import("pele/lazy"),
+    fontAwesomeIconRegex.test(text) ? loadFontAwesomeIcons() : undefined,
+  ]).then(async ([module]) => {
+    pele = module;
+    const { svg } = await module.renderAsync(text, options);
+    return svg;
+  });
 
-    // icon array layout: [width, height, ligatures, unicode, svgPathData]
-    const [width, height, , , paths] = iconDef.icon;
-    const body = (Array.isArray(paths) ? paths : [paths])
-      .map((path) => `<path d="${path}"/>`)
-      .join("");
-    return `<svg viewBox="0 0 ${width} ${height}" fill="currentColor" stroke="none">${body}</svg>`;
-  };
+  pending.set(key, promise);
+  const clear = () => pending.delete(key);
+  promise.then(clear, clear);
+  return promise;
 }
 
 class MermaidRenderer {
@@ -171,20 +239,20 @@ class MermaidRenderer {
       return;
     }
 
+    const { theme } = this.editor.props;
+    const options: RenderOptions = {
+      // Pele measures labels with these fonts, the CSS variables only draw them.
+      fontFamily: theme.fontFamily,
+      fontFamilyMono: theme.fontFamilyMono,
+      // Stable across renders, so cached markup stays valid.
+      idPrefix: `pele-${cacheKey}`,
+      icons: resolveIcon,
+    };
+
     try {
-      const [{ renderAsync }, icons] = await Promise.all([
-        import("pele/lazy"),
-        getIconResolver(text),
-      ]);
-      const { theme } = this.editor.props;
-      const { svg } = await renderAsync(text, {
-        // Pele measures labels with these fonts, the CSS variables only draw them.
-        fontFamily: theme.fontFamily,
-        fontFamilyMono: theme.fontFamilyMono,
-        // Stable across renders, so cached markup stays valid.
-        idPrefix: `pele-${cacheKey}`,
-        icons,
-      });
+      const svg =
+        renderSync(text, options) ??
+        (await renderAsync(cacheKey, text, options));
 
       // A newer render replaced this one while it was in progress.
       if (this.renderedText !== text) {
