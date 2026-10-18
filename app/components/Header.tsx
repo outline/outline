@@ -12,7 +12,6 @@ import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT } from "@shared/constants";
 import { depths, s } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
-import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -72,12 +71,7 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
     []
   );
 
-  useEventListener(
-    "scroll",
-    handleScroll,
-    window,
-    supportsPassiveListener ? { passive: true } : { capture: false }
-  );
+  useEventListener("scroll", handleScroll, window, { passive: true });
 
   const handleClickTitle = React.useCallback(() => {
     window.scrollTo({

@@ -2,7 +2,7 @@ import { AllowNull, Column, DataType, IsDate } from "sequelize-typescript";
 import ParanoidModel from "./ParanoidModel";
 
 class ArchivableModel<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors Model base; tightening to object resolves Attributes<M> to never inside Sequelize helpers.
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors Model base; tightening to object resolves Attributes<M> to never inside Sequelize helpers.
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends ParanoidModel<TModelAttributes, TCreationAttributes> {

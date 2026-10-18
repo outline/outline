@@ -155,7 +155,6 @@ router.post(
       }),
       Template.count({
         where,
-        // @ts-expect-error Types are incorrect for count
         replacements,
       }),
     ]);

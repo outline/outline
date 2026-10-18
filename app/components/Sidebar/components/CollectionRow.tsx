@@ -17,6 +17,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
+import { StaticLink } from "./StaticLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
 import { useSidebarNavigation } from "./SidebarNavigation";
@@ -223,8 +224,7 @@ function CollectionRow({
 
   const sidebarLinkElement = (
     <SidebarLink
-      // @ts-expect-error react-router type is wrong, string component is fine.
-      component={isEditing ? "div" : undefined}
+      component={isEditing ? StaticLink : undefined}
       depth={depth}
       to={to}
       onClick={onClick}

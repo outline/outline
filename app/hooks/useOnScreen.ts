@@ -74,7 +74,7 @@ export default function useOnScreen(
       return () => observer.disconnect();
     },
     // Re-create when option primitives change; options object identity ignored
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [root, rootMargin, threshold]
   );
 

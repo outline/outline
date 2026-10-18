@@ -277,13 +277,14 @@ class ApiClient {
         "BadGatewayError",
         err,
         {
+          path,
           url: urlToFetch,
           requestTime: Math.round(timeEnd - timeStart),
           responseText: text,
           responseHeaders: Object.fromEntries(response.headers.entries()),
         },
-        // Grouped by endpoint, as the stack trace is identical for every 502.
-        ["BadGatewayError", path]
+        // Grouped together, as the message varies by endpoint and response body.
+        ["BadGatewayError"]
       );
       throw err;
     }

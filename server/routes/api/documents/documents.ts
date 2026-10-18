@@ -918,7 +918,6 @@ router.post(
       () =>
         User.count({
           where,
-          // @ts-expect-error Types are incorrect for count
           replacements,
         }) as unknown as Promise<number>
     );

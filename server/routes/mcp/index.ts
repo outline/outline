@@ -83,6 +83,10 @@ router.post(
     // which the transport already answers with an HTTP error — warn keeps
     // visibility without reporting client mistakes to Sentry.
     transport.onerror = (error) => {
+      // Newer clients probe with their latest version and fall back on this 400.
+      if (error.message.includes("Unsupported protocol version")) {
+        return;
+      }
       Logger.warn("MCP transport error", error);
     };
 

@@ -174,6 +174,11 @@ export function MediaDimension() {
         width: finalWidth,
         height: finalHeight,
       });
+    } else if (nodeType === "video") {
+      commands["resizeVideo"]({
+        width: finalWidth,
+        height: finalHeight,
+      });
     }
   }, [
     commands,

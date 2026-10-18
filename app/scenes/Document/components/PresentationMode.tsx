@@ -425,8 +425,8 @@ const SlideContent = styled.div`
     font-size: 1.4em;
   }
 
-  .image-wrapper,
-  .image-wrapper img,
+  .${EditorStyleHelper.imageWrapper},
+  .${EditorStyleHelper.imageWrapper} img,
   .${EditorStyleHelper.mermaidDiagram} {
     pointer-events: none !important;
   }

@@ -83,7 +83,7 @@ export default function usePaginatedRequest<T = unknown>(
     }
     // `params` is intentionally omitted, callers pass an object literal which
     // changes identity on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [offset, fetchLimit, requestFn]);
 
   const next = useCallback(() => {
@@ -105,7 +105,7 @@ export default function usePaginatedRequest<T = unknown>(
     );
     // `params` and `fetchLimit` are intentionally omitted, resetting pagination
     // should only be driven by the request function changing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [requestFn]);
 
   return { data, next, loading, error, page, offset, end };

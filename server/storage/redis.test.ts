@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import Redis from "./redis";
 
 describe("RedisAdapter#zaddWithSequence", () => {
@@ -64,5 +66,56 @@ describe("RedisAdapter#zaddWithSequence", () => {
     await expect(
       Redis.defaultClient.zaddWithSequence(key, "a", 60)
     ).rejects.toThrow("Redis unavailable");
+  });
+});
+
+describe("RedisAdapter unavailable timeout", () => {
+  let client: Redis;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    vi.spyOn(Logger, "fatal").mockImplementation(() => undefined);
+    client = new Redis(env.REDIS_URL);
+  });
+
+  afterEach(() => {
+    client.disconnect();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("exits when the connection does not recover", () => {
+    client.status = "reconnecting";
+    client.emit("reconnecting");
+    vi.advanceTimersByTime(env.REDIS_UNAVAILABLE_TIMEOUT);
+
+    expect(Logger.fatal).toHaveBeenCalledWith(
+      "Redis connection unavailable",
+      expect.any(Error),
+      expect.objectContaining({ status: "reconnecting" })
+    );
+  });
+
+  it("does not exit when the connection recovers", () => {
+    client.status = "reconnecting";
+    client.emit("reconnecting");
+    vi.advanceTimersByTime(env.REDIS_UNAVAILABLE_TIMEOUT / 2);
+
+    client.status = "ready";
+    client.emit("ready");
+    vi.advanceTimersByTime(env.REDIS_UNAVAILABLE_TIMEOUT);
+
+    expect(Logger.fatal).not.toHaveBeenCalled();
+  });
+
+  it("does not exit after the connection is closed", () => {
+    client.status = "reconnecting";
+    client.emit("reconnecting");
+
+    client.status = "end";
+    client.emit("end");
+    vi.advanceTimersByTime(env.REDIS_UNAVAILABLE_TIMEOUT);
+
+    expect(Logger.fatal).not.toHaveBeenCalled();
   });
 });

@@ -198,7 +198,7 @@ export const DocumentTree = observer(function DocumentTree({
       });
     }
     // Scroll when the active row appears, not when rows above it change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [activeNodeId, isActiveRowRendered, isScrollContext]);
 
   React.useEffect(() => {

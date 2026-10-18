@@ -710,12 +710,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
-      this.name === "code_fence"
-        ? Mermaid({
-            isDark: this.editor.props.theme.isDark,
-            editor: this.editor,
-          })
-        : undefined,
+      this.name === "code_fence" ? Mermaid({ editor: this.editor }) : undefined,
       new Plugin({
         key: new PluginKey("code-fence-split"),
         props: {

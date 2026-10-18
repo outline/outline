@@ -132,7 +132,7 @@ export function useSearchIndex(query: string): UseSearchIndex {
   const results = useMemo<SearchIndexResult[]>(
     () => (query ? index.search(query) : []),
     // The index mutates in place, so `version` is what marks the memo stale.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [index, query, version]
   );
 

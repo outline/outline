@@ -149,13 +149,6 @@ export default createGlobalStyle<Props>`
     }
   }
 
-  /* Mermaid.js injects these into the root of the page. It's very annoying, but we have to deal with it or they affect layout */
-  [id^="doffscreen-mermaid"] {
-      position: absolute !important;
-      left: -9999px !important;
-      top: -9999px !important;
-  }
-
   /* Table row/column drag and drop cursor */
   &.${EditorStyleHelper.tableDragging},
   &.${EditorStyleHelper.tableDragging} *,

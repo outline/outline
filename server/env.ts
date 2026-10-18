@@ -222,6 +222,17 @@ export class Environment {
   );
 
   /**
+   * The time in milliseconds that a redis connection can stay unavailable
+   * before the process exits, so that the process manager can restart it.
+   */
+  @IsNumber()
+  @Min(1000)
+  public REDIS_UNAVAILABLE_TIMEOUT = parseInt(
+    environment.REDIS_UNAVAILABLE_TIMEOUT || "300000",
+    10
+  );
+
+  /**
    * The fully qualified, external facing domain name of the server.
    * If not set, will be derived from HEROKU_APP_NAME for Heroku deployments.
    */

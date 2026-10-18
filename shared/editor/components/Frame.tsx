@@ -47,7 +47,6 @@ const Frame = ({
   const mountedRef = useRef(true);
 
   useEffect(() => {
-    // Set mounted flag
     mountedRef.current = true;
 
     // Load iframe after a small delay

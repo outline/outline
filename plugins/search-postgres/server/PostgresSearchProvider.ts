@@ -623,7 +623,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     return sequelizeReadOnly.transaction(
       (transaction) =>
         Document.unscoped().count({
-          // @ts-expect-error Types are incorrect for count
           replacements,
           where,
           transaction,
