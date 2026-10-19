@@ -20,7 +20,8 @@ describe("DocumentPublishedOrUpdatedEmail", () => {
     eventType:
       | NotificationEventType.PublishDocument
       | NotificationEventType.UpdateDocument,
-    collaboratorCount: number
+    collaboratorCount: number,
+    { withActorId = true } = {}
   ) {
     const spy = vi.spyOn(mailer, "sendMail").mockResolvedValue(undefined);
     const team = await buildTeam();
@@ -48,7 +49,7 @@ describe("DocumentPublishedOrUpdatedEmail", () => {
       revisionId: revision.id,
       documentId: document.id,
       teamUrl: team.url,
-      actorId: actor.id,
+      actorId: withActorId ? actor.id : undefined,
       actorName: actor.name,
     }).send();
 
@@ -82,5 +83,13 @@ describe("DocumentPublishedOrUpdatedEmail", () => {
     const mail = await sendEmail(NotificationEventType.PublishDocument, 2);
 
     expect(mail.previewText).toEqual("User 1 published a document");
+  });
+
+  it("should name only the actor when the actor ID is missing", async () => {
+    const mail = await sendEmail(NotificationEventType.UpdateDocument, 2, {
+      withActorId: false,
+    });
+
+    expect(mail.previewText).toEqual("User 1 updated a document");
   });
 });

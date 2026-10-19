@@ -24,7 +24,7 @@ type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   revisionId?: string;
-  actorId: string;
+  actorId?: string;
   actorName: string;
   eventType:
     | NotificationEventType.PublishDocument
@@ -39,6 +39,8 @@ type BeforeSend = {
   body: string | undefined;
   /** Names of everyone who contributed to the revision, actor first. */
   actorNames: string;
+  /** The number of contributors named in actorNames. */
+  actorCount: number;
 };
 
 type Props = InputProps & BeforeSend;
@@ -96,7 +98,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       document,
       collection,
       body,
-      actorNames: await this.actorNames(props, revision),
+      ...(await this.actorNames(props, revision)),
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
   }
@@ -123,9 +125,10 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     });
   }
 
-  protected preview({ actorNames, eventType }: Props): string {
+  protected preview({ actorNames, actorCount, eventType }: Props): string {
     return this.t("{{ actorName }} {{ eventName }} a document", {
       actorName: actorNames,
+      count: actorCount,
       eventName: this.eventName(eventType),
     });
   }
@@ -145,6 +148,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
   protected renderAsText({
     actorNames,
+    actorCount,
     teamUrl,
     document,
     collection,
@@ -155,7 +159,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `
 ${this.t("“{{ documentTitle }}” {{ eventName }}", { documentTitle: document.displayTitle, eventName })}
 
-${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName: actorNames, eventName, documentTitle: document.displayTitle })}${
+${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName: actorNames, count: actorCount, eventName, documentTitle: document.displayTitle })}${
       collection?.name
         ? `, ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
         : ""
@@ -169,6 +173,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
     const {
       document,
       actorNames,
+      actorCount,
       collection,
       eventType,
       teamUrl,
@@ -195,6 +200,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
           <p>
             {this.t("{{ actorName }} {{ eventName }} the document", {
               actorName: actorNames,
+              count: actorCount,
               eventName,
             })}{" "}
             <a href={documentLink}>{document.displayTitle}</a>
@@ -247,21 +253,28 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
    *
    * @param props The email props.
    * @param revision The revision that triggered the email, if any.
-   * @returns The joined names.
+   * @returns The joined names and the number of contributors.
    */
   private async actorNames(
     { actorId, actorName, eventType }: InputProps,
     revision: Revision | null
   ) {
-    if (!revision || eventType !== NotificationEventType.UpdateDocument) {
-      return actorName;
+    if (
+      !actorId ||
+      !revision ||
+      eventType !== NotificationEventType.UpdateDocument
+    ) {
+      return { actorNames: actorName, actorCount: 1 };
     }
 
     const collaborators = await revision.collaborators;
-    const otherNames = collaborators
-      .filter((user) => user && user.id !== actorId)
-      .map((user) => user.name);
+    const names = [
+      actorName,
+      ...collaborators
+        .filter((user) => user && user.id !== actorId)
+        .map((user) => user.name),
+    ];
 
-    return this.formatList([actorName, ...otherNames]);
+    return { actorNames: this.formatList(names), actorCount: names.length };
   }
 }
