@@ -1424,6 +1424,7 @@ class Document extends ArchivableModel<
 
     if (options.detach) {
       this.collectionId = null;
+      this.parentDocumentId = null;
     }
 
     return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
