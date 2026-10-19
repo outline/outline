@@ -1,14 +1,18 @@
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import { Document, User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
+  userId: string;
   documentId: string;
   actorId: string;
   teamUrl: string;
@@ -44,6 +48,13 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
     }
 
     return { document, actor };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.RequestDocumentAccess
+    );
   }
 
   protected subject({ actor, document }: Props) {
@@ -88,6 +99,11 @@ Open the document to share it with them: ${teamUrl}${document.path}
             <Button href={documentUrl}>View Document</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

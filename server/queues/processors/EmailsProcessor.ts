@@ -94,6 +94,7 @@ export default class EmailsProcessor extends BaseProcessor {
           {
             to: notification.user.email,
             language: notification.user.language,
+            userId: notification.userId,
             documentId: notification.documentId,
             revisionId: notification.revisionId,
             groupId: notification.groupId,
@@ -215,6 +216,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new DocumentAccessRequestEmail(
           {
             to: notification.user.email,
+            userId: notification.userId,
             documentId: notification.documentId,
             actorId: notification.actorId,
             teamUrl: notification.team.url,
