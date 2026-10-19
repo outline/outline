@@ -60,6 +60,11 @@ export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
             </a>
           </TD>
         </TR>
+        {children && (
+          <TR>
+            <TD style={footerLinkStyle}>{children}</TD>
+          </TR>
+        )}
         {unsubscribeUrl && (
           <TR>
             <TD style={footerLinkStyle}>
@@ -67,11 +72,6 @@ export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
                 {unsubscribeText ?? "Unsubscribe from these emails"}
               </Link>
             </TD>
-          </TR>
-        )}
-        {children && (
-          <TR>
-            <TD style={footerLinkStyle}>{children}</TD>
           </TR>
         )}
       </TBody>
