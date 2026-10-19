@@ -188,16 +188,14 @@ export class Mailer {
         references: data.references,
         inReplyTo: data.references?.at(-1),
         subject: data.subject,
-        headers: this.tagHeaders(data.tags),
+        headers: {
+          ...this.tagHeaders(data.tags),
+          ...this.unsubscribeHeaders(data.unsubscribeUrl),
+        },
         html,
         text: data.text,
         list: data.unsubscribeUrl
-          ? {
-              unsubscribe: {
-                url: data.unsubscribeUrl,
-                comment: "Unsubscribe from these emails",
-              },
-            }
+          ? { unsubscribe: data.unsubscribeUrl }
           : undefined,
         attachments: env.isCloudHosted
           ? undefined
@@ -261,6 +259,24 @@ export class Mailer {
     }
 
     return undefined;
+  }
+
+  /**
+   * Builds the headers that allow mail clients to unsubscribe with one click,
+   * as described in RFC 8058. The List-Unsubscribe header itself is set by the
+   * `list` option.
+   *
+   * @param unsubscribeUrl The URL that accepts a POST to unsubscribe.
+   * @returns A map of headers to set on the message, or undefined.
+   */
+  private unsubscribeHeaders(
+    unsubscribeUrl?: string
+  ): Record<string, string> | undefined {
+    if (!unsubscribeUrl) {
+      return undefined;
+    }
+
+    return { "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" };
   }
 
   /** The configured SMTP host and service name, for provider detection. */

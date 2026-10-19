@@ -1792,4 +1792,59 @@ describe("#shares.unsubscribe", () => {
     await subscription.reload();
     expect(subscription.unsubscribedAt).toBeNull();
   });
+
+  it("should allow one-click unsubscribe with a form POST", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const token = ShareSubscription.generateUnsubscribeToken(subscription);
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token,
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(200);
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).not.toBeNull();
+  });
+
+  it("should reject one-click unsubscribe with an invalid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token: "invalid-token",
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(401);
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).toBeNull();
+  });
 });
