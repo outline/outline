@@ -83,7 +83,7 @@ interface Props {
 function DocumentScene({
   document,
   revision,
-  readOnly,
+  readOnly: readOnlyProp,
   abilities,
   shareId,
   tocPosition,
@@ -98,6 +98,10 @@ function DocumentScene({
   const location = useLocation<LocationState>();
   const sidebarContext = useLocationSidebarContext();
   const { team, user } = auth;
+
+  // A document over the collaborative size limit is shown read-only from the
+  // stored content, the same way an archived document is.
+  const readOnly = readOnlyProp || documentContext.isTooLarge;
 
   const editorRef = useRef<TEditor>(null);
 
@@ -326,7 +330,11 @@ function DocumentScene({
       : EditorStyleHelper.tocWidth / 2;
 
   const multiplayerEditor =
-    !document.isArchived && !document.isDeleted && !revision && !isShare;
+    !document.isArchived &&
+    !document.isDeleted &&
+    !revision &&
+    !isShare &&
+    !documentContext.isTooLarge;
 
   const hasUnsyncedChanges = !readOnly && documentContext.hasUnsyncedChanges;
 

@@ -5,7 +5,9 @@ import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
 import { toError } from "@shared/utils/error";
+import { DocumentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
+import { DocumentTooLargeError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -46,6 +48,10 @@ export default async function documentCollaborativeUpdater({
   clientVersion,
 }: Props) {
   const state = Y.encodeStateAsUpdate(ydoc);
+
+  if (state.length > DocumentValidation.maxStateLength) {
+    throw DocumentTooLargeError();
+  }
 
   // Round-trip through the schema so the stored JSON is canonical. The raw
   // y-prosemirror output includes empty `attrs: {}` on every mark, and outputs
