@@ -24,6 +24,7 @@ type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   revisionId?: string;
+  actorId: string;
   actorName: string;
   eventType:
     | NotificationEventType.PublishDocument
@@ -36,6 +37,8 @@ type BeforeSend = {
   collection: Collection | null;
   unsubscribeUrl: string;
   body: string | undefined;
+  /** Names of everyone who contributed to the revision, actor first. */
+  actorNames: string;
 };
 
 type Props = InputProps & BeforeSend;
@@ -61,32 +64,28 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       return false;
     }
 
-    const [collection, team] = await Promise.all([
+    const [collection, team, revision] = await Promise.all([
       document.$get("collection"),
       document.$get("team"),
+      revisionId ? Revision.findByPk(revisionId) : null,
     ]);
 
     let body;
-    if (revisionId && team?.getPreference(TeamPreference.PreviewsInEmails)) {
+    if (revision && team?.getPreference(TeamPreference.PreviewsInEmails)) {
       body = await CacheHelper.getDataOrSet<string>(
-        `diff:${revisionId}`,
+        `diff:${revision.id}`,
         async () => {
           // generate the diff html for the email
-          const revision = await Revision.findByPk(revisionId);
+          const before = await revision.before();
+          const content = await DocumentHelper.toEmailDiff(before, revision, {
+            includeTitle: false,
+            centered: false,
+            signedUrls: 4 * Day.seconds,
+            baseUrl: props.teamUrl,
+          });
 
-          if (revision) {
-            const before = await revision.before();
-            const content = await DocumentHelper.toEmailDiff(before, revision, {
-              includeTitle: false,
-              centered: false,
-              signedUrls: 4 * Day.seconds,
-              baseUrl: props.teamUrl,
-            });
-
-            // inline all css so that it works in as many email providers as possible.
-            return content ? await HTMLHelper.inlineCSS(content) : undefined;
-          }
-          return;
+          // inline all css so that it works in as many email providers as possible.
+          return content ? await HTMLHelper.inlineCSS(content) : undefined;
         },
         30,
         10000
@@ -97,6 +96,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       document,
       collection,
       body,
+      actorNames: await this.actorNames(props, revision),
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
   }
@@ -123,9 +123,9 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     });
   }
 
-  protected preview({ actorName, eventType }: Props): string {
+  protected preview({ actorNames, eventType }: Props): string {
     return this.t("{{ actorName }} {{ eventName }} a document", {
-      actorName,
+      actorName: actorNames,
       eventName: this.eventName(eventType),
     });
   }
@@ -144,7 +144,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   }
 
   protected renderAsText({
-    actorName,
+    actorNames,
     teamUrl,
     document,
     collection,
@@ -155,7 +155,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `
 ${this.t("“{{ documentTitle }}” {{ eventName }}", { documentTitle: document.displayTitle, eventName })}
 
-${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName, eventName, documentTitle: document.displayTitle })}${
+${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName: actorNames, eventName, documentTitle: document.displayTitle })}${
       collection?.name
         ? `, ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
         : ""
@@ -168,7 +168,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
   protected render(props: Props) {
     const {
       document,
-      actorName,
+      actorNames,
       collection,
       eventType,
       teamUrl,
@@ -194,7 +194,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
           </Heading>
           <p>
             {this.t("{{ actorName }} {{ eventName }} the document", {
-              actorName,
+              actorName: actorNames,
               eventName,
             })}{" "}
             <a href={documentLink}>{document.displayTitle}</a>
@@ -239,5 +239,29 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
         </Footer>
       </EmailTemplate>
     );
+  }
+
+  /**
+   * Returns the names of everyone who contributed to an update, with the actor
+   * first, joined into a single string.
+   *
+   * @param props The email props.
+   * @param revision The revision that triggered the email, if any.
+   * @returns The joined names.
+   */
+  private async actorNames(
+    { actorId, actorName, eventType }: InputProps,
+    revision: Revision | null
+  ) {
+    if (!revision || eventType !== NotificationEventType.UpdateDocument) {
+      return actorName;
+    }
+
+    const collaborators = await revision.collaborators;
+    const otherNames = collaborators
+      .filter((user) => user && user.id !== actorId)
+      .map((user) => user.name);
+
+    return this.formatList([actorName, ...otherNames]);
   }
 }
