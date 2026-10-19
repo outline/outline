@@ -34,48 +34,31 @@ const noopSpan = {
 
 let tracer: Tracer;
 
-/** The dd-trace file that lists each supported setting with its default value. */
-const datadogConfigPath =
-  "dd-trace/packages/dd-trace/src/config/supported-configurations.json";
-
-interface DatadogConfigDefaults {
-  supportedConfigurations: Record<string, { default?: string }[]>;
-}
-
-/** Query string parameters to redact from traced URLs, in addition to the dd-trace defaults. */
-const redactedQueryParameters = ["code"];
-
 /**
- * Returns the pattern used to redact query string values in traced URLs. This
- * extends the configured or default dd-trace pattern with parameters that it
- * does not cover, such as the OAuth authorization code sent to auth callbacks.
- *
- * @returns the pattern source, or undefined if the dd-trace default cannot be found.
+ * Query string parameters that are kept in traced URLs because they help with
+ * debugging and do not grant access. The values of all other parameters are
+ * redacted.
  */
-export function getQueryStringObfuscation(): string | undefined {
-  let pattern = process.env.DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP;
+const allowedQueryParameters = [
+  "client",
+  "codemode",
+  "documentId",
+  "domain",
+  "download",
+  "error",
+  "error_description",
+  "eventType",
+  "follow",
+  "host",
+  "id",
+  "installation_id",
+  "limit",
+  "offset",
+  "setup_action",
+];
 
-  if (pattern === undefined) {
-    try {
-      // oxlint-disable-next-line typescript/no-require-imports -- kept lazy so the dd-trace config stays off the startup path
-      const config: DatadogConfigDefaults = require(datadogConfigPath);
-      pattern =
-        config.supportedConfigurations
-          .DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP?.[0]?.default;
-    } catch {
-      // Keep the dd-trace default if its config cannot be read.
-    }
-  }
-
-  if (!pattern) {
-    return undefined;
-  }
-
-  return [
-    pattern,
-    ...redactedQueryParameters.map((name) => `(?<=^|&)${name}=[^&]+`),
-  ].join("|");
-}
+/** Matches the value of each query string parameter that is not allowed. */
+export const queryStringObfuscation = `(?<=(?:^|&)(?!(?:${allowedQueryParameters.join("|")})=)[^=&]+=)[^&]+`;
 
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer. This
@@ -94,18 +77,10 @@ if (env.DD_API_KEY && cluster.isWorker) {
     logInjection: true,
   });
 
-  const queryStringObfuscation = getQueryStringObfuscation();
-
   // Disable per-middleware spans so that non-reportable errors are not captured
   // This is also generally excessive noise
-  tracer.use("koa", {
-    middleware: false,
-    ...(queryStringObfuscation ? { queryStringObfuscation } : {}),
-  });
-
-  if (queryStringObfuscation) {
-    tracer.use("http", { server: { queryStringObfuscation } });
-  }
+  tracer.use("koa", { middleware: false, queryStringObfuscation });
+  tracer.use("http", { server: { queryStringObfuscation } });
 } else {
   tracer = {
     scope: () => ({
