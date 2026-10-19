@@ -2713,9 +2713,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/sdk@npm:^1.31.0":
-  version: 1.31.0
-  resolution: "@modelcontextprotocol/sdk@npm:1.31.0"
+"@modelcontextprotocol/sdk@npm:^1.32.1":
+  version: 1.32.1
+  resolution: "@modelcontextprotocol/sdk@npm:1.32.1"
   dependencies:
     "@hono/node-server": "npm:^1.19.9 || ^2.0.5"
     ajv: "npm:^8.17.1"
@@ -2742,7 +2742,7 @@ __metadata:
       optional: true
     zod:
       optional: false
-  checksum: 10c0/2c4f011a765fb3346ec578455591d062008a842a0f6f8a763baa97b6a01e0f1febb97d1cc44024ee6d0761d43df56e9c71f72a37d47c7ea6aeb1c4f8be0f06d9
+  checksum: 10c0/8b6c8ff6aa5358aeb316fedfa2094a4241ce12d98a0f818cee42510ec9149fed21fc75244c5f0e8cb453337f243c09fa8a90425cd2533fd481964d8583a1f0c9
   languageName: node
   linkType: hard
 
@@ -14389,7 +14389,7 @@ __metadata:
     "@koa/router": "npm:^15.7.0"
     "@koa/send": "npm:^6.0.0"
     "@linear/sdk": "npm:^97.0.0"
-    "@modelcontextprotocol/sdk": "npm:^1.31.0"
+    "@modelcontextprotocol/sdk": "npm:^1.32.1"
     "@noble/hashes": "npm:^2.4.0"
     "@node-oauth/oauth2-server": "npm:^5.3.0"
     "@notionhq/client": "npm:^2.3.0"
