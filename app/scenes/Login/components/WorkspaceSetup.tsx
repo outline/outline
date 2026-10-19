@@ -38,7 +38,7 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
             name="teamName"
             type="text"
             label={t("Workspace name")}
-            placeholder="Acme, Inc"
+            placeholder="Acme, Inc."
             required
             autoFocus
             flex

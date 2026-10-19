@@ -193,7 +193,7 @@ function Authentication() {
         </Trans>
       </Text>
 
-      <Heading as="h2">{t("Sign In")}</Heading>
+      <Heading as="h2">{t("Sign in")}</Heading>
 
       {authenticationProviders.orderedData.map((provider) => {
         // Group sync can still be disabled after losing the entitlement.

@@ -47,7 +47,7 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
   }
 
   protected subject({ actor, document }: Props) {
-    return `${actor.name} is requesting access to "${document.displayTitle}"`;
+    return `${actor.name} is requesting access to “${document.displayTitle}”`;
   }
 
   protected preview({ actor }: Props): string {
@@ -60,7 +60,7 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
 
   protected renderAsText({ actor, teamUrl, document }: Props): string {
     return `
-${actor.name} is requesting access to "${document.displayTitle}".
+${actor.name} is requesting access to “${document.displayTitle}”.
 
 Open the document to share it with them: ${teamUrl}${document.path}
 `;
