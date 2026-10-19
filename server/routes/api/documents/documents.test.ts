@@ -7019,9 +7019,9 @@ describe("#documents.update", () => {
     });
     expect(res.status).toEqual(403);
 
-    await document.reload();
-    expect(document.publishedAt).toBeNull();
-    expect(document.collectionId).toBeNull();
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
   });
 
   it("should allow publishing a child draft into the parent collection", async () => {
@@ -7857,10 +7857,10 @@ describe("#documents.unpublish", () => {
     });
     expect(res.status).toEqual(200);
 
-    await document.reload();
-    expect(document.publishedAt).toBeNull();
-    expect(document.collectionId).toBeNull();
-    expect(document.parentDocumentId).toBeNull();
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+    expect(reloaded?.parentDocumentId).toBeNull();
   });
 
   it("should unpublish a document with archived children", async () => {
