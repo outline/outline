@@ -262,7 +262,7 @@ function Invite({ onSubmit }: Props) {
             data-event-category="invite"
             data-event-action="sendInvites"
           >
-            {isSaving ? `${t("Inviting")}…` : t("Send Invites")}
+            {isSaving ? `${t("Inviting")}…` : t("Send invites")}
           </Button>
         </Flex>
       </Flex>

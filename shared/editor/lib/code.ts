@@ -226,7 +226,7 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   },
   powershell: {
     lang: "powershell",
-    label: "Powershell",
+    label: "PowerShell",
     loader: () => import("refractor/lang/powershell").then((m) => m.default),
   },
   promql: {

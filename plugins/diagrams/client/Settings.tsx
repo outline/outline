@@ -89,7 +89,7 @@ function DiagramsNet() {
           label={t("Installation URL")}
           name="url"
           description={t(
-            "The URL of your Diagrams.net installation. Leave empty to use the cloud hosted app.diagrams.net"
+            "The URL of your Diagrams.net installation. Leave empty to use the cloud-hosted app.diagrams.net"
           )}
           border={false}
         >

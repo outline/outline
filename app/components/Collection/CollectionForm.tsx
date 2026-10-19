@@ -273,7 +273,7 @@ export const CollectionForm = observer(function CollectionForm_({
                 field.onChange(value === EmptySelectValue ? null : value);
               }}
               help={t(
-                "The default access for workspace members, you can share with more users or groups later."
+                "The default access for workspace members. You can share with more users or groups later."
               )}
             />
           )}

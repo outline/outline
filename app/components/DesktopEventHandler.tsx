@@ -30,7 +30,7 @@ export default function DesktopEventHandler() {
       }
 
       hasDisabledUpdateMessage.current = true;
-      toast.message("An update is ready to install.", {
+      toast.message(t("An update is ready to install."), {
         duration: Infinity,
         dismissible: true,
         action: {

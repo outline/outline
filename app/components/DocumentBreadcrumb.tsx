@@ -37,7 +37,7 @@ export function documentBreadcrumbParts(
 ): { collection: string | undefined; ancestors: string[] } {
   let collectionLabel: string | undefined;
   if (document.isCollectionDeleted) {
-    collectionLabel = t("Deleted Collection");
+    collectionLabel = t("Deleted collection");
   } else if (document.collection?.displayName) {
     collectionLabel = document.collection.displayName;
   }
@@ -52,7 +52,7 @@ export function documentBreadcrumbParts(
 
 /**
  * Returns the breadcrumb path leading up to a document as a plain text
- * string. Includes the collection name (or "Deleted Collection" fallback)
+ * string. Includes the collection name (or "Deleted collection" fallback)
  * and any ancestor document titles, slash-separated.
  *
  * @param document - the document to compute the breadcrumb for.
@@ -149,7 +149,7 @@ function DocumentBreadcrumb({
             : "",
       }),
       createInternalLinkAction({
-        name: t("Deleted Collection"),
+        name: t("Deleted collection"),
         section: ActiveDocumentSection,
         visible: document.isCollectionDeleted,
         to: "",
