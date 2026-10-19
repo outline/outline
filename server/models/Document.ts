@@ -1314,6 +1314,17 @@ class Document extends ArchivableModel<
       this.collectionId = collectionId;
     }
 
+    // A parent outside the destination collection is stale, so publish at the root.
+    if (this.parentDocumentId && this.collectionId) {
+      const parentDocument = await Document.unscoped().findByPk(
+        this.parentDocumentId,
+        { attributes: ["collectionId"], transaction }
+      );
+      if (parentDocument?.collectionId !== this.collectionId) {
+        this.parentDocumentId = null;
+      }
+    }
+
     if (this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         includeDocumentStructure: true,

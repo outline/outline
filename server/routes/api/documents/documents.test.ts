@@ -7055,6 +7055,59 @@ describe("#documents.update", () => {
     expect(body.data.parentDocumentId).toBe(parentDocument.id);
   });
 
+  it("should publish a child draft at the root of another collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: member.id,
+      documentId: parentDocument.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: otherCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.collectionId).toBe(otherCollection.id);
+    expect(document.parentDocumentId).toBeNull();
+
+    await otherCollection.reload();
+    expect(otherCollection.documentStructure?.map((node) => node.id)).toContain(
+      document.id
+    );
+
+    const membership = await UserMembership.findOne({
+      where: { userId: member.id, documentId: document.id },
+    });
+    expect(membership).toBeNull();
+  });
+
   it("should fail to update an invalid icon value", async () => {
     const user = await buildUser();
     const document = await buildDocument({
