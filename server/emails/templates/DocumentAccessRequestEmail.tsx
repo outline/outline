@@ -58,11 +58,16 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
   }
 
   protected subject({ actor, document }: Props) {
-    return `${actor.name} is requesting access to “${document.displayTitle}”`;
+    return this.t(
+      "{{ actorName }} is requesting access to “{{ documentTitle }}”",
+      { actorName: actor.name, documentTitle: document.displayTitle }
+    );
   }
 
   protected preview({ actor }: Props): string {
-    return `${actor.name} is requesting access to a document`;
+    return this.t("{{ actorName }} is requesting access to a document", {
+      actorName: actor.name,
+    });
   }
 
   protected fromName({ actor }: Props) {
@@ -71,9 +76,9 @@ export default class DocumentAccessRequestEmail extends BaseEmail<
 
   protected renderAsText({ actor, teamUrl, document }: Props): string {
     return `
-${actor.name} is requesting access to “${document.displayTitle}”.
+${this.t("{{ actorName }} is requesting access to “{{ documentTitle }}”.", { actorName: actor.name, documentTitle: document.displayTitle })}
 
-Open the document to share it with them: ${teamUrl}${document.path}
+${this.t("Open the document to share it with them")}: ${teamUrl}${document.path}
 `;
   }
 
@@ -84,19 +89,22 @@ Open the document to share it with them: ${teamUrl}${document.path}
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: documentUrl, name: "View Document" }}
+        goToAction={{ url: documentUrl, name: this.t("View Document") }}
       >
         <Header />
 
         <Body>
           <Heading>{document.displayTitle}</Heading>
           <p>
-            {actor.name} is requesting access to the{" "}
-            <a href={documentUrl}>{document.displayTitle}</a> document.
+            {this.t("{{ actorName }} is requesting access to the", {
+              actorName: actor.name,
+            })}{" "}
+            <a href={documentUrl}>{document.displayTitle}</a>{" "}
+            {this.t("document")}.
           </p>
-          <p>Open the document to share it with them.</p>
+          <p>{this.t("Open the document to share it with them")}.</p>
           <p>
-            <Button href={documentUrl}>View Document</Button>
+            <Button href={documentUrl}>{this.t("View Document")}</Button>
           </p>
         </Body>
 

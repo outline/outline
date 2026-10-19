@@ -1,3 +1,4 @@
+import { renderToStaticMarkup } from "react-dom/server";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import mailer from "@server/emails/mailer";
 import { UserMembership } from "@server/models";
@@ -122,5 +123,45 @@ describe("notification emails", () => {
     }).send();
 
     expectUnsubscribe("access_requests.create", user.id);
+  });
+
+  it("should set the language and direction for RTL languages", async () => {
+    const user = await buildUser({ language: "he_IL" });
+    const actor = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({ teamId: user.teamId });
+
+    await new DocumentAccessRequestEmail({
+      to: user.email,
+      language: user.language,
+      userId: user.id,
+      documentId: document.id,
+      actorId: actor.id,
+      teamUrl,
+    }).send();
+
+    const options = vi.mocked(mailer.sendMail).mock.calls[0][0];
+    expect(options.lang).toEqual("he-IL");
+    expect(options.dir).toEqual("rtl");
+    expect(renderToStaticMarkup(options.component)).toContain('align="right"');
+  });
+
+  it("should set the language and direction for LTR languages", async () => {
+    const user = await buildUser({ language: "en_US" });
+    const document = await buildDocument({ teamId: user.teamId });
+
+    await new DocumentMentionedEmail({
+      to: user.email,
+      language: user.language,
+      userId: user.id,
+      documentId: document.id,
+      revisionId: undefined,
+      actorName: "Actor",
+      teamUrl,
+    }).send();
+
+    const options = vi.mocked(mailer.sendMail).mock.calls[0][0];
+    expect(options.lang).toEqual("en-US");
+    expect(options.dir).toEqual("ltr");
+    expect(renderToStaticMarkup(options.component)).toContain('align="left"');
   });
 });

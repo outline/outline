@@ -9,6 +9,7 @@ import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { isRTLLanguage } from "@shared/utils/rtl";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
@@ -22,6 +23,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import type { NotificationMetadata } from "@server/types";
+import { DirectionContext } from "./components/Direction";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
@@ -160,6 +162,9 @@ export default abstract class BaseEmail<
       }
     }
 
+    const lang = this.lang;
+    const dir = isRTLLanguage(lang) ? "rtl" : "ltr";
+
     try {
       await mailer.sendMail({
         to: this.props.to,
@@ -169,11 +174,13 @@ export default abstract class BaseEmail<
         messageId,
         references,
         previewText: this.preview(data),
+        lang,
+        dir,
         component: (
-          <>
+          <DirectionContext.Provider value={dir}>
             {this.render(data)}
             {notification ? this.pixel(notification) : null}
-          </>
+          </DirectionContext.Provider>
         ),
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
@@ -230,6 +237,11 @@ export default abstract class BaseEmail<
     };
   }
 
+  /** The language of the receiving user in BCP47 format (e.g. "en-US"). */
+  private get lang() {
+    return unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE);
+  }
+
   private pixel(notification: Notification) {
     return <img src={notification.pixelUrl} alt="" width="1" height="1" />;
   }
@@ -244,7 +256,7 @@ export default abstract class BaseEmail<
   protected t(key: string, options?: Record<string, unknown>): string {
     return i18nT(key, {
       ...options,
-      lng: unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE),
+      lng: this.lang,
     }) as string;
   }
 
