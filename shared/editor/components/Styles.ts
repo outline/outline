@@ -1,9 +1,10 @@
-import { lighten, transparentize } from "polished";
+import { lighten, mix, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
 import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
 import { light } from "../../styles/theme";
+import { blendColors } from "../../utils/color";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -575,6 +576,166 @@ const textStyle = () => css`
     .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
+    }
+  }
+`;
+
+/**
+ * Colors for content in a notice. The notice tint is not opaque, so the colors
+ * are blended onto the tinted background.
+ */
+const noticeColors = (theme: DefaultTheme, color: string) => {
+  const background = mix(0.1, color, theme.background);
+  const blend = (value: string) =>
+    blendColors(value, background, theme.isDark ? "screen" : "multiply");
+  const divider = blend(theme.divider);
+
+  return css`
+    --notice-background: ${background};
+    --notice-divider: ${divider};
+    --notice-table-header: ${mix(0.25, divider, background)};
+    --notice-code-background: ${blend(theme.codeBackground)};
+    --notice-code-border: ${blend(theme.codeBorder)};
+  `;
+};
+
+const noticeStyle = (props: Props) => css`
+  .${EditorStyleHelper.notice} {
+    ${noticeColors(props.theme, props.theme.noticeInfoBackground)}
+
+    &.tip {
+      ${noticeColors(props.theme, props.theme.noticeTipBackground)}
+    }
+
+    &.warning {
+      ${noticeColors(props.theme, props.theme.noticeWarningBackground)}
+    }
+
+    &.success {
+      ${noticeColors(props.theme, props.theme.noticeSuccessBackground)}
+    }
+
+    hr:not(.ProseMirror-selectednode)::before {
+      border-top-color: var(--notice-divider);
+    }
+
+    code,
+    pre {
+      background: var(--notice-code-background);
+      border-color: var(--notice-code-border);
+    }
+
+    pre code {
+      background: none;
+    }
+
+    .${EditorStyleHelper.codeBlock}.with-line-numbers::after {
+      background: var(--notice-code-background);
+    }
+
+    .${EditorStyleHelper.codeBlock}.collapsed::before {
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--notice-code-background) 70%,
+        var(--notice-code-background) 100%
+      );
+    }
+
+    @media not print {
+      .${EditorStyleHelper.mermaidDiagram} {
+        background: var(--notice-code-background);
+        border-color: var(--notice-code-border);
+        --pele-bg: var(--notice-code-background);
+      }
+    }
+
+    /* above the scroll shadow of a table that follows it */
+    .${EditorStyleHelper.noticeIcon} {
+      position: relative;
+      z-index: 21;
+    }
+
+    /* the scroll area only reaches into the notice padding and icon gutter */
+    .${EditorStyleHelper.tableScrollable} {
+      margin-left: -20px;
+      margin-right: -10px;
+      padding-left: 20px;
+      padding-right: 10px;
+    }
+
+    /* keep the click area inside the scroll area so that it does not scroll */
+    .${EditorStyleHelper.tableAddColumn}:not(.first)::before {
+      right: -10px;
+    }
+
+    .${EditorStyleHelper.tableShadowLeft}::before {
+      left: -20px;
+      border-left: 20px solid var(--notice-background);
+    }
+
+    .${EditorStyleHelper.tableShadowRight}::after {
+      right: -10px;
+      border-right: 10px solid var(--notice-background);
+    }
+
+    &:dir(rtl) {
+      .${EditorStyleHelper.tableScrollable} {
+        margin-left: -10px;
+        margin-right: -20px;
+        padding-left: 10px;
+        padding-right: 20px;
+      }
+
+      .${EditorStyleHelper.tableShadowLeft}::before {
+        left: -10px;
+        border-left-width: 10px;
+      }
+
+      .${EditorStyleHelper.tableShadowRight}::after {
+        right: -20px;
+        border-right-width: 20px;
+      }
+    }
+
+    .${EditorStyleHelper.tableFullWidth} {
+      transform: none;
+
+      .${EditorStyleHelper.tableScrollable} {
+        width: auto;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      &.${EditorStyleHelper.tableShadowRight}::after {
+        left: auto;
+      }
+    }
+
+    table,
+    tr,
+    td,
+    th {
+      border-color: var(--notice-divider);
+    }
+
+    th {
+      background: var(--notice-table-header);
+    }
+
+    .${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+      box-shadow:
+        0 -1px 0 var(--notice-divider),
+        0 1px 0 var(--notice-divider);
+    }
+
+    td[data-bgcolor],
+    th[data-bgcolor] {
+      background:
+        linear-gradient(var(--cell-bg-color), var(--cell-bg-color)),
+        linear-gradient(var(--notice-background), var(--notice-background));
     }
   }
 `;
@@ -2891,6 +3052,7 @@ li > .${EditorStyleHelper.toggleBlock} {
 
 const EditorContainer = styled.div<Omit<Props, "theme">>`
   ${style}
+  ${noticeStyle}
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}
