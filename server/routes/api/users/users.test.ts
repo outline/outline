@@ -1266,6 +1266,34 @@ describe("#users.update_role", () => {
     });
     expect(res.status).toEqual(400);
   });
+
+  it("should return the same error for a user in another team", async () => {
+    const admin = await buildAdmin();
+    const user = await buildAdmin();
+
+    for (const role of [UserRole.Admin, UserRole.Member]) {
+      const res = await server.post("/api/users.update_role", admin, {
+        body: {
+          id: user.id,
+          role,
+        },
+      });
+      expect(res.status).toEqual(403);
+    }
+    expect((await user.reload()).role).toEqual(UserRole.Admin);
+  });
+
+  it("should return the same error for an unknown user", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/users.update_role", admin, {
+      body: {
+        id: faker.string.uuid(),
+        role: UserRole.Admin,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe("#users.promote", () => {
