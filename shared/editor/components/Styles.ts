@@ -1941,6 +1941,7 @@ mark {
   .${EditorStyleHelper.codeBlockLineNumber} {
     position: absolute;
     left: 1px;
+    box-sizing: content-box;
     width: calc(var(--line-number-gutter-width, 0) * 1em + .25em);
     padding: 0 0.75em 0 0.5em;
     color: ${props.theme.textTertiary};
