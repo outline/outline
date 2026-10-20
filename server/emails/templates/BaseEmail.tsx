@@ -157,9 +157,9 @@ export default abstract class BaseEmail<
       notification && notification.createdAt < subMinutes(new Date(), 30)
         ? this.t("This notification was delayed and may be out of date.")
         : undefined;
-    const text = this.renderAsText(data);
 
     try {
+      const text = this.renderAsText(data);
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
