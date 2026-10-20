@@ -11,6 +11,7 @@ import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
+import { BodyNoticeContext } from "@server/emails/templates/components/Body";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
@@ -151,31 +152,29 @@ export default abstract class BaseEmail<
       ? await Notification.emailReferences(notification)
       : undefined;
 
-    // Check if notification is considerably delayed and annotate
-    // the subject. This is in case of extended downtime or queue backlogs
-    let subject = this.subject(data);
-    if (notification) {
-      if (notification.createdAt < subMinutes(new Date(), 30)) {
-        subject = `${this.t("Delayed notification")}: ${subject}`;
-      }
-    }
+    // Note a considerable delay in the body, as a subject change breaks threading.
+    const delayedNotice =
+      notification && notification.createdAt < subMinutes(new Date(), 30)
+        ? this.t("This notification was delayed and may be out of date.")
+        : undefined;
+    const text = this.renderAsText(data);
 
     try {
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
         from: this.from(data),
-        subject,
+        subject: this.subject(data),
         messageId,
         references,
         previewText: this.preview(data),
         component: (
-          <>
+          <BodyNoticeContext.Provider value={delayedNotice}>
             {this.render(data)}
             {notification ? this.pixel(notification) : null}
-          </>
+          </BodyNoticeContext.Provider>
         ),
-        text: this.renderAsText(data),
+        text: delayedNotice ? `${delayedNotice}\n\n${text}` : text,
         headCSS: this.headCSS?.(data),
         unsubscribeUrl: this.unsubscribeUrl?.(data),
         tags: { category: this.category, template: templateName },
