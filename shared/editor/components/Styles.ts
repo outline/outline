@@ -1894,7 +1894,7 @@ mark {
         height: auto;
         overflow: visible;
 
-        &::after {
+        .${EditorStyleHelper.codeBlockLineNumber} {
           display: none;
         }
     }
@@ -1913,39 +1913,43 @@ mark {
 
 .${EditorStyleHelper.codeBlock}.with-line-numbers {
   pre {
+    // Position line numbers against the block, so they stay in place when
+    // the code scrolls horizontally.
+    position: static;
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
 
-  &::after {
-    content: attr(data-line-numbers);
+  code {
+    counter-reset: line;
+  }
+
+  .${EditorStyleHelper.codeBlockLineNumber} {
     position: absolute;
-    padding-left: 0.5em;
     left: 1px;
-    top: calc(1px + 0.75em);
-    width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
-    word-break: break-all;
-    white-space: break-spaces;
-    font-family: ${props.theme.fontFamilyMono};
-    line-height: 1.4em;
+    box-sizing: content-box;
+    width: calc(var(--line-number-gutter-width, 0) * 1em + .25em);
+    padding: 0 0.75em 0 0.5em;
     color: ${props.theme.textTertiary};
     background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
+    pointer-events: none;
+
+    &::before {
+      counter-increment: line;
+      content: counter(line);
+    }
   }
 }
 
 .${EditorStyleHelper.codeBlock}.collapsed {
+  overflow: clip;
+
   pre {
     pointer-events: none;
     max-height: calc(10 * 1.4em + 0.75em);
     overflow: hidden;
-  }
-
-  &::after {
-    max-height: calc(10 * 1.4em + 0.75em);
-    overflow: hidden;
-    clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
   }
 
   &::before {
@@ -1967,15 +1971,11 @@ mark {
   }
 
   @media print {
+    overflow: visible;
+
     pre {
       max-height: none;
       overflow: visible;
-    }
-
-    &::after {
-      max-height: none;
-      overflow: visible;
-      clip-path: none;
     }
 
     &::before {
