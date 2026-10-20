@@ -184,8 +184,10 @@ async function authenticated(
   const rooms = [`team-${user.teamId}`, `user-${user.id}`];
 
   // the room of non-guest team members, who have access to all
-  // team-visible collections.
-  if (!user.isGuest) {
+  // team-visible collections, and the room of guests to exclude them.
+  if (user.isGuest) {
+    rooms.push(`team-${user.teamId}.guests`);
+  } else {
     rooms.push(`team-${user.teamId}.members`);
   }
 
