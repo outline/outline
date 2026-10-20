@@ -773,7 +773,6 @@ export default class DocumentsStore extends Store<Document> {
 
       document.updateData(res.data);
       this.addPolicies(res.policies);
-      this.rootStore.shares.unpublishForDocument(document.id);
 
       if (collectionId) {
         const collection = this.rootStore.collections.get(collectionId);
