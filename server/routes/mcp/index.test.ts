@@ -199,6 +199,18 @@ describe("POST /mcp/", () => {
       await user.reload();
       expect(user.getFlag(UserFlag.MCP)).toEqual(1);
     });
+
+    it("should reject tool arguments with too many elements", async () => {
+      const { accessToken } = await buildOAuthUser();
+
+      const res = await callMcpTool(server, accessToken, "list_collections", {
+        extra: Array.from({ length: 1001 }, (_, i) => i),
+      });
+      expect(res?.result?.isError).toBe(true);
+      expect(res?.result?.content?.[0]?.text).toContain(
+        "more than the maximum of 1000 elements"
+      );
+    });
   });
 
   describe("resources", () => {

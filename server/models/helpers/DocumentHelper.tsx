@@ -8,7 +8,7 @@ import {
   ChangesetHelper,
   type ExtendedChange,
 } from "@shared/editor/lib/ChangesetHelper";
-import headingToSlug from "@shared/editor/lib/headingToSlug";
+import { HeadingSlugger } from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
@@ -267,40 +267,34 @@ export class DocumentHelper {
 
     const node = DocumentHelper.toProsemirror(document);
 
-    // Headings are always top-level nodes, so iterating the document's direct
-    // children is sufficient to locate the section.
     const children: Node[] = [];
     node.content.forEach((child) => children.push(child));
 
-    const previouslySeen: Record<string, number> = {};
+    // Nested headings (eg. in tables) affect the numbering of duplicates, so
+    // every heading is visited, but a section can only start at a top-level one.
+    const slugger = new HeadingSlugger();
     let startIndex = -1;
-    let level = 0;
-
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      if (child.type.name !== "heading") {
-        continue;
+    node.forEach((child, _offset, index) => {
+      if (startIndex !== -1) {
+        return;
       }
-
-      // Calculate the heading id using the same de-duplication logic as the
-      // editor so that anchors to repeated headings resolve correctly.
-      const slug = headingToSlug(child);
-      const headingId =
-        previouslySeen[slug] > 0
-          ? headingToSlug(child, previouslySeen[slug])
-          : slug;
-      previouslySeen[slug] =
-        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
-
-      if (startIndex === -1 && headingId === id) {
-        startIndex = i;
-        level = child.attrs.level;
+      if (child.type.name === "heading") {
+        if (slugger.slug(child) === id) {
+          startIndex = index;
+        }
+        return;
       }
-    }
+      child.descendants((nested) => {
+        if (nested.type.name === "heading") {
+          slugger.slug(nested);
+        }
+      });
+    });
 
     if (startIndex === -1) {
       return undefined;
     }
+    const level = children[startIndex].attrs.level;
 
     const sectionNodes: Node[] = [children[startIndex]];
     for (let i = startIndex + 1; i < children.length; i++) {

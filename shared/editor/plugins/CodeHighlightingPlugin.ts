@@ -1,4 +1,4 @@
-import { flattenDeep, padStart } from "es-toolkit/compat";
+import { flattenDeep } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -7,6 +7,7 @@ import type refractorType from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 type ParsedNode = {
   text: string;
@@ -62,6 +63,36 @@ async function loadLanguage(language: string) {
   return languagePromises[language];
 }
 
+/**
+ * Create the DOM for a line number. The number itself is a CSS counter, so
+ * every widget is identical and the view can reuse them as lines change.
+ *
+ * @returns the line number element.
+ */
+function createLineNumber() {
+  const element = document.createElement("span");
+  element.className = EditorStyleHelper.codeBlockLineNumber;
+  element.setAttribute("aria-hidden", "true");
+  return element;
+}
+
+/**
+ * Create a widget decoration that marks the start of a line in a code block.
+ *
+ * @param pos - the position of the start of the line.
+ * @returns the widget decoration.
+ */
+function lineNumberWidget(pos: number) {
+  return Decoration.widget(pos, createLineNumber, {
+    side: -1,
+    marks: [],
+    key: "line-number",
+    // Keep the widget editable, Chrome otherwise deletes it on Backspace at
+    // the start of a line instead of the line break.
+    raw: true,
+  });
+}
+
 function getDecorations({
   doc,
   name,
@@ -109,27 +140,28 @@ function getDecorations({
     const lineDecorations = [];
 
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
-      if (lineNumbers && !block.node.attrs.wrap) {
-        const lineCount =
-          (block.node.textContent.match(/\n/g) || []).length + 1;
-        const gutterWidth = String(lineCount).length;
-
-        const lineCountText = Array.from({ length: lineCount })
-          .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
-          .join("\n");
+      if (lineNumbers) {
+        const text = block.node.textContent;
+        const lineStarts = [block.pos + 1];
+        for (let i = 0; i < text.length; i++) {
+          if (text[i] === "\n") {
+            lineStarts.push(block.pos + 2 + i);
+          }
+        }
+        const gutterWidth = String(lineStarts.length).length;
 
         lineDecorations.push(
           Decoration.node(
             block.pos,
             block.pos + block.node.nodeSize,
             {
-              "data-line-numbers": `${lineCountText}`,
               style: `--line-number-gutter-width: ${gutterWidth};`,
             },
             {
-              key: `line-${lineCount}-gutter`,
+              key: `line-${gutterWidth}-gutter`,
             }
-          )
+          ),
+          ...lineStarts.map(lineNumberWidget)
         );
       }
 
