@@ -429,7 +429,9 @@ router.post(
   async (ctx: APIContext<T.SharesRevokeReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const share = await Share.findByPk(id);
+    const share = await Share.scope({
+      method: ["withCollectionPermissions", user.id],
+    }).findByPk(id);
 
     if (!share?.collection && !share?.document) {
       throw NotFoundError();

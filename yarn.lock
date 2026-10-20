@@ -2713,9 +2713,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/sdk@npm:^1.31.0":
-  version: 1.31.0
-  resolution: "@modelcontextprotocol/sdk@npm:1.31.0"
+"@modelcontextprotocol/sdk@npm:^1.32.1":
+  version: 1.32.1
+  resolution: "@modelcontextprotocol/sdk@npm:1.32.1"
   dependencies:
     "@hono/node-server": "npm:^1.19.9 || ^2.0.5"
     ajv: "npm:^8.17.1"
@@ -2742,7 +2742,7 @@ __metadata:
       optional: true
     zod:
       optional: false
-  checksum: 10c0/2c4f011a765fb3346ec578455591d062008a842a0f6f8a763baa97b6a01e0f1febb97d1cc44024ee6d0761d43df56e9c71f72a37d47c7ea6aeb1c4f8be0f06d9
+  checksum: 10c0/8b6c8ff6aa5358aeb316fedfa2094a4241ce12d98a0f818cee42510ec9149fed21fc75244c5f0e8cb453337f243c09fa8a90425cd2533fd481964d8583a1f0c9
   languageName: node
   linkType: hard
 
@@ -5706,17 +5706,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0":
-  version: 3.35.0
-  resolution: "@smithy/core@npm:3.35.0"
-  dependencies:
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/9c0b8343c3ea720498e495ffdf83cb587775ff27b5a968c4f2a3da2410689ea593c005a4b8fa5c1e47624b52af5901b7aab79603acd317987920deedb53695d2
-  languageName: node
-  linkType: hard
-
-"@smithy/core@npm:^3.35.2":
+"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0, @smithy/core@npm:^3.35.2":
   version: 3.35.2
   resolution: "@smithy/core@npm:3.35.2"
   dependencies:
@@ -8283,10 +8273,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chrono-node@npm:^2.10.1":
-  version: 2.10.1
-  resolution: "chrono-node@npm:2.10.1"
-  checksum: 10c0/bb3a7259b8fd5b8657486db0482c352e2a5959000042a0962660474a438c3ffc90a85ad807bea4b0bc23f319a5e92362d0394ed093c6291c737612d3990dcd00
+"chrono-node@npm:^2.10.3":
+  version: 2.10.3
+  resolution: "chrono-node@npm:2.10.3"
+  checksum: 10c0/612aee720148dc692456fb022eeb16808333f364ca55270af8c4ad3069b531c57fc9cb5aa47bf3085eae324027e386a5a20fb9477d6b51c6b86179fb17988214
   languageName: node
   linkType: hard
 
@@ -11422,10 +11412,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next-fs-backend@npm:^2.6.8":
-  version: 2.6.8
-  resolution: "i18next-fs-backend@npm:2.6.8"
-  checksum: 10c0/c3750724c17bad6276b43bc5342a83a13eebf66b995fa7b2100224451d30754d2c0eb67364b3c025da8e712f01c7aad212fb4440816337552025e0efab9bf470
+"i18next-fs-backend@npm:^2.6.9":
+  version: 2.6.9
+  resolution: "i18next-fs-backend@npm:2.6.9"
+  checksum: 10c0/881432a5fd1c75cd44db09968807d3d517dec2ac5312629b751f7d0974ec29f6d08018da78f69becb3b43f50d539cb43f4583dd32afcf80691ce90bd6e901b23
   languageName: node
   linkType: hard
 
@@ -13371,9 +13361,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it@npm:^14.0.0, markdown-it@npm:^14.3.2":
-  version: 14.3.2
-  resolution: "markdown-it@npm:14.3.2"
+"markdown-it@npm:^14.0.0, markdown-it@npm:^14.3.3":
+  version: 14.3.3
+  resolution: "markdown-it@npm:14.3.3"
   dependencies:
     argparse: "npm:^2.0.1"
     entities: "npm:^4.5.0"
@@ -13383,7 +13373,7 @@ __metadata:
     uc.micro: "npm:^2.1.0"
   bin:
     markdown-it: bin/markdown-it.mjs
-  checksum: 10c0/51d03a244bbacc84aa7229fd784ccc16a76cb853cf93f668c4dfc1e9eb22d03138678e7743accac2304e03151a995068492fde56c7a9fbe6785b4169036cf590
+  checksum: 10c0/d6075ad320731d7fb9f127e496677f4e36cbdba839d7387dabf1f0d07b5c02bdffb46fb3969033817c04e60017e05d4269e4aa74bee58cc0a562a17cc0b6b8ff
   languageName: node
   linkType: hard
 
@@ -14389,7 +14379,7 @@ __metadata:
     "@koa/router": "npm:^15.7.0"
     "@koa/send": "npm:^6.0.0"
     "@linear/sdk": "npm:^97.0.0"
-    "@modelcontextprotocol/sdk": "npm:^1.31.0"
+    "@modelcontextprotocol/sdk": "npm:^1.32.1"
     "@noble/hashes": "npm:^2.4.0"
     "@node-oauth/oauth2-server": "npm:^5.3.0"
     "@notionhq/client": "npm:^2.3.0"
@@ -14479,7 +14469,7 @@ __metadata:
     async-sema: "npm:^3.1.1"
     browserslist-to-esbuild: "npm:^1.2.0"
     bull: "npm:^4.16.5"
-    chrono-node: "npm:^2.10.1"
+    chrono-node: "npm:^2.10.3"
     class-validator: "npm:^0.15.1"
     command-score: "npm:^0.1.2"
     compressorjs: "npm:^1.3.0"
@@ -14515,7 +14505,7 @@ __metadata:
     https-proxy-agent: "npm:^7.0.6"
     husky: "npm:^8.0.3"
     i18next: "npm:^22.5.1"
-    i18next-fs-backend: "npm:^2.6.8"
+    i18next-fs-backend: "npm:^2.6.9"
     i18next-http-backend: "npm:^3.0.6"
     i18next-parser: "npm:^9.4.0"
     invariant: "npm:^2.2.4"
@@ -14542,7 +14532,7 @@ __metadata:
     lint-staged: "npm:^16.4.0"
     mailparser: "npm:^3.9.28"
     mammoth: "npm:^1.11.0"
-    markdown-it: "npm:^14.3.2"
+    markdown-it: "npm:^14.3.3"
     markdown-it-container: "npm:^3.0.0"
     markdown-it-emoji: "npm:^3.0.0"
     mime-types: "npm:^3.0.2"

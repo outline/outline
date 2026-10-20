@@ -69,6 +69,7 @@ import GroupUser from "./GroupUser";
 import Import from "./Import";
 import Relationship from "./Relationship";
 import Revision from "./Revision";
+import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
@@ -1436,6 +1437,19 @@ class Document extends ArchivableModel<
     if (options.detach) {
       this.collectionId = null;
       this.parentDocumentId = null;
+    }
+
+    // Withdrawing the document also disables its public share links.
+    const shares = await Share.findAll({
+      where: {
+        documentId: this.id,
+        published: true,
+        revokedAt: { [Op.is]: null },
+      },
+      transaction,
+    });
+    for (const share of shares) {
+      await share.updateWithCtx(ctx, { published: false });
     }
 
     return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
