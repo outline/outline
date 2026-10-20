@@ -630,10 +630,8 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        return this.getShareEventOperator(socketio, share)?.emit(
-          event.name,
-          presentShare(share)
-        );
+        const operator = await this.getShareEventOperator(socketio, share);
+        return operator?.emit(event.name, presentShare(share));
       }
 
       case "shares.revoke": {
@@ -642,9 +640,8 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        return this.getShareEventOperator(socketio, share)?.emit(event.name, {
-          modelId: event.modelId,
-        });
+        const operator = await this.getShareEventOperator(socketio, share);
+        return operator?.emit(event.name, { modelId: event.modelId });
       }
 
       case "comments.create":
@@ -1121,21 +1118,39 @@ export default class WebsocketsProcessor {
    * @param share the share with its document loaded.
    * @returns the broadcast operator to emit to, or null if there is no audience.
    */
-  private getShareEventOperator(socketio: Server, share: Share) {
-    const guestsRoom = `team-${share.teamId}.guests`;
+  private async getShareEventOperator(socketio: Server, share: Share) {
+    const rooms: string[] = [];
     const collectionId = share.collectionId ?? share.document?.collectionId;
 
     if (collectionId) {
-      return socketio.to(`collection-${collectionId}`).except(guestsRoom);
+      rooms.push(`collection-${collectionId}`);
+    } else if (share.document) {
+      rooms.push(`user-${share.document.createdById}`);
     }
 
     if (share.document) {
-      return socketio
-        .to(`user-${share.document.createdById}`)
-        .except(guestsRoom);
+      const [userMemberships, groupMemberships] = await Promise.all([
+        UserMembership.findAll({
+          attributes: ["userId"],
+          where: { documentId: share.document.id },
+        }),
+        GroupMembership.findAll({
+          attributes: ["groupId"],
+          where: { documentId: share.document.id },
+        }),
+      ]);
+
+      rooms.push(
+        ...userMemberships.map((membership) => `user-${membership.userId}`),
+        ...groupMemberships.map((membership) => `group-${membership.groupId}`)
+      );
     }
 
-    return null;
+    if (rooms.length === 0) {
+      return null;
+    }
+
+    return socketio.to(uniq(rooms)).except(`team-${share.teamId}.guests`);
   }
 
   private async getDocumentEventChannels(
