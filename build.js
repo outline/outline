@@ -2,7 +2,7 @@
 /* oxlint-disable typescript/no-require-imports */
 /* oxlint-disable no-undef */
 const { exec } = require("child_process");
-const { readdirSync, existsSync } = require("fs");
+const { readdirSync } = require("fs");
 
 const getDirectories = (source) =>
   readdirSync(source, { withFileTypes: true })
@@ -38,34 +38,12 @@ async function build() {
 
   const d = getDirectories("./plugins");
 
-  // Compile server and shared
+  // Compile server, shared and plugins in a single SWC process, as process
+  // startup costs far more than the compilation itself.
   console.log("Compiling…");
-  const swc = (src, out) =>
-    execAsync(
-      `yarn swc "${src}" -d "${out}" --strip-leading-paths --extensions .ts,.tsx --ignore "**/*.test.ts,**/*.test.tsx,**/__mocks__/**" --quiet`
-    );
-
-  await Promise.all([
-    swc("./server", "./build/server"),
-    swc("./shared", "./build/shared"),
-  ]);
-
-  // SWC's --strip-leading-paths removes only the topmost path segment, so a
-  // `plugins/<name>/server` input keeps `<name>/server/…` and lands correctly
-  // under a `./build/plugins` output directory.
-  for (const plugin of d) {
-    const hasServer = existsSync(`./plugins/${plugin}/server`);
-
-    if (hasServer) {
-      await swc(`./plugins/${plugin}/server`, "./build/plugins");
-    }
-
-    const hasShared = existsSync(`./plugins/${plugin}/shared`);
-
-    if (hasShared) {
-      await swc(`./plugins/${plugin}/shared`, "./build/plugins");
-    }
-  }
+  await execAsync(
+    `yarn swc ./server ./shared ./plugins -d ./build --extensions .ts,.tsx --ignore "**/*.test.ts,**/*.test.tsx,**/__mocks__/**,plugins/*/client/**" --quiet`
+  );
 
   // Copy static files
   console.log("Copying static files…");
