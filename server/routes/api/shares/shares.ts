@@ -659,7 +659,6 @@ const unsubscribeShare = async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
 
 router.get(
   "shares.unsubscribe",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
   validate(T.SharesUnsubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
@@ -685,7 +684,6 @@ router.get(
 // Supports RFC 8058 one-click unsubscribe from the List-Unsubscribe header.
 router.post(
   "shares.unsubscribe",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
   validate(T.SharesUnsubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
