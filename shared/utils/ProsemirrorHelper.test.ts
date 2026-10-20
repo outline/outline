@@ -404,6 +404,20 @@ describe("ProsemirrorHelper", () => {
   });
 
   describe("getHeadings", () => {
+    it("gives each heading a unique id", () => {
+      const node = doc(
+        heading("Setup", 2),
+        heading("Setup", 2),
+        heading("Setup 1", 2)
+      );
+
+      expect(ProsemirrorHelper.getHeadings(node).map((h) => h.id)).toEqual([
+        "h-setup",
+        "h-setup-1",
+        "h-setup-1-1",
+      ]);
+    });
+
     it("marks headings that are nested inside tables", () => {
       const node = doc(
         heading("One", 1),
