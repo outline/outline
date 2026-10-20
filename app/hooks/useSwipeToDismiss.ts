@@ -113,6 +113,9 @@ export function useSwipeToDismiss(
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      if (!event.isPrimary) {
+        return;
+      }
       if (!start || !isDragging) {
         start = null;
         return;
@@ -145,7 +148,10 @@ export function useSwipeToDismiss(
       setStyles("", "", "");
     };
 
-    const handlePointerCancel = () => {
+    const handlePointerCancel = (event: PointerEvent) => {
+      if (!event.isPrimary) {
+        return;
+      }
       if (isDragging) {
         setStyles("", "", "");
       }

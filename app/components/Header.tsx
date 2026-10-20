@@ -223,6 +223,7 @@ const Actions = styled(Flex)`
   ${breakpoint("mobile", "tablet")`
     flex: 0 0 auto;
     gap: 0;
+    margin-inline-start: auto;
 
     &:not(:empty) {
       ${mobilePill}

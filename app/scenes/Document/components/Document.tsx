@@ -591,7 +591,7 @@ const EditorContainer = styled.div<EditorContainerProps>`
 
   // A notice above the editor already provides the space from the header
   &:has(> ${DocumentNotice}) {
-    --document-title-margin-top: 0;
+    --document-title-margin-top: 0px;
   }
 
   ${breakpoint("tablet")`
