@@ -87,6 +87,25 @@ const diagramTheme = (theme: DefaultTheme) => css`
   --pele-font-mono: ${theme.fontFamilyMono};
 `;
 
+/**
+ * Builds the colors of a notice block from its base and text colors.
+ *
+ * @param theme the current theme.
+ * @param base the base color of the notice.
+ * @param text the color of the notice text and icon.
+ * @returns the css for the notice colors.
+ */
+const noticeColors = (theme: DefaultTheme, base: string, text: string) => css`
+  background: ${transparentize(theme.isDark ? 0.85 : 0.92, base)};
+  border: 1px solid ${transparentize(theme.isDark ? 0.6 : 0.7, base)};
+  color: ${text};
+
+  a,
+  .${EditorStyleHelper.noticeIcon} {
+    color: ${text};
+  }
+`;
+
 const mathStyle = (props: Props) => css`
   /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
 
@@ -1530,15 +1549,12 @@ ${
   display: flex;
   align-items: center;
   position: relative;
-  background: ${transparentize(0.9, props.theme.noticeInfoBackground)};
-  border-left: 4px solid ${props.theme.noticeInfoBackground};
-  color: ${props.theme.noticeInfoText};
-  border-radius: 4px;
+  ${noticeColors(props.theme, props.theme.noticeInfoBackground, props.theme.noticeInfoText)}
+  border-radius: ${EditorStyleHelper.blockRadius};
   padding: 8px 10px 8px 8px;
   margin: 8px 0;
 
   a {
-    color: ${props.theme.noticeInfoText};
     text-decoration: underline;
   }
 
@@ -1562,7 +1578,6 @@ ${
     height: 24px;
     align-self: flex-start;
     margin-right: 4px;
-    color: ${props.theme.noticeInfoBackground};
   }
 
   &:dir(rtl) .${EditorStyleHelper.noticeIcon} {
@@ -1572,45 +1587,15 @@ ${
 }
 
 .${EditorStyleHelper.notice}.tip {
-  background: ${transparentize(0.9, props.theme.noticeTipBackground)};
-  border-left: 4px solid ${props.theme.noticeTipBackground};
-  color: ${props.theme.noticeTipText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeTipBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeTipText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeTipBackground, props.theme.noticeTipText)}
 }
 
 .${EditorStyleHelper.notice}.warning {
-  background: ${transparentize(0.9, props.theme.noticeWarningBackground)};
-  border-left: 4px solid ${props.theme.noticeWarningBackground};
-  color: ${props.theme.noticeWarningText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeWarningBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeWarningText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeWarningBackground, props.theme.noticeWarningText)}
 }
 
 .${EditorStyleHelper.notice}.success {
-  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
-  border-left: 4px solid ${props.theme.noticeSuccessBackground};
-  color: ${props.theme.noticeSuccessText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeSuccessBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeSuccessText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeSuccessBackground, props.theme.noticeSuccessText)}
 }
 
 blockquote {
