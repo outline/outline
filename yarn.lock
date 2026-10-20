@@ -5706,17 +5706,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0":
-  version: 3.35.0
-  resolution: "@smithy/core@npm:3.35.0"
-  dependencies:
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/9c0b8343c3ea720498e495ffdf83cb587775ff27b5a968c4f2a3da2410689ea593c005a4b8fa5c1e47624b52af5901b7aab79603acd317987920deedb53695d2
-  languageName: node
-  linkType: hard
-
-"@smithy/core@npm:^3.35.2":
+"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0, @smithy/core@npm:^3.35.2":
   version: 3.35.2
   resolution: "@smithy/core@npm:3.35.2"
   dependencies:
@@ -13371,23 +13361,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it@npm:^14.0.0":
-  version: 14.3.2
-  resolution: "markdown-it@npm:14.3.2"
-  dependencies:
-    argparse: "npm:^2.0.1"
-    entities: "npm:^4.5.0"
-    linkify-it: "npm:^5.0.2"
-    mdurl: "npm:^2.0.0"
-    punycode.js: "npm:^2.3.1"
-    uc.micro: "npm:^2.1.0"
-  bin:
-    markdown-it: bin/markdown-it.mjs
-  checksum: 10c0/51d03a244bbacc84aa7229fd784ccc16a76cb853cf93f668c4dfc1e9eb22d03138678e7743accac2304e03151a995068492fde56c7a9fbe6785b4169036cf590
-  languageName: node
-  linkType: hard
-
-"markdown-it@npm:^14.3.3":
+"markdown-it@npm:^14.0.0, markdown-it@npm:^14.3.3":
   version: 14.3.3
   resolution: "markdown-it@npm:14.3.3"
   dependencies:
