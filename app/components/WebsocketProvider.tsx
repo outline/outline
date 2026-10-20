@@ -285,6 +285,7 @@ function useDocumentHandlers() {
     userMemberships,
     groupMemberships,
     groups,
+    shares,
   } = useStores();
 
   return (socket: SocketWithAuthentication) => {
@@ -321,6 +322,7 @@ function useDocumentHandlers() {
             documents.add(document);
           }
           policies.remove(document.id);
+          shares.unpublishForDocument(document.id);
 
           if (event.collectionId) {
             const collection = collections.get(event.collectionId);

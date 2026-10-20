@@ -46,6 +46,21 @@ export default class SharesStore extends Store<Share> {
     this.remove(share.id);
   };
 
+  /**
+   * Marks cached shares of a document as not published, matching the server
+   * behavior when the document is unpublished.
+   *
+   * @param documentId the ID of the unpublished document.
+   */
+  @action
+  unpublishForDocument = (documentId: string) => {
+    this.data.forEach((share) => {
+      if (share.documentId === documentId) {
+        share.published = false;
+      }
+    });
+  };
+
   @override
   async create(
     params:
