@@ -112,10 +112,18 @@ export function createTable({
   /** The widths of each column in the table. */
   colWidth: number;
 }): Command {
-  return (state, dispatch) => {
+  return (state, dispatch, view) => {
     if (dispatch) {
       const offset = state.tr.selection.anchor + 1;
-      const nodes = createTableInner(state, rowsCount, colsCount, colWidth);
+      const { $from } = state.selection;
+
+      // Fit the columns to the block, which is narrower in a notice or list.
+      const block = $from.depth > 0 ? view?.nodeDOM($from.before()) : null;
+      const width =
+        block instanceof HTMLElement && block.clientWidth
+          ? Math.min(colWidth, Math.floor(block.clientWidth / colsCount))
+          : colWidth;
+      const nodes = createTableInner(state, rowsCount, colsCount, width);
       const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
       const resolvedPos = tr.doc.resolve(offset);
       tr.setSelection(TextSelection.near(resolvedPos));

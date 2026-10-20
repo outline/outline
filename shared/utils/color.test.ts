@@ -1,4 +1,5 @@
 import {
+  blendColors,
   ensureContrast,
   palette,
   stringToColor,
@@ -141,5 +142,28 @@ describe("ensureContrast", () => {
 
   it("returns currentColor unchanged", () => {
     expect(ensureContrast("currentColor", true, "#111")).toBe("currentColor");
+  });
+});
+
+describe("blendColors", () => {
+  it("multiplies a color onto the backdrop", () => {
+    expect(blendColors("#ffffff", "#336699", "multiply")).toBe("#336699");
+    expect(blendColors("#000000", "#336699", "multiply")).toBe("#000000");
+    expect(blendColors("#808080", "#ff0000", "multiply")).toBe("#800000");
+  });
+
+  it("screens a color onto the backdrop", () => {
+    expect(blendColors("#000000", "#336699", "screen")).toBe("#336699");
+    expect(blendColors("#ffffff", "#336699", "screen")).toBe("#ffffff");
+    expect(blendColors("#808080", "#000000", "screen")).toBe("#808080");
+  });
+
+  it("applies the alpha of the color", () => {
+    expect(blendColors("rgba(0, 0, 0, 0.5)", "#ffffff", "multiply")).toBe(
+      "#808080"
+    );
+    expect(blendColors("rgba(255, 255, 255, 0)", "#336699", "screen")).toBe(
+      "#336699"
+    );
   });
 });
