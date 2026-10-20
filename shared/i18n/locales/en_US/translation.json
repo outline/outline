@@ -1134,6 +1134,7 @@
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.",
   "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Continue with Passkey": "Continue with Passkey",
+  "Use a passkey from your browser": "Use a passkey from your browser",
   "Signing in": "Signing in",
   "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Choose workspace": "Choose workspace",
