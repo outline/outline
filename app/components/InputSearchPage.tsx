@@ -122,6 +122,8 @@ const InputMaxWidth = styled(Input).attrs({ round: true })`
   /* On mobile the input grows to fill the header, so add a gap before the
    * adjacent action button (e.g. "New doc"). */
   ${breakpoint("mobile", "tablet")`
+    flex: 1;
+    min-width: 0;
     margin-inline-end: 8px;
   `}
 `;
