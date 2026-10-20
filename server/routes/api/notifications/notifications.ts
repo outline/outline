@@ -113,10 +113,10 @@ router.post(
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Notification.count({
+      Notification.unscoped().count({
         where,
       }),
-      Notification.count({
+      Notification.unscoped().count({
         where: {
           ...where,
           viewedAt: {

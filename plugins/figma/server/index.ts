@@ -16,6 +16,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
+      name: "Figma",
       value: { unfurl: Figma.unfurl, cacheExpiry: 10 * Minute.seconds },
     },
   ]);

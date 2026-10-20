@@ -142,7 +142,7 @@ function PasskeysSettings() {
             disabled={isRegistering || !can.createUserPasskey}
             icon={<PlusIcon />}
           >
-            {isRegistering ? `${t("Registering")}…` : `${t("Add Passkey")}…`}
+            {isRegistering ? `${t("Registering")}…` : `${t("Add passkey")}…`}
           </Button>
         </Action>
       }
@@ -158,9 +158,9 @@ function PasskeysSettings() {
 
       {team.passkeysEnabled === false && (
         <Notice>
-          {t("Sign-in with Passkey is currently disabled for this team.")}{" "}
+          {t("Passkey sign-in is currently disabled for this workspace.")}{" "}
           {can.update
-            ? t("Enable for all users in Settings -> Authentication.")
+            ? t("Enable for all users in Settings → Authentication.")
             : t("Contact a workspace admin to enable it.")}
         </Notice>
       )}

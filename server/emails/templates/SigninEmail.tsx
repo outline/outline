@@ -29,7 +29,7 @@ export default class SigninEmail extends BaseEmail<Props, void> {
   protected subject({ token }: Props) {
     return token
       ? this.t("Magic Sign-in Link")
-      : this.t("Sign in verification code");
+      : this.t("Sign-in verification code");
   }
 
   protected preview(): string {

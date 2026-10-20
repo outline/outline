@@ -12,7 +12,7 @@ PluginManager.add([
       after: "Applications",
       icon: Icon,
       description:
-        "Automate downstream workflows with real-time JSON POSTs, subscribe to events in Outline so external systems can react instantly.",
+        "Automate downstream workflows with real-time JSON POSTs. Subscribe to events in Outline so external systems can react instantly.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },

@@ -143,15 +143,15 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
           },
           {
             shortcut: <KeyboardShortcut keys={["ctrl", "shift", "1"]} />,
-            label: t("Large header"),
+            label: t("Big heading"),
           },
           {
             shortcut: <KeyboardShortcut keys={["ctrl", "shift", "2"]} />,
-            label: t("Medium header"),
+            label: t("Medium heading"),
           },
           {
             shortcut: <KeyboardShortcut keys={["ctrl", "shift", "3"]} />,
-            label: t("Small header"),
+            label: t("Small heading"),
           },
           {
             shortcut: <KeyboardShortcut keys={["ctrl", "shift", "\\"]} />,
@@ -281,13 +281,13 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
             shortcut: (
               <KeyboardShortcut keys={["#", "space"]} combination="sequence" />
             ),
-            label: t("Large header"),
+            label: t("Big heading"),
           },
           {
             shortcut: (
               <KeyboardShortcut keys={["##", "space"]} combination="sequence" />
             ),
-            label: t("Medium header"),
+            label: t("Medium heading"),
           },
           {
             shortcut: (
@@ -296,7 +296,7 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
                 combination="sequence"
               />
             ),
-            label: t("Small header"),
+            label: t("Small heading"),
           },
           {
             shortcut: (

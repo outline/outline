@@ -632,7 +632,11 @@ export type Unfurl =
       [x: string]: JSONValue;
     };
 
-export type UnfurlError = { error: string };
+export type UnfurlError = {
+  error: string;
+  /** How long to cache the error for in seconds, defaults to one minute. */
+  cacheExpiry?: number;
+};
 
 export type UnfurlSignature = (
   url: string,

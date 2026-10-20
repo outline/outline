@@ -105,7 +105,7 @@ export function CreateGroupDialog() {
       <Flex column>
         <Input
           type="text"
-          label="Name"
+          label={t("Name")}
           onChange={(e) => setName(e.target.value)}
           value={name}
           maxLength={GroupValidation.maxNameLength}
@@ -124,7 +124,7 @@ export function CreateGroupDialog() {
         />
         <Input
           type="textarea"
-          label="Description"
+          label={t("Description")}
           placeholder={t("Optional")}
           onChange={(e) => setDescription(e.target.value)}
           value={description || ""}

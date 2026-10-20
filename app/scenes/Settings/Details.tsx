@@ -363,7 +363,7 @@ function Details() {
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
-              "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
+              "When enabled, documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
             )}
           >
             <Switch

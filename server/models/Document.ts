@@ -69,6 +69,7 @@ import GroupUser from "./GroupUser";
 import Import from "./Import";
 import Relationship from "./Relationship";
 import Revision from "./Revision";
+import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
@@ -95,6 +96,15 @@ const stateIfContentEmpty: ProjectionAlias = [
     `CASE WHEN document.content IS NULL THEN document.state ELSE NULL END`
   ),
   "state",
+];
+
+// The markdown text column is only needed to deserialize documents that have
+// neither content nor state.
+const textIfContentAndStateEmpty: ProjectionAlias = [
+  Sequelize.literal(
+    `CASE WHEN document.content IS NULL AND document.state IS NULL THEN document.text ELSE NULL END`
+  ),
+  "text",
 ];
 
 type AdditionalFindOptions = {
@@ -164,6 +174,12 @@ const publishedWhere: WhereOptions<Document> = {
     attributes: {
       exclude: ["state"],
       include: [stateIfContentEmpty],
+    },
+  },
+  withoutStateOrText: {
+    attributes: {
+      exclude: ["state", "text"],
+      include: [stateIfContentEmpty, textIfContentAndStateEmpty],
     },
   },
   withoutContent: {
@@ -890,7 +906,7 @@ class Document extends ArchivableModel<
   ) {
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
-      "withoutState",
+      "withoutStateOrText",
       {
         method: ["withViews", userId],
       },
@@ -1409,6 +1425,19 @@ class Document extends ArchivableModel<
 
     if (options.detach) {
       this.collectionId = null;
+    }
+
+    // Withdrawing the document also disables its public share links.
+    const shares = await Share.findAll({
+      where: {
+        documentId: this.id,
+        published: true,
+        revokedAt: { [Op.is]: null },
+      },
+      transaction,
+    });
+    for (const share of shares) {
+      await share.updateWithCtx(ctx, { published: false });
     }
 
     return this.saveWithCtx(ctx, undefined, { name: "unpublish" });

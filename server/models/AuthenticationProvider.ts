@@ -28,6 +28,7 @@ import Length from "./validators/Length";
 
 // TODO: Avoid this hardcoding of plugins
 import AzureClient from "plugins/azure/server/azure";
+import DiscordClient from "plugins/discord/server/discord";
 import GoogleClient from "plugins/google/server/google";
 import OIDCClient from "plugins/oidc/server/oidc";
 import type { APIContext } from "@server/types";
@@ -125,6 +126,8 @@ class AuthenticationProvider extends Model<
         return new AzureClient();
       case "oidc":
         return new OIDCClient();
+      case "discord":
+        return new DiscordClient();
       default:
         return undefined;
     }

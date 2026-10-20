@@ -23,6 +23,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
+      name: "Linear",
       value: { unfurl: Linear.unfurl, cacheExpiry: Minute.seconds },
     },
     {

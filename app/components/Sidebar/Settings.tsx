@@ -43,7 +43,7 @@ function SettingsSidebar() {
   return (
     <Sidebar canCollapse={false}>
       <SidebarButton
-        title={t("Return to App")}
+        title={t("Back to app")}
         image={<StyledBackIcon />}
         onClick={returnToApp}
       />

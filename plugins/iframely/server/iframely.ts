@@ -6,6 +6,7 @@ import type { UnfurlError, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 import { cdnPath } from "@shared/utils/urls";
+import { Day } from "@shared/utils/time";
 
 class Iframely {
   public static defaultUrl = "https://iframe.ly";
@@ -48,8 +49,16 @@ class Iframely {
   public static unfurl: UnfurlSignature = async (url: string) => {
     const data = await Iframely.requestResource(url);
 
+    // In addition to our custom UnfurlError, sometimes iframely returns error in the response body.
     if ("error" in data) {
-      return { error: data.error } as UnfurlError; // In addition to our custom UnfurlError, sometimes iframely returns error in the response body.
+      return {
+        error: String(data.error),
+        cacheExpiry: Iframely.isPermanentError(
+          "status" in data ? data.status : undefined
+        )
+          ? Day.seconds
+          : undefined,
+      } satisfies UnfurlError;
     }
 
     const parsedData = data as {
@@ -73,6 +82,22 @@ class Iframely {
           : ((parsedData.links.icon ?? [])[0]?.href ?? ""),
     };
   };
+
+  /**
+   * Whether an error status returned by Iframely is expected to be the same on
+   * the next request, such as a private or missing page.
+   *
+   * @param status the status code from the Iframely response body.
+   * @returns true if the error is not transient.
+   */
+  private static isPermanentError(status: unknown) {
+    return (
+      typeof status === "number" &&
+      status >= 400 &&
+      status < 500 &&
+      ![408, 418, 429].includes(status)
+    );
+  }
 }
 
 export default Iframely;

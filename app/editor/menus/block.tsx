@@ -273,15 +273,15 @@ export default function blockMenuItems(
     },
     {
       name: "code_block",
-      title: "Mermaid Diagram",
-      icon: <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
+      title: "Mermaid diagram",
+      icon: <Img src="/images/mermaidjs.png" alt="Mermaid diagram" />,
       keywords: "flowchart graph sequence gantt",
       attrs: { language: "mermaid" },
     },
     {
       name: "editDiagram",
-      title: "Diagrams.net Diagram",
-      icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
+      title: "Diagrams.net diagram",
+      icon: <Img src="/images/diagrams.png" alt="Diagrams.net diagram" />,
       keywords: "flowchart drawio draw.io whiteboard",
     },
   ];
