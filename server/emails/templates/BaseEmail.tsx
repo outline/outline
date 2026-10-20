@@ -234,6 +234,11 @@ export default abstract class BaseEmail<
     return <img src={notification.pixelUrl} alt="" width="1" height="1" />;
   }
 
+  /** The receiving user's language in BCP47 format. */
+  private get locale() {
+    return unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE);
+  }
+
   /**
    * Translate a string using the receiving user's language preference.
    *
@@ -244,8 +249,22 @@ export default abstract class BaseEmail<
   protected t(key: string, options?: Record<string, unknown>): string {
     return i18nT(key, {
       ...options,
-      lng: unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE),
+      lng: this.locale,
     }) as string;
+  }
+
+  /**
+   * Join a list of items into a single string using the receiving user's
+   * language preference, e.g. "A, B and C".
+   *
+   * @param items The items to join.
+   * @returns The joined string.
+   */
+  protected formatList(items: string[]): string {
+    return new Intl.ListFormat(this.locale, {
+      style: "long",
+      type: "conjunction",
+    }).format(items);
   }
 
   /**
