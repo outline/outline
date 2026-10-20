@@ -2,7 +2,15 @@
 /* oxlint-disable typescript/no-require-imports */
 /* oxlint-disable no-undef */
 const { exec, spawn } = require("child_process");
-const { existsSync, mkdirSync, readdirSync, rmSync, watch } = require("fs");
+const {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  watch,
+} = require("fs");
 const { writeFile } = require("fs/promises");
 const path = require("path");
 
@@ -86,16 +94,39 @@ function isCompiled(file) {
 }
 
 /**
- * Watches the source directories and compiles each changed file, or removes
- * the output of a deleted file. A full build must run first. When a command is
- * passed it is run, and restarted after each change that affects the server.
+ * The build output path of a source file.
+ * @param file {string} path relative to the project root.
+ * @return {string | undefined} the output path, or undefined if the file is not
+ *   part of the build.
+ */
+function getDest(file) {
+  if (isCompiled(file)) {
+    return path.join("build", file.replace(/\.tsx?$/, ".js"));
+  }
+  if (
+    /^plugins[\\/][^\\/]+[\\/]plugin\.json$/.test(file) ||
+    /^shared[\\/]i18n[\\/]locales[\\/]/.test(file)
+  ) {
+    return path.join("build", file);
+  }
+  return undefined;
+}
+
+/**
+ * Builds, then watches the source directories and updates the output of each
+ * changed, added or removed file. A full build runs again after a failed one.
+ * When a command is passed it is run, and restarted after each change that
+ * affects the server.
  * @param command {string[]} the command and arguments to run, may be empty.
  */
-function watchSources(command) {
+async function watchSources(command) {
   const swc = require("@swc/core");
   const timers = new Map();
   let child;
   let restartTimer;
+  let isBuilt = false;
+  let isBuilding = false;
+  let isBuildPending = false;
 
   const startServer = () => {
     // Run in a new process group so the forked service processes are stopped
@@ -126,7 +157,7 @@ function watchSources(command) {
   };
 
   const restartServer = () => {
-    if (!command.length) {
+    if (!command.length || !isBuilt) {
       return;
     }
     clearTimeout(restartTimer);
@@ -136,13 +167,42 @@ function watchSources(command) {
     }, 100);
   };
 
-  const handleChange = async (file) => {
-    const dest = path.join("build", file.replace(/\.tsx?$/, ".js"));
-
-    if (!existsSync(file)) {
-      rmSync(dest, { force: true });
-      restartServer();
+  const fullBuild = async () => {
+    if (isBuilding) {
+      isBuildPending = true;
       return;
+    }
+
+    isBuilding = true;
+    try {
+      await build();
+      isBuilt = true;
+    } catch (err) {
+      console.error(err.message ?? err);
+      console.log("Build failed, waiting for changes…");
+    } finally {
+      isBuilding = false;
+    }
+
+    if (isBuildPending) {
+      isBuildPending = false;
+      await fullBuild();
+    } else if (isBuilt && command.length) {
+      startServer();
+    }
+  };
+
+  const updateFile = async (file) => {
+    const dest = getDest(file);
+    if (!dest) {
+      return false;
+    }
+
+    if (!isCompiled(file)) {
+      mkdirSync(path.dirname(dest), { recursive: true });
+      copyFileSync(file, dest);
+      console.log(`Copied ${file}`);
+      return true;
     }
 
     const start = performance.now();
@@ -153,26 +213,52 @@ function watchSources(command) {
       console.log(
         `Compiled ${file} (${(performance.now() - start).toFixed(1)}ms)`
       );
+      return true;
     } catch (err) {
       console.error(err.message ?? err);
-      return;
+      return false;
+    }
+  };
+
+  const handleChange = async (file) => {
+    const stats = statSync(file, { throwIfNoEntry: false });
+    let isChanged = false;
+
+    if (!stats) {
+      // The path of a removed directory maps directly to its output.
+      const dest = getDest(file) ?? path.join("build", file);
+      if (existsSync(dest)) {
+        rmSync(dest, { recursive: true, force: true });
+        isChanged = true;
+      }
+    } else if (stats.isDirectory()) {
+      // A directory that was moved in does not emit events for its files.
+      for (const entry of readdirSync(file, { recursive: true })) {
+        isChanged = (await updateFile(path.join(file, entry))) || isChanged;
+      }
+    } else {
+      isChanged = await updateFile(file);
     }
 
     // The editor and components are mostly used by the client, so changes
     // there are picked up on the next restart.
-    if (!/^shared[\\/](editor|components)[\\/]/.test(file)) {
+    if (isChanged && !/^shared[\\/](editor|components)[\\/]/.test(file)) {
       restartServer();
     }
   };
 
   for (const dir of ["server", "shared", "plugins"]) {
     watch(dir, { recursive: true }, (_event, filename) => {
-      const file = filename ? path.join(dir, filename) : undefined;
-      if (!file || !isCompiled(file)) {
+      if (!filename) {
+        return;
+      }
+      if (!isBuilt) {
+        void fullBuild();
         return;
       }
 
       // Editors can emit several events for one save, so debounce each file.
+      const file = path.join(dir, filename);
       clearTimeout(timers.get(file));
       timers.set(
         file,
@@ -194,9 +280,7 @@ function watchSources(command) {
     process.once(signal, () => stopServer(() => process.exit(0)));
   }
 
-  if (command.length) {
-    startServer();
-  }
+  await fullBuild();
   console.log("Watching for changes…");
 }
 
@@ -204,7 +288,7 @@ if (process.argv.includes("--watch")) {
   // Arguments after "--" are the command to run, e.g. the server.
   const separator = process.argv.indexOf("--");
   const command = separator === -1 ? [] : process.argv.slice(separator + 1);
-  void build().then(() => watchSources(command));
+  void watchSources(command);
 } else {
   void build();
 }
