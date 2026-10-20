@@ -596,6 +596,8 @@ const noticeColors = (theme: DefaultTheme, color: string) => {
     --notice-table-header: ${mix(0.25, divider, background)};
     --notice-code-background: ${blend(theme.codeBackground)};
     --notice-code-border: ${blend(theme.codeBorder)};
+    --table-grip: ${divider};
+    --table-grip-border: ${background};
   `;
 };
 
@@ -2404,7 +2406,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2449,7 +2451,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2491,7 +2493,7 @@ table {
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
       height: 12px;
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add column controls so narrow columns stay draggable */
       z-index: 2;
@@ -2502,7 +2504,7 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2526,8 +2528,8 @@ table {
       top: var(--span-start, 0);
       height: var(--span-size, 100%);
       width: 12px;
-      background: ${props.theme.divider};
-      border-color: ${props.theme.background};
+      background: var(--table-grip, ${props.theme.divider});
+      border-color: var(--table-grip-border, ${props.theme.background});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add row controls so short rows stay draggable */
       z-index: 2;
@@ -2538,7 +2540,7 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2557,11 +2559,11 @@ table {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       width: 13px;
       height: 13px;
       border-radius: 13px;
-      border: 2px solid ${props.theme.background};
+      border: 2px solid var(--table-grip-border, ${props.theme.background});
       position: absolute;
       top: -18px;
       left: -18px;
