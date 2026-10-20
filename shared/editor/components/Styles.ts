@@ -656,11 +656,12 @@ const noticeStyle = (props: Props) => css`
       z-index: 21;
     }
 
-    /* the scroll area only reaches into the notice padding and icon gutter */
+    /* the scroll area fills the notice padding and icon gutter, which leaves
+       room for the row controls */
     .${EditorStyleHelper.tableScrollable} {
-      margin-left: -20px;
+      margin-left: -36px;
       margin-right: -10px;
-      padding-left: 20px;
+      padding-left: 36px;
       padding-right: 10px;
     }
 
@@ -670,8 +671,8 @@ const noticeStyle = (props: Props) => css`
     }
 
     .${EditorStyleHelper.tableShadowLeft}::before {
-      left: -20px;
-      border-left: 20px solid var(--notice-background);
+      left: -36px;
+      border-left: 36px solid var(--notice-background);
     }
 
     .${EditorStyleHelper.tableShadowRight}::after {
@@ -681,20 +682,20 @@ const noticeStyle = (props: Props) => css`
 
     &:dir(rtl) {
       .${EditorStyleHelper.tableScrollable} {
-        margin-left: -10px;
-        margin-right: -20px;
-        padding-left: 10px;
-        padding-right: 20px;
+        margin-left: -8px;
+        margin-right: -38px;
+        padding-left: 8px;
+        padding-right: 38px;
       }
 
       .${EditorStyleHelper.tableShadowLeft}::before {
-        left: -10px;
-        border-left-width: 10px;
+        left: -8px;
+        border-left-width: 8px;
       }
 
       .${EditorStyleHelper.tableShadowRight}::after {
-        right: -20px;
-        border-right-width: 20px;
+        right: -38px;
+        border-right-width: 38px;
       }
     }
 
