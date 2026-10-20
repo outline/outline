@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import type { IntegrationType } from "@shared/types";
+import { IntegrationService, type IntegrationType } from "@shared/types";
+import { ChatUtils } from "@shared/utils/ChatUtils";
 import Button from "~/components/Button";
 import { generateOAuthStateNonce } from "~/utils/oauth";
 import { redirectTo } from "~/utils/urls";
-import { SlackOAuthNonceCookie, SlackUtils } from "../../shared/SlackUtils";
+import { SlackUtils } from "../../shared/SlackUtils";
 
 type Props = {
   type: IntegrationType;
@@ -26,9 +27,11 @@ function SlackButton({
   const { t } = useTranslation();
 
   const handleClick = () => {
-    const nonce = generateOAuthStateNonce(SlackOAuthNonceCookie);
+    const nonce = generateOAuthStateNonce(
+      ChatUtils.nonceCookie(IntegrationService.Slack)
+    );
     const { teamId, ...rest } = stateData;
-    const state = SlackUtils.createState(teamId, type, { nonce, ...rest });
+    const state = ChatUtils.createState(teamId, type, { nonce, ...rest });
     redirectTo(SlackUtils.authUrl(state, scopes, redirectUri));
   };
 

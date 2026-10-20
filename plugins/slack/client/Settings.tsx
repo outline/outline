@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { ChatUtils } from "@shared/utils/ChatUtils";
 import type Collection from "~/models/Collection";
 import type Integration from "~/models/Integration";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
@@ -20,7 +21,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { SlackUtils } from "../shared/SlackUtils";
 import SlackIcon from "./Icon";
 import SlackButton from "./components/SlackButton";
 import SlackListItem from "./components/SlackListItem";
@@ -103,7 +103,7 @@ function Slack() {
             <SlackButton
               type={IntegrationType.LinkedAccount}
               state={{ teamId: team.id }}
-              redirectUri={SlackUtils.connectUrl()}
+              redirectUri={ChatUtils.connectUrl(IntegrationService.Slack)}
               label={t("Connect")}
             />
           )}
@@ -142,7 +142,7 @@ function Slack() {
                   type={IntegrationType.Command}
                   scopes={["commands", "links:read", "links:write"]}
                   state={{ teamId: team.id }}
-                  redirectUri={SlackUtils.connectUrl()}
+                  redirectUri={ChatUtils.connectUrl(IntegrationService.Slack)}
                   icon={<SlackIcon />}
                 />
               )}
@@ -185,7 +185,9 @@ function Slack() {
                         teamId: team.id,
                         collectionId: collection.id,
                       }}
-                      redirectUri={SlackUtils.connectUrl()}
+                      redirectUri={ChatUtils.connectUrl(
+                        IntegrationService.Slack
+                      )}
                       label={t("Connect")}
                     />
                   }
