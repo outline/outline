@@ -1,4 +1,5 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { sortBy } from "es-toolkit/compat";
 import { Op } from "sequelize";
 import {
   AllowNull,
@@ -123,7 +124,8 @@ class Revision extends ParanoidModel<
   collaboratorIds: string[];
 
   /**
-   * Get the collaborators for this revision.
+   * Get the collaborators for this revision, with the author first and the
+   * others in the order they were recorded.
    */
   get collaborators() {
     const otherCollaboratorIds = (this.collaboratorIds ?? []).filter(
@@ -141,7 +143,10 @@ class Revision extends ParanoidModel<
         },
       },
       paranoid: false,
-    }).then((others) => [this.user, ...others]);
+    }).then((others) => [
+      this.user,
+      ...sortBy(others, [(user) => otherCollaboratorIds.indexOf(user.id)]),
+    ]);
   }
 
   // hooks

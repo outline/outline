@@ -371,10 +371,11 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   const actor = ctx.state.auth.user;
 
   const user = await User.findByPk(userId, {
-    rejectOnEmpty: true,
     transaction,
     lock: transaction.LOCK.UPDATE,
   });
+  authorize(actor, "update", user);
+
   await Team.findByPk(user.teamId, {
     transaction,
     lock: transaction.LOCK.UPDATE,

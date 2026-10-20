@@ -148,3 +148,8 @@ export const pulse = keyframes`
  * The duration of the sidebar appearing animation in ms
  */
 export const sidebarAppearDuration = 600;
+
+/**
+ * The duration and easing of the vaul drawer, shared so that panels move the same way.
+ */
+export const drawerTransition = "500ms cubic-bezier(0.32, 0.72, 0, 1)";

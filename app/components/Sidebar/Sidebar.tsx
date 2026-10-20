@@ -12,9 +12,10 @@ import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import { useResizeHandle } from "~/hooks/useResizeHandle";
 import useStores from "~/hooks/useStores";
+import { useSwipeToDismiss } from "~/hooks/useSwipeToDismiss";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
-import { fadeIn } from "~/styles/animations";
+import { drawerTransition } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
@@ -71,6 +72,7 @@ function Sidebar({
   const isSmallerThanMinimum = width < minWidth;
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const internalRef = React.useRef<HTMLDivElement | null>(null);
+  const backdropRef = React.useRef<HTMLAnchorElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
 
   const measure = React.useCallback(
@@ -258,16 +260,17 @@ function Sidebar({
     [ui, history]
   );
 
+  // On mobile the width comes from the viewport, not the resizable desktop width.
   const style = React.useMemo(
-    () => ({
-      width: `${width}px`,
-    }),
-    [width]
+    () => (isMobile ? undefined : { width: `${width}px` }),
+    [isMobile, width]
   );
 
-  const handleCloseSidebar = () => {
-    ui.toggleMobileSidebar();
-  };
+  useSwipeToDismiss(internalRef, backdropRef, {
+    enabled: isMobile && ui.mobileSidebarVisible,
+    side: direction === "rtl" ? "right" : "left",
+    onDismiss: ui.hideMobileSidebar,
+  });
 
   return (
     <TooltipProvider>
@@ -316,18 +319,24 @@ function Sidebar({
             </SidebarButton>
           </AccountMenu>
         )}
-        <ResizeBorder
-          onMouseDown={handleMouseDown}
-          onDoubleClick={sidebarIsClosed ? undefined : handleReset}
-        />
+        {!isMobile && (
+          <ResizeBorder
+            onMouseDown={handleMouseDown}
+            onDoubleClick={sidebarIsClosed ? undefined : handleReset}
+          />
+        )}
       </Container>
-      {ui.mobileSidebarVisible && <Backdrop onClick={handleCloseSidebar} />}
+      <Backdrop
+        ref={backdropRef}
+        $visible={ui.mobileSidebarVisible}
+        onClick={ui.hideMobileSidebar}
+        aria-hidden
+      />
     </TooltipProvider>
   );
 }
 
-const Backdrop = styled.a`
-  animation: ${fadeIn} 250ms ease-in-out;
+const Backdrop = styled.a<{ $visible: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -336,6 +345,13 @@ const Backdrop = styled.a`
   cursor: default;
   z-index: ${depths.mobileSidebar - 1};
   background: ${s("backdrop")};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
+  transition: opacity ${drawerTransition};
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
 `;
 
 type ContainerProps = {
@@ -372,7 +388,7 @@ const Container = styled(Flex)<ContainerProps>`
   background: ${s("sidebarBackground")};
   transition:
     box-shadow 150ms ease-in-out,
-    transform 250ms cubic-bezier(0.34, 1.15, 0.64, 1)
+    transform ${drawerTransition}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
@@ -382,7 +398,53 @@ const Container = styled(Flex)<ContainerProps>`
   max-width: 80%;
   min-width: 280px;
   padding-inline-start: var(--sal);
+  padding-bottom: var(--sab, 0px);
   ${fadeOnDesktopBackgrounded()}
+
+  ${breakpoint("mobile", "tablet")`
+    /* Leaves a strip of the page visible to tap and close, as in Material navigation drawers. */
+    width: calc(100% - 56px);
+    max-width: 360px;
+    min-width: 0;
+    border-start-end-radius: 8px;
+    border-end-end-radius: 8px;
+    /* The negative spread keeps the shadow off the edge side, so a stretch cannot reveal it. */
+    box-shadow: ${(props: ContainerProps) =>
+      props.$mobileSidebarVisible
+        ? "12px 0 24px -12px rgb(0 0 0 / 16%)"
+        : "none"};
+
+    [dir="rtl"] & {
+      box-shadow: ${(props: ContainerProps) =>
+        props.$mobileSidebarVisible
+          ? "-12px 0 24px -12px rgb(0 0 0 / 16%)"
+          : "none"};
+    }
+
+    @supports (corner-shape: superellipse(2)) {
+      border-start-end-radius: 14px;
+      border-end-end-radius: 14px;
+      corner-shape: superellipse(2);
+    }
+
+    /* Fills the space behind the edge when the sidebar is stretched past open,
+       overlapping by a pixel so no seam shows at fractional offsets. */
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      inset-inline-end: calc(100% - 1px);
+      width: 100%;
+      background: inherit;
+    }
+
+    /* Horizontal gestures drag the sidebar closed, scroll containers inside reset the value. */
+    &,
+    & * {
+      touch-action: pan-y pinch-zoom;
+    }
+  `};
 
   [dir="rtl"] & {
     transform: translateX(

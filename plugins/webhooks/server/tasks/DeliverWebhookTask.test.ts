@@ -6,16 +6,22 @@ import {
   type StrictRequest,
 } from "msw";
 import { server } from "@server/test/msw";
-import { WebhookDelivery } from "@server/models";
+import { Revision, WebhookDelivery } from "@server/models";
 import {
   buildCollection,
+  buildComment,
   buildDocument,
   buildPersonalCollection,
   buildUser,
   buildWebhookDelivery,
   buildWebhookSubscription,
 } from "@server/test/factories";
-import type { DocumentEvent, UserEvent } from "@server/types";
+import type {
+  CommentEvent,
+  DocumentEvent,
+  RevisionEvent,
+  UserEvent,
+} from "@server/types";
 import DeliverWebhookTask, {
   isExpectedNetworkError,
 } from "./DeliverWebhookTask";
@@ -158,6 +164,89 @@ describe("DeliverWebhookTask", () => {
     expect(captured[0].request.headers.get("Outline-Signature")).toMatch(
       /^t=[0-9]+,s=[a-z0-9]+$/
     );
+  });
+
+  test("should include the document collectionId in comment events", async () => {
+    const user = await buildUser();
+    const subscription = await buildWebhookSubscription({
+      teamId: user.teamId,
+      createdById: user.id,
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const captured = captureWebhook("http://example.com");
+
+    const event: CommentEvent = {
+      name: "comments.create",
+      modelId: comment.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      ip,
+    };
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event,
+    });
+
+    expect(captured.length).toBe(1);
+    const parsedBody = JSON.parse(captured[0].body);
+    expect(parsedBody.payload.id).toBe(comment.id);
+    expect(parsedBody.payload.model.collectionId).toBe(collection.id);
+    expect(parsedBody.payload.model.documentId).toBe(document.id);
+  });
+
+  test("should include the document collectionId in revision events", async () => {
+    const user = await buildUser();
+    const subscription = await buildWebhookSubscription({
+      teamId: user.teamId,
+      createdById: user.id,
+      url: "http://example.com",
+      events: ["*"],
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const revision = await Revision.buildFromDocument(document).save();
+    const captured = captureWebhook("http://example.com");
+
+    const event: RevisionEvent = {
+      name: "revisions.create",
+      modelId: revision.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      ip,
+    };
+    await new DeliverWebhookTask().perform({
+      subscriptionId: subscription.id,
+      event,
+    });
+
+    expect(captured.length).toBe(1);
+    const parsedBody = JSON.parse(captured[0].body);
+    expect(parsedBody.payload.id).toBe(revision.id);
+    expect(parsedBody.payload.model.collectionId).toBe(collection.id);
+    expect(parsedBody.payload.model.documentId).toBe(document.id);
   });
 
   test("should hit the subscription url when the eventing model doesn't exist", async () => {

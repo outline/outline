@@ -105,7 +105,7 @@ router.get(
 
     ctx.set(
       "Cache-Control",
-      `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
+      `max-age=${BaseStorage.getSignedUrlMinimumLifetime()}, immutable`
     );
     ctx.redirect(await emoji.attachment.signedUrl);
   }

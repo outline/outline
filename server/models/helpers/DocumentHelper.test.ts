@@ -1369,6 +1369,54 @@ Second notes.`
       );
     });
 
+    it("should resolve anchors for a heading that ends in a number", async () => {
+      const document = await buildDocument({
+        text: `## Setup
+
+First setup.
+
+## Setup
+
+Second setup.
+
+## Setup 1
+
+Third setup.`,
+      });
+
+      expect(DocumentHelper.getAnchorContent(document, "h-setup-1")).toBe(
+        `## Setup
+
+Second setup.`
+      );
+      expect(DocumentHelper.getAnchorContent(document, "h-setup-1-1")).toBe(
+        `## Setup 1
+
+Third setup.`
+      );
+    });
+
+    it("should count nested headings when numbering duplicates", async () => {
+      const document = await buildDocument({
+        text: `> ## Notes
+>
+> Quoted notes.
+
+## Notes
+
+Top-level notes.`,
+      });
+
+      expect(
+        DocumentHelper.getAnchorContent(document, "h-notes")
+      ).toBeUndefined();
+      expect(DocumentHelper.getAnchorContent(document, "h-notes-1")).toBe(
+        `## Notes
+
+Top-level notes.`
+      );
+    });
+
     it("should return undefined when no heading matches", async () => {
       const document = await buildDocument({
         text: `## Installation

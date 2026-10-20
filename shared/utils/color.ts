@@ -196,3 +196,34 @@ export const hexToRgba = (hex: string): RgbaColor => {
       hex.length === 8 ? round(parseInt(hex.substring(6, 8), 16) / 255, 2) : 1,
   };
 };
+
+/**
+ * Blends a color onto an opaque backdrop with a multiply or screen blend mode.
+ * Multiply darkens the backdrop, screen lightens it. The alpha of the color
+ * controls how much of the blend is applied.
+ *
+ * @param color the color to blend.
+ * @param backdrop the color below.
+ * @param mode the blend mode to use.
+ * @returns the blended color as a hex string.
+ */
+export const blendColors = (
+  color: string,
+  backdrop: string,
+  mode: "multiply" | "screen"
+): string => {
+  const source = parseToRgb(color);
+  const base = parseToRgb(backdrop);
+  const alpha = "alpha" in source ? source.alpha : 1;
+  const blend = (a: number, b: number) => {
+    const blended = mode === "multiply" ? (a * b) / 255 : a + b - (a * b) / 255;
+    return Math.round(alpha * blended + (1 - alpha) * b);
+  };
+
+  return rgbaToHex({
+    red: blend(source.red, base.red),
+    green: blend(source.green, base.green),
+    blue: blend(source.blue, base.blue),
+    alpha: 1,
+  });
+};
