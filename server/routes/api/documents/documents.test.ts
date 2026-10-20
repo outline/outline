@@ -29,6 +29,7 @@ import {
   FileOperation,
   GroupMembership,
   Relationship,
+  Share,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -7713,6 +7714,35 @@ describe("#documents.unpublish", () => {
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
+  });
+
+  it("should disable public shares when unpublishing a document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.published).toEqual(false);
+
+    const infoRes = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(infoRes.status).toEqual(404);
   });
 
   it("should unpublish a document with archived children", async () => {

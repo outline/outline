@@ -6,6 +6,7 @@ import { UserMembership, Share, ShareSubscription } from "@server/models";
 import {
   buildUser,
   buildDocument,
+  buildDraftDocument,
   buildShare,
   buildAdmin,
   buildViewer,
@@ -1310,6 +1311,28 @@ describe("#shares.revoke", () => {
       },
     });
     expect(res.status).toEqual(200);
+  });
+
+  it("should allow author to revoke a share on a draft", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.revoke", user, {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.revokedAt).toBeTruthy();
   });
 
   it("should allow author to revoke collection share", async () => {
