@@ -88,23 +88,40 @@ const diagramTheme = (theme: DefaultTheme) => css`
 `;
 
 /**
- * Builds the colors of a notice block from its base and text colors.
+ * Builds the colors of a notice block from its base and text colors. The tint
+ * is not opaque, so colors for content in the notice are blended onto it.
  *
  * @param theme the current theme.
  * @param base the base color of the notice.
  * @param text the color of the notice text and icon.
  * @returns the css for the notice colors.
  */
-const noticeColors = (theme: DefaultTheme, base: string, text: string) => css`
-  background: ${transparentize(theme.isDark ? 0.85 : 0.92, base)};
-  border: 1px solid ${transparentize(theme.isDark ? 0.6 : 0.7, base)};
-  color: ${text};
+const noticeColors = (theme: DefaultTheme, base: string, text: string) => {
+  const opacity = theme.isDark ? 0.15 : 0.08;
+  const background = mix(opacity, base, theme.background);
+  const blend = (value: string) =>
+    blendColors(value, background, theme.isDark ? "screen" : "multiply");
+  const divider = blend(theme.divider);
 
-  a,
-  .${EditorStyleHelper.noticeIcon} {
+  return css`
+    background: ${transparentize(1 - opacity, base)};
+    border: 1px solid ${transparentize(theme.isDark ? 0.6 : 0.7, base)};
     color: ${text};
-  }
-`;
+
+    --notice-background: ${background};
+    --notice-divider: ${divider};
+    --notice-table-header: ${mix(0.25, divider, background)};
+    --notice-code-background: ${blend(theme.codeBackground)};
+    --notice-code-border: ${blend(theme.codeBorder)};
+    --table-grip: ${divider};
+    --table-grip-border: ${background};
+
+    a,
+    .${EditorStyleHelper.noticeIcon} {
+      color: ${text};
+    }
+  `;
+};
 
 const mathStyle = (props: Props) => css`
   /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
@@ -599,43 +616,8 @@ const textStyle = () => css`
   }
 `;
 
-/**
- * Colors for content in a notice. The notice tint is not opaque, so the colors
- * are blended onto the tinted background.
- */
-const noticeColors = (theme: DefaultTheme, color: string) => {
-  const background = mix(0.1, color, theme.background);
-  const blend = (value: string) =>
-    blendColors(value, background, theme.isDark ? "screen" : "multiply");
-  const divider = blend(theme.divider);
-
-  return css`
-    --notice-background: ${background};
-    --notice-divider: ${divider};
-    --notice-table-header: ${mix(0.25, divider, background)};
-    --notice-code-background: ${blend(theme.codeBackground)};
-    --notice-code-border: ${blend(theme.codeBorder)};
-    --table-grip: ${divider};
-    --table-grip-border: ${background};
-  `;
-};
-
-const noticeStyle = (props: Props) => css`
+const noticeStyle = () => css`
   .${EditorStyleHelper.notice} {
-    ${noticeColors(props.theme, props.theme.noticeInfoBackground)}
-
-    &.tip {
-      ${noticeColors(props.theme, props.theme.noticeTipBackground)}
-    }
-
-    &.warning {
-      ${noticeColors(props.theme, props.theme.noticeWarningBackground)}
-    }
-
-    &.success {
-      ${noticeColors(props.theme, props.theme.noticeSuccessBackground)}
-    }
-
     hr:not(.ProseMirror-selectednode)::before {
       border-top-color: var(--notice-divider);
     }
