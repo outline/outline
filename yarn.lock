@@ -6060,15 +6060,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/addressparser@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@types/addressparser@npm:1.0.3"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/ed8dfe05271eca6b4904a870fc3fd9b5d0e72c7e7aa36254dee9ede496bbbc16acd3630bc072b7e5d84fabb9257e4ed4a82c363b2f4a99c877e3a1accc271fc6
-  languageName: node
-  linkType: hard
-
 "@types/argparse@npm:1.0.38":
   version: 1.0.38
   resolution: "@types/argparse@npm:1.0.38"
@@ -7316,13 +7307,6 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 10c0/dec73ff59b7d6628a01eebaece7f2bdb8bb62b9b5926dcad0f8931f2b8b79c2be21f6c68ac095592adb5adb15831a3635d9343e6a91d028bbe85d564875ec3ec
-  languageName: node
-  linkType: hard
-
-"addressparser@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "addressparser@npm:1.0.1"
-  checksum: 10c0/15a6b149c643e3fb0888bcad89aa385e7718714a33049b5f357063b64b84a2febd6a0775011783c25e6b161982663d38a84fd4522de69adb4779971b92b4ddb3
   languageName: node
   linkType: hard
 
@@ -14298,7 +14282,6 @@ __metadata:
     "@swc/core": "npm:^1.15.32"
     "@tanstack/react-table": "npm:^8.21.3"
     "@tanstack/react-virtual": "npm:^3.14.9"
-    "@types/addressparser": "npm:^1.0.3"
     "@types/cookie": "npm:0.6.0"
     "@types/diff": "npm:^5.0.9"
     "@types/escape-html": "npm:^1.0.4"
@@ -14350,7 +14333,6 @@ __metadata:
     "@types/yazl": "npm:^3.3.1"
     "@vitejs/plugin-react": "npm:^6.1.1"
     "@vitest/ui": "npm:^4.1.11"
-    addressparser: "npm:^1.0.1"
     async-sema: "npm:^3.1.1"
     browserslist-to-esbuild: "npm:^1.2.0"
     bull: "npm:^4.16.5"
