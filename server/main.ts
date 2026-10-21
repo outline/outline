@@ -1,6 +1,6 @@
 import http from "node:http";
 import https from "node:https";
-import type { AddressInfo } from "node:net";
+import type { AddressInfo, Socket } from "node:net";
 import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
@@ -124,14 +124,22 @@ export async function start(id: number, disconnect: () => void) {
   rejectUnhandledUpgrades(server);
 
   // While the server is stopping, close keep-alive connections once their
-  // in-flight response is sent. Added after the services so that requests
+  // in-flight responses are sent. Added after the services so that requests
   // intercepted by engine.io are included.
+  const pendingResponses = new WeakMap<Socket, number>();
+
   server.on(
     "request",
     (req: http.IncomingMessage, res: http.ServerResponse) => {
+      const { socket } = req;
+      pendingResponses.set(socket, (pendingResponses.get(socket) ?? 0) + 1);
+
       res.once("finish", () => {
-        if (!server.listening) {
-          req.socket.end();
+        const pending = (pendingResponses.get(socket) ?? 1) - 1;
+        pendingResponses.set(socket, pending);
+
+        if (pending === 0 && !server.listening) {
+          socket.end();
         }
       });
     }
