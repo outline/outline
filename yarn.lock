@@ -13843,13 +13843,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-abort-controller@npm:^3.0.1":
-  version: 3.1.1
-  resolution: "node-abort-controller@npm:3.1.1"
-  checksum: 10c0/f7ad0e7a8e33809d4f3a0d1d65036a711c39e9d23e0319d80ebe076b9a3b4432b4d6b86a7fab65521de3f6872ffed36fc35d1327487c48eb88c517803403eda3
-  languageName: node
-  linkType: hard
-
 "node-addon-api@npm:^6.1.0":
   version: 6.1.0
   resolution: "node-addon-api@npm:6.1.0"
@@ -14492,7 +14485,6 @@ __metadata:
     react-waypoint: "npm:^10.3.0"
     react-window: "npm:^1.8.11"
     react-zoom-pan-pinch: "npm:^3.7.0"
-    redlock: "npm:^5.0.0-beta2"
     reflect-metadata: "npm:^0.2.2"
     refractor: "npm:^3.6.0"
     resolve-path: "npm:^1.4.0"
@@ -16299,15 +16291,6 @@ __metadata:
   dependencies:
     bluebird: "npm:^3.7.2"
   checksum: 10c0/42850223216f3354d213bda7ff261446bdf03324d663000760ada29cfd0bd372fca6c7c757752e88fbee7a684ab92f0c561eb7ae6c00807cb57a1236cc3a6239
-  languageName: node
-  linkType: hard
-
-"redlock@npm:^5.0.0-beta2":
-  version: 5.0.0-beta2
-  resolution: "redlock@npm:5.0.0-beta2"
-  dependencies:
-    node-abort-controller: "npm:^3.0.1"
-  checksum: 10c0/3a845b34d2a91869a21a3a4ab37011053d7374212b3aba0fe2be0f21980e49a23cef5958c1af29691df7e1d88435c07dea32c6729d281a97a123102185d69532
   languageName: node
   linkType: hard
 

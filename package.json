@@ -237,7 +237,6 @@
     "react-waypoint": "^10.3.0",
     "react-window": "^1.8.11",
     "react-zoom-pan-pinch": "^3.7.0",
-    "redlock": "^5.0.0-beta2",
     "reflect-metadata": "^0.2.2",
     "refractor": "^3.6.0",
     "resolve-path": "^1.4.0",
