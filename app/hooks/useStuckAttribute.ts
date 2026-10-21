@@ -21,7 +21,7 @@ export function useStuckAttribute(
       ([entry]) => {
         element.toggleAttribute(
           "data-stuck",
-          entry.intersectionRatio > 0 &&
+          entry.isIntersecting &&
             entry.intersectionRatio < 1 &&
             entry.boundingClientRect.top <= top + 1
         );
