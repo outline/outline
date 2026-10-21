@@ -298,15 +298,14 @@ async function watchSources(command) {
     }
   });
 
-  // Yarn writes the install state last, so a restart here picks up the
-  // dependencies of a newly checked out branch.
-  if (existsSync("node_modules")) {
-    watch("node_modules", (_event, filename) => {
-      if (filename === ".yarn-state.yml") {
-        restartServer();
-      }
-    });
-  }
+  // Yarn writes the install state after the postinstall script, so a restart
+  // here picks up the dependencies of a newly checked out branch.
+  mkdirSync(".yarn", { recursive: true });
+  watch(".yarn", (_event, filename) => {
+    if (filename === "install-state.gz") {
+      restartServer();
+    }
+  });
 
   for (const signal of ["SIGINT", "SIGTERM"]) {
     process.once(signal, () => stopServer(() => process.exit(0)));
