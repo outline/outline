@@ -1463,6 +1463,7 @@ router.post(
 router.post(
   "documents.update",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
