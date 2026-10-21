@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Prompt, matchPath, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
@@ -591,7 +591,7 @@ const EditorContainer = styled.div<EditorContainerProps>`
 
   // A notice above the editor already provides the space from the header
   &:has(> ${DocumentNotice}) {
-    --document-title-margin-top: 0;
+    --document-title-margin-top: 0px;
   }
 
   ${breakpoint("tablet")`

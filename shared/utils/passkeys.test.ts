@@ -41,6 +41,22 @@ describe("generatePasskeyName", () => {
       expect(name).not.toContain("Chrome");
     });
 
+    it("detects the desktop app", () => {
+      const aaguid = "b5397666-4885-aa6b-cebf-e52262a439a2";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Outline/1.9.0 Chrome/146.0.0.0 Electron/44.9.1 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["internal"]);
+      expect(name).toBe("Outline Desktop");
+    });
+
+    it("detects Chromium Browser outside of the desktop app", () => {
+      const aaguid = "b5397666-4885-aa6b-cebf-e52262a439a2";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["internal"]);
+      expect(name).toBe("Chromium Browser");
+    });
+
     it("falls back to user agent when AAGUID is unknown", () => {
       const aaguid = "00000000-0000-0000-0000-000000000000";
       const ua =

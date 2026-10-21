@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";

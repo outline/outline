@@ -4,7 +4,7 @@
 
 import { CheckmarkIcon } from "outline-icons";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";

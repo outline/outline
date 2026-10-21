@@ -29,6 +29,7 @@ import {
   FileOperation,
   GroupMembership,
   Relationship,
+  Share,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -6986,6 +6987,128 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should not allow publishing a child draft into an inaccessible collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const privateCollection = await buildCollection({
+      userId: admin.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: privateCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+  });
+
+  it("should allow publishing a child draft into the parent collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBe(collection.id);
+    expect(body.data.parentDocumentId).toBe(parentDocument.id);
+  });
+
+  it("should publish a child draft at the root of another collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: member.id,
+      documentId: parentDocument.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: otherCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.collectionId).toBe(otherCollection.id);
+    expect(document.parentDocumentId).toBeNull();
+
+    await otherCollection.reload();
+    expect(otherCollection.documentStructure?.map((node) => node.id)).toContain(
+      document.id
+    );
+
+    const membership = await UserMembership.findOne({
+      where: { userId: member.id, documentId: document.id },
+    });
+    expect(membership).toBeNull();
+  });
+
   it("should fail to update an invalid icon value", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -7713,6 +7836,61 @@ describe("#documents.unpublish", () => {
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
+  });
+
+  it("should remove the collection and parent when detaching", async () => {
+    const user = await buildUser();
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: parentDocument.collectionId,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+        detach: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+    expect(reloaded?.parentDocumentId).toBeNull();
+  });
+
+  it("should disable public shares when unpublishing a document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.published).toEqual(false);
+
+    const infoRes = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(infoRes.status).toEqual(404);
   });
 
   it("should unpublish a document with archived children", async () => {

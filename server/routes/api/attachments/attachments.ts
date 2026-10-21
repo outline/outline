@@ -335,7 +335,7 @@ const handleAttachmentsRedirect = async (
   } else {
     ctx.set(
       "Cache-Control",
-      `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
+      `max-age=${BaseStorage.getSignedUrlMinimumLifetime()}, immutable`
     );
     ctx.redirect(await attachment.signedUrl);
   }

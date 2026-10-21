@@ -1,9 +1,10 @@
-import { lighten, transparentize } from "polished";
+import { lighten, mix, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
 import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
 import { light } from "../../styles/theme";
+import { blendColors } from "../../utils/color";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -85,6 +86,42 @@ const diagramTheme = (theme: DefaultTheme) => css`
   --pele-font: ${theme.fontFamily};
   --pele-font-mono: ${theme.fontFamilyMono};
 `;
+
+/**
+ * Builds the colors of a notice block from its base and text colors. The tint
+ * is not opaque, so colors for content in the notice are blended onto it.
+ *
+ * @param theme the current theme.
+ * @param base the base color of the notice.
+ * @param text the color of the notice text and icon.
+ * @returns the css for the notice colors.
+ */
+const noticeColors = (theme: DefaultTheme, base: string, text: string) => {
+  const opacity = theme.isDark ? 0.15 : 0.08;
+  const background = mix(opacity, base, theme.background);
+  const blend = (value: string) =>
+    blendColors(value, background, theme.isDark ? "screen" : "multiply");
+  const divider = blend(theme.divider);
+
+  return css`
+    background: ${transparentize(1 - opacity, base)};
+    border: 1px solid ${transparentize(theme.isDark ? 0.6 : 0.7, base)};
+    color: ${text};
+
+    --notice-background: ${background};
+    --notice-divider: ${divider};
+    --notice-table-header: ${mix(0.25, divider, background)};
+    --notice-code-background: ${blend(theme.codeBackground)};
+    --notice-code-border: ${blend(theme.codeBorder)};
+    --table-grip: ${divider};
+    --table-grip-border: ${background};
+
+    a,
+    .${EditorStyleHelper.noticeIcon} {
+      color: ${text};
+    }
+  `;
+};
 
 const mathStyle = (props: Props) => css`
   /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
@@ -575,6 +612,134 @@ const textStyle = () => css`
     .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
+    }
+  }
+`;
+
+const noticeStyle = () => css`
+  .${EditorStyleHelper.notice} {
+    hr:not(.ProseMirror-selectednode)::before {
+      border-top-color: var(--notice-divider);
+    }
+
+    code,
+    pre {
+      background: var(--notice-code-background);
+      border-color: var(--notice-code-border);
+    }
+
+    pre code {
+      background: none;
+    }
+
+    .${EditorStyleHelper.codeBlock}.with-line-numbers::after {
+      background: var(--notice-code-background);
+    }
+
+    .${EditorStyleHelper.codeBlock}.collapsed::before {
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--notice-code-background) 70%,
+        var(--notice-code-background) 100%
+      );
+    }
+
+    @media not print {
+      .${EditorStyleHelper.mermaidDiagram} {
+        background: var(--notice-code-background);
+        border-color: var(--notice-code-border);
+        --pele-bg: var(--notice-code-background);
+      }
+    }
+
+    /* above the scroll shadow of a table that follows it */
+    .${EditorStyleHelper.noticeIcon} {
+      position: relative;
+      z-index: 21;
+    }
+
+    /* the scroll area fills the notice padding and icon gutter, which leaves
+       room for the row controls */
+    .${EditorStyleHelper.tableScrollable} {
+      margin-left: -36px;
+      margin-right: -10px;
+      padding-left: 36px;
+      padding-right: 10px;
+    }
+
+    /* keep the click area inside the scroll area so that it does not scroll */
+    .${EditorStyleHelper.tableAddColumn}:not(.first)::before {
+      right: -10px;
+    }
+
+    .${EditorStyleHelper.tableShadowLeft}::before {
+      left: -36px;
+      border-left: 36px solid var(--notice-background);
+    }
+
+    .${EditorStyleHelper.tableShadowRight}::after {
+      right: -10px;
+      border-right: 10px solid var(--notice-background);
+    }
+
+    &:dir(rtl) {
+      .${EditorStyleHelper.tableScrollable} {
+        margin-left: -8px;
+        margin-right: -38px;
+        padding-left: 8px;
+        padding-right: 38px;
+      }
+
+      .${EditorStyleHelper.tableShadowLeft}::before {
+        left: -8px;
+        border-left-width: 8px;
+      }
+
+      .${EditorStyleHelper.tableShadowRight}::after {
+        right: -38px;
+        border-right-width: 38px;
+      }
+    }
+
+    .${EditorStyleHelper.tableFullWidth} {
+      transform: none;
+
+      .${EditorStyleHelper.tableScrollable} {
+        width: auto;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      &.${EditorStyleHelper.tableShadowRight}::after {
+        left: auto;
+      }
+    }
+
+    table,
+    tr,
+    td,
+    th {
+      border-color: var(--notice-divider);
+    }
+
+    th {
+      background: var(--notice-table-header);
+    }
+
+    .${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+      box-shadow:
+        0 -1px 0 var(--notice-divider),
+        0 1px 0 var(--notice-divider);
+    }
+
+    td[data-bgcolor],
+    th[data-bgcolor] {
+      background:
+        linear-gradient(var(--cell-bg-color), var(--cell-bg-color)),
+        linear-gradient(var(--notice-background), var(--notice-background));
     }
   }
 `;
@@ -1366,15 +1531,12 @@ ${
   display: flex;
   align-items: center;
   position: relative;
-  background: ${transparentize(0.9, props.theme.noticeInfoBackground)};
-  border-left: 4px solid ${props.theme.noticeInfoBackground};
-  color: ${props.theme.noticeInfoText};
-  border-radius: 4px;
+  ${noticeColors(props.theme, props.theme.noticeInfoBackground, props.theme.noticeInfoText)}
+  border-radius: ${EditorStyleHelper.blockRadius};
   padding: 8px 10px 8px 8px;
   margin: 8px 0;
 
   a {
-    color: ${props.theme.noticeInfoText};
     text-decoration: underline;
   }
 
@@ -1398,7 +1560,6 @@ ${
     height: 24px;
     align-self: flex-start;
     margin-right: 4px;
-    color: ${props.theme.noticeInfoBackground};
   }
 
   &:dir(rtl) .${EditorStyleHelper.noticeIcon} {
@@ -1408,45 +1569,15 @@ ${
 }
 
 .${EditorStyleHelper.notice}.tip {
-  background: ${transparentize(0.9, props.theme.noticeTipBackground)};
-  border-left: 4px solid ${props.theme.noticeTipBackground};
-  color: ${props.theme.noticeTipText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeTipBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeTipText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeTipBackground, props.theme.noticeTipText)}
 }
 
 .${EditorStyleHelper.notice}.warning {
-  background: ${transparentize(0.9, props.theme.noticeWarningBackground)};
-  border-left: 4px solid ${props.theme.noticeWarningBackground};
-  color: ${props.theme.noticeWarningText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeWarningBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeWarningText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeWarningBackground, props.theme.noticeWarningText)}
 }
 
 .${EditorStyleHelper.notice}.success {
-  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
-  border-left: 4px solid ${props.theme.noticeSuccessBackground};
-  color: ${props.theme.noticeSuccessText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeSuccessBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeSuccessText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeSuccessBackground, props.theme.noticeSuccessText)}
 }
 
 blockquote {
@@ -1909,7 +2040,7 @@ mark {
         height: auto;
         overflow: visible;
 
-        &::after {
+        .${EditorStyleHelper.codeBlockLineNumber} {
           display: none;
         }
     }
@@ -1928,39 +2059,43 @@ mark {
 
 .${EditorStyleHelper.codeBlock}.with-line-numbers {
   pre {
+    // Position line numbers against the block, so they stay in place when
+    // the code scrolls horizontally.
+    position: static;
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
 
-  &::after {
-    content: attr(data-line-numbers);
+  code {
+    counter-reset: line;
+  }
+
+  .${EditorStyleHelper.codeBlockLineNumber} {
     position: absolute;
-    padding-left: 0.5em;
     left: 1px;
-    top: calc(1px + 0.75em);
-    width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
-    word-break: break-all;
-    white-space: break-spaces;
-    font-family: ${props.theme.fontFamilyMono};
-    line-height: 1.4em;
+    box-sizing: content-box;
+    width: calc(var(--line-number-gutter-width, 0) * 1em + .25em);
+    padding: 0 0.75em 0 0.5em;
     color: ${props.theme.textTertiary};
     background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
+    pointer-events: none;
+
+    &::before {
+      counter-increment: line;
+      content: counter(line);
+    }
   }
 }
 
 .${EditorStyleHelper.codeBlock}.collapsed {
+  overflow: clip;
+
   pre {
     pointer-events: none;
     max-height: calc(10 * 1.4em + 0.75em);
     overflow: hidden;
-  }
-
-  &::after {
-    max-height: calc(10 * 1.4em + 0.75em);
-    overflow: hidden;
-    clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
   }
 
   &::before {
@@ -1982,15 +2117,11 @@ mark {
   }
 
   @media print {
+    overflow: visible;
+
     pre {
       max-height: none;
       overflow: visible;
-    }
-
-    &::after {
-      max-height: none;
-      overflow: visible;
-      clip-path: none;
     }
 
     &::before {
@@ -2242,7 +2373,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2287,7 +2418,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2329,7 +2460,7 @@ table {
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
       height: 12px;
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add column controls so narrow columns stay draggable */
       z-index: 2;
@@ -2340,7 +2471,7 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2364,8 +2495,8 @@ table {
       top: var(--span-start, 0);
       height: var(--span-size, 100%);
       width: 12px;
-      background: ${props.theme.divider};
-      border-color: ${props.theme.background};
+      background: var(--table-grip, ${props.theme.divider});
+      border-color: var(--table-grip-border, ${props.theme.background});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add row controls so short rows stay draggable */
       z-index: 2;
@@ -2376,7 +2507,7 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2395,11 +2526,11 @@ table {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       width: 13px;
       height: 13px;
       border-radius: 13px;
-      border: 2px solid ${props.theme.background};
+      border: 2px solid var(--table-grip-border, ${props.theme.background});
       position: absolute;
       top: -18px;
       left: -18px;
@@ -2891,6 +3022,7 @@ li > .${EditorStyleHelper.toggleBlock} {
 
 const EditorContainer = styled.div<Omit<Props, "theme">>`
   ${style}
+  ${noticeStyle}
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}

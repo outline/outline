@@ -9,9 +9,9 @@ import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { isRTLLanguage } from "@shared/utils/rtl";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
-import { BodyNoticeContext } from "@server/emails/templates/components/Body";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
@@ -23,6 +23,8 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import type { NotificationMetadata } from "@server/types";
+import { BodyNoticeContext } from "./components/Body";
+import { DirectionContext } from "./components/Direction";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
@@ -158,6 +160,9 @@ export default abstract class BaseEmail<
         ? this.t("This notification was delayed and may be out of date.")
         : undefined;
 
+    const lang = this.locale;
+    const dir = isRTLLanguage(lang) ? "rtl" : "ltr";
+
     try {
       const text = this.renderAsText(data);
       await mailer.sendMail({
@@ -168,11 +173,15 @@ export default abstract class BaseEmail<
         messageId,
         references,
         previewText: this.preview(data),
+        lang,
+        dir,
         component: (
-          <BodyNoticeContext.Provider value={delayedNotice}>
-            {this.render(data)}
-            {notification ? this.pixel(notification) : null}
-          </BodyNoticeContext.Provider>
+          <DirectionContext.Provider value={dir}>
+            <BodyNoticeContext.Provider value={delayedNotice}>
+              {this.render(data)}
+              {notification ? this.pixel(notification) : null}
+            </BodyNoticeContext.Provider>
+          </DirectionContext.Provider>
         ),
         text: delayedNotice ? `${delayedNotice}\n\n${text}` : text,
         headCSS: this.headCSS?.(data),
@@ -233,6 +242,11 @@ export default abstract class BaseEmail<
     return <img src={notification.pixelUrl} alt="" width="1" height="1" />;
   }
 
+  /** The receiving user's language in BCP47 format. */
+  private get locale() {
+    return unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE);
+  }
+
   /**
    * Translate a string using the receiving user's language preference.
    *
@@ -243,8 +257,22 @@ export default abstract class BaseEmail<
   protected t(key: string, options?: Record<string, unknown>): string {
     return i18nT(key, {
       ...options,
-      lng: unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE),
+      lng: this.locale,
     }) as string;
+  }
+
+  /**
+   * Join a list of items into a single string using the receiving user's
+   * language preference, e.g. "A, B and C".
+   *
+   * @param items The items to join.
+   * @returns The joined string.
+   */
+  protected formatList(items: string[]): string {
+    return new Intl.ListFormat(this.locale, {
+      style: "long",
+      type: "conjunction",
+    }).format(items);
   }
 
   /**

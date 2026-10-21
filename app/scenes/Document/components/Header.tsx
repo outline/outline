@@ -170,9 +170,7 @@ function DocumentHeader({
       $hidden={isEditingFocus}
       hasSidebar
       left={
-        isMobile ? (
-          <TableOfContentsMenu />
-        ) : (
+        isMobile ? null : (
           <DocumentBreadcrumb document={document}>
             {toc}{" "}
             <StarAction>
@@ -280,6 +278,11 @@ function DocumentHeader({
               >
                 {document.collectionId ? t("Publish") : `${t("Publish")}…`}
               </Button>
+            </Action>
+          )}
+          {isMobile && (
+            <Action>
+              <TableOfContentsMenu />
             </Action>
           )}
           <Action>

@@ -7,6 +7,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import type UsersStore from "~/stores/UsersStore";
 import { queriedUsers } from "~/stores/UsersStore";
@@ -155,7 +156,7 @@ function Users() {
         </Trans>
       </Text>
       <StickyFilters justify="space-between">
-        <HStack>
+        <FilterGroup>
           <InputSearch
             short
             value={query}
@@ -170,7 +171,7 @@ function Users() {
             activeKey={role ?? ""}
             onSelect={handleRoleFilter}
           />
-        </HStack>
+        </FilterGroup>
         <ExportCSV reqParams={reqParams} />
       </StickyFilters>
       <ConditionalFade animate={!data}>
@@ -267,6 +268,12 @@ function getFilteredUsers({
 
   return filteredUsers;
 }
+
+const FilterGroup = styled(HStack)`
+  ${breakpoint("mobile", "tablet")`
+    display: contents;
+  `};
+`;
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;

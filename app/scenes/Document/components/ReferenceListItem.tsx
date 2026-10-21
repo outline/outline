@@ -3,7 +3,7 @@ import { CheckmarkIcon, DocumentIcon, PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover, ellipsis } from "@shared/styles";

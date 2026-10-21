@@ -8,9 +8,11 @@ import { UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { DocumentValidation } from "@shared/validations";
 import { createAction } from "~/actions";
+import { sortCollection } from "~/actions/definitions/collections";
 import { DocumentSection } from "~/actions/sections";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Flex from "~/components/Flex";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -59,7 +61,15 @@ export const PersonalDocs = observer(function PersonalDocs() {
       }),
     [canCreate, setIsAddingNew]
   );
-  const headerActions = useMemo(() => [newDocAction], [newDocAction]);
+  const hasCollection = !!collection;
+  const headerActions = useMemo(
+    () => (hasCollection ? [newDocAction, sortCollection] : [newDocAction]),
+    [hasCollection, newDocAction]
+  );
+  const activeModels = useMemo(
+    () => (collection ? [collection] : undefined),
+    [collection]
+  );
 
   const handleNewDoc = useCallback(
     async (title: string) => {
@@ -143,30 +153,32 @@ export const PersonalDocs = observer(function PersonalDocs() {
 
   return (
     <SidebarContext.Provider value="personal">
-      <Flex column>
-        <Header
-          id="personal"
-          title={t("Personal")}
-          actions={canCreate ? headerActions : undefined}
-          primaryAction={canCreate ? newDocAction : undefined}
-        >
-          <Relative>
-            {collection ? (
-              <CollectionLinkChildren
-                collection={collection}
-                expanded
-                childDepth={0}
-                prefetchDocument={documents.prefetchDocument}
-              >
-                {newDocRow}
-              </CollectionLinkChildren>
-            ) : (
-              newDocRow
-            )}
-            <SidebarAction action={newDocAction} depth={0} />
-          </Relative>
-        </Header>
-      </Flex>
+      <ActionContextProvider value={{ activeModels }}>
+        <Flex column>
+          <Header
+            id="personal"
+            title={t("Personal")}
+            actions={headerActions}
+            primaryAction={canCreate ? newDocAction : undefined}
+          >
+            <Relative>
+              {collection ? (
+                <CollectionLinkChildren
+                  collection={collection}
+                  expanded
+                  childDepth={0}
+                  prefetchDocument={documents.prefetchDocument}
+                >
+                  {newDocRow}
+                </CollectionLinkChildren>
+              ) : (
+                newDocRow
+              )}
+              <SidebarAction action={newDocAction} depth={0} />
+            </Relative>
+          </Header>
+        </Flex>
+      </ActionContextProvider>
     </SidebarContext.Provider>
   );
 });

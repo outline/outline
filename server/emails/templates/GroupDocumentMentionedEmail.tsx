@@ -1,8 +1,9 @@
 import { differenceBy } from "es-toolkit/compat";
 import * as React from "react";
-import { MentionType } from "@shared/types";
+import { MentionType, NotificationEventType } from "@shared/types";
 import { Document, Revision, Group } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { can } from "@server/policies";
 import type { EmailProps } from "./BaseEmail";
@@ -12,10 +13,12 @@ import Button from "./components/Button";
 import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
+  userId: string;
   documentId: string;
   revisionId: string | undefined;
   actorName: string;
@@ -98,6 +101,13 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
     return { document, body, groupName: group.name };
   }
 
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.GroupMentionedInDocument
+    );
+  }
+
   protected subject({ document, groupName }: Props) {
     return this.t(
       `The {{ groupName }} group was mentioned in “{{ documentTitle }}”`,
@@ -174,6 +184,11 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
             <Button href={documentLink}>{this.t("Open Document")}</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

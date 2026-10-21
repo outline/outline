@@ -57,6 +57,9 @@ export function createMcpServer(
         },
       },
       instructions,
+
+      // Tool arguments are flat, so a large element count is never legitimate.
+      maxToolInputElements: 1000,
     }
   );
 

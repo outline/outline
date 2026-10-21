@@ -19,6 +19,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { HEADER_HEIGHT as APP_HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
@@ -717,6 +719,11 @@ const THead = styled.div<{ $topPos: number }>`
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
   background: ${s("background")};
+
+  ${breakpoint("mobile", "tablet")`
+    top: ${({ $topPos }: { $topPos: number }) =>
+      `${Math.min($topPos, APP_HEADER_HEIGHT)}px`};
+  `};
 `;
 
 const TBody = styled.div<{ $height: number }>`
