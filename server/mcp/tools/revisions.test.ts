@@ -241,6 +241,41 @@ describe("get_document_changes", () => {
     expect(meta.title.before).toBeNull();
   });
 
+  it("starts from the current document for a time after the latest edit", async () => {
+    const { user, accessToken, document } = await setup();
+    await edit(document, user, "Saved");
+    DocumentHelper.applyMarkdownToDocument(document, "Unsaved");
+    await document.save();
+
+    const res = await callMcpTool(server, accessToken, "get_document_changes", {
+      id: document.id,
+      from: new Date(document.updatedAt.getTime() + 1000).toISOString(),
+    });
+    const { meta, diff } = parse(res);
+
+    expect(meta.from.current).toBe(true);
+    expect(meta.hasChanges).toBe(false);
+    expect(diff).toEqual("No changes to the document content.");
+  });
+
+  it("does not list revisions newer than the loaded document", async () => {
+    const { user, accessToken, document } = await setup();
+    const first = await edit(document, user, "Saved");
+    const future = Revision.buildFromDocument(document);
+    future.createdAt = new Date(document.updatedAt.getTime() + 60_000);
+    await future.save();
+
+    const res = await callMcpTool(server, accessToken, "get_document_changes", {
+      id: document.id,
+      from: first.id,
+    });
+    const { meta } = parse(res);
+
+    expect(meta.revisions).toHaveLength(0);
+    expect(meta.revisionCount).toBe(0);
+    expect(meta.to.unsavedEditsBy).toBeUndefined();
+  });
+
   it("accepts a date without a time", async () => {
     const { user, accessToken, document } = await setup();
     await edit(document, user, "Content");
@@ -276,7 +311,7 @@ describe("get_document_changes", () => {
     await edit(document, user, "After");
     const spy = vi
       .spyOn(DocumentHelper, "toMarkdownDiff")
-      .mockResolvedValue(undefined);
+      .mockReturnValue(undefined);
 
     try {
       const res = await callMcpTool(

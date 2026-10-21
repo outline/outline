@@ -560,8 +560,8 @@ export class DocumentHelper {
 
   /**
    * Generates a unified line diff between the Markdown of two documents or
-   * revisions. Changed lines are copied verbatim from the Markdown, so they
-   * can be used directly to find text in the document.
+   * revisions. Lines are copied verbatim from the Markdown that patch edits
+   * search, so they can be used directly to find text in the document.
    *
    * @param before The before document, or null to treat it as empty.
    * @param after The after document.
@@ -570,15 +570,22 @@ export class DocumentHelper {
    * @returns The diff hunks, an empty string when the Markdown is identical,
    * or undefined when the diff did not complete in the time limit.
    */
-  static async toMarkdownDiff(
+  static toMarkdownDiff(
     before: Document | Revision | null,
     after: Document | Revision,
     options: { context?: number; timeout?: number } = {}
-  ): Promise<string | undefined> {
-    const [beforeText, afterText] = await Promise.all([
-      before ? DocumentHelper.toMarkdown(before, { includeTitle: false }) : "",
-      DocumentHelper.toMarkdown(after, { includeTitle: false }),
-    ]);
+  ): string | undefined {
+    // Patch edits match against the raw serializer output, so it is not normalized.
+    const toText = (document: Document | Revision | null) => {
+      const text = document
+        ? serializer.serialize(DocumentHelper.toProsemirror(document))
+        : "";
+
+      // A trailing newline avoids "No newline at end of file" markers.
+      return text && !text.endsWith("\n") ? `${text}\n` : text;
+    };
+    const beforeText = toText(before);
+    const afterText = toText(after);
 
     if (beforeText === afterText) {
       return "";
@@ -590,12 +597,11 @@ export class DocumentHelper {
       timeout: options.timeout ?? MarkdownDiffTimeout,
     };
 
-    // A trailing newline on both sides avoids "No newline at end of file" markers.
     const patch: ParsedDiff | undefined = structuredPatch(
       "",
       "",
-      beforeText ? `${beforeText}\n` : "",
-      afterText ? `${afterText}\n` : "",
+      beforeText,
+      afterText,
       undefined,
       undefined,
       diffOptions

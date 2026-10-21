@@ -84,7 +84,11 @@ export function revisionTools(server: McpServer, scopes: string[]) {
             ? start.updatedAt
             : (start?.createdAt ?? parseTimestamp(from));
 
-        if (startedAt && end && startedAt > end.createdAt) {
+        // Bound history to the loaded document so that edits saved during
+        // this request cannot appear in the list but not in the diff.
+        const endedAt = end?.createdAt ?? document.updatedAt;
+
+        if (startedAt && startedAt > endedAt) {
           throw ValidationError("from must be earlier than to");
         }
 
@@ -93,12 +97,11 @@ export function revisionTools(server: McpServer, scopes: string[]) {
           documentId: document.id,
           createdAt: {
             ...(startedAt && { [Op.gt]: startedAt }),
-            ...(end && { [Op.lte]: end.createdAt }),
+            [Op.lte]: endedAt,
           },
         };
 
-        const [diff, revisions, revisionCount, latest] = await Promise.all([
-          DocumentHelper.toMarkdownDiff(start, after),
+        const [revisions, revisionCount, latest] = await Promise.all([
           Revision.findAll({
             attributes: {
               exclude: ["content", "text"],
@@ -108,8 +111,10 @@ export function revisionTools(server: McpServer, scopes: string[]) {
             limit: MaxRevisions,
           }),
           Revision.count({ where }),
-          end ? null : Revision.findLatest(document.id),
+          end ? null : Revision.findAt(document.id, document.updatedAt),
         ]);
+
+        const diff = DocumentHelper.toMarkdownDiff(start, after);
 
         // The newest edits are saved as a revision after a delay, so the
         // current document can be ahead of the latest revision.
@@ -250,7 +255,14 @@ async function resolveStart(
     return findRevision(document, from);
   }
 
-  return Revision.findAt(document.id, new Date(from));
+  // Edits may not be saved as a revision yet, so a time after the latest edit
+  // is the current document.
+  const date = new Date(from);
+  if (allowCurrent && date >= document.updatedAt) {
+    return document;
+  }
+
+  return Revision.findAt(document.id, date);
 }
 
 /**

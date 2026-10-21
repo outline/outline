@@ -2,7 +2,7 @@ import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { HeadingPrefixStyle } from "@shared/types";
+import { HeadingPrefixStyle, TextEditMode } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
@@ -443,7 +443,7 @@ describe("DocumentHelper", () => {
         text: "Intro\n\n- [x] Task one\n- [ ] Task two\n- [ ] Task three\n\nOutro",
       });
 
-      const result = await DocumentHelper.toMarkdownDiff(before, after);
+      const result = DocumentHelper.toMarkdownDiff(before, after);
 
       expect(result).toEqual(
         [
@@ -467,7 +467,7 @@ describe("DocumentHelper", () => {
         text: lines.map((l, i) => (i === 10 ? "Changed" : l)).join("\n\n"),
       });
 
-      const result = await DocumentHelper.toMarkdownDiff(before, after, {
+      const result = DocumentHelper.toMarkdownDiff(before, after, {
         context: 1,
       });
 
@@ -479,7 +479,7 @@ describe("DocumentHelper", () => {
     it("should treat a null before document as empty", async () => {
       const after = await buildDocument({ text: "Hello" });
 
-      const result = await DocumentHelper.toMarkdownDiff(null, after);
+      const result = DocumentHelper.toMarkdownDiff(null, after);
 
       expect(result).toEqual(["@@ -0,0 +1,1 @@", "+Hello"].join("\n"));
     });
@@ -488,7 +488,32 @@ describe("DocumentHelper", () => {
       const before = await buildDocument({ text: "Same" });
       const after = await buildDocument({ text: "Same" });
 
-      expect(await DocumentHelper.toMarkdownDiff(before, after)).toEqual("");
+      expect(DocumentHelper.toMarkdownDiff(before, after)).toEqual("");
+    });
+
+    it("should keep the raw serializer output that patch edits search", async () => {
+      const before = await buildDocument({ text: "One\n\n\\\n\nTwo" });
+      const after = await buildDocument({ text: "One\n\n\\\n\nThree" });
+
+      const result = DocumentHelper.toMarkdownDiff(before, after);
+
+      expect(result).toEqual(
+        ["@@ -2,3 +2,3 @@", " ", " \\", "-Two", "+Three"].join("\n")
+      );
+
+      // Context and added lines together are a valid patch target.
+      const findText = (result ?? "")
+        .split("\n")
+        .filter((line) => line.startsWith(" ") || line.startsWith("+"))
+        .map((line) => line.slice(1))
+        .join("\n");
+      const patched = DocumentHelper.applyMarkdownToDocument(
+        after,
+        "\n\\\nFour",
+        TextEditMode.Patch,
+        findText
+      );
+      expect(await DocumentHelper.toMarkdown(patched)).toContain("Four");
     });
 
     it("should return undefined when the diff does not complete in time", async () => {
@@ -507,9 +532,9 @@ describe("DocumentHelper", () => {
         });
 
         expect(
-          await DocumentHelper.toMarkdownDiff(before, after, { timeout: 1 })
+          DocumentHelper.toMarkdownDiff(before, after, { timeout: 1 })
         ).toBeUndefined();
-        expect(await DocumentHelper.toMarkdownDiff(before, after)).toContain(
+        expect(DocumentHelper.toMarkdownDiff(before, after)).toContain(
           "+After 499"
         );
       } finally {
