@@ -54,7 +54,9 @@ export function DragAndDropProvider({ children }: Props) {
   // does not wrap the children, as its context changes on every move.
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
+      // Touch gestures scroll the sidebar and swipe it closed instead.
       if (
+        event.pointerType === "touch" ||
         !(event.target instanceof Element) ||
         event.target.closest(EDITABLE_SELECTOR)
       ) {
