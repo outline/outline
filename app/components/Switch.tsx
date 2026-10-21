@@ -2,7 +2,7 @@ import * as RadixSwitch from "@radix-ui/react-switch";
 import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";

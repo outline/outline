@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";

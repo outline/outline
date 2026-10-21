@@ -3,7 +3,7 @@ import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s } from "@shared/styles";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";

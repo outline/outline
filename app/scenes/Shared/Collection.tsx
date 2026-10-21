@@ -3,7 +3,7 @@ import { EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { IconTitleWrapper } from "@shared/components/Icon";
 import useShare from "@shared/hooks/useShare";
 import type CollectionModel from "~/models/Collection";
