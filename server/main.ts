@@ -30,7 +30,7 @@ import { checkUpdates } from "./utils/updates";
  * graph (Sequelize models, services, middleware) is loaded, so it is imported
  * dynamically from the entry point to keep the supervising master process lean.
  *
- * @param id the cluster worker id assigned by throng.
+ * @param id the cluster worker id assigned by the ClusterManager.
  * @param disconnect callback used to signal the worker has stopped.
  */
 export async function start(id: number, disconnect: () => void) {
