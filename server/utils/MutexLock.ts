@@ -8,7 +8,7 @@ import Redlock, {
 import { toError } from "@shared/utils/error";
 import Redis from "@server/storage/redis";
 import Logger from "@server/logging/Logger";
-import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "./ShutdownHelper";
 
 type AcquireOptions = {
   /** Whether a lock should be automatically released on server shutdown */
