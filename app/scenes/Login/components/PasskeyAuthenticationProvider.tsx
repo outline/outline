@@ -14,24 +14,6 @@ import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getCSRFToken } from "~/utils/csrf";
 
-/**
- * Returns true when the desktop app can run the WebAuthn ceremony itself. This
- * requires a desktop app that has configured a platform authenticator, and a
- * device that supports it.
- *
- * @returns A promise that resolves to true if passkeys work inside the app.
- */
-async function isPasskeySupportedInApp(): Promise<boolean> {
-  try {
-    if (!(await Desktop.bridge?.isPasskeySupported?.())) {
-      return false;
-    }
-    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-  } catch (_err) {
-    return false;
-  }
-}
-
 type Props = React.ComponentProps<typeof ButtonLarge>;
 
 /**
@@ -90,7 +72,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
 
   React.useEffect(() => {
     if (Desktop.isElectron()) {
-      void isPasskeySupportedInApp().then(setIsSupportedInApp);
+      void Desktop.isPasskeySupported().then(setIsSupportedInApp);
     }
   }, []);
 
