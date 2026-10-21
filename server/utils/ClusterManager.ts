@@ -1,5 +1,7 @@
 import cluster, { type Worker } from "node:cluster";
 import os from "node:os";
+import { Second } from "@shared/utils/time";
+import ShutdownHelper from "./ShutdownHelper";
 
 interface ClusterOptions {
   /** Called once in the primary process before any worker is forked. */
@@ -18,9 +20,11 @@ interface ClusterOptions {
 export class ClusterManager {
   /**
    * The amount of time to wait for workers to exit after a termination signal
-   * before they are force killed and the primary process exits.
+   * before they are force killed and the primary process exits. This is longer
+   * than the worker's own force quit timeout so that it can exit first.
    */
-  public static readonly gracePeriod = 5 * 1000;
+  public static readonly gracePeriod =
+    ShutdownHelper.forceQuitTimeout + 5 * Second.ms;
 
   /** The signals that cause the cluster to shut down. */
   public static readonly signals: NodeJS.Signals[] = ["SIGTERM", "SIGINT"];
