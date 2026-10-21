@@ -3228,6 +3228,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/openapi-webhooks-types@npm:^12.2.0":
+  version: 12.2.0
+  resolution: "@octokit/openapi-webhooks-types@npm:12.2.0"
+  checksum: 10c0/6a7a403009469f56370f54806e914c5985caa8515bf1137a7c6cba7fb0f26f545d037ce4c8734ad9206eb4087d17f666ec79d633a9bed734d4aebdc94fdd0935
+  languageName: node
+  linkType: hard
+
 "@octokit/plugin-paginate-graphql@npm:^6.0.0":
   version: 6.0.0
   resolution: "@octokit/plugin-paginate-graphql@npm:6.0.0"
@@ -3329,13 +3336,6 @@ __metadata:
   version: 6.0.0
   resolution: "@octokit/webhooks-methods@npm:6.0.0"
   checksum: 10c0/7f10740e838d65c78e859bb041499cca69df7831e9f633ee70a46ca8e53d0844f2c84500df204453d171c8c3c0f8eb8b68716ee1d5c95e3cf5d09690f32e13e1
-  languageName: node
-  linkType: hard
-
-"@octokit/webhooks-types@npm:^7.6.1":
-  version: 7.6.1
-  resolution: "@octokit/webhooks-types@npm:7.6.1"
-  checksum: 10c0/7c2cb40f9ccd2bd392cf35c23f995ae0719ef35fd3bce0264ced5518cbf0a7087bd069bf5e5963fc33d0232726968db526912df3cb017c1bd1761c8849c31a30
   languageName: node
   linkType: hard
 
@@ -14270,7 +14270,7 @@ __metadata:
     "@node-oauth/oauth2-server": "npm:^5.3.0"
     "@notionhq/client": "npm:^2.3.0"
     "@octokit/auth-app": "npm:^8.3.1"
-    "@octokit/webhooks-types": "npm:^7.6.1"
+    "@octokit/openapi-webhooks-types": "npm:^12.2.0"
     "@outlinewiki/koa-passport": "npm:^4.2.1"
     "@outlinewiki/passport-azure-ad-oauth2": "npm:^0.1.0"
     "@radix-ui/react-collapsible": "npm:^1.2.1"
