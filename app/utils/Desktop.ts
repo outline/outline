@@ -40,6 +40,24 @@ export default class Desktop {
   }
 
   /**
+   * Returns true when the desktop app can run the WebAuthn ceremony itself. This
+   * requires a desktop app that has configured a platform authenticator, and a
+   * device that supports it.
+   *
+   * @returns a promise that resolves to true if passkeys work inside the app.
+   */
+  static async isPasskeySupported(): Promise<boolean> {
+    try {
+      if (!(await this.bridge?.isPasskeySupported?.())) {
+        return false;
+      }
+      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  /**
    * The bridge provides secure access to API's in desktop wrapper.
    */
   static bridge = window.DesktopBridge;
