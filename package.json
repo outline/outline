@@ -81,7 +81,6 @@
     "@hocuspocus/extension-throttle": "1.1.3",
     "@hocuspocus/provider": "1.1.3",
     "@hocuspocus/server": "1.1.3",
-    "@juggle/resize-observer": "^3.4.0",
     "@koa/router": "^15.7.0",
     "@koa/send": "^6.0.0",
     "@linear/sdk": "^97.0.0",
