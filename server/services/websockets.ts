@@ -89,6 +89,9 @@ export default function init(
   );
 
   ShutdownHelper.add("websockets", ShutdownOrder.normal, async () => {
+    // Close the clients of this process only, upgraded sockets are not closed
+    // by the HTTP server.
+    io.engine.close();
     Metrics.gaugePerInstance("websockets.count", 0);
   });
 

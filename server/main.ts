@@ -5,7 +5,6 @@ import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import Router from "@koa/router";
-import stoppable from "stoppable";
 import { toError } from "@shared/utils/error";
 import env from "./env";
 import Metrics from "@server/logging/Metrics";
@@ -49,12 +48,9 @@ export async function start(id: number, disconnect: () => void) {
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPort = getArg("port", "p") || env.PORT;
   const app = new Koa();
-  const server = stoppable(
-    useHTTPS
-      ? https.createServer(ssl, app.callback())
-      : http.createServer(app.callback()),
-    ShutdownHelper.connectionGraceTimeout
-  );
+  const server = useHTTPS
+    ? https.createServer(ssl, app.callback())
+    : http.createServer(app.callback());
   const router = new Router();
 
   // install basic middleware shared by all services
@@ -127,6 +123,20 @@ export async function start(id: number, disconnect: () => void) {
 
   rejectUnhandledUpgrades(server);
 
+  // While the server is stopping, close keep-alive connections once their
+  // in-flight response is sent. Added after the services so that requests
+  // intercepted by engine.io are included.
+  server.on(
+    "request",
+    (req: http.IncomingMessage, res: http.ServerResponse) => {
+      res.once("finish", () => {
+        if (!server.listening) {
+          req.socket.end();
+        }
+      });
+    }
+  );
+
   server.on("error", (err) => {
     if ("code" in err && err.code === "EADDRINUSE") {
       Logger.error(`Port ${normalizedPort} is already in use. Exiting…`, err);
@@ -170,17 +180,23 @@ export async function start(id: number, disconnect: () => void) {
     "server",
     ShutdownOrder.last,
     () =>
-      new Promise((resolve, reject) => {
-        // Calling stop prevents new connections from being accepted and waits for
-        // existing connections to close for the grace period before forcefully
-        // closing them.
-        server.stop((err, gracefully) => {
+      new Promise<void>((resolve, reject) => {
+        // Connections that are still open after the grace period are destroyed.
+        const timeout = setTimeout(
+          () => server.closeAllConnections(),
+          ShutdownHelper.connectionGraceTimeout
+        );
+
+        // Stop accepting new connections and close idle ones, the callback is
+        // called once all remaining connections have closed.
+        server.close((err) => {
+          clearTimeout(timeout);
           disconnect();
 
           if (err) {
             reject(err);
           } else {
-            resolve(gracefully);
+            resolve();
           }
         });
       })
