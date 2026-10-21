@@ -11941,13 +11941,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-printable-key-event@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "is-printable-key-event@npm:1.0.0"
-  checksum: 10c0/d7ac21921f4cad1cf389edfcaf4dee248dd19a98aae1f999b5ee1060bdd52038fc71f62d1935696676cd4cbfda30c6713c759f7f9411cc806c7bb7f440a59602
-  languageName: node
-  linkType: hard
-
 "is-promise@npm:^4.0.0":
   version: 4.0.0
   resolution: "is-promise@npm:4.0.0"
@@ -14420,7 +14413,6 @@ __metadata:
     ioredis: "npm:^5.11.1"
     ioredis-mock: "npm:^8.13.1"
     ipaddr.js: "npm:^2.4.0"
-    is-printable-key-event: "npm:^1.0.0"
     iso-639-3: "npm:^3.0.1"
     js-yaml: "npm:^4.3.2"
     js.foresight: "npm:^4.2.1"
@@ -14529,7 +14521,6 @@ __metadata:
     stoppable: "npm:^1.1.0"
     string-replace-to-array: "npm:^2.1.1"
     styled-components: "npm:^6.5.3"
-    styled-normalize: "npm:^8.1.1"
     terser: "npm:^5.49.0"
     throng: "npm:^5.0.0"
     tiny-cookie: "npm:^2.5.1"
@@ -17948,15 +17939,6 @@ __metadata:
     react-native:
       optional: true
   checksum: 10c0/76b525c7cbf4febdf52e6b15eeddb3782bb50e11f078e5d0a299b221067314386c7b05cf703f141f3eb15c541f41b20e43386405322986e441e8bb07324adf06
-  languageName: node
-  linkType: hard
-
-"styled-normalize@npm:^8.1.1":
-  version: 8.1.1
-  resolution: "styled-normalize@npm:8.1.1"
-  peerDependencies:
-    styled-components: ^4.0.0 || ^5.0.0 || ^6.0.0
-  checksum: 10c0/16a9f6f452278f8f29939b145a099e06d221c342c3a6c51469d425e610757866c1dfd80d22c9cb91460c49ea79b1b5dd214c617b1d8a223de1ffb76b0f687e03
   languageName: node
   linkType: hard
 
