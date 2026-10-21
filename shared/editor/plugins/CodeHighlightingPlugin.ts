@@ -201,30 +201,21 @@ function findCodeBlocks(doc: Node, name: string): CodeBlock[] {
 }
 
 /**
- * Check if the code blocks are the same nodes as before a transaction, and
- * only moved because of changes outside of them.
+ * Find the code blocks that a transaction only moved, without changing them.
  *
  * @param tr - the transaction.
  * @param previous - the code blocks before the transaction.
- * @param blocks - the code blocks after the transaction.
- * @returns true if the decorations of the previous blocks can be mapped.
+ * @returns the new position of each moved or untouched block node.
  */
-function blocksUnchanged(
-  tr: Transaction,
-  previous: CodeBlock[],
-  blocks: CodeBlock[]
-) {
-  if (previous.length !== blocks.length) {
-    return false;
-  }
-
-  return blocks.every((block, index) => {
-    if (block.node !== previous[index].node) {
-      return false;
+function findMovedBlocks(tr: Transaction, previous: CodeBlock[]) {
+  const moved = new Map<Node, number>();
+  for (const block of previous) {
+    const result = tr.mapping.mapResult(block.pos + 1);
+    if (!result.deleted) {
+      moved.set(block.node, result.pos - 1);
     }
-    const result = tr.mapping.mapResult(previous[index].pos + 1);
-    return !result.deleted && result.pos === block.pos + 1;
-  });
+  }
+  return moved;
 }
 
 /**
@@ -246,6 +237,7 @@ export function CodeHighlighting({
 }) {
   const key = new PluginKey<CodeHighlightingState>("codeHighlighting");
   const tokenCache = new WeakMap<Node, TokenRange[]>();
+  const deferredNodes = new WeakSet<Node>();
   const languagesToImport = new Set<string>();
 
   /**
@@ -280,20 +272,28 @@ export function CodeHighlighting({
    *
    * @param doc - the document.
    * @param blocks - the code blocks in the document.
-   * @param previous - the previous decorations mapped to the document, used
-   * to defer highlighting large blocks that changed.
+   * @param previous - the previous decorations mapped to the document, reused
+   * for blocks that only moved and to defer highlighting large blocks.
+   * @param moved - the new positions of blocks that only moved.
    * @returns the plugin state.
    */
   function build(
     doc: Node,
     blocks: CodeBlock[],
-    previous?: DecorationSet
+    previous?: DecorationSet,
+    moved?: Map<Node, number>
   ): CodeHighlightingState {
     const decorations: Decoration[] = [];
     let stale = false;
 
     for (const block of blocks) {
       const { node, pos } = block;
+      if (previous && moved?.get(node) === pos) {
+        decorations.push(...previous.find(pos + 1, pos + node.nodeSize - 1));
+        stale ||= deferredNodes.has(node) && !tokenCache.has(node);
+        continue;
+      }
+
       if (lineNumbers) {
         decorations.push(...lineNumberDecorations(block));
       }
@@ -311,6 +311,7 @@ export function CodeHighlighting({
         );
         if (mapped.length) {
           decorations.push(...mapped);
+          deferredNodes.add(node);
           stale = true;
           continue;
         }
@@ -358,11 +359,15 @@ export function CodeHighlighting({
         }
 
         const mapped = value.decorations.map(tr.mapping, tr.doc);
-        if (blocksUnchanged(tr, value.blocks, blocks)) {
+        const moved = findMovedBlocks(tr, value.blocks);
+        if (
+          blocks.length === value.blocks.length &&
+          blocks.every((block) => moved.get(block.node) === block.pos)
+        ) {
           return { ...value, decorations: mapped, blocks };
         }
 
-        return build(tr.doc, blocks, mapped);
+        return build(tr.doc, blocks, mapped, moved);
       },
     },
     view: (view) => {
@@ -382,6 +387,7 @@ export function CodeHighlighting({
             refreshWhenIdle();
             return;
           }
+          timeout = undefined;
           refresh();
         }, deferredHighlightDelay);
       };
@@ -412,8 +418,12 @@ export function CodeHighlighting({
       }
 
       return {
-        update: () => {
-          if (key.getState(view.state)?.stale) {
+        update: (_view, prevState) => {
+          // Only edits postpone the refresh, so moving the cursor cannot delay it.
+          if (
+            key.getState(view.state)?.stale &&
+            (!timeout || view.state.doc !== prevState.doc)
+          ) {
             refreshWhenIdle();
           }
           importLanguages();
