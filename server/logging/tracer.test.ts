@@ -71,5 +71,15 @@ describe("applyForwardedHost", () => {
     expect(applyForwardedHost(url, "")).toEqual(url);
     expect(applyForwardedHost(url, "evil.com/path")).toEqual(url);
     expect(applyForwardedHost(url, "evil.com@x")).toEqual(url);
+    expect(applyForwardedHost(url, "docs.example.com:abc")).toEqual(url);
+    expect(applyForwardedHost(url, "docs.example.com:99999")).toEqual(url);
+    expect(applyForwardedHost(url, "[not-ip]")).toEqual(url);
+    expect(applyForwardedHost(url, "[::1")).toEqual(url);
+  });
+
+  it("should accept IPv6 literals", () => {
+    expect(
+      applyForwardedHost("http://app.getoutline.com/", "[::1]:3000")
+    ).toEqual("http://[::1]:3000/");
   });
 });

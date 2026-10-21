@@ -80,7 +80,14 @@ export function applyForwardedHost(
     return url;
   }
 
-  return url.replace(/^([a-z]+:\/\/)[^/?#]*/i, `$1${host}`);
+  let authority: string;
+  try {
+    authority = new URL(`http://${host}`).host;
+  } catch {
+    return url;
+  }
+
+  return url.replace(/^([a-z]+:\/\/)[^/?#]*/i, `$1${authority}`);
 }
 
 interface PrivateSpanContext {
