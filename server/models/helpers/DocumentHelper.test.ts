@@ -434,6 +434,91 @@ describe("DocumentHelper", () => {
     });
   });
 
+  describe("toMarkdownDiff", () => {
+    it("should return unified diff hunks of the markdown", async () => {
+      const before = await buildDocument({
+        text: "Intro\n\n- [ ] Task one\n- [ ] Task two\n\nOutro",
+      });
+      const after = await buildDocument({
+        text: "Intro\n\n- [x] Task one\n- [ ] Task two\n- [ ] Task three\n\nOutro",
+      });
+
+      const result = await DocumentHelper.toMarkdownDiff(before, after);
+
+      expect(result).toEqual(
+        [
+          "@@ -1,6 +1,7 @@",
+          " Intro",
+          " ",
+          "-- [ ] Task one",
+          "+- [x] Task one",
+          " - [ ] Task two",
+          "+- [ ] Task three",
+          " ",
+          " Outro",
+        ].join("\n")
+      );
+    });
+
+    it("should limit the context around each change", async () => {
+      const lines = Array.from({ length: 20 }, (_, i) => `Line ${i}`);
+      const before = await buildDocument({ text: lines.join("\n\n") });
+      const after = await buildDocument({
+        text: lines.map((l, i) => (i === 10 ? "Changed" : l)).join("\n\n"),
+      });
+
+      const result = await DocumentHelper.toMarkdownDiff(before, after, {
+        context: 1,
+      });
+
+      expect(result).toEqual(
+        ["@@ -20,3 +20,3 @@", " ", "-Line 10", "+Changed", " "].join("\n")
+      );
+    });
+
+    it("should treat a null before document as empty", async () => {
+      const after = await buildDocument({ text: "Hello" });
+
+      const result = await DocumentHelper.toMarkdownDiff(null, after);
+
+      expect(result).toEqual(["@@ -0,0 +1,1 @@", "+Hello"].join("\n"));
+    });
+
+    it("should return an empty string when nothing changed", async () => {
+      const before = await buildDocument({ text: "Same" });
+      const after = await buildDocument({ text: "Same" });
+
+      expect(await DocumentHelper.toMarkdownDiff(before, after)).toEqual("");
+    });
+
+    it("should return undefined when the diff does not complete in time", async () => {
+      // The time limit reads Date.now, which is faked in this file.
+      vi.useRealTimers();
+      try {
+        const before = await buildDocument({
+          text: Array.from({ length: 500 }, (_, i) => `Before ${i}`).join(
+            "\n\n"
+          ),
+        });
+        const after = await buildDocument({
+          text: Array.from({ length: 500 }, (_, i) => `After ${i}`).join(
+            "\n\n"
+          ),
+        });
+
+        expect(
+          await DocumentHelper.toMarkdownDiff(before, after, { timeout: 1 })
+        ).toBeUndefined();
+        expect(await DocumentHelper.toMarkdownDiff(before, after)).toContain(
+          "+After 499"
+        );
+      } finally {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
+      }
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({
