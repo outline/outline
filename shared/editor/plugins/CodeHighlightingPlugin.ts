@@ -1,21 +1,38 @@
-import { flattenDeep } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type refractorType from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
-import { isRemoteTransaction } from "../lib/multiplayer";
-import { findBlockNodes } from "../queries/findChildren";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
-type ParsedNode = {
-  text: string;
-  classes: string[];
-};
+/** A highlighted token, with offsets relative to the start of the block content. */
+interface TokenRange {
+  from: number;
+  to: number;
+  className: string;
+}
 
-const cache: Record<number, { node: Node; decorations: Decoration[] }> = {};
-const languagesToImport = new Set<string>();
+interface CodeBlock {
+  node: Node;
+  pos: number;
+}
+
+interface CodeHighlightingState {
+  /** The decorations for all code blocks in the document. */
+  decorations: DecorationSet;
+  /** The code blocks the decorations were built for, in document order. */
+  blocks: CodeBlock[];
+  /** Whether a block still shows tokens from before its last edit. */
+  stale: boolean;
+}
+
+/** Blocks with more characters than this are highlighted after a pause in typing. */
+const deferredHighlightLength = 10000;
+
+/** Time to wait after the last edit before a deferred highlight. */
+const deferredHighlightDelay = 200;
+
 const languagePromises: Record<
   string,
   Promise<string | undefined> | undefined
@@ -93,133 +110,131 @@ function lineNumberWidget(pos: number) {
   });
 }
 
-function getDecorations({
-  doc,
-  name,
-  lineNumbers,
-}: {
-  /** The prosemirror document to operate on. */
-  doc: Node;
-  /** The node name. */
-  name: string;
-  /** Whether to include decorations representing line numbers */
-  lineNumbers?: boolean;
-}) {
-  const decorations: Decoration[] = [];
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(
-    doc,
-    true
-  ).filter((item) => item.node.type.name === name);
-
-  function parseNodes(
-    nodes: refractorType.RefractorNode[],
-    classNames: string[] = []
-  ): {
-    text: string;
-    classes: string[];
-  }[] {
-    return flattenDeep(
-      nodes.map((node) => {
-        if (node.type === "element") {
-          const classes = [...classNames, ...(node.properties.className || [])];
-          return parseNodes(node.children, classes);
-        }
-
-        return {
-          text: node.value,
-          classes: classNames,
-        };
-      })
-    );
-  }
-
-  blocks.forEach((block) => {
-    let startPos = block.pos + 1;
-    const language = block.node.attrs.language;
-    const lang = getRefractorLangForLanguage(language);
-    const lineDecorations = [];
-
-    if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
-      if (lineNumbers) {
-        const text = block.node.textContent;
-        const lineStarts = [block.pos + 1];
-        for (let i = 0; i < text.length; i++) {
-          if (text[i] === "\n") {
-            lineStarts.push(block.pos + 2 + i);
-          }
-        }
-        const gutterWidth = String(lineStarts.length).length;
-
-        lineDecorations.push(
-          Decoration.node(
-            block.pos,
-            block.pos + block.node.nodeSize,
-            {
-              style: `--line-number-gutter-width: ${gutterWidth};`,
-            },
-            {
-              key: `line-${gutterWidth}-gutter`,
-            }
-          ),
-          ...lineStarts.map(lineNumberWidget)
-        );
-      }
-
-      cache[block.pos] = {
-        node: block.node,
-        decorations: lineDecorations,
-      };
-
-      if (!lang) {
-        // do nothing
-      } else if (refractor?.registered(lang)) {
-        languagesToImport.delete(language);
-
-        const nodes = refractor!.highlight(block.node.textContent, lang);
-        const newDecorations = parseNodes(nodes)
-          .map((node: ParsedNode) => {
-            const from = startPos;
-            const to = from + node.text.length;
-
-            startPos = to;
-
-            return {
-              ...node,
-              from,
-              to,
-            };
-          })
-          .filter((node) => node.classes && node.classes.length)
-          .map((node) =>
-            Decoration.inline(node.from, node.to, {
-              class: node.classes.join(" "),
-            })
-          )
-          .concat(lineDecorations);
-
-        cache[block.pos] = {
-          node: block.node,
-          decorations: newDecorations,
-        };
-      } else {
-        languagesToImport.add(language);
-      }
+/**
+ * Create the line number decorations for a code block.
+ *
+ * @param block - the code block.
+ * @returns the decorations.
+ */
+function lineNumberDecorations({ node, pos }: CodeBlock): Decoration[] {
+  const text = node.textContent;
+  const decorations = [lineNumberWidget(pos + 1)];
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === "\n") {
+      decorations.push(lineNumberWidget(pos + 2 + i));
     }
+  }
+  const gutterWidth = String(decorations.length).length;
 
-    cache[block.pos]?.decorations.forEach((decoration) => {
-      decorations.push(decoration);
-    });
-  });
-
-  Object.keys(cache)
-    .filter((pos) => !blocks.find((block) => block.pos === Number(pos)))
-    .forEach((pos) => {
-      delete cache[Number(pos)];
-    });
-
-  return DecorationSet.create(doc, decorations);
+  decorations.push(
+    Decoration.node(
+      pos,
+      pos + node.nodeSize,
+      {
+        style: `--line-number-gutter-width: ${gutterWidth};`,
+      },
+      {
+        key: `line-${gutterWidth}-gutter`,
+      }
+    )
+  );
+  return decorations;
 }
 
+/**
+ * Convert refractor output to token ranges. Adjacent tokens with the same
+ * classes are merged so that the view renders fewer elements.
+ *
+ * @param nodes - the refractor nodes.
+ * @param classNames - the classes inherited from parent nodes.
+ * @param state - the accumulated tokens and current offset.
+ * @returns the accumulated tokens and current offset.
+ */
+function parseNodes(
+  nodes: refractorType.RefractorNode[],
+  classNames: string[] = [],
+  state: { tokens: TokenRange[]; offset: number } = { tokens: [], offset: 0 }
+) {
+  for (const node of nodes) {
+    if (node.type === "element") {
+      parseNodes(
+        node.children,
+        [...classNames, ...(node.properties.className || [])],
+        state
+      );
+      continue;
+    }
+
+    const from = state.offset;
+    state.offset += node.value.length;
+    if (!classNames.length) {
+      continue;
+    }
+
+    const className = classNames.join(" ");
+    const previous = state.tokens[state.tokens.length - 1];
+    if (previous && previous.to === from && previous.className === className) {
+      previous.to = state.offset;
+    } else {
+      state.tokens.push({ from, to: state.offset, className });
+    }
+  }
+  return state;
+}
+
+/**
+ * Find all code blocks with the given node name in a document.
+ *
+ * @param doc - the document.
+ * @param name - the node name.
+ * @returns the code blocks in document order.
+ */
+function findCodeBlocks(doc: Node, name: string): CodeBlock[] {
+  const blocks: CodeBlock[] = [];
+  doc.descendants((node, pos) => {
+    if (node.type.name === name) {
+      blocks.push({ node, pos });
+    }
+    return !node.isTextblock;
+  });
+  return blocks;
+}
+
+/**
+ * Check if the code blocks are the same nodes as before a transaction, and
+ * only moved because of changes outside of them.
+ *
+ * @param tr - the transaction.
+ * @param previous - the code blocks before the transaction.
+ * @param blocks - the code blocks after the transaction.
+ * @returns true if the decorations of the previous blocks can be mapped.
+ */
+function blocksUnchanged(
+  tr: Transaction,
+  previous: CodeBlock[],
+  blocks: CodeBlock[]
+) {
+  if (previous.length !== blocks.length) {
+    return false;
+  }
+
+  return blocks.every((block, index) => {
+    if (block.node !== previous[index].node) {
+      return false;
+    }
+    const result = tr.mapping.mapResult(previous[index].pos + 1);
+    return !result.deleted && result.pos === block.pos + 1;
+  });
+}
+
+/**
+ * Create a plugin that adds syntax highlighting and line numbers to code
+ * blocks. Highlighted tokens are cached for each block node, so only blocks
+ * that changed are highlighted again.
+ *
+ * @param options - the plugin options.
+ * @returns the plugin.
+ */
 export function CodeHighlighting({
   name,
   lineNumbers,
@@ -229,81 +244,188 @@ export function CodeHighlighting({
   /** Whether to include decorations representing line numbers */
   lineNumbers?: boolean;
 }) {
-  let highlighted = false;
+  const key = new PluginKey<CodeHighlightingState>("codeHighlighting");
+  const tokenCache = new WeakMap<Node, TokenRange[]>();
+  const languagesToImport = new Set<string>();
 
-  return new Plugin({
-    key: new PluginKey("codeHighlighting"),
+  /**
+   * Get the highlighted tokens for a code block.
+   *
+   * @param node - the code block node.
+   * @returns the tokens, or undefined if the language is not loaded.
+   */
+  function getTokens(node: Node): TokenRange[] | undefined {
+    const cached = tokenCache.get(node);
+    if (cached) {
+      return cached;
+    }
+
+    const language = node.attrs.language;
+    const lang = getRefractorLangForLanguage(language);
+    if (!lang) {
+      return;
+    }
+    if (!refractor?.registered(lang)) {
+      languagesToImport.add(language);
+      return;
+    }
+
+    const { tokens } = parseNodes(refractor.highlight(node.textContent, lang));
+    tokenCache.set(node, tokens);
+    return tokens;
+  }
+
+  /**
+   * Build the decorations for all code blocks in a document.
+   *
+   * @param doc - the document.
+   * @param blocks - the code blocks in the document.
+   * @param previous - the previous decorations mapped to the document, used
+   * to defer highlighting large blocks that changed.
+   * @returns the plugin state.
+   */
+  function build(
+    doc: Node,
+    blocks: CodeBlock[],
+    previous?: DecorationSet
+  ): CodeHighlightingState {
+    const decorations: Decoration[] = [];
+    let stale = false;
+
+    for (const block of blocks) {
+      const { node, pos } = block;
+      if (lineNumbers) {
+        decorations.push(...lineNumberDecorations(block));
+      }
+
+      if (
+        previous &&
+        !tokenCache.has(node) &&
+        node.content.size > deferredHighlightLength
+      ) {
+        const language = node.attrs.language;
+        const mapped = previous.find(
+          pos,
+          pos + node.nodeSize,
+          (spec) => spec.language === language
+        );
+        if (mapped.length) {
+          decorations.push(...mapped);
+          stale = true;
+          continue;
+        }
+      }
+
+      const tokens = getTokens(node);
+      if (!tokens) {
+        continue;
+      }
+      const language = node.attrs.language;
+      const start = pos + 1;
+      for (const token of tokens) {
+        decorations.push(
+          Decoration.inline(
+            start + token.from,
+            start + token.to,
+            { class: token.className },
+            { language }
+          )
+        );
+      }
+    }
+
+    return {
+      decorations: DecorationSet.create(doc, decorations),
+      blocks,
+      stale,
+    };
+  }
+
+  return new Plugin<CodeHighlightingState>({
+    key,
     state: {
-      init: (_, { doc }) => DecorationSet.create(doc, []),
-      apply: (transaction: Transaction, decorationSet, oldState, state) => {
-        const nodeName = state.selection.$head.parent.type.name;
-        const previousNodeName = oldState.selection.$head.parent.type.name;
-        const codeBlockChanged =
-          transaction.docChanged && [nodeName, previousNodeName].includes(name);
-
-        const isPaste = transaction.getMeta("paste");
-        const langLoaded = transaction.getMeta("codeHighlighting")?.langLoaded;
-
-        if (
-          !highlighted ||
-          codeBlockChanged ||
-          isPaste ||
-          langLoaded ||
-          isRemoteTransaction(transaction, state)
-        ) {
-          // Invalidate cached entries for blocks whose language just loaded
-          // so getDecorations rebuilds them with syntax highlighting applied.
-          if (Array.isArray(langLoaded)) {
-            for (const key of Object.keys(cache)) {
-              const pos = Number(key);
-              if (langLoaded.includes(cache[pos]?.node.attrs.language)) {
-                delete cache[pos];
-              }
-            }
-          }
-          highlighted = true;
-          return getDecorations({ doc: transaction.doc, name, lineNumbers });
+      init: (_, { doc }) => build(doc, findCodeBlocks(doc, name)),
+      apply: (tr, value) => {
+        // Sent when a language loads or a deferred highlight is due.
+        const refresh = !!tr.getMeta("codeHighlighting");
+        if (!tr.docChanged && !refresh) {
+          return value;
         }
 
-        return decorationSet.map(transaction.mapping, transaction.doc);
+        const blocks = findCodeBlocks(tr.doc, name);
+        if (refresh) {
+          return build(tr.doc, blocks);
+        }
+
+        const mapped = value.decorations.map(tr.mapping, tr.doc);
+        if (blocksUnchanged(tr, value.blocks, blocks)) {
+          return { ...value, decorations: mapped, blocks };
+        }
+
+        return build(tr.doc, blocks, mapped);
       },
     },
     view: (view) => {
-      if (!highlighted) {
-        void getRefractor().then(() => {
-          if (!view.isDestroyed) {
-            view.dispatch(
-              view.state.tr.setMeta("codeHighlighting", {
-                langLoaded: true,
-              })
-            );
-          }
-        });
-      }
-      return {
-        update: () => {
-          if (!languagesToImport.size) {
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+
+      const refresh = () => {
+        if (!view.isDestroyed) {
+          view.dispatch(view.state.tr.setMeta("codeHighlighting", true));
+        }
+      };
+
+      const refreshWhenIdle = () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          // Changing decorations around an active composition breaks IME input.
+          if (view.composing) {
+            refreshWhenIdle();
             return;
           }
+          refresh();
+        }, deferredHighlightDelay);
+      };
 
-          void Promise.all([...languagesToImport].map(loadLanguage)).then(
-            (results) => {
-              const loaded = results.filter((lang): lang is string => !!lang);
-              if (loaded.length && !view.isDestroyed) {
-                view.dispatch(
-                  view.state.tr.setMeta("codeHighlighting", {
-                    langLoaded: loaded,
-                  })
-                );
-              }
-            }
-          );
+      const importLanguages = () => {
+        if (!languagesToImport.size) {
+          return;
+        }
+
+        const languages = [...languagesToImport];
+        languagesToImport.clear();
+
+        void Promise.all(languages.map(loadLanguage)).then(() => {
+          const loaded = languages.some((language) => {
+            const lang = getRefractorLangForLanguage(language);
+            return !!lang && refractor?.registered(lang);
+          });
+          if (loaded) {
+            refresh();
+          }
+        });
+      };
+
+      if (refractor) {
+        importLanguages();
+      } else {
+        void getRefractor().then(refresh);
+      }
+
+      return {
+        update: () => {
+          if (key.getState(view.state)?.stale) {
+            refreshWhenIdle();
+          }
+          importLanguages();
+        },
+        destroy: () => {
+          clearTimeout(timeout);
         },
       };
     },
     props: {
       decorations(state) {
-        return this.getState(state);
+        return key.getState(state)?.decorations;
       },
     },
   });
