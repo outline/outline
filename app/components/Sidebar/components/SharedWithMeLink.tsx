@@ -130,8 +130,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
     reparentableNode,
     undefined,
-    setExpanded,
-    parentRef
+    setExpanded
   );
 
   const { icon } = useSidebarLabelAndIcon(membership);
