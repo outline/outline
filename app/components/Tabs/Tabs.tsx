@@ -4,6 +4,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { useStuckAttribute } from "~/hooks/useStuckAttribute";
 import useWindowSize from "~/hooks/useWindowSize";
 
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
@@ -101,29 +102,11 @@ export const Tabs: React.FC<Props> = ({ children }: Props) => {
     updateShadows();
   }, [width, updateShadows]);
 
-  // Mark the tab bar while it is stuck so the header above can style itself to match.
-  React.useEffect(() => {
-    const sticky = stickyRef.current;
-    if (!sticky) {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        sticky.toggleAttribute(
-          "data-stuck",
-          entry.intersectionRatio < 1 &&
-            entry.boundingClientRect.top <= StickyTop + 1
-        );
-      },
-      { threshold: 1, rootMargin: `-${StickyTop + 1}px 0px 0px 0px` }
-    );
-    observer.observe(sticky);
-    return () => observer.disconnect();
-  }, []);
+  useStuckAttribute(stickyRef, StickyTop);
 
   return (
     <TabsGroup>
-      <Sticky ref={stickyRef} data-sticky-tabs>
+      <Sticky ref={stickyRef}>
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
         </Nav>
