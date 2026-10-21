@@ -7,6 +7,7 @@ import {
   flatten,
   includes,
   map,
+  union,
 } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
@@ -44,6 +45,11 @@ type Props = {
 
 const VERTICAL_PADDING = 6;
 const HORIZONTAL_PADDING = 24;
+
+const expandableDescendantIds = (node: NavigationNode) =>
+  descendants(node)
+    .filter((des) => des.children.length > 0)
+    .map((des) => des.id);
 
 function innerElementType({
   style,
@@ -103,6 +109,10 @@ function DocumentExplorer({
     }
     return [];
   });
+  // Nodes expanded with alt-click, whose descendants stay expanded as they load.
+  const [deepExpandedNodes, setDeepExpandedNodes] = React.useState<string[]>(
+    []
+  );
 
   const [itemRefs, setItemRefs] = React.useState<
     React.RefObject<HTMLSpanElement>[]
@@ -125,6 +135,7 @@ function DocumentExplorer({
     if (searchTerm) {
       selectNode(null);
       setExpandedNodes([]);
+      setDeepExpandedNodes([]);
     }
     setActiveNode(0);
   }, [searchTerm]);
@@ -196,8 +207,16 @@ function DocumentExplorer({
 
   const collapse = (node: number) => {
     const descendantIds = descendants(nodes[node]).map((des) => des.id);
+    const ancestorIds = ancestors(nodes[node]).map((anc) => anc.id);
     setExpandedNodes(
       difference(expandedNodes, [...descendantIds, nodes[node].id])
+    );
+    setDeepExpandedNodes(
+      difference(deepExpandedNodes, [
+        ...ancestorIds,
+        ...descendantIds,
+        nodes[node].id,
+      ])
     );
 
     // remove children
@@ -205,14 +224,39 @@ function DocumentExplorer({
     preserveScrollOffset(newNodes.length);
   };
 
-  const expand = (node: number) => {
-    setExpandedNodes(concat(expandedNodes, nodes[node].id));
+  const expand = (node: number, deep = false) => {
+    if (deep) {
+      setExpandedNodes(
+        union(expandedNodes, [
+          nodes[node].id,
+          ...expandableDescendantIds(nodes[node]),
+        ])
+      );
+      setDeepExpandedNodes(union(deepExpandedNodes, [nodes[node].id]));
+    } else {
+      setExpandedNodes(concat(expandedNodes, nodes[node].id));
+    }
 
     // add children
     const newNodes = nodes.slice();
-    newNodes.splice(node + 1, 0, ...descendants(nodes[node], 1));
+    newNodes.splice(node + 1, 0, ...descendants(nodes[node], deep ? 0 : 1));
     preserveScrollOffset(newNodes.length);
   };
+
+  // Expand descendants of alt-clicked nodes that load after the click.
+  React.useEffect(() => {
+    if (!deepExpandedNodes.length) {
+      return;
+    }
+    const ids = flatten(items.map(flattenTree))
+      .filter((item) => deepExpandedNodes.includes(item.id))
+      .flatMap(expandableDescendantIds);
+
+    setExpandedNodes((prev) => {
+      const missing = difference(ids, prev);
+      return missing.length ? concat(prev, missing) : prev;
+    });
+  }, [items, deepExpandedNodes]);
 
   React.useEffect(() => {
     collections.orderedData
@@ -238,14 +282,14 @@ function DocumentExplorer({
     nodes[node].children.length > 0 ||
     (showDocuments !== false && nodes[node].type === "collection");
 
-  const toggleCollapse = (node: number) => {
+  const toggleCollapse = (node: number, deep = false) => {
     if (!hasChildren(node)) {
       return;
     }
     if (isExpanded(node)) {
       collapse(node);
     } else {
-      expand(node);
+      expand(node, deep);
     }
   };
 
@@ -339,7 +383,7 @@ function DocumentExplorer({
           onDoubleClick={() => submitNode(index)}
           onDisclosureClick={(ev) => {
             ev.stopPropagation();
-            toggleCollapse(index);
+            toggleCollapse(index, ev.altKey);
           }}
           selected={isSelected(index)}
           active={activeNode === index}
