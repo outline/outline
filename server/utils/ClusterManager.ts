@@ -1,7 +1,7 @@
 import cluster, { type Worker } from "node:cluster";
 import os from "node:os";
 import { Second } from "@shared/utils/time";
-import ShutdownHelper from "./ShutdownHelper";
+import { ShutdownHelper } from "./ShutdownHelper";
 
 interface ClusterOptions {
   /** Called once in the primary process before any worker is forked. */

@@ -21,7 +21,7 @@ import { CacheHelper } from "./utils/CacheHelper";
 import { PluginManager } from "./utils/PluginManager";
 import { redirectOnClient } from "./utils/redirectOnClient";
 import { RedisPrefixHelper } from "./utils/RedisPrefixHelper";
-import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "./utils/ShutdownHelper";
 import { getSSLOptions } from "./utils/ssl";
 import { checkUpdates } from "./utils/updates";
 
