@@ -100,4 +100,36 @@ describe("ClusterManager", () => {
     mockCluster.emit("disconnect");
     expect(cluster.fork).toHaveBeenCalledTimes(2);
   });
+
+  it("should force kill workers after the grace period", async () => {
+    const { ClusterManager } = await import("./ClusterManager");
+    const exit = vi
+      .spyOn(process, "exit")
+      .mockImplementation((() => undefined) as typeof process.exit);
+    await ClusterManager.start({ worker: vi.fn(), count: 1 });
+
+    vi.useFakeTimers();
+    const kill = vi.fn();
+    Object.assign(cluster, { workers: { 1: { process: { kill } } } });
+    signalHandlers.get("SIGTERM")?.();
+    expect(kill).toHaveBeenCalledWith("SIGTERM");
+    expect(exit).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(ClusterManager.gracePeriod);
+    expect(kill).toHaveBeenCalledWith("SIGKILL");
+    expect(exit).toHaveBeenCalled();
+  });
+
+  it("should not fork workers when shutdown begins during the primary callback", async () => {
+    const { ClusterManager } = await import("./ClusterManager");
+    vi.useFakeTimers();
+
+    await ClusterManager.start({
+      primary: () => signalHandlers.get("SIGTERM")?.(),
+      worker: vi.fn(),
+      count: 2,
+    });
+
+    expect(cluster.fork).not.toHaveBeenCalled();
+  });
 });

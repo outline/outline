@@ -18,7 +18,7 @@ interface ClusterOptions {
 export class ClusterManager {
   /**
    * The amount of time to wait for workers to exit after a termination signal
-   * before they are killed and the primary process exits.
+   * before they are force killed and the primary process exits.
    */
   public static readonly gracePeriod = 5 * 1000;
 
@@ -54,6 +54,11 @@ export class ClusterManager {
 
     await primary?.();
 
+    // A termination signal may arrive while the primary callback runs.
+    if (!this.running) {
+      return;
+    }
+
     for (let i = 0; i < count; i++) {
       cluster.fork();
     }
@@ -66,7 +71,7 @@ export class ClusterManager {
 
     setTimeout(() => {
       for (const worker of Object.values(cluster.workers ?? {})) {
-        worker?.kill(signal);
+        worker?.process.kill("SIGKILL");
       }
       process.exit();
     }, this.gracePeriod).unref();
