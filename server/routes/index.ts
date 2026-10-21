@@ -2,8 +2,8 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
-import Router from "koa-router";
-import send from "koa-send";
+import Router from "@koa/router";
+import { send } from "@koa/send";
 import { languages } from "@shared/i18n";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
@@ -12,12 +12,12 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
-import { opensearchResponse } from "@server/utils/opensearch";
+import { getSessionRedirectUrl } from "@server/utils/authentication";
 import { getTeamFromContext } from "@server/utils/passport";
-import { robotsResponse } from "@server/utils/robots";
 import { isInvalidAppPath } from "@server/utils/url";
 import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
+import discovery from "./discovery";
 import { renderEmbed } from "./embeds";
 import errors from "./errors";
 
@@ -25,33 +25,40 @@ const koa = new Koa();
 const router = new Router();
 
 // serve public assets
-router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
-  let done;
+router.use(
+  ["/images/{*path}", "/email/{*path}", "/fonts/{*path}"],
+  async (ctx, next) => {
+    let done;
 
-  if (ctx.method === "HEAD" || ctx.method === "GET") {
-    try {
-      done = await send(ctx, ctx.path, {
-        root: path.resolve(__dirname, "../../../public"),
-        // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: Day.ms * 7,
-        setHeaders: (res) => {
-          res.setHeader("Access-Control-Allow-Origin", "*");
-        },
-      });
-    } catch (err) {
-      if (!(err instanceof Error && "status" in err && err.status === 404)) {
-        throw err;
+    if (ctx.method === "HEAD" || ctx.method === "GET") {
+      try {
+        done = await send(ctx, ctx.path, {
+          root: path.resolve(__dirname, "../../../public"),
+          // 7 day expiry, these assets are mostly static but do not contain a hash
+          maxAge: Day.ms * 7,
+          setHeaders: (res) => {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+          },
+        });
+      } catch (err) {
+        if (!(err instanceof Error && "status" in err && err.status === 404)) {
+          throw err;
+        }
       }
     }
-  }
 
-  if (!done) {
-    await next();
+    if (!done) {
+      await next();
+    }
   }
-});
+);
 
 router.use(
-  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  [
+    "/share/:shareId",
+    "/share/:shareId/doc/:documentSlug",
+    "/share/:shareId/{*path}",
+  ],
   (ctx) => {
     const redirectPath = ctx.path.replace(/^\/share/, "/s");
     ctx.redirect(redirectPath + ctx.request.URL.search);
@@ -60,7 +67,7 @@ router.use(
 );
 
 if (env.isProduction) {
-  router.get("/static/*", async (ctx) => {
+  router.get("/static/{*path}", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
       if (!pathname) {
@@ -72,9 +79,15 @@ if (env.isProduction) {
         // Hashed static assets get 1 year expiry plus immutable flag
         maxAge: Day.ms * 365,
         immutable: true,
-        setHeaders: (res) => {
+        setHeaders: (res, filePath) => {
           res.setHeader("Service-Worker-Allowed", "/");
           res.setHeader("Access-Control-Allow-Origin", "*");
+
+          // The service worker is not hashed and must always be revalidated
+          // so that browsers detect and install new versions.
+          if (path.basename(filePath) === "sw.js") {
+            res.setHeader("Cache-Control", "no-cache");
+          }
         },
       });
     } catch (err) {
@@ -113,82 +126,7 @@ router.get("/locales/:lng.json", async (ctx) => {
   });
 });
 
-router.get(
-  [
-    "/.well-known/oauth-authorization-server",
-    "/.well-known/oauth-authorization-server/mcp",
-  ],
-  async (ctx) => {
-    // Use the configured URL for self-hosted deployments to preserve the port when behind
-    // a reverse proxy that may strip the port from the Host header.
-    const origin = env.isCloudHosted
-      ? ctx.request.URL.origin
-      : new URL(env.URL).origin;
-    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
-    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
-
-    ctx.body = {
-      issuer: origin,
-      authorization_endpoint: `${origin}/oauth/authorize`,
-      token_endpoint: `${origin}/oauth/token`,
-      revocation_endpoint: `${origin}/oauth/revoke`,
-      ...(!env.OAUTH_DISABLE_DCR &&
-        mcpEnabled && {
-          registration_endpoint: `${origin}/oauth/register`,
-        }),
-      response_types_supported: ["code"],
-      grant_types_supported: ["authorization_code", "refresh_token"],
-      token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
-      code_challenge_methods_supported: ["S256"],
-      scopes_supported: ["read", "write"],
-    };
-  }
-);
-
-router.get(
-  [
-    "/.well-known/oauth-protected-resource",
-    "/.well-known/oauth-protected-resource/mcp",
-  ],
-  async (ctx) => {
-    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
-    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
-
-    if (!mcpEnabled) {
-      ctx.status = 404;
-      return;
-    }
-
-    // Use the configured URL for self-hosted deployments to preserve the port when behind
-    // a reverse proxy that may strip the port from the Host header.
-    const origin = env.isCloudHosted
-      ? ctx.request.URL.origin
-      : new URL(env.URL).origin;
-
-    ctx.body = {
-      resource: `${origin}/mcp`,
-      authorization_servers: [origin],
-      scopes_supported: ["read", "write"],
-      bearer_methods_supported: ["header"],
-    };
-  }
-);
-
-// MCP clients sometimes probe the origin for a legacy HTTP+SSE endpoint. The
-// application shell is not a valid response to that probe, so answer with a 404.
-router.get("/sse", (ctx) => {
-  ctx.status = 404;
-});
-
-router.get("/robots.txt", (ctx) => {
-  ctx.body = robotsResponse();
-});
-
-router.get("/opensearch.xml", (ctx) => {
-  ctx.type = "text/xml";
-  ctx.response.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
-  ctx.body = opensearchResponse(ctx.request.URL.origin);
-});
+router.use(discovery.routes());
 
 router.get("/s/:shareId.:format", shareDomains(), renderShare);
 router.get("/s/:shareId", shareDomains(), renderShare);
@@ -198,7 +136,7 @@ router.get(
   renderShare
 );
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
-router.get("/s/:shareId/*", shareDomains(), renderShare);
+router.get("/s/:shareId/{*path}", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
@@ -222,8 +160,21 @@ router.get("/sitemap.xml", async (ctx) => {
   }
 });
 
+// Client routes that render without an authenticated session.
+const publicAppPaths = [
+  "/",
+  "/create",
+  "/logout",
+  "/desktop-redirect",
+  "/oauth/authorize",
+];
+
+function isPublicAppPath(path: string) {
+  return publicAppPaths.includes(path.replace(/\/+$/, "") || "/");
+}
+
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("{/*path}", async (ctx, next) => {
   if (isInvalidAppPath(ctx.path)) {
     ctx.status = 404;
     return;
@@ -247,6 +198,16 @@ router.get("*", async (ctx, next) => {
       if (env.isProduction && ctx.hostname !== parseDomain(env.URL).host) {
         ctx.redirect(env.URL);
         return;
+      }
+
+      // Links to app paths on the root domain, such as those in emails, are
+      // sent on to the workspace the browser is signed in to.
+      if (!team && !isPublicAppPath(ctx.path)) {
+        const url = await getSessionRedirectUrl(ctx);
+        if (url) {
+          ctx.redirect(url);
+          return;
+        }
       }
     }
 
@@ -274,7 +235,9 @@ router.get("*", async (ctx, next) => {
       publicBranding && team?.description ? team.description : undefined,
     analytics,
     shortcutIcon:
-      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
+      publicBranding && team?.avatarUrl
+        ? ((await team.publicAvatarUrl()) ?? undefined)
+        : undefined,
   });
 });
 
@@ -289,6 +252,11 @@ if (env.SENTRY_DSN) {
 
 koa.use(async (ctx, next) => {
   ctx.set("Timing-Allow-Origin", timingOrigins.join(", "));
+
+  // Allow the JS Self-Profiling API to be used for local performance work.
+  if (env.isDevelopment) {
+    ctx.set("Document-Policy", "js-profiling");
+  }
   await next();
 });
 

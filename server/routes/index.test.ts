@@ -54,6 +54,43 @@ describe("/s/:id", () => {
     expect(body).toContain(`<title>${document.title}</title>`);
   });
 
+  it("should allow indexing of a published share that opts in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: true,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<meta name="robots" content="index, follow" />`);
+  });
+
+  it("should prevent indexing of a share that does not opt in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: false,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
+  it("should prevent indexing when share does not exist", async () => {
+    const res = await server.get(`/s/junk`);
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
   it("should return document title in html when loading published share with nested doc route", async () => {
     const document = await buildDocument();
     const share = await buildShare({
@@ -316,6 +353,47 @@ describe("content security policy", () => {
   });
 });
 
+describe("/locales/:lng.json", () => {
+  it("should serve the translation file with cache headers", async () => {
+    const res = await server.get("/locales/en_US.json");
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(res.headers.get("cache-control")).toEqual("public, max-age=604800");
+    expect(res.headers.get("etag")).toBeTruthy();
+    expect(res.headers.get("last-modified")).toBeTruthy();
+    expect(res.headers.get("access-control-allow-origin")).toEqual("*");
+    const body = await res.json();
+    expect(typeof body).toEqual("object");
+  });
+
+  it("should return 404 for an unknown language", async () => {
+    const res = await server.get("/locales/xx_XX.json");
+    expect(res.status).toEqual(404);
+  });
+});
+
+describe("public assets", () => {
+  it.each([
+    "/images/..%2F..%2Fpackage.json",
+    "/fonts/..%2F..%2F..%2Fpackage.json",
+    "/email/%2e%2e%2f%2e%2e%2fpackage.json",
+    "/images/..%5C..%5Cpackage.json",
+  ])(
+    "should not serve files outside the public directory for %s",
+    async (path) => {
+      const res = await server.get(path);
+      expect(res.status).toEqual(403);
+      const body = await res.text();
+      expect(body).not.toContain("dependencies");
+    }
+  );
+
+  it("should reject paths with null bytes", async () => {
+    const res = await server.get("/images/logo.png%00.txt");
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("scanner path 404s", () => {
   it.each([
     "/.well-known/gpc.json",
@@ -335,6 +413,18 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(404);
     expect(body).not.toContain("<title>");
   });
+
+  it.each(["/", "/login", "/some-app-route"])(
+    "prevents indexing of the app shell at %s",
+    async (path) => {
+      const res = await server.get(path);
+      const body = await res.text();
+      expect(res.status).toEqual(200);
+      expect(body).toContain(
+        `<meta name="robots" content="noindex, nofollow" />`
+      );
+    }
+  );
 
   it("still serves the app shell for legitimate unknown paths", async () => {
     const res = await server.get("/some-app-route");
@@ -404,5 +494,113 @@ describe("canonical host redirects", () => {
     });
 
     expect(res.status).toEqual(200);
+  });
+});
+
+describe("root domain session redirects", () => {
+  const host = "app.outline.dev";
+
+  const sessionsCookie = (teams: { id: string; name: string; url: string }[]) =>
+    `sessions=${encodeURIComponent(
+      JSON.stringify(
+        Object.fromEntries(
+          teams.map((team) => [
+            team.id,
+            { name: team.name, logoUrl: "", url: team.url },
+          ])
+        )
+      )
+    )}`;
+
+  it("should redirect an app path to the only signed-in workspace", async () => {
+    const team = await buildTeam({ subdomain: `only-${randomUUID()}` });
+
+    const res = await server.get("/settings/billing?referer=upcoming_invoice", {
+      headers: { Host: host, Cookie: sessionsCookie([team]) },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `${team.url}/settings/billing?referer=upcoming_invoice`
+    );
+  });
+
+  it("should skip unusable entries and redirect to the remaining workspace", async () => {
+    const team = await buildTeam({ subdomain: `usable-${randomUUID()}` });
+    const suspended = await buildTeam({
+      subdomain: `suspended-${randomUUID()}`,
+      suspendedAt: new Date(),
+    });
+    const deleted = { id: randomUUID(), name: "Gone", url: "https://x.dev" };
+
+    const res = await server.get("/settings/billing", {
+      headers: {
+        Host: host,
+        Cookie: sessionsCookie([suspended, deleted, team]),
+      },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(`${team.url}/settings/billing`);
+  });
+
+  it("should redirect to the first workspace when signed in to several", async () => {
+    const first = await buildTeam({ subdomain: `first-${randomUUID()}` });
+    const second = await buildTeam({ subdomain: `second-${randomUUID()}` });
+
+    const res = await server.get("/settings/billing", {
+      headers: { Host: host, Cookie: sessionsCookie([first, second]) },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `${first.url}/settings/billing`
+    );
+  });
+
+  it("should not redirect public paths", async () => {
+    const team = await buildTeam({ subdomain: `public-${randomUUID()}` });
+
+    for (const path of ["/", "/create", "/oauth/authorize?client_id=x"]) {
+      const res = await server.get(path, {
+        headers: { Host: host, Cookie: sessionsCookie([team]) },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(200);
+    }
+  });
+
+  it("should not redirect without a sessions cookie", async () => {
+    const res = await server.get("/settings/billing", {
+      headers: { Host: host },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should ignore a malformed sessions cookie", async () => {
+    const cookies = [
+      JSON.stringify({ "not-a-uuid": { name: "x", url: "https://evil.com" } }),
+      "null",
+      '"string"',
+      "[]",
+      "{not json",
+    ];
+
+    for (const cookie of cookies) {
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(cookie)}`,
+        },
+        redirect: "manual",
+      });
+
+      expect(res.status).toEqual(200);
+    }
   });
 });

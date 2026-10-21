@@ -77,139 +77,138 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   help?: string;
   /** Render function to override the selected value shown in the trigger. Receives the currently selected option, or undefined when none is selected. */
   displayValue?: (selectedOption: Item | undefined) => React.ReactNode;
+  ref?: React.Ref<HTMLButtonElement>;
 } & TriggerButtonProps;
 
-export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
-  (props, ref) => {
-    const {
-      options,
-      value,
-      onChange,
-      label,
-      labelHidden,
-      short,
-      help,
-      displayValue,
-      ...triggerProps
-    } = props;
+export function InputSelect(props: Props) {
+  const {
+    ref,
+    options,
+    value,
+    onChange,
+    label,
+    labelHidden,
+    short,
+    help,
+    displayValue,
+    ...triggerProps
+  } = props;
 
-    const [localValue, setLocalValue] = React.useState(value);
-    const [open, setOpen] = React.useState(false);
+  const [localValue, setLocalValue] = React.useState(value);
+  const [open, setOpen] = React.useState(false);
 
-    const contentRef =
-      React.useRef<React.ElementRef<typeof InputSelectContent>>(null);
+  const contentRef =
+    React.useRef<React.ComponentRef<typeof InputSelectContent>>(null);
 
-    const isMobile = useMobile();
+  const isMobile = useMobile();
 
-    const placeholder = `Select a ${label.toLowerCase()}`;
-    const optionsHaveIcon = options.some(
-      (opt) => opt.type === "item" && !!opt.icon
-    );
+  const placeholder = `Select a ${label.toLowerCase()}`;
+  const optionsHaveIcon = options.some(
+    (opt) => opt.type === "item" && !!opt.icon
+  );
 
-    const selectedOption = React.useMemo(
-      () =>
-        localValue
-          ? (options.find(
-              (opt) => opt.type === "item" && opt.value === localValue
-            ) as Item | undefined)
-          : undefined,
-      [localValue, options]
-    );
+  const selectedOption = React.useMemo(
+    () =>
+      localValue
+        ? (options.find(
+            (opt) => opt.type === "item" && opt.value === localValue
+          ) as Item | undefined)
+        : undefined,
+    [localValue, options]
+  );
 
-    const resolvedDisplayValue = displayValue
-      ? displayValue(selectedOption)
-      : undefined;
+  const resolvedDisplayValue = displayValue
+    ? displayValue(selectedOption)
+    : undefined;
 
-    const renderOption = React.useCallback(
-      (option: Option, idx: number) => {
-        if (option.type === "separator") {
-          return <InputSelectSeparator key={`separator-${idx}`} />;
-        }
+  const renderOption = React.useCallback(
+    (option: Option, idx: number) => {
+      if (option.type === "separator") {
+        return <InputSelectSeparator key={`separator-${idx}`} />;
+      }
 
-        if (option.type === "heading") {
-          return (
-            <InputSelectHeading key={`heading-${option.label}`}>
-              {option.label}
-            </InputSelectHeading>
-          );
-        }
-
+      if (option.type === "heading") {
         return (
-          <InputSelectItem key={option.value} value={option.value}>
-            <Option option={option} optionsHaveIcon={optionsHaveIcon} />
-          </InputSelectItem>
+          <InputSelectHeading key={`heading-${option.label}`}>
+            {option.label}
+          </InputSelectHeading>
         );
-      },
-      [optionsHaveIcon]
-    );
-
-    const onValueChange = React.useCallback(
-      async (val: string) => {
-        setLocalValue(val);
-        onChange(val);
-      },
-      [onChange, setLocalValue]
-    );
-
-    const enablePointerEvents = React.useCallback(() => {
-      if (contentRef.current) {
-        contentRef.current.style.pointerEvents = "auto";
       }
-    }, []);
 
-    const disablePointerEvents = React.useCallback(() => {
-      if (contentRef.current) {
-        contentRef.current.style.pointerEvents = "none";
-      }
-    }, []);
-
-    React.useEffect(() => {
-      setLocalValue(value);
-    }, [value]);
-
-    if (isMobile) {
       return (
-        <MobileSelect
-          ref={ref}
-          {...props}
-          value={localValue}
-          onChange={onValueChange}
-          placeholder={placeholder}
-          optionsHaveIcon={optionsHaveIcon}
-          resolvedDisplayValue={resolvedDisplayValue}
-        />
+        <InputSelectItem key={option.value} value={option.value}>
+          <Option option={option} optionsHaveIcon={optionsHaveIcon} />
+        </InputSelectItem>
       );
-    }
+    },
+    [optionsHaveIcon]
+  );
 
+  const onValueChange = React.useCallback(
+    async (val: string) => {
+      setLocalValue(val);
+      onChange(val);
+    },
+    [onChange, setLocalValue]
+  );
+
+  const enablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
+    }
+  }, []);
+
+  React.useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  if (isMobile) {
     return (
-      <Wrapper short={short}>
-        <Label text={label} hidden={labelHidden ?? false} help={help} />
-        <InputSelectRoot
-          open={open}
-          onOpenChange={setOpen}
-          value={localValue ?? undefined}
-          onValueChange={onValueChange}
-        >
-          <InputSelectTrigger
-            ref={ref}
-            placeholder={placeholder}
-            displayValue={resolvedDisplayValue}
-            {...triggerProps}
-          />
-          <InputSelectContent
-            ref={contentRef}
-            aria-label={label}
-            onAnimationStart={disablePointerEvents}
-            onAnimationEnd={enablePointerEvents}
-          >
-            {options.map(renderOption)}
-          </InputSelectContent>
-        </InputSelectRoot>
-      </Wrapper>
+      <MobileSelect
+        ref={ref}
+        {...props}
+        value={localValue}
+        onChange={onValueChange}
+        placeholder={placeholder}
+        optionsHaveIcon={optionsHaveIcon}
+        resolvedDisplayValue={resolvedDisplayValue}
+      />
     );
   }
-);
-InputSelect.displayName = "InputSelect";
+
+  return (
+    <Wrapper short={short}>
+      <Label text={label} hidden={labelHidden ?? false} help={help} />
+      <InputSelectRoot
+        open={open}
+        onOpenChange={setOpen}
+        value={localValue ?? undefined}
+        onValueChange={onValueChange}
+      >
+        <InputSelectTrigger
+          ref={ref}
+          placeholder={placeholder}
+          displayValue={resolvedDisplayValue}
+          {...triggerProps}
+        />
+        <InputSelectContent
+          ref={contentRef}
+          aria-label={label}
+          onAnimationStart={disablePointerEvents}
+          onAnimationEnd={enablePointerEvents}
+        >
+          {options.map(renderOption)}
+        </InputSelectContent>
+      </InputSelectRoot>
+    </Wrapper>
+  );
+}
 
 type MobileSelectProps = Props & {
   placeholder: string;
@@ -217,125 +216,124 @@ type MobileSelectProps = Props & {
   resolvedDisplayValue?: React.ReactNode;
 };
 
-const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
-  (props, ref) => {
-    const {
-      options,
-      value,
-      onChange,
-      label,
-      labelHidden,
-      disabled,
-      short,
-      placeholder,
-      optionsHaveIcon,
-      displayValue: _displayValue,
-      resolvedDisplayValue,
-      ...triggerProps
-    } = props;
+function MobileSelect(props: MobileSelectProps) {
+  const {
+    ref,
+    options,
+    value,
+    onChange,
+    label,
+    labelHidden,
+    disabled,
+    short,
+    placeholder,
+    optionsHaveIcon,
+    displayValue: _displayValue,
+    resolvedDisplayValue,
+    ...triggerProps
+  } = props;
 
-    const [open, setOpen] = React.useState(false);
-    const contentRef =
-      React.useRef<React.ElementRef<typeof DrawerContent>>(null);
+  const [open, setOpen] = React.useState(false);
+  const contentRef =
+    React.useRef<React.ComponentRef<typeof DrawerContent>>(null);
 
-    const selectedOption = React.useMemo(
-      () =>
-        value
-          ? options.find((opt) => opt.type === "item" && opt.value === value)
-          : undefined,
-      [value, options]
-    );
+  const selectedOption = React.useMemo(
+    () =>
+      value
+        ? options.find((opt) => opt.type === "item" && opt.value === value)
+        : undefined,
+    [value, options]
+  );
 
-    const handleSelect = React.useCallback(
-      async (val: string) => {
-        setOpen(false);
-        onChange(val);
-      },
-      [onChange]
-    );
+  const handleSelect = React.useCallback(
+    async (val: string) => {
+      setOpen(false);
+      onChange(val);
+    },
+    [onChange]
+  );
 
-    const renderOption = React.useCallback(
-      (option: Option, idx: number) => {
-        if (option.type === "separator") {
-          return <InputSelectSeparator key={`separator-${idx}`} />;
-        }
+  const renderOption = React.useCallback(
+    (option: Option, idx: number) => {
+      if (option.type === "separator") {
+        return <InputSelectSeparator key={`separator-${idx}`} />;
+      }
 
-        if (option.type === "heading") {
-          return (
-            <InputSelectHeading key={`heading-${option.label}`}>
-              {option.label}
-            </InputSelectHeading>
-          );
-        }
-
-        const isSelected = option === selectedOption;
-
+      if (option.type === "heading") {
         return (
-          <SelectItemWrapper
-            key={option.value}
-            onClick={() => handleSelect(option.value)}
-            data-state={isSelected ? "checked" : "unchecked"}
-          >
-            <Option option={option} optionsHaveIcon={optionsHaveIcon} />
-            {isSelected && <SelectItemIndicator />}
-          </SelectItemWrapper>
+          <InputSelectHeading key={`heading-${option.label}`}>
+            {option.label}
+          </InputSelectHeading>
         );
-      },
-      [handleSelect, selectedOption, optionsHaveIcon]
-    );
-
-    const enablePointerEvents = React.useCallback(() => {
-      if (contentRef.current) {
-        contentRef.current.style.pointerEvents = "auto";
       }
-    }, []);
 
-    const disablePointerEvents = React.useCallback(() => {
-      if (contentRef.current) {
-        contentRef.current.style.pointerEvents = "none";
-      }
-    }, []);
+      const isSelected = option === selectedOption;
 
-    return (
-      <Wrapper>
-        <Label text={label} hidden={labelHidden ?? false} />
-        <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerTrigger asChild>
-            <SelectButton
-              ref={ref}
-              {...triggerProps}
-              neutral
-              disclosure
-              data-placeholder={selectedOption ? false : ""}
-            >
-              {resolvedDisplayValue !== undefined ? (
-                resolvedDisplayValue
-              ) : selectedOption ? (
-                <Option
-                  option={selectedOption as Item}
-                  optionsHaveIcon={optionsHaveIcon}
-                />
-              ) : (
-                <>{placeholder}</>
-              )}
-            </SelectButton>
-          </DrawerTrigger>
-          <DrawerContent
-            ref={contentRef}
-            aria-label={label}
-            onAnimationStart={disablePointerEvents}
-            onAnimationEnd={enablePointerEvents}
+      return (
+        <SelectItemWrapper
+          key={option.value}
+          onClick={() => handleSelect(option.value)}
+          data-state={isSelected ? "checked" : "unchecked"}
+        >
+          <Option option={option} optionsHaveIcon={optionsHaveIcon} />
+          {isSelected && <SelectItemIndicator />}
+        </SelectItemWrapper>
+      );
+    },
+    [handleSelect, selectedOption, optionsHaveIcon]
+  );
+
+  const enablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
+    }
+  }, []);
+
+  return (
+    <Wrapper>
+      <Label text={label} hidden={labelHidden ?? false} />
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>
+          <SelectButton
+            ref={ref}
+            {...triggerProps}
+            neutral
+            disclosure
+            data-placeholder={selectedOption ? false : ""}
           >
-            <DrawerTitle hidden={!label}>{label}</DrawerTitle>
-            <StyledScrollable hiddenScrollbars>
-              {options.map(renderOption)}
-            </StyledScrollable>
-          </DrawerContent>
-        </Drawer>
-      </Wrapper>
-    );
-  }
-);
+            {resolvedDisplayValue !== undefined ? (
+              resolvedDisplayValue
+            ) : selectedOption ? (
+              <Option
+                option={selectedOption as Item}
+                optionsHaveIcon={optionsHaveIcon}
+              />
+            ) : (
+              <>{placeholder}</>
+            )}
+          </SelectButton>
+        </DrawerTrigger>
+        <DrawerContent
+          ref={contentRef}
+          aria-label={label}
+          onAnimationStart={disablePointerEvents}
+          onAnimationEnd={enablePointerEvents}
+        >
+          <DrawerTitle hidden={!label}>{label}</DrawerTitle>
+          <StyledScrollable hiddenScrollbars>
+            {options.map(renderOption)}
+          </StyledScrollable>
+        </DrawerContent>
+      </Drawer>
+    </Wrapper>
+  );
+}
 MobileSelect.displayName = "InputSelect";
 
 function Label({

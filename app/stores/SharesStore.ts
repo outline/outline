@@ -167,7 +167,7 @@ export default class SharesStore extends Store<Share> {
   get(id: string): Share | undefined {
     return id
       ? (this.data.get(id) ??
-          this.orderedData.find((share) => id.endsWith(share.urlId)))
+          this.orderedData.find((share) => share.urlId === id))
       : undefined;
   }
 }

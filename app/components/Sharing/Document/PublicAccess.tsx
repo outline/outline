@@ -41,12 +41,11 @@ type Props = {
   /** Ref to the Copy Link button */
   copyButtonRef?: React.RefObject<HTMLButtonElement>;
   onRequestClose?: () => void;
+  /** Ref to the container element. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function PublicAccess(
-  { document, share, sharedParent }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function PublicAccess({ document, share, sharedParent, ref }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const theme = useTheme();
@@ -132,7 +131,7 @@ function PublicAccess(
       : (share?.url ?? "");
 
   const copyButton = (
-    <Tooltip content={t("Copy public link")} placement="top">
+    <Tooltip content={t("Copy public link")}>
       <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
           <CopyIcon color={theme.placeholder} size={18} />
@@ -149,24 +148,27 @@ function PublicAccess(
           <>
             {sharedParent && !document.isDraft ? (
               sharedParent.collectionId ? (
-                <Trans>
-                  Anyone with the link can access because the containing
-                  collection,{" "}
-                  <UnderlinedLink
-                    to={`/collection/${sharedParent.collectionId}`}
-                  >
-                    {sharedParent.sourceTitle}
-                  </UnderlinedLink>
-                  , is shared
-                </Trans>
+                <Trans
+                  defaults="Anyone with the link can access because the containing collection, <link>{{ sourceTitle }}</link>, is shared"
+                  values={{ sourceTitle: sharedParent.sourceTitle }}
+                  components={{
+                    link: (
+                      <UnderlinedLink
+                        to={`/collection/${sharedParent.collectionId}`}
+                      />
+                    ),
+                  }}
+                />
               ) : (
-                <Trans>
-                  Anyone with the link can access because the parent document,{" "}
-                  <UnderlinedLink to={`/doc/${sharedParent.documentId}`}>
-                    {sharedParent.sourceTitle}
-                  </UnderlinedLink>
-                  , is shared
-                </Trans>
+                <Trans
+                  defaults="Anyone with the link can access because the parent document, <link>{{ sourceTitle }}</link>, is shared"
+                  values={{ sourceTitle: sharedParent.sourceTitle }}
+                  components={{
+                    link: (
+                      <UnderlinedLink to={`/doc/${sharedParent.documentId}`} />
+                    ),
+                  }}
+                />
               )
             ) : (
               t("Allow anyone with the link to access")
@@ -223,9 +225,8 @@ function PublicAccess(
             <StyledInfoIcon color={theme.textTertiary} />
             <span>
               {t(
-                "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
+                "Nested documents are not shared on the web. Toggle sharing to enable access. This will be the default behavior in the future."
               )}
-              .
             </span>
           </Text>
         ) : null}
@@ -234,4 +235,4 @@ function PublicAccess(
   );
 }
 
-export default observer(React.forwardRef(PublicAccess));
+export default observer(PublicAccess);

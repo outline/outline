@@ -26,5 +26,7 @@ export default function presentTeam(team: Team) {
       ? pick(team.preferences, Object.values(TeamPreference))
       : team.preferences,
     guidanceMCP: team.guidanceMCP,
+    plan: team.plan,
+    entitlements: team.entitlements,
   };
 }

@@ -1,5 +1,6 @@
 import type { Group, User } from "@server/models";
 import { AuthenticationProvider, Event, ExternalGroup } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildUser,
   buildAdmin,
@@ -14,17 +15,46 @@ const server = getTestServer();
 describe("#groups.create", () => {
   it("should create a group", async () => {
     const name = "hello I am a group";
+    const description = "A group description";
     const user = await buildAdmin();
     const res = await server.post("/api/groups.create", user, {
       body: {
         name,
+        description,
         externalId: "123",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual(name);
+    expect(body.data.description).toEqual(description);
     expect(body.data.externalId).toEqual("123");
+  });
+
+  it("should create a group with an icon and color", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/groups.create", user, {
+      body: {
+        name: "Design",
+        icon: "beaker",
+        color: "#FF5C80",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.icon).toEqual("beaker");
+    expect(body.data.color).toEqual("#FF5C80");
+  });
+
+  it("should not allow an invalid color", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/groups.create", user, {
+      body: {
+        name: "Design",
+        color: "red",
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 
@@ -94,6 +124,35 @@ describe("#groups.update", () => {
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe("Test");
       expect(body.data.externalId).toBe("123");
+    });
+
+    it("allows admin to change the icon and color", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          icon: "😀",
+          color: null,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.icon).toBe("😀");
+      expect(body.data.color).toBeNull();
+    });
+
+    it("allows admin to remove the icon", async () => {
+      await group.update({ icon: "beaker", color: "#FF5C80" });
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          icon: null,
+          color: null,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.icon).toBeNull();
+      expect(body.data.color).toBeNull();
     });
   });
 
@@ -173,6 +232,82 @@ describe("#groups.update", () => {
       const body = await res.json();
       expect(res.status).toEqual(400);
       expect(body).toMatchSnapshot();
+    });
+  });
+
+  describe("externally synced group", () => {
+    let user: User;
+    let group: Group;
+
+    beforeEach(async () => {
+      user = await buildAdmin();
+      group = await buildGroup({
+        teamId: user.teamId,
+        name: "Synced",
+        description: "Synced description",
+      });
+      const authProvider = (await AuthenticationProvider.findOne({
+        where: { teamId: user.teamId },
+      }))!;
+      await ExternalGroup.create({
+        externalId: "ext-1",
+        name: group.name,
+        groupId: group.id,
+        authenticationProviderId: authProvider.id,
+        teamId: user.teamId,
+      });
+    });
+
+    it("does not allow changing the name", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          name: "Renamed",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body.message).toContain("name of a group synced");
+    });
+
+    it("does not allow changing the description", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          description: "Changed description",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body.message).toContain("description of a group synced");
+    });
+
+    it("allows updating other fields when name and description are unchanged", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          disableMentions: true,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.disableMentions).toEqual(true);
+    });
+
+    it("allows changing the icon and color", async () => {
+      const res = await server.post("/api/groups.update", user, {
+        body: {
+          id: group.id,
+          icon: "beaker",
+          color: "#FF5C80",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.icon).toEqual("beaker");
+      expect(body.data.color).toEqual("#FF5C80");
     });
   });
 });
@@ -541,6 +676,59 @@ describe("#groups.delete", () => {
   });
 });
 
+describe("#groups.deleteAll", () => {
+  it("should require admin", async () => {
+    const user = await buildUser();
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+    const res = await server.post("/api/groups.deleteAll", user, {
+      body: {
+        authenticationProviderId: authProvider.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("deletes synced groups and emits a delete event for each", async () => {
+    const user = await buildAdmin();
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+    const synced = await buildGroup({ teamId: user.teamId });
+    const unsynced = await buildGroup({ teamId: user.teamId });
+    await ExternalGroup.create({
+      externalId: "ext-1",
+      name: synced.name,
+      groupId: synced.id,
+      authenticationProviderId: authProvider.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/groups.deleteAll", user, {
+      body: {
+        authenticationProviderId: authProvider.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    await synced.reload({ paranoid: false });
+    await unsynced.reload();
+    expect(synced.deletedAt).toBeTruthy();
+    expect(unsynced.deletedAt).toBeNull();
+
+    const events = await Event.findAll({
+      where: {
+        name: "groups.delete",
+        teamId: user.teamId,
+      },
+    });
+    expect(events.map((event) => event.modelId)).toEqual([synced.id]);
+  });
+});
+
 describe("#groups.memberships", () => {
   it("should return members in a group", async () => {
     const user = await buildUser();
@@ -563,6 +751,31 @@ describe("#groups.memberships", () => {
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.groupMemberships.length).toEqual(1);
     expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
+  });
+
+  it("should return the user that added each member", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
+    const group = await buildGroup({
+      teamId: admin.teamId,
+    });
+    await group.$add("user", user, {
+      through: {
+        createdById: admin.id,
+      },
+    });
+    const res = await server.post("/api/groups.memberships", user, {
+      body: {
+        id: group.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].createdById).toEqual(admin.id);
+    expect(body.data.groupMemberships[0].createdBy.id).toEqual(admin.id);
+    expect(body.data.groupMemberships[0].createdAt).toBeTruthy();
+    expect(body.data.users.map((u: { id: string }) => u.id)).toEqual([user.id]);
   });
 
   it("should allow filtering members in group by name", async () => {
@@ -630,15 +843,57 @@ describe("#groups.add_user", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
     const res = await server.post("/api/groups.add_user", user, {
       body: {
         id: group.id,
         userId: user.id,
       },
     });
+    const body = await res.json();
     const users = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
+    await group.reload();
+    expect(group.updatedAt.getTime()).toBeGreaterThan(
+      previousUpdatedAt.getTime()
+    );
+    expect(body.data.groups[0].updatedAt).toBe(group.updatedAt.toISOString());
+  });
+
+  it("should not update the group when the user is already a member", async () => {
+    const user = await buildAdmin();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      groupId: group.id,
+      teamId: group.teamId,
+      userId: user.id,
+    });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
+
+    const res = await server.post("/api/groups.add_user", user, {
+      body: { id: group.id, userId: user.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await group.reload();
+    expect(group.updatedAt).toEqual(previousUpdatedAt);
   });
 
   it("should add user to group as admin", async () => {
@@ -717,6 +972,15 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
+    const previousUpdatedAt = new Date("2020-01-01T00:00:00.000Z");
+    await sequelize
+      .getQueryInterface()
+      .bulkUpdate(
+        "groups",
+        { updatedAt: previousUpdatedAt },
+        { id: group.id },
+        {}
+      );
     const users = await group.$get("users");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/groups.remove_user", user, {
@@ -725,9 +989,15 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
+    const body = await res.json();
     const users1 = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users1.length).toEqual(0);
+    await group.reload();
+    expect(group.updatedAt.getTime()).toBeGreaterThan(
+      previousUpdatedAt.getTime()
+    );
+    expect(body.data.groups[0].updatedAt).toBe(group.updatedAt.toISOString());
   });
 
   it("should require authentication", async () => {

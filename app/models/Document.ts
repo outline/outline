@@ -137,11 +137,21 @@ export default class Document extends ArchivableModel implements Searchable {
   collection?: Collection;
 
   /**
+   * The owner of the personal collection that this document is in, if any.
+   */
+  @observable
+  ownerId?: string | null;
+
+  /**
    * The title of the document.
    */
   @Field
   @observable
   title: string;
+
+  /** The reason this document is archived or deleted. */
+  @observable
+  deprecatedReason: string | null = null;
 
   /** The likely language of the document, in ISO 639-1 format.  */
   language: string | undefined;
@@ -516,7 +526,7 @@ export default class Document extends ArchivableModel implements Searchable {
     return path.map((item) => item.asNavigationNode);
   }
 
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || i18n.t("Untitled");
   }
 
@@ -555,7 +565,14 @@ export default class Document extends ArchivableModel implements Searchable {
     };
   }
 
-  archive = () => this.store.archive(this);
+  /**
+   * Archives the document with an optional reason.
+   *
+   * @param options the archive options.
+   * @returns a promise that resolves when the document is archived.
+   */
+  archive = (options?: { reason?: string }) =>
+    this.store.archive(this, options);
 
   restore = (options?: { revisionId?: string; collectionId?: string }) =>
     this.store.restore(this, options);

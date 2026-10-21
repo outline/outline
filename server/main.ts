@@ -1,11 +1,10 @@
-/* oxlint-disable @typescript-eslint/no-misused-promises */
 import http from "node:http";
 import https from "node:https";
 import type { AddressInfo } from "node:net";
 import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
-import Router from "koa-router";
+import Router from "@koa/router";
 import stoppable from "stoppable";
 import { toError } from "@shared/utils/error";
 import env from "./env";
@@ -63,7 +62,15 @@ export async function start(id: number, disconnect: () => void) {
     app.use(logger((str) => Logger.info("http", str)));
   }
 
-  app.use(helmet());
+  // Cross-origin isolation headers are left off, as attachments, avatars, and
+  // CDN assets are loaded across origins and from custom domains.
+  app.use(
+    helmet({
+      crossOriginOpenerPolicy: false,
+      crossOriginResourcePolicy: false,
+      originAgentCluster: false,
+    })
+  );
 
   // catch errors in one place, automatically set status and response headers
   onerror(app);
@@ -100,6 +107,12 @@ export async function start(id: number, disconnect: () => void) {
   // catch errors on sockets detached from the app by an upgrade request, this
   // must happen before the services add upgrade handlers of their own
   onupgrade(server);
+
+  // The admin service exposes internal queue state without authentication,
+  // so it is restricted to non-production environments.
+  if (env.SERVICES.includes("admin") && env.isProduction) {
+    throw new Error("The admin service cannot be run with NODE_ENV=production");
+  }
 
   // loop through requested services at startup
   for (const name of env.SERVICES) {

@@ -10,6 +10,7 @@ import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Minute, Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { ImageHelper } from "@server/models/helpers/ImageHelper";
 import type { RequestInit } from "@server/utils/fetch";
 import fetch, { chromeUserAgent, Headers } from "@server/utils/fetch";
 import type { AppContext } from "@server/types";
@@ -31,6 +32,20 @@ export default abstract class BaseStorage {
   public static maxSigningWindow = 15 * Minute.seconds;
 
   /**
+   * Returns the number of seconds that a signed URL is always valid for, after
+   * signing time alignment. Use this as the upper limit when a response that
+   * points to a signed URL is cached.
+   *
+   * @param expiresIn The number of seconds until the signed URL expires.
+   * @returns The minimum number of seconds the signed URL is valid for.
+   */
+  public static getSignedUrlMinimumLifetime(
+    expiresIn = BaseStorage.defaultSignedUrlExpires
+  ): number {
+    return expiresIn - BaseStorage.getSigningWindow(expiresIn);
+  }
+
+  /**
    * Rounds the current time down to a fixed window so that repeated signatures
    * of the same file produce an identical URL. Without this every signature is
    * unique and caches can never be reused, which means the same file is
@@ -45,10 +60,7 @@ export default abstract class BaseStorage {
    * @returns The timestamp to sign with.
    */
   protected static getSigningDate(expiresIn: number): Date {
-    const window = Math.min(
-      BaseStorage.maxSigningWindow,
-      Math.floor(expiresIn / 2)
-    );
+    const window = BaseStorage.getSigningWindow(expiresIn);
 
     if (window < 1) {
       return new Date();
@@ -66,7 +78,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @param maxUploadSize The maximum upload size in bytes
    * @param contentType The content type of the file
-   * @returns The presigned post object to use on the client (TODO: Abstract away from S3)
+   * @returns The presigned post object to use on the client
    */
   public abstract getPresignedPost(
     ctx: AppContext,
@@ -190,7 +202,9 @@ export default abstract class BaseStorage {
    * @param key The path to store the file at
    * @param acl The ACL to use
    * @param init Optional fetch options to use
-   * @param options Optional upload options
+   * @param options Optional upload options. When imagesOnly is set, only PNG,
+   * JPEG, GIF and WebP files are stored, with the content type detected from
+   * the file data
    * @returns A promise that resolves when the file is uploaded
    */
   public async storeFromUrl(
@@ -198,7 +212,7 @@ export default abstract class BaseStorage {
     key: string,
     acl: string,
     init?: RequestInit,
-    options?: { maxUploadSize?: number }
+    options?: { maxUploadSize?: number; imagesOnly?: boolean }
   ): Promise<
     | {
         url: string;
@@ -277,6 +291,18 @@ export default abstract class BaseStorage {
     const contentLength = buffer.byteLength;
     if (contentLength === 0) {
       return;
+    }
+
+    if (options?.imagesOnly) {
+      const imageType = ImageHelper.detectType(buffer);
+      if (!imageType) {
+        Logger.info("utils", "URL to upload is not a supported image", {
+          url,
+          key,
+        });
+        return;
+      }
+      contentType = imageType.contentType;
     }
 
     try {
@@ -372,4 +398,15 @@ export default abstract class BaseStorage {
     "image/gif",
     "image/webp",
   ];
+
+  /**
+   * Returns the number of seconds that the signing timestamp is held constant
+   * for a signed URL with the given lifetime.
+   *
+   * @param expiresIn The number of seconds until the signed URL expires.
+   * @returns The window in seconds, or 0 if the lifetime is too short to align.
+   */
+  private static getSigningWindow(expiresIn: number): number {
+    return Math.min(BaseStorage.maxSigningWindow, Math.floor(expiresIn / 2));
+  }
 }

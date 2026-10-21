@@ -12,7 +12,6 @@ import type Document from "~/models/Document";
 import Template from "~/models/Template";
 import type Revision from "~/models/Revision";
 import type { Editor as TEditor } from "~/editor";
-import useIsMounted from "~/hooks/useIsMounted";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import { documentEditPath } from "~/utils/routeHelpers";
@@ -97,7 +96,6 @@ export function useDocumentSave({
   const { auth, ui } = useStores();
   const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
-  const isMounted = useIsMounted();
 
   // State
   const [isUploading, setIsUploading] = useState(false);
@@ -169,9 +167,7 @@ export function useDocumentSave({
       try {
         const savedDocument = await document.save(undefined, options);
         isEditorDirtyRef.current = false;
-        if (isMounted()) {
-          setIsEditorDirty(false);
-        }
+        setIsEditorDirty(false);
 
         if (options.done) {
           history.push({
@@ -189,13 +185,11 @@ export function useDocumentSave({
       } catch (err) {
         toast.error(errToString(err));
       } finally {
-        if (isMounted()) {
-          setIsSaving(false);
-          setIsPublishing(false);
-        }
+        setIsSaving(false);
+        setIsPublishing(false);
       }
     },
-    [document, editorRef, history, sidebarContext, ui, isMounted]
+    [document, editorRef, history, sidebarContext, ui]
   );
 
   const onSaveRef = useRef(onSave);
@@ -331,7 +325,7 @@ export function useDocumentSave({
   // Initial dirty check on mount
   useEffect(() => {
     updateIsDirty();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When readOnly changes from true to false, recalculate dirty state
@@ -344,35 +338,49 @@ export function useDocumentSave({
   }, [readOnly, updateIsDirty]);
 
   // Auto-delete/auto-save on unmount + debounce cleanup
-  useEffect(
-    () => () => {
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
       autosave.cancel();
+
+      // Read the editor now, as it may be destroyed by the time the check runs.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps
       const currentDoc = editorRef.current?.view.state.doc;
       const isEditorEmpty =
         !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
+      const currentTitle = titleRef.current;
 
-      if (
-        shouldAutoDeleteDraftOnUnmount({
-          isEditorEmpty,
-          title: titleRef.current,
-          createdById: document.createdBy?.id,
-          currentUserId: auth.user?.id,
-          isDraft: document.isDraft,
-          isActive: document.isActive,
-          hasEmptyTitle: document.hasEmptyTitle,
-          isPersistedOnce: document.isPersistedOnce,
-        })
-      ) {
-        void document.delete();
-      } else if (document.isDirty()) {
-        void document.save(undefined, {
-          autosave: true,
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+      // Defer the check so that a StrictMode remount does not count as an unmount.
+      queueMicrotask(() => {
+        if (isMountedRef.current) {
+          return;
+        }
+
+        if (
+          shouldAutoDeleteDraftOnUnmount({
+            isEditorEmpty,
+            title: currentTitle,
+            createdById: document.createdBy?.id,
+            currentUserId: auth.user?.id,
+            isDraft: document.isDraft,
+            isActive: document.isActive,
+            hasEmptyTitle: document.hasEmptyTitle,
+            isPersistedOnce: document.isPersistedOnce,
+          })
+        ) {
+          void document.delete();
+        } else if (document.isDirty()) {
+          void document.save(undefined, {
+            autosave: true,
+          });
+        }
+      });
+    };
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     isUploading,

@@ -31,7 +31,6 @@ function Security() {
     memberCollectionCreate: team.memberCollectionCreate,
     memberTeamCreate: team.memberTeamCreate,
     inviteRequired: team.inviteRequired,
-    passkeysEnabled: team.passkeysEnabled,
   });
 
   const userRoleOptions: Option[] = React.useMemo(
@@ -132,13 +131,6 @@ function Security() {
     [saveData]
   );
 
-  const handlePasskeysEnabledChange = React.useCallback(
-    async (checked: boolean) => {
-      await saveData({ passkeysEnabled: checked });
-    },
-    [saveData]
-  );
-
   const handleMemberCollectionCreateChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ memberCollectionCreate: checked });
@@ -158,6 +150,17 @@ function Security() {
       const preferences = {
         ...team.preferences,
         [TeamPreference.MembersCanInvite]: checked,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
+  const handlePersonalDocsChange = React.useCallback(
+    async (checked: boolean) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.PersonalDocs]: checked,
       };
       await saveData({ preferences });
     },
@@ -301,21 +304,6 @@ function Security() {
         </SettingRow>
       )}
 
-      <Heading as="h2">{t("Authentication")}</Heading>
-      <SettingRow
-        label={t("Passkeys")}
-        name="passkeysEnabled"
-        description={t(
-          "Allow users to sign in with passkeys for passwordless authentication"
-        )}
-      >
-        <Switch
-          id="passkeysEnabled"
-          checked={data.passkeysEnabled}
-          onChange={handlePasskeysEnabledChange}
-        />
-      </SettingRow>
-
       <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow
         label={t("Public document sharing")}
@@ -387,6 +375,19 @@ function Security() {
           label={t("Commenting")}
           labelHidden
           short
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Personal documents")}
+        name={TeamPreference.PersonalDocs}
+        description={t(
+          "Allow editors to create personal documents that are only visible to themselves and the people they share them with"
+        )}
+      >
+        <Switch
+          id={TeamPreference.PersonalDocs}
+          checked={team.getPreference(TeamPreference.PersonalDocs)}
+          onChange={handlePersonalDocsChange}
         />
       </SettingRow>
       <SettingRow

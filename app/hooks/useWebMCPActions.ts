@@ -1,6 +1,5 @@
 import { snakeCase } from "es-toolkit";
 import * as React from "react";
-import { useLocation } from "react-router-dom";
 import { TeamPreference } from "@shared/types";
 import { toError } from "@shared/utils/error";
 import { performAction, resolve } from "~/actions";
@@ -11,11 +10,13 @@ import type {
   ActionVariant,
   ActionWithChildren,
 } from "~/types";
+import Analytics from "~/utils/Analytics";
 import {
   isModelContextSupported,
   registerModelContextTool,
 } from "~/utils/ModelContext";
 import useActionContext from "./useActionContext";
+import { useLocationSelector } from "./useLocationSelector";
 import useStores from "./useStores";
 
 type PerformableAction = Exclude<ActionVariant, ActionWithChildren>;
@@ -30,7 +31,7 @@ export default function useWebMCPActions(
   actions: ActionVariant[],
   additionalDeps: React.DependencyList = []
 ) {
-  const location = useLocation();
+  const pathname = useLocationSelector((location) => location.pathname);
   const { auth } = useStores();
   const context = useActionContext({ isMCP: true });
 
@@ -42,22 +43,21 @@ export default function useWebMCPActions(
     snakeCase(action.analyticsName ?? "")
   );
 
-  // Refs keep `execute` callbacks working against the latest context and
-  // action list without re-registering tools on every render.
-  const contextRef = React.useRef(context);
-  contextRef.current = context;
-  const performableRef = React.useRef(performable);
-  performableRef.current = performable;
+  // Effect events keep `execute` callbacks working against the latest context
+  // and action list without re-registering tools on every render.
+  const getContext = React.useEffectEvent(() => context);
+  const getPerformable = React.useEffectEvent(() => performable);
 
   React.useEffect(() => {
-    if (!enabled || performableRef.current.length === 0) {
+    const performableActions = getPerformable();
+    if (!enabled || performableActions.length === 0) {
       return;
     }
 
     const controller = new AbortController();
 
-    for (const action of performableRef.current) {
-      const ctx = contextRef.current;
+    for (const action of performableActions) {
+      const ctx = getContext();
       const name = snakeCase(action.analyticsName ?? "");
       const title = resolve<React.ReactNode>(action.name, ctx);
       const description =
@@ -76,7 +76,7 @@ export default function useWebMCPActions(
           execute: async (args) => {
             try {
               const result = await performAction(action, {
-                ...contextRef.current,
+                ...getContext(),
                 mcpArgs: args,
               });
               return {
@@ -104,9 +104,11 @@ export default function useWebMCPActions(
       );
     }
 
+    Analytics.track("webmcp", "register");
+
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, toolNames.join(","), location.pathname, ...additionalDeps]);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, toolNames.join(","), pathname, ...additionalDeps]);
 }
 
 function flattenActions(

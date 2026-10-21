@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
@@ -91,16 +91,20 @@ router.post(
     const { auth, transaction } = ctx.state;
     const { user } = auth;
 
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "update", document);
+    }
+
     // All user types can upload an avatar so no additional authorization is needed.
     if (preset === AttachmentPreset.Avatar) {
       assertIn(contentType, AttachmentValidation.avatarContentTypes);
     } else {
-      if (preset === AttachmentPreset.DocumentAttachment && documentId) {
-        const document = await Document.findByPk(documentId, {
-          userId: user.id,
-          transaction,
-        });
-        authorize(user, "update", document);
+      if (preset === AttachmentPreset.WorkspaceImport) {
+        authorize(user, "createImport", user.team);
       }
       if (preset === AttachmentPreset.Emoji) {
         assertIn(contentType, AttachmentValidation.emojiContentTypes);
@@ -331,7 +335,7 @@ const handleAttachmentsRedirect = async (
   } else {
     ctx.set(
       "Cache-Control",
-      `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
+      `max-age=${BaseStorage.getSignedUrlMinimumLifetime()}, immutable`
     );
     ctx.redirect(await attachment.signedUrl);
   }

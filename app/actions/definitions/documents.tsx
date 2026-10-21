@@ -62,6 +62,7 @@ import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
+import { DocumentArchiveDialog } from "~/components/DocumentArchiveDialog";
 import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
@@ -111,13 +112,14 @@ import type {
   ActionGroup,
   ActionSeparator as TActionSeparator,
 } from "~/types";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import env from "~/env";
 import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 
-const Insights = lazyWithRetry(
+/** Lazy insights dialog, exported so that triggers can preload it. */
+export const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
 );
 const SharePopover = lazyWithRetry(
@@ -490,7 +492,7 @@ export const starDocument = createAction({
       (document) => document.star(),
       (documents, succeeded, t) =>
         documents.length > 1
-          ? t("{{ count }} documents starred", { count: succeeded })
+          ? t("{{ count }} document starred", { count: succeeded })
           : undefined
     );
     setPersistedState(getHeaderExpandedKey("starred"), true);
@@ -518,7 +520,7 @@ export const unstarDocument = createAction({
       (document) => document.unstar(),
       (documents, succeeded, t) =>
         documents.length > 1
-          ? t("{{ count }} documents unstarred", { count: succeeded })
+          ? t("{{ count }} document unstarred", { count: succeeded })
           : undefined
     ),
 });
@@ -586,7 +588,7 @@ export const unpublishDocument = createAction({
           ? t("Unpublished {{ documentName }}", {
               documentName: documents[0].noun,
             })
-          : t("{{ count }} documents unpublished", { count: succeeded })
+          : t("{{ count }} document unpublished", { count: succeeded })
     ),
 });
 
@@ -719,10 +721,20 @@ export const shareDocument = createAction({
   },
 });
 
+/**
+ * Shows a file extension in the shortcut slot of menu items only, the command
+ * bar would otherwise register it as a key sequence.
+ */
+const fileExtensionHint =
+  (extension: string) =>
+  ({ isMenu }: ActionContext) =>
+    isMenu ? [extension] : undefined;
+
 export const downloadDocumentAsMarkdown = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Markdown") : t("Download as Markdown")),
   analyticsName: "Download document as Markdown",
   section: ActiveDocumentSection,
+  shortcut: fileExtensionHint(".md"),
   keywords: "md markdown export download",
   icon: <MarkdownIcon />,
   iconInContextMenu: false,
@@ -744,6 +756,7 @@ export const downloadDocumentAsHTML = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("HTML") : t("Download as HTML")),
   analyticsName: "Download document as HTML",
   section: ActiveDocumentSection,
+  shortcut: fileExtensionHint(".html"),
   keywords: "xml html export download",
   icon: <CodeIcon />,
   iconInContextMenu: false,
@@ -766,6 +779,7 @@ export const downloadDocumentAsTextBundle = createAction({
     isMenu ? t("TextBundle") : t("Download as TextBundle"),
   analyticsName: "Download document as TextBundle",
   section: ActiveDocumentSection,
+  shortcut: fileExtensionHint(".textpack"),
   keywords: "textbundle textpack bear ulysses export download",
   icon: <ArchiveIcon />,
   iconInContextMenu: false,
@@ -787,6 +801,7 @@ export const downloadDocumentAsPDF = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("PDF") : t("Download as PDF")),
   analyticsName: "Download document as PDF",
   section: ActiveDocumentSection,
+  shortcut: fileExtensionHint(".pdf"),
   keywords: "pdf export download",
   icon: <PDFIcon />,
   iconInContextMenu: false,
@@ -975,7 +990,7 @@ export const pinDocumentToCollection = createAction({
       (documents, succeeded, t) =>
         documents.length === 1
           ? t("Pinned to collection")
-          : t("{{ count }} documents pinned", { count: succeeded })
+          : t("{{ count }} document pinned", { count: succeeded })
     ),
 });
 
@@ -1036,7 +1051,7 @@ export const unpinDocument = createAction({
       (documents, succeeded, t) =>
         documents.length === 1
           ? t("Unpinned")
-          : t("{{ count }} documents unpinned", { count: succeeded })
+          : t("{{ count }} document unpinned", { count: succeeded })
     ),
 });
 
@@ -1150,6 +1165,7 @@ export const printDocument = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print document")),
   analyticsName: "Print document",
   section: ActiveDocumentSection,
+  shortcut: ["Meta+P"],
   icon: <PrintIcon />,
   iconInContextMenu: false,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
@@ -1358,7 +1374,7 @@ export const searchDocumentsForQueryActionFactory = (query: string) =>
   createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
-      t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
+      t("Search documents for “{{ searchQuery }}”", { searchQuery: query }),
     analyticsName: "Search documents",
     section: SearchResultsSection,
     priority: -1,
@@ -1450,29 +1466,21 @@ export const archiveDocument = createAction({
           })
         ),
       content: (
-        <ConfirmationDialog
-          onSubmit={async () => {
+        <DocumentArchiveDialog
+          count={documents.length}
+          onSubmit={async (reason) => {
             const succeeded = await performBatch(documents, (document) =>
-              document.archive()
+              document.archive({ reason })
             );
             if (succeeded) {
               toast.success(
                 documents.length === 1
                   ? t("Document archived")
-                  : t("{{ count }} documents archived", { count: succeeded })
+                  : t("{{ count }} document archived", { count: succeeded })
               );
             }
           }}
-          savingText={`${t("Archiving")}…`}
-        >
-          {documents.length === 1
-            ? t(
-                "Archiving this document will remove it from the collection and search results."
-              )
-            : t(
-                "Archiving these documents will remove them from their collections and search results."
-              )}
-        </ConfirmationDialog>
+        />
       ),
     });
   },
@@ -1501,7 +1509,7 @@ export const restoreDocument = createAction({
           ? t("{{ documentName }} restored", {
               documentName: capitalize(documents[0].noun),
             })
-          : t("{{ count }} documents restored", { count: succeeded })
+          : t("{{ count }} document restored", { count: succeeded })
     ),
 });
 
@@ -1538,7 +1546,7 @@ export const restoreDocumentToCollection = createActionWithChildren({
     const actions = collections.orderedData.map((collection) => {
       const can = policies.abilities(collection.id);
       return createAction({
-        name: collection.name,
+        name: collection.displayName,
         section: ActiveDocumentSection,
         icon: <CollectionIcon collection={collection} />,
         visible: can.createDocument,
@@ -1611,7 +1619,7 @@ export const deleteDocument = createAction({
             );
             if (succeeded) {
               toast.success(
-                t("{{ count }} documents moved to trash", { count: succeeded })
+                t("{{ count }} document moved to trash", { count: succeeded })
               );
             }
           }}

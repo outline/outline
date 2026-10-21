@@ -45,8 +45,6 @@ export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.
 
     // App will send the default permission in an array with single item.
     const defaultPermission = importModel.input[0].permission;
-
-    // TODO: This update can be deleted when we receive the page info + permission from app.
     const importInput: NotionImportInput = rootPages.map((page) => ({
       type: page.type,
       externalId: page.id,

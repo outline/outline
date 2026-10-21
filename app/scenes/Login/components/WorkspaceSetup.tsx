@@ -30,7 +30,7 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
         <StyledHeading centered>{t("Create workspace")}</StyledHeading>
         <Content>
           {t(
-            "Setup your workspace by providing a name and details for admin login. You can change these later."
+            "Set up your workspace by providing a name and details for admin login. You can change these later."
           )}
         </Content>
         <Inputs column gap={12}>
@@ -38,7 +38,7 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
             name="teamName"
             type="text"
             label={t("Workspace name")}
-            placeholder="Acme, Inc"
+            placeholder="Acme, Inc."
             required
             autoFocus
             flex

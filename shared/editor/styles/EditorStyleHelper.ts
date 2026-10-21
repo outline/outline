@@ -6,6 +6,12 @@ export class EditorStyleHelper {
 
   static readonly blockRadius = "6px";
 
+  /** Corner radius of images and videos */
+  static readonly mediaRadius = "2px";
+
+  /** Corner radius of images and videos when selected */
+  static readonly mediaSelectedRadius = "8px";
+
   // Images
 
   static readonly imageHandle = "image-handle";
@@ -13,6 +19,30 @@ export class EditorStyleHelper {
   static readonly imageCaption = "caption";
 
   static readonly imagePositionAnchor = "image-position-anchor";
+
+  /** Node that is displayed while its file uploads */
+  static readonly uploadPlaceholder = "upload-placeholder";
+
+  /** Node that is displayed for the first time while its file uploads */
+  static readonly uploadEnter = "upload-enter";
+
+  /** Status of an upload for assistive technology, not displayed */
+  static readonly uploadStatus = "upload-status";
+
+  /** Node that is hidden while an upload replaces it */
+  static readonly uploadReplaced = "upload-replaced";
+
+  /** Node that has just finished uploading */
+  static readonly uploadComplete = "upload-complete";
+
+  /** Wrapper of an image, around the image element */
+  static readonly imageWrapper = "image-wrapper";
+
+  /** Wrapper of a video, around the video element */
+  static readonly videoWrapper = "video-wrapper";
+
+  /** Wrapper of a PDF preview, around the embedded document */
+  static readonly pdfWrapper = "pdf-wrapper";
 
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";
@@ -47,6 +77,9 @@ export class EditorStyleHelper {
 
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
+
+  /** Line number shown in the gutter at the start of each code block line */
+  static readonly codeBlockLineNumber = "code-block-line-number";
 
   // Diffs
 
@@ -163,6 +196,25 @@ export class EditorStyleHelper {
 
   /** Drag indicator on bottom side of cell */
   static readonly tableDragIndicatorBottom = "table-drag-indicator-bottom";
+
+  // Drag and drop
+
+  /** Line that shows where dragged content will be dropped */
+  static readonly dropCursor = "drop-cursor";
+
+  /** Floating handle shown beside the hovered block to drag it */
+  static readonly blockDragHandle = "block-drag-handle";
+
+  /** Block that the drag handle is currently attached to */
+  static readonly dragHandleTarget = "drag-handle-target";
+
+  /** Block that is being dragged */
+  static readonly draggingSource = "dragging-source";
+
+  // Diagrams
+
+  /** Container for a rendered Mermaid diagram */
+  static readonly mermaidDiagram = "mermaid-diagram-wrapper";
 
   // Global
 

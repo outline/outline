@@ -185,8 +185,8 @@ function Details() {
 
   return (
     <ThemeProvider theme={newTheme}>
-      <Scene title={t("Details")} icon={<TeamIcon />}>
-        <Heading>{t("Details")}</Heading>
+      <Scene title={t("General")} icon={<TeamIcon />}>
+        <Heading>{t("General")}</Heading>
         <Text as="p" type="secondary">
           <Trans>
             These settings affect the way that your workspace appears to
@@ -195,7 +195,7 @@ function Details() {
         </Text>
 
         <form onSubmit={handleSubmit} ref={form}>
-          <Heading as="h2">{t("Display")}</Heading>
+          <Heading as="h2">{t("Appearance")}</Heading>
           <SettingRow
             label={t("Logo")}
             name="avatarUrl"
@@ -363,7 +363,7 @@ function Details() {
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
-              "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
+              "When enabled, documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
             )}
           >
             <Switch

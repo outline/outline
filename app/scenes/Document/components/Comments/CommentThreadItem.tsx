@@ -28,7 +28,7 @@ import { resolveCommentActionFactory } from "~/actions/definitions/comments";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 import { HighlightedText } from "./HighlightText";
@@ -317,7 +317,7 @@ const ResolveButton = ({
   const { t } = useTranslation();
 
   return (
-    <Tooltip content={t("Mark as resolved")} placement="top">
+    <Tooltip content={t("Mark as resolved")}>
       <Action
         as={NudeButton}
         action={resolveCommentActionFactory({

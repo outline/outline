@@ -5,10 +5,15 @@ import { InputSelect } from "../InputSelect";
 /**
  * An input that allows a choice of OAuth client type.
  */
-export const InputClientType = React.forwardRef<
-  HTMLButtonElement,
-  Omit<React.ComponentPropsWithoutRef<typeof InputSelect>, "options" | "label">
->((props, ref) => {
+export function InputClientType({
+  ref,
+  ...props
+}: Omit<
+  React.ComponentPropsWithoutRef<typeof InputSelect>,
+  "options" | "label"
+> & {
+  ref?: React.Ref<HTMLButtonElement>;
+}) {
   const { t } = useTranslation();
   return (
     <InputSelect
@@ -32,4 +37,4 @@ export const InputClientType = React.forwardRef<
       ]}
     />
   );
-});
+}

@@ -2,16 +2,14 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
-import type { DropTargetMonitor } from "react-dnd";
-import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
+import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
-import type { DragObject } from "../hooks/useDragAndDrop";
+import { useDragRef, useDropRef } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import SidebarDisclosureContext, {
@@ -22,21 +20,31 @@ import { useSidebarContext } from "./SidebarContext";
 
 type Props = {
   collection: Collection;
-  activeDocument: Document | undefined;
   belowCollection: Collection | void;
 };
 
-function DraggableCollectionLink({
-  collection,
-  activeDocument,
-  belowCollection,
-}: Props) {
-  const activeSidebarContext = useActiveSidebarContext();
+interface CollectionDragItem {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+}
+
+function DraggableCollectionLink({ collection, belowCollection }: Props) {
+  const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const sidebarContext = useSidebarContext();
   const { ui, policies, collections } = useStores();
+  // Computed so that only the collections that become active or inactive
+  // re-render when navigating.
+  const isActiveCollection = useComputed(
+    () => collection.id === ui.activeCollectionId,
+    [collection, ui]
+  );
+  const activeDocumentId = useComputed(
+    () => (isActiveCollection ? ui.activeDocumentId : undefined),
+    [isActiveCollection, ui]
+  );
   const [expanded, setExpanded] = useState(
-    collection.id === ui.activeCollectionId &&
-      sidebarContext === activeSidebarContext
+    isActiveCollection && sidebarContext === activeSidebarContext
   );
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
@@ -48,9 +56,13 @@ function DraggableCollectionLink({
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
-  ] = useDrop({
+  ] = useDropRef<
+    CollectionDragItem,
+    void,
+    { isCollectionDropping: boolean; isDraggingAnyCollection: boolean }
+  >({
     accept: "collection",
-    drop: (item: DragObject) => {
+    drop: (item) => {
       void collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
@@ -60,18 +72,18 @@ function DraggableCollectionLink({
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
       !!policies.abilities(item.id).move,
-    collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
+    collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),
     }),
   });
 
   // Drag to reorder collection
-  const [{ isDragging }, dragToReorderCollection, preview] = useDrag({
+  const [{ isDragging }, dragToReorderCollection, preview] = useDragRef({
     type: "collection",
     item: () => ({
       id: collection.id,
-      title: collection.name,
+      title: collection.displayName,
       icon: <CollectionIcon collection={collection} />,
     }),
     collect: (monitor) => ({
@@ -86,15 +98,12 @@ function DraggableCollectionLink({
   // If the current collection is active and relevant to the sidebar section we
   // are in then expand it automatically
   useEffect(() => {
-    if (
-      collection.id === ui.activeCollectionId &&
-      sidebarContext === activeSidebarContext
-    ) {
+    if (isActiveCollection && sidebarContext === activeSidebarContext) {
       setExpanded(true);
     }
   }, [
-    collection.id,
-    ui.activeCollectionId,
+    isActiveCollection,
+    activeDocumentId,
     sidebarContext,
     activeSidebarContext,
   ]);
@@ -123,7 +132,6 @@ function DraggableCollectionLink({
         <CollectionLink
           collection={collection}
           expanded={displayChildDocuments}
-          activeDocument={activeDocument}
           onDisclosureClick={handleDisclosureClick}
           isDraggingAnyCollection={isDraggingAnyCollection}
         />

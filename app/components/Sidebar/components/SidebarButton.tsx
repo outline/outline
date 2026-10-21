@@ -10,56 +10,54 @@ import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import { HStack } from "~/components/primitives/HStack";
 
-export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
+export type SidebarButtonProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "title"
+> & {
   position?: "top" | "bottom";
-  title: React.ReactNode;
+  title?: React.ReactNode;
   image: React.ReactNode;
   showMoreMenu?: boolean;
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children?: React.ReactNode;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
-const SidebarButton = observer(
-  React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
-    function SidebarButton_(
-      {
-        position = "top",
-        showMoreMenu,
-        image,
-        title,
-        children,
-        onClick,
-        ...rest
-      }: SidebarButtonProps,
-      ref
-    ) {
-      return (
-        <Container
-          justify="space-between"
-          align="center"
-          shrink={false}
-          $position={position}
-        >
-          <Button
-            {...rest}
-            onClick={onClick}
-            $position={position}
-            as="button"
-            ref={ref}
-            role="button"
-          >
-            <Content>
-              {image}
-              {title && <Title>{title}</Title>}
-            </Content>
-            {showMoreMenu && <StyledMoreIcon />}
-          </Button>
-          {children}
-        </Container>
-      );
-    }
-  )
-);
+const SidebarButton = observer(function SidebarButton({
+  position = "top",
+  showMoreMenu,
+  image,
+  title,
+  children,
+  onClick,
+  ref,
+  ...rest
+}: SidebarButtonProps) {
+  return (
+    <Container
+      justify="space-between"
+      align="center"
+      shrink={false}
+      $position={position}
+    >
+      <Button
+        {...rest}
+        onClick={onClick}
+        $position={position}
+        as="button"
+        ref={ref}
+        role="button"
+      >
+        <Content>
+          {image}
+          {title && <Title>{title}</Title>}
+        </Content>
+        {showMoreMenu && <StyledMoreIcon />}
+      </Button>
+      {children}
+    </Container>
+  );
+});
 
 const StyledMoreIcon = styled(MoreIcon)`
   flex-shrink: 0;

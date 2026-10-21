@@ -92,7 +92,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
   return (
     <Columns gap={20}>
       <Dropzone
-        accept={documents.importFileTypesString}
+        accept={documents.importFileTypesAccept}
         onDropAccepted={handleDropAccepted}
         onDropRejected={handleDropRejected}
         multiple

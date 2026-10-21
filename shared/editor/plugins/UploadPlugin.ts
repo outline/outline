@@ -187,9 +187,8 @@ export class UploadPlugin extends Plugin {
                 let pos = -1;
                 let nodeSize = 0;
                 let attrs = {};
-                let existingDimensions:
-                  | { width?: number; height?: number }
-                  | undefined;
+                let dimensions: { width?: number; height?: number } | undefined;
+                let file: File | undefined;
 
                 state.doc.nodesBetween(
                   0,
@@ -203,7 +202,7 @@ export class UploadPlugin extends Plugin {
                       nodeSize = node.nodeSize;
                       attrs = node.attrs;
                       if (node.attrs.width || node.attrs.height) {
-                        existingDimensions = {
+                        dimensions = {
                           width: node.attrs.width,
                           height: node.attrs.height,
                         };
@@ -216,13 +215,13 @@ export class UploadPlugin extends Plugin {
 
                 if (pos !== -1) {
                   const isBase64 = upload.originalSrc.startsWith("data:");
-                  const file = isBase64
+                  file = isBase64
                     ? dataUrlToFile(upload.originalSrc, "pasted-image")
                     : undefined;
-                  const dimensions =
+                  dimensions =
                     (isBase64 && file
                       ? await FileHelper.getImageDimensions(file)
-                      : undefined) ?? existingDimensions;
+                      : undefined) ?? dimensions;
 
                   if (view.isDestroyed) {
                     return;
@@ -254,8 +253,8 @@ export class UploadPlugin extends Plugin {
                             file,
                             src: isBase64 ? undefined : upload.originalSrc,
                             pos: currentPos,
-                            isImage: true,
-                            dimensions,
+                            type: "image",
+                            attrs: { ...attrs, ...dimensions },
                           },
                         })
                         .delete(currentPos, currentPos + nodeSize)
@@ -272,25 +271,30 @@ export class UploadPlugin extends Plugin {
                 }
 
                 if (url) {
-                  const file = await FileHelper.getFileForUrl(url);
-                  const dimensions = await FileHelper.getImageDimensions(file);
-                  const result = findPlaceholder(view.state, upload.id);
+                  // The uploaded image is only measured if the placeholder had
+                  // no dimensions, so that the size does not change.
+                  dimensions ??= await FileHelper.getImageDimensions(
+                    await FileHelper.getFileForUrl(url)
+                  );
+                  // Without a local file the image displays from storage, so
+                  // it is loaded before it replaces the placeholder.
+                  if (!file) {
+                    await FileHelper.loadImage(url);
+                  }
 
-                  if (result) {
+                  const result = findPlaceholder(view.state, upload.id);
+                  if (result && !view.isDestroyed) {
                     const [from, to] = result;
+                    const node = view.state.schema.nodes.image.create({
+                      ...attrs,
+                      ...dimensions,
+                      src: url,
+                    });
                     view.dispatch(
                       view.state.tr
-                        .replaceWith(
-                          from,
-                          to || from,
-                          view.state.schema.nodes.image.create({
-                            ...attrs,
-                            ...dimensions,
-                            src: url,
-                          })
-                        )
+                        .replaceWith(from, to || from, node)
                         .setMeta(uploadPlaceholder, {
-                          remove: { id: upload.id },
+                          remove: { id: upload.id, node },
                         })
                     );
                   }

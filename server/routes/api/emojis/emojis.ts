@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
@@ -105,7 +105,7 @@ router.get(
 
     ctx.set(
       "Cache-Control",
-      `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
+      `max-age=${BaseStorage.getSignedUrlMinimumLifetime()}, immutable`
     );
     ctx.redirect(await emoji.attachment.signedUrl);
   }

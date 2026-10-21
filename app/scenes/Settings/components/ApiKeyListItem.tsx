@@ -78,7 +78,9 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
   );
 
   const [copied, setCopied] = useState<boolean>(false);
-  const copyTimeoutIdRef = useRef<ReturnType<typeof setTimeout>>();
+  const copyTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const handleCopy = useCallback(() => {
     if (copyTimeoutIdRef.current) {

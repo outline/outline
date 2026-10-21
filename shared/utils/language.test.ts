@@ -1,4 +1,9 @@
-import { formatNumber, getLangFor, getSupportedLanguage } from "./language";
+import {
+  formatNumber,
+  getLangFor,
+  getSupportedLanguage,
+  iso6393To1,
+} from "./language";
 
 describe("formatNumber", () => {
   it("formats a number with the specified locale", () => {
@@ -32,10 +37,28 @@ describe("getSupportedLanguage", () => {
 describe("getLangFor", () => {
   it("returns languages that need special text styling", () => {
     expect(getLangFor("fa")).toEqual("fa");
+    expect(getLangFor("zh")).toEqual("zh");
   });
 
   it("ignores other or empty languages", () => {
     expect(getLangFor("en")).toBeUndefined();
     expect(getLangFor(null)).toBeUndefined();
+  });
+});
+
+describe("iso6393To1", () => {
+  it("converts a language with an ISO 639-1 code", () => {
+    expect(iso6393To1("eng")).toEqual("en");
+  });
+
+  it("falls back to the macrolanguage", () => {
+    expect(iso6393To1("cmn")).toEqual("zh");
+    expect(iso6393To1("arb")).toEqual("ar");
+    expect(iso6393To1("prs")).toEqual("fa");
+  });
+
+  it("returns undefined for unknown languages", () => {
+    expect(iso6393To1("und")).toBeUndefined();
+    expect(iso6393To1("ceb")).toBeUndefined();
   });
 });

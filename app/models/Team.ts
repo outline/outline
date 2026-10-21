@@ -1,7 +1,12 @@
 import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { CommentingAccess, TeamPreference } from "@shared/types";
-import type { TeamPreferences, UserRole } from "@shared/types";
+import type {
+  Plan,
+  PlanFeature,
+  TeamPreferences,
+  UserRole,
+} from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -88,6 +93,12 @@ class Team extends Model {
   @observable
   allowedDomains: string[] | null | undefined = undefined;
 
+  @observable
+  plan: Plan;
+
+  @observable
+  entitlements: PlanFeature[];
+
   @computed
   get signinMethods(): string {
     return "SSO";
@@ -114,6 +125,16 @@ class Team extends Model {
     const access = this.getPreference(TeamPreference.Commenting);
     // A legacy boolean `false` (team not yet migrated) means disabled.
     return access !== CommentingAccess.None && access !== false;
+  }
+
+  /**
+   * Whether the team is entitled to use the given feature.
+   *
+   * @param feature The feature to check for.
+   * @returns true if the team is entitled to the feature, false otherwise.
+   */
+  hasEntitlement(feature: PlanFeature): boolean {
+    return !!this.entitlements?.includes(feature);
   }
 
   /**

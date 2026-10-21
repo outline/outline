@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +31,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 type Props = {
   document: Document;
@@ -45,6 +42,7 @@ type Props = {
   showPublished?: boolean;
   showDraft?: boolean;
   showLastViewed?: boolean;
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -54,27 +52,25 @@ function replaceResultMarks(tag: string) {
   return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
-function DocumentListItem(
-  props: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const [isInteractive, setIsInteractive] = React.useState(false);
   const isMobile = useMobile();
   const selection = useModelSelection();
   const iconRef = React.useRef<HTMLDivElement>(null);
+  const restoreFocus = React.useRef(false);
 
-  let itemRef: React.Ref<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
-  if (ref) {
-    itemRef = ref;
+  if (props.ref) {
+    itemRef = props.ref;
   }
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
-  useFocusEffect(focused, itemRef);
 
   const {
     document,
@@ -85,6 +81,7 @@ function DocumentListItem(
     showLastViewed = true,
     highlight,
     context,
+    ref: _ref,
     ...rest
   } = props;
   const queryIsInTitle =
@@ -137,7 +134,6 @@ function DocumentListItem(
     document.asNavigationNode,
     0,
     document,
-    false,
     false
   );
 
@@ -150,125 +146,161 @@ function DocumentListItem(
     [itemRef, draggableRef]
   );
 
+  React.useLayoutEffect(() => {
+    if (isInteractive && restoreFocus.current) {
+      itemRef.current?.focus();
+      restoreFocus.current = false;
+    }
+  }, [isInteractive]);
+
+  const handleFocusCapture = (event: React.FocusEvent<HTMLAnchorElement>) => {
+    if (!isInteractive && event.target === event.currentTarget) {
+      restoreFocus.current = true;
+      setIsInteractive(true);
+    }
+  };
+
+  const link = (
+    <DocumentLink
+      ref={mergedRef}
+      dir={document.dir}
+      $isStarred={document.isStarred}
+      $isDragging={isDragging}
+      $menuOpen={menuOpen}
+      $selectable={selectable}
+      to={{
+        pathname: documentPath(document),
+        search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
+        state: {
+          title: document.displayTitle,
+          sidebarContext,
+        },
+      }}
+      {...rest}
+      {...rovingTabIndex}
+      onClick={handleLinkClick}
+      onMouseDown={handleLinkMouseDown}
+      onPointerEnter={() => setIsInteractive(true)}
+      onFocusCapture={handleFocusCapture}
+    >
+      <Flex gap={4} auto>
+        <IconWrapper ref={iconRef}>
+          {selectable && (
+            <SelectButton
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-label={t("Select")}
+              $checked={isSelected}
+              $visible={isSelecting}
+              tabIndex={-1}
+            >
+              {isSelected && <CheckmarkIcon size={16} />}
+            </SelectButton>
+          )}
+          <DocumentIconWrapper $dimmed={isSelecting}>
+            {document.icon ? (
+              <Icon
+                value={document.icon}
+                color={document.color ?? undefined}
+                initial={document.initial}
+              />
+            ) : (
+              <DocumentIcon
+                outline={document.isDraft}
+                color={theme.textSecondary}
+              />
+            )}
+          </DocumentIconWrapper>
+        </IconWrapper>
+        <Content>
+          <Heading dir={document.dir}>
+            <Title
+              text={document.displayTitle}
+              highlight={highlight}
+              dir={document.dir}
+            />
+            {document.isBadgedNew && document.createdBy?.id !== user.id && (
+              <Badge yellow>{t("New")}</Badge>
+            )}
+            {document.isDraft &&
+              showDraft &&
+              (isInteractive ? (
+                <Tooltip content={t("Only visible to you")}>
+                  <Badge>{t("Draft")}</Badge>
+                </Tooltip>
+              ) : (
+                <Badge>{t("Draft")}</Badge>
+              ))}
+            {canStar && !isMobile && (
+              <StarButton
+                document={document}
+                tooltipDisabled={!isInteractive}
+              />
+            )}
+          </Heading>
+
+          {!queryIsInTitle && (
+            <ResultContext
+              text={context}
+              highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+              processResult={replaceResultMarks}
+            />
+          )}
+          <DocumentMeta
+            document={document}
+            showCollection={showCollection}
+            showPublished={showPublished}
+            showParentDocuments={showParentDocuments}
+            showLastViewed={showLastViewed}
+          />
+        </Content>
+      </Flex>
+      {document.destroysInDays !== undefined && (
+        <RetentionBadge>
+          {isInteractive ? (
+            <Tooltip
+              content={t(
+                "Will be permanently deleted in {{ count }} days unless restored",
+                { count: document.destroysInDays }
+              )}
+            >
+              <Badge>
+                {t("{{ count }} days", { count: document.destroysInDays })}
+              </Badge>
+            </Tooltip>
+          ) : (
+            <Badge>
+              {t("{{ count }} days", { count: document.destroysInDays })}
+            </Badge>
+          )}
+        </RetentionBadge>
+      )}
+      <Actions>
+        {isInteractive && (
+          <DocumentMenu
+            document={document}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        )}
+      </Actions>
+    </DocumentLink>
+  );
+
   return (
     <ActionContextProvider value={{ activeModels }}>
-      <ContextMenu
-        action={contextMenuAction}
-        ariaLabel={t("Document options")}
-        onOpen={handleMenuOpen}
-        onClose={handleMenuClose}
-      >
-        <DocumentLink
-          ref={mergedRef}
-          dir={document.dir}
-          $isStarred={document.isStarred}
-          $isDragging={isDragging}
-          $menuOpen={menuOpen}
-          $selectable={selectable}
-          to={{
-            pathname: documentPath(document),
-            search: highlight
-              ? `?q=${encodeURIComponent(highlight)}`
-              : undefined,
-            state: {
-              title: document.titleWithDefault,
-              sidebarContext,
-            },
-          }}
-          {...rest}
-          {...rovingTabIndex}
-          onClick={handleLinkClick}
-          onMouseDown={handleLinkMouseDown}
+      {isInteractive ? (
+        <ContextMenu
+          action={contextMenuAction}
+          ariaLabel={t("Document options")}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
         >
-          <Flex gap={4} auto>
-            <IconWrapper ref={iconRef}>
-              {selectable && (
-                <SelectButton
-                  role="checkbox"
-                  aria-checked={isSelected}
-                  aria-label={t("Select")}
-                  $checked={isSelected}
-                  $visible={isSelecting}
-                  tabIndex={-1}
-                >
-                  {isSelected && <CheckmarkIcon size={16} />}
-                </SelectButton>
-              )}
-              <DocumentIconWrapper $dimmed={isSelecting}>
-                {document.icon ? (
-                  <Icon
-                    value={document.icon}
-                    color={document.color ?? undefined}
-                    initial={document.initial}
-                  />
-                ) : (
-                  <DocumentIcon
-                    outline={document.isDraft}
-                    color={theme.textSecondary}
-                  />
-                )}
-              </DocumentIconWrapper>
-            </IconWrapper>
-            <Content>
-              <Heading dir={document.dir}>
-                <Title
-                  text={document.titleWithDefault}
-                  highlight={highlight}
-                  dir={document.dir}
-                />
-                {document.isBadgedNew && document.createdBy?.id !== user.id && (
-                  <Badge yellow>{t("New")}</Badge>
-                )}
-                {document.isDraft && showDraft && (
-                  <Tooltip content={t("Only visible to you")} placement="top">
-                    <Badge>{t("Draft")}</Badge>
-                  </Tooltip>
-                )}
-                {canStar && !isMobile && <StarButton document={document} />}
-              </Heading>
-
-              {!queryIsInTitle && (
-                <ResultContext
-                  text={context}
-                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-                  processResult={replaceResultMarks}
-                />
-              )}
-              <DocumentMeta
-                document={document}
-                showCollection={showCollection}
-                showPublished={showPublished}
-                showParentDocuments={showParentDocuments}
-                showLastViewed={showLastViewed}
-              />
-            </Content>
-          </Flex>
-          {document.destroysInDays !== undefined && (
-            <RetentionBadge>
-              <Tooltip
-                content={t(
-                  "Will be permanently deleted in {{ count }} days unless restored",
-                  { count: document.destroysInDays }
-                )}
-                placement="top"
-              >
-                <Badge>
-                  {t("{{ count }} days", {
-                    count: document.destroysInDays,
-                  })}
-                </Badge>
-              </Tooltip>
-            </RetentionBadge>
-          )}
-          <Actions>
-            <DocumentMenu
-              document={document}
-              onOpen={handleMenuOpen}
-              onClose={handleMenuClose}
-            />
-          </Actions>
-        </DocumentLink>
-      </ContextMenu>
+          {link}
+        </ContextMenu>
+      ) : (
+        link
+      )}
     </ActionContextProvider>
   );
 }
@@ -472,4 +504,4 @@ const ResultContext = styled(Highlight)`
   overflow: hidden;
 `;
 
-export default observer(React.forwardRef(DocumentListItem));
+export default observer(DocumentListItem);

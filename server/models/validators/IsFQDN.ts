@@ -1,4 +1,4 @@
-import { isFQDN } from "class-validator";
+import isFQDN from "validator/lib/isFQDN";
 import { addAttributeOptions } from "sequelize-typescript";
 
 /**

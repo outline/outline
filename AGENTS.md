@@ -32,6 +32,7 @@ You're an expert in the following areas:
 
 - Critical – Do not create new markdown (.md) files.
 - Use early returns for readability.
+- Leave an empty line above every comment, unless the comment is the first line in a block.
 - Emphasize type safety and static analysis.
 - Follow consistent oxfmt formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
@@ -94,6 +95,10 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Do not import React unless it is used directly.
 - Use styled-components for component styling.
 - Ensure high accessibility (a11y) standards using ARIA roles and semantic HTML.
+- In components that stay mounted across navigation (layout, sidebar, command bar), do not use `useLocation`. Use `useLocationSelector` to select only the value you need, or read `history.location` in effects and handlers.
+- Give stable props to memoized and `observer` components, especially list rows. Do not create new arrays, objects, or JSX on each render; use shared constants for empty arrays.
+- Do not read `ref.current` during render to pass it to props or context. Keep the element in state with a callback ref.
+- If the initial value of `useState` reads observables, use a lazy initializer. Otherwise the expression runs, and subscribes, on every render.
 
 ## MobX State Management
 
@@ -102,6 +107,10 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Use `observable`, `action`, and `computed` decorators appropriately.
 - Prefer computed values over manual calculations in render.
 - Keep business logic in stores, not components.
+- Do not read an observable during render only for an effect or a per-item check. Use `useComputed` to derive a narrow value (e.g. `isActive`) so only affected components re-render.
+- Use `observable.map` rather than a set when observers check membership by key. `ObservableSet.has()` tracks the whole set, so any change re-renders every observer.
+- Store lookups called for each row of a list must not scan a computed list such as `orderedData`, as this subscribes the component to every item in the store.
+- A context value provided near the app root must not change on navigation. Expose frequently changing store values as getters read on access, not values read during render.
 
 ## Database & ORM
 
@@ -116,6 +125,8 @@ yarn sequelize migration:create --name=add-field-to-table
 - Use transactions for multi-table operations.
 - Add appropriate indexes for query performance.
 - Always handle database errors gracefully.
+- When updating Sequelize array or JSON attributes, replace the value instead of mutating it in place; reload the model in tests to verify persistence rather than trusting its in-memory state.
+- Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
 
 ## API Design
 
@@ -133,12 +144,15 @@ yarn sequelize migration:create --name=add-field-to-table
 - Use cancan-style ability checks.
 - Use authenticated middleware for protected routes.
 - Always verify user permissions before data access.
+- Set account email and passkey management routes to `AuthenticationType.APP`; API-key authentication must not change login credentials or authenticators.
 
 ## Real-time Collaboration
 
 - WebSocket connections for real-time updates.
 - Use Y.js for collaborative editing.
 - Handle connection state changes gracefully.
+- For bulk deletions that drive authorization or WebSocket processing, load affected models in the transaction and delete each with request context so downstream processors receive the expected per-item events.
+- Do not persist viewer-specific unfurls in shared document mentions; only store unfurls that map to a stable mention type.
 
 ## Documentation
 
@@ -168,6 +182,7 @@ yarn test:shared   # All shared code tests
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.
+- Server tests share a module registry between files. A server test that uses `vi.mock` or `vi.resetModules` must start with `// @vitest-isolate true` so it runs isolated.
 - Do not create new test directories
 - Mock external dependencies appropriately in **mocks** folder.
 - Aim for high code coverage but focus on critical paths.

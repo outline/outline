@@ -5,15 +5,17 @@ import { isInvalidAppPath, validateUrlNotPrivate } from "./url";
 
 describe("validateUrlNotPrivate", () => {
   let lookupSpy: MockInstance;
+  const originalAllowedPrivateIps = env.ALLOWED_PRIVATE_IP_ADDRESSES;
 
   beforeEach(() => {
+    env.ALLOWED_PRIVATE_IP_ADDRESSES = undefined;
     lookupSpy = vi.spyOn(dns.promises, "lookup");
     lookupSpy.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
   });
 
   afterEach(() => {
     lookupSpy.mockRestore();
-    env.ALLOWED_PRIVATE_IP_ADDRESSES = undefined;
+    env.ALLOWED_PRIVATE_IP_ADDRESSES = originalAllowedPrivateIps;
   });
 
   it("should allow public IP addresses", async () => {

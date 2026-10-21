@@ -216,6 +216,7 @@ function CommentThread({
 
       setTimeout(
         () => {
+          editor?.revealComment(thread.id);
           getCommentMarkElement()?.scrollIntoView({
             behavior: "smooth",
             block: "center",
@@ -224,7 +225,7 @@ function CommentThread({
         isMarkVisible ? 0 : sidebarAppearDuration
       );
     }
-  }, [focused, scrollOnMount, thread.id]);
+  }, [focused, scrollOnMount, thread.id, editor]);
 
   return (
     <Thread

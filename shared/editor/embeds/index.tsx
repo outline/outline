@@ -224,12 +224,12 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     id: "codepen",
-    title: "Codepen",
+    title: "CodePen",
     keywords: "code editor",
     regexMatch: [new RegExp("^https://codepen.io/(.*?)/(pen|embed)/(.*)$")],
     transformMatch: (matches) =>
       `https://codepen.io/${matches[1]}/embed/${matches[3]}`,
-    icon: <Img src="/images/codepen.png" alt="Codepen" $invertable />,
+    icon: <Img src="/images/codepen.png" alt="CodePen" $invertable />,
   }),
   new EmbedDescriptor({
     id: "dbdiagram",
@@ -531,7 +531,7 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     id: "mindmeister",
-    title: "Mindmeister",
+    title: "MindMeister",
     keywords: "mindmap",
     regexMatch: [
       new RegExp(
@@ -542,7 +542,7 @@ const embeds: EmbedDescriptor[] = [
       const chartId = matches[4] + (matches[5] || "") + (matches[6] || "");
       return `https://www.mindmeister.com/maps/public_map_shell/${chartId}`;
     },
-    icon: <Img src="/images/mindmeister.png" alt="Mindmeister" />,
+    icon: <Img src="/images/mindmeister.png" alt="MindMeister" />,
   }),
   new EmbedDescriptor({
     id: "miro",
@@ -670,12 +670,12 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     id: "valtown",
-    title: "Valtown",
+    title: "Val Town",
     keywords: "code",
     regexMatch: [/^https?:\/\/(?:www.)?val\.town\/(?:v|embed)\/(.*)$/],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://www.val.town/embed/${matches[1]}`,
-    icon: <Img src="/images/valtown.png" alt="Valtown" $invertable />,
+    icon: <Img src="/images/valtown.png" alt="Val Town" $invertable />,
   }),
   new EmbedDescriptor({
     id: "vimeo",
@@ -723,12 +723,12 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     id: "plant-uml",
-    title: "Plant UML",
+    title: "PlantUML",
     keywords: "plant plantuml uml",
     regexMatch: [
       /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9_-]+)([&?].*)?$/i,
     ],
-    icon: <Img src="/images/plantuml.png" alt="PlantUml" />,
+    icon: <Img src="/images/plantuml.png" alt="PlantUML" />,
     component: PlantUmlDiagrams,
   }),
   /* The generic iframe embed should always be the last one */

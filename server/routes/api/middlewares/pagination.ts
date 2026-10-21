@@ -3,6 +3,7 @@ import type { Next } from "koa";
 import { Pagination } from "@shared/constants";
 import { InvalidRequestError } from "@server/errors";
 import type { AppContext, Pagination as PaginationType } from "@server/types";
+import { RequestHelper } from "@server/utils/RequestHelper";
 
 /**
  * Execute a paginated query, skipping the COUNT query for client requests by
@@ -66,20 +67,28 @@ export default function pagination() {
       maxLimit: Pagination.maxLimit,
     };
     const query = ctx.request.query;
-    const body = ctx.request.body;
-    let limit = query.limit || body.limit;
-    let offset = query.offset || body.offset;
+    const body = RequestHelper.getBodyObject(ctx.request);
+    const rawLimit = query.limit || body.limit;
+    const rawOffset = query.offset || body.offset;
 
-    if (limit && isNaN(limit)) {
+    if (rawLimit && isNaN(Number(rawLimit))) {
       throw InvalidRequestError(`Pagination limit must be a valid number`);
     }
 
-    if (offset && isNaN(offset)) {
+    if (rawOffset && isNaN(Number(rawOffset))) {
       throw InvalidRequestError(`Pagination offset must be a valid number`);
     }
 
-    limit = parseInt(limit || opts.defaultLimit, 10);
-    offset = parseInt(offset || opts.defaultOffset, 10);
+    const limit = rawLimit ? parseInteger(rawLimit) : opts.defaultLimit;
+    const offset = rawOffset ? parseInteger(rawOffset) : opts.defaultOffset;
+
+    if (isNaN(limit)) {
+      throw InvalidRequestError(`Pagination limit must be a valid number`);
+    }
+
+    if (isNaN(offset)) {
+      throw InvalidRequestError(`Pagination offset must be a valid number`);
+    }
 
     if (limit > opts.maxLimit) {
       throw InvalidRequestError(
@@ -109,3 +118,8 @@ export default function pagination() {
     return next();
   };
 }
+
+const parseInteger = (value: unknown) =>
+  typeof value === "string" || typeof value === "number"
+    ? parseInt(String(value), 10)
+    : NaN;

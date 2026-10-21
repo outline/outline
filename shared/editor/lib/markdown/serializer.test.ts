@@ -1,6 +1,67 @@
 import { Node } from "prosemirror-model";
 import { parser, schema, serializer } from "../../../test/editor";
 
+describe("tables", () => {
+  it("preserves line breaks and empty paragraphs in table cells", () => {
+    const doc = Node.fromJSON(schema, {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header" }],
+                    },
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "next" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Line 1" }],
+                    },
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Line 2" }],
+                    },
+                    { type: "paragraph" },
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Line 4" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const output = serializer.serialize(doc, { commonMark: true });
+
+    expect(output).toContain("| Header<br>next |");
+    expect(output).toContain("| Line 1<br>Line 2<br><br>Line 4 |");
+  });
+});
+
 describe("code fences", () => {
   it("serializes code blocks containing backtick runs with a longer fence", () => {
     const doc = Node.fromJSON(schema, {
@@ -52,5 +113,79 @@ describe("code fences", () => {
 
     expect(infoLine).toBe("```not");
     expect(parser.parse(output)?.firstChild?.type.name).toBe("code_block");
+  });
+});
+
+describe("escaping", () => {
+  const paragraph = (text: string) =>
+    Node.fromJSON(schema, {
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+    });
+
+  it("does not escape a period inside a number at the start of a line", () => {
+    const output = serializer.serialize(paragraph("10.15.15.1"));
+
+    expect(output).toBe("10.15.15.1");
+    expect(parser.parse(output)?.firstChild?.type.name).toBe("paragraph");
+  });
+
+  it("escapes a period that would start an ordered list", () => {
+    const output = serializer.serialize(paragraph("1. not a list"));
+
+    expect(output).toBe("1\\. not a list");
+    expect(parser.parse(output)?.firstChild?.type.name).toBe("paragraph");
+  });
+
+  it("escapes a number followed by a period at the end of a line", () => {
+    const output = serializer.serialize(paragraph("1."));
+
+    expect(output).toBe("1\\.");
+    expect(parser.parse(output)?.firstChild?.type.name).toBe("paragraph");
+  });
+
+  it("does not escape a period inside a number at the start of a table cell", () => {
+    const doc = Node.fromJSON(schema, {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Address" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "10.12.14.21" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const output = serializer.serialize(doc, { commonMark: true });
+
+    expect(output).toContain("| 10.12.14.21 |");
   });
 });

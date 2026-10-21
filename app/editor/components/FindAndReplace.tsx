@@ -3,6 +3,7 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   CaseSensitiveIcon,
+  CloseIcon,
   RegexIcon,
   ReplaceIcon,
 } from "outline-icons";
@@ -24,14 +25,16 @@ import {
 } from "~/components/primitives/Popover";
 import { useClearSearchHighlight } from "~/hooks/useClearSearchHighlight";
 import useKeyDown from "~/hooks/useKeyDown";
+import useMobile from "~/hooks/useMobile";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
 import { HStack } from "~/components/primitives/HStack";
 
 type KeyboardShortcutsProps = {
   open: boolean;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
+  handleClose: () => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
@@ -40,18 +43,24 @@ function useKeyboardShortcuts({
   open,
   inputRef,
   handleOpen,
+  handleClose,
   handleCaseSensitive,
   handleRegex,
 }: KeyboardShortcutsProps) {
-  // Open popover
+  // Toggle popover
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
       ev.code === "KeyF" &&
-      (!open || ev.altKey || document.activeElement !== inputRef.current) &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
+      // Close and fall through to the browser's find when already focused.
+      if (open && !ev.altKey && document.activeElement === inputRef.current) {
+        handleClose();
+        return;
+      }
+
       ev.preventDefault();
       handleOpen({ withReplace: ev.altKey });
     },
@@ -104,12 +113,13 @@ export default function FindAndReplace({
 }: Props) {
   const editor = useEditor();
   const [localOpen, setLocalOpen] = React.useState(open);
-  const selectionRef = React.useRef<string | undefined>();
+  const selectionRef = React.useRef<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const theme = useTheme();
   const clearSearchHighlight = useClearSearchHighlight();
+  const isMobile = useMobile();
   const [showReplace, setShowReplace] = React.useState(false);
   const [caseSensitive, setCaseSensitive] = React.useState(false);
   const [regexEnabled, setRegex] = React.useState(false);
@@ -129,6 +139,10 @@ export default function FindAndReplace({
     }
     if ("onFindInPage" in Desktop.bridge) {
       Desktop.bridge.onFindInPage(() => {
+        if (document.activeElement === inputRef.current) {
+          setLocalOpen(false);
+          return;
+        }
         selectionRef.current = window.getSelection()?.toString();
         setLocalOpen(true);
       });
@@ -182,6 +196,8 @@ export default function FindAndReplace({
     },
     [localOpen, readOnly, selectInputText, selectInputReplaceText]
   );
+
+  const handleClose = React.useCallback(() => setLocalOpen(false), []);
 
   const handleMore = React.useCallback(() => {
     setShowReplace((state) => !state);
@@ -338,6 +354,7 @@ export default function FindAndReplace({
     open: localOpen,
     inputRef,
     handleOpen,
+    handleClose,
     handleCaseSensitive,
     handleRegex,
   });
@@ -345,15 +362,20 @@ export default function FindAndReplace({
   const style: React.CSSProperties = React.useMemo(
     () => ({
       position: "fixed",
-      top: 0,
-      right: 0,
+      top: 60,
+      right: 16,
       zIndex: depths.popover,
     }),
     []
   );
 
+  // Tracks whether the controls were opened, as there is nothing to clear
+  // when the editor mounts with them closed.
+  const hasOpenedRef = React.useRef(false);
+
   React.useEffect(() => {
     if (localOpen) {
+      hasOpenedRef.current = true;
       onOpen();
       // The find controls take over highlighting from here.
       clearSearchHighlight();
@@ -372,7 +394,7 @@ export default function FindAndReplace({
       if (selectionRef.current) {
         setSearchTerm(selectionRef.current);
       }
-    } else {
+    } else if (hasOpenedRef.current) {
       onClose();
       setShowReplace(false);
       // Cancel any pending debounced find so it can't reactivate highlights
@@ -384,12 +406,12 @@ export default function FindAndReplace({
   }, [localOpen]);
 
   const disabled = totalResults === 0;
-  const navigation = (
+  const controls = (
     <>
       <Tooltip
         content={t("Previous match")}
         shortcut="Shift+Enter"
-        placement="bottom"
+        side="bottom"
       >
         <ButtonLarge
           disabled={disabled}
@@ -402,7 +424,7 @@ export default function FindAndReplace({
           <CaretUpIcon />
         </ButtonLarge>
       </Tooltip>
-      <Tooltip content={t("Next match")} shortcut="Enter" placement="bottom">
+      <Tooltip content={t("Next match")} shortcut="Enter" side="bottom">
         <ButtonLarge
           disabled={disabled}
           onClick={() => {
@@ -414,6 +436,20 @@ export default function FindAndReplace({
           <CaretDownIcon />
         </ButtonLarge>
       </Tooltip>
+      {!readOnly && (
+        <Tooltip
+          content={t("Replace options")}
+          shortcut={`${altDisplay}+${metaDisplay}+f`}
+          side="bottom"
+        >
+          <ButtonLarge onClick={handleMore} aria-label={t("Replace options")}>
+            <ReplaceIcon color={theme.textSecondary} />
+          </ButtonLarge>
+        </Tooltip>
+      )}
+      <Results>
+        {totalResults > 0 ? currentIndex + 1 : 0} / {totalResults}
+      </Results>
     </>
   );
 
@@ -429,12 +465,15 @@ export default function FindAndReplace({
       <PopoverContent
         aria-label={t("Find and replace")}
         width={0}
-        minWidth={420}
+        minWidth={isMobile ? undefined : 420}
         scrollable={false}
+        align="end"
         onEscapeKeyDown={handleEscape}
         onPointerDownOutside={(ev) => ev.preventDefault()}
         onFocusOutside={(ev) => ev.preventDefault()}
-        style={{ marginRight: 16, marginTop: 60 }}
+        style={{
+          width: isMobile ? "calc(100vw - 32px)" : undefined,
+        }}
       >
         <Content column>
           <Flex gap={4}>
@@ -450,7 +489,7 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Match case")}
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
-                  placement="bottom"
+                  side="bottom"
                 >
                   <ButtonSmall
                     onClick={handleCaseSensitive}
@@ -464,7 +503,7 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Enable regex")}
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
-                  placement="bottom"
+                  side="bottom"
                 >
                   <ButtonSmall
                     onClick={handleRegex}
@@ -477,28 +516,19 @@ export default function FindAndReplace({
                 </Tooltip>
               </SearchModifiers>
             </StyledInput>
-            {navigation}
-            {!readOnly && (
-              <Tooltip
-                content={t("Replace options")}
-                shortcut={`${altDisplay}+${metaDisplay}+f`}
-                placement="bottom"
-              >
-                <ButtonLarge
-                  onClick={handleMore}
-                  aria-label={t("Replace options")}
-                >
-                  <ReplaceIcon color={theme.textSecondary} />
-                </ButtonLarge>
-              </Tooltip>
-            )}
-            <Results>
-              {totalResults > 0 ? currentIndex + 1 : 0} / {totalResults}
-            </Results>
+            {!isMobile && controls}
           </Flex>
+          {isMobile && (
+            <ControlsRow gap={4} align="center">
+              {controls}
+              <CloseButton onClick={handleClose} aria-label={t("Close")}>
+                <CloseIcon color={theme.textSecondary} />
+              </CloseButton>
+            </ControlsRow>
+          )}
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
-              <HStack align="flex-start">
+              <HStack align="flex-start" wrap={isMobile}>
                 <StyledInput
                   maxLength={255}
                   value={replaceTerm}
@@ -508,11 +538,7 @@ export default function FindAndReplace({
                   onRequestSubmit={handleReplaceAll}
                   onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
                 />
-                <Tooltip
-                  content={t("Replace")}
-                  shortcut="Enter"
-                  placement="bottom"
-                >
+                <Tooltip content={t("Replace")} shortcut="Enter" side="bottom">
                   <Button onClick={handleReplace} disabled={disabled} neutral>
                     {t("Replace")}
                   </Button>
@@ -520,7 +546,7 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Replace all")}
                   shortcut={`${metaDisplay}+Enter`}
-                  placement="bottom"
+                  side="bottom"
                 >
                   <Button
                     onClick={handleReplaceAll}
@@ -564,6 +590,14 @@ const ButtonSmall = styled(NudeButton)`
 const ButtonLarge = styled(ButtonSmall)`
   width: 32px;
   height: 32px;
+`;
+
+const CloseButton = styled(ButtonLarge)`
+  margin-left: auto;
+`;
+
+const ControlsRow = styled(Flex)`
+  margin: -8px 0 16px;
 `;
 
 const Content = styled(Flex)`

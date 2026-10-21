@@ -4,7 +4,6 @@ import { useHistory } from "react-router-dom";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
 import type { RefHandle } from "~/components/EditableTitle";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
@@ -23,7 +22,6 @@ type Props = {
   collection: Collection;
   expanded?: boolean;
   onDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
-  activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
   depth?: number;
   onClick?: () => void;
@@ -119,7 +117,7 @@ const CollectionLink: React.FC<Props> = ({
       onDisclosureClick={onDisclosureClick}
       onExpand={handleExpand}
       canEdit={can.update}
-      labelText={collection.name}
+      labelText={collection.displayName}
       onTitleChange={handleTitleChange}
       editableTitleRef={editableTitleRef}
       contextAction={contextMenuAction}
@@ -131,12 +129,16 @@ const CollectionLink: React.FC<Props> = ({
       dropRef={dropRef}
       isActiveDropTarget={isOver && canDrop}
     >
-      <CollectionLinkChildren
-        collection={collection}
-        expanded={!!expanded}
-        depth={depth}
-        prefetchDocument={documents.prefetchDocument}
-      />
+      {(newChild) => (
+        <CollectionLinkChildren
+          collection={collection}
+          expanded={!!expanded}
+          depth={depth}
+          prefetchDocument={documents.prefetchDocument}
+        >
+          {newChild}
+        </CollectionLinkChildren>
+      )}
     </CollectionRow>
   );
 };

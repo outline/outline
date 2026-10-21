@@ -26,7 +26,9 @@ export function CopyButton({
   tooltip,
   icon = <LinkIcon size={20} />,
 }: Props) {
-  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
+  const timeout = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const handleCopied = React.useCallback(() => {
     timeout.current = setTimeout(() => {
@@ -41,7 +43,7 @@ export function CopyButton({
   }, [success]);
 
   return (
-    <Tooltip content={tooltip} placement="top">
+    <Tooltip content={tooltip}>
       <CopyToClipboard text={value} onCopy={handleCopied}>
         <NudeButton type="button">{icon}</NudeButton>
       </CopyToClipboard>

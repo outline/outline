@@ -52,7 +52,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
         if (canCollection.createTemplate) {
           memo.push({
             type: "item",
-            label: collection.name,
+            label: collection.displayName,
             value: collection.id,
             icon: <CollectionIcon collection={collection} />,
           });

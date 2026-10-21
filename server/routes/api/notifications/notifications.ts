@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { isEmpty, isNil, isNull, isUndefined } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -113,10 +113,10 @@ router.post(
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Notification.count({
+      Notification.unscoped().count({
         where,
       }),
-      Notification.count({
+      Notification.unscoped().count({
         where: {
           ...where,
           viewedAt: {

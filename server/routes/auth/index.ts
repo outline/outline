@@ -2,7 +2,7 @@ import passport from "@outlinewiki/koa-passport";
 import { addMonths } from "date-fns";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { AuthenticationError } from "@server/errors";
 import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
@@ -20,14 +20,16 @@ router.use(passport.initialize());
 
 // dynamically register available authentication provider routes
 void (async () => {
-  for (const provider of AuthenticationHelper.providers) {
-    const resolvedRouter = await provider.value.router;
+  const resolvedRouters = await Promise.all(
+    AuthenticationHelper.providers.map((provider) =>
+      Promise.resolve(provider.value.router)
+    )
+  );
+
+  router.use(authMiddleware({ optional: true }));
+  for (const resolvedRouter of resolvedRouters) {
     if (resolvedRouter) {
-      router.use(
-        "/",
-        authMiddleware({ optional: true }),
-        resolvedRouter.routes()
-      );
+      router.use("/", resolvedRouter.routes());
     }
   }
 })();
@@ -70,6 +72,7 @@ router.get(
         where: {
           id: defaultCollectionId,
           teamId: team.id,
+          ownerId: null,
         },
       });
 

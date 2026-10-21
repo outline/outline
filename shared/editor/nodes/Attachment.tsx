@@ -93,13 +93,24 @@ export default class Attachment extends Node {
     ({ getPos }: ComponentProps) =>
     () => {
       const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
+      const $pos = view.state.doc.resolve(pos);
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     ({ width }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
@@ -109,6 +120,10 @@ export default class Attachment extends Node {
       const { doc, tr } = view.state;
 
       const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
       const $pos = doc.resolve(pos);
       const dimensions = resolvePDFDimensions(width);
 
@@ -119,13 +134,14 @@ export default class Attachment extends Node {
   component = (props: ComponentProps) => {
     const { embedsDisabled } = this.editor.props;
     const { isSelected, isEditable, node } = props;
-    const context = node.attrs.href ? (
-      bytesToHumanReadable(node.attrs.size || "0")
-    ) : (
-      <>
-        <Trans>Uploading</Trans>…
-      </>
-    );
+    const context =
+      node.attrs.href || node.attrs.size ? (
+        bytesToHumanReadable(node.attrs.size || "0")
+      ) : (
+        <>
+          <Trans>Uploading</Trans>…
+        </>
+      );
 
     return node.attrs.preview && !embedsDisabled && isPDFAttachment(node) ? (
       <PdfViewer
@@ -172,13 +188,8 @@ export default class Attachment extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const {
-          uploadFile,
-          onFileUploadStart,
-          onFileUploadStop,
-          onFileUploadProgress,
-          onNotice,
-        } = this.editor.props;
+        const { uploadFile, onFileUploadStart, onFileUploadStop, onNotice } =
+          this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace attachments");
@@ -204,7 +215,6 @@ export default class Attachment extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
-            onFileUploadProgress,
             onNotice,
             replaceExisting: true,
             attrs: {

@@ -1,7 +1,14 @@
 import { randomString } from "@shared/random";
-import { IntegrationService } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
+import type { Document, User } from "@server/models";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
-import { buildDocument, buildTeam, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildIntegration,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import env from "../env";
 import * as Slack from "../slack";
@@ -17,21 +24,42 @@ afterEach(() => {
 });
 
 describe("#hooks.unfurl", () => {
-  it("should return documents with matching SSO user", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-
-    await IntegrationAuthentication.create({
+  const buildSlackIntegration = async (
+    user: User,
+    type: IntegrationType,
+    scopes: string[],
+    createdAt?: Date
+  ) => {
+    const authentication = await IntegrationAuthentication.create({
       service: IntegrationService.Slack,
       userId: user.id,
       teamId: user.teamId,
       token: randomString(32),
+      scopes,
     });
+    const integration = await buildIntegration({
+      teamId: user.teamId,
+      userId: user.id,
+      type,
+      authenticationId: authentication.id,
+      createdAt,
+    });
+    return { integration, authentication };
+  };
 
-    const res = await server.post("/api/hooks.unfurl", {
+  const buildCommandIntegration = (user: User, createdAt?: Date) =>
+    buildSlackIntegration(
+      user,
+      IntegrationType.Command,
+      ["commands", "links:read", "links:write"],
+      createdAt
+    );
+
+  const buildPostIntegration = (user: User) =>
+    buildSlackIntegration(user, IntegrationType.Post, ["incoming-webhook"]);
+
+  const unfurl = (user: User, document: Document) =>
+    server.post("/api/hooks.unfurl", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
         team_id: user.team.authenticationProviders[0].providerId,
@@ -50,8 +78,90 @@ describe("#hooks.unfurl", () => {
         },
       },
     });
+
+  it("should return documents with matching SSO user", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const { authentication } = await buildCommandIntegration(user);
+
+    const res = await unfurl(user, document);
     expect(res.status).toEqual(200);
-    expect(Slack.post).toHaveBeenCalled();
+    expect(Slack.post).toHaveBeenCalledWith(
+      "chat.unfurl",
+      expect.objectContaining({
+        token: authentication.token,
+        unfurls: {
+          [document.url]: expect.objectContaining({ title: document.title }),
+        },
+      })
+    );
+  });
+
+  it("should use the command token when a post integration exists", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildPostIntegration(user);
+    const { authentication } = await buildCommandIntegration(user);
+    await buildPostIntegration(user);
+
+    const res = await unfurl(user, document);
+    expect(res.status).toEqual(200);
+    expect(Slack.post).toHaveBeenCalledTimes(1);
+    expect(Slack.post).toHaveBeenCalledWith(
+      "chat.unfurl",
+      expect.objectContaining({ token: authentication.token })
+    );
+  });
+
+  it("should use the newest command integration", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const { authentication } = await buildCommandIntegration(
+      user,
+      new Date("2026-02-01T00:00:00Z")
+    );
+    await buildCommandIntegration(user, new Date("2026-01-01T00:00:00Z"));
+
+    const res = await unfurl(user, document);
+    expect(res.status).toEqual(200);
+    expect(Slack.post).toHaveBeenCalledWith(
+      "chat.unfurl",
+      expect.objectContaining({ token: authentication.token })
+    );
+  });
+
+  it("should not unfurl with only a post integration", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildPostIntegration(user);
+
+    await unfurl(user, document);
+    expect(Slack.post).not.toHaveBeenCalled();
+  });
+
+  it("should not unfurl when the command integration is deleted", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const { integration } = await buildCommandIntegration(user);
+    await integration.destroy();
+
+    await unfurl(user, document);
+    expect(Slack.post).not.toHaveBeenCalled();
   });
 });
 
@@ -297,9 +407,94 @@ describe("#hooks.interactive", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.response_type).toEqual("in_channel");
-    expect(body.attachments.length).toEqual(1);
-    expect(body.attachments[0].title).toEqual(document.title);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.blocks.length).toBeGreaterThan(0);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should not post a document from another team", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      title: "Secret document from another team",
+    });
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      user: {
+        id: user.authentications[0].providerId,
+      },
+      team: {
+        id: team.authenticationProviders[0].providerId,
+      },
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.replace_original).toEqual(false);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should not post a document in a collection the user cannot access", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      title: "Secret document in a private collection",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      user: {
+        id: user.authentications[0].providerId,
+      },
+      team: {
+        id: team.authenticationProviders[0].providerId,
+      },
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.replace_original).toEqual(false);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should error if payload has no user or team", async () => {
+    const document = await buildDocument();
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should error if incorrect verification token", async () => {

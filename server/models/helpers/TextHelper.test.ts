@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { createContext } from "@server/context";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";

@@ -2,7 +2,8 @@ import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { UserPasskey } from "@server/models";
 import type { APIContext } from "@server/types";
-import Router from "koa-router";
+import { AuthenticationType } from "@server/types";
+import Router from "@koa/router";
 import * as T from "./schema";
 import { authorize } from "@server/policies";
 import { transaction } from "@server/middlewares/transaction";
@@ -13,7 +14,7 @@ const router = new Router();
 
 router.post(
   "passkeys.list",
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   pagination(),
   validate(T.PasskeysListSchema),
   async (ctx: APIContext<T.PasskeysListReq>) => {
@@ -36,7 +37,7 @@ router.post(
 
 router.post(
   "passkeys.update",
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.PasskeysUpdateReq>) => {
@@ -60,7 +61,7 @@ router.post(
 
 router.post(
   "passkeys.delete",
-  auth(),
+  auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.PasskeysDeleteReq>) => {

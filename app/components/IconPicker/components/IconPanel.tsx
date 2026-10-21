@@ -24,6 +24,7 @@ const GRID_HEIGHT = 314 - PREVIEW_HEIGHT;
 type Props = {
   panelWidth: number;
   initial: string;
+  icon: string | null;
   color: string;
   query: string;
   panelActive: boolean;
@@ -35,6 +36,7 @@ type Props = {
 const IconPanel = ({
   panelWidth,
   initial,
+  icon,
   color,
   query,
   panelActive,
@@ -51,12 +53,15 @@ const IconPanel = ({
 
   const totalFrequentIcons = frequentIcons.length;
 
+  // Defer the search so typing stays responsive while the grid re-derives.
+  const deferredQuery = React.useDeferredValue(query);
+
   const filteredIcons = React.useMemo(
-    () => IconLibrary.findIcons(query),
-    [query]
+    () => IconLibrary.findIcons(deferredQuery),
+    [deferredQuery]
   );
 
-  const isSearch = query !== "";
+  const isSearch = deferredQuery !== "";
   const category = isSearch ? DisplayCategory.Search : DisplayCategory.All;
   const delayPerIcon = 250 / (TotalIcons + totalFrequentIcons);
 
@@ -86,7 +91,7 @@ const IconPanel = ({
 
   React.useEffect(() => {
     setActiveIcon(undefined);
-  }, [query]);
+  }, [deferredQuery]);
 
   // Preview the first icon shown in the grid until the user hovers another.
   const previewIcon =
@@ -150,6 +155,7 @@ const IconPanel = ({
         width={panelWidth}
         height={GRID_HEIGHT}
         data={templateData}
+        selected={icon}
         onIconSelect={handleIconSelection}
         onIconActive={handleIconActive}
         onOverflowChange={setHasMoreBelow}

@@ -11,6 +11,7 @@ import {
   buildTeam,
   buildCollection,
   buildAttachment,
+  buildSubdomain,
 } from "@server/test/factories";
 import { setCloudHosted, setSelfHosted } from "@server/test/support";
 
@@ -57,6 +58,34 @@ describe("Team", () => {
     });
   });
 
+  describe("findAvailableSubdomain", () => {
+    it("should slugify the requested value", async () => {
+      const slug = buildSubdomain();
+      const subdomain = await Team.findAvailableSubdomain(
+        `${slug.toUpperCase()} Inc`
+      );
+      expect(subdomain).toEqual(`${slug}-inc`);
+    });
+
+    it("should strip a trailing top-level domain", async () => {
+      const slug = buildSubdomain();
+      expect(await Team.findAvailableSubdomain(`${slug}.com`)).toEqual(slug);
+      expect(await Team.findAvailableSubdomain(`${slug} .com`)).toEqual(slug);
+      expect(await Team.findAvailableSubdomain(`${slug}.io`)).toEqual(slug);
+    });
+
+    it("should fall back to a default when too short or reserved", async () => {
+      expect(await Team.findAvailableSubdomain("ab")).toMatch(/^team\d*$/);
+      expect(await Team.findAvailableSubdomain("www")).toMatch(/^team\d*$/);
+    });
+
+    it("should append a number when the subdomain is taken", async () => {
+      const slug = buildSubdomain();
+      await buildTeam({ subdomain: slug });
+      expect(await Team.findAvailableSubdomain(slug)).toEqual(`${slug}1`);
+    });
+  });
+
   describe("collectionIds", () => {
     it("should return non-private collection ids", async () => {
       const team = await buildTeam();
@@ -96,6 +125,21 @@ describe("Team", () => {
       expect(team.previousSubdomains?.length).toEqual(2);
       expect(team.previousSubdomains?.[0]).toEqual(originalSubdomain);
       expect(team.previousSubdomains?.[1]).toEqual(subdomain);
+    });
+
+    it("should persist every previous subdomain", async () => {
+      const id = randomUUID();
+      const subdomains = [1, 2, 3, 4, 5].map((n) => `sub${n}-${id}`);
+      const team = await buildTeam({ subdomain: subdomains[0] });
+
+      for (const subdomain of subdomains.slice(1)) {
+        await team.update({ subdomain });
+      }
+
+      await team.reload();
+      expect(team.previousSubdomains).toEqual(subdomains.slice(1, 4));
+      expect((await Team.findBySubdomain(subdomains[3]))?.id).toEqual(team.id);
+      expect(await Team.findBySubdomain(subdomains[0])).toBeNull();
     });
   });
 

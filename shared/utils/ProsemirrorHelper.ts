@@ -1,6 +1,6 @@
 import type { Schema } from "prosemirror-model";
-import { Node } from "prosemirror-model";
-import headingToSlug from "../editor/lib/headingToSlug";
+import type { Node } from "prosemirror-model";
+import { HeadingSlugger } from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import type { ProsemirrorData } from "../types";
 import { hashString } from "./string";
@@ -63,13 +63,17 @@ export class ProsemirrorHelper {
     const markSet = new Set(marks);
 
     function removeMarksInner(node: ProsemirrorData) {
+      // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (node.marks) {
         node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
       }
       if (node.attrs?.marks) {
-        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
-          (mark) => !markSet.has(mark.type)
-        );
+        node.attrs = {
+          ...node.attrs,
+          marks: (node.attrs.marks as { type: string }[])?.filter(
+            (mark) => !markSet.has(mark.type)
+          ),
+        };
       }
       if (node.content) {
         node.content.forEach(removeMarksInner);
@@ -203,31 +207,16 @@ export class ProsemirrorHelper {
   }
 
   private static getAnchorsForHeadingNodes(doc: Node): NodeAnchor[] {
-    const previouslySeen: Record<string, number> = {};
+    const slugger = new HeadingSlugger();
     const anchors: NodeAnchor[] = [];
     doc.descendants((node, pos) => {
       if (node.type.name !== "heading") {
         return;
       }
 
-      // calculate the optimal id
-      const slug = headingToSlug(node);
-      let id = slug;
-
-      // check if we've already used it, and if so how many times?
-      // Make the new id based on that number ensuring that we have
-      // unique ID's even when headings are identical
-      if (previouslySeen[slug] > 0) {
-        id = headingToSlug(node, previouslySeen[slug]);
-      }
-
-      // record that we've seen this slug for the next loop
-      previouslySeen[slug] =
-        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
-
       anchors.push({
         pos,
-        id,
+        id: slugger.slug(node),
         className: EditorStyleHelper.headingPositionAnchor,
       });
     });
@@ -494,7 +483,7 @@ export class ProsemirrorHelper {
    */
   static getHeadings(doc: Node) {
     const headings: Heading[] = [];
-    const previouslySeen: Record<string, number> = {};
+    const slugger = new HeadingSlugger();
     let tableEnd = 0;
 
     doc.descendants((node, pos) => {
@@ -503,25 +492,10 @@ export class ProsemirrorHelper {
         tableEnd = Math.max(tableEnd, pos + node.nodeSize);
       }
       if (node.type.name === "heading") {
-        // calculate the optimal id
-        const id = headingToSlug(node);
-        let name = id;
-
-        // check if we've already used it, and if so how many times?
-        // Make the new id based on that number ensuring that we have
-        // unique ID's even when headings are identical
-        if (previouslySeen[id] > 0) {
-          name = headingToSlug(node, previouslySeen[id]);
-        }
-
-        // record that we've seen this id for the next loop
-        previouslySeen[id] =
-          previouslySeen[id] !== undefined ? previouslySeen[id] + 1 : 1;
-
         headings.push({
           title: ProsemirrorHelper.toPlainText(node),
           level: node.attrs.level,
-          id: name,
+          id: slugger.slug(node),
           inTable: pos < tableEnd,
         });
       }
@@ -597,36 +571,23 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Returns the paragraphs from the data if there are only plain paragraphs
-   * without any formatting. Otherwise returns undefined.
+   * Returns true when the predicate holds for every node in the data,
+   * including the root and all descendants.
    *
-   * @param data The ProsemirrorData object or ProsemirrorNode
-   * @returns An array of paragraph nodes or undefined
+   * @param data The ProsemirrorData object to walk
+   * @param predicate The predicate to test each node against
+   * @returns true when every node passes the predicate
    */
-  static getPlainParagraphs(data: ProsemirrorData | Node) {
-    // Convert ProsemirrorNode to JSON if needed
-    const jsonData =
-      data instanceof Node ? (data.toJSON() as ProsemirrorData) : data;
-
-    const paragraphs: ProsemirrorData[] = [];
-    if (!jsonData.content) {
-      return paragraphs;
+  static everyNode(
+    data: ProsemirrorData,
+    predicate: (node: ProsemirrorData) => boolean
+  ): boolean {
+    if (!predicate(data)) {
+      return false;
     }
 
-    for (const node of jsonData.content) {
-      if (
-        node.type === "paragraph" &&
-        (!node.content ||
-          !node.content.some(
-            (item) =>
-              item.type !== "text" || (item.marks && item.marks.length > 0)
-          ))
-      ) {
-        paragraphs.push(node);
-      } else {
-        return undefined;
-      }
-    }
-    return paragraphs;
+    return (data.content ?? []).every(
+      (node) => !!node && ProsemirrorHelper.everyNode(node, predicate)
+    );
   }
 }

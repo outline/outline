@@ -161,7 +161,6 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   kusto: {
     lang: "kusto",
     label: "Kusto",
-    // @ts-expect-error Mermaid is not in types but exists
     loader: () => import("refractor/lang/kusto").then((m) => m.default),
   },
   lisp: {
@@ -187,14 +186,12 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   mermaid: {
     lang: "mermaid",
     label: "Mermaid",
-    // @ts-expect-error Mermaid is not in types but exists
     loader: () => import("refractor/lang/mermaid").then((m) => m.default),
   },
   mermaidjs: {
     lang: "mermaid",
     label: "Mermaid",
     alias: true,
-    // @ts-expect-error Mermaid is not in types but exists
     loader: () => import("refractor/lang/mermaid").then((m) => m.default),
   },
   nginx: {
@@ -229,13 +226,12 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   },
   powershell: {
     lang: "powershell",
-    label: "Powershell",
+    label: "PowerShell",
     loader: () => import("refractor/lang/powershell").then((m) => m.default),
   },
   promql: {
     lang: "promql",
     label: "PromQL",
-    // @ts-expect-error PromQL is not in types but exists
     loader: () => import("refractor/lang/promql").then((m) => m.default),
   },
   protobuf: {

@@ -180,8 +180,11 @@ const LinkEditor: React.FC<Props> = ({
     }
   };
 
-  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
+    if (newValue === query) {
+      return;
+    }
     setQuery(newValue);
     setSelectedIndex(-1);
   };

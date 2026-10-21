@@ -53,7 +53,9 @@ export const zodEmojiType = () =>
  * @returns a zod schema for share identifiers.
  */
 export const zodShareIdType = () =>
-  z.union([z.uuid(), z.string().regex(UrlHelper.SHARE_URL_SLUG_REGEX)]);
+  z.union([z.uuid(), z.string().regex(UrlHelper.SHARE_URL_SLUG_REGEX)], {
+    error: "Must be a valid UUID or share slug",
+  });
 
 /**
  * Returns a zod schema that validates an IANA timezone name.

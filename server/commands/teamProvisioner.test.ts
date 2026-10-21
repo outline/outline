@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import TeamDomain from "@server/models/TeamDomain";
-import { buildTeam, buildUser } from "@server/test/factories";
+import { buildTeam, buildUser, buildSubdomain } from "@server/test/factories";
 import { setSelfHosted } from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
 import { createContext } from "@server/context";
@@ -11,7 +11,7 @@ describe("teamProvisioner", () => {
 
   describe("hosted", () => {
     it("should create team and authentication provider", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const result = await teamProvisioner(ctx, {
         name: "Test team",
         subdomain,
@@ -30,7 +30,7 @@ describe("teamProvisioner", () => {
     });
 
     it("should set subdomain append if unavailable", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
 
       await buildTeam({
         subdomain,
@@ -51,7 +51,7 @@ describe("teamProvisioner", () => {
     });
 
     it("should increment subdomain append if unavailable", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       await buildTeam({
         subdomain,
       });
@@ -72,7 +72,7 @@ describe("teamProvisioner", () => {
     });
 
     it("should return existing team", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const authenticationProvider = {
         name: "google",
         providerId: `${subdomain}.com`,
@@ -94,7 +94,7 @@ describe("teamProvisioner", () => {
     });
 
     it("should return non-deleted team if multiple matches", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const authenticationProvider = {
         name: "google",
         providerId: `${subdomain}.com`,
@@ -124,7 +124,7 @@ describe("teamProvisioner", () => {
     });
 
     it("should error on mismatched team and authentication provider", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
 
       const exampleTeam = await buildTeam({
         subdomain,
@@ -138,7 +138,7 @@ describe("teamProvisioner", () => {
 
       let error;
       try {
-        const testSubdomain = faker.internet.domainWord();
+        const testSubdomain = buildSubdomain();
         await teamProvisioner(ctx, {
           teamId: exampleTeam.id,
           name: "name",
@@ -161,7 +161,7 @@ describe("teamProvisioner", () => {
     beforeEach(setSelfHosted);
 
     it("should allow creating first team", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const { team, isNewTeam } = await teamProvisioner(ctx, {
         name: "Test team",
         subdomain,
@@ -178,7 +178,7 @@ describe("teamProvisioner", () => {
 
     it("should not allow creating multiple teams in installation", async () => {
       const team = await buildTeam();
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       let error;
 
       try {
@@ -212,7 +212,7 @@ describe("teamProvisioner", () => {
       });
       const result = await teamProvisioner(ctx, {
         name: "Updated name",
-        subdomain: faker.internet.domainWord(),
+        subdomain: buildSubdomain(),
         domain,
         teamId: existing.id,
         authenticationProvider: {
@@ -247,7 +247,7 @@ describe("teamProvisioner", () => {
       try {
         await teamProvisioner(ctx, {
           name: "Updated name",
-          subdomain: faker.internet.domainWord(),
+          subdomain: buildSubdomain(),
           domain: otherDomain,
           teamId: existing.id,
           authenticationProvider: {
@@ -267,7 +267,7 @@ describe("teamProvisioner", () => {
         name: "google",
         providerId: faker.internet.domainName(),
       };
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const existing = await buildTeam({
         subdomain,
         authenticationProviders: [authenticationProvider],

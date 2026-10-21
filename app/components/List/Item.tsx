@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import type { LocationDescriptor } from "history";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
@@ -9,6 +5,7 @@ import styled, { useTheme } from "styled-components";
 import { s, hover, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** An icon or image to display to the left of the list item */
@@ -34,27 +31,27 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** Whether to enable keyboard navigation */
   keyboardNavigation?: boolean;
   enableEllipsis?: boolean;
+  /** Ref to the anchor element */
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
-const ListItem = (
-  {
-    image,
-    title,
-    subtitle,
-    actions,
-    small,
-    border,
-    to,
-    keyboardNavigation,
-    enableEllipsis,
-    ...rest
-  }: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) => {
+function ListItem({
+  image,
+  title,
+  subtitle,
+  actions,
+  small,
+  border,
+  to,
+  keyboardNavigation,
+  enableEllipsis,
+  ref,
+  ...rest
+}: Props) {
   const theme = useTheme();
   const compact = !subtitle;
 
-  let itemRef: React.RefObject<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
   if (ref) {
     itemRef = ref;
@@ -64,7 +61,6 @@ const ListItem = (
     itemRef,
     keyboardNavigation || to ? false : true
   );
-  useFocusEffect(focused, itemRef);
 
   const handleFocus = React.useCallback(() => {
     if (itemRef.current) {
@@ -165,7 +161,7 @@ const ListItem = (
       {content(false)}
     </Wrapper>
   );
-};
+}
 
 const Wrapper = styled.a<{
   $small?: boolean;
@@ -241,4 +237,4 @@ export const Actions = styled(Flex)<{ $selected?: boolean }>`
   color: ${s("textSecondary")};
 `;
 
-export default React.forwardRef(ListItem);
+export default ListItem;

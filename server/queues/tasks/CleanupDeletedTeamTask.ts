@@ -3,11 +3,15 @@ import { Team } from "@server/models";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
-  /** The team ID to permanantly destroy */
+  /** The team ID to permanently destroy */
   teamId: string;
 };
 
 export default class CleanupDeletedTeamTask extends BaseTask<Props> {
+  protected jobId({ teamId }: Props) {
+    return `cleanup-team:${teamId}`;
+  }
+
   public async perform({ teamId }: Props) {
     const team = await Team.findByPk(teamId, {
       paranoid: false,

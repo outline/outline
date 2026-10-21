@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { faker } from "@faker-js/faker";
 import { Node } from "prosemirror-model";
 import type { DeepPartial } from "utility-types";

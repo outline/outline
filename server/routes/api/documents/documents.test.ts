@@ -7,24 +7,29 @@ import {
   CollectionPermission,
   DocumentPermission,
   ExportContentType,
+  FileOperationFormat,
   HeadingPrefixStyle,
   StatusFilter,
+  TeamPreference,
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { DocumentValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
 import {
+  Collection,
   Document,
   View,
   Revision,
   UserMembership,
   SearchQuery,
   Event,
+  FileOperation,
   GroupMembership,
   Relationship,
+  Share,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -42,6 +47,8 @@ import {
   buildAdmin,
   buildTemplate,
   buildAttachment,
+  buildSubdomain,
+  buildGuestUser,
 } from "@server/test/factories";
 import {
   getTestServer,
@@ -622,13 +629,41 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("shareId: Invalid input");
+    expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
   });
 });
 
 describe("#documents.export", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("should create a file operation for a document export with children", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: "Nested Export",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.export", user, {
+      body: { id: document.id, includeChildDocuments: true },
+      headers: { accept: "text/markdown" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.fileOperation.name).toBe(document.title);
+    expect(body.data.fileOperation.state).toBe("creating");
+
+    const fileOperation = await FileOperation.findByPk(
+      body.data.fileOperation.id,
+      { rejectOnEmpty: true }
+    );
+    expect(fileOperation.documentId).toBe(document.id);
+    expect(fileOperation.teamId).toBe(document.teamId);
+    expect(fileOperation.format).toBe(FileOperationFormat.MarkdownZip);
+    expect(fileOperation.options).toBeNull();
   });
 
   it("should return published document", async () => {
@@ -1364,6 +1399,42 @@ describe("#documents.list", () => {
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data).toHaveLength(2);
+    });
+
+    it("should match documents created by a user, excluding collaborations", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser({ teamId: user.teamId });
+      const created = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const collaborated = await buildDocument({
+        userId: otherUser.id,
+        teamId: user.teamId,
+      });
+      collaborated.lastModifiedById = user.id;
+      await collaborated.save();
+      expect(collaborated.collaboratorIds).toContain(user.id);
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "createdById", operator: "eq", value: user.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toEqual([created.id]);
+    });
+
+    it("should reject unsupported operators for createdById", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "createdById", operator: "isNotNull" }],
+        },
+      });
+      expect(res.status).toEqual(400);
     });
 
     it("should reject an unknown field", async () => {
@@ -3189,7 +3260,7 @@ describe("#documents.search", () => {
   });
 
   it("should return results using shareId", async () => {
-    const subdomain = faker.internet.domainWord();
+    const subdomain = buildSubdomain();
     const team = await buildTeam({ subdomain });
     const findableDocument = await buildDocument({
       title: "search term",
@@ -3990,7 +4061,7 @@ describe("#documents.search", () => {
     });
 
     it("should scope results to a documentId filter combined with shareId", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const team = await buildTeam({ subdomain });
       const parent = await buildDocument({
         title: "search term",
@@ -4037,7 +4108,7 @@ describe("#documents.search", () => {
     });
 
     it("should scope results to the legacy documentId param combined with shareId", async () => {
-      const subdomain = faker.internet.domainWord();
+      const subdomain = buildSubdomain();
       const team = await buildTeam({ subdomain });
       const parent = await buildDocument({
         title: "search term",
@@ -4967,6 +5038,14 @@ describe("#documents.deleted", () => {
 });
 
 describe("#documents.viewed", () => {
+  it("should reject sorting by a document column", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.viewed", user, {
+      body: { sort: "title" },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should return empty result if no views", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.viewed", user);
@@ -5031,6 +5110,193 @@ describe("#documents.viewed", () => {
         userId: user.id,
         collectionId: collection.id,
       },
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should not return viewed drafts created by other collection members", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    await document.update({ publishedAt: null });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should return viewed drafts created by the user", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared directly with the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: owner.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared with a group of the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const group = await buildGroup({ teamId: owner.teamId });
+    await group.$add("user", user, {
+      through: { createdById: owner.id },
+    });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: owner.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: owner.teamId,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed drafts shared with a group of the user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const group = await buildGroup({ teamId: owner.teamId });
+    await group.$add("user", user, {
+      through: { createdById: owner.id },
+    });
+    const document = await buildDraftDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed documents shared with a guest", async () => {
+    const owner = await buildUser();
+    const guest = await buildGuestUser({ teamId: owner.teamId });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+    });
+    await UserMembership.create({
+      userId: guest.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await View.incrementOrCreate(createContext({ user: guest }), {
+      documentId: document.id,
+      userId: guest.id,
+    });
+    const res = await server.post("/api/documents.viewed", guest);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should return viewed drafts with no collection", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.viewed", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not return drafts with no collection created by another user", async () => {
+    const owner = await buildUser();
+    const user = await buildUser({ teamId: owner.teamId });
+    const document = await buildDraftDocument({
+      userId: owner.id,
+      teamId: owner.teamId,
+      collectionId: null,
+    });
+    await View.incrementOrCreate(createContext({ user }), {
+      documentId: document.id,
+      userId: user.id,
     });
     const res = await server.post("/api/documents.viewed", user);
     const body = await res.json();
@@ -5180,7 +5446,6 @@ describe("#documents.move", () => {
 
   it("should move the document", async () => {
     const user = await buildUser();
-    // const admin = await buildAdmin({ teamId: user.teamId });
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -5519,6 +5784,7 @@ describe("#documents.restore", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      deprecatedReason: "Outdated",
     });
     await document.destroy();
     const res = await server.post("/api/documents.restore", user, {
@@ -5529,6 +5795,9 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.deprecatedReason).toBeNull();
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
   });
 
   it("should allow restore of trashed documents with collectionId", async () => {
@@ -5667,6 +5936,7 @@ describe("#documents.restore", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      deprecatedReason: "Outdated",
     });
     await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
     const res = await server.post("/api/documents.restore", user, {
@@ -5677,6 +5947,41 @@ describe("#documents.restore", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toEqual(null);
+    expect(body.data.deprecatedReason).toBeNull();
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+  });
+
+  it("should clear reasons from archived descendants when restoring", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: document.id,
+      deprecatedReason: "Child is outdated",
+    });
+    const grandchild = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: child.id,
+      deprecatedReason: "Grandchild is outdated",
+    });
+    await withAPIContext(user, (ctx) => document.archiveWithCtx(ctx));
+    const res = await server.post("/api/documents.restore", user, {
+      body: { id: document.id },
+    });
+    expect(res.status).toBe(200);
+    await Promise.all([child.reload(), grandchild.reload()]);
+    for (const descendant of [child, grandchild]) {
+      expect(descendant.archivedAt).toBeNull();
+      expect(descendant.deprecatedReason).toBeNull();
+    }
   });
 
   it("should restore archived when previous parent is archived", async () => {
@@ -6008,6 +6313,45 @@ describe("#documents.import", () => {
 });
 
 describe("#documents.create", () => {
+  it("should create the personal collection for the personal collectionId", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: { collectionId: "personal", title: "First", publish: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const collection = await Collection.findOne({
+      where: { teamId: team.id, ownerId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(body.data.collectionId).toEqual(collection.id);
+    expect(body.data.ownerId).toEqual(user.id);
+
+    const res2 = await server.post("/api/documents.create", user, {
+      body: { collectionId: "personal", title: "Second", publish: true },
+    });
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data.collectionId).toEqual(collection.id);
+  });
+
+  it("should not create the personal collection when turned off", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/documents.create", user, {
+      body: { collectionId: "personal", title: "First", publish: true },
+    });
+    expect(res.status).toEqual(403);
+    expect(await Collection.count({ where: { ownerId: user.id } })).toEqual(0);
+  });
+
   it("should replace template variables when a doc is created from a template", async () => {
     const user = await buildUser();
     const text = `This document was created by {author} on {date}`;
@@ -6365,6 +6709,149 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
+  describe("deprecatedReason", () => {
+    it.each(["archived", "deleted"])(
+      "should update the reason for an %s document without changing attribution",
+      async (status) => {
+        const user = await buildUser();
+        const editor = await buildUser({ teamId: user.teamId });
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: status === "archived" ? new Date() : null,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        const updatedAt = document.updatedAt.toISOString();
+        const res = await server.post("/api/documents.update", editor, {
+          body: {
+            id: document.id,
+            deprecatedReason: "  Replaced by the new guide.  ",
+          },
+        });
+        const body = await res.json();
+        expect(res.status).toBe(200);
+        expect(body.data.deprecatedReason).toBe("Replaced by the new guide.");
+        expect(body.data.updatedBy.id).toBe(user.id);
+        expect(body.data.updatedAt).toBe(updatedAt);
+        await document.reload({ paranoid: false });
+        expect(document.deprecatedReason).toBe("Replaced by the new guide.");
+        expect(document.isActive).toBe(false);
+      }
+    );
+
+    it.each([null, "", "   "])(
+      "should clear the reason with %j",
+      async (value) => {
+        const user = await buildUser();
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/documents.update", user, {
+          body: { id: document.id, deprecatedReason: value },
+        });
+        expect(res.status).toBe(200);
+        await document.reload();
+        expect(document.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["archived", "deleted"])(
+      "should reject changes to other fields on an %s document",
+      async (status) => {
+        const user = await buildUser();
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: status === "archived" ? new Date() : null,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        for (const fields of [
+          { title: "Changed" },
+          { text: "Changed" },
+          { publish: true },
+          { fullWidth: true },
+        ]) {
+          const res = await server.post("/api/documents.update", user, {
+            body: {
+              id: document.id,
+              deprecatedReason: "Outdated",
+              ...fields,
+            },
+          });
+          expect([403, 404]).toContain(res.status);
+        }
+        await document.reload({ paranoid: false });
+        expect(document.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["viewer", "other team", "private collection"])(
+      "should deny a user with no edit access: %s",
+      async (access) => {
+        const owner = await buildUser();
+        const user =
+          access === "viewer"
+            ? await buildViewer({ teamId: owner.teamId })
+            : await buildUser(
+                access === "other team" ? {} : { teamId: owner.teamId }
+              );
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          permission:
+            access === "private collection"
+              ? null
+              : CollectionPermission.ReadWrite,
+        });
+        const document = await buildDocument({
+          userId: owner.id,
+          teamId: owner.teamId,
+          collectionId: collection.id,
+          archivedAt: new Date(),
+        });
+        const res = await server.post("/api/documents.update", user, {
+          body: { id: document.id, deprecatedReason: "Outdated" },
+        });
+        expect(res.status).toBe(403);
+        await document.reload();
+        expect(document.deprecatedReason).toBeNull();
+      }
+    );
+
+    it("should reject a reason on an active document", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, deprecatedReason: "Outdated" },
+      });
+      expect(res.status).toBe(403);
+    });
+
+    it("should validate the reason length", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: {
+          id: document.id,
+          deprecatedReason: "x".repeat(
+            DeprecationValidation.maxReasonLength + 1
+          ),
+        },
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("should update document details in the root", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -6567,6 +7054,128 @@ describe("#documents.update", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should not allow publishing a child draft into an inaccessible collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const privateCollection = await buildCollection({
+      userId: admin.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: privateCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+  });
+
+  it("should allow publishing a child draft into the parent collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBe(collection.id);
+    expect(body.data.parentDocumentId).toBe(parentDocument.id);
+  });
+
+  it("should publish a child draft at the root of another collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: member.id,
+      documentId: parentDocument.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: otherCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.collectionId).toBe(otherCollection.id);
+    expect(document.parentDocumentId).toBeNull();
+
+    await otherCollection.reload();
+    expect(otherCollection.documentStructure?.map((node) => node.id)).toContain(
+      document.id
+    );
+
+    const membership = await UserMembership.findOne({
+      where: { userId: member.id, documentId: document.id },
+    });
+    expect(membership).toBeNull();
   });
 
   it("should fail to update an invalid icon value", async () => {
@@ -6961,6 +7570,46 @@ describe("#documents.update", () => {
 });
 
 describe("#documents.archive", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should archive with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.archive", user, {
+        body: { id: document.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await document.reload({ paranoid: false });
+      expect(document.archivedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? null : reason?.trim() || null;
+      expect(document.deprecatedReason).toBe(expectedReason);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before archive", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.archive", user, {
+      body: {
+        id: document.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await document.reload();
+    expect(document.isActive).toBe(true);
+    expect(document.deprecatedReason).toBeNull();
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.archive", user);
@@ -7004,6 +7653,46 @@ describe("#documents.archive", () => {
 });
 
 describe("#documents.delete", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should delete with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+      const res = await server.post("/api/documents.delete", user, {
+        body: { id: document.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await document.reload({ paranoid: false });
+      expect(document.deletedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? "Archived reason" : reason?.trim() || null;
+      expect(document.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before delete", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.delete", user, {
+      body: {
+        id: document.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await document.reload();
+    expect(document.isActive).toBe(true);
+    expect(document.deprecatedReason).toBeNull();
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.delete", user);
@@ -7021,11 +7710,14 @@ describe("#documents.delete", () => {
     const res = await server.post("/api/documents.delete", user, {
       body: {
         id: document.id,
+        reason: "No longer needed",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+    await document.reload({ paranoid: false });
+    expect(document.deprecatedReason).toBe("No longer needed");
   });
 
   it("should delete a draft without collection", async () => {
@@ -7247,6 +7939,61 @@ describe("#documents.unpublish", () => {
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
+  });
+
+  it("should remove the collection and parent when detaching", async () => {
+    const user = await buildUser();
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: parentDocument.collectionId,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+        detach: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+    expect(reloaded?.parentDocumentId).toBeNull();
+  });
+
+  it("should disable public shares when unpublishing a document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.published).toEqual(false);
+
+    const infoRes = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(infoRes.status).toEqual(404);
   });
 
   it("should unpublish a document with archived children", async () => {

@@ -31,12 +31,11 @@ type Props = {
   collection: Collection;
   /** The existing share model, if any. */
   share: Share | null | undefined;
+  /** Ref to the container element. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function InnerPublicAccess(
-  { collection, share }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function InnerPublicAccess({ collection, share, ref }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const theme = useTheme();
@@ -117,7 +116,7 @@ function InnerPublicAccess(
   }, [t]);
 
   const copyButton = (
-    <Tooltip content={t("Copy public link")} placement="top">
+    <Tooltip content={t("Copy public link")}>
       <CopyToClipboard text={share?.url ?? ""} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
           <CopyIcon color={theme.placeholder} size={18} />
@@ -185,4 +184,4 @@ function InnerPublicAccess(
   );
 }
 
-export const PublicAccess = observer(React.forwardRef(InnerPublicAccess));
+export const PublicAccess = observer(InnerPublicAccess);

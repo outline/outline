@@ -1,3 +1,4 @@
+import { differenceInSeconds } from "date-fns";
 import i18n from "i18next";
 import { computed, observable, override } from "mobx";
 import type { ProsemirrorData } from "@shared/types";
@@ -107,6 +108,15 @@ export default class Template extends ParanoidModel implements Searchable {
   publish = () => this.save(undefined, { publish: true });
 
   /**
+   * Whether the template was created moments ago.
+   *
+   * @returns true if the template was created within the last ten seconds.
+   */
+  get isJustCreated(): boolean {
+    return differenceInSeconds(new Date(), new Date(this.createdAt)) < 10;
+  }
+
+  /**
    * Returns the direction of the template text, either "rtl" or "ltr"
    */
   @computed
@@ -166,13 +176,13 @@ export default class Template extends ParanoidModel implements Searchable {
     return !this.publishedAt;
   }
 
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || i18n.t("Untitled");
   }
 
   @computed
   get initial(): string {
-    return (this.titleWithDefault?.charAt(0) ?? "?").toUpperCase();
+    return (this.displayTitle?.charAt(0) ?? "?").toUpperCase();
   }
 
   @computed

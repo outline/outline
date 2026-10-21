@@ -24,6 +24,7 @@ type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   revisionId?: string;
+  actorId?: string;
   actorName: string;
   eventType:
     | NotificationEventType.PublishDocument
@@ -36,6 +37,10 @@ type BeforeSend = {
   collection: Collection | null;
   unsubscribeUrl: string;
   body: string | undefined;
+  /** Names of everyone who contributed to the revision, actor first. */
+  actorNames: string;
+  /** The number of contributors named in actorNames. */
+  actorCount: number;
 };
 
 type Props = InputProps & BeforeSend;
@@ -61,32 +66,28 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       return false;
     }
 
-    const [collection, team] = await Promise.all([
+    const [collection, team, revision] = await Promise.all([
       document.$get("collection"),
       document.$get("team"),
+      revisionId ? Revision.findByPk(revisionId) : null,
     ]);
 
     let body;
-    if (revisionId && team?.getPreference(TeamPreference.PreviewsInEmails)) {
+    if (revision && team?.getPreference(TeamPreference.PreviewsInEmails)) {
       body = await CacheHelper.getDataOrSet<string>(
-        `diff:${revisionId}`,
+        `diff:${revision.id}`,
         async () => {
           // generate the diff html for the email
-          const revision = await Revision.findByPk(revisionId);
+          const before = await revision.before();
+          const content = await DocumentHelper.toEmailDiff(before, revision, {
+            includeTitle: false,
+            centered: false,
+            signedUrls: 4 * Day.seconds,
+            baseUrl: props.teamUrl,
+          });
 
-          if (revision) {
-            const before = await revision.before();
-            const content = await DocumentHelper.toEmailDiff(before, revision, {
-              includeTitle: false,
-              centered: false,
-              signedUrls: 4 * Day.seconds,
-              baseUrl: props.teamUrl,
-            });
-
-            // inline all css so that it works in as many email providers as possible.
-            return content ? await HTMLHelper.inlineCSS(content) : undefined;
-          }
-          return;
+          // inline all css so that it works in as many email providers as possible.
+          return content ? await HTMLHelper.inlineCSS(content) : undefined;
         },
         30,
         10000
@@ -97,6 +98,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       document,
       collection,
       body,
+      ...(await this.actorNames(props, revision)),
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
   }
@@ -118,14 +120,15 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
   protected subject({ document, eventType }: Props) {
     return this.t(`“{{ documentTitle }}” {{ eventName }}`, {
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
       eventName: this.eventName(eventType),
     });
   }
 
-  protected preview({ actorName, eventType }: Props): string {
+  protected preview({ actorNames, actorCount, eventType }: Props): string {
     return this.t("{{ actorName }} {{ eventName }} a document", {
-      actorName,
+      actorName: actorNames,
+      count: actorCount,
       eventName: this.eventName(eventType),
     });
   }
@@ -144,7 +147,8 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   }
 
   protected renderAsText({
-    actorName,
+    actorNames,
+    actorCount,
     teamUrl,
     document,
     collection,
@@ -153,9 +157,9 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     const eventName = this.eventName(eventType);
 
     return `
-${this.t(`"{{ documentTitle }}" {{ eventName }}`, { documentTitle: document.titleWithDefault, eventName })}
+${this.t("“{{ documentTitle }}” {{ eventName }}", { documentTitle: document.displayTitle, eventName })}
 
-${this.t(`{{ actorName }} {{ eventName }} the document "{{ documentTitle }}"`, { actorName, eventName, documentTitle: document.titleWithDefault })}${
+${this.t("{{ actorName }} {{ eventName }} the document “{{ documentTitle }}”", { actorName: actorNames, count: actorCount, eventName, documentTitle: document.displayTitle })}${
       collection?.name
         ? `, ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
         : ""
@@ -168,7 +172,8 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
   protected render(props: Props) {
     const {
       document,
-      actorName,
+      actorNames,
+      actorCount,
       collection,
       eventType,
       teamUrl,
@@ -188,16 +193,17 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
         <Body>
           <Heading>
             {this.t(`“{{ documentTitle }}” {{ eventName }}`, {
-              documentTitle: document.titleWithDefault,
+              documentTitle: document.displayTitle,
               eventName,
             })}
           </Heading>
           <p>
             {this.t("{{ actorName }} {{ eventName }} the document", {
-              actorName,
+              actorName: actorNames,
+              count: actorCount,
               eventName,
             })}{" "}
-            <a href={documentLink}>{document.titleWithDefault}</a>
+            <a href={documentLink}>{document.displayTitle}</a>
             {collection?.name ? (
               <>
                 ,{" "}
@@ -239,5 +245,36 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
         </Footer>
       </EmailTemplate>
     );
+  }
+
+  /**
+   * Returns the names of everyone who contributed to an update, with the actor
+   * first, joined into a single string.
+   *
+   * @param props The email props.
+   * @param revision The revision that triggered the email, if any.
+   * @returns The joined names and the number of contributors.
+   */
+  private async actorNames(
+    { actorId, actorName, eventType }: InputProps,
+    revision: Revision | null
+  ) {
+    if (
+      !actorId ||
+      !revision ||
+      eventType !== NotificationEventType.UpdateDocument
+    ) {
+      return { actorNames: actorName, actorCount: 1 };
+    }
+
+    const collaborators = await revision.collaborators;
+    const names = [
+      actorName,
+      ...collaborators
+        .filter((user) => user && user.id !== actorId)
+        .map((user) => user.name),
+    ];
+
+    return { actorNames: this.formatList(names), actorCount: names.length };
   }
 }

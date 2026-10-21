@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -36,7 +36,6 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
       continue;
     }
 
-    // @ts-expect-error We won't instantiate an abstract class
     const taskInstance = new TaskClass() as CronTask;
 
     const cronConfig = taskInstance.cron;

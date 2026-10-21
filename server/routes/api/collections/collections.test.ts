@@ -1,12 +1,29 @@
-import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
-import { Document, UserMembership, GroupMembership } from "@server/models";
+import {
+  CollectionPermission,
+  CollectionStatusFilter,
+  DocumentPermission,
+  Scope,
+} from "@shared/types";
+import { DeprecationValidation } from "@shared/validations";
+import {
+  Document,
+  UserMembership,
+  GroupMembership,
+  View,
+} from "@server/models";
+import type { User } from "@server/models";
+import { callMcpTool } from "@server/test/McpHelper";
 import {
   buildUser,
+  buildViewer,
   buildAdmin,
   buildGroup,
   buildCollection,
   buildDocument,
   buildTeam,
+  buildPersonalCollection,
+  buildOAuthAuthentication,
+  buildRelationship,
 } from "@server/test/factories";
 import { getTestServer, mockTaskSchedule } from "@server/test/support";
 
@@ -1899,6 +1916,161 @@ describe("#collections.duplicate", () => {
 });
 
 describe("#collections.update", () => {
+  describe("deprecatedReason", () => {
+    it.each(["admin", "manager"])(
+      "should let a collection %s save a reason without changing archive attribution",
+      async (role) => {
+        const owner = await buildUser();
+        const editor =
+          role === "admin" ? await buildAdmin({ teamId: owner.teamId }) : owner;
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          archivedAt: new Date(),
+        });
+        const updatedAt = collection.updatedAt.toISOString();
+        const archivedAt = collection.archivedAt?.toISOString();
+        const res = await server.post("/api/collections.update", editor, {
+          body: {
+            id: collection.id,
+            deprecatedReason: "  Replaced by the new collection.  ",
+          },
+        });
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.data.deprecatedReason).toBe(
+          "Replaced by the new collection."
+        );
+        expect(body.data.archivedAt).toBe(archivedAt);
+        expect(body.data.archivedBy.id).toBe(owner.id);
+        expect(body.data.updatedAt).toBe(updatedAt);
+        expect(body.policies[0].abilities.updateDeprecatedReason).toBeTruthy();
+        await collection.reload();
+        expect(collection.deprecatedReason).toBe(
+          "Replaced by the new collection."
+        );
+      }
+    );
+
+    it.each([null, "", "   "])(
+      "should clear the reason with %j",
+      async (value) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: value },
+        });
+        expect(res.status).toBe(200);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["member", "viewer", "other team"])(
+      "should deny edits by a %s without collection management access",
+      async (role) => {
+        const owner = await buildUser();
+        const editor =
+          role === "viewer"
+            ? await buildViewer({ teamId: owner.teamId })
+            : await buildUser(
+                role === "other team" ? {} : { teamId: owner.teamId }
+              );
+        const collection = await buildCollection({
+          userId: owner.id,
+          teamId: owner.teamId,
+          archivedAt: new Date(),
+          deprecatedReason: "Outdated",
+        });
+        const res = await server.post("/api/collections.update", editor, {
+          body: { id: collection.id, deprecatedReason: "Changed" },
+        });
+        expect(res.status).toBe(403);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBe("Outdated");
+      }
+    );
+
+    it("should show the reason to readers", async () => {
+      const owner = await buildUser();
+      const reader = await buildViewer({ teamId: owner.teamId });
+      const collection = await buildCollection({
+        userId: owner.id,
+        teamId: owner.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Outdated",
+      });
+      const res = await server.post("/api/collections.info", reader, {
+        body: { id: collection.id },
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe("Outdated");
+      expect(body.policies[0].abilities.updateDeprecatedReason).toBeFalsy();
+    });
+
+    it.each([
+      { name: "Changed" },
+      { description: "Changed" },
+      { permission: null },
+    ])(
+      "should reject updates to other fields with a reason: %j",
+      async (fields) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          archivedAt: new Date(),
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: "Outdated", ...fields },
+        });
+        expect(res.status).toBe(403);
+        await collection.reload();
+        expect(collection.deprecatedReason).toBeNull();
+      }
+    );
+
+    it.each(["active", "deleted"])(
+      "should reject a reason on an %s collection",
+      async (status) => {
+        const user = await buildUser();
+        const collection = await buildCollection({
+          userId: user.id,
+          teamId: user.teamId,
+          deletedAt: status === "deleted" ? new Date() : null,
+        });
+        const res = await server.post("/api/collections.update", user, {
+          body: { id: collection.id, deprecatedReason: "Outdated" },
+        });
+        expect(res.status).toBe(403);
+      }
+    );
+
+    it("should validate the reason length", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/collections.update", user, {
+        body: {
+          id: collection.id,
+          deprecatedReason: "x".repeat(
+            DeprecationValidation.maxReasonLength + 1
+          ),
+        },
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("should require authentication", async () => {
     const collection = await buildCollection();
     const res = await server.post("/api/collections.update", {
@@ -2230,6 +2402,47 @@ describe("#collections.update", () => {
 });
 
 describe("#collections.delete", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should delete with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+        deprecatedReason: "Archived reason",
+      });
+      await buildCollection({ teamId: user.teamId });
+      const res = await server.post("/api/collections.delete", user, {
+        body: { id: collection.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await collection.reload({ paranoid: false });
+      expect(collection.deletedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? "Archived reason" : reason?.trim() || null;
+      expect(collection.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before delete", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.delete", user, {
+      body: {
+        id: collection.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await collection.reload();
+    expect(collection.isActive).toBe(true);
+    expect(collection.deprecatedReason).toBeNull();
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.delete");
     const body = await res.json();
@@ -2255,9 +2468,13 @@ describe("#collections.delete", () => {
     const res = await server.post("/api/collections.delete", admin, {
       body: {
         id: collection.id,
+        reason: "No longer needed",
       },
     });
     expect(res.status).toEqual(400);
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(collection.isActive).toBe(true);
   });
 
   it("should delete collection", async () => {
@@ -2269,11 +2486,14 @@ describe("#collections.delete", () => {
     const res = await server.post("/api/collections.delete", admin, {
       body: {
         id: collection.id,
+        reason: "No longer needed",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+    await collection.reload({ paranoid: false });
+    expect(collection.deprecatedReason).toBe("No longer needed");
   });
 
   it("should delete published documents", async () => {
@@ -2342,6 +2562,46 @@ describe("#collections.delete", () => {
 });
 
 describe("#collections.archive", () => {
+  it.each([undefined, "  Replaced by a new guide.  ", null, "   "])(
+    "should archive with reason %j",
+    async (reason) => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/collections.archive", user, {
+        body: { id: collection.id, reason },
+      });
+      expect(res.status).toBe(200);
+      await collection.reload({ paranoid: false });
+      expect(collection.archivedAt).not.toBeNull();
+      const expectedReason =
+        reason === undefined ? null : reason?.trim() || null;
+      expect(collection.deprecatedReason).toBe(expectedReason);
+      const body = await res.json();
+      expect(body.data.deprecatedReason).toBe(expectedReason);
+    }
+  );
+
+  it("should reject an oversized reason before archive", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.archive", user, {
+      body: {
+        id: collection.id,
+        reason: "x".repeat(DeprecationValidation.maxReasonLength + 1),
+      },
+    });
+    expect(res.status).toBe(400);
+    await collection.reload();
+    expect(collection.isActive).toBe(true);
+    expect(collection.deprecatedReason).toBeNull();
+  });
+
   it("should archive collection", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
@@ -2380,7 +2640,7 @@ describe("#collections.restore", () => {
     const collection = await buildCollection({
       teamId: team.id,
     });
-    await buildDocument({
+    const document = await buildDocument({
       collectionId: collection.id,
       teamId: team.id,
       publishedAt: new Date(),
@@ -2399,6 +2659,8 @@ describe("#collections.restore", () => {
     ]);
     expect(archiveRes.status).toEqual(200);
     expect(archiveBody.data.archivedAt).not.toBe(null);
+    await document.update({ deprecatedReason: "Outdated" });
+    await collection.update({ deprecatedReason: "Collection is outdated" });
     const res = await server.post("/api/collections.restore", admin, {
       body: {
         id: collection.id,
@@ -2407,6 +2669,10 @@ describe("#collections.restore", () => {
     const [, body] = await Promise.all([collection.reload(), res.json()]);
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
+    await document.reload();
+    expect(document.deprecatedReason).toBeNull();
+    expect(collection.deprecatedReason).toBeNull();
+    expect(body.data.deprecatedReason).toBeNull();
     expect(collection.documentStructure).not.toBe(null);
   });
 
@@ -2437,5 +2703,294 @@ describe("#collections.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
     expect(body.data.index).not.toBe("P");
+  });
+});
+
+describe("personal collections", () => {
+  it("should not list the personal collection of another user", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+    const own = await buildPersonalCollection(admin);
+
+    for (const body of [{}, { includeListOnly: true }]) {
+      const res = await server.post("/api/collections.list", admin, { body });
+      const json = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = json.data.map((c: { id: string }) => c.id);
+      expect(ids).not.toContain(personal.id);
+      expect(ids).toContain(own.id);
+    }
+
+    const res = await server.post("/api/collections.list", owner);
+    const json = await res.json();
+    expect(json.data.map((c: { id: string }) => c.id)).toEqual([personal.id]);
+  });
+
+  it("should not return the personal collection of another user", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+
+    for (const route of [
+      "collections.info",
+      "collections.memberships",
+      "collections.group_memberships",
+      "collections.export",
+      "collections.update",
+      "collections.archive",
+      "collections.delete",
+    ]) {
+      const res = await server.post(`/api/${route}`, admin, {
+        body: { id: personal.id },
+      });
+      expect({ route, status: res.status }).toEqual({ route, status: 403 });
+    }
+  });
+
+  it("should not allow membership changes", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const personal = await buildPersonalCollection(owner);
+
+    const res = await server.post("/api/collections.add_user", owner, {
+      body: { id: personal.id, userId: member.id },
+    });
+    expect(res.status).toEqual(403);
+
+    const res2 = await server.post("/api/collections.add_group", owner, {
+      body: { id: personal.id, groupId: group.id },
+    });
+    expect(res2.status).toEqual(403);
+
+    const res3 = await server.post("/api/collections.remove_user", owner, {
+      body: { id: personal.id, userId: owner.id },
+    });
+    expect(res3.status).toEqual(403);
+  });
+
+  it("should not allow the owner to make it public or rename it", async () => {
+    const owner = await buildUser();
+    const personal = await buildPersonalCollection(owner);
+
+    const res = await server.post("/api/collections.update", owner, {
+      body: { id: personal.id, permission: CollectionPermission.ReadWrite },
+    });
+    expect(res.status).toEqual(400);
+
+    const res2 = await server.post("/api/collections.update", owner, {
+      body: { id: personal.id, name: "Notes" },
+    });
+    expect(res2.status).toEqual(400);
+
+    const res3 = await server.post("/api/collections.update", owner, {
+      body: { id: personal.id, sort: { field: "index", direction: "asc" } },
+    });
+    expect(res3.status).toEqual(200);
+  });
+
+  it("should not allow the owner to archive, delete or duplicate it", async () => {
+    const owner = await buildUser();
+    const personal = await buildPersonalCollection(owner);
+
+    for (const route of [
+      "collections.archive",
+      "collections.delete",
+      "collections.duplicate",
+    ]) {
+      const res = await server.post(`/api/${route}`, owner, {
+        body: { id: personal.id },
+      });
+      expect({ route, status: res.status }).toEqual({ route, status: 403 });
+    }
+  });
+});
+
+describe("personal collection lists", () => {
+  const keyword = "personalcollectionlists";
+
+  type UserKey = "owner" | "collaborator" | "member" | "admin";
+
+  const userKeys: UserKey[] = ["owner", "collaborator", "member", "admin"];
+
+  let users: Record<UserKey, User>;
+  let tokens: Record<UserKey, string>;
+  let collectionId: string;
+  let rootId: string;
+  let nestedId: string;
+  let publicDocumentId: string;
+
+  /**
+   * The personal ids that a user is expected to see. The collaborator has a
+   * membership on the root document, which the nested document inherits.
+   *
+   * @param key The user.
+   * @returns the ids of the collection and documents.
+   */
+  const readableIds = (key: UserKey) => {
+    switch (key) {
+      case "owner":
+        return [collectionId, rootId, nestedId];
+      case "collaborator":
+        return [rootId, nestedId];
+      default:
+        return [];
+    }
+  };
+
+  const personalIds = () => [collectionId, rootId, nestedId];
+
+  beforeAll(async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    users = {
+      owner,
+      collaborator: await buildUser({ teamId: team.id }),
+      member: await buildUser({ teamId: team.id }),
+      admin: await buildAdmin({ teamId: team.id }),
+    };
+
+    const collection = await buildPersonalCollection(owner);
+    const root = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      title: `Root ${keyword}`,
+      text: `Root ${keyword}`,
+    });
+    const nested = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: root.id,
+      title: `Nested ${keyword}`,
+      text: `Nested ${keyword}`,
+    });
+    await collection.addDocumentToStructure(root, 0);
+    await collection.addDocumentToStructure(nested, 0);
+
+    await UserMembership.create({
+      documentId: root.id,
+      userId: users.collaborator.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+
+    // A public document that links to the personal document.
+    const publicCollection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+    });
+    const publicDocument = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: publicCollection.id,
+    });
+    await buildRelationship({
+      userId: owner.id,
+      documentId: publicDocument.id,
+      reverseDocumentId: root.id,
+    });
+
+    // Everybody has viewed the document at some point.
+    for (const user of Object.values(users)) {
+      await View.create({ documentId: root.id, userId: user.id });
+    }
+
+    tokens = {} as Record<UserKey, string>;
+    for (const key of userKeys) {
+      const auth = await buildOAuthAuthentication({
+        user: users[key],
+        scope: [Scope.Read],
+      });
+      tokens[key] = auth.accessToken!;
+    }
+
+    collectionId = collection.id;
+    rootId = root.id;
+    nestedId = nested.id;
+    publicDocumentId = publicDocument.id;
+  });
+
+  // Lists filter in queries rather than through the read policy, so they are
+  // checked here for each user.
+  it.each(userKeys)("only list what %s can read", async (key) => {
+    const ids = (values: { id: string }[]) => values.map((value) => value.id);
+    const post = async (route: string, body: Record<string, unknown>) => {
+      const res = await server.post(`/api/${route}`, users[key], { body });
+      expect({ route, status: res.status }).toEqual({ route, status: 200 });
+      return res.json();
+    };
+    const mcpText = async (tool: string, args: Record<string, unknown>) => {
+      const res = await callMcpTool(server, tokens[key], tool, args);
+      return res?.result?.content?.map((c) => c.text).join("\n") ?? "";
+    };
+
+    const results: Record<string, string[]> = {
+      "collections.list": ids((await post("collections.list", {})).data),
+      "collections.list includeListOnly": ids(
+        (await post("collections.list", { includeListOnly: true })).data
+      ),
+      "documents.list": ids((await post("documents.list", {})).data),
+      "documents.viewed": ids((await post("documents.viewed", {})).data),
+      "documents.search": (
+        await post("documents.search", { query: keyword })
+      ).data.map((result: { document: { id: string } }) => result.document.id),
+      "documents.search_titles": ids(
+        (await post("documents.search_titles", { query: keyword })).data
+      ),
+      "relationships.list": ids(
+        (await post("relationships.list", { documentId: publicDocumentId }))
+          .data.documents
+      ),
+    };
+
+    // Documents include their collectionId, so only document ids are matched.
+    const collectionsText = await mcpText("list_collections", {});
+    const documentsText = await mcpText("list_documents", { query: keyword });
+    results.list_collections = personalIds().filter((id) =>
+      collectionsText.includes(id)
+    );
+    results.list_documents = [rootId, nestedId].filter((id) =>
+      documentsText.includes(id)
+    );
+
+    const readable = readableIds(key);
+    for (const [label, listed] of Object.entries(results)) {
+      const leaked = listed.filter(
+        (id) => personalIds().includes(id) && !readable.includes(id)
+      );
+      expect({ key, label, leaked }).toEqual({ key, label, leaked: [] });
+    }
+
+    if (key === "owner") {
+      expect(results["collections.list"]).toContain(collectionId);
+      expect(results["documents.search"]).toEqual(
+        expect.arrayContaining([rootId, nestedId])
+      );
+    }
+  });
+
+  it("should include the owner for the owner and collaborators", async () => {
+    for (const key of ["owner", "collaborator"] as const) {
+      const res = await server.post("/api/documents.info", users[key], {
+        body: { id: nestedId },
+      });
+      const body = await res.json();
+      expect({ key, ownerId: body.data.ownerId }).toEqual({
+        key,
+        ownerId: users.owner.id,
+      });
+    }
+
+    const res = await server.post("/api/documents.info", users.owner, {
+      body: { id: publicDocumentId },
+    });
+    const body = await res.json();
+    expect(body.data.ownerId).toBeNull();
   });
 });

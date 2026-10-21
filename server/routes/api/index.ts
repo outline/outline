@@ -1,12 +1,13 @@
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { UserAgentContext } from "koa-useragent";
 import userAgent from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
+import cleanupMultipartFiles from "@server/middlewares/cleanupMultipartFiles";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestContextMiddleware from "@server/middlewares/requestContext";
 import requestTracer from "@server/middlewares/requestTracer";
@@ -72,6 +73,7 @@ api.use(
     jsonLimit: 5 * 1024 * 1024, // 5MB limit for JSON payloads
   })
 );
+api.use(cleanupMultipartFiles());
 api.use(coalesceBody());
 api.use<BaseContext, UserAgentContext>(userAgent);
 api.use(requestTracer());
@@ -131,11 +133,11 @@ if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 
-router.register("*", ["get", "post"], (ctx) => {
+router.register("{/*path}", ["get", "post"], (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 
-// Router is embedded in a Koa application wrapper, because koa-router does not
+// Router is embedded in a Koa application wrapper, because @koa/router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());
 api.use(router.allowedMethods());

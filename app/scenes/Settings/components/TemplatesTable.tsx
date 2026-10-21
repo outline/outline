@@ -89,7 +89,7 @@ export function TemplatesTable(props: Props) {
           type: "data",
           id: "title",
           header: t("Title"),
-          accessor: (template) => template.titleWithDefault,
+          accessor: (template) => template.displayTitle,
           component: (template) => <TemplateLink template={template} />,
           width: "4fr",
         },
@@ -97,7 +97,7 @@ export function TemplatesTable(props: Props) {
           type: "data",
           id: "collectionId",
           header: t("Visibility"),
-          accessor: (template) => template.collection?.name,
+          accessor: (template) => template.collection?.displayName,
           component: (template) => <Permission template={template} />,
           width: "2fr",
         },
@@ -167,12 +167,12 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
         <ShapesIcon size={24} color={theme.textSecondary} />
       )}
       {can.update ? (
-        <Title>{template.titleWithDefault}</Title>
+        <Title>{template.displayTitle}</Title>
       ) : (
-        <Text>{template.titleWithDefault}</Text>
+        <Text>{template.displayTitle}</Text>
       )}
       {template.isDraft && (
-        <Tooltip content={t("Only visible to you")} placement="top">
+        <Tooltip content={t("Only visible to you")}>
           <Badge>{t("Draft")}</Badge>
         </Tooltip>
       )}
@@ -198,7 +198,9 @@ const Permission = observer(({ template }: { template: Template }) => {
       {template.collection ? (
         <CollectionIcon collection={template.collection} />
       ) : null}
-      {template.collectionId ? template.collection?.name : t("Workspace")}
+      {template.collectionId
+        ? template.collection?.displayName
+        : t("Workspace")}
     </Flex>
   );
 });

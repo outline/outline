@@ -1,4 +1,5 @@
 import * as React from "react";
+import { contentWidth } from "../../lib/contentWidth";
 import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
 
 type DragDirection =
@@ -70,7 +71,7 @@ type Params = {
   /** The minimum height in pixels when resizing vertically. */
   minHeight?: number;
   /** A reference to the element being resized. */
-  ref: React.RefObject<HTMLDivElement>;
+  ref: React.RefObject<HTMLDivElement | null>;
   /** Whether the element should scale symmetrically from the center. Defaults to true. */
   isCentered?: boolean;
 };
@@ -315,12 +316,7 @@ export default function useDragResize(props: Params): ReturnValue {
       event.stopPropagation();
 
       // Calculate constraints once at the start of dragging as it's relatively expensive operation
-      const max = ref.current
-        ? parseInt(
-            getComputedStyle(ref.current).getPropertyValue("--document-width")
-          ) -
-          EditorStyleHelper.padding * 2
-        : Infinity;
+      const max = ref.current ? contentWidth(ref.current) : Infinity;
       setMaxWidth(max);
       setSizeAtDragStart({
         // When no width has been set yet the element is displayed at full width,

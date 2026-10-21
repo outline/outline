@@ -6,7 +6,7 @@ import type {
   RESTGetCurrentUserGuildMemberResult,
 } from "discord-api-types/v10";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 
 import { Strategy } from "passport-oauth2";
 import { toError } from "@shared/utils/error";
@@ -51,7 +51,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           clientSecret: env.DISCORD_CLIENT_SECRET,
           passReqToCallback: true,
           scope,
-          // @ts-expect-error custom state store
+          // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
           store: new StateStore(),
           state: true,
           callbackURL: `${env.URL}/auth/${config.id}.callback`,

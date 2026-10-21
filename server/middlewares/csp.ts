@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import type { Context, Next } from "koa";
-import { contentSecurityPolicy } from "koa-helmet";
+import helmet from "koa-helmet";
 import { asyncNoop } from "es-toolkit";
 import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
@@ -29,6 +29,18 @@ const getBucketOrigin = () => {
     }
 
     return parsedUrl.origin;
+  } catch {
+    return;
+  }
+};
+
+const getCloudFrontOrigin = () => {
+  if (!env.AWS_CLOUDFRONT_URL) {
+    return;
+  }
+
+  try {
+    return new URL(env.AWS_CLOUDFRONT_URL).origin;
   } catch {
     return;
   }
@@ -82,8 +94,8 @@ export default function createCSPMiddleware(options?: CSPOptions) {
 
   // Allow to load assets from Vite
   if (!env.isProduction) {
-    scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
-    scriptSrc.push("localhost:3001");
+    scriptSrc.push(env.URL.replace(`:${env.PORT}`, `:${env.vitePort}`));
+    scriptSrc.push(`localhost:${env.vitePort}`);
   } else {
     scriptSrc.push(env.URL);
   }
@@ -104,6 +116,11 @@ export default function createCSPMiddleware(options?: CSPOptions) {
     objectSrc.push(bucketOrigin);
   }
 
+  const cloudFrontOrigin = getCloudFrontOrigin();
+  if (cloudFrontOrigin) {
+    objectSrc.push(cloudFrontOrigin);
+  }
+
   return async function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
     ctx.state.cspScriptSrc = [];
@@ -116,10 +133,8 @@ export default function createCSPMiddleware(options?: CSPOptions) {
       // allow additional sources for the response, see `allowScriptSrc` and
       // `allowStyleSrc`.
       if (!ctx.res.headersSent) {
-        // Note: workerSrc is included even though it's missing from the
-        // koa-helmet type definitions — the underlying helmet supports it. The
-        // service worker is served from the same origin as the document, which
-        // may be a custom domain that is not present in scriptSrc.
+        // The service worker is served from the same origin as the document,
+        // which may be a custom domain that is not present in scriptSrc.
         const directives = {
           baseUri: ["'none'"],
           defaultSrc,
@@ -147,7 +162,13 @@ export default function createCSPMiddleware(options?: CSPOptions) {
           connectSrc: ["*"],
         };
 
-        await contentSecurityPolicy({ directives })(ctx, asyncNoop);
+        // Helmet's default directives are not merged in, they include
+        // frame-ancestors and form-action restrictions that break embeds and
+        // OAuth redirects.
+        await helmet.contentSecurityPolicy({ useDefaults: false, directives })(
+          ctx,
+          asyncNoop
+        );
       }
     }
   };

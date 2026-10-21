@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
@@ -74,6 +74,7 @@ router.post(
 
     const anchorDocument = await Document.findByPk(anchorId, {
       userId: user.id,
+      includeContent: false,
       rejectOnEmpty: true,
     });
     authorize(user, "read", anchorDocument);

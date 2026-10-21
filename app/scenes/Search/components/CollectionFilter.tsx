@@ -20,7 +20,7 @@ function CollectionFilter(props: Props) {
   const options = useMemo(() => {
     const collectionOptions = collections.orderedData.map((collection) => ({
       key: collection.id,
-      label: collection.name,
+      label: collection.displayName,
       icon: <CollectionIcon collection={collection} size={24} />,
     }));
     return [

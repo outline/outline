@@ -96,28 +96,6 @@ export function toRelative(urlString: string) {
 }
 
 /**
- * Check if a URI is a loopback address (localhost, 127.0.0.1, or [::1]).
- *
- * @param uri - the redirect URI to check.
- * @returns true if the URI targets a loopback address.
- */
-export function isLoopbackUri(uri: string | undefined): boolean {
-  if (!uri) {
-    return false;
-  }
-  try {
-    const url = new URL(uri);
-    return (
-      url.hostname === "localhost" ||
-      url.hostname === "127.0.0.1" ||
-      url.hostname === "[::1]"
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Returns whether a query string value represents a truthy value, such as
  * "true", "1", "on", "yes", or a bare flag with no value.
  *

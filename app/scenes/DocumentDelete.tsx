@@ -59,7 +59,10 @@ function DocumentDelete({ document, onSubmit }: Props) {
             }
           }
 
-          const path = collection ? collectionPath(collection) : homePath();
+          const path =
+            collection && !collection.isPersonal
+              ? collectionPath(collection)
+              : homePath();
           history.push(path);
         }
 
@@ -104,9 +107,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
       <Text as="p" type="secondary">
         {nestedDocumentsCount < 1 ? (
           <Trans
-            defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>."
+            defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history."
             values={{
-              documentTitle: document.titleWithDefault,
+              documentTitle: document.displayTitle,
             }}
             components={{
               em: <strong />,
@@ -117,7 +120,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
             count={nestedDocumentsCount}
             defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>."
             values={{
-              documentTitle: document.titleWithDefault,
+              documentTitle: document.displayTitle,
               any: nestedDocumentsCount,
             }}
             components={{

@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import auth from "@server/middlewares/authentication";

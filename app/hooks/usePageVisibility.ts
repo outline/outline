@@ -1,5 +1,11 @@
-import { useState } from "react";
-import useEventListener from "./useEventListener";
+import { useSyncExternalStore } from "react";
+
+const subscribe = (onStoreChange: () => void) => {
+  document.addEventListener("visibilitychange", onStoreChange);
+  return () => document.removeEventListener("visibilitychange", onStoreChange);
+};
+
+const getSnapshot = () => !document.hidden;
 
 /**
  * Hook to return page visibility state.
@@ -7,13 +13,5 @@ import useEventListener from "./useEventListener";
  * @returns boolean if the page is visible
  */
 export default function usePageVisibility(): boolean {
-  const [visible, setVisible] = useState(!document.hidden);
-
-  useEventListener(
-    "visibilitychange",
-    () => setVisible(!document.hidden),
-    document
-  );
-
-  return visible;
+  return useSyncExternalStore(subscribe, getSnapshot);
 }

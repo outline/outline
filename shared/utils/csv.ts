@@ -77,13 +77,11 @@ export class CSVHelper {
       );
     }
 
-    // Create header row
     const headerRow = headers
       .map((h) => String(h))
       .map((h) => this.escapeCSVField(this.sanitizeValue(h)))
       .join(",");
 
-    // Create data rows
     const dataRows = data.map((row) =>
       headers
         .map((header) => {

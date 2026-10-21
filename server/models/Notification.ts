@@ -79,7 +79,8 @@ let baseDomain;
 @DefaultScope(() => ({
   include: [
     {
-      association: "document",
+      model: Document.scope(["defaultScope", "withoutStateOrText"]),
+      as: "document",
       required: false,
     },
     {
@@ -92,6 +93,10 @@ let baseDomain;
     },
     {
       association: "accessRequest",
+      required: false,
+    },
+    {
+      association: "group",
       required: false,
     },
   ],

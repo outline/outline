@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { XYCoord } from "react-dnd";
 import { useDragLayer } from "react-dnd";
+import { NativeTypes } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import useStores from "~/hooks/useStores";
@@ -16,26 +17,22 @@ const layerStyles: React.CSSProperties = {
   height: "100%",
 };
 
-function getItemStyles(
-  initialOffset: XYCoord | null,
-  currentOffset: XYCoord | null,
-  sidebarWidth: number,
-  constrainToSidebar: boolean
-) {
-  if (!initialOffset || !currentOffset) {
+// Browser-native drags (files, text, or ProseMirror nodes leaving the editor)
+// are tracked by react-dnd too, but they are not sidebar items.
+const nativeItemTypes = new Set<string | symbol>(Object.values(NativeTypes));
+
+// Keep the ghost beside the pointer so it never covers the drop cursor.
+const POINTER_OFFSET_X = 12;
+const POINTER_OFFSET_Y = 14;
+
+function getItemStyles(pointerOffset: XYCoord | null, sidebarWidth: number) {
+  if (!pointerOffset) {
     return {
       display: "none",
     };
   }
-  const { y } = currentOffset;
-  // Sidebar drags keep the ghost tethered near its origin, but drags from
-  // outside the sidebar should follow the cursor freely.
-  const x = constrainToSidebar
-    ? Math.max(
-        initialOffset.x,
-        Math.min(initialOffset.x + sidebarWidth / 4, currentOffset.x)
-      )
-    : currentOffset.x;
+  const x = pointerOffset.x + POINTER_OFFSET_X;
+  const y = pointerOffset.y - POINTER_OFFSET_Y;
 
   const transform = `translate(${x}px, ${y}px)`;
   return {
@@ -49,35 +46,32 @@ const DragPlaceholder = () => {
   const { t } = useTranslation();
   const { ui } = useStores();
 
-  const { isDragging, item, initialOffset, currentOffset } = useDragLayer(
+  const { isDragging, item, itemType, pointerOffset } = useDragLayer(
     (monitor) => ({
       item: monitor.getItem(),
       itemType: monitor.getItemType(),
-      initialOffset: monitor.getInitialSourceClientOffset(),
-      currentOffset: monitor.getSourceClientOffset(),
+      pointerOffset: monitor.getClientOffset(),
       isDragging: monitor.isDragging(),
     })
   );
 
-  if (!isDragging || !currentOffset) {
+  if (
+    !isDragging ||
+    !pointerOffset ||
+    !itemType ||
+    nativeItemTypes.has(itemType)
+  ) {
     return null;
   }
 
   return (
     <div style={layerStyles}>
-      <div
-        style={getItemStyles(
-          initialOffset,
-          currentOffset,
-          ui.sidebarWidth,
-          item.constrainToSidebar !== false
-        )}
-      >
+      <div style={getItemStyles(pointerOffset, ui.sidebarWidth)}>
         <GhostLink
           icon={item.icon}
           label={item.title || t("Untitled")}
           isDraft={item.isDraft}
-          depth={item.depth}
+          depth={0}
           active
         />
       </div>

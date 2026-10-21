@@ -168,7 +168,7 @@ const NavLink = observer(function NavLink({
 
   // Whether the link was active when the click gesture began, so a fast click
   // is not also treated as a click on an already-active link.
-  const wasActiveAtMouseDown = React.useRef<boolean>();
+  const wasActiveAtMouseDown = React.useRef<boolean | undefined>(undefined);
 
   const handleMouseDown = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -188,7 +188,16 @@ const NavLink = observer(function NavLink({
 
         // Wait a frame until following the link
         requestAnimationFrame(() => {
-          requestAnimationFrame(navigateTo);
+          requestAnimationFrame(() => {
+            navigateTo();
+
+            // A <Prompt> may block the navigation, in which case the location
+            // is unchanged and the pending target must be released.
+            const value = pendingNavigation.get();
+            if (value && value.from === history.location) {
+              setPendingNavigation(null);
+            }
+          });
           element.blur();
         });
       }

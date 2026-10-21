@@ -10,7 +10,6 @@ import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
 import { depths, hideScrollbars, s } from "@shared/styles";
-import { supportsPassiveListener } from "@shared/utils/browser";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { patchLocation } from "~/utils/history";
@@ -110,11 +109,7 @@ function Contents() {
       }
     };
 
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      supportsPassiveListener ? { passive: true } : false
-    );
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [selectedSlug]);
@@ -172,7 +167,9 @@ function Contents() {
         {items.map(({ heading, label }) => (
           <ListItem
             key={heading.id}
-            ref={(el) => (itemRefs.current[heading.id] = el)}
+            ref={(el) => {
+              itemRefs.current[heading.id] = el;
+            }}
             level={heading.level - headingAdjustment}
             active={activeSlug === heading.id}
           >

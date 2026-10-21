@@ -1,10 +1,16 @@
 import { isMac, isWindows } from "@shared/utils/browser";
+import env from "~/env";
 
 /**
  * Helper methods for detecting and interacting with the desktop application
  * wrapper.
  */
 export default class Desktop {
+  /**
+   * The custom protocol scheme registered by the desktop application.
+   */
+  static protocol = env.isDevelopment ? "outline-dev" : "outline";
+
   /**
    * Returns true if the client has inset/floating window controls.
    */
@@ -31,6 +37,24 @@ export default class Desktop {
    */
   static isElectron() {
     return navigator?.userAgent?.includes("Electron");
+  }
+
+  /**
+   * Returns true when the desktop app can run the WebAuthn ceremony itself. This
+   * requires a desktop app that has configured a platform authenticator, and a
+   * device that supports it.
+   *
+   * @returns a promise that resolves to true if passkeys work inside the app.
+   */
+  static async isPasskeySupported(): Promise<boolean> {
+    try {
+      if (!(await this.bridge?.isPasskeySupported?.())) {
+        return false;
+      }
+      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch (_err) {
+      return false;
+    }
   }
 
   /**

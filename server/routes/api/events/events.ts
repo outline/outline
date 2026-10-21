@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { intersection } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
@@ -66,6 +66,7 @@ router.post(
     if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        includeContent: false,
       });
       authorize(user, "read", document);
       where = { ...where, documentId };

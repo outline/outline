@@ -12,6 +12,10 @@ type Props = {
 };
 
 export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
+  protected jobId({ collectionId }: Props) {
+    return `detach-drafts:${collectionId}`;
+  }
+
   async perform(props: Props) {
     const [collection, actor] = await Promise.all([
       Collection.findByPk(props.collectionId, {

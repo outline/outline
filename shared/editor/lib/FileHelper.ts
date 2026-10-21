@@ -27,6 +27,23 @@ export default class FileHelper {
   }
 
   /**
+   * Returns the file with a content type guessed from its extension when the
+   * platform did not report one.
+   *
+   * @param file The file to check.
+   * @returns The original file, or a copy with the guessed content type.
+   */
+  static withContentType(file: File): File {
+    if (file.type) {
+      return file;
+    }
+
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const type = FileHelper.videoContentTypes[extension];
+    return type ? new File([file], file.name, { type }) : file;
+  }
+
+  /**
    * Checks if a file is an audio file.
    *
    * @param contentType The content type of the file
@@ -60,6 +77,22 @@ export default class FileHelper {
     )[1];
     return new File([blob], fileName || "file", {
       type: blob.type,
+    });
+  }
+
+  /**
+   * Loads an image, so that an image element with the same source displays it
+   * without delay.
+   *
+   * @param src The source URL of the image.
+   * @returns A promise that resolves when the image loads or fails to load.
+   */
+  static loadImage(src: string): Promise<void> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = src;
     });
   }
 
@@ -428,4 +461,12 @@ export default class FileHelper {
 
     return new File([bytes], filename, { type: mimeType });
   }
+
+  private static videoContentTypes: Record<string, string> = {
+    m4v: "video/mp4",
+    mov: "video/quicktime",
+    mp4: "video/mp4",
+    ogv: "video/ogg",
+    webm: "video/webm",
+  };
 }

@@ -17,6 +17,7 @@ import { rejectUpgrade } from "@server/onupgrade";
 import RedisAdapter from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
+import AwarenessIdentityExtension from "../collaboration/AwarenessIdentityExtension";
 import { EditorVersionExtension } from "../collaboration/EditorVersionExtension";
 import LoggerExtension from "../collaboration/LoggerExtension";
 import MetricsExtension from "../collaboration/MetricsExtension";
@@ -63,6 +64,7 @@ export default function init(
       new ConnectionLimitExtension(),
       new EditorVersionExtension(),
       new AuthenticationExtension(),
+      new AwarenessIdentityExtension(),
       new PersistenceExtension(),
       new APIUpdateExtension(),
       new ViewsExtension(),

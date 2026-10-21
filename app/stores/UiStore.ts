@@ -9,7 +9,6 @@ import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
 import type Model from "~/models/base/Model";
 import Collection from "~/models/Collection";
-import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import type { SplitViewPane } from "~/utils/splitView";
 import { isTruthyQueryValue } from "~/utils/urls";
 import { startViewTransition } from "~/utils/viewTransition";
@@ -111,11 +110,6 @@ class UiStore {
   sidebarIsResizing = false;
 
   @observable
-  multiplayerStatus: ConnectionStatus | undefined = undefined;
-
-  @observable
-  multiplayerErrorCode?: number = undefined;
-  @observable
   debugSafeArea = false;
 
   /** Data for the currently active presentation, if any. */
@@ -136,7 +130,7 @@ class UiStore {
   setPresentingDocument = (document: Document | null): void => {
     this.presentationData = document
       ? {
-          title: document.titleWithDefault,
+          title: document.displayTitle,
           icon: document.icon,
           color: document.color,
           data: document.data,
@@ -211,11 +205,11 @@ class UiStore {
           return;
         }
 
-        // Note: we do not sync all properties here, sidebar widths cause fighting between windows
+        // Note: we do not sync all properties here, sidebar widths and TOC
+        // visibility cause fighting between windows
         this.theme = newData.theme;
         this.languagePromptDismissed = newData.languagePromptDismissed;
         this.sidebarCollapsed = !!newData.sidebarCollapsed;
-        this.tocVisible = newData.tocVisible;
       }
     });
 
@@ -360,15 +354,6 @@ class UiStore {
   };
 
   @action
-  setMultiplayerStatus = (
-    status: ConnectionStatus,
-    errorCode?: number
-  ): void => {
-    this.multiplayerStatus = status;
-    this.multiplayerErrorCode = errorCode;
-  };
-
-  @action
   setSidebarResizing = (sidebarIsResizing: boolean): void => {
     this.sidebarIsResizing = sidebarIsResizing;
   };
@@ -410,6 +395,7 @@ class UiStore {
       this.secondaryRightSidebar = panel;
     } else {
       this.rightSidebar = panel;
+      this.persist();
     }
   };
 

@@ -25,7 +25,7 @@ import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
-const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
+const viteHost = env.URL.replace(`:${env.PORT}`, `:${env.vitePort}`);
 
 let indexHtmlCache: Buffer | undefined;
 
@@ -96,7 +96,7 @@ export const renderApp = async (
     canonical = "",
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
-    allowIndexing = true,
+    allowIndexing = false,
   } = options;
 
   if (ctx.request.path === "/realtime/") {

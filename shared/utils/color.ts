@@ -1,5 +1,6 @@
-import md5 from "crypto-js/md5";
-import { darken, parseToHsl, parseToRgb } from "polished";
+import { md5 } from "@noble/hashes/legacy.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
+import { darken, getLuminance, parseToHsl, parseToRgb } from "polished";
 import theme from "../styles/theme";
 import type { RgbaColor } from "polished/lib/types/color";
 
@@ -24,31 +25,35 @@ export const validateColorHex = (color: string) =>
   /^#(?:[0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(color);
 
 export const stringToColor = (input: string) => {
-  const inputAsNumber = parseInt(md5(input).toString(), 16);
+  const inputAsNumber = parseInt(bytesToHex(md5(utf8ToBytes(input))), 16);
   return palette[inputAsNumber % palette.length];
 };
 
 /**
- * Converts a color to string of RGB values separated by commas
+ * Returns the color when it is visible against the theme background, otherwise
+ * the fallback. Very dark colors are not visible in the dark theme and very
+ * light colors are not visible in the light theme.
  *
- * @param color - A color string
- * @returns A string of RGB values separated by commas
+ * @param color - the color to check.
+ * @param isDark - whether the dark theme is active.
+ * @param fallback - the color to use when the color is missing or not visible.
+ * @returns the color or the fallback.
  */
-export const toRGB = (color: string) =>
-  Object.values(parseToRgb(color)).join(", ");
+export const ensureContrast = (
+  color: string | null | undefined,
+  isDark: boolean,
+  fallback = "currentColor"
+): string => {
+  if (!color) {
+    return fallback;
+  }
+  if (color === "currentColor") {
+    return color;
+  }
 
-/**
- * Returns the text color that contrasts the given background color
- *
- * @param background - A color string
- * @returns A color string
- */
-export const getTextColor = (background: string) => {
-  const r = parseInt(background.substring(1, 3), 16);
-  const g = parseInt(background.substring(3, 5), 16);
-  const b = parseInt(background.substring(5, 7), 16);
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? "black" : "white";
+  const luminance = getLuminance(color);
+  const isVisible = isDark ? luminance > 0.09 : luminance < 0.9;
+  return isVisible ? color : fallback;
 };
 
 const round = (
@@ -190,4 +195,35 @@ export const hexToRgba = (hex: string): RgbaColor => {
     alpha:
       hex.length === 8 ? round(parseInt(hex.substring(6, 8), 16) / 255, 2) : 1,
   };
+};
+
+/**
+ * Blends a color onto an opaque backdrop with a multiply or screen blend mode.
+ * Multiply darkens the backdrop, screen lightens it. The alpha of the color
+ * controls how much of the blend is applied.
+ *
+ * @param color the color to blend.
+ * @param backdrop the color below.
+ * @param mode the blend mode to use.
+ * @returns the blended color as a hex string.
+ */
+export const blendColors = (
+  color: string,
+  backdrop: string,
+  mode: "multiply" | "screen"
+): string => {
+  const source = parseToRgb(color);
+  const base = parseToRgb(backdrop);
+  const alpha = "alpha" in source ? source.alpha : 1;
+  const blend = (a: number, b: number) => {
+    const blended = mode === "multiply" ? (a * b) / 255 : a + b - (a * b) / 255;
+    return Math.round(alpha * blended + (1 - alpha) * b);
+  };
+
+  return rgbaToHex({
+    red: blend(source.red, base.red),
+    green: blend(source.green, base.green),
+    blue: blend(source.blue, base.blue),
+    alpha: 1,
+  });
 };

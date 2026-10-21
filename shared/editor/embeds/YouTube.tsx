@@ -2,10 +2,11 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import type { EmbedProps as Props } from ".";
 
-function YouTube(
-  { matches, ...props }: Props,
-  ref: React.Ref<HTMLIFrameElement>
-) {
+function YouTube({
+  matches,
+  ref,
+  ...props
+}: Props & { ref?: React.Ref<HTMLIFrameElement> }) {
   const videoId = matches[1];
 
   let src;
@@ -42,4 +43,4 @@ function YouTube(
   );
 }
 
-export default React.forwardRef(YouTube);
+export default YouTube;

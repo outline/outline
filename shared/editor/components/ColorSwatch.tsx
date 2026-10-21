@@ -1,20 +1,14 @@
 import copy from "copy-to-clipboard";
 import type { MouseEvent } from "react";
-import {
-  Suspense,
-  lazy,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
+import lazyWithRetry from "../../utils/lazyWithRetry";
 import type { EditorNotice } from "../types";
 
 // Loaded lazily so its browser-only dependency on Radix doesn't enter the
 // editor schema's static import graph, which is also used on the server.
-const ColorHoverCard = lazy(() => import("./ColorHoverCard"));
+const ColorHoverCard = lazyWithRetry(() => import("./ColorHoverCard"));
 
 /** Time in ms the pointer must rest on the swatch before the card opens. */
 const OPEN_DELAY = 400;
@@ -40,7 +34,7 @@ export function ColorSwatch({ color, luminance, onNotice }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const timeout = useRef<ReturnType<typeof setTimeout>>();
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const scheduleOpen = useCallback((value: boolean, delay: number) => {
     clearTimeout(timeout.current);

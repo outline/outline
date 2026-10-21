@@ -67,7 +67,7 @@ export default class AuthStore extends Store<Team> {
     avatarUrl: string;
     url: string;
     isSignedIn: boolean;
-  }[];
+  }[] = undefined;
 
   /* The authentication provider the user signed in with. */
   @observable
@@ -110,7 +110,7 @@ export default class AuthStore extends Store<Team> {
     });
 
     // listen to the localstorage value changing in other tabs to react to
-    // signin/signout events in other tabs and follow suite.
+    // signin/signout events in other tabs and follow suit.
     window.addEventListener("storage", (event) => {
       if (event.key === this.name && event.newValue) {
         const newData: PersistedData | null = JSON.parse(event.newValue);
@@ -195,11 +195,12 @@ export default class AuthStore extends Store<Team> {
     };
   }
 
-  @action
   fetchConfig = async () => {
     const res = await client.post("/auth.config");
     invariant(res?.data, "Config not available");
-    this.config = res.data;
+    runInAction(() => {
+      this.config = res.data;
+    });
   };
 
   @action

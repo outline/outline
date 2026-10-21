@@ -6,6 +6,7 @@ import { UserMembership, Share, ShareSubscription } from "@server/models";
 import {
   buildUser,
   buildDocument,
+  buildDraftDocument,
   buildShare,
   buildAdmin,
   buildViewer,
@@ -673,6 +674,18 @@ describe("#shares.info", () => {
     expect(body.message).toEqual("documentId: Must be a valid UUID or slug");
   });
 
+  it("should fail with status 400 bad request when id is invalid", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.info", user, {
+      body: {
+        id: "Foo!",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or share slug");
+  });
+
   it("should not find share by documentId in private collection", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
@@ -1300,6 +1313,28 @@ describe("#shares.revoke", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should allow author to revoke a share on a draft", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.revoke", user, {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.revokedAt).toBeTruthy();
+  });
+
   it("should allow author to revoke collection share", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1397,7 +1432,50 @@ describe("#shares.revoke", () => {
   });
 });
 
+describe("#shares.sitemap", () => {
+  it("should fail with status 400 bad request when id is empty", async () => {
+    const res = await server.get("/api/shares.sitemap?id=");
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or share slug");
+  });
+
+  it("should fail with status 400 bad request when id is invalid", async () => {
+    const res = await server.get("/api/shares.sitemap?id=Foo!");
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or share slug");
+  });
+
+  it("should return a sitemap for an indexable share", async () => {
+    const share = await buildShare({ allowIndexing: true });
+    const res = await server.get(`/api/shares.sitemap?id=${share.id}`);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/xml");
+  });
+
+  it("should return 404 when share does not allow indexing", async () => {
+    const share = await buildShare({ allowIndexing: false });
+    const res = await server.get(`/api/shares.sitemap?id=${share.id}`);
+    expect(res.status).toEqual(404);
+  });
+});
+
 describe("#shares.subscribe", () => {
+  it("should fail with status 400 bad request when shareId is invalid", async () => {
+    const share = await buildShare();
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: "Foo!",
+        documentId: share.documentId!,
+        email: "subscriber@example.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("shareId: Must be a valid UUID or share slug");
+  });
+
   it("should create a subscription for a published share", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {

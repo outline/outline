@@ -11,7 +11,7 @@ import { getLangFor } from "@shared/utils/language";
 import { DocumentPreference } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
-import type Document from "~/models/Document";
+import Document from "~/models/Document";
 import type Template from "~/models/Template";
 import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -61,13 +61,14 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     publish?: boolean;
   }) => void;
   children?: React.ReactNode;
+  ref?: React.Ref<SharedEditor>;
 };
 
 /**
  * The main document editor includes an editable title with metadata below it,
  * and support for commenting.
  */
-function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
+function DocumentEditor(props: Props) {
   const editorRef = React.useRef<SharedEditor>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
@@ -90,6 +91,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
     readOnly,
     children,
     multiplayer,
+    ref,
     ...rest
   } = props;
   const can = usePolicy(document);
@@ -225,9 +227,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         readOnly={readOnly}
         documentId={document.id}
         title={
-          !document.title && readOnly
-            ? document.titleWithDefault
-            : document.title
+          !document.title && readOnly ? document.displayTitle : document.title
         }
         icon={document.icon}
         color={iconColor}
@@ -263,7 +263,6 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         <EditorComponent
           ref={mergeRefs([ref, editorRef, handleRefChanged])}
           lang={getLangFor(document.language)}
-          autoFocus={!!document.title && !props.defaultValue}
           placeholder={t("Type '/' to insert, or start writing…")}
           scrollTo={decodeURIComponentSafe(location.hash)}
           readOnly={readOnly}
@@ -289,7 +288,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
           onDestroy={handleDestroy}
           onChange={updateDocState}
           headingPrefix={
-            "preferences" in document
+            document instanceof Document
               ? document.getPreference(DocumentPreference.HeadingPrefix)
               : undefined
           }
@@ -309,4 +308,4 @@ const SharedMeta = styled(Text)`
   font-size: 14px;
 `;
 
-export default observer(React.forwardRef(DocumentEditor));
+export default observer(DocumentEditor);

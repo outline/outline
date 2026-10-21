@@ -1,6 +1,13 @@
-import type { EditorState } from "prosemirror-state";
+import type { EditorState, Transaction } from "prosemirror-state";
 import type { TableRect } from "prosemirror-tables";
-import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
+import {
+  CellSelection,
+  isInTable,
+  mergeCells,
+  selectedRect,
+} from "prosemirror-tables";
+import { getCellSpan } from "../lib/table";
+import { findParentNodeClosestToPos } from "./findParentNode";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
 import type { EditorView } from "prosemirror-view";
@@ -32,61 +39,38 @@ export function isRowSelection(state: EditorState): boolean {
   return false;
 }
 
+/**
+ * Get the index of the first selected column. A cell that spans several
+ * columns widens the selection rectangle, so the index comes from the
+ * selection itself.
+ *
+ * @param state The editor state.
+ * @returns The column index, or undefined if no column is selected.
+ */
 export function getColumnIndex(state: EditorState): number | undefined {
-  if (state.selection instanceof ColumnSelection) {
-    if (state.selection.isColSelection()) {
-      const rect = selectedRect(state);
-      return rect.left;
-    }
-  }
-
-  return undefined;
-}
-
-export function getRowIndex(state: EditorState): number | undefined {
-  if (state.selection instanceof RowSelection) {
-    if (state.selection.isRowSelection()) {
-      const rect = selectedRect(state);
-      return rect.top;
-    }
+  const { selection } = state;
+  if (selection instanceof ColumnSelection && selection.isColSelection()) {
+    return Math.min(selection.anchorIndex, selection.headIndex);
   }
 
   return undefined;
 }
 
 /**
- * Get the actual row index in the table map for a given visual row index
- * when merged cells are present.
+ * Get the index of the first selected row. A cell that spans several rows
+ * widens the selection rectangle, so the index comes from the selection
+ * itself.
  *
- * @param visualRowIndex The visual row index (0-based)
- * @param state The editor state
- * @returns The actual row index in the table map, or -1 if not found
+ * @param state The editor state.
+ * @returns The row index, or undefined if no row is selected.
  */
-export function getRowIndexInMap(
-  visualRowIndex: number,
-  state: EditorState
-): number {
-  if (!isInTable(state)) {
-    return -1;
-  }
-  const rect = selectedRect(state);
-  const cells = getCellsInColumn(0)(state);
-
-  if (visualRowIndex >= 0 && visualRowIndex < cells.length) {
-    const cellPos = cells[visualRowIndex] - rect.tableStart;
-
-    // Find the row index in the table map for this cell position
-    for (let row = 0; row < rect.map.height; row++) {
-      const rowStart = row * rect.map.width;
-      for (let col = 0; col < rect.map.width; col++) {
-        if (rect.map.map[rowStart + col] === cellPos) {
-          return row;
-        }
-      }
-    }
+export function getRowIndex(state: EditorState): number | undefined {
+  const { selection } = state;
+  if (selection instanceof RowSelection && selection.isRowSelection()) {
+    return Math.min(selection.anchorIndex, selection.headIndex);
   }
 
-  return -1;
+  return undefined;
 }
 
 /**
@@ -121,37 +105,6 @@ export function getRowsInTable(state: EditorState): number[] {
   }
 
   return rows;
-}
-
-/**
- * Get the actual column positions in the table map, accounting for merged cells.
- *
- * @param state The editor state
- * @returns Array of cell positions representing the first unique cell in each column
- */
-export function getColumnsInTable(state: EditorState): number[] {
-  if (!isInTable(state)) {
-    return [];
-  }
-
-  const rect = selectedRect(state);
-  const columns: number[] = [];
-  const seenCells = new Set<number>();
-
-  for (let col = 0; col < rect.map.width; col++) {
-    // Find the topmost cell in this column
-    for (let row = 0; row < rect.map.height; row++) {
-      const cellPos =
-        rect.tableStart + rect.map.map[row * rect.map.width + col];
-      if (!seenCells.has(cellPos)) {
-        columns.push(cellPos);
-        seenCells.add(cellPos);
-        break; // Only add the first unique cell per column
-      }
-    }
-  }
-
-  return columns;
 }
 
 export function getCellsInColumn(index: number) {
@@ -303,6 +256,42 @@ export function isMultipleCellSelection(state: EditorState): boolean {
       selection.isRowSelection() ||
       selection.$anchorCell.pos !== selection.$headCell.pos)
   );
+}
+
+/**
+ * Check if the selected cells can be merged into a single cell. A row or
+ * column selection can only be merged when it covers every cell in the
+ * selected rows or columns, and no cell spans beyond them.
+ *
+ * @param state The editor state
+ * @returns Boolean indicating if the selected cells can be merged
+ */
+export function canMergeCells(state: EditorState): boolean {
+  if (!isMultipleCellSelection(state) || !mergeCells(state)) {
+    return false;
+  }
+
+  const { selection } = state;
+  if (selection instanceof RowSelection) {
+    const { top, bottom, left, right, map } = selectedRect(state);
+    return (
+      top === Math.min(selection.anchorIndex, selection.headIndex) &&
+      bottom === Math.max(selection.anchorIndex, selection.headIndex) + 1 &&
+      left === 0 &&
+      right === map.width
+    );
+  }
+  if (selection instanceof ColumnSelection) {
+    const { top, bottom, left, right, map } = selectedRect(state);
+    return (
+      left === Math.min(selection.anchorIndex, selection.headIndex) &&
+      right === Math.max(selection.anchorIndex, selection.headIndex) + 1 &&
+      top === 0 &&
+      bottom === map.height
+    );
+  }
+
+  return true;
 }
 
 /**
@@ -501,6 +490,65 @@ export function getCellsInSelectedRows(
 }
 
 /**
+ * Get the viewport bounds of a row in the table that contains the selection.
+ *
+ * @param view The editor view.
+ * @param index The index of the row.
+ * @returns The bounds of the row, or undefined if it is not rendered.
+ */
+export function getRowBounds(
+  view: EditorView,
+  index: number
+): DOMRect | undefined {
+  const { tableStart } = selectedRect(view.state);
+  const tableDOM = view.domAtPos(tableStart).node;
+  if (!(tableDOM instanceof HTMLElement)) {
+    return undefined;
+  }
+  const rows = tableDOM
+    .closest("table")
+    ?.querySelectorAll(":scope > tbody > tr, :scope > tr");
+  return rows?.[index]?.getBoundingClientRect();
+}
+
+/**
+ * Get the viewport bounds of a column in the table that contains the
+ * selection. The width is measured from a cell that only spans this column
+ * where there is one.
+ *
+ * @param view The editor view.
+ * @param index The index of the column.
+ * @returns The bounds of the column, or undefined if it is not rendered.
+ */
+export function getColumnBounds(
+  view: EditorView,
+  index: number
+): DOMRect | undefined {
+  const { map, tableStart } = selectedRect(view.state);
+  const measure = (row: number) => {
+    const dom = view.nodeDOM(tableStart + map.map[row * map.width + index]);
+    return dom instanceof HTMLElement ? dom.getBoundingClientRect() : undefined;
+  };
+
+  const first = measure(0);
+  if (!first) {
+    return undefined;
+  }
+
+  for (let row = 0; row < map.height; row++) {
+    const { start, end } = getCellSpan(map, row, index, "column");
+    if (end - start === 1) {
+      const bounds = measure(row);
+      if (bounds) {
+        return new DOMRect(bounds.left, first.top, bounds.width, first.height);
+      }
+    }
+  }
+
+  return first;
+}
+
+/**
  * Get the total width of selected columns by measuring DOM elements.
  * Uses getBoundingClientRect to get precise rendered widths including decimals.
  *
@@ -659,3 +707,38 @@ export const hasNodeAttrMarkWithAttrsCellSelection = (
 
   return attrsMatch;
 };
+
+/**
+ * Checks whether the selection change in a transaction can alter table
+ * decorations that depend on the selection: a cell selection on either side,
+ * or the selection moving into, out of, or between tables. Moving the cursor
+ * within one table does not.
+ *
+ * @param tr The transaction.
+ * @param oldState The editor state before the transaction.
+ * @param newState The editor state after the transaction.
+ * @returns true if the selected table or the cell selection changed.
+ */
+export function hasTableSelectionChanged(
+  tr: Transaction,
+  oldState: EditorState,
+  newState: EditorState
+): boolean {
+  if (!tr.selectionSet) {
+    return false;
+  }
+  if (
+    oldState.selection instanceof CellSelection ||
+    newState.selection instanceof CellSelection
+  ) {
+    return true;
+  }
+
+  const isTable = (node: Node) => node.type.spec.tableRole === "table";
+  const before = findParentNodeClosestToPos(oldState.selection.$head, isTable);
+  const after = findParentNodeClosestToPos(newState.selection.$head, isTable);
+  if (!before || !after) {
+    return !!before !== !!after;
+  }
+  return tr.mapping.map(before.pos) !== after.pos;
+}

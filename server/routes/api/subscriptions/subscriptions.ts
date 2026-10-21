@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";
 import { QueryNotices } from "@shared/types";
@@ -47,6 +47,7 @@ router.post(
       // documentId will be available here
       const document = await Document.findByPk(documentId!, {
         userId: user.id,
+        includeContent: false,
       });
       authorize(user, "read", document);
 
@@ -91,6 +92,7 @@ router.post(
       // documentId will be available here
       const document = await Document.findByPk(documentId!, {
         userId: user.id,
+        includeContent: false,
       });
       authorize(user, "read", document);
 

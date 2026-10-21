@@ -74,10 +74,7 @@ export default class TemplatesStore extends Store<Template> {
   };
 
   get(id: string): Template | undefined {
-    return id
-      ? (this.data.get(id) ??
-          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
-      : undefined;
+    return this.getByIdOrUrlId(id);
   }
 
   @computed

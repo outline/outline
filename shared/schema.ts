@@ -41,7 +41,10 @@ export type JSONImportInput = z.infer<typeof JSONImportInputItemSchema>[];
 export type ImportInput<T extends ImportableIntegrationService> =
   T extends IntegrationService.Notion
     ? NotionImportInput
-    : T extends IntegrationService.Markdown | IntegrationService.Slab
+    : T extends
+          | IntegrationService.Markdown
+          | IntegrationService.Slab
+          | IntegrationService.OKF
       ? MarkdownImportInput
       : T extends IntegrationService.JSON
         ? JSONImportInput
@@ -129,11 +132,12 @@ export interface JSONImportScratch {
  * Per-importer scratch shape stored on `Import.scratch`. Holds cross-phase
  * state that the importer needs between bootstrap and completion but that
  * isn't part of any single task's input. Cleared when the import flips to
- * `Processed`.
+ * `Completed`.
  */
 export type ImportScratch<T extends ImportableIntegrationService> = T extends
   | IntegrationService.Markdown
   | IntegrationService.Slab
+  | IntegrationService.OKF
   ? MarkdownImportScratch
   : T extends IntegrationService.JSON
     ? JSONImportScratch
@@ -214,7 +218,10 @@ export type JSONImportTaskInput = (
 export type ImportTaskInput<T extends ImportableIntegrationService> =
   T extends IntegrationService.Notion
     ? NotionImportTaskInput
-    : T extends IntegrationService.Markdown | IntegrationService.Slab
+    : T extends
+          | IntegrationService.Markdown
+          | IntegrationService.Slab
+          | IntegrationService.OKF
       ? MarkdownImportTaskInput
       : T extends IntegrationService.JSON
         ? JSONImportTaskInput

@@ -1,7 +1,32 @@
-/* oxlint-disable */
 import stores from "~/stores";
 
 describe("DocumentsStore", () => {
+  describe("get", () => {
+    it("should return a document by id or by the urlId in a slug", () => {
+      const doc = stores.documents.add({
+        id: "5f1c2a7e-8a7b-4c3d-9e2f-1a2b3c4d5e6f",
+        urlId: "AbCdEf1234",
+        title: "Slug",
+      });
+
+      expect(stores.documents.get(doc.id)).toBe(doc);
+      expect(stores.documents.get("slug-AbCdEf1234")).toBe(doc);
+      expect(stores.documents.get("AbCdEf1234")).toBe(doc);
+    });
+
+    it("should not match a urlId at the end of an unknown UUID", () => {
+      stores.documents.add({
+        id: "0b9e7c52-3f0e-4a8f-b1a5-2d7f7d9c1e3a",
+        urlId: "e056e0bb98",
+        title: "Suffix",
+      });
+
+      expect(
+        stores.documents.get("9b587fc1-01de-4f4a-aa79-07e056e0bb98")
+      ).toBeUndefined();
+    });
+  });
+
   describe("deleted", () => {
     test("should filter by the user that deleted the document", () => {
       const deleter = stores.users.add({

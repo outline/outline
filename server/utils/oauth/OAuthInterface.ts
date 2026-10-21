@@ -7,13 +7,13 @@ import type {
 } from "@node-oauth/oauth2-server";
 import type { Required } from "utility-types";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { isUrl } from "@shared/utils/urls";
 import {
   OAuthClient,
   OAuthAuthentication,
   OAuthAuthorizationCode,
 } from "@server/models";
 import { hash, safeEqual } from "@server/utils/crypto";
+import { OAuthHelper } from "./OAuthHelper";
 
 /**
  * The number of seconds during which a rotated refresh token may be replayed
@@ -56,7 +56,7 @@ export const OAuthInterface: RefreshTokenModel &
   > &
   Config = {
   /** Supported grant types */
-  grants: ["authorization_code", "refresh_token"],
+  grants: [...OAuthHelper.grantTypes],
 
   /**
    * Generates a new access token.
@@ -358,35 +358,12 @@ export const OAuthInterface: RefreshTokenModel &
    * @returns True if the URI is valid, false otherwise.
    */
   async validateRedirectUri(uri, client) {
-    if (uri.includes("#") || uri.includes("*")) {
-      return false;
-    }
-    if (!client.redirectUris?.includes(uri)) {
-      return false;
-    }
-
-    // Allow loopback redirects for native/CLI apps (RFC 8252 §7.3)
-    // Loopback addresses must use http:// (not https://) since TLS certificates
-    // cannot be obtained for loopback addresses.
-    try {
-      const url = new URL(uri);
-      const isLoopback =
-        url.hostname === "127.0.0.1" ||
-        url.hostname === "[::1]" ||
-        url.hostname === "localhost";
-
-      if (isLoopback && url.protocol === "http:") {
-        return true;
-      }
-    } catch {
-      // Invalid URL, will be caught by isUrl check below
-    }
-
-    if (!isUrl(uri, { requireHttps: true })) {
+    const redirectUris = [client.redirectUris ?? []].flat();
+    if (!OAuthHelper.isRegisteredRedirectUri(redirectUris, uri)) {
       return false;
     }
 
-    return true;
+    return OAuthHelper.isValidRedirectUri(uri);
   },
 
   /**

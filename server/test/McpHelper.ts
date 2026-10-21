@@ -1,4 +1,4 @@
-// eslint-disable no-restricted-imports
+// oxlint-disable no-restricted-imports
 import type { Response } from "node-fetch";
 import { Scope } from "@shared/types";
 import { buildAdmin, buildOAuthAuthentication, buildUser } from "./factories";

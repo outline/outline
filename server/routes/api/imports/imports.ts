@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
@@ -35,6 +35,7 @@ router.post(
     if (
       body.service === IntegrationService.Markdown ||
       body.service === IntegrationService.Slab ||
+      body.service === IntegrationService.OKF ||
       body.service === IntegrationService.JSON
     ) {
       const attachment = await Attachment.findByPk(body.attachmentId, {

@@ -9,6 +9,7 @@ import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { isRTLLanguage } from "@shared/utils/rtl";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
@@ -22,6 +23,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import type { NotificationMetadata } from "@server/types";
+import { DirectionContext } from "./components/Direction";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
@@ -51,7 +53,7 @@ export default abstract class BaseEmail<
   protected abstract get category(): EmailMessageCategory;
 
   /**
-   * Schedule this email type to be sent asyncronously by a worker.
+   * Schedule this email type to be sent asynchronously by a worker.
    *
    * @param options Options to pass to the Bull queue
    * @returns A promise that resolves once the email is placed on the task queue
@@ -152,13 +154,16 @@ export default abstract class BaseEmail<
       : undefined;
 
     // Check if notification is considerably delayed and annotate
-    // the subject. This is incase of extended downtime or queue backlogs
+    // the subject. This is in case of extended downtime or queue backlogs
     let subject = this.subject(data);
     if (notification) {
       if (notification.createdAt < subMinutes(new Date(), 30)) {
         subject = `${this.t("Delayed notification")}: ${subject}`;
       }
     }
+
+    const lang = this.locale;
+    const dir = isRTLLanguage(lang) ? "rtl" : "ltr";
 
     try {
       await mailer.sendMail({
@@ -169,11 +174,13 @@ export default abstract class BaseEmail<
         messageId,
         references,
         previewText: this.preview(data),
+        lang,
+        dir,
         component: (
-          <>
+          <DirectionContext.Provider value={dir}>
             {this.render(data)}
             {notification ? this.pixel(notification) : null}
-          </>
+          </DirectionContext.Provider>
         ),
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
@@ -234,6 +241,11 @@ export default abstract class BaseEmail<
     return <img src={notification.pixelUrl} alt="" width="1" height="1" />;
   }
 
+  /** The receiving user's language in BCP47 format. */
+  private get locale() {
+    return unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE);
+  }
+
   /**
    * Translate a string using the receiving user's language preference.
    *
@@ -244,8 +256,22 @@ export default abstract class BaseEmail<
   protected t(key: string, options?: Record<string, unknown>): string {
     return i18nT(key, {
       ...options,
-      lng: unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE),
+      lng: this.locale,
     }) as string;
+  }
+
+  /**
+   * Join a list of items into a single string using the receiving user's
+   * language preference, e.g. "A, B and C".
+   *
+   * @param items The items to join.
+   * @returns The joined string.
+   */
+  protected formatList(items: string[]): string {
+    return new Intl.ListFormat(this.locale, {
+      style: "long",
+      type: "conjunction",
+    }).format(items);
   }
 
   /**
@@ -281,7 +307,7 @@ export default abstract class BaseEmail<
    * @param props Props in email constructor
    * @returns A JSX element
    */
-  protected abstract render(props: S & T): JSX.Element;
+  protected abstract render(props: S & T): React.JSX.Element;
 
   /**
    * Optionally returns a replyTo email to override the default.
@@ -335,7 +361,7 @@ export default abstract class BaseEmail<
       return undefined;
     }
 
-    // Process user mentions to ensure they are uptodate with database
+    // Process user mentions to ensure they are up to date with the database
     const processedNode = ProsemirrorHelper.toProsemirror(
       await ProsemirrorHelper.processMentions(node)
     );

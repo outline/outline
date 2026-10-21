@@ -19,6 +19,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { HEADER_HEIGHT as APP_HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
@@ -442,7 +444,7 @@ function TableViewInner<TData extends RowData>({
           bottomOffset={-rowHeight * 5}
         />
       )}
-      {isEmpty && <Empty>{t("No results")}</Empty>}
+      {isEmpty && <NoResults>{t("No results")}</NoResults>}
     </>
   );
 }
@@ -521,7 +523,7 @@ function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
   return (
     <MenuProvider variant="dropdown">
       <Menu>
-        <Tooltip content={label} placement="bottom">
+        <Tooltip content={label} side="bottom">
           <MenuTrigger aria-label={label}>
             <ColumnOptions>
               <SettingsIcon size={18} />
@@ -589,6 +591,10 @@ const SelectAllCheckbox = observer(function SelectAllCheckbox_({
 }) {
   const checked = count > 0 && selection.size === count;
 
+  if (count === 0) {
+    return null;
+  }
+
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (selection.isActive) {
@@ -643,6 +649,11 @@ function Placeholder({
     </DelayedMount>
   );
 }
+
+const NoResults = styled(Empty)`
+  display: block;
+  margin-top: 8px;
+`;
 
 const DescSortIcon = styled(CollapsedIcon)`
   margin-left: -2px;
@@ -708,6 +719,11 @@ const THead = styled.div<{ $topPos: number }>`
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
   background: ${s("background")};
+
+  ${breakpoint("mobile", "tablet")`
+    top: ${({ $topPos }: { $topPos: number }) =>
+      `${Math.min($topPos, APP_HEADER_HEIGHT)}px`};
+  `};
 `;
 
 const TBody = styled.div<{ $height: number }>`

@@ -149,6 +149,93 @@ export function isUrl(
 }
 
 /**
+ * Schemes that are never treated as private-use, either because they are web
+ * schemes validated elsewhere or because they can execute or embed content.
+ */
+const nonPrivateUseSchemes = new Set([
+  "http",
+  "https",
+  "ftp",
+  "ws",
+  "wss",
+  "file",
+  "data",
+  "javascript",
+  "vbscript",
+  "blob",
+  "about",
+]);
+
+/**
+ * Returns true if the given url uses a private-use URI scheme, as registered
+ * by native apps to receive OAuth redirects (RFC 8252 section 7.1), for
+ * example `com.example.app:/oauth2redirect` or `myapp://callback`.
+ *
+ * @param text The url to check.
+ * @returns True if the url uses a private-use URI scheme, false otherwise.
+ */
+export function isPrivateUseSchemeUrl(text: string) {
+  if (/\s/.test(text)) {
+    return false;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch (_err) {
+    return false;
+  }
+
+  const scheme = url.protocol.slice(0, -1).toLowerCase();
+  if (nonPrivateUseSchemes.has(scheme)) {
+    return false;
+  }
+
+  // Require a destination after the scheme, e.g. reject a bare "myapp:".
+  return !!url.host || (url.pathname !== "" && url.pathname !== "/");
+}
+
+/**
+ * Check if a URI is a loopback address (localhost, 127.0.0.1, or [::1]).
+ *
+ * @param uri - the redirect URI to check.
+ * @returns true if the URI targets a loopback address.
+ */
+export function isLoopbackUri(uri: string | undefined): boolean {
+  if (!uri) {
+    return false;
+  }
+  try {
+    const url = new URL(uri);
+    return (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "[::1]"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns the hostname of a URL. Internationalized hostnames are returned in
+ * their punycode form.
+ *
+ * @param url the URL to parse.
+ * @returns the hostname, or undefined if the URL cannot be parsed.
+ */
+export function getHostname(url: string | undefined): string | undefined {
+  if (!url) {
+    return undefined;
+  }
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Temporary prefix applied to links in document that are not yet persisted.
  */
 export const creatingUrlPrefix = "creating#";

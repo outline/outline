@@ -1,3 +1,4 @@
+// @vitest-isolate true
 import { Server } from "@hocuspocus/server";
 import WebSocket from "ws";
 import EDITOR_VERSION from "@shared/editor/version";

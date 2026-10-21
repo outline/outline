@@ -3,6 +3,7 @@ import { type Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { CellSelection, inSameTable, TableMap } from "prosemirror-tables";
 import type { Mappable } from "prosemirror-transform";
+import { getCellsStartingInRow } from "../lib/table";
 
 export class RowSelection extends CellSelection {
   constructor(
@@ -36,41 +37,71 @@ export class RowSelection extends CellSelection {
     );
   }
 
-  public static rowSelection(
-    $anchorCell: ResolvedPos,
-    $headCell: ResolvedPos = $anchorCell,
-    anchorIndex: number = 0,
-    headIndex: number = anchorIndex
-  ): CellSelection {
-    const table = $anchorCell.node(-1);
+  /**
+   * A row selection always covers whole rows, even when its anchor cells do
+   * not start in the first or last column because of merged cells.
+   *
+   * @returns true.
+   */
+  isRowSelection(): boolean {
+    return true;
+  }
+
+  /**
+   * Iterate over the cells that overlap the selected rows. A cell that spans
+   * several rows widens the selection rectangle, so rows outside of the
+   * selected range are skipped.
+   *
+   * @param f the function to call for each cell.
+   */
+  forEachCell(f: (node: Node, pos: number) => void): void {
+    const table = this.$anchorCell.node(-1);
     const map = TableMap.get(table);
-    const tableStart = $anchorCell.start(-1);
+    const top = Math.min(this.anchorIndex, this.headIndex);
+    const bottom = Math.max(this.anchorIndex, this.headIndex) + 1;
+    if (bottom > map.height) {
+      super.forEachCell(f);
+      return;
+    }
 
-    const anchorRect = map.findCell($anchorCell.pos - tableStart);
-    const headRect = map.findCell($headCell.pos - tableStart);
-    const doc = $anchorCell.node(0);
-
-    if (anchorRect.left <= headRect.left) {
-      if (anchorRect.left > 0) {
-        $anchorCell = doc.resolve(
-          tableStart + map.map[anchorRect.top * map.width]
-        );
-      }
-      if (headRect.right < map.width) {
-        $headCell = doc.resolve(
-          tableStart + map.map[map.width * (headRect.top + 1) - 1]
-        );
-      }
-    } else {
-      if (headRect.left > 0) {
-        $headCell = doc.resolve(tableStart + map.map[headRect.top * map.width]);
-      }
-      if (anchorRect.right < map.width) {
-        $anchorCell = doc.resolve(
-          tableStart + map.map[map.width * (anchorRect.top + 1) - 1]
-        );
+    const tableStart = this.$anchorCell.start(-1);
+    const cells = map.cellsInRect({ left: 0, right: map.width, top, bottom });
+    for (const pos of cells) {
+      const node = table.nodeAt(pos);
+      if (node) {
+        f(node, tableStart + pos);
       }
     }
+  }
+
+  /**
+   * Create a selection of the rows between the given indices.
+   *
+   * @param $cell a resolved position of any cell in the table.
+   * @param anchorIndex the index of the row the selection starts from.
+   * @param headIndex the index of the row the selection extends to.
+   * @returns the row selection.
+   */
+  public static fromIndex(
+    $cell: ResolvedPos,
+    anchorIndex: number,
+    headIndex: number = anchorIndex
+  ): RowSelection {
+    const table = $cell.node(-1);
+    const map = TableMap.get(table);
+    const tableStart = $cell.start(-1);
+    const doc = $cell.node(0);
+
+    // Anchor on cells that start in the selected rows where possible, as a
+    // cell spanning from a row above would widen the selection to that row.
+    const anchorPos =
+      getCellsStartingInRow(map, anchorIndex)[0] ??
+      map.map[anchorIndex * map.width];
+    const headPos =
+      getCellsStartingInRow(map, headIndex).at(-1) ??
+      map.map[(headIndex + 1) * map.width - 1];
+    const $anchorCell = doc.resolve(tableStart + anchorPos);
+    const $headCell = doc.resolve(tableStart + headPos);
     return new RowSelection($anchorCell, $headCell, anchorIndex, headIndex);
   }
 }

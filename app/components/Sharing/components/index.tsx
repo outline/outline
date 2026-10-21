@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s, hover } from "@shared/styles";
@@ -8,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export { GroupMembersPopover } from "./GroupMembersPopover";
 
-// TODO: Temp until Button/NudeButton styles are normalized
+// Highlights nude buttons within sharing popovers on hover or while expanded.
 export const Wrapper = styled.div`
   ${NudeButton}:${hover},
   ${NudeButton}[aria-expanded="true"] {
@@ -92,7 +93,7 @@ export const presence = {
       type: "spring",
       duration: 0.2,
       bounce: 0,
-    },
+    } satisfies Transition,
   },
   exit: {
     opacity: 0,

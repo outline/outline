@@ -204,6 +204,15 @@ export function generatePasskeyName(
   userAgent?: string,
   transports?: string[]
 ): string {
+  // The desktop app uses the Chromium Touch ID authenticator, which reports the
+  // same AAGUID as any Chromium browser.
+  if (
+    aaguid === PasskeyBrand.ChromiumBrowser &&
+    userAgent?.toLowerCase().includes("electron/")
+  ) {
+    return "Outline Desktop";
+  }
+
   // Prefer known brand from AAGUID over user agent sniffing
   if (aaguid && PasskeyBrandNames[aaguid as PasskeyBrand]) {
     return PasskeyBrandNames[aaguid as PasskeyBrand];

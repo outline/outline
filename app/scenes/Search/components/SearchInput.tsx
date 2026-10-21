@@ -7,12 +7,10 @@ import Flex from "~/components/Flex";
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   defaultValue: string;
+  ref: React.RefObject<HTMLInputElement | null>;
 }
 
-function SearchInput(
-  { defaultValue, ...rest }: Props,
-  ref: React.RefObject<HTMLInputElement>
-) {
+function SearchInput({ defaultValue, ref, ...rest }: Props) {
   const theme = useTheme();
   const focusInput = React.useCallback(() => {
     ref.current?.focus();
@@ -63,19 +61,19 @@ const StyledInput = styled.input`
   border-radius: 4px;
   color: ${s("text")};
 
-  ::-webkit-search-cancel-button {
+  &::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
-  ::-webkit-input-placeholder {
+  &::-webkit-input-placeholder {
     color: ${s("placeholder")};
   }
-  :-moz-placeholder {
+  &:-moz-placeholder {
     color: ${s("placeholder")};
   }
-  ::-moz-placeholder {
+  &::-moz-placeholder {
     color: ${s("placeholder")};
   }
-  :-ms-input-placeholder {
+  &:-ms-input-placeholder {
     color: ${s("placeholder")};
   }
 `;
@@ -86,4 +84,4 @@ const StyledIcon = styled(SearchIcon)`
   opacity: 0.7;
 `;
 
-export default React.forwardRef(SearchInput);
+export default SearchInput;

@@ -1,4 +1,3 @@
-import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { Op } from "sequelize";
@@ -22,6 +21,7 @@ import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import IsScope from "./validators/IsScope";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
@@ -52,10 +52,7 @@ class ApiKey extends ParanoidModel<
   name: string;
 
   /** A list of scopes that this API key has access to */
-  @Matches(AuthenticationHelper.scopeGrammarRegex, {
-    each: true,
-    message: "Scope must be a valid API scope",
-  })
+  @IsScope
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[] | null;
 
@@ -178,7 +175,9 @@ class ApiKey extends ParanoidModel<
     // MCP endpoint access is allowed if the key has any valid scope.
     // Fine-grained scope enforcement happens at the tool level.
     if (path.startsWith("/mcp")) {
-      return this.scope.length > 0;
+      return this.scope.some((scope) =>
+        AuthenticationHelper.isValidScope(scope)
+      );
     }
 
     return AuthenticationHelper.canAccess(path, this.scope);

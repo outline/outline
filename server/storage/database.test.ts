@@ -1,8 +1,13 @@
+import { QueryTypes } from "sequelize";
+import type { Transaction } from "sequelize";
 import type { Sequelize } from "sequelize-typescript";
 import Document from "@server/models/Document";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import env from "@server/env";
-import { createDatabaseInstance } from "./database";
+import {
+  applyStatementTimeoutToTransactions,
+  createDatabaseInstance,
+} from "./database";
 
 describe("read replica transactions", () => {
   let replica: Sequelize;
@@ -43,5 +48,66 @@ describe("read replica transactions", () => {
     });
 
     expect(documents.map((d) => d.id)).toEqual([document.id]);
+  });
+});
+
+describe("applyStatementTimeoutToTransactions", () => {
+  let instance: Sequelize;
+
+  beforeAll(() => {
+    instance = applyStatementTimeoutToTransactions(
+      createDatabaseInstance(env.DATABASE_URL ?? "", {}),
+      1234
+    );
+  });
+
+  afterAll(async () => {
+    await instance.close();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const showTimeout = (transaction?: Transaction) =>
+    instance.query<{ statement_timeout: string }>("SHOW statement_timeout", {
+      type: QueryTypes.SELECT,
+      transaction,
+    });
+
+  it("should set the timeout in the statement that begins the transaction", async () => {
+    const spy = vi.spyOn(instance, "query");
+
+    const rows = await instance.transaction(showTimeout);
+
+    expect(rows).toEqual([{ statement_timeout: "1234ms" }]);
+    expect(spy.mock.calls.map(([sql]) => sql)).toEqual([
+      "START TRANSACTION; SET LOCAL statement_timeout = 1234;",
+      "SHOW statement_timeout",
+      "COMMIT;",
+    ]);
+  });
+
+  it("should not set the timeout again for a savepoint", async () => {
+    const spy = vi.spyOn(instance, "query");
+
+    const rows = await instance.transaction((transaction) =>
+      instance.transaction({ transaction }, showTimeout)
+    );
+
+    expect(rows).toEqual([{ statement_timeout: "1234ms" }]);
+    expect(
+      spy.mock.calls.filter(
+        ([sql]) => typeof sql === "string" && sql.includes("SET LOCAL")
+      )
+    ).toHaveLength(1);
+  });
+
+  it("should not leak the timeout outside of the transaction", async () => {
+    await instance.transaction(showTimeout);
+
+    const rows = await showTimeout();
+
+    expect(rows).not.toEqual([{ statement_timeout: "1234ms" }]);
   });
 });

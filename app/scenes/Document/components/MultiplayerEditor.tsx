@@ -1,4 +1,4 @@
-import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
+import { WebSocketStatus } from "@hocuspocus/provider";
 import { throttle } from "es-toolkit/compat";
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import {
@@ -6,9 +6,9 @@ import {
   useLayoutEffect,
   useMemo,
   useEffect,
-  forwardRef,
+  useEffectEvent,
   useRef,
-  type ForwardedRef,
+  type Ref,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -18,56 +18,44 @@ import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
-import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
-import { IndexeddbPersistence } from "~/utils/IndexeddbPersistence";
 import Logger from "~/utils/Logger";
+import {
+  CollaborationProvider,
+  type ConnectionMessageEvent,
+  type ConnectionStatusEvent,
+} from "~/utils/multiplayer/CollaborationProvider";
+import { IndexeddbPersistence } from "~/utils/multiplayer/IndexeddbPersistence";
 import { homePath } from "~/utils/routeHelpers";
 import { sleep } from "@shared/utils/timers";
 
 type Props = EditorProps & {
   id: string;
   onSynced?: () => Promise<void>;
+  ref?: Ref<SharedEditor>;
 };
 
-export type ConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | void;
-
-type ConnectionStatusEvent = { status: ConnectionStatus };
-
-type MessageEvent = {
-  message: string;
-  event: Event & {
-    code?: number;
-  };
-};
-
-function MultiplayerEditor(
-  { onSynced, ...props }: Props,
-  ref: ForwardedRef<SharedEditor>
-) {
+function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const retryCount = useRef(0);
   const { presence, auth, ui } = useStores();
+  const documentContext = useDocumentContext();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
-  const [remoteProvider, setRemoteProvider] = useState<HocuspocusProvider>();
+  const [remoteProvider, setRemoteProvider] = useState<CollaborationProvider>();
   const [hasLocalPersistence, setHasLocalPersistence] = useState(true);
   const [isLocalSynced, setLocalSynced] = useState(false);
   const [isRemoteSynced, setRemoteSynced] = useState(false);
@@ -75,7 +63,6 @@ function MultiplayerEditor(
   const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
-  const isMounted = useIsMounted();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -96,7 +83,7 @@ function MultiplayerEditor(
       setHasLocalPersistence(false);
     }
 
-    const provider = new HocuspocusProvider({
+    const provider = new CollaborationProvider({
       parameters: {
         editorVersion: EDITOR_VERSION,
       },
@@ -104,6 +91,7 @@ function MultiplayerEditor(
       name,
       document: ydoc,
       token,
+      localProvider,
     });
 
     const syncScrollPosition = throttle(() => {
@@ -121,11 +109,7 @@ function MultiplayerEditor(
 
     window.addEventListener("click", finishObserving);
     window.addEventListener("wheel", finishObserving);
-    window.addEventListener(
-      "scroll",
-      syncScrollPosition,
-      supportsPassiveListener ? { passive: true } : false
-    );
+    window.addEventListener("scroll", syncScrollPosition, { passive: true });
 
     provider.on("authenticationFailed", () => {
       provider.shouldConnect = false;
@@ -167,14 +151,23 @@ function MultiplayerEditor(
     const showCursorNames = () => {
       setShowCursorNames(true);
       setTimeout(() => {
-        if (isMounted()) {
-          setShowCursorNames(false);
-        }
+        setShowCursorNames(false);
       }, 2000);
       provider.off("awarenessChange", showCursorNames);
     };
 
     provider.on("awarenessChange", showCursorNames);
+
+    const syncState = () => {
+      documentContext.setMultiplayerSyncState(
+        provider.hasPendingChanges,
+        provider.hasLocalPersistence
+      );
+    };
+
+    provider.on("syncStateChange", syncState);
+    syncState();
+
     localProvider?.whenSynced
       .then(() => {
         if (!isActive || !localProvider.synced) {
@@ -198,14 +191,14 @@ function MultiplayerEditor(
       retryCount.current = 0;
     });
 
-    provider.on("close", (ev: MessageEvent) => {
+    provider.on("close", (ev: ConnectionMessageEvent) => {
       if ("code" in ev.event) {
         // Note other close code are handled internally by the library
         if (ev.event.code === EditorUpdateError.code) {
           provider.shouldConnect = false;
         }
 
-        ui.setMultiplayerStatus("disconnected", ev.event.code);
+        documentContext.setMultiplayerStatus("disconnected", ev.event.code);
 
         if (ev.event.code === EditorUpdateError.code) {
           setEditorVersionBehind(true);
@@ -214,15 +207,15 @@ function MultiplayerEditor(
     });
 
     if (debug) {
-      provider.on("close", (ev: MessageEvent) =>
+      provider.on("close", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "close", ev)
       );
-      provider.on("message", (ev: MessageEvent) =>
+      provider.on("message", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "incoming", {
           message: ev.message,
         })
       );
-      provider.on("outgoingMessage", (ev: MessageEvent) =>
+      provider.on("outgoingMessage", (ev: ConnectionMessageEvent) =>
         Logger.debug("collaboration", "outgoing", {
           message: ev.message,
         })
@@ -230,8 +223,8 @@ function MultiplayerEditor(
     }
 
     provider.on("status", (ev: ConnectionStatusEvent) => {
-      if (ui.multiplayerStatus !== ev.status) {
-        ui.setMultiplayerStatus(ev.status, undefined);
+      if (documentContext.multiplayerStatus !== ev.status) {
+        documentContext.setMultiplayerStatus(ev.status, undefined);
       }
     });
 
@@ -245,20 +238,21 @@ function MultiplayerEditor(
       provider?.destroy();
       void localProvider?.destroy();
       setRemoteProvider(undefined);
-      ui.setMultiplayerStatus(undefined, undefined);
+      documentContext.setMultiplayerStatus(undefined, undefined);
+      documentContext.setMultiplayerSyncState(false, true);
     };
     // `token` is intentionally omitted, it is only read when establishing the
     // connection and a refreshed token must not tear down the provider.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     history,
     t,
     documentId,
     ui,
+    documentContext,
     presence,
     ydoc,
     currentUser.id,
-    isMounted,
     auth,
   ]);
 
@@ -290,11 +284,14 @@ function MultiplayerEditor(
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
+  // Run the callback once per sync, not per identity change.
+  const onSyncedEvent = useEffectEvent(() => onSynced?.());
+
   useEffect(() => {
     if ((!hasLocalPersistence || isLocalSynced) && isRemoteSynced) {
-      void onSynced?.();
+      void onSyncedEvent();
     }
-  }, [onSynced, hasLocalPersistence, isLocalSynced, isRemoteSynced]);
+  }, [hasLocalPersistence, isLocalSynced, isRemoteSynced]);
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
@@ -407,4 +404,4 @@ function hasContent(value: Props["defaultValue"]): boolean {
   return !ProsemirrorDataHelper.isEmpty(value);
 }
 
-export default forwardRef<SharedEditor, Props>(MultiplayerEditor);
+export default MultiplayerEditor;

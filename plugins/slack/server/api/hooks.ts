@@ -1,16 +1,12 @@
 import { t } from "i18next";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
 import { z } from "zod";
 import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import {
-  AuthenticationError,
-  InvalidRequestError,
-  ValidationError,
-} from "@server/errors";
+import { AuthenticationError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import validate from "@server/middlewares/validate";
 import {
@@ -20,7 +16,6 @@ import {
   Team,
   SearchQuery,
   Integration,
-  IntegrationAuthentication,
   AuthenticationProvider,
   Comment,
 } from "@server/models";
@@ -63,23 +58,22 @@ router.post(
       return;
     }
 
-    const auth = await IntegrationAuthentication.findOne({
+    const integration = await Integration.scope("withAuthentication").findOne({
       where: {
         service: IntegrationService.Slack,
+        type: IntegrationType.Command,
         teamId: user.teamId,
       },
+      order: [["createdAt", "DESC"]],
     });
 
-    if (!auth) {
-      Logger.debug(
-        "plugins",
-        "No Slack integration authentication found for team",
-        {
-          teamId: user.teamId,
-        }
-      );
+    if (!integration) {
+      Logger.debug("plugins", "No Slack command integration found for team", {
+        teamId: user.teamId,
+      });
       return;
     }
+
     // get content for unfurled links
     const unfurls: Record<
       string,
@@ -103,7 +97,7 @@ router.post(
             }
 
             unfurls[link.url] = {
-              title: t(`Comment by {{ author }} on "{{ title }}"`, {
+              title: t("Comment by {{ author }} on “{{ title }}”", {
                 author: comment.createdBy.name,
                 title: doc.title,
                 ...opts(user),
@@ -122,7 +116,7 @@ router.post(
     }
 
     await Slack.post("chat.unfurl", {
-      token: auth.token,
+      token: integration.authentication.token,
       channel: event.channel,
       ts: event.message_ts,
       unfurls,
@@ -140,22 +134,21 @@ router.post(
   validate(T.HooksInteractiveSchema),
   async (ctx: APIContext<T.HooksInteractiveReq>) => {
     const { payload } = ctx.input.body;
-    let callback_id, token;
+    let parsed;
 
     try {
       // https://api.slack.com/interactivity/handling#payloads
       const data = JSON.parse(payload);
 
-      const parsed = z
+      parsed = z
         .object({
           type: z.string(),
           callback_id: z.string(),
           token: z.string(),
+          user: z.object({ id: z.string() }).optional(),
+          team: z.object({ id: z.string() }).optional(),
         })
         .parse(data);
-
-      callback_id = parsed.callback_id;
-      token = parsed.token;
     } catch (err) {
       Logger.error("Failed to parse Slack interactive payload", toError(err), {
         payload,
@@ -163,17 +156,36 @@ router.post(
       throw ValidationError("Invalid payload");
     }
 
-    verifySlackToken(token);
+    verifySlackToken(parsed.token);
 
-    // we find the document based on the users teamId to ensure access
-    const document =
-      await Document.scope("withCollection").findByPk(callback_id);
-
-    if (!document) {
-      throw InvalidRequestError("Invalid callback_id");
+    if (!parsed.user || !parsed.team) {
+      throw ValidationError("Payload must include user and team");
     }
 
-    const team = await Team.findByPk(document.teamId, { rejectOnEmpty: true });
+    const user = await findUserForRequest(parsed.team.id, parsed.user.id);
+    if (!user) {
+      ctx.body = {
+        response_type: "ephemeral",
+        replace_original: false,
+        blocks: presentUserNotLinkedBlocks(
+          await findTeamForRequest(parsed.team.id)
+        ),
+      };
+      return;
+    }
+
+    const document = await Document.findByPk(parsed.callback_id, {
+      userId: user.id,
+    });
+
+    if (!document || !can(user, "read", document)) {
+      ctx.body = {
+        response_type: "ephemeral",
+        replace_original: false,
+        text: t("You do not have access to this document", opts(user)),
+      };
+      return;
+    }
 
     // respond with a public message that will be posted in the original channel
     ctx.body = {
@@ -182,7 +194,7 @@ router.post(
       attachments: [
         presentMessageAttachment(
           document,
-          team,
+          user.team,
           document.collection,
           document.getSummary()
         ),
@@ -212,7 +224,7 @@ router.post(
         attachments: [
           {
             text: t(
-              "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.",
+              "To search your workspace use {{ command }}.\nType {{ command2 }} help to display this help text.",
               {
                 command: `/outline keyword`,
                 command2: `/outline`,
@@ -280,7 +292,7 @@ router.post(
       }
 
       ctx.body = {
-        text: t(`This is what we found for "{{ term }}"`, {
+        text: t("This is what we found for “{{ term }}”", {
           ...opts(user),
           term: text,
         }),
@@ -288,7 +300,7 @@ router.post(
       };
     } else {
       ctx.body = {
-        text: t(`No results for "{{ term }}"`, {
+        text: t("No results for “{{ term }}”", {
           ...opts(user),
           term: text,
         }),

@@ -5,6 +5,7 @@ import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
+import { Hour } from "@shared/utils/time";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
   CollectionPermission,
@@ -146,6 +147,19 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
     event: SubscriptionType.Document,
     ...overrides,
   });
+}
+
+/**
+ * Builds a random team subdomain that is unique across parallel test files.
+ *
+ * @returns a valid, unique subdomain string.
+ */
+export function buildSubdomain() {
+  return `${faker.word.noun().toLowerCase()}-${randomString({
+    length: 8,
+    charset: "alphanumeric",
+    capitalization: "lowercase",
+  })}`;
 }
 
 export function buildTeam(
@@ -324,6 +338,27 @@ export async function buildCollection(
   });
 }
 
+/**
+ * Build the personal collection of a user.
+ *
+ * @param owner The user that owns the collection.
+ * @param overrides Attributes to set on the collection.
+ * @returns the personal collection.
+ */
+export async function buildPersonalCollection(
+  owner: User,
+  overrides: Partial<Collection> = {}
+) {
+  return buildCollection({
+    name: "Personal",
+    ...overrides,
+    teamId: owner.teamId,
+    userId: owner.id,
+    ownerId: owner.id,
+    permission: null,
+  });
+}
+
 export async function buildGroup(
   overrides: Partial<Group> & { userId?: string } = {}
 ) {
@@ -374,15 +409,7 @@ export async function buildDraftDocument(
 }
 
 export async function buildDocument(
-  // Omission first, addition later?
-  // This is actually a workaround to allow
-  // passing collectionId as null. Ideally, it
-  // should be updated in the Document model itself
-  // but that'd cascade and require further changes
-  // beyond the scope of what's required now
-  overrides: Omit<Partial<Document>, "collectionId"> & { userId?: string } & {
-    collectionId?: string | null;
-  } = {}
+  overrides: Partial<Document> & { userId?: string } = {}
 ) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -832,14 +859,14 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
 }
 
 export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
-  if (!overrides.teamId) {
+  if (overrides.teamId === undefined) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
   if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
-      teamId: overrides.teamId,
+      teamId: overrides.teamId ?? undefined,
     });
     overrides.createdById = user.id;
   }
@@ -861,9 +888,33 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
   );
 }
 
-export async function buildOAuthAuthorizationCode(
-  overrides: Partial<OAuthAuthorizationCode> = {}
+/**
+ * Build an OAuth client that is identified by a client ID metadata document.
+ *
+ * @param overrides Attributes to override on the client.
+ * @returns The created OAuth client.
+ */
+export async function buildMetadataDocumentOAuthClient(
+  overrides: Partial<OAuthClient> = {}
 ) {
+  return buildOAuthClient({
+    clientId: `https://${randomUUID()}.example.com/oauth/client.json`,
+    clientType: "public",
+    published: false,
+    teamId: null,
+    createdById: null,
+    metadataExpiresAt: new Date(Date.now() + Hour.ms),
+    ...overrides,
+  });
+}
+
+export async function buildOAuthAuthorizationCode({
+  code = randomString(32),
+  ...overrides
+}: Partial<OAuthAuthorizationCode> & {
+  /** The plaintext code, used to exchange the code in a test. */
+  code?: string;
+} = {}) {
   if (!overrides.userId) {
     const user = await buildUser();
     overrides.userId = user.id;
@@ -872,8 +923,6 @@ export async function buildOAuthAuthorizationCode(
   if (!overrides.expiresAt) {
     overrides.expiresAt = new Date();
   }
-
-  const code = randomString(32);
 
   let client;
   if (overrides.oauthClientId) {

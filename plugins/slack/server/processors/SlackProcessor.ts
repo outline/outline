@@ -26,8 +26,6 @@ export default class SlackProcessor extends BaseProcessor {
     switch (event.name) {
       case "documents.publish":
       case "revisions.create":
-        // wait a few seconds to give the document summary chance to be generated
-        await sleep(5000);
         return this.documentUpdated(event);
 
       case "integrations.create":
@@ -85,11 +83,9 @@ export default class SlackProcessor extends BaseProcessor {
     if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
-    const [document, team] = await Promise.all([
-      Document.findByPk(event.documentId),
-      Team.findByPk(event.teamId),
-    ]);
-    if (!document || !team) {
+
+    const document = await Document.findByPk(event.documentId);
+    if (!document) {
       return;
     }
 
@@ -124,10 +120,22 @@ export default class SlackProcessor extends BaseProcessor {
     if (!integration) {
       return;
     }
-    let text = `${document.updatedBy.name} updated "${document.titleWithDefault}"`;
+
+    // wait a few seconds to give the document summary chance to be generated
+    await sleep(5000);
+
+    const [latest, team] = await Promise.all([
+      Document.findByPk(event.documentId),
+      Team.findByPk(event.teamId),
+    ]);
+    if (!latest?.publishedAt || !team) {
+      return;
+    }
+
+    let text = `${latest.updatedBy.name} updated "${latest.displayTitle}"`;
 
     if (event.name === "documents.publish") {
-      text = `${document.createdBy.name} published "${document.titleWithDefault}"`;
+      text = `${latest.createdBy.name} published "${latest.displayTitle}"`;
     }
 
     await fetch(integration.settings.url, {
@@ -138,7 +146,7 @@ export default class SlackProcessor extends BaseProcessor {
       body: JSON.stringify({
         text,
         attachments: [
-          presentMessageAttachment(document, team, document.collection),
+          presentMessageAttachment(latest, team, latest.collection),
         ],
       }),
     });

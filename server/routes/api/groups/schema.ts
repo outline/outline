@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { GroupPermission } from "@shared/types";
 import { GroupValidation } from "@shared/validations";
+import { ValidateColor } from "@server/validation";
 import { Group } from "@server/models";
+import { zodIconType } from "@server/utils/zod";
 
 const BaseIdSchema = z.object({
   /** Group Id */
@@ -61,6 +63,13 @@ export const GroupsCreateSchema = z.object({
       .string()
       .max(GroupValidation.maxDescriptionLength)
       .optional(),
+    /** Group icon or emoji */
+    icon: zodIconType().nullish(),
+    /** Group icon color */
+    color: z
+      .string()
+      .regex(ValidateColor.regex, { message: ValidateColor.message })
+      .nullish(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
     /** Whether mentions are disabled for this group */
@@ -79,6 +88,13 @@ export const GroupsUpdateSchema = z.object({
       .string()
       .max(GroupValidation.maxDescriptionLength)
       .optional(),
+    /** Group icon or emoji */
+    icon: zodIconType().nullish(),
+    /** Group icon color */
+    color: z
+      .string()
+      .regex(ValidateColor.regex, { message: ValidateColor.message })
+      .nullish(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
     /** Whether mentions are disabled for this group */

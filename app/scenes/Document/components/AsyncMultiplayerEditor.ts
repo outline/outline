@@ -1,4 +1,4 @@
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const MultiplayerEditor = lazyWithRetry(() => import("./MultiplayerEditor"));
 

@@ -1,8 +1,8 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Op } from "sequelize";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UserRole } from "@shared/types";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -16,6 +16,8 @@ import {
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { ClientMetadataHelper } from "@server/utils/oauth/ClientMetadataHelper";
+import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -76,19 +78,28 @@ router.post(
 );
 router.post(
   "oauthClients.info",
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   auth(),
   validate(T.OAuthClientsInfoSchema),
   async (ctx: APIContext<T.OAuthClientsInfoReq>) => {
     const { id, clientId, redirectUri } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const oauthClient = await OAuthClient.findOne({
-      where: clientId ? { clientId } : { id },
-      rejectOnEmpty: true,
-    });
+    const oauthClient = clientId
+      ? await ClientMetadataHelper.findOrFetchByClientId(clientId, user.team)
+      : await OAuthClient.findByPk(id);
+    if (!oauthClient) {
+      throw NotFoundError();
+    }
     authorize(user, "read", oauthClient);
 
-    if (redirectUri && !oauthClient.redirectUris.includes(redirectUri)) {
+    if (
+      redirectUri &&
+      !OAuthHelper.isRegisteredRedirectUri(
+        oauthClient.redirectUris,
+        redirectUri
+      )
+    ) {
       throw ValidationError("redirect_uri is invalid");
     }
 

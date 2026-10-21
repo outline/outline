@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { dateToRelative } from "@shared/utils/date";
 import type { Props as LocaleTimeProps } from "~/components/LocaleTime";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const LocaleTime = lazyWithRetry(() => import("~/components/LocaleTime"));
 

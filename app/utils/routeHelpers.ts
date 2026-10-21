@@ -1,8 +1,10 @@
 import queryString from "query-string";
+import { sharedModelPath as sharedModelPathBase } from "@shared/utils/routeHelpers";
 import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
 import type Document from "~/models/Document";
 import env from "~/env";
+import Desktop from "~/utils/Desktop";
 
 /**
  * Returns the path to the home screen.
@@ -298,11 +300,7 @@ export function searchPath({
  * @returns the path to the shared model.
  */
 export function sharedModelPath(shareId: string, modelPath?: string) {
-  if (shareId === env.ROOT_SHARE_ID) {
-    return modelPath ? modelPath : "/";
-  }
-
-  return modelPath ? `/s/${shareId}${modelPath}` : `/s/${shareId}`;
+  return sharedModelPathBase(shareId, modelPath, env.ROOT_SHARE_ID);
 }
 
 /**
@@ -320,14 +318,14 @@ export function urlify(
 }
 
 /**
- * Converts a path to a desktop app URL using the outline:// protocol.
+ * Converts a path to a desktop app URL using the desktop app's custom protocol.
  *
  * @param path The path to convert.
  * @param origin Optional origin to use instead of `window.location.origin`.
  * @returns The desktop app URL.
  */
 export function desktopify(path: string, origin?: string): string {
-  return urlify(path, origin).replace(/^https?:\/\//, "outline://");
+  return urlify(path, origin).replace(/^https?:\/\//, `${Desktop.protocol}://`);
 }
 
 /** Route matcher for a collection slug. */

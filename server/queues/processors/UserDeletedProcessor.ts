@@ -1,5 +1,6 @@
 import {
   ApiKey,
+  Collection,
   GroupUser,
   OAuthAuthentication,
   Star,
@@ -60,6 +61,17 @@ export default class UserDeletedProcessor extends BaseProcessor {
         },
         transaction,
       });
+      // The personal collection becomes an ordinary private collection, so
+      // that admins can recover the documents in it.
+      await Collection.update(
+        { ownerId: null },
+        {
+          where: {
+            ownerId: event.userId,
+          },
+          transaction,
+        }
+      );
       await WebhookSubscription.update(
         { enabled: false },
         {

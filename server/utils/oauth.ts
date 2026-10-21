@@ -47,8 +47,8 @@ export function generateOAuthStateNonce(
  * @param ctx The Koa context for the callback request.
  * @param cookieName The cookie used to persist the nonce, unique per provider.
  * @param stateNonce The nonce extracted from the parsed OAuth state.
- * @throws {OAuthStateMismatchError} When the cookie is missing or does not
- *   match the supplied nonce.
+ * @throws {OAuthStateMismatchError} When the cookie or state nonce is missing,
+ *   or when they do not match.
  */
 export function verifyOAuthStateNonce(
   ctx: Context,
@@ -62,6 +62,14 @@ export function verifyOAuthStateNonce(
     expires: subMinutes(new Date(), 1),
     domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
   });
+
+  if (!cookieNonce) {
+    throw OAuthStateMismatchError("OAuth state cookie was missing");
+  }
+
+  if (!stateNonce) {
+    throw OAuthStateMismatchError("State returned in OAuth flow was missing");
+  }
 
   if (!safeEqual(cookieNonce, stateNonce)) {
     throw OAuthStateMismatchError();

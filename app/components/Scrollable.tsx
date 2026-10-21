@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { mergeRefs } from "react-merge-refs";
+import { useMergeRefs } from "react-merge-refs";
 import styled, { css } from "styled-components";
 import { hideScrollbars } from "@shared/styles";
 
@@ -19,30 +19,28 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
   flex?: boolean;
   /** Custom overflow style */
   overflow?: string;
+  /** Ref to the scrollable div element */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
  * A scrollable container component with optional shadow indicators and custom scrollbar styling.
  *
  * @param props - component properties.
- * @param ref - forwarded ref to the scrollable div element.
  * @returns the scrollable container element.
  */
-function Scrollable(
-  {
-    shadow,
-    topShadow,
-    bottomShadow,
-    hiddenScrollbars,
-    fadeTo,
-    flex,
-    overflow,
-    children,
-    ...rest
-  }: Props,
-  ref: React.Ref<HTMLDivElement>
-) {
-  const localRef = React.useRef<HTMLDivElement>(null);
+function Scrollable({
+  shadow,
+  topShadow,
+  bottomShadow,
+  hiddenScrollbars,
+  fadeTo,
+  flex,
+  overflow,
+  children,
+  ref,
+  ...rest
+}: Props) {
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
 
@@ -54,40 +52,51 @@ function Scrollable(
   const trackTop = !!(shadow || topShadow || fadeTop);
   const trackBottom = !!(shadow || bottomShadow || fadeBottom);
 
-  const updateShadows = React.useCallback(() => {
-    const c = localRef.current;
-    if (!c) {
-      return;
-    }
-    const scrollTop = c.scrollTop;
-    setTopShadow(trackTop && scrollTop > 0);
+  const updateShadows = React.useCallback(
+    (c: HTMLDivElement) => {
+      const scrollTop = c.scrollTop;
+      setTopShadow(trackTop && scrollTop > 0);
 
-    const wrapperHeight = c.scrollHeight - c.clientHeight;
-    setBottomShadow(trackBottom && wrapperHeight - scrollTop > 1);
-  }, [trackTop, trackBottom]);
+      const wrapperHeight = c.scrollHeight - c.clientHeight;
+      setBottomShadow(trackBottom && wrapperHeight - scrollTop > 1);
+    },
+    [trackTop, trackBottom]
+  );
 
-  React.useEffect(() => {
-    const c = localRef.current;
-    if (!c) {
-      return;
-    }
+  const handleScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      updateShadows(event.currentTarget);
+    },
+    [updateShadows]
+  );
 
-    updateShadows();
+  // Observe the container and its children for size changes.
+  const observeRef = React.useCallback(
+    (c: HTMLDivElement | null) => {
+      if (!c) {
+        return;
+      }
 
-    const observer = new ResizeObserver(updateShadows);
-    observer.observe(c);
+      updateShadows(c);
 
-    for (const child of Array.from(c.children)) {
-      observer.observe(child);
-    }
+      const observer = new ResizeObserver(() => updateShadows(c));
+      observer.observe(c);
 
-    return () => observer.disconnect();
-  }, [updateShadows]);
+      for (const child of Array.from(c.children)) {
+        observer.observe(child);
+      }
+
+      return () => observer.disconnect();
+    },
+    [updateShadows]
+  );
+
+  const mergedRef = useMergeRefs([observeRef, ref]);
 
   return (
     <Wrapper
-      ref={mergeRefs([localRef, ref])}
-      onScroll={updateShadows}
+      ref={mergedRef}
+      onScroll={handleScroll}
       $flex={flex}
       $hiddenScrollbars={hiddenScrollbars}
       $topShadowVisible={topShadowVisible && !fadeTop}
@@ -172,4 +181,4 @@ const Wrapper = styled.div<{
   ${(props) => props.$hiddenScrollbars && hideScrollbars()}
 `;
 
-export default observer(React.forwardRef(Scrollable));
+export default observer(Scrollable);

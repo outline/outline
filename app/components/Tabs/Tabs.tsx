@@ -44,9 +44,12 @@ const Nav = styled.nav<{ $shadowVisible?: boolean }>`
 
 // When sticky we need extra background coverage around the sides otherwise
 // items that scroll past can "stick out" the sides of the heading
+/** Offset from the top of the viewport at which the tab bar sticks. */
+const StickyTop = 54;
+
 const Sticky = styled.div`
   position: sticky;
-  top: 54px;
+  top: ${StickyTop}px;
   margin: 0 -8px;
   padding: 0 8px;
   background: ${s("background")};
@@ -76,6 +79,7 @@ export const TabsGroup: React.FC<Props> = ({ children }: Props) => {
 
 export const Tabs: React.FC<Props> = ({ children }: Props) => {
   const ref = React.useRef<HTMLElement>(null);
+  const stickyRef = React.useRef<HTMLDivElement>(null);
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
 
@@ -97,9 +101,29 @@ export const Tabs: React.FC<Props> = ({ children }: Props) => {
     updateShadows();
   }, [width, updateShadows]);
 
+  // Mark the tab bar while it is stuck so the header above can style itself to match.
+  React.useEffect(() => {
+    const sticky = stickyRef.current;
+    if (!sticky) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        sticky.toggleAttribute(
+          "data-stuck",
+          entry.intersectionRatio < 1 &&
+            entry.boundingClientRect.top <= StickyTop + 1
+        );
+      },
+      { threshold: 1, rootMargin: `-${StickyTop + 1}px 0px 0px 0px` }
+    );
+    observer.observe(sticky);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <TabsGroup>
-      <Sticky>
+      <Sticky ref={stickyRef} data-sticky-tabs>
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
         </Nav>

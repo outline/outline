@@ -102,11 +102,11 @@ export default class CommentCreatedEmail extends BaseEmail<
     const trimmedText =
       commentText.length <= MAX_SUBJECT_CONTENT
         ? commentText
-        : `${commentText.slice(0, MAX_SUBJECT_CONTENT)}...`;
+        : `${commentText.slice(0, MAX_SUBJECT_CONTENT)}…`;
 
     return `${parentComment ? this.t("Re") + ": " : ""}${this.t(
-      "New comment on “{{ documentTitle }}” - {{ trimmedText }}",
-      { documentTitle: document.titleWithDefault, trimmedText }
+      "New comment on “{{ documentTitle }}” – {{ trimmedText }}",
+      { documentTitle: document.displayTitle, trimmedText }
     )}`;
   }
 
@@ -140,11 +140,11 @@ export default class CommentCreatedEmail extends BaseEmail<
     const action = isReply
       ? this.t("{{ actorName }} replied to a thread in “{{ documentTitle }}”", {
           actorName,
-          documentTitle: document.titleWithDefault,
+          documentTitle: document.displayTitle,
         })
       : this.t("{{ actorName }} commented on “{{ documentTitle }}”", {
           actorName,
-          documentTitle: document.titleWithDefault,
+          documentTitle: document.displayTitle,
         });
     const inCollection = collection?.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
@@ -178,16 +178,16 @@ ${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {isReply
               ? this.t("{{ actorName }} replied to a thread in", { actorName })
               : this.t("{{ actorName }} commented on", { actorName })}{" "}
-            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
+            <a href={threadLink}>{document.displayTitle}</a>
             {collection?.name
-              ? this.t("in the {{ collectionName }} collection", {
+              ? ` ${this.t("in the {{ collectionName }} collection", {
                   collectionName: collection.name,
-                })
+                })}`
               : ""}
             .
           </p>

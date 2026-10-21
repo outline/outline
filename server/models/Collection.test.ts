@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
 import { createContext } from "@server/context";
@@ -15,6 +16,29 @@ import Document from "./Document";
 
 beforeEach(() => {
   vi.resetAllMocks();
+});
+
+describe("#updateDeprecatedReason", () => {
+  it("should reject a reason when a stale collection has already been restored", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+      archivedAt: new Date(),
+    });
+    await Collection.update(
+      { archivedAt: null },
+      { where: { id: collection.id } }
+    );
+
+    await expect(
+      withAPIContext(user, (ctx) =>
+        collection.updateDeprecatedReason(ctx, "Outdated")
+      )
+    ).rejects.toThrow("The collection must be archived");
+    await collection.reload();
+    expect(collection.deprecatedReason).toBeNull();
+  });
 });
 
 describe("#url", () => {
@@ -545,6 +569,23 @@ describe("#findByPk", () => {
         rejectOnEmpty: error,
       })
     ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is malformed", async () => {
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
+
+    const error = new Error("does not exist");
+    await expect(
+      Collection.findByPk("not a valid id", { rejectOnEmpty: error })
+    ).rejects.toThrow(error);
+  });
+
+  it("should throw when rejectOnEmpty is set and the id is not a string", async () => {
+    await expect(
+      Collection.findByPk(123, { rejectOnEmpty: true })
+    ).rejects.toThrow(EmptyResultError);
   });
 
   it("should not return documentStructure by default", async () => {

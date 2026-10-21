@@ -160,7 +160,7 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         name="name"
         label={t("New name")}
         onChange={handleChange}
-        error={!name ? t("Name can't be empty") : undefined}
+        error={!name ? t("Name can’t be empty") : undefined}
         value={name}
         maxLength={UserValidation.maxNameLength}
         showCharacterCount
@@ -265,7 +265,7 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
         name="email"
         label={t("New email")}
         onChange={handleChange}
-        error={!email ? t("Email can't be empty") : error}
+        error={!email ? t("Email can’t be empty") : error}
         value={email}
         maxLength={UserValidation.maxEmailLength}
         showCharacterCount

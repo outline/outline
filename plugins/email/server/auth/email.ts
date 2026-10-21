@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { errToString } from "@shared/utils/error";
 import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";

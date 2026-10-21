@@ -1,5 +1,5 @@
 import type { Context, Next } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Op } from "sequelize";
 import { randomString, randomElement } from "@shared/random";
 import { NotificationEventType } from "@shared/types";

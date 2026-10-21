@@ -1,9 +1,10 @@
-/* oxlint-disable no-irregular-whitespace */
-import { lighten, transparentize } from "polished";
+import { lighten, mix, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
 import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
+import { light } from "../../styles/theme";
+import { blendColors } from "../../utils/color";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -23,6 +24,23 @@ export const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
 `;
+
+/** A file that is added to the document scales in. */
+const uploadScaleIn = keyframes`
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+`;
+
+/** The frame of a file in the editor, which holds the progress bar of an upload. */
+const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
+
+/** The content of a file in the editor, without its frame or hidden controls. */
+const uploadContent = [
+  `.${EditorStyleHelper.imageWrapper} > :is(a, img, .${EditorStyleHelper.imageHandle})`,
+  `.${EditorStyleHelper.videoWrapper} > video`,
+  ".widget > *",
+  `.${EditorStyleHelper.pdfWrapper} > :is(:first-child, embed)`,
+].join(", ");
 
 export const pulse = (color: string) => keyframes`
   0% { box-shadow: 0 0 0 1px ${color} }
@@ -46,6 +64,64 @@ const codeMarkCursor = () => css`
     z-index: 1;
   }
 `;
+
+/**
+ * Builds the colors and fonts of rendered diagrams from a theme.
+ *
+ * @param theme the theme to use.
+ * @returns the CSS declarations for a diagram container.
+ */
+const diagramTheme = (theme: DefaultTheme) => css`
+  background: ${theme.codeBackground};
+  border: 1px solid ${theme.codeBorder};
+  --pele-bg: ${theme.codeBackground};
+  --pele-fg: ${theme.text};
+  --pele-muted: ${theme.textSecondary};
+  --pele-line: ${theme.textSecondary};
+  --pele-surface: ${theme.background};
+  --pele-surface-alt: ${theme.backgroundSecondary};
+  --pele-border: ${theme.inputBorder};
+  --pele-accent: ${theme.accent};
+  --pele-critical: ${theme.danger};
+  --pele-font: ${theme.fontFamily};
+  --pele-font-mono: ${theme.fontFamilyMono};
+`;
+
+/**
+ * Builds the colors of a notice block from its base and text colors. The tint
+ * is not opaque, so colors for content in the notice are blended onto it.
+ *
+ * @param theme the current theme.
+ * @param base the base color of the notice.
+ * @param text the color of the notice text and icon.
+ * @returns the css for the notice colors.
+ */
+const noticeColors = (theme: DefaultTheme, base: string, text: string) => {
+  const opacity = theme.isDark ? 0.15 : 0.08;
+  const background = mix(opacity, base, theme.background);
+  const blend = (value: string) =>
+    blendColors(value, background, theme.isDark ? "screen" : "multiply");
+  const divider = blend(theme.divider);
+
+  return css`
+    background: ${transparentize(1 - opacity, base)};
+    border: 1px solid ${transparentize(theme.isDark ? 0.6 : 0.7, base)};
+    color: ${text};
+
+    --notice-background: ${background};
+    --notice-divider: ${divider};
+    --notice-table-header: ${mix(0.25, divider, background)};
+    --notice-code-background: ${blend(theme.codeBackground)};
+    --notice-code-border: ${blend(theme.codeBorder)};
+    --table-grip: ${divider};
+    --table-grip-border: ${background};
+
+    a,
+    .${EditorStyleHelper.noticeIcon} {
+      color: ${text};
+    }
+  `;
+};
 
 const mathStyle = (props: Props) => css`
   /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
@@ -285,7 +361,7 @@ const codeBlockStyle = (props: Props) => css`
 
 const diffStyle = (props: Props) => css`
   .${EditorStyleHelper.diffNodeInsertion},
-    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
   .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -311,19 +387,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeInsertion}.math-node,
-    ul.${EditorStyleHelper.diffNodeInsertion},
-    li.${EditorStyleHelper.diffNodeInsertion} {
+  .${EditorStyleHelper.diffNodeInsertion}.math-node,
+  ul.${EditorStyleHelper.diffNodeInsertion},
+  li.${EditorStyleHelper.diffNodeInsertion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeInsertion},
-    th.${EditorStyleHelper.diffNodeInsertion} {
+  th.${EditorStyleHelper.diffNodeInsertion} {
     border-color: ${props.theme.textDiffInsertedBackground};
   }
 
   .${EditorStyleHelper.diffNodeDeletion},
-    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
   .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
@@ -353,19 +429,19 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
-    .${EditorStyleHelper.diffNodeDeletion}.math-node,
-    ul.${EditorStyleHelper.diffNodeDeletion},
-    li.${EditorStyleHelper.diffNodeDeletion} {
+  .${EditorStyleHelper.diffNodeDeletion}.math-node,
+  ul.${EditorStyleHelper.diffNodeDeletion},
+  li.${EditorStyleHelper.diffNodeDeletion} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeDeletion},
-    th.${EditorStyleHelper.diffNodeDeletion} {
+  th.${EditorStyleHelper.diffNodeDeletion} {
     border-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .${EditorStyleHelper.diffNodeModification},
-    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification}:not([class^="component-"]),
   .${EditorStyleHelper.diffModification} > * {
     color: ${props.theme.text};
     background-color: ${transparentize(0.7, "#FFA500")};
@@ -392,14 +468,14 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeModification}[class*="component-"],
-    .${EditorStyleHelper.diffNodeModification}.math-node,
-    ul.${EditorStyleHelper.diffNodeModification},
-    li.${EditorStyleHelper.diffNodeModification} {
+  .${EditorStyleHelper.diffNodeModification}.math-node,
+  ul.${EditorStyleHelper.diffNodeModification},
+  li.${EditorStyleHelper.diffNodeModification} {
     border-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td.${EditorStyleHelper.diffNodeModification},
-    th.${EditorStyleHelper.diffNodeModification} {
+  th.${EditorStyleHelper.diffNodeModification} {
     border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;
@@ -450,10 +526,10 @@ const emailStyle = (props: Props) => css`
  */
 const textStyle = () => css`
   /* Southeast Asian scripts */
-  :lang(th),  /* Thai */
-    :lang(lo),  /* Lao */
-    :lang(km),  /* Khmer */
-    :lang(my) {
+  &:lang(th),  /* Thai */
+    &:lang(lo),  /* Lao */
+    &:lang(km),  /* Khmer */
+    &:lang(my) {
     /* Burmese */
     p {
       line-height: 1.7;
@@ -466,16 +542,16 @@ const textStyle = () => css`
   }
 
   /* South Asian scripts */
-  :lang(hi),  /* Hindi */
-    :lang(mr),  /* Marathi */
-    :lang(ne),  /* Nepali */
-    :lang(bn),  /* Bengali */
-    :lang(gu),  /* Gujarati */
-    :lang(pa),  /* Punjabi */
-    :lang(te),  /* Telugu */
-    :lang(ta),  /* Tamil */
-    :lang(ml),  /* Malayalam */
-    :lang(si) {
+  &:lang(hi),  /* Hindi */
+    &:lang(mr),  /* Marathi */
+    &:lang(ne),  /* Nepali */
+    &:lang(bn),  /* Bengali */
+    &:lang(gu),  /* Gujarati */
+    &:lang(pa),  /* Punjabi */
+    &:lang(te),  /* Telugu */
+    &:lang(ta),  /* Tamil */
+    &:lang(ml),  /* Malayalam */
+    &:lang(si) {
     /* Sinhala */
     p {
       line-height: 1.7;
@@ -488,7 +564,7 @@ const textStyle = () => css`
   }
 
   /* Tibetan and related scripts */
-  :lang(bo) {
+  &:lang(bo) {
     p {
       line-height: 1.8;
     }
@@ -500,10 +576,10 @@ const textStyle = () => css`
   }
 
   /* Middle Eastern scripts */
-  :lang(ar),  /* Arabic */
-    :lang(fa),  /* Persian */
-    :lang(ur),  /* Urdu */
-    :lang(he) {
+  &:lang(ar),  /* Arabic */
+    &:lang(fa),  /* Persian */
+    &:lang(ur),  /* Urdu */
+    &:lang(he) {
     /* Hebrew */
     p {
       line-height: 1.6;
@@ -511,8 +587,8 @@ const textStyle = () => css`
   }
 
   /* Ethiopic and other complex scripts */
-  :lang(am),  /* Amharic */
-    :lang(mn) {
+  &:lang(am),  /* Amharic */
+    &:lang(mn) {
     /* Mongolian */
     p {
       line-height: 1.7;
@@ -521,6 +597,149 @@ const textStyle = () => css`
     .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
+    }
+  }
+
+  /* East Asian scripts */
+  &:lang(zh),  /* Chinese */
+    &:lang(ja),  /* Japanese */
+    &:lang(ko) {
+    /* Korean */
+    p {
+      line-height: 1.8;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+`;
+
+const noticeStyle = () => css`
+  .${EditorStyleHelper.notice} {
+    hr:not(.ProseMirror-selectednode)::before {
+      border-top-color: var(--notice-divider);
+    }
+
+    code,
+    pre {
+      background: var(--notice-code-background);
+      border-color: var(--notice-code-border);
+    }
+
+    pre code {
+      background: none;
+    }
+
+    .${EditorStyleHelper.codeBlock}.with-line-numbers::after {
+      background: var(--notice-code-background);
+    }
+
+    .${EditorStyleHelper.codeBlock}.collapsed::before {
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--notice-code-background) 70%,
+        var(--notice-code-background) 100%
+      );
+    }
+
+    @media not print {
+      .${EditorStyleHelper.mermaidDiagram} {
+        background: var(--notice-code-background);
+        border-color: var(--notice-code-border);
+        --pele-bg: var(--notice-code-background);
+      }
+    }
+
+    /* above the scroll shadow of a table that follows it */
+    .${EditorStyleHelper.noticeIcon} {
+      position: relative;
+      z-index: 21;
+    }
+
+    /* the scroll area fills the notice padding and icon gutter, which leaves
+       room for the row controls */
+    .${EditorStyleHelper.tableScrollable} {
+      margin-left: -36px;
+      margin-right: -10px;
+      padding-left: 36px;
+      padding-right: 10px;
+    }
+
+    /* keep the click area inside the scroll area so that it does not scroll */
+    .${EditorStyleHelper.tableAddColumn}:not(.first)::before {
+      right: -10px;
+    }
+
+    .${EditorStyleHelper.tableShadowLeft}::before {
+      left: -36px;
+      border-left: 36px solid var(--notice-background);
+    }
+
+    .${EditorStyleHelper.tableShadowRight}::after {
+      right: -10px;
+      border-right: 10px solid var(--notice-background);
+    }
+
+    &:dir(rtl) {
+      .${EditorStyleHelper.tableScrollable} {
+        margin-left: -8px;
+        margin-right: -38px;
+        padding-left: 8px;
+        padding-right: 38px;
+      }
+
+      .${EditorStyleHelper.tableShadowLeft}::before {
+        left: -8px;
+        border-left-width: 8px;
+      }
+
+      .${EditorStyleHelper.tableShadowRight}::after {
+        right: -38px;
+        border-right-width: 38px;
+      }
+    }
+
+    .${EditorStyleHelper.tableFullWidth} {
+      transform: none;
+
+      .${EditorStyleHelper.tableScrollable} {
+        width: auto;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      &.${EditorStyleHelper.tableShadowRight}::after {
+        left: auto;
+      }
+    }
+
+    table,
+    tr,
+    td,
+    th {
+      border-color: var(--notice-divider);
+    }
+
+    th {
+      background: var(--notice-table-header);
+    }
+
+    .${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+      box-shadow:
+        0 -1px 0 var(--notice-divider),
+        0 1px 0 var(--notice-divider);
+    }
+
+    td[data-bgcolor],
+    th[data-bgcolor] {
+      background:
+        linear-gradient(var(--cell-bg-color), var(--cell-bg-color)),
+        linear-gradient(var(--notice-background), var(--notice-background));
     }
   }
 `;
@@ -545,6 +764,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
+  color: ${props.theme.text};
   border-radius: 8px;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -560,25 +780,35 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
-  /* Long labels are truncated so a mention never wraps onto a second line. */
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
-    white-space: nowrap;
-  }
-
-  /* Only the label truncates; icons and trailing identifiers stay whole. */
+  /* Keep icons at their intended size when the mention wraps. */
   &::before,
   svg,
-  img,
-  span ~ span {
+  img {
     flex-shrink: 0;
+  }
+
+  /* External resource titles stay on one line, while internal mentions can
+     wrap to fit constrained containers such as table cells. */
+  &[data-type="issue"],
+  &[data-type="pull_request"],
+  &[data-type="project"],
+  &[data-type="url"] {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+      white-space: nowrap;
+    }
+
+    /* Only the label truncates; trailing identifiers stay whole. */
+    span ~ span {
+      flex-shrink: 0;
+    }
   }
 
   &:${hover} {
@@ -696,13 +926,10 @@ width: 100%;
       }
     }
 
-    &:hover {
+    &:hover,
+    &.${EditorStyleHelper.dragHandleTarget} {
       .heading-anchor {
-        opacity: 0.75;
-
-        &:hover {
-          opacity: 1;
-        }
+        opacity: 1;
       }
     }
   }
@@ -719,7 +946,6 @@ width: 100%;
   [data-heading-prefix]::before {
     content: attr(data-heading-prefix);
     color: ${props.theme.text};
-    opacity: 0.75;
     margin-inline-end: 0.25em;
   }
 
@@ -818,81 +1044,81 @@ iframe.embed {
   }
 }
 
-.image .image-wrapper,
-.image .image-wrapper img {
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
   width: var(--image-width, auto);
 }
 
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
+  border-radius: ${EditorStyleHelper.mediaRadius};
+}
+
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode,
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode img {
+  border-radius: ${EditorStyleHelper.mediaSelectedRadius};
+}
+
 /* Inside auto-layout table cells the plain pixel width would expand the cell  */
-td .image .image-wrapper,
-th .image .image-wrapper,
-td .image .image-wrapper img,
-th .image .image-wrapper img {
+td .image .${EditorStyleHelper.imageWrapper},
+th .image .${EditorStyleHelper.imageWrapper},
+td .image .${EditorStyleHelper.imageWrapper} img,
+th .image .${EditorStyleHelper.imageWrapper} img {
   width: min(var(--image-width), 100%);
 }
 
-.image.placeholder,
-.video.placeholder {
-  position: relative;
-  background: ${props.theme.background};
-  margin-bottom: calc(28px + 1.2em);
+.${EditorStyleHelper.uploadPlaceholder} {
+  pointer-events: none;
+  user-select: none;
 
-  img,
-  video {
+  /* The content of the file is faded but not its frame, so that the progress bar on the frame is not faded */
+  :is(${uploadContent}) {
     opacity: 0.5;
   }
 
-  video {
-    border-radius: 8px;
+  /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
+  :is(${uploadFrame}) {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      z-index: 1;
+      height: 3px;
+      width: calc(var(--upload-progress, 0) * 100%);
+      background: ${props.theme.accent};
+      opacity: 0;
+      transition: width 200ms ease-out;
+      animation: ${fadeIn} 200ms ease-in-out 2s forwards;
+    }
   }
 }
 
-.file.placeholder {
-  display: flex;
-  align-items: center;
-  background: ${props.theme.background};
-  box-shadow: 0 0 0 1px ${props.theme.divider};
+.${EditorStyleHelper.uploadEnter} {
+  animation: ${uploadScaleIn} 150ms ease-out;
+}
+
+.${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {
+  /* Starts halfway through, from the opacity of the placeholder */
+  animation: ${fadeIn} 500ms linear -250ms;
+}
+
+.${EditorStyleHelper.uploadStatus} {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  border-radius: 8px;
-  padding: 6px 8px;
-  max-width: 840px;
-  cursor: default;
-
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-
-  .title,
-  .subtitle {
-    margin-left: 8px;
-  }
-
-  .title {
-    font-weight: 600;
-    font-size: 14px;
-    color:  ${props.theme.text};
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: ${props.theme.textTertiary};
-    line-height: 0;
-  }
-
-  span {
-    font-family: ${props.theme.fontFamilyMono};
-  }
+  border: 0;
 }
 
-.attachment-replacement-uploading {
-  .widget {
-    opacity: 0.5;
-  }
-}
-
-.image-replacement-uploading {
-  img {
-    opacity: 0.5;
-  }
+.${EditorStyleHelper.uploadReplaced} {
+  display: none !important;
 }
 
 .image-icon {
@@ -901,7 +1127,7 @@ th .image .image-wrapper img {
   clear: initial;
   vertical-align: text-bottom;
 
-  .image-wrapper {
+  .${EditorStyleHelper.imageWrapper} {
     margin: 0;
   }
 }
@@ -978,37 +1204,28 @@ th .image .image-wrapper img {
   caret-color: transparent;
 }
 
-.ProseMirror-selectednode {
-  outline: 2px solid
-    ${props.readOnly ? "transparent" : props.theme.selected};
+/* Text blocks selected with the drag handle do not get an outline. */
+.ProseMirror-selectednode:not(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, hr) {
+  outline: 2px solid ${props.readOnly ? "transparent" : props.theme.selected};
 
   @media print {
     outline: none;
   }
 }
 
-/* Make sure li selections wrap around markers */
-
-li.ProseMirror-selectednode {
-  outline: none;
+.ProseMirror.dragging .ProseMirror-selectednode,
+.ProseMirror .${EditorStyleHelper.draggingSource} {
+  opacity: 0.25;
 }
 
-li.ProseMirror-selectednode {
-  &::after {
-    content: "";
-    position: absolute;
-    left: -32px;
-    right: -2px;
-    top: -2px;
-    bottom: -2px;
-    border: 2px solid ${props.theme.selected};
-    pointer-events: none;
-  }
-
-  &:dir(rtl)::after {
-    left: -2px;
-    right: -32px;
-  }
+.ProseMirror.dragging *::selection {
+  background: transparent;
+}
+.ProseMirror.dragging *::-moz-selection {
+  background: transparent;
+}
+.ProseMirror.dragging .selectedCell::after {
+  display: none;
 }
 
 img.ProseMirror-separator {
@@ -1026,7 +1243,7 @@ img.ProseMirror-separator {
   vertical-align: text-bottom;
 }
 
-.image-commented .image-wrapper {
+.image-commented .${EditorStyleHelper.imageWrapper} {
   outline: ${props.theme.commentedImageOutlineLight} solid 2px;
 }
 
@@ -1034,6 +1251,21 @@ img.ProseMirror-separator {
 // being inline nodes that are displayed like blocks
 .component-image + img.ProseMirror-separator,
 .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
+  display: none;
+}
+
+// Let paragraphs of floated images collapse so consecutive floats line up
+p:has(> .component-image > .image-left-50, > .component-image > .image-right-50) {
+  min-height: 0;
+}
+
+// In static HTML the parser lifts floats out of their paragraph, leaving empty ones
+p:empty:has(+ .image-left-50, + .image-right-50),
+&:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak + p:empty {
+  min-height: 0;
+}
+
+&:is(.image-left-50, .image-right-50) + br.ProseMirror-trailingBreak {
   display: none;
 }
 
@@ -1133,25 +1365,29 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
     &:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 1;
     }
-    &:hover:not(.placeholder):not([data-heading-prefix])::before {
+    &:hover:not(.placeholder):not([data-heading-prefix])::before,
+    &.${EditorStyleHelper.dragHandleTarget}:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
+    }
+    &[data-heading-prefix]::before {
+      opacity: ${props.readOnly ? 1 : 0.75};
     }
   }
 }
 
 .ProseMirror[contenteditable="true"] {
-  & .image-wrapper.ProseMirror-selectednode > a {
+  & .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode > a {
     /* force zoom-in cursor if image node is selected */
     cursor: zoom-in !important;
   }
   &.ProseMirror-focused {
-    .image-wrapper:not(.ProseMirror-selectednode) > a {
+    .${EditorStyleHelper.imageWrapper}:not(.ProseMirror-selectednode) > a {
       /* prevents cursor from turning to pointer on pointer down */
       pointer-events: none;
     }
   }
   &:not(.ProseMirror-focused) {
-    .image-wrapper  {
+    .${EditorStyleHelper.imageWrapper}  {
       & > a[href] {
         cursor: pointer;
       }
@@ -1164,7 +1400,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="false"] {
-  .image-wrapper  {
+  .${EditorStyleHelper.imageWrapper}  {
     & > a[href] {
       cursor: pointer;
     }
@@ -1192,13 +1428,16 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   left: 0;
   top: 0;
   bottom: 0;
-  margin-left: -26px;
-  width: 26px;
+
+  /* Sit left of the block drag handle, or in its place when read-only. */
+  margin-left: ${props.readOnly ? -26 : -38}px;
+  width: ${props.readOnly ? 26 : 18}px;
   align-items: center;
   justify-content: center;
   opacity: 0;
   user-select: none;
-  color: ${props.theme.text};
+  color: ${props.theme.textTertiary};
+  transition: color 150ms ease-in-out;
   cursor: var(--pointer);
   background: none;
   outline: none;
@@ -1212,11 +1451,12 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 
   &:hover {
     opacity: 1;
+    color: ${props.theme.text};
   }
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -26px;
+    margin-right: ${props.readOnly ? -26 : -38}px;
   }
 }
 
@@ -1253,6 +1493,11 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   opacity: 1;
 }
 
+/** An empty paragraph that holds an uploading image is not empty to the user */
+.placeholder:has(> .${EditorStyleHelper.uploadPlaceholder})::before {
+  content: none;
+}
+
 ${
   props.commenting
     ? `
@@ -1286,15 +1531,12 @@ ${
   display: flex;
   align-items: center;
   position: relative;
-  background: ${transparentize(0.9, props.theme.noticeInfoBackground)};
-  border-left: 4px solid ${props.theme.noticeInfoBackground};
-  color: ${props.theme.noticeInfoText};
-  border-radius: 4px;
+  ${noticeColors(props.theme, props.theme.noticeInfoBackground, props.theme.noticeInfoText)}
+  border-radius: ${EditorStyleHelper.blockRadius};
   padding: 8px 10px 8px 8px;
   margin: 8px 0;
 
   a {
-    color: ${props.theme.noticeInfoText};
     text-decoration: underline;
   }
 
@@ -1318,7 +1560,6 @@ ${
     height: 24px;
     align-self: flex-start;
     margin-right: 4px;
-    color: ${props.theme.noticeInfoBackground};
   }
 
   &:dir(rtl) .${EditorStyleHelper.noticeIcon} {
@@ -1328,45 +1569,15 @@ ${
 }
 
 .${EditorStyleHelper.notice}.tip {
-  background: ${transparentize(0.9, props.theme.noticeTipBackground)};
-  border-left: 4px solid ${props.theme.noticeTipBackground};
-  color: ${props.theme.noticeTipText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeTipBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeTipText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeTipBackground, props.theme.noticeTipText)}
 }
 
 .${EditorStyleHelper.notice}.warning {
-  background: ${transparentize(0.9, props.theme.noticeWarningBackground)};
-  border-left: 4px solid ${props.theme.noticeWarningBackground};
-  color: ${props.theme.noticeWarningText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeWarningBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeWarningText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeWarningBackground, props.theme.noticeWarningText)}
 }
 
 .${EditorStyleHelper.notice}.success {
-  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
-  border-left: 4px solid ${props.theme.noticeSuccessBackground};
-  color: ${props.theme.noticeSuccessText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeSuccessBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeSuccessText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeSuccessBackground, props.theme.noticeSuccessText)}
 }
 
 blockquote {
@@ -1590,65 +1801,6 @@ ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
-ul li,
-ol li {
-  &::before {
-    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=") no-repeat;
-    background-position: 0 2px;
-    content: "";
-    display: ${props.readOnly ? "none" : "inline-block"};
-    cursor: grab;
-    width: 24px;
-    height: 24px;
-    position: absolute;
-    left: -40px;
-    opacity: 0;
-    transition: opacity 200ms ease-in-out;
-  }
-
-  &:dir(rtl)::before {
-    left: auto;
-    right: -40px;
-  }
-}
-
-ul li[draggable=true]::before,
-ol li[draggable=true]::before {
-  cursor: grabbing;
-}
-
-ul > li.counter-2,
-ol li.counter-2 {
-  &::before {
-    left: -50px;
-  }
-  &:dir(rtl)::before {
-    left: auto;
-    right: -50px;
-  }
-}
-
-ul > li.hovering::before,
-ol li.hovering::before {
-  opacity: 0.5;
-}
-
-ul li.ProseMirror-selectednode::after,
-ol li.ProseMirror-selectednode::after {
-  display: none;
-}
-
-ul.checkbox_list > li {
-  &::before {
-    left: 0;
-  }
-
-  &:dir(rtl)::before {
-    left: auto;
-    right: 0;
-  }
-}
-
 ul.checkbox_list {
   & > li > span[contenteditable="false"] {
     cursor: text;
@@ -1753,7 +1905,7 @@ hr::before {
   content: "";
   display: block;
   position: absolute;
-  border-top: 1px solid ${props.theme.horizontalRule};
+  border-top: 1px solid ${props.theme.divider};
   top: 0.5em;
   left: 0;
   right: 0;
@@ -1764,7 +1916,11 @@ hr.page-break {
 }
 
 hr.page-break::before {
-  border-top: 1px dashed ${props.theme.horizontalRule};
+  border-top: 1px dashed ${props.theme.divider};
+}
+
+hr.ProseMirror-selectednode::before {
+  border-top-color: ${props.theme.text};
 }
 
 .math-inline .math-src .ProseMirror,
@@ -1844,7 +2000,7 @@ mark {
   }
 
   &:is(.code-active)
-    + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
+    + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
     cursor: zoom-in;
   }
 
@@ -1859,7 +2015,7 @@ mark {
   &.ProseMirror-selectednode {
     outline: none;
 
-    & + .mermaid-diagram-wrapper {
+    & + .${EditorStyleHelper.mermaidDiagram} {
       &:not(.parse-error):not(.empty) {
         cursor: zoom-in;
       }
@@ -1873,7 +2029,7 @@ mark {
     height: 0;
     overflow: hidden;
 
-    & + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
+    & + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
       cursor: zoom-in;
     }
 }
@@ -1884,12 +2040,12 @@ mark {
         height: auto;
         overflow: visible;
 
-        &::after {
+        .${EditorStyleHelper.codeBlockLineNumber} {
           display: none;
         }
     }
 
-    .mermaid-diagram-wrapper {
+    .${EditorStyleHelper.mermaidDiagram} {
         display: none;
     }
 }
@@ -1903,39 +2059,43 @@ mark {
 
 .${EditorStyleHelper.codeBlock}.with-line-numbers {
   pre {
+    // Position line numbers against the block, so they stay in place when
+    // the code scrolls horizontally.
+    position: static;
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
 
-  &::after {
-    content: attr(data-line-numbers);
+  code {
+    counter-reset: line;
+  }
+
+  .${EditorStyleHelper.codeBlockLineNumber} {
     position: absolute;
-    padding-left: 0.5em;
     left: 1px;
-    top: calc(1px + 0.75em);
-    width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
-    word-break: break-all;
-    white-space: break-spaces;
-    font-family: ${props.theme.fontFamilyMono};
-    line-height: 1.4em;
+    box-sizing: content-box;
+    width: calc(var(--line-number-gutter-width, 0) * 1em + .25em);
+    padding: 0 0.75em 0 0.5em;
     color: ${props.theme.textTertiary};
     background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
+    pointer-events: none;
+
+    &::before {
+      counter-increment: line;
+      content: counter(line);
+    }
   }
 }
 
 .${EditorStyleHelper.codeBlock}.collapsed {
+  overflow: clip;
+
   pre {
     pointer-events: none;
     max-height: calc(10 * 1.4em + 0.75em);
     overflow: hidden;
-  }
-
-  &::after {
-    max-height: calc(10 * 1.4em + 0.75em);
-    overflow: hidden;
-    clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
   }
 
   &::before {
@@ -1957,15 +2117,11 @@ mark {
   }
 
   @media print {
+    overflow: visible;
+
     pre {
       max-height: none;
       overflow: visible;
-    }
-
-    &::after {
-      max-height: none;
-      overflow: visible;
-      clip-path: none;
     }
 
     &::before {
@@ -2007,21 +2163,20 @@ mark {
   }
 }
 
-.mermaid-diagram-wrapper {
+.${EditorStyleHelper.mermaidDiagram} {
+  ${diagramTheme(props.theme)}
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0.75em 0;
   min-height: 1.6em;
-  background: ${props.theme.codeBackground};
   border-radius: ${EditorStyleHelper.blockRadius};
-  border: 1px solid ${props.theme.codeBorder};
   padding: 8px;
   user-select: none;
   cursor: default;
 
-  * {
-    font-family: ${props.theme.fontFamily};
+  @media print {
+    ${diagramTheme(light)}
   }
 
   &.empty {
@@ -2174,6 +2329,11 @@ table {
     background: ${props.theme.accent};
     cursor: var(--pointer);
 
+    /* above the grips while the insert line is shown */
+    &:hover {
+      z-index: 3;
+    }
+
     &:hover::after {
       width: 16px;
       height: 16px;
@@ -2198,7 +2358,7 @@ table {
   }
 
   .${EditorStyleHelper.tableAddRow} {
-    bottom: -1px;
+    bottom: calc(var(--span-end, 0%) - 1px);
     left: -16px;
     width: 0;
     height: 2px;
@@ -2213,7 +2373,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2244,7 +2404,7 @@ table {
 
   .${EditorStyleHelper.tableAddColumn} {
     top: -16px;
-    right: -1px;
+    right: calc(var(--span-end, 0%) - 1px);
     width: 2px;
     height: 0;
     z-index: 1;
@@ -2258,7 +2418,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2297,11 +2457,13 @@ table {
       cursor: grab;
       position: absolute;
       top: -16px;
-      left: 0;
-      width: 100%;
+      left: var(--span-start, 0);
+      width: var(--span-size, 100%);
       height: 12px;
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
+      /* above the add column controls so narrow columns stay draggable */
+      z-index: 2;
     }
 
     &:hover::after {
@@ -2309,20 +2471,19 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
     }
+    &.last::after {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
-  }
-
-  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGripRow} {
@@ -2331,12 +2492,14 @@ table {
       cursor: grab;
       position: absolute;
       left: -16px;
-      top: 0;
-      height: 100%;
+      top: var(--span-start, 0);
+      height: var(--span-size, 100%);
       width: 12px;
-      background: ${props.theme.divider};
-      border-color: ${props.theme.background};
+      background: var(--table-grip, ${props.theme.divider});
+      border-color: var(--table-grip-border, ${props.theme.background});
       display: ${props.readOnly ? "none" : "block"};
+      /* above the add row controls so short rows stay draggable */
+      z-index: 2;
     }
 
     &:hover::after {
@@ -2344,31 +2507,30 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
+    }
+    &.last::after {
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
   }
 
-  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
-  }
-
   .${EditorStyleHelper.tableGrip} {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       width: 13px;
       height: 13px;
       border-radius: 13px;
-      border: 2px solid ${props.theme.background};
+      border: 2px solid var(--table-grip-border, ${props.theme.background});
       position: absolute;
       top: -18px;
       left: -18px;
@@ -2661,7 +2823,9 @@ table {
   position: absolute;
   top: -2px;
   width: 20px;
-  border-top: 1px solid ${props.theme.cursor};
+  height: 2px;
+  background: ${props.theme.accent};
+  border-radius: 1px;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
@@ -2744,15 +2908,20 @@ li > .${EditorStyleHelper.toggleBlock} {
     &:dir(ltr) {
       --rotate-by: -90deg;
     }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
-      display: none;
-    }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
-      display: unset;
+    /* Folded content is always included when printing */
+    @media not print {
+      > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
+        display: none;
+      }
+      > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
+        display: unset;
+      }
+      > .${EditorStyleHelper.toggleBlockButton} svg {
+        transform: rotate(var(--rotate-by));
+      }
     }
     > .${EditorStyleHelper.toggleBlockButton} {
       svg {
-        transform: rotate(var(--rotate-by));
         pointer-events: none;
       }
       opacity: 1;
@@ -2851,8 +3020,9 @@ li > .${EditorStyleHelper.toggleBlock} {
 }
 `;
 
-const EditorContainer = styled.div<Props>`
+const EditorContainer = styled.div<Omit<Props, "theme">>`
   ${style}
+  ${noticeStyle}
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}

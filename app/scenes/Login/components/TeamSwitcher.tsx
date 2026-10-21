@@ -37,7 +37,7 @@ export function TeamSwitcher({ sessions }: Props) {
         <StyledHeading>{t("Choose a workspace")}</StyledHeading>
         <Text type="tertiary" as="p">
           {t(
-            "Choose an {{ appName }} workspace or login to continue connecting this app",
+            "Choose an {{ appName }} workspace or log in to continue connecting this app",
             { appName }
           )}
           .
@@ -63,7 +63,7 @@ export function TeamSwitcher({ sessions }: Props) {
         })}
         <TeamLink onClick={() => setShowLogin(true)}>
           <ArrowIcon size={AvatarSize.Large} />
-          {t("Login to workspace")}
+          {t("Log in to workspace")}
         </TeamLink>
       </Centered>
     </Background>

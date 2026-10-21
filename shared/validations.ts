@@ -65,7 +65,12 @@ export const CollectionValidation = {
 
 export const CommentValidation = {
   /** The maximum length of a comment */
-  maxLength: 1000,
+  maxLength: 10_000,
+};
+
+export const DeprecationValidation = {
+  /** The maximum length of an archive or deletion reason. */
+  maxReasonLength: 2000,
 };
 
 export const DocumentValidation = {
@@ -115,6 +120,12 @@ export const OAuthClientValidation = {
 
   /** The maximum length of an OAuth client redirect URI */
   maxRedirectUriLength: 1024,
+
+  /** The maximum length of an OAuth client ID, which can be a metadata document URL */
+  maxClientIdLength: 1024,
+
+  /** The prefix of client IDs that are the URL of a client ID metadata document */
+  metadataDocumentClientIdPrefix: "https://",
 
   /** The maximum number of redirect URIs for an OAuth client */
   maxRedirectUris: 20,

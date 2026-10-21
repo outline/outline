@@ -39,12 +39,13 @@ import AuthenticationProvider from "./components/AuthenticationProvider";
 import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
+import { EmailInboxButtons } from "./components/EmailInboxButtons";
 import { Notices } from "./components/Notices";
 import { PasskeyAuthenticationProvider } from "./components/PasskeyAuthenticationProvider";
 import { SigningIn } from "./components/SigningIn";
 import { SwitchHostButton } from "./components/SwitchHostButton";
 import { navigateToSubdomain } from "./urls";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import { getRedirectUrl } from "~/utils/urls";
 
 const WorkspaceSetup = lazyWithRetry(
@@ -313,6 +314,7 @@ function Login({ children, onBack }: Props) {
                 />
               </Note>
               <br />
+              <EmailInboxButtons email={emailLinkSentTo} />
             </>
           )}
           <ButtonLarge onClick={handleReset} fullwidth neutral>
@@ -360,7 +362,7 @@ function Login({ children, onBack }: Props) {
         ) : (
           <>
             <StyledHeading as="h2" centered>
-              {t("Login to {{ authProviderName }}", {
+              {t("Log in to {{ authProviderName }}", {
                 authProviderName: config.name || env.APP_NAME,
               })}
             </StyledHeading>

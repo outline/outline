@@ -18,12 +18,16 @@ type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
   activeStyle?: React.CSSProperties;
   /** The path to match against the current location */
   to: LocationDescriptor;
+  ref?: React.Ref<HTMLAnchorElement>;
 };
 
-function NavLinkWithChildrenFunc(
-  { to, exact = false, children, ...rest }: Props,
-  ref?: React.Ref<HTMLAnchorElement>
-) {
+function NavLinkWithChildrenFunc({
+  to,
+  exact = false,
+  children,
+  ref,
+  ...rest
+}: Props) {
   return (
     <Route path={typeof to === "string" ? to : to?.pathname} exact={exact}>
       {({ match, location }) => (
@@ -40,6 +44,4 @@ function NavLinkWithChildrenFunc(
   );
 }
 
-export default React.forwardRef<HTMLAnchorElement, Props>(
-  NavLinkWithChildrenFunc
-);
+export default NavLinkWithChildrenFunc;

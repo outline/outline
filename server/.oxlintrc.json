@@ -23,6 +23,31 @@
         ]
       },
       "plugins": ["import"]
+    },
+    {
+      "files": ["models/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "name": "fetch-with-proxy",
+            "message": "Use `@server/utils/fetch` instead"
+          },
+          {
+            "name": "node-fetch",
+            "message": "Use `@server/utils/fetch` instead"
+          },
+          {
+            "name": "passport",
+            "message": "Use the `@outlinewiki/koa-passport` package"
+          },
+          {
+            "name": "class-validator",
+            "message": "class-validator decorators are never executed by Sequelize. Use a decorator from `server/models/validators` or sequelize-typescript, and import check functions from `validator/lib/*`."
+          }
+        ]
+      },
+      "plugins": ["import"]
     }
   ],
   "env": {

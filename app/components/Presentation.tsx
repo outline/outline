@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { Suspense } from "react";
 import useStores from "~/hooks/useStores";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
 const PresentationMode = lazyWithRetry(
   () => import("~/scenes/Document/components/PresentationMode")

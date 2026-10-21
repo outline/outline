@@ -19,6 +19,7 @@ PluginManager.add([
   },
   {
     type: Hook.UnfurlProvider,
+    name: "GitLab",
     value: { unfurl: GitLab.unfurl, cacheExpiry: Minute.seconds },
   },
   {

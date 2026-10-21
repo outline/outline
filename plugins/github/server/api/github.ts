@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { find } from "es-toolkit/compat";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
@@ -11,6 +11,7 @@ import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import type { APIContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
+import { RequestHelper } from "@server/utils/RequestHelper";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
 import env from "../env";
 import { GitHub } from "../github";
@@ -122,7 +123,8 @@ router.post(
     },
   }),
   async (ctx: APIContext) => {
-    const { headers, body } = ctx.request;
+    const { headers } = ctx.request;
+    const body = RequestHelper.getBodyObject(ctx.request);
 
     await new GitHubWebhookTask().schedule({
       payload: body,

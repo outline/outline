@@ -70,14 +70,14 @@ export default class AttachmentHelper {
    * Get the ACL to use for a given attachment preset
    *
    * @param preset The preset to use
-   * @returns A valid S3 ACL
+   * @returns A valid attachment ACL
    */
   static presetToAcl(preset: AttachmentPreset) {
     switch (preset) {
       case AttachmentPreset.Avatar:
         return "public-read";
       default:
-        return env.AWS_S3_ACL;
+        return env.AWS_S3_ACL || "private";
     }
   }
 

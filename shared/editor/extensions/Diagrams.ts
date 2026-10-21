@@ -177,7 +177,7 @@ export default class Diagrams extends Extension {
       // can locate the node by its new uploaded URL.
       session.nodeSrc = uploadedUrl;
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.error("Failed to export diagram:", error);
     }
   }

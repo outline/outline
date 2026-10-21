@@ -1,5 +1,5 @@
 import path from "node:path";
-import Router from "koa-router";
+import Router from "@koa/router";
 import contentDisposition from "content-disposition";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
@@ -53,7 +53,8 @@ router.post(
       });
       authorize(user, "listRevisions", document);
       revision = Revision.buildFromDocument(document);
-      revision.id = RevisionHelper.latestId(document.id);
+      // Sequelize ignores primary key assignment on built instances.
+      revision.setDataValue("id", RevisionHelper.latestId(document.id));
       revision.user = document.updatedBy;
     } else {
       throw ValidationError("Either id or documentId must be provided");

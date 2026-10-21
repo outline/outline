@@ -311,7 +311,7 @@ function useDocumentHandlers() {
         }) => {
           const document = event.document;
 
-          // When document is detached as part of unpublishing, only the owner should be able to view it.
+          // Users that cannot see the draft only receive its ID, so it is removed.
           if (
             !document.collectionId &&
             document.createdBy?.id !== currentUserId
@@ -961,7 +961,7 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
       }
       document.removeEventListener(getVisibilityListener(), checkConnection);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

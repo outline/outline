@@ -5,6 +5,7 @@ import type User from "~/models/User";
 export type SidebarContextType =
   | "collections"
   | "shared"
+  | "personal"
   | "archive"
   | `group-${string}`
   | `starred-${string}`
@@ -19,6 +20,21 @@ export const groupSidebarContext = (groupId: string): SidebarContextType =>
 
 export const starredSidebarContext = (modelId: string): SidebarContextType =>
   `starred-${modelId}`;
+
+/**
+ * Whether a sidebar context matches the active sidebar context. When no context
+ * is active, the collections context is treated as active.
+ *
+ * @param sidebarContext the context to check.
+ * @param activeSidebarContext the active context.
+ * @returns true if the context is active.
+ */
+export const isActiveSidebarContext = (
+  sidebarContext: SidebarContextType,
+  activeSidebarContext: SidebarContextType
+): boolean =>
+  sidebarContext === activeSidebarContext ||
+  (!activeSidebarContext && sidebarContext === "collections");
 
 export const determineSidebarContext = ({
   document,
@@ -42,7 +58,10 @@ export const determineSidebarContext = ({
   }
 
   if (document.collection) {
-    return document.collection.isArchived ? "archive" : "collections";
+    if (document.collection.isArchived) {
+      return "archive";
+    }
+    return document.collection.isPersonal ? "personal" : "collections";
   } else if (
     user.documentMemberships.find((m) => m.documentId === document.id)
   ) {

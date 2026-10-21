@@ -82,8 +82,7 @@ function PinnedDocuments({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 100,
-        tolerance: 5,
+        distance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -257,7 +256,7 @@ const List = styled.div<{ $flush?: boolean }>`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 0;
   list-style: none;
-  margin: ${(props) => (props.$flush ? "0" : "16px")} 0 32px;
+  margin: ${(props) => (props.$flush ? "0" : "16px")} 0 0;
 
   &:empty {
     display: none;

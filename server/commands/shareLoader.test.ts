@@ -1,4 +1,6 @@
 import { faker } from "@faker-js/faker";
+import { DocumentPermission } from "@shared/types";
+import { UserMembership } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -235,6 +237,95 @@ describe("shareLoader", () => {
 
       expect(result.share.id).toEqual(share.id);
       expect(result.parentShare?.id).toEqual(parentShare.id);
+    });
+
+    it("should not return parent collection share when user cannot read the collection", async () => {
+      const admin = await buildUser();
+      const member = await buildUser({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        permission: null,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      await UserMembership.create({
+        userId: member.id,
+        documentId: document.id,
+        permission: DocumentPermission.Read,
+        createdById: admin.id,
+      });
+      const [, share] = await Promise.all([
+        buildShare({
+          userId: admin.id,
+          teamId: admin.teamId,
+          collectionId: collection.id,
+        }),
+        buildShare({
+          userId: admin.id,
+          teamId: admin.teamId,
+          documentId: document.id,
+        }),
+      ]);
+
+      const result = await loadShareWithParent({
+        documentId: document.id,
+        user: member,
+      });
+
+      expect(result.share.id).toEqual(share.id);
+      expect(result.parentShare).toBeNull();
+    });
+
+    it("should not return parent document share when user cannot read the parent document", async () => {
+      const admin = await buildUser();
+      const member = await buildUser({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        permission: null,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      await UserMembership.create({
+        userId: member.id,
+        documentId: childDocument.id,
+        permission: DocumentPermission.Read,
+        createdById: admin.id,
+      });
+      const [, share] = await Promise.all([
+        buildShare({
+          includeChildDocuments: true,
+          userId: admin.id,
+          teamId: admin.teamId,
+          documentId: document.id,
+        }),
+        buildShare({
+          userId: admin.id,
+          teamId: admin.teamId,
+          documentId: childDocument.id,
+        }),
+      ]);
+
+      const result = await loadShareWithParent({
+        documentId: childDocument.id,
+        user: member,
+      });
+
+      expect(result.share.id).toEqual(share.id);
+      expect(result.parentShare).toBeNull();
     });
 
     it("should throw error when the requested document is not part of the share (includeChildDocuments = true)", async () => {

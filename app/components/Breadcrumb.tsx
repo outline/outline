@@ -2,7 +2,7 @@ import { GoToIcon } from "outline-icons";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
@@ -20,12 +20,16 @@ type Props = React.PropsWithChildren<{
   actions: InternalLinkAction[];
   max?: number;
   highlightFirstItem?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
 }>;
 
-function Breadcrumb(
-  { actions, highlightFirstItem, children, max = 2 }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function Breadcrumb({
+  actions,
+  highlightFirstItem,
+  children,
+  max = 2,
+  ref,
+}: Props) {
   const actionContext = useActionContext({ isMenu: true });
 
   const visibleActions = useComputed(
@@ -71,13 +75,20 @@ function Breadcrumb(
       }
 
       const item = actionToMenuItem(action, actionContext) as MenuInternalLink;
+      const highlight = !!highlightFirstItem && index === 0;
+
+      // Items without a destination are shown as plain text.
+      if (!item.to) {
+        return (
+          <StaticItem $highlight={highlight}>
+            {item.icon}
+            <Title>{item.title}</Title>
+          </StaticItem>
+        );
+      }
 
       return (
-        <Item
-          to={item.to}
-          onClick={handleClick}
-          $highlight={!!highlightFirstItem && index === 0}
-        >
+        <Item to={item.to} onClick={handleClick} $highlight={highlight}>
           {item.icon}
           <Title>{item.title}</Title>
         </Item>
@@ -106,7 +117,7 @@ const Slash = styled(GoToIcon)`
   fill: ${s("divider")};
 `;
 
-const Item = styled(Link)<{ $highlight: boolean }>`
+const itemStyles = css<{ $highlight: boolean }>`
   ${undraggableOnDesktop()}
 
   display: flex;
@@ -114,7 +125,6 @@ const Item = styled(Link)<{ $highlight: boolean }>`
   gap: 4px;
   flex-shrink: 1;
   min-width: 0;
-  cursor: var(--pointer);
   color: ${s("text")};
   font-size: 15px;
   height: 32px;
@@ -127,6 +137,11 @@ const Item = styled(Link)<{ $highlight: boolean }>`
     margin-inline-start: 0;
   }
   max-width: 460px;
+`;
+
+const Item = styled(Link)<{ $highlight: boolean }>`
+  ${itemStyles}
+  cursor: var(--pointer);
   transition: background 100ms ease-in-out;
 
   &:hover,
@@ -136,9 +151,14 @@ const Item = styled(Link)<{ $highlight: boolean }>`
   }
 `;
 
+const StaticItem = styled.span<{ $highlight: boolean }>`
+  ${itemStyles}
+  cursor: default;
+`;
+
 const Title = styled.span`
   ${ellipsis()}
   min-width: 0;
 `;
 
-export default observer(React.forwardRef<HTMLDivElement, Props>(Breadcrumb));
+export default observer(Breadcrumb);

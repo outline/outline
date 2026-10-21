@@ -73,15 +73,14 @@ function useStableOrderedNotifications(
 type Props = {
   /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
+  /** Ref to the scrollable container. */
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
  * A panel containing a list of notifications and controls to manage them.
  */
-function Notifications(
-  { onRequestClose }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function Notifications({ onRequestClose, ref }: Props) {
   const { notifications } = useStores();
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -153,7 +152,7 @@ function Notifications(
               items={filteredNotifications}
               empty={
                 <EmptyNotifications>
-                  {t("You're all caught up")}.
+                  {t("You’re all caught up")}.
                 </EmptyNotifications>
               }
               renderItem={(item) => (
@@ -222,4 +221,4 @@ const Header = styled(Flex)`
   }
 `;
 
-export default observer(React.forwardRef(Notifications));
+export default observer(Notifications);

@@ -129,5 +129,40 @@ describe("#ApiKey", () => {
 
       expect(apiKey.canAccess("/mcp")).toBe(true);
     });
+
+    it("should not allow MCP access when no scope is well-formed", async () => {
+      const apiKey = await buildApiKey({
+        name: "Dev",
+        scope: [Scope.Read],
+      });
+      apiKey.scope = ["documents:read,documents:write"];
+
+      expect(apiKey.canAccess("/mcp")).toBe(false);
+      expect(apiKey.canAccess("/api/documents.info")).toBe(false);
+    });
+  });
+
+  describe("scope", () => {
+    it("should reject malformed scopes", async () => {
+      await expect(
+        buildApiKey({
+          name: "Dev",
+          scope: ["documents:read,documents:write"],
+        })
+      ).rejects.toThrow("Scope must be a valid API scope");
+    });
+
+    it("should accept well-formed scopes", async () => {
+      const apiKey = await buildApiKey({
+        name: "Dev",
+        scope: ["documents:read", "/api/users.info", Scope.Write],
+      });
+
+      expect(apiKey.scope).toEqual([
+        "documents:read",
+        "/api/users.info",
+        Scope.Write,
+      ]);
+    });
   });
 });

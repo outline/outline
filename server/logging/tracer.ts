@@ -34,6 +34,32 @@ const noopSpan = {
 
 let tracer: Tracer;
 
+/**
+ * Query string parameters that are kept in traced URLs because they help with
+ * debugging and do not grant access. The values of all other parameters are
+ * redacted.
+ */
+const allowedQueryParameters = [
+  "client",
+  "codemode",
+  "documentId",
+  "domain",
+  "download",
+  "error",
+  "error_description",
+  "eventType",
+  "follow",
+  "host",
+  "id",
+  "installation_id",
+  "limit",
+  "offset",
+  "setup_action",
+];
+
+/** Matches the value of each query string parameter that is not allowed. */
+export const queryStringObfuscation = `(?<=(?:^|&)(?!(?:${allowedQueryParameters.join("|")})=)[^=&]+=)[^&]+`;
+
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer. This
 // must happen before any instrumented module is imported.
@@ -53,7 +79,8 @@ if (env.DD_API_KEY && cluster.isWorker) {
 
   // Disable per-middleware spans so that non-reportable errors are not captured
   // This is also generally excessive noise
-  tracer.use("koa", { middleware: false });
+  tracer.use("koa", { middleware: false, queryStringObfuscation });
+  tracer.use("http", { server: { queryStringObfuscation } });
 } else {
   tracer = {
     scope: () => ({
@@ -99,7 +126,6 @@ export function addTags(
 export function getRootSpanFromRequestContext(
   context: PrivateDatadogContext
 ): Span | null {
-  // oxlint-disable-next-line no-undef
   return context?.req?._datadog?.span ?? null;
 }
 

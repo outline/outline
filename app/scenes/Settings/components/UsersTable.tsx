@@ -162,7 +162,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
           header: t("Role"),
           accessor: (user) => user.role,
           component: (user) => (
-            <HStack spacing={4} wrap>
+            <HStack spacing={4}>
               {user.isInvited && <Badge>{t("Invited")}</Badge>}
               {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
@@ -176,7 +176,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </HStack>
           ),
-          width: "1.4fr",
+          width: "minmax(160px, 2fr)",
         },
         canManage
           ? {

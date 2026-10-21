@@ -51,13 +51,15 @@ const Text = styled.span<Props>`
   ${(props) =>
     props.weight &&
     css`
-      font-weight: ${props.weight === "xbold"
-        ? 600
-        : props.weight === "bold"
-          ? 500
-          : props.weight === "normal"
-            ? 400
-            : "inherit"};
+      font-weight: ${
+        props.weight === "xbold"
+          ? 600
+          : props.weight === "bold"
+            ? 500
+            : props.weight === "normal"
+              ? 400
+              : "inherit"
+      };
     `}
 
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
