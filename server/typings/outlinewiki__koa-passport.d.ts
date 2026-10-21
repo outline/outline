@@ -37,6 +37,7 @@ declare module "@outlinewiki/koa-passport" {
       passReqToCallback?: boolean | undefined;
       prompt?: string | undefined;
       accessType?: string | undefined;
+      hostedDomain?: string | undefined;
     }
 
     interface Authenticator<

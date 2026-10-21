@@ -14459,9 +14459,7 @@ __metadata:
     oy-vey: "npm:^0.12.1"
     pako: "npm:^2.1.0"
     passport: "npm:^0.7.0"
-    passport-google-oauth2: "npm:^0.2.0"
     passport-oauth2: "npm:^1.8.0"
-    passport-slack-oauth2: "npm:^1.2.0"
     patch-package: "npm:^8.0.1"
     pele: "npm:1.6.0"
     pg: "npm:^8.23.0"
@@ -15012,15 +15010,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"passport-google-oauth2@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "passport-google-oauth2@npm:0.2.0"
-  dependencies:
-    passport-oauth2: "npm:^1.1.2"
-  checksum: 10c0/f384903401d9af586b4254a0ea86ec25950d56d3296af60f250cbf16ed2e5072442c0a17d87f5e2d5295776537099c54079c3eef12eecbb0a20e966cc2a151b0
-  languageName: node
-  linkType: hard
-
 "passport-oauth1@npm:1.x.x":
   version: 1.3.0
   resolution: "passport-oauth1@npm:1.3.0"
@@ -15032,7 +15021,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"passport-oauth2@npm:1.x.x, passport-oauth2@npm:^1.1.2, passport-oauth2@npm:^1.7.0, passport-oauth2@npm:^1.8.0":
+"passport-oauth2@npm:1.x.x, passport-oauth2@npm:^1.8.0":
   version: 1.8.0
   resolution: "passport-oauth2@npm:1.8.0"
   dependencies:
@@ -15052,15 +15041,6 @@ __metadata:
     passport-oauth1: "npm:1.x.x"
     passport-oauth2: "npm:1.x.x"
   checksum: 10c0/bdf74433f6f2c68fe3cc80110769f18ea6d50f2f352119f657b47a62fb9073933f0ddf683fd09c2e499fca54238f835b106f41a14f57b250f9abd469795093be
-  languageName: node
-  linkType: hard
-
-"passport-slack-oauth2@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "passport-slack-oauth2@npm:1.2.0"
-  dependencies:
-    passport-oauth2: "npm:^1.7.0"
-  checksum: 10c0/57b0cd9ee069e58494f7a380d44282fb3e8c8d5e6925ab39fbdd49ff3c899adef5e5859e9122fc13dcabb55137bab1e22105e03acf463b283f500fdb5ab2e212
   languageName: node
   linkType: hard
 
