@@ -29,6 +29,10 @@ type SendMailOptions = {
   previewText?: string;
   /** The plain-text version of the email body. */
   text: string;
+  /** The language of the email in BCP47 format, e.g. "en-US". */
+  lang?: string;
+  /** The text direction of the email. */
+  dir?: "ltr" | "rtl";
   /** The React element rendered to produce the HTML body. */
   component: React.JSX.Element;
   /** Additional CSS to inject into the head of the email. */
@@ -172,6 +176,8 @@ export class Mailer {
       data.component,
       {
         title: data.subject,
+        lang: data.lang,
+        dir: data.dir ?? "ltr",
         headCSS: [baseStyles, data.headCSS].join(" "),
       } as Oy.RenderOptions,
       this.template
