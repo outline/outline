@@ -19,7 +19,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { HEADER_HEIGHT as APP_HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import DelayedMount from "~/components/DelayedMount";

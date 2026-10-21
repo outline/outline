@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Wrapper as InputWrapper } from "~/components/Input";

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import DelayedMount from "~/components/DelayedMount";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";

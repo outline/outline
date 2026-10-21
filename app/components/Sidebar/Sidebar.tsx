@@ -3,7 +3,7 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";

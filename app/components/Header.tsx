@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import styled, { css } from "styled-components";
 import type { DefaultTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT, MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { depths, hover, s } from "@shared/styles";

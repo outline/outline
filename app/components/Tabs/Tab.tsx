@@ -5,7 +5,7 @@ import { isEqual } from "es-toolkit/compat";
 import queryString from "query-string";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s, hover } from "@shared/styles";
 import NavLink from "~/components/NavLink";
