@@ -85,7 +85,9 @@ export class MutexLock {
     options?: AcquireOptions
   ): Promise<Lock> {
     const settings = { ...this.defaultRetrySettings, ...options?.retry };
+    const value = this.token();
     let lastError: Error | undefined;
+    let ambiguous = false;
 
     for (let attempt = 0; attempt <= settings.retryCount; attempt++) {
       if (attempt > 0) {
@@ -100,11 +102,13 @@ export class MutexLock {
 
       let lock: Lock | undefined;
       try {
-        lock = await this.attempt(resource, timeout);
+        lock = await this.attempt(resource, value, timeout, ambiguous);
         lastError = undefined;
       } catch (err) {
         // Temporary Redis errors, such as READONLY during failover, are retried.
+        // The SET can still have been applied, so later attempts check for it.
         lastError = toError(err);
+        ambiguous = true;
       }
       if (!lock) {
         continue;
@@ -119,6 +123,9 @@ export class MutexLock {
       return lock;
     }
 
+    if (ambiguous) {
+      await this.discard(resource, value);
+    }
     throw (
       lastError ??
       new Error(
@@ -163,7 +170,14 @@ export class MutexLock {
     timeout: number,
     routine: (signal: AbortSignal) => Promise<T>
   ): Promise<T | undefined> {
-    const lock = await this.attempt(resource, timeout);
+    const value = this.token();
+    let lock: Lock | undefined;
+    try {
+      lock = await this.attempt(resource, value, timeout, false);
+    } catch (err) {
+      await this.discard(resource, value);
+      throw err;
+    }
     if (!lock) {
       return undefined;
     }
@@ -207,7 +221,17 @@ export class MutexLock {
   ): Promise<T> {
     const controller = new AbortController();
     let timer: NodeJS.Timeout | undefined;
+    let watchdog: NodeJS.Timeout | undefined;
     let extension: Promise<void> | undefined;
+
+    // Abort when the lock expires, even if an extension is still pending.
+    const watch = () => {
+      clearTimeout(watchdog);
+      watchdog = setTimeout(
+        () => controller.abort(new Error(`Lock on ${lock.resource} expired`)),
+        Math.max(lock.expiration - Date.now(), 0)
+      );
+    };
 
     // Extend when half of the lock duration remains, measured from the expiry.
     const schedule = () => {
@@ -218,7 +242,10 @@ export class MutexLock {
     const extend = async () => {
       try {
         if (await this.pexpire(lock, timeout)) {
-          schedule();
+          if (!controller.signal.aborted) {
+            watch();
+            schedule();
+          }
           return;
         }
         controller.abort(new Error(`Lock on ${lock.resource} was lost`));
@@ -234,6 +261,7 @@ export class MutexLock {
       }
     };
 
+    watch();
     schedule();
 
     try {
@@ -242,6 +270,7 @@ export class MutexLock {
       clearTimeout(timer);
       await extension;
       clearTimeout(timer);
+      clearTimeout(watchdog);
       await this.release(lock);
     }
   }
@@ -250,15 +279,24 @@ export class MutexLock {
    * Make a single attempt to acquire the lock.
    *
    * @param resource The resource to lock.
+   * @param value The token that identifies this holder.
    * @param timeout The lock duration in milliseconds.
-   * @returns The lock, or undefined if it is held elsewhere.
+   * @param ambiguous Whether an earlier attempt with this token failed after
+   * the SET may have been applied.
+   * @returns The lock, or undefined if it is held elsewhere or expired before
+   * the reply arrived.
    */
   private static async attempt(
     resource: string,
-    timeout: number
+    value: string,
+    timeout: number,
+    ambiguous: boolean
   ): Promise<Lock | undefined> {
-    const value = randomBytes(16).toString("hex");
-    const expiration = Date.now() + timeout;
+    const lock: Lock = {
+      resource,
+      value,
+      expiration: Date.now() + timeout,
+    };
     const result = await Redis.defaultClient.set(
       resource,
       value,
@@ -266,7 +304,39 @@ export class MutexLock {
       timeout,
       "NX"
     );
-    return result === "OK" ? { resource, value, expiration } : undefined;
+    const acquired =
+      result === "OK" || (ambiguous && (await this.pexpire(lock, timeout)));
+    if (!acquired) {
+      return undefined;
+    }
+    if (Date.now() >= lock.expiration) {
+      await this.discard(resource, value);
+      return undefined;
+    }
+    return lock;
+  }
+
+  /**
+   * Delete a lock that this holder may own, ignoring errors.
+   *
+   * @param resource The resource that was locked.
+   * @param value The token that identifies this holder.
+   */
+  private static async discard(resource: string, value: string) {
+    try {
+      await this.del({ resource, value, expiration: 0 });
+    } catch (err) {
+      Logger.warn("Failed to discard lock", toError(err));
+    }
+  }
+
+  /**
+   * Generate a random token that identifies a holder of a lock.
+   *
+   * @returns The token.
+   */
+  private static token() {
+    return randomBytes(16).toString("hex");
   }
 
   /**

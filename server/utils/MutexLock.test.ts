@@ -7,6 +7,37 @@ const { MutexLock } =
 
 const noRetry = { retry: { retryCount: 0 } };
 
+/**
+ * Make the next SET apply in Redis and then reject, as when the reply is lost.
+ */
+function rejectAfterSet() {
+  const client = Redis.defaultClient;
+  const set = client.set.bind(client);
+  return vi
+    .spyOn(client, "set")
+    .mockImplementationOnce(async (...args: Parameters<typeof set>) => {
+      await set(...args);
+      throw new Error("Connection lost");
+    });
+}
+
+/**
+ * Make the next SET apply in Redis and then reply after a delay.
+ *
+ * @param ms The delay in milliseconds.
+ */
+function delaySetReply(ms: number) {
+  const client = Redis.defaultClient;
+  const set = client.set.bind(client);
+  return vi
+    .spyOn(client, "set")
+    .mockImplementationOnce(async (...args: Parameters<typeof set>) => {
+      const result = await set(...args);
+      await sleep(ms);
+      return result;
+    });
+}
+
 describe("MutexLock", () => {
   beforeEach(async () => {
     await Redis.defaultClient.flushdb();
@@ -65,6 +96,37 @@ describe("MutexLock", () => {
       ).rejects.toThrow("READONLY");
       spy.mockRestore();
     });
+
+    it("should recover its own lock after a SET reply is lost", async () => {
+      const spy = rejectAfterSet();
+
+      const lock = await MutexLock.acquire("test:lock", 1000, {
+        retry: { retryCount: 1, retryDelay: 10, retryJitter: 0 },
+      });
+      spy.mockRestore();
+
+      expect(await Redis.defaultClient.get("test:lock")).toEqual(lock.value);
+    });
+
+    it("should discard its own lock when giving up after a lost reply", async () => {
+      const spy = rejectAfterSet();
+
+      await expect(
+        MutexLock.acquire("test:lock", 1000, noRetry)
+      ).rejects.toThrow("Connection lost");
+      spy.mockRestore();
+
+      expect(await Redis.defaultClient.get("test:lock")).toBeNull();
+    });
+
+    it("should not return a lock that expired before the reply", async () => {
+      const spy = delaySetReply(150);
+
+      await expect(
+        MutexLock.acquire("test:lock", 100, noRetry)
+      ).rejects.toThrow();
+      spy.mockRestore();
+    });
   });
 
   describe("release", () => {
@@ -117,15 +179,7 @@ describe("MutexLock", () => {
     });
 
     it("should extend the lock in time when acquisition is slow", async () => {
-      const client = Redis.defaultClient;
-      const set = client.set.bind(client);
-      const spy = vi
-        .spyOn(client, "set")
-        .mockImplementationOnce(async (...args: Parameters<typeof set>) => {
-          const result = await set(...args);
-          await sleep(600);
-          return result;
-        });
+      const spy = delaySetReply(600);
 
       await MutexLock.using("test:lock", 1000, async () => {
         spy.mockRestore();
@@ -134,6 +188,22 @@ describe("MutexLock", () => {
         await expect(
           MutexLock.acquire("test:lock", 1000, noRetry)
         ).rejects.toThrow();
+      });
+    });
+
+    it("should abort the signal when an extension stays pending past expiry", async () => {
+      const client = Redis.defaultClient;
+
+      await MutexLock.using("test:lock", 200, async (signal) => {
+        const spy = vi.spyOn(client, "eval").mockImplementation(async () => {
+          await sleep(300);
+          return 1;
+        });
+        await sleep(250);
+        spy.mockRestore();
+
+        expect(signal.aborted).toEqual(true);
+        expect(() => signal.throwIfAborted()).toThrow("expired");
       });
     });
 
@@ -170,6 +240,30 @@ describe("MutexLock", () => {
 
       expect(result).toBeUndefined();
       expect(routine).not.toHaveBeenCalled();
+    });
+
+    it("should skip the routine when the reply arrives after expiry", async () => {
+      const spy = delaySetReply(150);
+      const routine = vi.fn();
+
+      const result = await MutexLock.tryUsing("test:lock", 100, routine);
+      spy.mockRestore();
+
+      expect(result).toBeUndefined();
+      expect(routine).not.toHaveBeenCalled();
+    });
+
+    it("should discard its own lock when the SET reply is lost", async () => {
+      const spy = rejectAfterSet();
+      const routine = vi.fn();
+
+      await expect(
+        MutexLock.tryUsing("test:lock", 1000, routine)
+      ).rejects.toThrow("Connection lost");
+      spy.mockRestore();
+
+      expect(routine).not.toHaveBeenCalled();
+      expect(await Redis.defaultClient.get("test:lock")).toBeNull();
     });
   });
 });
