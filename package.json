@@ -154,7 +154,7 @@
     "https-proxy-agent": "^7.0.6",
     "i18next": "^22.5.1",
     "i18next-fs-backend": "^2.6.9",
-    "i18next-http-backend": "^3.0.6",
+    "i18next-http-backend": "^4.0.3",
     "invariant": "^2.2.4",
     "ioredis": "^5.11.1",
     "ipaddr.js": "^2.4.0",
