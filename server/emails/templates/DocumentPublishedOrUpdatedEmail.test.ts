@@ -1,4 +1,5 @@
-import { NotificationEventType } from "@shared/types";
+import { renderToStaticMarkup } from "react-dom/server";
+import { NotificationEventType, TeamPreference } from "@shared/types";
 import { createContext } from "@server/context";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
@@ -83,6 +84,60 @@ describe("DocumentPublishedOrUpdatedEmail", () => {
     const mail = await sendEmail(NotificationEventType.PublishDocument, 2);
 
     expect(mail.previewText).toEqual("User 1 published a document");
+  });
+
+  it("should include a preview of the document on publish", async () => {
+    const spy = vi.spyOn(mailer, "sendMail").mockResolvedValue(undefined);
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const recipient = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: actor.id,
+      text: "First paragraph\n\nSecond paragraph\n\nThird paragraph\n\nFourth paragraph",
+    });
+
+    await new DocumentPublishedOrUpdatedEmail({
+      to: recipient.email,
+      userId: recipient.id,
+      eventType: NotificationEventType.PublishDocument,
+      documentId: document.id,
+      teamUrl: team.url,
+      actorId: actor.id,
+      actorName: actor.name,
+    }).send();
+
+    const html = renderToStaticMarkup(spy.mock.calls[0][0].component);
+    expect(html).toContain("First paragraph");
+    expect(html).toContain("Third paragraph");
+    expect(html).not.toContain("Fourth paragraph");
+  });
+
+  it("should not include a preview when previews are disabled", async () => {
+    const spy = vi.spyOn(mailer, "sendMail").mockResolvedValue(undefined);
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PreviewsInEmails, false);
+    await team.save();
+    const actor = await buildUser({ teamId: team.id });
+    const recipient = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: actor.id,
+      text: "First paragraph",
+    });
+
+    await new DocumentPublishedOrUpdatedEmail({
+      to: recipient.email,
+      userId: recipient.id,
+      eventType: NotificationEventType.PublishDocument,
+      documentId: document.id,
+      teamUrl: team.url,
+      actorId: actor.id,
+      actorName: actor.name,
+    }).send();
+
+    const html = renderToStaticMarkup(spy.mock.calls[0][0].component);
+    expect(html).not.toContain("First paragraph");
   });
 
   it("should name only the actor when the actor ID is missing", async () => {
