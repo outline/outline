@@ -2,6 +2,8 @@
  * Utility functions for working with passkeys and WebAuthn.
  */
 
+export type DesktopAppPlatform = "macOS" | "Windows";
+
 interface ParsedUserAgent {
   browser?: string;
   os?: string;
@@ -87,6 +89,47 @@ export const PasskeyBrandNames: Record<PasskeyBrand, string> = {
   [PasskeyBrand.Initial]: "initial",
   [PasskeyBrand.HeimlaneVault]: "Heimlane Vault",
 };
+
+/** Authenticators built into the OS or Chromium that the desktop app can use. */
+const platformAuthenticators = new Set<string>([
+  PasskeyBrand.ChromiumBrowser,
+  PasskeyBrand.WindowsHello1,
+  PasskeyBrand.WindowsHello2,
+  PasskeyBrand.WindowsHello3,
+]);
+
+/**
+ * Returns the platform of the desktop app when a passkey was created inside it
+ * with the built-in platform authenticator.
+ *
+ * @param aaguid the authenticator AAGUID from the registration response.
+ * @param userAgent the user agent string from the registration request.
+ * @returns the desktop app platform, or undefined if not created in the desktop app.
+ */
+export function getDesktopAppPlatform(
+  aaguid?: string | null,
+  userAgent?: string | null
+): DesktopAppPlatform | undefined {
+  if (!userAgent?.toLowerCase().includes("electron/")) {
+    return undefined;
+  }
+
+  // Third-party password managers keep their own name.
+  if (
+    aaguid &&
+    PasskeyBrandNames[aaguid as PasskeyBrand] &&
+    !platformAuthenticators.has(aaguid)
+  ) {
+    return undefined;
+  }
+
+  const { os } = parseUserAgent(userAgent);
+  if (os === "macOS" || os === "Windows") {
+    return os;
+  }
+
+  return undefined;
+}
 
 /**
  * Parses a user agent string to extract browser, OS, and device information.
@@ -204,13 +247,9 @@ export function generatePasskeyName(
   userAgent?: string,
   transports?: string[]
 ): string {
-  // The desktop app uses the Chromium Touch ID authenticator, which reports the
-  // same AAGUID as any Chromium browser.
-  if (
-    aaguid === PasskeyBrand.ChromiumBrowser &&
-    userAgent?.toLowerCase().includes("electron/")
-  ) {
-    return "Outline Desktop";
+  const desktopPlatform = getDesktopAppPlatform(aaguid, userAgent);
+  if (desktopPlatform) {
+    return `${desktopPlatform} App`;
   }
 
   // Prefer known brand from AAGUID over user agent sniffing
