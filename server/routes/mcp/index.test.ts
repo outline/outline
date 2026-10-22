@@ -124,6 +124,7 @@ describe("POST /mcp/", () => {
         body,
       });
       expect(res.status).toEqual(200);
+      expect(res.headers.get("content-type")).toContain("application/json");
 
       const parsed = await parseMcpResponse(res);
       const result = parsed?.result as { content?: { text: string }[] };
