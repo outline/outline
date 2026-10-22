@@ -94,7 +94,7 @@ export default class AuthenticationExtension implements Extension {
       userId: user.id,
     });
 
-    if (!can(user, "read", document)) {
+    if (!document || !can(user, "read", document)) {
       throw AuthenticationError("Authorization required");
     }
 
