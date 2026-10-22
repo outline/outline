@@ -93,14 +93,27 @@ class FilteringHttpProxyAgent extends HttpProxyAgent<string> {
     super(proxy, DefaultOptions);
   }
 
+  setRequestProps(
+    ...args: Parameters<HttpProxyAgent<string>["setRequestProps"]>
+  ) {
+    const [req, opts] = args;
+    const path = req.path;
+    super.setRequestProps(...args);
+
+    // The parent resolves the path against the Host header, so a path such
+    // as "//other.host/" or a custom Host header would change the target.
+    if (path.startsWith("/")) {
+      const host = net.isIPv6(opts.host ?? "") ? `[${opts.host}]` : opts.host;
+      const protocol = opts.secureEndpoint ? "https:" : "http:";
+      const defaultPort = opts.secureEndpoint ? 443 : 80;
+      const port =
+        opts.port && opts.port !== defaultPort ? `:${opts.port}` : "";
+      req.path = `${protocol}//${host}${port}${path}`;
+    }
+  }
+
   async connect(...args: Parameters<HttpProxyAgent<string>["connect"]>) {
-    // The proxy is sent this absolute URL, built from the path and Host header.
-    const { hostname } = new URL(args[0].path);
-    await validateTarget(
-      args[0],
-      hostname.replace(/^\[|\]$/g, ""),
-      this.filtering
-    );
+    await validateTarget(args[0], args[1].host ?? "", this.filtering);
     return super.connect(...args);
   }
 }

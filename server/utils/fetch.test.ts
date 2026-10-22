@@ -164,18 +164,20 @@ describe("fetch", () => {
       expect(received).toEqual([]);
     });
 
-    it("should block a protocol-relative path to a private address", async () => {
-      await expect(fetch("http://192.0.2.1//10.0.0.1/")).rejects.toMatchObject({
-        status: 400,
-      });
-      expect(received).toEqual([]);
+    it("should keep the target host for a path that starts with //", async () => {
+      await fetch("http://192.0.2.1//1.1.1.1/payload");
+
+      expect(received.map((request) => request.url)).toEqual([
+        "http://192.0.2.1//1.1.1.1/payload",
+      ]);
     });
 
-    it("should block a Host header with a private address", async () => {
-      await expect(
-        fetch("http://192.0.2.1/", { headers: { Host: "10.0.0.1" } })
-      ).rejects.toMatchObject({ status: 400 });
-      expect(received).toEqual([]);
+    it("should keep the target host when a Host header is set", async () => {
+      await fetch("http://192.0.2.1/", { headers: { Host: "10.0.0.1" } });
+
+      expect(received.map((request) => request.url)).toEqual([
+        "http://192.0.2.1/",
+      ]);
     });
 
     it("should not connect to the proxy after a timeout", async () => {
