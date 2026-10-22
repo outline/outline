@@ -96,7 +96,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - run: yarn npm audit --severity high --recursive --environment production
+      # Pass when the audit service is unreachable, but still fail on vulnerabilities.
+      - run: |
+          set +e
+          yarn npm audit --severity high --recursive --environment production 2>&1 | tee audit.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ] && grep -qE "RequestError|ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|Response Code: 5[0-9]{2}" audit.log; then
+            echo "::warning::yarn npm audit could not reach the audit service, skipping."
+            exit 0
+          fi
+          exit "$status"
 
   test:
     needs: changes
