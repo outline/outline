@@ -885,9 +885,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const document = await Document.findByPk(id, {
               userId: user.id,
               paranoid: false,
-              rejectOnEmpty: true,
               transaction,
             });
+            authorize(user, "read", document);
 
             if (!document.deletedAt && !document.archivedAt) {
               throw ValidationError("Document is not archived or trashed");

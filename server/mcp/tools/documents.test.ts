@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import { DeprecationValidation } from "@shared/validations";
 import {
   CollectionPermission,
@@ -1090,6 +1091,24 @@ describe("restore_document", () => {
     });
 
     expect(res?.result?.isError).toBe(true);
+  });
+
+  it("returns the same error for a document in another team", async () => {
+    const { accessToken } = await buildOAuthUser();
+    const document = await buildDocument({ archivedAt: new Date() });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+    const unknown = await callMcpTool(server, accessToken, "restore_document", {
+      id: faker.string.uuid(),
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content).toEqual(unknown?.result?.content);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).not.toBeNull();
   });
 });
 

@@ -1177,9 +1177,9 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
-      rejectOnEmpty: true,
       transaction,
     });
+    authorize(user, "read", document);
 
     await documentRestorer(ctx, { document, collectionId, revisionId });
 
