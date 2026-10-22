@@ -11189,7 +11189,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"http-proxy-agent@npm:^7.0.0":
+"http-proxy-agent@npm:^7.0.0, http-proxy-agent@npm:^7.0.2":
   version: 7.0.2
   resolution: "http-proxy-agent@npm:7.0.2"
   dependencies:
@@ -14295,6 +14295,7 @@ __metadata:
     helmet: "npm:^8.3.0"
     hot-shots: "npm:^12.1.0"
     http-errors: "npm:2.0.1"
+    http-proxy-agent: "npm:^7.0.2"
     https-proxy-agent: "npm:^7.0.6"
     husky: "npm:^9.1.7"
     i18next: "npm:^22.5.1"
@@ -14410,7 +14411,6 @@ __metadata:
     terser: "npm:^5.49.0"
     tiny-cookie: "npm:^2.5.1"
     tmp: "npm:^0.2.6"
-    tunnel-agent: "npm:^0.6.0"
     typescript: "npm:^7.0.2"
     ukkonen: "npm:^2.2.0"
     umzug: "npm:^3.8.3"
@@ -18229,15 +18229,6 @@ __metadata:
   dependencies:
     tslib: "npm:^1.9.3"
   checksum: 10c0/918594b4dfac97beb8be2c041c6ec45f078ef3768ed4edfe35ae2c709ab503e2e6b454b2b37e692c658572d1972a428fbfdbc0a2b42fee727a83c1c685fbe5e1
-  languageName: node
-  linkType: hard
-
-"tunnel-agent@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "tunnel-agent@npm:0.6.0"
-  dependencies:
-    safe-buffer: "npm:^5.0.1"
-  checksum: 10c0/4c7a1b813e7beae66fdbf567a65ec6d46313643753d0beefb3c7973d66fcec3a1e7f39759f0a0b4465883499c6dc8b0750ab8b287399af2e583823e40410a17a
   languageName: node
   linkType: hard
 
