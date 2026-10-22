@@ -962,9 +962,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * displayed correctly.
    *
    * @param data The ProsemirrorData object to process
+   * @param teamId the team that mentioned users must belong to.
    * @returns The processed ProsemirrorData with updated mentions
    */
-  static async processMentions(data: ProsemirrorData | Node) {
+  static async processMentions(data: ProsemirrorData | Node, teamId: string) {
     const json = "toJSON" in data ? (data.toJSON() as ProsemirrorData) : data;
 
     // First pass: collect all user IDs from mentions
@@ -994,6 +995,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       ? await User.findAll({
           where: {
             id: uniqueUserIds,
+            teamId,
           },
           attributes: ["id", "name"],
         })

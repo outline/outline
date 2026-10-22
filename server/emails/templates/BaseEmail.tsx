@@ -363,7 +363,7 @@ export default abstract class BaseEmail<
 
     // Process user mentions to ensure they are up to date with the database
     const processedNode = ProsemirrorHelper.toProsemirror(
-      await ProsemirrorHelper.processMentions(node)
+      await ProsemirrorHelper.processMentions(node, team.id)
     );
 
     let content = await ProsemirrorHelper.toHTML(processedNode, {
