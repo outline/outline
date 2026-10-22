@@ -92,6 +92,7 @@ export function TemplatesTable(props: Props) {
           accessor: (template) => template.displayTitle,
           component: (template) => <TemplateLink template={template} />,
           width: "4fr",
+          minWidth: 240,
         },
         {
           type: "data",

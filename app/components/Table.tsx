@@ -18,7 +18,7 @@ import { CollapsedIcon, SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
-import styled from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { HEADER_HEIGHT as APP_HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
@@ -50,6 +50,18 @@ import { transparentize } from "polished";
 
 const HEADER_HEIGHT = 40;
 
+/** Minimum width of a flexible column before the table scrolls horizontally. */
+const DEFAULT_MIN_COLUMN_WIDTH = 100;
+
+/** Space beside the scrolling area, so the selected row highlight is not clipped. */
+const SCROLL_GUTTER = 8;
+
+/** Whether the header can follow the horizontal scroll of the body in CSS. */
+const supportsScrollTimeline =
+  typeof CSS !== "undefined" &&
+  CSS.supports("timeline-scope", "--table") &&
+  CSS.supports("animation-timeline", "scroll()");
+
 type DataColumn<TData> = {
   type: "data";
   header: string;
@@ -66,8 +78,12 @@ export type Column<TData> = {
   id: string;
   component: (data: TData) => React.ReactNode;
   width: string;
-  /** Whether the column is hidden on narrow viewports (defaults to false). */
-  hideOnMobile?: boolean;
+  /**
+   * The minimum width of the column in pixels. When the columns do not fit,
+   * the table scrolls horizontally. Defaults to the pixel width of fixed
+   * columns, or 100px for flexible columns.
+   */
+  minWidth?: number;
 } & (DataColumn<TData> | ActionColumn);
 
 /** The minimum shape of a row, rows are identified by the model identifier. */
@@ -147,7 +163,10 @@ function TableViewInner<TData extends RowData>({
   const selection = useModelSelection();
   const isMobile = useMobile();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
+  const tableRef = React.useRef<HTMLDivElement>(null);
   const headRef = React.useRef<HTMLDivElement>(null);
+  const headScrollRef = React.useRef<HTMLDivElement>(null);
+  const bodyScrollRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
 
@@ -176,10 +195,9 @@ function TableViewInner<TData extends RowData>({
     () =>
       columns.filter(
         (column) =>
-          (!isMobile || !column.hideOnMobile) &&
-          (!id || column.type !== "data" || !hiddenColumns.includes(column.id))
+          !id || column.type !== "data" || !hiddenColumns.includes(column.id)
       ),
-    [id, columns, hiddenColumns, isMobile]
+    [id, columns, hiddenColumns]
   );
 
   const allColumns = React.useMemo(() => {
@@ -236,9 +254,55 @@ function TableViewInner<TData extends RowData>({
   );
 
   const gridColumns = React.useMemo(
-    () => allColumns.map((column) => column.width).join(" "),
+    () => allColumns.map(getColumnTrack).join(" "),
     [allColumns]
   );
+
+  const minWidth = React.useMemo(
+    () => allColumns.reduce((sum, column) => sum + getMinWidth(column), 0),
+    [allColumns]
+  );
+
+  // Set on the DOM directly to avoid a re-render on scroll.
+  const updateOverflow = React.useCallback(() => {
+    const element = tableRef.current;
+    const scroller = bodyScrollRef.current;
+    if (!element || !scroller) {
+      return;
+    }
+
+    const scrollLeft = Math.abs(scroller.scrollLeft);
+    const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+    element.toggleAttribute("data-overflow-start", scrollLeft > 0);
+    element.toggleAttribute(
+      "data-overflow-end",
+      maxScrollLeft - scrollLeft > 1
+    );
+  }, []);
+
+  const handleBodyScroll = React.useCallback(
+    (ev: React.UIEvent<HTMLDivElement>) => {
+      // A scroll event fires after the frame is painted, so syncing here lags.
+      if (!supportsScrollTimeline && headScrollRef.current) {
+        headScrollRef.current.scrollLeft = ev.currentTarget.scrollLeft;
+      }
+      updateOverflow();
+    },
+    [updateOverflow]
+  );
+
+  React.useLayoutEffect(() => {
+    const scroller = bodyScrollRef.current;
+    if (!scroller) {
+      return;
+    }
+
+    updateOverflow();
+
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, [updateOverflow, minWidth]);
 
   const handleChangeSort = React.useCallback(
     (sortState: SortingState) => {
@@ -304,78 +368,90 @@ function TableViewInner<TData extends RowData>({
 
   return (
     <>
-      <InnerTable role="table">
-        <THead ref={headRef} role="rowgroup" $topPos={stickyOffset}>
-          {table.getHeaderGroups().map((headerGroup) => {
-            const headerRow = (
-              <TR role="row" $columns={gridColumns}>
-                {headerGroup.headers.map((header) => {
-                  const sorted = header.column.getIsSorted();
-                  const canSort = header.column.getCanSort();
-                  const toggleSorting = header.column.getToggleSortingHandler();
-                  const handleSortKeyDown = (
-                    ev: React.KeyboardEvent<HTMLDivElement>
-                  ) => {
-                    if (!ev.repeat && (ev.key === "Enter" || ev.key === " ")) {
-                      ev.preventDefault();
-                      toggleSorting?.(ev);
-                    }
-                  };
+      <InnerTable ref={tableRef} role="table" $minWidth={minWidth}>
+        <THead ref={headRef} $topPos={stickyOffset}>
+          <HeadScroller ref={headScrollRef} role="rowgroup">
+            <HeadContent>
+              {table.getHeaderGroups().map((headerGroup) => {
+                const headerRow = (
+                  <TR role="row" $columns={gridColumns}>
+                    {headerGroup.headers.map((header) => {
+                      const sorted = header.column.getIsSorted();
+                      const canSort = header.column.getCanSort();
+                      const toggleSorting =
+                        header.column.getToggleSortingHandler();
+                      const handleSortKeyDown = (
+                        ev: React.KeyboardEvent<HTMLDivElement>
+                      ) => {
+                        if (
+                          !ev.repeat &&
+                          (ev.key === "Enter" || ev.key === " ")
+                        ) {
+                          ev.preventDefault();
+                          toggleSorting?.(ev);
+                        }
+                      };
 
-                  return (
-                    <TH
-                      role="columnheader"
-                      key={header.id}
-                      aria-sort={
-                        !canSort
-                          ? undefined
-                          : sorted === "asc"
-                            ? "ascending"
-                            : sorted === "desc"
-                              ? "descending"
-                              : "none"
-                      }
-                    >
-                      <SortWrapper
-                        align="center"
-                        gap={4}
-                        onClick={toggleSorting}
-                        onKeyDown={canSort ? handleSortKeyDown : undefined}
-                        role={canSort ? "button" : undefined}
-                        tabIndex={canSort ? 0 : undefined}
-                        $sortable={canSort}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {sorted === "asc" ? (
-                          <AscSortIcon />
-                        ) : sorted === "desc" ? (
-                          <DescSortIcon />
-                        ) : (
-                          <div />
-                        )}
-                      </SortWrapper>
-                    </TH>
-                  );
-                })}
-              </TR>
-            );
+                      return (
+                        <TH
+                          role="columnheader"
+                          key={header.id}
+                          aria-sort={
+                            !canSort
+                              ? undefined
+                              : sorted === "asc"
+                                ? "ascending"
+                                : sorted === "desc"
+                                  ? "descending"
+                                  : "none"
+                          }
+                        >
+                          <SortWrapper
+                            align="center"
+                            gap={4}
+                            onClick={toggleSorting}
+                            onKeyDown={canSort ? handleSortKeyDown : undefined}
+                            role={canSort ? "button" : undefined}
+                            tabIndex={canSort ? 0 : undefined}
+                            $sortable={canSort}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {sorted === "asc" ? (
+                              <AscSortIcon />
+                            ) : sorted === "desc" ? (
+                              <DescSortIcon />
+                            ) : (
+                              <div />
+                            )}
+                          </SortWrapper>
+                        </TH>
+                      );
+                    })}
+                  </TR>
+                );
 
-            return id && !isMobile ? (
-              <ColumnVisibilityMenu
-                key={headerGroup.id}
-                columns={columns}
-                hiddenColumns={hiddenColumns}
-                onToggleColumn={handleToggleColumn}
-              >
-                {headerRow}
-              </ColumnVisibilityMenu>
-            ) : (
-              <React.Fragment key={headerGroup.id}>{headerRow}</React.Fragment>
-            );
-          })}
+                return id && !isMobile ? (
+                  <ColumnVisibilityMenu
+                    key={headerGroup.id}
+                    columns={columns}
+                    hiddenColumns={hiddenColumns}
+                    onToggleColumn={handleToggleColumn}
+                  >
+                    {headerRow}
+                  </ColumnVisibilityMenu>
+                ) : (
+                  <React.Fragment key={headerGroup.id}>
+                    {headerRow}
+                  </React.Fragment>
+                );
+              })}
+            </HeadContent>
+          </HeadScroller>
+          <Fade $side="left" />
+          <Fade $side="right" />
           {id && !isMobile && (
             <ColumnVisibilityButton
               columns={columns}
@@ -385,64 +461,76 @@ function TableViewInner<TData extends RowData>({
           )}
         </THead>
 
-        <TBody
-          ref={virtualContainerRef}
-          role="rowgroup"
-          $height={rowVirtualizer.getTotalSize()}
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const row = rows[virtualRow.index] as TRow<TData>;
-            const rowProps = {
-              role: "row",
-              "data-index": virtualRow.index,
-              style: {
-                position: "absolute" as const,
-                transform: `translateY(${
-                  virtualRow.start - rowVirtualizer.options.scrollMargin
-                }px)`,
-                height: `${virtualRow.size}px`,
-              },
-              $columns: gridColumns,
-              children: row.getAllCells().map((cell) => (
-                <TD
-                  role="cell"
-                  key={cell.id}
-                  className={
-                    cell.column.id === "action"
-                      ? "actions"
-                      : cell.column.id === "select"
-                        ? "select"
-                        : ""
-                  }
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TD>
-              )),
-            };
+        <BodyFrame>
+          <BodyScroller ref={bodyScrollRef} onScroll={handleBodyScroll}>
+            <TBody
+              ref={virtualContainerRef}
+              role="rowgroup"
+              $height={rowVirtualizer.getTotalSize()}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const row = rows[virtualRow.index] as TRow<TData>;
+                const rowProps = {
+                  role: "row",
+                  "data-index": virtualRow.index,
+                  style: {
+                    position: "absolute" as const,
+                    transform: `translateY(${
+                      virtualRow.start - rowVirtualizer.options.scrollMargin
+                    }px)`,
+                    height: `${virtualRow.size}px`,
+                  },
+                  $columns: gridColumns,
+                  children: row.getAllCells().map((cell) => (
+                    <TD
+                      role="cell"
+                      key={cell.id}
+                      className={
+                        cell.column.id === "action"
+                          ? "actions"
+                          : cell.column.id === "select"
+                            ? "select"
+                            : ""
+                      }
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TD>
+                  )),
+                };
 
-            const baseRow = selection ? (
-              <SelectableRow
-                key={row.id}
-                selection={selection}
-                id={row.original.id}
-                {...rowProps}
+                const baseRow = selection ? (
+                  <SelectableRow
+                    key={row.id}
+                    selection={selection}
+                    id={row.original.id}
+                    {...rowProps}
+                  />
+                ) : (
+                  <TR key={row.id} {...rowProps} />
+                );
+
+                return decorateRow ? (
+                  <React.Fragment key={row.id}>
+                    {decorateRow(row.original, baseRow)}
+                  </React.Fragment>
+                ) : (
+                  baseRow
+                );
+              })}
+            </TBody>
+            {showPlaceholder && (
+              <Placeholder
+                columns={allColumns.length}
+                gridColumns={gridColumns}
               />
-            ) : (
-              <TR key={row.id} {...rowProps} />
-            );
-
-            return decorateRow ? (
-              <React.Fragment key={row.id}>
-                {decorateRow(row.original, baseRow)}
-              </React.Fragment>
-            ) : (
-              baseRow
-            );
-          })}
-        </TBody>
-        {showPlaceholder && (
-          <Placeholder columns={allColumns.length} gridColumns={gridColumns} />
-        )}
+            )}
+          </BodyScroller>
+          <Fade $side="left" />
+          <Fade $side="right" />
+        </BodyFrame>
       </InnerTable>
       {page.hasNext && (
         <Waypoint
@@ -631,6 +719,34 @@ const ObservedCell = observer(function <TData>({
   return <>{render(data)}</>;
 });
 
+/**
+ * Returns the minimum width of a column in pixels.
+ *
+ * @param column the column.
+ * @returns the minimum width.
+ */
+function getMinWidth<TData>(column: Column<TData>): number {
+  if (column.minWidth !== undefined) {
+    return column.minWidth;
+  }
+
+  const match = /^(?:minmax\(\s*)?(\d+)px/.exec(column.width);
+  return match ? Number(match[1]) : DEFAULT_MIN_COLUMN_WIDTH;
+}
+
+/**
+ * Returns the grid track of a column, flexible columns are given a minimum
+ * width so that every row has the same layout.
+ *
+ * @param column the column.
+ * @returns the grid track.
+ */
+function getColumnTrack<TData>(column: Column<TData>): string {
+  return /^[\d.]+fr$/.test(column.width)
+    ? `minmax(${getMinWidth(column)}px, ${column.width})`
+    : column.width;
+}
+
 function Placeholder({
   columns,
   rows = 3,
@@ -710,8 +826,76 @@ const ColumnOptions = styled(NudeButton)`
   }
 `;
 
-const InnerTable = styled.div`
+const InnerTable = styled.div<{ $minWidth: number }>`
+  --table-min-width: ${({ $minWidth }) => `${$minWidth}px`};
   width: 100%;
+  timeline-scope: --table-scroll;
+`;
+
+const Scroller = styled.div`
+  margin: 0 -${SCROLL_GUTTER}px;
+  padding: 0 ${SCROLL_GUTTER}px;
+`;
+
+const HeadScroller = styled(Scroller)`
+  overflow: hidden;
+  container-type: inline-size;
+`;
+
+const followScroll = keyframes`
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(100cqw - 100%));
+  }
+`;
+
+/** Moved with the body scroll on the compositor, so it does not lag. */
+const HeadContent = styled.div`
+  min-width: var(--table-min-width);
+
+  ${
+    supportsScrollTimeline &&
+    css`
+      animation: ${followScroll} linear both;
+      animation-timeline: --table-scroll;
+    `
+  }
+`;
+
+const BodyScroller = styled(Scroller)`
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: none;
+  scroll-timeline: --table-scroll x;
+`;
+
+const BodyFrame = styled.div`
+  position: relative;
+`;
+
+/** Shown at an edge of the table while there are hidden columns past it. */
+const Fade = styled.div<{ $side: "left" | "right" }>`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  ${({ $side }) => $side}: -${SCROLL_GUTTER}px;
+  width: 24px;
+  background: linear-gradient(
+    to ${({ $side }) => ($side === "left" ? "right" : "left")},
+    ${s("background")},
+    transparent
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  ${InnerTable}[data-overflow-${({ $side }) =>
+    $side === "left" ? "start" : "end"}] & {
+    opacity: 1;
+  }
 `;
 
 const THead = styled.div<{ $topPos: number }>`
@@ -735,11 +919,13 @@ const THead = styled.div<{ $topPos: number }>`
 
 const TBody = styled.div<{ $height: number }>`
   position: relative;
+  min-width: var(--table-min-width);
   height: ${({ $height }) => `${$height}px`};
 `;
 
 const TR = styled.div<{ $columns: string }>`
   width: 100%;
+  min-width: var(--table-min-width);
   display: grid;
   grid-template-columns: ${({ $columns }) => `${$columns}`};
   align-items: center;
@@ -798,7 +984,7 @@ const TD = styled.span`
   position: relative;
   padding: 10px 6px;
   font-size: 14px;
-  text-wrap: wrap;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
@@ -824,11 +1010,6 @@ const TD = styled.span`
   &.right-aligned {
     text-align: right;
     vertical-align: bottom;
-  }
-
-  &.actions {
-    position: sticky;
-    right: 0;
   }
 
   ${NudeButton}[aria-haspopup="menu"] {
