@@ -557,25 +557,33 @@ export class DocumentHelper {
    * @returns The clipped HTML, or undefined when there is nothing to show.
    */
   private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
+    const diffSelector = [
+      EditorStyleHelper.diffInsertion,
+      EditorStyleHelper.diffDeletion,
+      EditorStyleHelper.diffModification,
+      EditorStyleHelper.diffNodeInsertion,
+      EditorStyleHelper.diffNodeDeletion,
+      EditorStyleHelper.diffNodeModification,
+    ]
+      .map((className) => `.${className}`)
+      .join(",");
+
+    // Each node is checked again as the neighbor of its siblings, and removing
+    // nodes without changes does not change the result for the others.
+    const results = new Map<Element, boolean>();
+
     const containsDiffElement = (node: Element | null) => {
       if (!node) {
         return false;
       }
 
-      const diffClasses = [
-        EditorStyleHelper.diffInsertion,
-        EditorStyleHelper.diffDeletion,
-        EditorStyleHelper.diffModification,
-        EditorStyleHelper.diffNodeInsertion,
-        EditorStyleHelper.diffNodeDeletion,
-        EditorStyleHelper.diffNodeModification,
-      ];
-
-      return diffClasses.some(
-        (className) =>
-          node.classList.contains(className) ||
-          node.querySelector(`.${className}`)
-      );
+      let result = results.get(node);
+      if (result === undefined) {
+        result =
+          node.matches(diffSelector) || !!node.querySelector(diffSelector);
+        results.set(node, result);
+      }
+      return result;
     };
 
     // The diffing lib isn't able to catch all changes currently, e.g. changing
