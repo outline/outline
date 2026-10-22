@@ -177,7 +177,7 @@ export function isCloudHosted() {
  * @returns True if the actor is an admin of the group
  */
 export function isGroupAdmin(actor: User, model: Group | null): boolean {
-  if (!model || !("id" in model)) {
+  if (!model || !("id" in model) || !isTeamModel(actor, model)) {
     return false;
   }
 
