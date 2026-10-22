@@ -138,9 +138,13 @@ export function userTools(server: McpServer, scopes: string[]) {
                 ...where,
                 [Op.and]: {
                   [Op.or]: [
-                    Sequelize.literal(
-                      `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                    ),
+                    ...(can(actor, "readEmail", team)
+                      ? [
+                          Sequelize.literal(
+                            `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                          ),
+                        ]
+                      : []),
                     Sequelize.literal(
                       `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
                     ),
