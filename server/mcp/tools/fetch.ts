@@ -172,11 +172,18 @@ export function fetchTool(server: McpServer, scopes: string[]) {
               presentCollection(collection),
               getPublicShareUrlForCollection(actor.team, collection.id),
             ]);
+            const metadata = {
+              ...pathToUrl(actor.team, presented),
+              ...(shareUrl !== undefined && { shareUrl }),
+            };
+
+            // Admins can read private collection metadata without access to its documents.
+            if (!can(actor, "readDocument", collection)) {
+              return success(metadata);
+            }
+
             return success([
-              {
-                ...pathToUrl(actor.team, presented),
-                ...(shareUrl !== undefined && { shareUrl }),
-              },
+              metadata,
               (collection.documentStructure ?? []).map((node) =>
                 presentNavigationNode(actor.team, node)
               ),
