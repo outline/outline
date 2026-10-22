@@ -260,6 +260,23 @@ describe("/s/:id", () => {
     expect(body).not.toContain("**Documents**");
     expect(body).not.toContain("[Child Document]");
   });
+
+  it("should return 404 when the share belongs to another team", async () => {
+    const team = await buildTeam({ subdomain: `host-${randomUUID()}` });
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.get(`/s/${share.id}.md`, {
+      headers: { Host: `${team.subdomain}.outline.dev` },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(404);
+    expect(body).not.toContain(document.title);
+  });
 });
 
 describe("content security policy", () => {
