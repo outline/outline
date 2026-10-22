@@ -394,13 +394,7 @@ function DocumentScene({
         }}
         handler={onPublish}
       />
-      <Background
-        column
-        auto
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        data-drop-area
-      >
+      <Background column auto onDragOver={handleDragOver} onDrop={handleDrop}>
         <PageTitle title={pageTitle} favicon={favicon} />
         {(isUploading || isSaving) && <LoadingIndicator />}
         <Container column auto>

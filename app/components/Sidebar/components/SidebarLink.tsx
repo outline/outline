@@ -92,9 +92,8 @@ const activeDropStyle = {
   fontWeight: 600,
 };
 
-// Prevents the parent NavLink's mousedown handler from firing (which would
-// navigate or toggle), without calling preventDefault — that would block the
-// native HTML5 drag from initiating on the draggable row.
+// Prevents the parent NavLink's mousedown handler from firing, which would
+// navigate or toggle.
 const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
 };
@@ -301,7 +300,14 @@ const Link = styled.a<{
     --background: ${s("sidebarActiveBackground")};
   }
 
-  ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
+  ${(props) =>
+    props.$isActiveDrop &&
+    css`
+      &,
+      ${hoveredOrMenuOpen} {
+        --background: ${props.theme.slateDark};
+      }
+    `}
 
   display: flex;
   position: relative;

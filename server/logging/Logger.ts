@@ -6,7 +6,7 @@ import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
 import Sentry from "@server/logging/sentry";
-import ShutdownHelper from "@server/utils/ShutdownHelper";
+import { ShutdownHelper } from "@server/utils/ShutdownHelper";
 import * as Tracing from "./tracer";
 
 type LogCategory =
