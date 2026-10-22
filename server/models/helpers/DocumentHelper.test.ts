@@ -517,30 +517,16 @@ describe("DocumentHelper", () => {
     });
 
     it("should return undefined when the diff does not complete in time", async () => {
-      // The time limit reads Date.now, which is faked in this file.
-      vi.useRealTimers();
-      try {
-        const before = await buildDocument({
-          text: Array.from({ length: 500 }, (_, i) => `Before ${i}`).join(
-            "\n\n"
-          ),
-        });
-        const after = await buildDocument({
-          text: Array.from({ length: 500 }, (_, i) => `After ${i}`).join(
-            "\n\n"
-          ),
-        });
+      const lines = Array.from({ length: 100 }, (_, i) => `Line ${i}`);
+      const before = await buildDocument({ text: lines.join("\n\n") });
+      const after = await buildDocument({
+        text: [...lines].reverse().join("\n\n"),
+      });
 
-        expect(
-          DocumentHelper.toMarkdownDiff(before, after, { timeout: 1 })
-        ).toBeUndefined();
-        expect(DocumentHelper.toMarkdownDiff(before, after)).toContain(
-          "+After 499"
-        );
-      } finally {
-        vi.useFakeTimers({ toFake: ["Date"] });
-        vi.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
-      }
+      expect(
+        DocumentHelper.toMarkdownDiff(before, after, { timeout: 0 })
+      ).toBeUndefined();
+      expect(DocumentHelper.toMarkdownDiff(before, after)).toContain("+Line 0");
     });
   });
 
