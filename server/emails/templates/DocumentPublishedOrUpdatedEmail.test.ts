@@ -4,7 +4,12 @@ import { createContext } from "@server/context";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
 import { Revision } from "@server/models";
-import { buildDocument, buildTeam, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
 import { initI18n } from "@server/utils/i18n";
 import DocumentPublishedOrUpdatedEmail from "./DocumentPublishedOrUpdatedEmail";
 
@@ -138,6 +143,60 @@ describe("DocumentPublishedOrUpdatedEmail", () => {
 
     const html = renderToStaticMarkup(spy.mock.calls[0][0].component);
     expect(html).not.toContain("First paragraph");
+  });
+
+  it("should make relative links in the preview absolute", async () => {
+    const spy = vi.spyOn(mailer, "sendMail").mockResolvedValue(undefined);
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const recipient = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: actor.id,
+      text: "See [another doc](/doc/another-abc123)",
+    });
+
+    await new DocumentPublishedOrUpdatedEmail({
+      to: recipient.email,
+      userId: recipient.id,
+      eventType: NotificationEventType.PublishDocument,
+      documentId: document.id,
+      teamUrl: team.url,
+      actorId: actor.id,
+      actorName: actor.name,
+    }).send();
+
+    const html = renderToStaticMarkup(spy.mock.calls[0][0].component);
+    expect(html).toContain(`${team.url}/doc/another-abc123`);
+  });
+
+  it("should not send when the recipient cannot read the document", async () => {
+    const spy = vi.spyOn(mailer, "sendMail").mockResolvedValue(undefined);
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const recipient = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: actor.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: actor.id,
+      collectionId: collection.id,
+    });
+
+    await new DocumentPublishedOrUpdatedEmail({
+      to: recipient.email,
+      userId: recipient.id,
+      eventType: NotificationEventType.PublishDocument,
+      documentId: document.id,
+      teamUrl: team.url,
+      actorId: actor.id,
+      actorName: actor.name,
+    }).send();
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it("should name only the actor when the actor ID is missing", async () => {

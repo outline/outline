@@ -581,6 +581,55 @@ describe("leadingSnippet", () => {
 
     expect(leadingSnippet(doc)).toBeUndefined();
   });
+
+  describe("with lists", () => {
+    const item = (text?: string) => ({
+      type: "list_item",
+      content: [text ? paragraph(text) : { type: "paragraph" }],
+    });
+    const list = (items: ReturnType<typeof item>[]) => ({
+      type: "bullet_list",
+      content: items,
+    });
+
+    it("should not add a list whose first item overflows the remaining budget", () => {
+      const first = paragraph("a".repeat(maxSnippetChars - 100));
+      const doc = buildProseMirrorDoc([first, list([item("b".repeat(500))])]);
+
+      const newDoc = leadingSnippet(doc);
+
+      expect(newDoc?.toJSON()).toEqual(buildProseMirrorDoc([first]).toJSON());
+    });
+
+    it("should count the separators between list items", () => {
+      const items = Array.from({ length: 10 }, () => item("a".repeat(100)));
+      const doc = buildProseMirrorDoc([list(items)]);
+
+      const newDoc = leadingSnippet(doc);
+
+      expect(newDoc?.toJSON()).toEqual(
+        buildProseMirrorDoc([list(items.slice(0, 9))]).toJSON()
+      );
+    });
+
+    it("should limit the number of short list items", () => {
+      const items = Array.from({ length: 600 }, () => item("a"));
+      const doc = buildProseMirrorDoc([list(items)]);
+
+      const newDoc = leadingSnippet(doc);
+
+      expect(newDoc?.firstChild?.childCount).toEqual(10);
+    });
+
+    it("should limit the number of empty list items", () => {
+      const items = Array.from({ length: 600 }, () => item());
+      const doc = buildProseMirrorDoc([list(items)]);
+
+      const newDoc = leadingSnippet(doc);
+
+      expect(newDoc?.firstChild?.childCount).toEqual(10);
+    });
+  });
 });
 
 describe("diffSnippet", () => {

@@ -22,6 +22,11 @@ export const maxSnippetChars = 1000;
 const maxLeadingBlocks = 3;
 
 /**
+ * Maximum number of list items or table rows to keep when trimming a container.
+ */
+const maxContainerChildren = 10;
+
+/**
  * Build an email snippet around a mention. A surrounding list is trimmed to
  * the mentioned item plus one sibling on either side, a table to the
  * mentioned row; otherwise the largest complete block that still fits the
@@ -118,8 +123,8 @@ export function mentionSnippet(doc: Node, mention: MentionAttrs) {
 /**
  * Build an email snippet from the first blocks of a document. Empty
  * paragraphs are skipped, and blocks are added until the block limit or the
- * size budget is reached. A list or table that overflows the budget is
- * trimmed to its leading items or rows.
+ * size budget is reached. Lists and tables are trimmed to the leading items
+ * or rows that fit.
  *
  * @param doc The top-level doc node of a document.
  * @returns A new top-level doc node with the leading blocks, or undefined if
@@ -134,23 +139,24 @@ export function leadingSnippet(doc: Node) {
       break;
     }
 
-    const block = doc.child(i);
-    if (block.isTextblock && block.childCount === 0) {
+    const child = doc.child(i);
+    if (child.isTextblock && child.childCount === 0) {
       continue;
     }
 
-    const remaining = maxSnippetChars - length;
-    const blockLength = textBetween(block, 0, block.content.size).length;
+    // Count the separator between blocks, as textBetween does.
+    const remaining = maxSnippetChars - length - (blocks.length ? 1 : 0);
+    const block = trimContainer(child, remaining) ?? child;
+    const blockLength = textLength(block);
     if (blockLength > remaining) {
-      const trimmed = trimContainer(block, remaining);
-      if (trimmed || !blocks.length) {
-        blocks.push(trimmed ?? block);
+      if (!blocks.length) {
+        blocks.push(block);
       }
       break;
     }
 
     blocks.push(block);
-    length += blockLength;
+    length += blockLength + (blocks.length > 1 ? 1 : 0);
   }
 
   return blocks.length ? doc.copy(Fragment.fromArray(blocks)) : undefined;
@@ -217,8 +223,8 @@ async function renderDiffSnippet(
 }
 
 /**
- * Trims a list or table to the leading items or rows that fit the budget,
- * always keeping at least the first.
+ * Trims a list or table to the leading items or rows that fit the budget and
+ * the child limit, always keeping at least the first.
  *
  * @param block The top-level block to trim.
  * @param budget The maximum amount of visible text, in characters.
@@ -238,9 +244,9 @@ function trimContainer(block: Node, budget: number) {
   const children: Node[] = [];
   let length = 0;
 
-  for (let i = 0; i < block.childCount; i++) {
+  for (let i = 0; i < Math.min(block.childCount, maxContainerChildren); i++) {
     const child = block.child(i);
-    length += textBetween(child, 0, child.content.size).length;
+    length += textLength(child) + (children.length ? 1 : 0);
     if (children.length && length > budget) {
       break;
     }
@@ -248,6 +254,17 @@ function trimContainer(block: Node, budget: number) {
   }
 
   return block.copy(Fragment.fromArray(children));
+}
+
+/**
+ * Returns the length of the visible text in a node, including leaf text and
+ * block separators.
+ *
+ * @param node The node to measure.
+ * @returns The number of characters.
+ */
+function textLength(node: Node) {
+  return textBetween(node, 0, node.content.size).length;
 }
 
 /**

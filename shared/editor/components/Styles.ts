@@ -1204,8 +1204,9 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   caret-color: transparent;
 }
 
-/* Text blocks selected with the drag handle do not get an outline. */
-.ProseMirror-selectednode:not(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, hr) {
+/* Text blocks selected with the drag handle do not get an outline. Chained
+   :not() selectors, as email CSS inlining mismatches a selector list. */
+.ProseMirror-selectednode:not(p):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(ul):not(ol):not(li):not(blockquote):not(hr) {
   outline: 2px solid ${props.readOnly ? "transparent" : props.theme.selected};
 
   @media print {
