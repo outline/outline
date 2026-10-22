@@ -291,6 +291,27 @@ function TableViewInner<TData extends RowData>({
     [updateOverflow]
   );
 
+  // Focus can scroll the header to an offscreen column, pass it to the body.
+  const handleHeadScroll = React.useCallback(
+    (ev: React.UIEvent<HTMLDivElement>) => {
+      const head = ev.currentTarget;
+      const body = bodyScrollRef.current;
+      if (!body) {
+        return;
+      }
+
+      if (supportsScrollTimeline) {
+        if (head.scrollLeft !== 0) {
+          body.scrollLeft += head.scrollLeft;
+          head.scrollLeft = 0;
+        }
+      } else if (body.scrollLeft !== head.scrollLeft) {
+        body.scrollLeft = head.scrollLeft;
+      }
+    },
+    []
+  );
+
   React.useLayoutEffect(() => {
     const scroller = bodyScrollRef.current;
     if (!scroller) {
@@ -370,7 +391,11 @@ function TableViewInner<TData extends RowData>({
     <>
       <InnerTable ref={tableRef} role="table" $minWidth={minWidth}>
         <THead ref={headRef} $topPos={stickyOffset}>
-          <HeadScroller ref={headScrollRef} role="rowgroup">
+          <HeadScroller
+            ref={headScrollRef}
+            role="rowgroup"
+            onScroll={handleHeadScroll}
+          >
             <HeadContent>
               {table.getHeaderGroups().map((headerGroup) => {
                 const headerRow = (
@@ -450,8 +475,8 @@ function TableViewInner<TData extends RowData>({
               })}
             </HeadContent>
           </HeadScroller>
-          <Fade $side="left" />
-          <Fade $side="right" />
+          <Fade $side="start" />
+          <Fade $side="end" />
           {id && !isMobile && (
             <ColumnVisibilityButton
               columns={columns}
@@ -528,8 +553,8 @@ function TableViewInner<TData extends RowData>({
               />
             )}
           </BodyScroller>
-          <Fade $side="left" />
-          <Fade $side="right" />
+          <Fade $side="start" />
+          <Fade $side="end" />
         </BodyFrame>
       </InnerTable>
       {page.hasNext && (
@@ -848,13 +873,18 @@ const followScroll = keyframes`
   }
 
   to {
-    transform: translateX(calc(100cqw - 100%));
+    transform: translateX(calc((100cqw - 100%) * var(--scroll-direction)));
   }
 `;
 
 /** Moved with the body scroll on the compositor, so it does not lag. */
 const HeadContent = styled.div`
+  --scroll-direction: 1;
   min-width: var(--table-min-width);
+
+  &:dir(rtl) {
+    --scroll-direction: -1;
+  }
 
   ${
     supportsScrollTimeline &&
@@ -869,7 +899,7 @@ const BodyScroller = styled(Scroller)`
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: none;
-  scroll-timeline: --table-scroll x;
+  scroll-timeline: --table-scroll inline;
 `;
 
 const BodyFrame = styled.div`
@@ -877,14 +907,14 @@ const BodyFrame = styled.div`
 `;
 
 /** Shown at an edge of the table while there are hidden columns past it. */
-const Fade = styled.div<{ $side: "left" | "right" }>`
+const Fade = styled.div<{ $side: "start" | "end" }>`
   position: absolute;
   top: 0;
   bottom: 0;
-  ${({ $side }) => $side}: -${SCROLL_GUTTER}px;
+  inset-inline-${({ $side }) => $side}: -${SCROLL_GUTTER}px;
   width: 24px;
   background: linear-gradient(
-    to ${({ $side }) => ($side === "left" ? "right" : "left")},
+    to ${({ $side }) => ($side === "start" ? "right" : "left")},
     ${s("background")},
     transparent
   );
@@ -892,8 +922,11 @@ const Fade = styled.div<{ $side: "left" | "right" }>`
   opacity: 0;
   transition: opacity 100ms ease-in-out;
 
-  ${InnerTable}[data-overflow-${({ $side }) =>
-    $side === "left" ? "start" : "end"}] & {
+  &:dir(rtl) {
+    transform: scaleX(-1);
+  }
+
+  ${InnerTable}[data-overflow-${({ $side }) => $side}] & {
     opacity: 1;
   }
 `;
