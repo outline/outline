@@ -1,4 +1,3 @@
-import { structuredPatch, type ParsedDiff, type PatchOptions } from "diff";
 import { isEqual, omit } from "es-toolkit/compat";
 import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
@@ -15,6 +14,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { LineDiffHelper } from "@shared/utils/LineDiffHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -35,12 +35,6 @@ interface InlineSegment {
   pmTo: number;
   /** Whether this segment is an atom node whose text length differs from nodeSize. */
   isAtom?: boolean;
-}
-
-/** Options for a line diff. The installed types do not include `timeout`. */
-interface LineDiffOptions extends PatchOptions {
-  /** The number of milliseconds after which the diff stops and returns undefined. */
-  timeout: number;
 }
 
 /** The default number of milliseconds a Markdown diff can run before it stops. */
@@ -576,53 +570,15 @@ export class DocumentHelper {
     options: { context?: number; timeout?: number } = {}
   ): string | undefined {
     // Patch edits match against the raw serializer output, so it is not normalized.
-    const toText = (document: Document | Revision | null) => {
-      const text = document
+    const toText = (document: Document | Revision | null) =>
+      document
         ? serializer.serialize(DocumentHelper.toProsemirror(document))
         : "";
 
-      // A trailing newline avoids "No newline at end of file" markers.
-      return text && !text.endsWith("\n") ? `${text}\n` : text;
-    };
-    const beforeText = toText(before);
-    const afterText = toText(after);
-
-    if (beforeText === afterText) {
-      return "";
-    }
-
-    // The diff is O(lines × edits), so very different documents need a limit.
-    const diffOptions: LineDiffOptions = {
+    return LineDiffHelper.unified(toText(before), toText(after), {
       context: options.context ?? 2,
       timeout: options.timeout ?? MarkdownDiffTimeout,
-    };
-
-    const patch: ParsedDiff | undefined = structuredPatch(
-      "",
-      "",
-      beforeText,
-      afterText,
-      undefined,
-      undefined,
-      diffOptions
-    );
-
-    if (!patch) {
-      return undefined;
-    }
-
-    // An empty range starts at the line before it, as in unified diff output.
-    const range = (start: number, lines: number) =>
-      `${lines === 0 ? start - 1 : start},${lines}`;
-
-    return patch.hunks
-      .map((hunk) =>
-        [
-          `@@ -${range(hunk.oldStart, hunk.oldLines)} +${range(hunk.newStart, hunk.newLines)} @@`,
-          ...hunk.lines,
-        ].join("\n")
-      )
-      .join("\n");
+    });
   }
 
   /**
