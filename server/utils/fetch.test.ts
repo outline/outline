@@ -3,6 +3,7 @@ import http from "node:http";
 import type { MockInstance } from "vitest";
 import env from "@server/env";
 import { server as msw } from "@server/test/msw";
+import { getTestProxy } from "@server/test/support";
 import fetch from "./fetch";
 
 describe("fetch", () => {
@@ -63,52 +64,24 @@ describe("fetch", () => {
   });
 
   describe("with a proxy", () => {
-    let proxy: http.Server;
-    let proxyURL: string;
-    let received: { method?: string; url?: string; auth?: string }[];
-    let connections: number;
-
-    beforeAll(async () => {
-      proxy = http.createServer((req, res) => {
-        received.push({
-          method: req.method,
-          url: req.url,
-          auth: req.headers["proxy-authorization"],
-        });
-        if (req.url === "http://192.0.2.1/redirect") {
-          res.writeHead(302, { Location: "https://192.0.2.1/" });
-        }
-        if (req.url === "http://192.0.2.1/redirect-private") {
-          res.writeHead(302, { Location: "http://10.0.0.1/" });
-        }
-        res.end("proxied");
-      });
-      proxy.on("connection", () => {
-        connections++;
-      });
-      proxy.on("connect", (req, socket) => {
-        received.push({
-          method: req.method,
-          url: req.url,
-          auth: req.headers["proxy-authorization"],
-        });
-        socket.end("HTTP/1.1 403 Forbidden\r\n\r\n");
-      });
-      await new Promise<void>((resolve) =>
-        proxy.listen(0, "127.0.0.1", resolve)
-      );
-      const address = proxy.address();
-      const port = address && typeof address === "object" ? address.port : 0;
-      proxyURL = `http://us%40er:p%40ss@127.0.0.1:${port}`;
+    const proxy = getTestProxy((req, res) => {
+      if (req.url === "http://192.0.2.1/redirect") {
+        res.writeHead(302, { Location: "https://192.0.2.1/" });
+      }
+      if (req.url === "http://192.0.2.1/redirect-private") {
+        res.writeHead(302, { Location: "http://10.0.0.1/" });
+      }
+      res.end("proxied");
     });
 
     beforeEach(() => {
       // TEST-NET-1 is never routed, so a request that skips the proxy fails.
       env.ALLOWED_PRIVATE_IP_ADDRESSES = ["192.0.2.1"];
-      received = [];
-      connections = 0;
-      process.env.HTTP_PROXY = proxyURL;
-      process.env.HTTPS_PROXY = proxyURL;
+      const proxyURL = new URL(proxy.url);
+      proxyURL.username = "us%40er";
+      proxyURL.password = "p%40ss";
+      process.env.HTTP_PROXY = proxyURL.href;
+      process.env.HTTPS_PROXY = proxyURL.href;
     });
 
     afterEach(() => {
@@ -117,15 +90,11 @@ describe("fetch", () => {
       delete process.env.HTTPS_PROXY;
     });
 
-    afterAll(async () => {
-      await new Promise((resolve) => proxy.close(resolve));
-    });
-
     it("should send an http request through the proxy", async () => {
       const res = await fetch("http://192.0.2.1/");
 
       expect(await res.text()).toEqual("proxied");
-      expect(received).toEqual([
+      expect(proxy.requests).toEqual([
         {
           method: "GET",
           url: "http://192.0.2.1/",
@@ -138,7 +107,7 @@ describe("fetch", () => {
       const res = await fetch("https://192.0.2.1/");
 
       expect(res.status).toEqual(403);
-      expect(received).toEqual([
+      expect(proxy.requests).toEqual([
         {
           method: "CONNECT",
           url: "192.0.2.1:443",
@@ -151,7 +120,7 @@ describe("fetch", () => {
       const res = await fetch("http://192.0.2.1/redirect");
 
       expect(res.status).toEqual(403);
-      expect(received.map((request) => request.method)).toEqual([
+      expect(proxy.requests.map((request) => request.method)).toEqual([
         "GET",
         "CONNECT",
       ]);
@@ -161,13 +130,13 @@ describe("fetch", () => {
       await expect(fetch("https://10.0.0.1/")).rejects.toMatchObject({
         status: 400,
       });
-      expect(received).toEqual([]);
+      expect(proxy.requests).toEqual([]);
     });
 
     it("should keep the target host for a path that starts with //", async () => {
       await fetch("http://192.0.2.1//1.1.1.1/payload");
 
-      expect(received.map((request) => request.url)).toEqual([
+      expect(proxy.requests.map((request) => request.url)).toEqual([
         "http://192.0.2.1//1.1.1.1/payload",
       ]);
     });
@@ -175,7 +144,7 @@ describe("fetch", () => {
     it("should keep the target host when a Host header is set", async () => {
       await fetch("http://192.0.2.1/", { headers: { Host: "10.0.0.1" } });
 
-      expect(received.map((request) => request.url)).toEqual([
+      expect(proxy.requests.map((request) => request.url)).toEqual([
         "http://192.0.2.1/",
       ]);
     });
@@ -191,14 +160,14 @@ describe("fetch", () => {
         fetch("http://slow.example/", { timeout: 50 })
       ).rejects.toThrow("Request timeout after 50ms");
       await new Promise((resolve) => setTimeout(resolve, 300));
-      expect(connections).toEqual(0);
+      expect(proxy.connections).toEqual(0);
     });
 
     it("should block a redirect to a private target address", async () => {
       await expect(
         fetch("http://192.0.2.1/redirect-private")
       ).rejects.toMatchObject({ status: 400 });
-      expect(received.map((request) => request.url)).toEqual([
+      expect(proxy.requests.map((request) => request.url)).toEqual([
         "http://192.0.2.1/redirect-private",
       ]);
     });
