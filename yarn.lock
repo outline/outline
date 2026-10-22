@@ -6724,15 +6724,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/stoppable@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "@types/stoppable@npm:1.1.3"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/048c206d8d1269bc0b3c0d1a5d22b67ca34e9a95e07301390f2684e4fe68795380629a83a132ef08b14520d828850ea590f34f29d58195153b3aa6250f517ab6
-  languageName: node
-  linkType: hard
-
 "@types/symlink-or-copy@npm:^1.2.0":
   version: 1.2.2
   resolution: "@types/symlink-or-copy@npm:1.2.2"
@@ -14254,7 +14245,6 @@ __metadata:
     "@types/resolve-path": "npm:^1.4.3"
     "@types/semver": "npm:^7.7.1"
     "@types/slug": "npm:^5.0.9"
-    "@types/stoppable": "npm:^1.1.3"
     "@types/tmp": "npm:^0.2.6"
     "@types/utf8": "npm:^3.0.3"
     "@types/validator": "npm:^13.15.10"
@@ -14407,7 +14397,6 @@ __metadata:
     socket.io: "npm:^4.8.3"
     socket.io-client: "npm:^4.8.4"
     sonner: "npm:^2.0.8"
-    stoppable: "npm:^1.1.0"
     string-replace-to-array: "npm:^2.1.1"
     styled-components: "npm:^6.5.3"
     terser: "npm:^5.49.0"
@@ -17458,13 +17447,6 @@ __metadata:
     es-errors: "npm:^1.3.0"
     internal-slot: "npm:^1.1.0"
   checksum: 10c0/de4e45706bb4c0354a4b1122a2b8cc45a639e86206807ce0baf390ee9218d3ef181923fa4d2b67443367c491aa255c5fbaa64bb74648e3c5b48299928af86c09
-  languageName: node
-  linkType: hard
-
-"stoppable@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "stoppable@npm:1.1.0"
-  checksum: 10c0/ba91b65e6442bf6f01ce837a727ece597a977ed92a05cb9aea6bf446c5e0dcbccc28f31b793afa8aedd8f34baaf3335398d35f903938d5493f7fbe386a1e090e
   languageName: node
   linkType: hard
 
