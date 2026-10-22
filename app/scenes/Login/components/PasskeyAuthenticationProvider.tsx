@@ -16,6 +16,8 @@ import { getCSRFToken } from "~/utils/csrf";
 
 type Props = React.ComponentProps<typeof ButtonLarge>;
 
+const verifyAuthenticationPath = "/auth/passkeys.verifyAuthentication";
+
 /**
  * Flattens a nested object into form field entries using bracket notation
  * (e.g. `response[authenticatorData]`) so the values can be rendered as hidden
@@ -46,6 +48,30 @@ function flattenFormFields(
   });
 
   return out;
+}
+
+/**
+ * Submits the passkey authentication response with fetch and then opens the
+ * page that the server redirects to. The desktop app opens navigations to
+ * /auth/ paths in the system browser, so a native form submit cannot be used.
+ *
+ * @param fields The form fields to submit.
+ * @throws if the server rejects the authentication response.
+ */
+async function submitInApp(fields: Record<string, string>) {
+  const response = await fetch(verifyAuthenticationPath, {
+    method: "POST",
+    body: new URLSearchParams(fields),
+    credentials: "same-origin",
+    redirect: "follow",
+  });
+
+  if (!response.ok || !response.redirected) {
+    const body: { message?: string } = await response.json().catch(() => ({}));
+    throw new Error(body.message || response.statusText);
+  }
+
+  window.location.href = response.url;
 }
 
 /**
@@ -101,18 +127,22 @@ export function PasskeyAuthenticationProvider(props: Props) {
       );
       const { challengeId, ...optionsData } = resp.data;
       const authResp = await startAuthentication(optionsData);
+      const formFields = flattenFormFields({
+        ...authResp,
+        challengeId,
+        [CSRF.fieldName]: getCSRFToken(),
+        client: verifyClient,
+      });
+
+      if (Desktop.isElectron()) {
+        await submitInApp(formFields);
+        return;
+      }
 
       // Render the authentication response as hidden inputs; the effect below
       // submits the form natively once they're in the DOM so the browser
       // follows the redirect and applies cookies.
-      setFields(
-        flattenFormFields({
-          ...authResp,
-          challengeId,
-          [CSRF.fieldName]: getCSRFToken(),
-          client: verifyClient,
-        })
-      );
+      setFields(formFields);
     } catch (err) {
       toast.error(errToString(err));
       // Re-enable the button so the user can retry; on success the form submits
@@ -162,7 +192,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
       <Form
         ref={formRef}
         method="POST"
-        action="/auth/passkeys.verifyAuthentication"
+        action={verifyAuthenticationPath}
         onSubmit={handleSubmit}
       >
         {fields &&
