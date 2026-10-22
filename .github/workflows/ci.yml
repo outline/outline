@@ -152,8 +152,10 @@ jobs:
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
       - run: yarn vite:build
+      # RelativeCI is an external service, an outage should not block merging.
       - name: Send bundle stats to RelativeCI
         if: ${{ env.RELATIVE_CI_KEY != '' }}
+        continue-on-error: true
         env:
           RELATIVE_CI_KEY: ${{ secrets.RELATIVE_CI_KEY }}
         uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03 # v2
