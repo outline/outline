@@ -106,6 +106,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
         ) => {
           try {
             const user = getActorFromContext(extra);
+            authorize(user, "listComments", user.team);
 
             let document: Document | null = null;
             if (documentId) {
