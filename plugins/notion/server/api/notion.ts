@@ -6,6 +6,7 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Integration, IntegrationAuthentication } from "@server/models";
+import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { NotionClient } from "../notion";
@@ -48,6 +49,7 @@ router.get(
     }
 
     verifyOAuthStateNonce(ctx, NotionOAuthNonceCookie, parsedState.nonce);
+    authorize(user, "createIntegration", user.team);
 
     // validation middleware ensures that code is non-null at this point.
     const data = await NotionClient.oauthAccess(code!);
