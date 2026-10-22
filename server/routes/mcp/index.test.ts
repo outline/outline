@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import { Scope, TeamPreference } from "@shared/types";
 import { iconNames } from "@shared/utils/IconNames";
-import Logger from "@server/logging/Logger";
 import { UserFlag } from "@server/models/User";
 import {
   buildUser,
@@ -104,20 +103,31 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(404);
     });
 
-    it("should reject an unsupported protocol version without logging", async () => {
-      const { accessToken } = await buildOAuthUser();
-      const warn = vi.spyOn(Logger, "warn");
-      const { body } = mcpRequest("server/discover");
+    it("should call a tool with a 2026-07-28 request", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const { body } = mcpRequest("tools/call", {
+        name: "list_collections",
+        arguments: {},
+        _meta: modernMeta("2026-07-28"),
+      });
       const res = await server.post("/mcp/", {
         headers: {
           ...mcpHeaders(accessToken),
           "MCP-Protocol-Version": "2026-07-28",
+          "Mcp-Method": "tools/call",
+          "Mcp-Name": "list_collections",
         },
         body,
       });
-      expect(res.status).toEqual(400);
-      expect(warn).not.toHaveBeenCalled();
-      warn.mockRestore();
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as { content?: { text: string }[] };
+      expect(result?.content?.[0]?.text).toContain(collection.id);
     });
 
     it("should handle initialize and return capabilities", async () => {
@@ -412,7 +422,7 @@ describe("POST /mcp/", () => {
       const res = await callMcpTool(server, accessToken, "create_document", {
         title: "Should Fail",
       });
-      expect(res?.result?.isError).toBe(true);
+      expect(res?.error).toMatchObject({ code: -32602 });
     });
 
     it("read-only token does not have update_document tool", async () => {
@@ -431,7 +441,7 @@ describe("POST /mcp/", () => {
         id: document.id,
         title: "Should Fail",
       });
-      expect(res?.result?.isError).toBe(true);
+      expect(res?.error).toMatchObject({ code: -32602 });
     });
 
     it("read-only token does not have delete_comment tool", async () => {
@@ -453,7 +463,7 @@ describe("POST /mcp/", () => {
       const res = await callMcpTool(server, accessToken, "delete_comment", {
         id: comment.id,
       });
-      expect(res?.result?.isError).toBe(true);
+      expect(res?.error).toMatchObject({ code: -32602 });
     });
 
     it("create-scoped token can call create_document", async () => {
@@ -489,7 +499,7 @@ describe("POST /mcp/", () => {
         id: document.id,
         title: "Should Fail",
       });
-      expect(res?.result?.isError).toBe(true);
+      expect(res?.error).toMatchObject({ code: -32602 });
     });
 
     it("write-scoped token can call all operations", async () => {
@@ -535,3 +545,20 @@ describe("POST /mcp/", () => {
     });
   });
 });
+
+/**
+ * Builds the per-request `_meta` envelope of a 2026-07-28 request.
+ *
+ * @param protocolVersion - the protocol version to claim.
+ * @returns the envelope.
+ */
+function modernMeta(protocolVersion: string) {
+  return {
+    "io.modelcontextprotocol/protocolVersion": protocolVersion,
+    "io.modelcontextprotocol/clientInfo": {
+      name: "test-client",
+      version: "1.0.0",
+    },
+    "io.modelcontextprotocol/clientCapabilities": {},
+  };
+}

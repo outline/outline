@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { iconNames } from "@shared/utils/IconNames";
 import { attachmentTools } from "./tools/attachments";
 import { collectionTools } from "./tools/collections";

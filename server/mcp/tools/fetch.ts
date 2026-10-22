@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { McpServer, CallToolResult } from "@modelcontextprotocol/server";
 import {
   Attachment,
   Collection,
@@ -107,14 +106,14 @@ export function fetchTool(server: McpServer, scopes: string[]) {
         idempotentHint: true,
         readOnlyHint: true,
       },
-      inputSchema: {
+      inputSchema: z.object({
         resource: z.enum(allowedTypes).describe("The resource to fetch."),
         id: z
           .string()
           .describe(
             'The unique identifier or URL. For users, "current_user" returns the authenticated user.'
           ),
-      },
+      }),
     },
     withTracing("fetch", async ({ resource, id: rawId }, extra) => {
       try {
