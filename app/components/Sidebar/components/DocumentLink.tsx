@@ -196,8 +196,7 @@ const DocumentLink = observer(function DocumentLink({
   const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
     node,
     collection,
-    handleExpand,
-    parentRef
+    handleExpand
   );
 
   // Fall back so document-only access (e.g. "Manage" on a parent) can reorder.

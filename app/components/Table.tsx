@@ -44,6 +44,7 @@ import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePrevious from "~/hooks/usePrevious";
+import { useStuckAttribute } from "~/hooks/useStuckAttribute";
 import { preventDefault } from "~/utils/events";
 import { transparentize } from "polished";
 
@@ -146,8 +147,14 @@ function TableViewInner<TData extends RowData>({
   const selection = useModelSelection();
   const isMobile = useMobile();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
+  const headRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
+
+  useStuckAttribute(
+    headRef,
+    isMobile ? Math.min(stickyOffset, APP_HEADER_HEIGHT) : stickyOffset
+  );
 
   const [hiddenColumns, setHiddenColumns] = usePersistedState<string[]>(
     `hiddenTableColumns-${id}`,
@@ -298,7 +305,7 @@ function TableViewInner<TData extends RowData>({
   return (
     <>
       <InnerTable role="table">
-        <THead role="rowgroup" $topPos={stickyOffset}>
+        <THead ref={headRef} role="rowgroup" $topPos={stickyOffset}>
           {table.getHeaderGroups().map((headerGroup) => {
             const headerRow = (
               <TR role="row" $columns={gridColumns}>
