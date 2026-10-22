@@ -110,15 +110,10 @@ export function getDesktopAppPlatform(
   aaguid?: string | null,
   userAgent?: string | null
 ): DesktopAppPlatform | undefined {
-  if (!userAgent?.toLowerCase().includes("electron/")) {
-    return undefined;
-  }
-
-  // Third-party password managers keep their own name.
   if (
-    aaguid &&
-    PasskeyBrandNames[aaguid as PasskeyBrand] &&
-    !platformAuthenticators.has(aaguid)
+    !aaguid ||
+    !platformAuthenticators.has(aaguid) ||
+    !userAgent?.toLowerCase().includes("electron/")
   ) {
     return undefined;
   }

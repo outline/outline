@@ -65,6 +65,14 @@ describe("generatePasskeyName", () => {
       expect(name).toBe("1Password");
     });
 
+    it("keeps the security key name inside the desktop app", () => {
+      const aaguid = "00000000-0000-0000-0000-000000000000";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Outline/1.9.0 Chrome/146.0.0.0 Electron/44.9.1 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["usb"]);
+      expect(name).toBe("Chrome on macOS (Security Key)");
+    });
+
     it("detects Chromium Browser outside of the desktop app", () => {
       const aaguid = "b5397666-4885-aa6b-cebf-e52262a439a2";
       const ua =
