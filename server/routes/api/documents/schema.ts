@@ -54,6 +54,7 @@ const DocumentsSortParamsSchema = z.object({
       [
         "createdAt",
         "updatedAt",
+        "deletedAt",
         "publishedAt",
         "index",
         "title",
