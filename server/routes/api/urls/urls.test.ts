@@ -355,6 +355,24 @@ Install instructions here.`
     expect(body.id).toEqual(document.id);
   });
 
+  it("should succeed with status 200 ok when share url of another team is supplied", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      teamId: document.teamId,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.id).toEqual(document.id);
+  });
+
   it("should succeed with status 200 ok when share url with urlId is supplied", async () => {
     const document = await buildDocument({
       teamId: user.teamId,
