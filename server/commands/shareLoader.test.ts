@@ -48,6 +48,33 @@ describe("shareLoader", () => {
         childDocument.id
       );
       expect(result.document).toBeNull();
+      expect(result.collection?.changed("documentStructure")).toBeFalsy();
+    });
+
+    it("should include documents added after the structure was cached", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+
+      await loadPublicShare({ id: share.id });
+
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const result = await loadPublicShare({ id: share.id });
+      expect(result.sharedTree?.children.map((node) => node.id)).toEqual([
+        document.id,
+      ]);
     });
 
     it("should return correct path for root node in sharedTree for domain", async () => {
@@ -484,6 +511,109 @@ describe("shareLoader", () => {
 
       await expect(
         loadPublicShare({ id: share.id, teamId: team.id })
+      ).rejects.toThrow("Resource not found");
+    });
+  });
+
+  describe("without content", () => {
+    it("should return a published share", async () => {
+      const share = await buildShare();
+
+      const result = await loadPublicShare({
+        id: share.id,
+        includeContent: false,
+      });
+      expect(result.share.id).toEqual(share.id);
+      expect(result.document).toBeNull();
+    });
+
+    it("should return a share requested with urlId and teamId", async () => {
+      const urlId = `share-${faker.string.alphanumeric({ length: 8, casing: "lower" })}`;
+      const share = await buildShare({ urlId });
+
+      const result = await loadPublicShare({
+        id: urlId,
+        teamId: share.teamId,
+        includeContent: false,
+      });
+      expect(result.share.id).toEqual(share.id);
+      expect(result.document).toBeNull();
+    });
+
+    it("should throw error when share is not published", async () => {
+      const share = await buildShare({
+        published: false,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, includeContent: false })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when team has disabled sharing", async () => {
+      const team = await buildTeam({
+        sharing: false,
+      });
+      const share = await buildShare({
+        teamId: team.id,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, includeContent: false })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when team is suspended", async () => {
+      const team = await buildTeam({
+        suspendedAt: new Date(),
+      });
+      const share = await buildShare({
+        teamId: team.id,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, includeContent: false })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when collection has disabled sharing", async () => {
+      const collection = await buildCollection({
+        sharing: false,
+      });
+      const share = await buildShare({
+        collectionId: collection.id,
+        teamId: collection.teamId,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, includeContent: false })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when document is archived", async () => {
+      const document = await buildDocument({
+        archivedAt: new Date(),
+      });
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, includeContent: false })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when share belongs to another team", async () => {
+      const team = await buildTeam();
+      const share = await buildShare();
+
+      await expect(
+        loadPublicShare({
+          id: share.id,
+          teamId: team.id,
+          includeContent: false,
+        })
       ).rejects.toThrow("Resource not found");
     });
   });
