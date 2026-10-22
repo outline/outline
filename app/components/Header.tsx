@@ -244,7 +244,8 @@ const Actions = styled(Flex)`
     }
 
     && [data-variant="primary"] {
-      color: ${s("accent")};
+      color: ${(props) =>
+        props.theme.isDark ? props.theme.text : props.theme.accent};
     }
 
     && [data-variant="primary"]:disabled {
