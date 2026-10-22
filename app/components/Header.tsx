@@ -349,6 +349,11 @@ const Wrapper = styled(Flex)<WrapperProps>`
         backdrop-filter: none;
         mask-image: none;
       }
+
+      /* iOS blurs the top of an installed web app unless the sticky header has a solid background. */
+      @media (display-mode: standalone) {
+        background: ${props.theme.background};
+      }
       `}
   `};
 
