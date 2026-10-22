@@ -1505,6 +1505,14 @@ router.post(
       await authorizeDocumentPublish(ctx, document, collectionId);
     }
 
+    if (input.templateId && input.templateId !== document.templateId) {
+      const template = await Template.findByPk(input.templateId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "read", template);
+    }
+
     document = await documentUpdater(ctx, {
       document,
       ...input,
