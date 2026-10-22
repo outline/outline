@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Op, Sequelize } from "sequelize";
 import type { WhereOptions } from "sequelize";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { UserRole } from "@shared/types";
 import { User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
@@ -34,7 +34,7 @@ export function userTools(server: McpServer, scopes: string[]) {
           idempotentHint: true,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           query: optionalString().describe(
             "An optional search query to filter users by name or email."
           ),
@@ -68,7 +68,7 @@ export function userTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_users",
