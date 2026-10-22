@@ -92,6 +92,7 @@ export function TemplatesTable(props: Props) {
           accessor: (template) => template.displayTitle,
           component: (template) => <TemplateLink template={template} />,
           width: "4fr",
+          minWidth: 240,
         },
         {
           type: "data",
@@ -155,7 +156,7 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
   const { t } = useTranslation();
   const can = usePolicy(template);
   const content = (
-    <Flex align="center" gap={4}>
+    <TitleRow align="center" gap={4}>
       {template.icon ? (
         <Icon
           value={template.icon}
@@ -167,16 +168,16 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
         <ShapesIcon size={24} color={theme.textSecondary} />
       )}
       {can.update ? (
-        <Title>{template.displayTitle}</Title>
+        <Title ellipsis>{template.displayTitle}</Title>
       ) : (
-        <Text>{template.displayTitle}</Text>
+        <Text ellipsis>{template.displayTitle}</Text>
       )}
       {template.isDraft && (
         <Tooltip content={t("Only visible to you")}>
           <Badge>{t("Draft")}</Badge>
         </Tooltip>
       )}
-    </Flex>
+    </TitleRow>
   );
 
   if (!can.update) {
@@ -204,6 +205,17 @@ const Permission = observer(({ template }: { template: Template }) => {
     </Flex>
   );
 });
+
+/** Only the title shrinks, so the icon and badge keep their size. */
+const TitleRow = styled(Flex)`
+  > * {
+    flex-shrink: 0;
+  }
+
+  > ${Text} {
+    flex-shrink: 1;
+  }
+`;
 
 const Title = styled(Text)`
   &: ${hover} {

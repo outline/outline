@@ -145,7 +145,6 @@ export const GroupMembersTable = observer(function GroupMembersTable({
             );
           },
           width: "1fr",
-          hideOnMobile: true,
         },
         {
           type: "data",

@@ -18,12 +18,10 @@ import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
 import { UserHoverCard } from "~/components/UserHoverCard";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import UserSelectionToolbar from "./UserSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
-import { VStack } from "~/components/primitives/VStack";
 
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -54,7 +52,6 @@ const UserRowContextMenu = observer(function UserRowContextMenu({
 export function UsersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const isMobile = useMobile();
 
   // The current user is excluded, none of the bulk actions apply to yourself.
   const isRowSelectable = useCallback(
@@ -88,19 +85,13 @@ export function UsersTable({ canManage, ...rest }: Props) {
           component: (user) => (
             <HStack>
               <Avatar model={user} size={AvatarSize.Large} />
-              <VStack align="flex-start" spacing={0}>
-                <Text selectable>
-                  {user.name} {currentUser.id === user.id && `(${t("You")})`}
-                </Text>
-                {isMobile && canManage && (
-                  <Text type="tertiary" selectable>
-                    {user.email}
-                  </Text>
-                )}
-              </VStack>
+              <Text selectable ellipsis>
+                {user.name} {currentUser.id === user.id && `(${t("You")})`}
+              </Text>
             </HStack>
           ),
           width: "4fr",
+          minWidth: 200,
         },
         canManage
           ? {
@@ -110,7 +101,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
               accessor: (user) => user.email,
               component: (user) => <>{user.email}</>,
               width: "4fr",
-              hideOnMobile: true,
+              minWidth: 180,
             }
           : undefined,
         {
@@ -123,7 +114,6 @@ export function UsersTable({ canManage, ...rest }: Props) {
               <Time dateTime={user.lastActiveAt} addSuffix shorten />
             ) : null,
           width: "2fr",
-          hideOnMobile: true,
         },
         canManage
           ? {
@@ -141,7 +131,6 @@ export function UsersTable({ canManage, ...rest }: Props) {
                 ) : null,
               sortable: false,
               width: "2fr",
-              hideOnMobile: true,
             }
           : undefined,
         {
@@ -154,7 +143,6 @@ export function UsersTable({ canManage, ...rest }: Props) {
               <Time dateTime={user.createdAt} addSuffix shorten />
             ) : null,
           width: "2fr",
-          hideOnMobile: true,
         },
         {
           type: "data",
@@ -188,7 +176,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, currentUser, canManage, isMobile]
+    [t, currentUser, canManage]
   );
 
   return (
