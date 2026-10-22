@@ -177,7 +177,16 @@ export async function loadPublicShare({
 
     if (share.includeChildDocuments) {
       const allIdsInSharedTree = getAllIdsInSharedTree(sharedTree);
-      isDocumentAccessible = allIdsInSharedTree.includes(document.id);
+
+      // The tree can be cached, so also confirm the current location.
+      isDocumentAccessible =
+        allIdsInSharedTree.includes(document.id) &&
+        !document.archivedAt &&
+        document.collectionId === associatedCollection?.id &&
+        (!share.documentId ||
+          (await document.findAllParentDocumentIds()).includes(
+            share.documentId
+          ));
     }
 
     if (!isDocumentAccessible) {

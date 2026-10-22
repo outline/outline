@@ -1,6 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { DocumentPermission } from "@shared/types";
 import { UserMembership } from "@server/models";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import {
   buildCollection,
   buildDocument,
@@ -353,6 +355,78 @@ describe("shareLoader", () => {
 
       expect(result.share.id).toEqual(share.id);
       expect(result.parentShare).toBeNull();
+    });
+
+    it("should throw error when a cached tree includes a document moved to another collection", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const otherCollection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+        includeChildDocuments: true,
+      });
+      const staleStructure = await collection.getCachedDocumentStructure();
+
+      await document.update({ collectionId: otherCollection.id });
+      await CacheHelper.setData(
+        RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
+        staleStructure,
+        60
+      );
+
+      await expect(
+        loadPublicShare({ id: share.id, documentId: document.id })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when a cached tree includes a document moved outside the shared document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+      const staleStructure = await collection.getCachedDocumentStructure();
+
+      await childDocument.update({ parentDocumentId: null });
+      await CacheHelper.setData(
+        RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
+        staleStructure,
+        60
+      );
+
+      await expect(
+        loadPublicShare({ id: share.id, documentId: childDocument.id })
+      ).rejects.toThrow();
     });
 
     it("should throw error when the requested document is not part of the share (includeChildDocuments = true)", async () => {
