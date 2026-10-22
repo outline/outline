@@ -6874,6 +6874,79 @@ describe("#documents.update", () => {
     });
   });
 
+  describe("templateId", () => {
+    it("should set a template the user can read", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const template = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, templateId: template.id },
+      });
+      const body = await res.json();
+      expect(res.status).toBe(200);
+      expect(body.data.templateId).toBe(template.id);
+    });
+
+    it("should not set a template from another team", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const template = await buildTemplate();
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, templateId: template.id },
+      });
+      expect(res.status).toBe(403);
+      await document.reload();
+      expect(document.templateId).toBeNull();
+    });
+
+    it("should not set a template in a collection the user cannot read", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const template = await buildTemplate({
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, templateId: template.id },
+      });
+      expect(res.status).toBe(403);
+    });
+
+    it("should allow saving with an unchanged template that was deleted", async () => {
+      const user = await buildUser();
+      const template = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        templateId: template.id,
+      });
+      await template.destroy();
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, title: "Updated", templateId: template.id },
+      });
+      expect(res.status).toBe(200);
+    });
+  });
+
   it("should update document details in the root", async () => {
     const user = await buildUser();
     const document = await buildDocument({
