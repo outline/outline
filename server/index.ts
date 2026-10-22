@@ -2,9 +2,9 @@ import "zod/compile";
 import "./logging/tracer"; // must come before importing any instrumented module
 
 import os from "node:os";
-import throng from "throng";
 import env from "./env";
 import Logger from "./logging/Logger";
+import { ClusterManager } from "./utils/ClusterManager";
 import {
   printEnv,
   checkPendingMigrations,
@@ -28,8 +28,8 @@ if (env.SERVICES.includes("collaboration") && !env.REDIS_COLLABORATION_URL) {
 
 // This function will only be called once in the original process. The database
 // connection and migration checks run in a short-lived child process so that
-// the long-lived master never loads the (heavy) Sequelize models graph.
-async function master() {
+// the long-lived primary never loads the (heavy) Sequelize models graph.
+async function primary() {
   await checkPendingMigrations();
   await printEnv();
 }
@@ -42,8 +42,6 @@ const isWebProcess =
 const isWorkerProcess =
   env.SERVICES.length === 1 && env.SERVICES.includes("worker");
 
-// Mirrors the `count` passed to throng below, where undefined falls back to
-// throng's default of one process per CPU.
 const processCount = isWorkerProcess
   ? 1
   : isWebProcess
@@ -52,11 +50,11 @@ const processCount = isWorkerProcess
 
 configureChildHeapLimit(processCount);
 
-void throng({
-  master,
+void ClusterManager.start({
+  primary,
   // The worker's heavy dependency graph is loaded lazily so it never enters the
-  // master process, which only supervises the forked workers.
+  // primary process, which only supervises the forked workers.
   worker: (id, disconnect) =>
     import("./main").then(({ start }) => start(id, disconnect)),
-  count: isWorkerProcess ? 1 : isWebProcess ? webProcessCount : undefined,
+  count: processCount,
 });

@@ -289,9 +289,14 @@ describe("isMailboxAddress", () => {
       expect(isMailboxAddress('"Outline" <user@example.com>')).toBe(true);
     });
 
-    it("should reject a mailbox format with an unquoted comma in the display name", () => {
-      // addressparser splits on commas, so this creates two addresses
-      expect(isMailboxAddress("Company, Inc. <user@example.com>")).toBe(false);
+    it("should accept a mailbox format with an unquoted comma in the display name", () => {
+      expect(isMailboxAddress("Company, Inc. <user@example.com>")).toBe(true);
+    });
+
+    it("should reject multiple addresses", () => {
+      expect(isMailboxAddress("user@example.com, other@example.com")).toBe(
+        false
+      );
     });
 
     it("should reject a mailbox format with an empty email address", () => {

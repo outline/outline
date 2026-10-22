@@ -63,7 +63,7 @@ export const queryStringObfuscation = `(?<=(?:^|&)(?!(?:${allowedQueryParameters
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer. This
 // must happen before any instrumented module is imported.
-// Note: the tracer is only loaded in worker processes. The throng master
+// Note: the tracer is only loaded in worker processes. The cluster primary
 // supervises forked workers and never serves traffic.
 if (env.DD_API_KEY && cluster.isWorker) {
   // oxlint-disable-next-line typescript/no-require-imports -- kept lazy so dd-trace stays off the startup path

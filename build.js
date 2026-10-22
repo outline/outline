@@ -7,6 +7,7 @@ const {
   existsSync,
   mkdirSync,
   readdirSync,
+  readFileSync,
   rmSync,
   statSync,
   watch,
@@ -113,6 +114,19 @@ function getDest(file) {
 }
 
 /**
+ * The dependencies in package.json that are not installed.
+ * @return {string[]} the names of the missing packages.
+ */
+function getMissingDependencies() {
+  const { dependencies = {} } = JSON.parse(
+    readFileSync("package.json", "utf8")
+  );
+  return Object.keys(dependencies).filter(
+    (name) => !existsSync(path.join("node_modules", name, "package.json"))
+  );
+}
+
+/**
  * Builds, then watches the source directories and updates the output of each
  * changed, added or removed file. A full build runs again after a failed one.
  * When a command is passed it is run, and restarted after each change that
@@ -129,6 +143,14 @@ async function watchSources(command) {
   let isBuildPending = false;
 
   const startServer = () => {
+    const missing = getMissingDependencies();
+    if (missing.length) {
+      console.log(
+        `Missing dependencies: ${missing.join(", ")}. Run "yarn install", the server starts when it completes.`
+      );
+      return;
+    }
+
     // Run in a new process group so the forked service processes are stopped
     // together with the master.
     child = spawn(command[0], command.slice(1), {
@@ -272,6 +294,15 @@ async function watchSources(command) {
 
   watch(".", (_event, filename) => {
     if (/^\.env(\.local|\.development)?$/.test(filename ?? "")) {
+      restartServer();
+    }
+  });
+
+  // Yarn writes the install state after the postinstall script, so a restart
+  // here picks up the dependencies of a newly checked out branch.
+  mkdirSync(".yarn", { recursive: true });
+  watch(".yarn", (_event, filename) => {
+    if (filename === "install-state.gz") {
       restartServer();
     }
   });

@@ -14,7 +14,7 @@ import {
 } from "@server/storage/database";
 import { getArg } from "@server/utils/args";
 import { MutexLock } from "@server/utils/MutexLock";
-import ShutdownHelper from "@server/utils/ShutdownHelper";
+import { ShutdownHelper } from "@server/utils/ShutdownHelper";
 
 /**
  * Checks for pending database migrations and runs them, unless the

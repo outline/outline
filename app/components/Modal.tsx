@@ -86,7 +86,7 @@ const Modal: React.FC<Props> = ({
               <Centered
                 onClick={(ev) => ev.stopPropagation()}
                 // maxHeight needed for proper overflow behavior in Safari
-                style={{ maxHeight: "65vh" }}
+                style={{ maxHeight: height ? maxModalHeight(height) : "65vh" }}
                 column
                 reverse
               >
@@ -116,6 +116,10 @@ const Modal: React.FC<Props> = ({
     </Dialog.Root>
   );
 };
+
+// Limit the requested height so that the modal stays within the viewport.
+const maxModalHeight = (value: number | string) =>
+  `min(${typeof value === "number" ? `${value}px` : value}, 90vh)`;
 
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
@@ -244,11 +248,19 @@ const Wrapper = styled.div<{
 }>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
-  margin: 25vh auto auto auto;
+  // Move taller modals up so that they remain within the viewport.
+  margin-top: ${(props) =>
+    props.$height
+      ? `min(25vh, calc(95vh - ${maxModalHeight(props.$height)}))`
+      : "25vh"};
+  margin-right: auto;
+  margin-bottom: auto;
+  margin-left: auto;
   width: 75vw;
   min-width: 350px;
   max-width: ${(props) => props.$width || "450px"};
-  max-height: ${(props) => props.$height || "70vh"};
+  max-height: ${(props) =>
+    props.$height ? maxModalHeight(props.$height) : "70vh"};
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
