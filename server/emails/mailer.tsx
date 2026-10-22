@@ -1,4 +1,4 @@
-import type { EmailAddress } from "addressparser";
+import type { MailboxAddress } from "nodemailer/lib/addressparser";
 import type { Transporter } from "nodemailer";
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
@@ -16,7 +16,7 @@ type SendMailOptions = {
   /** The email address being sent to. */
   to: string;
   /** The address the email is sent from. */
-  from: EmailAddress;
+  from: MailboxAddress;
   /** An address to set as the reply-to for the email. */
   replyTo?: string;
   /** A unique identifier for the message, used for threading. */

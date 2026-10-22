@@ -342,8 +342,8 @@ const Wrapper = styled(Flex)<WrapperProps>`
         mask-image: linear-gradient(to bottom, ${headerFadeStops});
       }
 
-      /* A stuck tab bar continues the header, so the header is solid above it. */
-      body:has([data-sticky-tabs][data-stuck]) &::before {
+      /* A stuck tab bar or table header continues the header, so the header is solid above it. */
+      body:has([data-stuck]) &::before {
         inset: 0;
         background: ${props.theme.background};
         backdrop-filter: none;

@@ -3,7 +3,7 @@ import { toError } from "@shared/utils/error";
 import { sleep } from "@shared/utils/timers";
 import Redis from "@server/storage/redis";
 import Logger from "@server/logging/Logger";
-import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "./ShutdownHelper";
 
 /**
  * A lock held on a single resource.
