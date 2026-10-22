@@ -587,7 +587,7 @@ export class ProsemirrorHelper {
       }
 
       if (child.type.spec.leafText) {
-        found = !!child.type.spec.leafText(child).trim();
+        found = !!String(child.type.spec.leafText(child)).trim();
       } else if (child.isText) {
         found = !!child.text?.trim();
       }
