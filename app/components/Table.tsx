@@ -17,7 +17,6 @@ import { observer } from "mobx-react";
 import { CollapsedIcon, SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Waypoint } from "react-waypoint";
 import styled, { css, keyframes } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { HEADER_HEIGHT as APP_HEADER_HEIGHT } from "@shared/constants";
@@ -362,6 +361,17 @@ function TableViewInner<TData extends RowData>({
     overscan: 5,
   });
 
+  const virtualItems = rowVirtualizer.getVirtualItems();
+  const lastRenderedIndex = virtualItems[virtualItems.length - 1]?.index ?? -1;
+  const { hasNext, fetchNext } = page;
+
+  // Fetch the next page once the overscanned rows reach the end of the data.
+  React.useEffect(() => {
+    if (hasNext && lastRenderedIndex >= rows.length - 1) {
+      fetchNext?.();
+    }
+  }, [hasNext, fetchNext, lastRenderedIndex, rows.length]);
+
   React.useEffect(() => {
     if (!sortChanged || !virtualContainerTop) {
       return;
@@ -493,7 +503,7 @@ function TableViewInner<TData extends RowData>({
               role="rowgroup"
               $height={rowVirtualizer.getTotalSize()}
             >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              {virtualItems.map((virtualRow) => {
                 const row = rows[virtualRow.index] as TRow<TData>;
                 const rowProps = {
                   role: "row",
@@ -557,13 +567,6 @@ function TableViewInner<TData extends RowData>({
           <Fade $side="end" />
         </BodyFrame>
       </InnerTable>
-      {page.hasNext && (
-        <Waypoint
-          key={data?.length}
-          onEnter={page.fetchNext}
-          bottomOffset={-rowHeight * 5}
-        />
-      )}
       {isEmpty && <NoResults>{t("No results")}</NoResults>}
     </>
   );
