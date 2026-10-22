@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useDragLayer } from "react-dnd";
+import { useDragLayer } from "~/components/DragAndDrop";
 
 const DraggedItemContext = React.createContext<string | undefined>(undefined);
 
@@ -20,11 +20,11 @@ export function useSidebarScrollElement(): HTMLElement | null {
 }
 
 /**
- * Subscribes once to react-dnd's drag state and exposes the id of the dragged
- * item via context.
+ * Subscribes once to the drag state and exposes the id of the dragged item via
+ * context.
  *
  * Virtualized sidebar trees read this to keep the dragged row mounted for the
- * duration of a drag, as react-dnd ends a drag whose source leaves the DOM.
+ * duration of a drag, so that the row keeps its dragging state.
  */
 export function DragActiveProvider({
   children,
@@ -33,9 +33,7 @@ export function DragActiveProvider({
 }) {
   const { isDragging, itemId } = useDragLayer((monitor) => ({
     isDragging: monitor.isDragging(),
-    itemId: monitor.isDragging()
-      ? monitor.getItem<{ id?: string } | null>()?.id
-      : undefined,
+    itemId: monitor.getItem()?.id,
   }));
 
   // Expose drag state to CSS so per-row UI (e.g. the hover actions slot) can
