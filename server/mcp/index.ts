@@ -49,9 +49,11 @@ export function createMcpServer(
       ],
     },
     {
+      // The lists never change during a request, so subscriptions/listen
+      // completes at once instead of holding a stream open.
       capabilities: {
-        tools: {},
-        resources: {},
+        tools: { listChanged: false },
+        resources: { listChanged: false, subscribe: false },
         extensions: {
           [skillsExtensionId]: {},
         },
