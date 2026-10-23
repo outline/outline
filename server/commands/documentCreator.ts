@@ -217,7 +217,10 @@ export default async function documentCreator(
   const contentWithReplacements = content
     ? content
     : text
-      ? ProsemirrorHelper.toProsemirror(text).toJSON()
+      ? ProsemirrorHelper.assignMentionActors(
+          ProsemirrorHelper.toProsemirror(text),
+          user.id
+        ).toJSON()
       : template
         ? ProsemirrorHelper.replaceTemplateVariables(
             await DocumentHelper.toJSON(template),
