@@ -91,7 +91,6 @@ router.post(
         level: transaction.LOCK.UPDATE,
         of: UserMembership,
       },
-      rejectOnEmpty: true,
     });
     authorize(user, "update", membership);
 

@@ -6,7 +6,11 @@ import mime from "mime-types";
 import { ExportContentType, UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
-import { ValidationError, IncorrectEditionError } from "@server/errors";
+import {
+  AuthorizationError,
+  ValidationError,
+  IncorrectEditionError,
+} from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -33,12 +37,13 @@ router.post(
   async (ctx: APIContext<T.RevisionsInfoReq>) => {
     const { id, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    let revision: Revision;
+    let revision: Revision | null;
 
     if (id) {
-      revision = await Revision.findByPk(id, {
-        rejectOnEmpty: true,
-      });
+      revision = await Revision.findByPk(id);
+      if (!revision) {
+        throw AuthorizationError();
+      }
 
       const document = await Document.findByPk(revision.documentId, {
         userId: user.id,
@@ -75,9 +80,10 @@ router.post(
     const { id, name } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const revision = await Revision.findByPk(id, {
-      rejectOnEmpty: true,
-    });
+    const revision = await Revision.findByPk(id);
+    if (!revision) {
+      throw AuthorizationError();
+    }
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
       includeContent: false,
@@ -107,13 +113,15 @@ router.post(
     const { transaction } = ctx.state;
 
     const revision = await Revision.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: {
         of: Revision,
         level: transaction.LOCK.UPDATE,
       },
     });
+    if (!revision) {
+      throw AuthorizationError();
+    }
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
       includeContent: false,
@@ -140,13 +148,13 @@ router.post(
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
-    const revision = await Revision.findByPk(id, {
-      rejectOnEmpty: true,
-    });
+    const revision = await Revision.findByPk(id);
+    if (!revision) {
+      throw AuthorizationError();
+    }
 
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
-      rejectOnEmpty: true,
       includeContent: false,
       includeViews: false,
     });

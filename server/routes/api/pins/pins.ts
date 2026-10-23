@@ -1,6 +1,7 @@
 import Router from "@koa/router";
 import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
+import { AuthorizationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -168,8 +169,10 @@ router.post(
     const pin = await Pin.findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,
-      rejectOnEmpty: true,
     });
+    if (!pin) {
+      throw AuthorizationError();
+    }
 
     const document = await Document.findByPk(pin.documentId, {
       userId: user.id,
@@ -204,8 +207,10 @@ router.post(
     const pin = await Pin.findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,
-      rejectOnEmpty: true,
     });
+    if (!pin) {
+      throw AuthorizationError();
+    }
 
     const document = await Document.findByPk(pin.documentId, {
       userId: user.id,

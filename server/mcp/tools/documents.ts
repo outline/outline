@@ -349,7 +349,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const collection = await Collection.findByPk(collectionId, {
               userId: user.id,
-              rejectOnEmpty: true,
             });
             authorize(user, "readDocument", collection);
 
@@ -556,7 +555,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const document = await Document.findByPk(input.id, {
               userId: user.id,
-              rejectOnEmpty: true,
               transaction,
             });
 
@@ -575,7 +573,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
               const parent = await Document.findByPk(input.parentDocumentId, {
                 userId: user.id,
-                rejectOnEmpty: true,
                 transaction,
               });
 
@@ -592,7 +589,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
             } else {
               const collection = await Collection.findByPk(collectionId, {
                 userId: user.id,
-                rejectOnEmpty: true,
                 transaction,
               });
               authorize(user, "updateDocument", collection);
@@ -698,7 +694,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const document = await Document.findByPk(input.id, {
             userId: user.id,
             includeState: true,
-            rejectOnEmpty: true,
           });
 
           let updated;
@@ -840,7 +835,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
               const document = await Document.findByPk(id, {
                 userId: user.id,
-                rejectOnEmpty: true,
                 transaction,
               });
 

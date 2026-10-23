@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import { InvalidRequestError } from "@server/errors";
+import { AuthorizationError, InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Relationship } from "@server/models";
@@ -23,12 +23,13 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const relationship = await Relationship.findByPk(id, {
-      rejectOnEmpty: true,
-    });
+    const relationship = await Relationship.findByPk(id);
+    if (!relationship) {
+      throw AuthorizationError();
+    }
+
     const document = await Document.findByPk(relationship.documentId, {
       userId: user.id,
-      rejectOnEmpty: true,
     });
     authorize(user, "read", document);
 
@@ -36,7 +37,6 @@ router.post(
       relationship.reverseDocumentId,
       {
         userId: user.id,
-        rejectOnEmpty: true,
       }
     );
     authorize(user, "read", reverseDocument);
@@ -75,7 +75,6 @@ router.post(
     const anchorDocument = await Document.findByPk(anchorId, {
       userId: user.id,
       includeContent: false,
-      rejectOnEmpty: true,
     });
     authorize(user, "read", anchorDocument);
 

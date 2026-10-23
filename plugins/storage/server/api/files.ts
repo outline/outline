@@ -58,11 +58,10 @@ router.post(
 
     const attachment = await Attachment.findOne({
       where: { key },
-      rejectOnEmpty: true,
     });
 
     // For session-based uploads, ensure the attachment belongs to the actor.
-    if (!sig && actor && attachment.userId !== actor.id) {
+    if (!attachment || (!sig && actor && attachment.userId !== actor.id)) {
       throw AuthorizationError("Invalid key");
     }
 

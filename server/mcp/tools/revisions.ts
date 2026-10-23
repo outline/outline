@@ -66,7 +66,6 @@ export function revisionTools(server: McpServer, scopes: string[]) {
         const document = await Document.findByPk(id, {
           userId: actor.id,
           paranoid: false,
-          rejectOnEmpty: true,
         });
         authorize(actor, "listRevisions", document);
 

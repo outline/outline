@@ -200,9 +200,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
-          const team = await Team.findByPk(user.teamId, {
-            rejectOnEmpty: true,
-          });
+          const team = await Team.findByPk(user.teamId);
           authorize(user, "createCollection", team);
 
           const collection = Collection.build({
@@ -277,7 +275,6 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const collection = await Collection.findByPk(input.id, {
             userId: user.id,
-            rejectOnEmpty: true,
           });
           authorize(user, "update", collection);
 
@@ -367,7 +364,6 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
               const collection = await Collection.findByPk(id, {
                 userId: user.id,
-                rejectOnEmpty: true,
                 transaction,
               });
 

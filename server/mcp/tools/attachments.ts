@@ -61,9 +61,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
           try {
             const ctx = buildAPIContext(extra);
             const { user } = ctx.state.auth;
-            const team = await Team.findByPk(user.teamId, {
-              rejectOnEmpty: true,
-            });
+            const team = await Team.findByPk(user.teamId);
             authorize(user, "createAttachment", team);
 
             const preset = AttachmentPreset.DocumentAttachment;

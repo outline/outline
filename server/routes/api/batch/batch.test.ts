@@ -224,11 +224,11 @@ describe("#batch", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    // A Sequelize EmptyResultError is transformed to a 404 not_found, matching
-    // what the same request would return when called directly.
+    // A Sequelize EmptyResultError is transformed to a 403 authorization_error,
+    // matching what the same request would return when called directly.
     expect(body.data[0].ok).toBe(false);
-    expect(body.data[0].status).toEqual(404);
-    expect(body.data[0].error).toEqual("not_found");
+    expect(body.data[0].status).toEqual(403);
+    expect(body.data[0].error).toEqual("authorization_error");
   });
 
   it("should surface per-request validation errors", async () => {

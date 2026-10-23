@@ -20,14 +20,12 @@ router.post(
     const { commentId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const comment = await Comment.findByPk(commentId, {
-      rejectOnEmpty: true,
-    });
+    const comment = await Comment.findByPk(commentId);
+    authorize(user, "readReaction", comment);
+
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
     });
-
-    authorize(user, "readReaction", comment);
     authorize(user, "read", document);
 
     const where: WhereOptions<Reaction> = {

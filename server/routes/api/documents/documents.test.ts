@@ -5587,7 +5587,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should fail with not found for a revision that does not exist", async () => {
+  it("should fail with authorization error for a revision that does not exist", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -5601,7 +5601,7 @@ describe("#documents.restore", () => {
       },
     });
 
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 
   it("should require id", async () => {
@@ -8878,6 +8878,52 @@ describe("#documents.remove_user", () => {
         where: { documentId: document.id, userId: member.id },
       })
     ).not.toEqual(0);
+  });
+
+  it("should return not found when the user has no membership", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    expect(res.status).toEqual(404);
+  });
+
+  it("should return the same error for self removal from a document in another team", async () => {
+    const user = await buildUser();
+    const document = await buildDocument();
+
+    const res = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: document.id,
+        userId: user.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+
+    const unknown = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: faker.string.uuid(),
+        userId: user.id,
+      },
+    });
+    expect(unknown.status).toEqual(403);
   });
 });
 

@@ -4,6 +4,16 @@
   "plugins": ["oxc", "eslint", "typescript", "node"],
   "overrides": [
     {
+      "files": [
+        "routes/**/*.ts",
+        "mcp/**/*.ts",
+        "middlewares/**/*.ts"
+      ],
+      "rules": {
+        "server/no-reject-on-empty": "error"
+      }
+    },
+    {
       "files": ["**/*.{js,ts}"],
       "rules": {
         "no-restricted-imports": [

@@ -128,7 +128,6 @@ router.post(
     const existingTeam = await Team.scope(
       "withAuthenticationProviders"
     ).findByPk(user.teamId, {
-      rejectOnEmpty: true,
       transaction,
     });
 

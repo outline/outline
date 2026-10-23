@@ -25,7 +25,6 @@ router.post(
 
     const fileOperation = await FileOperation.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
     });
 
     authorize(user, "read", fileOperation);
@@ -101,7 +100,6 @@ const handleFileOperationsRedirect = async (
 
   const fileOperation = await FileOperation.findByPk(id, {
     userId: user.id,
-    rejectOnEmpty: true,
   });
   authorize(user, "read", fileOperation);
 
@@ -134,7 +132,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.UPDATE,
     });

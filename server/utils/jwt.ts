@@ -139,9 +139,10 @@ export async function getUserForEmailSigninToken(
     throw AuthenticationError("Token mismatch");
   }
 
-  const user = await User.scope("withTeam").findByPk(payload.id, {
-    rejectOnEmpty: true,
-  });
+  const user = await User.scope("withTeam").findByPk(payload.id);
+  if (!user) {
+    throw AuthenticationError("Invalid token");
+  }
 
   try {
     JWT.verify(token, user.jwtSecret);
@@ -191,10 +192,10 @@ export async function getDetailsForEmailUpdateToken(
   }
 
   const email = payload.email;
-  const user = await User.findByPk(payload.id, {
-    rejectOnEmpty: true,
-    ...options,
-  });
+  const user = await User.findByPk(payload.id, options);
+  if (!user) {
+    throw AuthenticationError("Invalid token");
+  }
 
   try {
     JWT.verify(token, user.jwtSecret);

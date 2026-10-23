@@ -230,7 +230,7 @@ class Template extends ParanoidModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<Template> & AdditionalFindOptions
+    options: NonNullFindOptions<Template> & AdditionalFindOptions
   ): Promise<Template>;
 
   static async findByPk(

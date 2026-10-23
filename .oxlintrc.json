@@ -9,7 +9,11 @@
     "patches/**",
     "*.d.ts"
   ],
-  "jsPlugins": ["./.oxlint/mobx.mjs", "./.oxlint/bundle.mjs"],
+  "jsPlugins": [
+    "./.oxlint/mobx.mjs",
+    "./.oxlint/bundle.mjs",
+    "./.oxlint/server.mjs"
+  ],
   "rules": {
     "mobx/observable-needs-initializer": "error",
     "for-direction": "error",
@@ -74,6 +78,12 @@
       "files": ["plugins/*/client/**/*.{js,jsx,ts,tsx}"],
       "rules": {
         "bundle/no-constructor-name": "error"
+      }
+    },
+    {
+      "files": ["plugins/*/server/api/**/*.ts"],
+      "rules": {
+        "server/no-reject-on-empty": "error"
       }
     },
     {

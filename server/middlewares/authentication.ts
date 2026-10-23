@@ -186,9 +186,7 @@ async function validateAuthentication(
 
     let authentication;
     try {
-      authentication = await OAuthAuthentication.findByAccessToken(token, {
-        rejectOnEmpty: true,
-      });
+      authentication = await OAuthAuthentication.findByAccessToken(token);
     } catch (_err) {
       throw AuthenticationError("Invalid access token");
     }

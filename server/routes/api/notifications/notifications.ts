@@ -48,10 +48,12 @@ const unsubscribe = async (ctx: APIContext<T.NotificationsUnsubscribeReq>) => {
   }
 
   const user = await User.scope("withTeam").findByPk(userId, {
-    rejectOnEmpty: true,
     lock: transaction.LOCK.UPDATE,
     transaction,
   });
+  if (!user) {
+    return;
+  }
 
   user.setNotificationEventType(eventType, false);
   await user.save({ transaction });
@@ -170,10 +172,9 @@ router.get(
     const notification = await Notification.unscoped().findByPk(id, {
       lock: transaction.LOCK.UPDATE,
       transaction,
-      rejectOnEmpty: true,
     });
 
-    if (!safeEqual(token, notification.pixelToken)) {
+    if (!notification || !safeEqual(token, notification.pixelToken)) {
       throw AuthenticationError();
     }
 
@@ -213,7 +214,6 @@ router.post(
         level: transaction.LOCK.UPDATE,
         of: Notification,
       },
-      rejectOnEmpty: true,
       transaction,
     });
     authorize(user, "update", notification);

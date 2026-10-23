@@ -139,15 +139,13 @@ router.post(
     const { id, includeAnchorText } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const comment = await Comment.findByPk(id, {
-      rejectOnEmpty: true,
-    });
+    const comment = await Comment.findByPk(id);
+    authorize(user, "read", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       // The body is only needed to resolve the anchor text.
       includeContent: !!includeAnchorText,
     });
-    authorize(user, "read", comment);
     authorize(user, "read", document);
 
     comment.document = document;
@@ -228,18 +226,17 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
+    authorize(user, "update", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
       includeContent: false,
     });
-    authorize(user, "update", comment);
     authorize(user, "comment", document);
 
     const text = ctx.input.body.text
@@ -304,17 +301,16 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
+    authorize(user, "delete", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       includeContent: false,
     });
-    authorize(user, "delete", comment);
     authorize(user, "comment", document);
 
     await comment.destroyWithCtx(ctx);
@@ -338,17 +334,16 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
+    authorize(user, "resolve", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       includeContent: false,
     });
-    authorize(user, "resolve", comment);
     authorize(user, "update", document);
 
     comment.resolve(user);
@@ -374,17 +369,16 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
+    authorize(user, "unresolve", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       includeContent: false,
     });
-    authorize(user, "unresolve", comment);
     authorize(user, "update", document);
 
     comment.unresolve();
@@ -411,12 +405,12 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
+    authorize(user, "addReaction", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
@@ -424,7 +418,6 @@ router.post(
     });
 
     authorize(user, "comment", document);
-    authorize(user, "addReaction", comment);
 
     if (determineIconType(emoji) === IconType.Custom) {
       const customEmoji = await Emoji.findByPk(emoji, {
@@ -467,12 +460,12 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
+    authorize(user, "removeReaction", comment);
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
@@ -480,7 +473,6 @@ router.post(
     });
 
     authorize(user, "comment", document);
-    authorize(user, "removeReaction", comment);
 
     const reaction = await Reaction.findOne({
       where: { emoji, userId: user.id, commentId: id },

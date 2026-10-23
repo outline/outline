@@ -44,7 +44,6 @@ router.post(
     let emoji;
     if (id) {
       emoji = await Emoji.findByPk(id, {
-        rejectOnEmpty: true,
         include,
       });
     } else if (name) {
@@ -54,7 +53,6 @@ router.post(
           teamId: user.teamId,
         },
         include,
-        rejectOnEmpty: true,
       });
     }
 
@@ -76,7 +74,6 @@ router.get(
     const { user } = ctx.state.auth;
 
     const emoji = await Emoji.unscoped().findByPk(id, {
-      rejectOnEmpty: true,
       include: [
         {
           model: Attachment,
@@ -96,7 +93,7 @@ router.get(
       // Note: This is purposefully using a somewhat looser authorization check.
       // In order to load a custom emoji you must have a valid emoji ID and a
       // valid share ID from the same team.
-      if (share.teamId !== emoji.teamId) {
+      if (!emoji || share.teamId !== emoji.teamId) {
         throw AuthorizationError();
       }
     } else {
@@ -176,7 +173,6 @@ router.post(
 
     const attachment = await Attachment.findByPk(attachmentId, {
       transaction,
-      rejectOnEmpty: true,
     });
     authorize(user, "read", attachment);
 
@@ -209,14 +205,12 @@ router.post(
 
     const emoji = await Emoji.findByPk(id, {
       transaction,
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "update", emoji);
 
     const attachment = await Attachment.findByPk(attachmentId, {
       transaction,
-      rejectOnEmpty: true,
     });
     authorize(user, "read", attachment);
 
@@ -259,7 +253,6 @@ router.post(
 
     const emoji = await Emoji.findByPk(id, {
       transaction: ctx.state.transaction,
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "delete", emoji);

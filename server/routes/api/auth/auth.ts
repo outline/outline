@@ -4,6 +4,7 @@ import { uniqBy } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
+import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import { Event, Team } from "@server/models";
@@ -125,9 +126,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const signedInTeamIds = Object.keys(sessions);
 
   const [team, groups, signedInTeams, availableTeams] = await Promise.all([
-    Team.scope("withDomains").findByPk(user.teamId, {
-      rejectOnEmpty: true,
-    }),
+    Team.scope("withDomains").findByPk(user.teamId),
     user.groups(),
     Team.findAll({
       where: {
@@ -136,6 +135,9 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     }),
     user.availableTeams(),
   ]);
+  if (!team) {
+    throw NotFoundError();
+  }
 
   // If the user did not _just_ sign in then we need to check if they continue
   // to have access to the workspace they are signed into. This only applies

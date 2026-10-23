@@ -279,7 +279,6 @@ router.post(
     let user: User | null = actor;
     if (id) {
       user = await User.findByPk(id, {
-        rejectOnEmpty: true,
         transaction,
         lock: transaction.LOCK.UPDATE,
       });
@@ -437,7 +436,6 @@ router.post(
     const userId = ctx.input.body.id;
     const actor = ctx.state.auth.user;
     const user = await User.findByPk(userId, {
-      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -474,7 +472,6 @@ router.post(
     const userId = ctx.input.body.id;
     const actor = ctx.state.auth.user;
     const user = await User.findByPk(userId, {
-      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -616,11 +613,10 @@ router.post(
     const { transaction } = ctx.state;
     const { id, code } = ctx.input.body;
     const actor = ctx.state.auth.user;
-    let user: User;
+    let user: User | null;
 
     if (id) {
       user = await User.findByPk(id, {
-        rejectOnEmpty: true,
         transaction,
         lock: transaction.LOCK.UPDATE,
       });

@@ -63,10 +63,15 @@ export default function apiErrorHandler() {
 
       if (
         (err instanceof Error && "code" in err && err.code === "ENOENT") ||
-        err instanceof SequelizeEmptyResultError ||
         (err instanceof Error && /Not found/i.test(err.message))
       ) {
         transformedErr = NotFoundError();
+      }
+
+      // A failed lookup by ID returns the same error as a failed authorization,
+      // so that a response does not show if a record exists in another team.
+      if (err instanceof SequelizeEmptyResultError) {
+        transformedErr = AuthorizationError();
       }
 
       throw transformedErr;

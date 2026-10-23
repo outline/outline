@@ -38,9 +38,7 @@ router.post(
       body.service === IntegrationService.OKF ||
       body.service === IntegrationService.JSON
     ) {
-      const attachment = await Attachment.findByPk(body.attachmentId, {
-        rejectOnEmpty: true,
-      });
+      const attachment = await Attachment.findByPk(body.attachmentId);
       authorize(user, "read", attachment);
 
       const importModel = await Import.createWithCtx(ctx, {
@@ -71,9 +69,7 @@ router.post(
 
     const integration = await Integration.findByPk<
       Integration<IntegrationType.Import>
-    >(body.integrationId, {
-      rejectOnEmpty: true,
-    });
+    >(body.integrationId);
     authorize(user, "read", integration);
 
     const name = integration.settings.externalWorkspace.name;
@@ -144,9 +140,7 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const importModel = await Import.findByPk(id, {
-      rejectOnEmpty: true,
-    });
+    const importModel = await Import.findByPk(id);
     authorize(user, "read", importModel);
 
     ctx.body = {
@@ -167,7 +161,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const importModel = await Import.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -192,7 +185,6 @@ router.post(
     const { transaction } = ctx.state;
 
     let importModel = await Import.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.UPDATE,
     });

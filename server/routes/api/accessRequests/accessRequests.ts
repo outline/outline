@@ -10,7 +10,11 @@ import { presentAccessRequest, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
-import { InvalidRequestError, NotFoundError } from "@server/errors";
+import {
+  AuthorizationError,
+  InvalidRequestError,
+  NotFoundError,
+} from "@server/errors";
 
 const router = new Router();
 
@@ -28,14 +32,13 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
-      rejectOnEmpty: true,
     });
 
     if (can(user, "read", document)) {
       throw InvalidRequestError("User already has document access");
     }
-    if (user.teamId !== document.teamId) {
-      throw NotFoundError();
+    if (!document || user.teamId !== document.teamId) {
+      throw AuthorizationError();
     }
 
     const accessRequest = await AccessRequest.createWithCtx(ctx, {
@@ -97,15 +100,16 @@ router.post(
     const { transaction } = ctx.state;
 
     const accessRequest = await AccessRequest.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
     });
+    if (!accessRequest) {
+      throw AuthorizationError();
+    }
 
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
       transaction,
-      rejectOnEmpty: true,
     });
     authorize(user, "manageUsers", document);
     authorize(user, "read", accessRequest.user);
@@ -153,15 +157,16 @@ router.post(
     const { transaction } = ctx.state;
 
     const accessRequest = await AccessRequest.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
     });
+    if (!accessRequest) {
+      throw AuthorizationError();
+    }
 
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
       transaction,
-      rejectOnEmpty: true,
     });
     authorize(user, "manageUsers", document);
     authorize(user, "read", accessRequest.user);

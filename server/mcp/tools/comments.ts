@@ -298,14 +298,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const comment = await Comment.findByPk(id, {
-            rejectOnEmpty: true,
-          });
+          const comment = await Comment.findByPk(id);
+          authorize(user, "read", comment);
           const document = await Document.findByPk(comment.documentId, {
             userId: user.id,
           });
-
-          authorize(user, "read", comment);
           authorize(user, "read", document);
 
           if (text !== undefined) {
@@ -374,14 +371,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const comment = await Comment.findByPk(id, {
-            rejectOnEmpty: true,
-          });
+          const comment = await Comment.findByPk(id);
+          authorize(user, "delete", comment);
           const document = await Document.findByPk(comment.documentId, {
             userId: user.id,
           });
-
-          authorize(user, "delete", comment);
           authorize(user, "comment", document);
 
           await comment.destroyWithCtx(ctx);

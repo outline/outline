@@ -1,4 +1,5 @@
 import Router from "@koa/router";
+import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -53,9 +54,11 @@ router.post(
         userId: user.id,
       },
       lock: transaction.LOCK.UPDATE,
-      rejectOnEmpty: true,
       transaction,
     });
+    if (!search) {
+      throw NotFoundError();
+    }
 
     search.score = score;
     await search.save({ transaction });

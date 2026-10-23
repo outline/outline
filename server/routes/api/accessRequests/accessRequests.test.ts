@@ -31,7 +31,7 @@ describe("#accessRequests.create", () => {
     expect(res.status).toEqual(401);
   });
 
-  it("should return 404 for non-existent document", async () => {
+  it("should return 403 for non-existent document", async () => {
     const user = await buildUser();
     const res = await server.post("/api/accessRequests.create", user, {
       body: {
@@ -39,8 +39,21 @@ describe("#accessRequests.create", () => {
       },
     });
     const body = await res.json();
-    expect(res.status).toEqual(404);
-    expect(body.message).toEqual("Resource not found");
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization error");
+  });
+
+  it("should return the same error for a document in another team", async () => {
+    const user = await buildUser();
+    const document = await buildDocument();
+    const res = await server.post("/api/accessRequests.create", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization error");
   });
 
   it("should create access request for a document", async () => {
