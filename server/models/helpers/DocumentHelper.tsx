@@ -14,6 +14,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { LineDiffHelper } from "@shared/utils/LineDiffHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -35,6 +36,9 @@ interface InlineSegment {
   /** Whether this segment is an atom node whose text length differs from nodeSize. */
   isAtom?: boolean;
 }
+
+/** The default number of milliseconds a Markdown diff can run before it stops. */
+const MarkdownDiffTimeout = 500;
 
 /** Context for a patch operation, shared across surgical patch methods. */
 interface PatchContext {
@@ -549,6 +553,35 @@ export class DocumentHelper {
   }
 
   /**
+   * Generates a unified line diff between the Markdown of two documents or
+   * revisions. Lines are copied verbatim from the Markdown that patch edits
+   * search, so they can be used directly to find text in the document.
+   *
+   * @param before The before document, or null to treat it as empty.
+   * @param after The after document.
+   * @param options.context The number of unchanged lines around each change.
+   * @param options.timeout The number of milliseconds the diff can run.
+   * @returns The diff hunks, an empty string when the Markdown is identical,
+   * or undefined when the diff did not complete in the time limit.
+   */
+  static toMarkdownDiff(
+    before: Document | Revision | null,
+    after: Document | Revision,
+    options: { context?: number; timeout?: number } = {}
+  ): string | undefined {
+    // Patch edits match against the raw serializer output, so it is not normalized.
+    const toText = (document: Document | Revision | null) =>
+      document
+        ? serializer.serialize(DocumentHelper.toProsemirror(document))
+        : "";
+
+    return LineDiffHelper.unified(toText(before), toText(after), {
+      context: options.context ?? 2,
+      timeout: options.timeout ?? MarkdownDiffTimeout,
+    });
+  }
+
+  /**
    * Clips a rendered diff document down to only the changed nodes and their
    * surrounding context, returning the resulting HTML or undefined when the
    * document contains no diff elements.
@@ -557,25 +590,33 @@ export class DocumentHelper {
    * @returns The clipped HTML, or undefined when there is nothing to show.
    */
   private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
+    const diffSelector = [
+      EditorStyleHelper.diffInsertion,
+      EditorStyleHelper.diffDeletion,
+      EditorStyleHelper.diffModification,
+      EditorStyleHelper.diffNodeInsertion,
+      EditorStyleHelper.diffNodeDeletion,
+      EditorStyleHelper.diffNodeModification,
+    ]
+      .map((className) => `.${className}`)
+      .join(",");
+
+    // Each node is checked again as the neighbor of its siblings, and removing
+    // nodes without changes does not change the result for the others.
+    const results = new Map<Element, boolean>();
+
     const containsDiffElement = (node: Element | null) => {
       if (!node) {
         return false;
       }
 
-      const diffClasses = [
-        EditorStyleHelper.diffInsertion,
-        EditorStyleHelper.diffDeletion,
-        EditorStyleHelper.diffModification,
-        EditorStyleHelper.diffNodeInsertion,
-        EditorStyleHelper.diffNodeDeletion,
-        EditorStyleHelper.diffNodeModification,
-      ];
-
-      return diffClasses.some(
-        (className) =>
-          node.classList.contains(className) ||
-          node.querySelector(`.${className}`)
-      );
+      let result = results.get(node);
+      if (result === undefined) {
+        result =
+          node.matches(diffSelector) || !!node.querySelector(diffSelector);
+        results.set(node, result);
+      }
+      return result;
     };
 
     // The diffing lib isn't able to catch all changes currently, e.g. changing

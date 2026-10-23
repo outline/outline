@@ -107,26 +107,28 @@ export default class NotificationHelper {
       });
     }
 
+    recipients = recipients.filter((recipient) => !recipient.isSuspended);
+
+    // Recipients that viewed the document since the comment was made do not
+    // need a notification.
+    const views = recipients.length
+      ? await View.findAll({
+          attributes: ["userId"],
+          where: {
+            userId: recipients.map((recipient) => recipient.id),
+            documentId: document.id,
+            updatedAt: {
+              [Op.gt]: comment.createdAt,
+            },
+          },
+        })
+      : [];
+    const viewedUserIds = new Set(views.map((view) => view.userId));
+
     const filtered: User[] = [];
 
     for (const recipient of recipients) {
-      if (recipient.isSuspended) {
-        continue;
-      }
-
-      // If this recipient has viewed the document since the comment was made
-      // then we can avoid sending them a useless notification, yay.
-      const view = await View.findOne({
-        where: {
-          userId: recipient.id,
-          documentId: document.id,
-          updatedAt: {
-            [Op.gt]: comment.createdAt,
-          },
-        },
-      });
-
-      if (view) {
+      if (viewedUserIds.has(recipient.id)) {
         Logger.info(
           "processor",
           `suppressing notification to ${recipient.id} because doc viewed`

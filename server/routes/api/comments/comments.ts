@@ -174,6 +174,7 @@ router.post(
       includeAnchorText,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listComments", user.team);
 
     let document: Document | null = null;
     if (documentId) {

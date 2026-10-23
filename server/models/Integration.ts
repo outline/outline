@@ -110,9 +110,10 @@ class Integration<T = unknown> extends ParanoidModel<
    * type opts-in to the specific fields its client consumes, so sensitive values
    * such as webhook URLs are never serialized by default.
    *
+   * @param viewer the user the settings are presented to, if any.
    * @returns the client-safe settings, or undefined when none are exposed.
    */
-  public presentSettings() {
+  public presentSettings(viewer?: User) {
     switch (this.type) {
       case IntegrationType.Embed: {
         const settings = this
@@ -140,6 +141,10 @@ class Integration<T = unknown> extends ParanoidModel<
         return { channel: settings?.channel };
       }
       case IntegrationType.LinkedAccount: {
+        // Linked accounts hold personal details, only the owner may see them.
+        if (!viewer || viewer.id !== this.userId) {
+          return undefined;
+        }
         const settings = this
           .settings as IntegrationSettings<IntegrationType.LinkedAccount>;
         return { figma: settings?.figma };

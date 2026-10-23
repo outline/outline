@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { Collection, Team } from "@server/models";
 import { buildWhere } from "@server/models/helpers/Filters";
 import { sequelize } from "@server/storage/database";
@@ -57,7 +57,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           idempotentHint: true,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           query: optionalString().describe(
             "An optional search query to filter collections by name."
           ),
@@ -76,7 +76,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_collections",
@@ -178,7 +178,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           name: z.string().describe("The name of the collection."),
           description: z
             .string()
@@ -190,7 +190,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           color: optionalString().describe(
             "The hex color for the collection icon, e.g. #FF0000."
           ),
-        },
+        }),
       },
       withTracing("create_collection", async (input, context) => {
         try {
@@ -237,7 +237,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the collection to update."),
@@ -260,7 +260,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the collection icon. Set to null to remove."
             ),
-        },
+        }),
       },
       withTracing("update_collection", async (input, context) => {
         try {
@@ -323,7 +323,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the collection to delete."),
@@ -341,7 +341,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "A plain text reason for archiving or deleting the collection. Omit to keep the existing reason, or use null or an empty string to clear it."
             ),
-        },
+        }),
       },
       withTracing(
         "delete_collection",
