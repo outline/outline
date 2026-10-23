@@ -1,9 +1,11 @@
+import { WarningIcon } from "outline-icons";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import type { Props as InputProps } from "./Input";
 import Input from "./Input";
 import Relative from "./Sidebar/components/Relative";
 import { SwatchButton } from "./SwatchButton";
+import Tooltip from "./Tooltip";
 
 /**
  * Props for the InputColor component.
@@ -13,30 +15,55 @@ type Props = Omit<InputProps, "onChange"> & {
   value: string | undefined;
   /** Callback function invoked when the color value changes */
   onChange: (value: string) => void;
+  /** An optional warning to show next to the color, such as low contrast */
+  warning?: string;
 };
 
 /**
  * A color input component that combines a text input with a color picker swatch button.
  * Automatically formats hex color values with a leading # character.
  */
-const InputColor: React.FC<Props> = ({ value, onChange, ...rest }: Props) => (
-  <Relative>
-    <Input
-      value={value}
-      onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
-      placeholder="#"
-      maxLength={7}
-      {...rest}
-    />
-    <PositionedSwatchButton color={value} onChange={onChange} size={22} />
-  </Relative>
-);
+const InputColor: React.FC<Props> = ({
+  value,
+  onChange,
+  warning,
+  ...rest
+}: Props) => {
+  const theme = useTheme();
+
+  return (
+    <Relative>
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
+        placeholder="#"
+        maxLength={7}
+        {...rest}
+      />
+      {warning && (
+        <Tooltip content={warning}>
+          <PositionedWarning role="img" aria-label={warning}>
+            <WarningIcon color={theme.warning} size={22} />
+          </PositionedWarning>
+        </Tooltip>
+      )}
+      <PositionedSwatchButton color={value} onChange={onChange} size={22} />
+    </Relative>
+  );
+};
 
 const PositionedSwatchButton = styled(SwatchButton)`
   border: 1px solid ${(props) => props.theme.inputBorder};
   position: absolute;
   bottom: 21px;
   inset-inline-end: 6px;
+`;
+
+const PositionedWarning = styled.span`
+  display: flex;
+  position: absolute;
+  bottom: 21px;
+  inset-inline-end: 32px;
 `;
 
 export default InputColor;

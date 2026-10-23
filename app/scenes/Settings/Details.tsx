@@ -18,7 +18,6 @@ import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import InputColor from "~/components/InputColor";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
@@ -32,6 +31,7 @@ import TeamDelete from "../TeamDelete";
 import { ActionRow } from "./components/ActionRow";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+import { ThemeColorInputs } from "./components/ThemeColorInputs";
 
 function Details() {
   const { dialogs, ui } = useStores();
@@ -56,12 +56,16 @@ function Details() {
     team.defaultCollectionId
   );
 
-  const customTheme: Partial<CustomTheme> = pickBy(
-    {
-      accent,
-      accentText,
-    },
-    isHexColor
+  const customTheme: Partial<CustomTheme> = React.useMemo(
+    () =>
+      pickBy(
+        {
+          accent,
+          accentText,
+        },
+        isHexColor
+      ),
+    [accent, accentText]
   );
 
   const [tocPosition, setTocPosition] = useState(
@@ -264,19 +268,11 @@ function Details() {
               </>
             }
           >
-            <InputColor
-              id="accent"
-              value={accent ?? newTheme.accent}
-              label={t("Accent color")}
-              onChange={setAccent}
-              flex
-            />
-            <InputColor
-              id="accentText"
-              value={accentText ?? newTheme.accentText}
-              label={t("Accent text color")}
-              onChange={setAccentText}
-              flex
+            <ThemeColorInputs
+              accent={accent}
+              accentText={accentText}
+              onAccentChange={setAccent}
+              onAccentTextChange={setAccentText}
             />
           </SettingRow>
           {(team.avatarUrl || team.description) && (
