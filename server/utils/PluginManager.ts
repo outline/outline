@@ -2,6 +2,7 @@ import path from "node:path";
 import { glob } from "glob";
 import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
+import type { Concrete } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -52,13 +53,13 @@ export enum Hook {
 type PluginValueMap = {
   [Hook.API]: Router;
   [Hook.AuthProvider]: { router: Router | Promise<Router>; id: string };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
-  [Hook.EmailTemplate]: typeof BaseEmail<any>;
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
+  [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.MentionProvider]: MentionSignature;
-  [Hook.Processor]: typeof BaseProcessor;
+  [Hook.Processor]: Concrete<typeof BaseProcessor>;
   [Hook.SearchProvider]: BaseSearchProvider;
-  [Hook.Task]: typeof BaseTask<object>;
+  [Hook.Task]: Concrete<typeof BaseTask<object>>;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
   [Hook.GroupSyncProvider]: { id: string; provider: GroupSyncProvider };

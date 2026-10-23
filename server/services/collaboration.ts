@@ -15,7 +15,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { rejectUpgrade } from "@server/onupgrade";
 import RedisAdapter from "@server/storage/redis";
-import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
 import AwarenessIdentityExtension from "../collaboration/AwarenessIdentityExtension";
 import { EditorVersionExtension } from "../collaboration/EditorVersionExtension";

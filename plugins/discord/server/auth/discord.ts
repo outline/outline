@@ -51,7 +51,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           clientSecret: env.DISCORD_CLIENT_SECRET,
           passReqToCallback: true,
           scope,
-          // @ts-expect-error custom state store
+          // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
           store: new StateStore(),
           state: true,
           callbackURL: `${env.URL}/auth/${config.id}.callback`,

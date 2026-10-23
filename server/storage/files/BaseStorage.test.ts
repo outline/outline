@@ -129,6 +129,43 @@ describe("BaseStorage", () => {
     });
   });
 
+  describe("getSignedUrlMinimumLifetime", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should return half of the default lifetime", () => {
+      expect(BaseStorage.getSignedUrlMinimumLifetime()).toBe(
+        BaseStorage.defaultSignedUrlExpires / 2
+      );
+    });
+
+    it("should subtract the capped window from long lifetimes", () => {
+      expect(BaseStorage.getSignedUrlMinimumLifetime(Hour.seconds)).toBe(
+        Hour.seconds - BaseStorage.maxSigningWindow
+      );
+    });
+
+    it("should return the full lifetime when it is too short to align", () => {
+      expect(BaseStorage.getSignedUrlMinimumLifetime(1)).toBe(1);
+    });
+
+    it("should not exceed the remaining lifetime at the end of a window", () => {
+      const expiresIn = BaseStorage.defaultSignedUrlExpires;
+      const now = new Date("2026-04-16T12:07:29.999Z");
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const expiresAt =
+        MockStorage.signingDateFor(expiresIn).getTime() + expiresIn * 1000;
+      const remaining = (expiresAt - now.getTime()) / 1000;
+
+      expect(
+        BaseStorage.getSignedUrlMinimumLifetime(expiresIn)
+      ).toBeLessThanOrEqual(remaining);
+    });
+  });
+
   describe("getPresignedPut", () => {
     it("should return undefined from default implementation", async () => {
       const storage = new MockStorage();

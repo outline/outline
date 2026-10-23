@@ -2,7 +2,7 @@ import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { HeadingPrefixStyle } from "@shared/types";
+import { HeadingPrefixStyle, TextEditMode } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
@@ -431,6 +431,102 @@ describe("DocumentHelper", () => {
       });
 
       expect(result).toContain(EditorStyleHelper.diffInsertion);
+    });
+  });
+
+  describe("toMarkdownDiff", () => {
+    it("should return unified diff hunks of the markdown", async () => {
+      const before = await buildDocument({
+        text: "Intro\n\n- [ ] Task one\n- [ ] Task two\n\nOutro",
+      });
+      const after = await buildDocument({
+        text: "Intro\n\n- [x] Task one\n- [ ] Task two\n- [ ] Task three\n\nOutro",
+      });
+
+      const result = DocumentHelper.toMarkdownDiff(before, after);
+
+      expect(result).toEqual(
+        [
+          "@@ -1,6 +1,7 @@",
+          " Intro",
+          " ",
+          "-- [ ] Task one",
+          "+- [x] Task one",
+          " - [ ] Task two",
+          "+- [ ] Task three",
+          " ",
+          " Outro",
+        ].join("\n")
+      );
+    });
+
+    it("should limit the context around each change", async () => {
+      const lines = Array.from({ length: 20 }, (_, i) => `Line ${i}`);
+      const before = await buildDocument({ text: lines.join("\n\n") });
+      const after = await buildDocument({
+        text: lines.map((l, i) => (i === 10 ? "Changed" : l)).join("\n\n"),
+      });
+
+      const result = DocumentHelper.toMarkdownDiff(before, after, {
+        context: 1,
+      });
+
+      expect(result).toEqual(
+        ["@@ -20,3 +20,3 @@", " ", "-Line 10", "+Changed", " "].join("\n")
+      );
+    });
+
+    it("should treat a null before document as empty", async () => {
+      const after = await buildDocument({ text: "Hello" });
+
+      const result = DocumentHelper.toMarkdownDiff(null, after);
+
+      expect(result).toEqual(["@@ -0,0 +1,1 @@", "+Hello"].join("\n"));
+    });
+
+    it("should return an empty string when nothing changed", async () => {
+      const before = await buildDocument({ text: "Same" });
+      const after = await buildDocument({ text: "Same" });
+
+      expect(DocumentHelper.toMarkdownDiff(before, after)).toEqual("");
+    });
+
+    it("should keep the raw serializer output that patch edits search", async () => {
+      const before = await buildDocument({ text: "One\n\n\\\n\nTwo" });
+      const after = await buildDocument({ text: "One\n\n\\\n\nThree" });
+
+      const result = DocumentHelper.toMarkdownDiff(before, after);
+
+      expect(result).toEqual(
+        ["@@ -2,3 +2,3 @@", " ", " \\", "-Two", "+Three"].join("\n")
+      );
+
+      // Context and added lines together are a valid patch target.
+      const findText = (result ?? "")
+        .split("\n")
+        .filter((line) => line.startsWith(" ") || line.startsWith("+"))
+        .map((line) => line.slice(1))
+        .join("\n");
+      const patched = DocumentHelper.applyMarkdownToDocument(
+        after,
+        "\n\\\nFour",
+        TextEditMode.Patch,
+        findText
+      );
+      expect(await DocumentHelper.toMarkdown(patched)).toContain("Four");
+    });
+
+    it("should return undefined when the diff does not complete in time", async () => {
+      const lines = Array.from({ length: 100 }, (_, i) => `Line ${i}`);
+      const before = await buildDocument({ text: lines.join("\n\n") });
+      const after = await buildDocument({
+        text: [...lines].reverse().join("\n\n"),
+      });
+
+      expect(
+        DocumentHelper.toMarkdownDiff(before, after, { timeout: 0 })
+      ).toBeUndefined();
+      expect(DocumentHelper.toMarkdownDiff(before, after)).toContain("+Line 0");
     });
   });
 
@@ -1366,6 +1462,54 @@ Second notes.`,
         `## Notes
 
 Second notes.`
+      );
+    });
+
+    it("should resolve anchors for a heading that ends in a number", async () => {
+      const document = await buildDocument({
+        text: `## Setup
+
+First setup.
+
+## Setup
+
+Second setup.
+
+## Setup 1
+
+Third setup.`,
+      });
+
+      expect(DocumentHelper.getAnchorContent(document, "h-setup-1")).toBe(
+        `## Setup
+
+Second setup.`
+      );
+      expect(DocumentHelper.getAnchorContent(document, "h-setup-1-1")).toBe(
+        `## Setup 1
+
+Third setup.`
+      );
+    });
+
+    it("should count nested headings when numbering duplicates", async () => {
+      const document = await buildDocument({
+        text: `> ## Notes
+>
+> Quoted notes.
+
+## Notes
+
+Top-level notes.`,
+      });
+
+      expect(
+        DocumentHelper.getAnchorContent(document, "h-notes")
+      ).toBeUndefined();
+      expect(DocumentHelper.getAnchorContent(document, "h-notes-1")).toBe(
+        `## Notes
+
+Top-level notes.`
       );
     });
 

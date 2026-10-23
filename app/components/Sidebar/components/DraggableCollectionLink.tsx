@@ -2,14 +2,13 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import type * as React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
+import { useDragRef, useDropRef } from "~/components/DragAndDrop";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
-import { useDragRef, useDropRef } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import SidebarDisclosureContext, {
@@ -58,7 +57,6 @@ function DraggableCollectionLink({ collection, belowCollection }: Props) {
     dropToReorderCollection,
   ] = useDropRef<
     CollectionDragItem,
-    void,
     { isCollectionDropping: boolean; isDraggingAnyCollection: boolean }
   >({
     accept: "collection",
@@ -79,21 +77,14 @@ function DraggableCollectionLink({ collection, belowCollection }: Props) {
   });
 
   // Drag to reorder collection
-  const [{ isDragging }, dragToReorderCollection, preview] = useDragRef({
+  const [isDragging, dragToReorderCollection] = useDragRef({
     type: "collection",
     item: () => ({
       id: collection.id,
       title: collection.displayName,
       icon: <CollectionIcon collection={collection} />,
     }),
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
   });
-
-  useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: false });
-  }, [preview]);
 
   // If the current collection is active and relevant to the sidebar section we
   // are in then expand it automatically

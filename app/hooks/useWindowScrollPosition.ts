@@ -2,7 +2,6 @@
 // maintained.
 import { throttle } from "es-toolkit/compat";
 import { useCallback, useRef, useSyncExternalStore } from "react";
-import { supportsPassiveListener } from "@shared/utils/browser";
 
 type ScrollPosition = { x: number; y: number };
 
@@ -41,11 +40,7 @@ export default function useWindowScrollPosition(options: {
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
       const handleScroll = throttle(onStoreChange, throttleMs);
-      window.addEventListener(
-        "scroll",
-        handleScroll,
-        supportsPassiveListener ? { passive: true } : false
-      );
+      window.addEventListener("scroll", handleScroll, { passive: true });
       return () => {
         handleScroll.cancel();
         window.removeEventListener("scroll", handleScroll);

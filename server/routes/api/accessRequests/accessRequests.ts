@@ -102,10 +102,6 @@ router.post(
       lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
     });
 
-    if (accessRequest.status !== AccessRequestStatus.Pending) {
-      throw InvalidRequestError("Access request has already been responded to");
-    }
-
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
       transaction,
@@ -113,6 +109,10 @@ router.post(
     });
     authorize(user, "manageUsers", document);
     authorize(user, "read", accessRequest.user);
+
+    if (accessRequest.status !== AccessRequestStatus.Pending) {
+      throw InvalidRequestError("Access request has already been responded to");
+    }
 
     const membership = await UserMembership.findOne({
       where: {

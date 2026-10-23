@@ -254,7 +254,7 @@ allow(
 
 allow(User, "update", Collection, (user, collection) =>
   and(
-    !!collection,
+    isTeamModel(user, collection),
     !!collection?.isActive,
     isOwnerIfPersonal(user, collection),
     or(
@@ -311,7 +311,7 @@ allow(User, "export", Collection, (user, collection) =>
 
 allow(User, "delete", Collection, (user, collection) =>
   and(
-    !!collection,
+    isTeamModel(user, collection),
     !collection?.deletedAt,
     !collection?.isPersonal,
     or(
@@ -323,7 +323,7 @@ allow(User, "delete", Collection, (user, collection) =>
 
 allow(User, "restore", Collection, (user, collection) =>
   and(
-    !!collection,
+    isTeamModel(user, collection),
     !collection?.isActive,
     isOwnerIfPersonal(user, collection),
     or(

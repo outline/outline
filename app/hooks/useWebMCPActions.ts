@@ -107,7 +107,7 @@ export default function useWebMCPActions(
     Analytics.track("webmcp", "register");
 
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, toolNames.join(","), pathname, ...additionalDeps]);
 }
 

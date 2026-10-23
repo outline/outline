@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { DndProvider } from "react-dnd";
-import { EditorAwareHTML5Backend } from "~/components/EditorAwareHTML5Backend";
+import { DragAndDropProvider } from "~/components/DragAndDrop";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -106,7 +105,7 @@ const AuthenticatedLayout: React.FC<Props> = ({ children }: Props) => {
     <DocumentContextProvider>
       <RightSidebarProvider>
         <PortalContext.Provider value={layoutElement}>
-          <DndProvider backend={EditorAwareHTML5Backend}>
+          <DragAndDropProvider>
             <Layout
               title={team.name}
               sidebar={sidebar}
@@ -120,7 +119,7 @@ const AuthenticatedLayout: React.FC<Props> = ({ children }: Props) => {
               <CommandBar />
               <NotificationBadge />
             </Layout>
-          </DndProvider>
+          </DragAndDropProvider>
         </PortalContext.Provider>
       </RightSidebarProvider>
     </DocumentContextProvider>

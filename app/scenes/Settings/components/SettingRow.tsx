@@ -1,7 +1,7 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
@@ -27,6 +27,29 @@ const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
   &:last-child {
     border-bottom: 0;
   }
+
+  ${breakpoint("mobile", "tablet")`
+    &:has([role="switch"]) {
+      gap: 16px;
+
+      > :first-child {
+        min-width: 0;
+      }
+
+      > :last-child {
+        flex: 0 0 auto;
+      }
+    }
+
+    &:not(:has([role="switch"])) {
+      flex-direction: column;
+      gap: 12px;
+
+      > :last-child > * {
+        align-self: stretch;
+      }
+    }
+  `};
 `;
 
 const Column = styled.div`

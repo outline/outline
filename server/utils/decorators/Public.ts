@@ -22,7 +22,7 @@ export function Public(target: object, propertyKey: string) {
  * should be made available client-side.
  */
 export class PublicEnvironmentRegister {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- consumed at runtime as a flat map of typed Environment values; tightening to unknown breaks call sites.
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- consumed at runtime as a flat map of typed Environment values; tightening to unknown breaks call sites.
   private static publicEnv: Record<string, any> = {};
 
   /**

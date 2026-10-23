@@ -613,6 +613,22 @@ describe("#attachments.redirect", () => {
     expect(res.status).toEqual(302);
   });
 
+  it("should not cache the redirect for longer than the signed URL is valid", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/attachments.redirect", user, {
+      body: {
+        id: attachment.id,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("Cache-Control")).toEqual("max-age=150, immutable");
+  });
+
   it("should return a redirect for the attachment if id supplied via query params", async () => {
     const user = await buildUser();
     const attachment = await buildAttachment({

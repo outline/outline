@@ -1,8 +1,12 @@
 import { last, sortBy } from "es-toolkit/compat";
 import { t } from "i18next";
+import type { DiagramType, IconResolver, RenderOptions } from "pele";
+import type * as PeleModule from "pele/lazy";
 import { v4 as uuidv4 } from "uuid";
-import type MermaidUnsafe from "mermaid";
-import type { IconPack } from "@fortawesome/fontawesome-common-types";
+import type {
+  IconDefinition,
+  IconPack,
+} from "@fortawesome/fontawesome-common-types";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
@@ -25,71 +29,169 @@ export const pluginKey = new PluginKey("mermaid");
 
 export type MermaidState = {
   decorationSet: DecorationSet;
-  isDark: boolean;
   editingId?: string;
 };
 
-// The `v4` namespace discards entries cached before the switch to SVG text
-// labels, so previously mis-sized diagrams are re-rendered instead of served
-// from cache.
+/** Matches a Font Awesome icon reference, such as "fa:fa-car" or "fa-brands:github". */
+const fontAwesomeIconRegex =
+  /\b(fa[bsr]?|fa-solid|fa-regular|fa-brands):(?:fa-)?([a-z0-9-]+)/;
+
+/** Font Awesome icons keyed by pack and icon name. */
+interface FontAwesomeIcons {
+  solid: Map<string, IconDefinition>;
+  brands: Map<string, IconDefinition>;
+}
+
+/** The loaded Font Awesome icons, set once the packs have loaded. */
+let fontAwesomeIcons: FontAwesomeIcons | undefined;
+
+let fontAwesomeLoading: Promise<void> | undefined;
+
+/** The loaded Pele module, kept so that later diagrams render synchronously. */
+let pele: typeof PeleModule | undefined;
+
+/** Renders in progress, so that editors showing the same diagram share one result. */
+const pending = new Map<string, Promise<string>>();
+
+/** Rendered diagrams, so revisited documents show them without a relayout. */
 const cache = new LRUCache<string>({
   max: 20,
-  namespace: "mermaid:v4",
+  namespace: "pele:v1",
   storage: "sessionStorage",
 });
 
-let mermaid: typeof MermaidUnsafe;
-
-/** Minimal Iconify JSON icon set format required by Mermaid's `registerIconPacks` API. */
-interface IconifyIconSet {
-  prefix: string;
-  icons: Record<string, { body: string; width: number; height: number }>;
+/**
+ * Indexes a Font Awesome icon pack by icon name.
+ *
+ * @param pack the icon pack to index.
+ * @returns a map of icon name to icon definition.
+ */
+function indexIconPack(pack: IconPack): Map<string, IconDefinition> {
+  const icons = new Map<string, IconDefinition>();
+  for (const iconDef of Object.values(pack)) {
+    if (iconDef.iconName && iconDef.icon) {
+      icons.set(iconDef.iconName, iconDef);
+    }
+  }
+  return icons;
 }
 
 /**
- * Converts a FontAwesome icon pack to the Iconify JSON format expected by Mermaid's
- * `registerIconPacks` API.
+ * Loads the Font Awesome icon packs, once.
  *
- * @param pack the FontAwesome icon pack to convert.
- * @param prefix the Iconify prefix to use (e.g. "fa-solid" or "fa-brands").
- * @returns an Iconify-compatible JSON icon set.
+ * @returns a promise that resolves when the icons are loaded.
  */
-function fontAwesomeToIconify(pack: IconPack, prefix: string): IconifyIconSet {
-  const icons: IconifyIconSet["icons"] = {};
-
-  for (const iconDef of Object.values(pack)) {
-    // icon array layout: [width, height, ligatures, unicode, svgPathData]
-    if (!iconDef.iconName || !iconDef.icon) {
-      continue;
+function loadFontAwesomeIcons(): Promise<void> {
+  fontAwesomeLoading ??= Promise.all([
+    import("@fortawesome/free-solid-svg-icons"),
+    import("@fortawesome/free-brands-svg-icons"),
+  ]).then(
+    ([{ fas }, { fab }]) => {
+      fontAwesomeIcons = {
+        solid: indexIconPack(fas),
+        brands: indexIconPack(fab),
+      };
+    },
+    (error) => {
+      fontAwesomeLoading = undefined;
+      throw error;
     }
-    const [width, height, , , paths] = iconDef.icon;
-    const body = Array.isArray(paths)
-      ? paths.map((p) => `<path d="${p}"/>`).join("")
-      : `<path d="${paths}"/>`;
-    icons[iconDef.iconName] = { body, width, height };
+  );
+  return fontAwesomeLoading;
+}
+
+/**
+ * Resolves a Font Awesome icon name to SVG markup.
+ *
+ * @param name the icon name, such as "fa:fa-car".
+ * @returns the icon markup, or null if the icon is unknown or not loaded.
+ */
+const resolveIcon: IconResolver = (name) => {
+  const match = name.match(fontAwesomeIconRegex);
+  if (
+    !fontAwesomeIcons ||
+    !match ||
+    match.index !== 0 ||
+    match[0].length !== name.length
+  ) {
+    return null;
   }
 
-  return { prefix, icons };
-}
+  const [, prefix, iconName] = match;
+  const pack =
+    prefix === "fab" || prefix === "fa-brands"
+      ? fontAwesomeIcons.brands
+      : fontAwesomeIcons.solid;
+  const iconDef = pack.get(iconName);
+  if (!iconDef) {
+    return null;
+  }
+
+  // icon array layout: [width, height, ligatures, unicode, svgPathData]
+  const [width, height, , , paths] = iconDef.icon;
+  const body = (Array.isArray(paths) ? paths : [paths])
+    .map((path) => `<path d="${path}"/>`)
+    .join("");
+  return `<svg viewBox="0 0 ${width} ${height}" fill="currentColor" stroke="none">${body}</svg>`;
+};
 
 /**
- * Determines whether a diagram should be rendered with HTML labels.
- *
- * HTML labels are measured through `foreignObject` elements, which some
- * browsers size incorrectly in Mermaid's hidden render container, producing
- * diagrams with nodes spread thousands of pixels apart. SVG text labels are
- * measured reliably, so they are used everywhere except mindmaps, which
- * Mermaid cannot lay out correctly without HTML labels.
+ * Renders a diagram synchronously if Pele, the diagram type and any icons it
+ * references are already loaded.
  *
  * @param text the diagram source.
- * @returns true if HTML labels should be used.
+ * @param options the render options.
+ * @returns the SVG markup, or undefined if something must load first.
  */
-function shouldUseHtmlLabels(text: string): boolean {
-  try {
-    return mermaid.detectType(text) === "mindmap";
-  } catch (_err) {
-    return false;
+function renderSync(text: string, options: RenderOptions): string | undefined {
+  if (!pele || (fontAwesomeIconRegex.test(text) && !fontAwesomeIcons)) {
+    return undefined;
   }
+
+  let type: DiagramType | null = null;
+  try {
+    type = pele.detectType(text);
+  } catch (_err) {
+    return undefined;
+  }
+  if (!type || !pele.registered(type)) {
+    return undefined;
+  }
+  return pele.render(text, options).svg;
+}
+
+/**
+ * Loads what a diagram needs, then renders it. Concurrent calls with the same
+ * key share one render.
+ *
+ * @param key the cache key of the diagram.
+ * @param text the diagram source.
+ * @param options the render options.
+ * @returns the SVG markup.
+ */
+function renderAsync(
+  key: string,
+  text: string,
+  options: RenderOptions
+): Promise<string> {
+  const existing = pending.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const promise = Promise.all([
+    import("pele/lazy"),
+    fontAwesomeIconRegex.test(text) ? loadFontAwesomeIcons() : undefined,
+  ]).then(async ([module]) => {
+    pele = module;
+    const { svg } = await module.renderAsync(text, options);
+    return svg;
+  });
+
+  pending.set(key, promise);
+  const clear = () => pending.delete(key);
+  promise.then(clear, clear);
+  return promise;
 }
 
 class MermaidRenderer {
@@ -97,10 +199,14 @@ class MermaidRenderer {
   readonly element: HTMLElement;
   readonly elementId: string;
 
-  /** The cache key of the diagram rendered, or being rendered, into the element. */
-  private renderedKey?: string;
+  /** The editor the diagram belongs to. */
+  private readonly editor: Editor;
 
-  constructor() {
+  /** The source of the diagram rendered, or being rendered, into the element. */
+  private renderedText?: string;
+
+  constructor(editor: Editor) {
+    this.editor = editor;
     this.diagramId = uuidv4();
     this.elementId = `${EditorStyleHelper.mermaidDiagram}-${this.diagramId}`;
     this.element =
@@ -109,16 +215,23 @@ class MermaidRenderer {
     this.element.classList.add(EditorStyleHelper.mermaidDiagram);
   }
 
-  render = async (block: { node: Node; pos: number }, isDark: boolean) => {
+  render = async (block: { node: Node; pos: number }) => {
     const element = this.element;
     const text = block.node.textContent;
 
-    const cacheKey = hashString(`${isDark ? "dark" : "light"}-${text}`);
-    if (this.renderedKey === cacheKey) {
+    if (this.renderedText === text) {
       return;
     }
-    this.renderedKey = cacheKey;
+    this.renderedText = text;
 
+    if (text.trim().length === 0) {
+      element.innerText = t("Empty diagram");
+      element.classList.remove("parse-error");
+      element.classList.add("empty");
+      return;
+    }
+
+    const cacheKey = hashString(text);
     const cached = cache.get(cacheKey);
     if (cached) {
       element.classList.remove("parse-error", "empty");
@@ -126,113 +239,39 @@ class MermaidRenderer {
       return;
     }
 
-    // Mermaid renders into a temporary element it appends to the body with
-    // this id prefixed by "d", which a global style positions offscreen.
-    const tempId =
-      "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
+    const { theme } = this.editor.props;
+    const options: RenderOptions = {
+      // Pele measures labels with these fonts, the CSS variables only draw them.
+      fontFamily: theme.fontFamily,
+      fontFamilyMono: theme.fontFamilyMono,
+      // Stable across renders, so cached markup stays valid.
+      idPrefix: `pele-${cacheKey}`,
+      icons: resolveIcon,
+    };
 
     try {
-      if (!mermaid) {
-        mermaid = (await import("mermaid")).default;
-        mermaid.registerLayoutLoaders([
-          {
-            name: "elk",
-            loader: async () => {
-              const { default: elkLayouts } =
-                await import("@mermaid-js/layout-elk");
-              const elkDef = elkLayouts.find(
-                (d: { name: string }) => d.name === "elk"
-              );
-              if (!elkDef) {
-                throw new Error("ELK layout not found");
-              }
-              return elkDef.loader();
-            },
-          },
-        ]);
-        mermaid.registerIconPacks([
-          {
-            name: "fa-solid",
-            loader: async () => {
-              const { fas } = await import("@fortawesome/free-solid-svg-icons");
-              return fontAwesomeToIconify(fas, "fa-solid");
-            },
-          },
-          {
-            name: "fa-brands",
-            loader: async () => {
-              const { fab } =
-                await import("@fortawesome/free-brands-svg-icons");
-              return fontAwesomeToIconify(fab, "fa-brands");
-            },
-          },
-        ]);
-      }
-      mermaid.initialize({
-        startOnLoad: true,
-        suppressErrorRendering: true,
-        // TODO: Make dynamic based on the width of the editor or remove in
-        // the future if Mermaid is able to handle this automatically.
-        gantt: { useWidth: 700 },
-        pie: { useWidth: 700 },
-        fontFamily: getComputedStyle(this.element).fontFamily || "inherit",
-        theme: isDark ? "dark" : "default",
-        darkMode: isDark,
-        htmlLabels: shouldUseHtmlLabels(text),
-      });
-
-      const { svg, bindFunctions } = await mermaid.render(tempId, text);
+      const svg =
+        renderSync(text, options) ??
+        (await renderAsync(cacheKey, text, options));
 
       // A newer render replaced this one while it was in progress.
-      if (this.renderedKey !== cacheKey) {
+      if (this.renderedText !== text) {
         return;
       }
 
       element.classList.remove("parse-error", "empty");
       element.innerHTML = svg;
-
-      // Allow the user to interact with the diagram
-      bindFunctions?.(element);
-
-      // Mermaid sizes the SVG from a getBBox() taken in the hidden render
-      // element, which is unreliable on high-DPI/RDP displays and leaves
-      // diagrams too large or too small (#11782). Re-frame from the now-visible
-      // SVG, where getBBox() reflects the real content.
-      const rendered = element.querySelector("svg");
-      if (rendered instanceof SVGSVGElement) {
-        const box = rendered.getBBox();
-        if (box.width > 0 && box.height > 0) {
-          const padding = 8;
-          const frameWidth = box.width + padding * 2;
-          rendered.setAttribute(
-            "viewBox",
-            `${box.x - padding} ${box.y - padding} ${frameWidth} ${box.height + padding * 2}`
-          );
-          rendered.style.width = "100%";
-          rendered.style.maxWidth = `${frameWidth}px`;
-        }
-      }
-
-      // Cache the corrected SVG so we won't need to calculate it again this session
-      if (text) {
-        cache.set(cacheKey, element.innerHTML);
-      }
+      cache.set(cacheKey, svg);
     } catch (error) {
-      if (this.renderedKey !== cacheKey) {
+      if (this.renderedText !== text) {
         return;
       }
 
       // Allow a later state change to retry the render.
-      this.renderedKey = undefined;
-      const isEmpty = block.node.textContent.trim().length === 0;
-
-      if (isEmpty) {
-        element.innerText = "Empty diagram";
-        element.classList.add("empty");
-      } else {
-        element.innerText = errToString(error);
-        element.classList.add("parse-error");
-      }
+      this.renderedText = undefined;
+      element.innerText = errToString(error);
+      element.classList.remove("empty");
+      element.classList.add("parse-error");
     }
   };
 }
@@ -271,10 +310,12 @@ function findBestOverlapDecoration(
 
 function getNewState({
   doc,
+  editor,
   pluginState,
   autoEditEmpty = false,
 }: {
   doc: Node;
+  editor: Editor;
   pluginState: MermaidState;
   autoEditEmpty?: boolean;
 }): MermaidState {
@@ -316,7 +357,7 @@ function getNewState({
 
     const isNewBlock = !bestDecoration;
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.renderer ?? new MermaidRenderer();
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
     usedRenderers.add(renderer);
 
     // Auto-enter edit mode for newly created empty mermaid diagrams
@@ -328,7 +369,7 @@ function getNewState({
       newEditingId = renderer.diagramId;
     }
 
-    void renderer.render(block, pluginState.isDark);
+    void renderer.render(block);
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -362,13 +403,7 @@ function getNewState({
   };
 }
 
-export default function Mermaid({
-  isDark,
-  editor,
-}: {
-  isDark: boolean;
-  editor: Editor;
-}) {
+export default function Mermaid({ editor }: { editor: Editor }) {
   const { onClickLink, onNotice } = editor.props;
 
   return new Plugin({
@@ -377,10 +412,10 @@ export default function Mermaid({
       init: (_, { doc }) => {
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
-          isDark,
         };
         return getNewState({
           doc,
+          editor,
           pluginState,
         });
       },
@@ -390,13 +425,10 @@ export default function Mermaid({
         oldState,
         state
       ) => {
-        const themeMeta = transaction.getMeta("theme");
         const mermaidMeta = transaction.getMeta(pluginKey);
-        const themeToggled = themeMeta?.isDark !== undefined;
 
         const nextPluginState = {
           ...pluginState,
-          isDark: themeToggled ? themeMeta.isDark : pluginState.isDark,
           editingId:
             mermaidMeta && "editingId" in mermaidMeta
               ? mermaidMeta.editingId
@@ -455,18 +487,17 @@ export default function Mermaid({
             containsMermaid(selectedNode) ||
             containsMermaid(previousSelectedNode));
 
-        // @ts-expect-error accessing private field.
-        const isPaste = transaction.meta?.paste;
+        const isPaste = transaction.getMeta("paste");
 
         if (
           isPaste ||
           mermaidMeta ||
-          themeToggled ||
           codeBlockChanged ||
           isRemoteTransaction(transaction, state)
         ) {
           return getNewState({
             doc: transaction.doc,
+            editor,
             pluginState: nextPluginState,
             autoEditEmpty:
               codeBlockChanged &&
@@ -619,7 +650,7 @@ export default function Mermaid({
 
           const anchor = target?.closest("a");
           if (anchor instanceof SVGAElement) {
-            const href = anchor.getAttribute("xlink:href");
+            const href = anchor.getAttribute("href");
 
             try {
               if (onClickLink && href) {

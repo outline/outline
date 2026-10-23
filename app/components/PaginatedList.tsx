@@ -1,12 +1,12 @@
 import { isEqual } from "es-toolkit/compat";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Waypoint } from "react-waypoint";
 import { toError } from "@shared/utils/error";
 import { Pagination } from "@shared/constants";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
 import PlaceholderList from "~/components/List/Placeholder";
+import { Waypoint } from "~/components/Waypoint";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePrevious from "~/hooks/usePrevious";
 import { dateToHeading } from "~/utils/date";
@@ -234,7 +234,7 @@ const PaginatedList = <T extends PaginatedItem>({
     }
     // `fetchResults` changes identity as pagination advances, depending on it
     // here would re-run the initial fetch for every page.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [fetch]);
 
   // Handle updates to fetch or options

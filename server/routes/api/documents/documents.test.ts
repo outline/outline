@@ -29,6 +29,7 @@ import {
   FileOperation,
   GroupMembership,
   Relationship,
+  Share,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -5991,15 +5992,106 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should not error if document doesn't exist", async () => {
+  it("should not change the collection when restoring a revision", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const anotherCollection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        collectionId: anotherCollection.id,
+        revisionId: revision.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
+    const reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+    });
+    expect(reloaded?.documentStructure?.map((node) => node.id)).toContain(
+      document.id
+    );
+  });
+
+  it("should return the same error for an unknown document", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.restore", user, {
       body: {
-        id: "76fe8ba4-4e6a-4a75-8a10-9bf57330b24c",
+        id: faker.string.uuid(),
       },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
+
+  it.each(["active", "archived", "deleted"])(
+    "should return the same error for a %s document in another team",
+    async (state) => {
+      const user = await buildUser();
+      const collection = await buildCollection();
+      const document = await buildDocument({
+        teamId: collection.teamId,
+        collectionId: collection.id,
+        archivedAt: state === "archived" ? new Date() : undefined,
+      });
+      if (state === "deleted") {
+        await document.destroy();
+      }
+      const { documentStructure } = await Collection.findByPk(collection.id, {
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
+
+      for (const destId of [undefined, faker.string.uuid()]) {
+        const res = await server.post("/api/documents.restore", user, {
+          body: {
+            id: document.id,
+            collectionId: destId,
+          },
+        });
+        expect(res.status).toEqual(403);
+      }
+
+      const revision = await Revision.createFromDocument(
+        createContext({ user }),
+        document
+      );
+      const res = await server.post("/api/documents.restore", user, {
+        body: {
+          id: document.id,
+          collectionId: faker.string.uuid(),
+          revisionId: revision.id,
+        },
+      });
+      expect(res.status).toEqual(403);
+
+      await document.reload({ paranoid: false });
+      expect(!!document.archivedAt).toEqual(state === "archived");
+      expect(!!document.deletedAt).toEqual(state === "deleted");
+      const reloaded = await Collection.findByPk(collection.id, {
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
+      expect(reloaded.documentStructure).toEqual(documentStructure);
+    }
+  );
 
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.restore");
@@ -6782,6 +6874,79 @@ describe("#documents.update", () => {
     });
   });
 
+  describe("templateId", () => {
+    it("should set a template the user can read", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const template = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, templateId: template.id },
+      });
+      const body = await res.json();
+      expect(res.status).toBe(200);
+      expect(body.data.templateId).toBe(template.id);
+    });
+
+    it("should not set a template from another team", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const template = await buildTemplate();
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, templateId: template.id },
+      });
+      expect(res.status).toBe(403);
+      await document.reload();
+      expect(document.templateId).toBeNull();
+    });
+
+    it("should not set a template in a collection the user cannot read", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const template = await buildTemplate({
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, templateId: template.id },
+      });
+      expect(res.status).toBe(403);
+    });
+
+    it("should allow saving with an unchanged template that was deleted", async () => {
+      const user = await buildUser();
+      const template = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        templateId: template.id,
+      });
+      await template.destroy();
+      const res = await server.post("/api/documents.update", user, {
+        body: { id: document.id, title: "Updated", templateId: template.id },
+      });
+      expect(res.status).toBe(200);
+    });
+  });
+
   it("should update document details in the root", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -6984,6 +7149,128 @@ describe("#documents.update", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should not allow publishing a child draft into an inaccessible collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const privateCollection = await buildCollection({
+      userId: admin.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: privateCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+  });
+
+  it("should allow publishing a child draft into the parent collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBe(collection.id);
+    expect(body.data.parentDocumentId).toBe(parentDocument.id);
+  });
+
+  it("should publish a child draft at the root of another collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const otherCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: member.id,
+      documentId: parentDocument.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        collectionId: otherCollection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.collectionId).toBe(otherCollection.id);
+    expect(document.parentDocumentId).toBeNull();
+
+    await otherCollection.reload();
+    expect(otherCollection.documentStructure?.map((node) => node.id)).toContain(
+      document.id
+    );
+
+    const membership = await UserMembership.findOne({
+      where: { userId: member.id, documentId: document.id },
+    });
+    expect(membership).toBeNull();
   });
 
   it("should fail to update an invalid icon value", async () => {
@@ -7713,6 +8000,61 @@ describe("#documents.unpublish", () => {
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
+  });
+
+  it("should remove the collection and parent when detaching", async () => {
+    const user = await buildUser();
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: parentDocument.collectionId,
+      parentDocumentId: parentDocument.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+        detach: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.publishedAt).toBeNull();
+    expect(reloaded?.collectionId).toBeNull();
+    expect(reloaded?.parentDocumentId).toBeNull();
+  });
+
+  it("should disable public shares when unpublishing a document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.published).toEqual(false);
+
+    const infoRes = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(infoRes.status).toEqual(404);
   });
 
   it("should unpublish a document with archived children", async () => {

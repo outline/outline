@@ -145,7 +145,7 @@ class ErrorBoundaryClass extends React.Component<Props> {
               <>
                 <PageTitle title={t("Module failed to load")} />
                 <Heading>
-                  <Trans>Loading Failed</Trans>
+                  <Trans>Loading failed</Trans>
                 </Heading>
               </>
             )}
@@ -167,9 +167,9 @@ class ErrorBoundaryClass extends React.Component<Props> {
         <Component>
           {showTitle && (
             <>
-              <PageTitle title={t("Something Unexpected Happened")} />
+              <PageTitle title={t("Something unexpected happened")} />
               <Heading>
-                <Trans>Something Unexpected Happened</Trans>
+                <Trans>Something unexpected happened</Trans>
               </Heading>
             </>
           )}

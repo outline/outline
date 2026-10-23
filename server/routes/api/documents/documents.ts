@@ -624,7 +624,7 @@ router.post(
         {
           model: Document.scope([
             "withDrafts",
-            "withoutState",
+            "withoutStateOrText",
             { method: ["withMembership", userId] },
           ]),
           required: true,
@@ -918,7 +918,6 @@ router.post(
       () =>
         User.count({
           where,
-          // @ts-expect-error Types are incorrect for count
           replacements,
         }) as unknown as Promise<number>
     );
@@ -1178,9 +1177,9 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
-      rejectOnEmpty: true,
       transaction,
     });
+    authorize(user, "read", document);
 
     await documentRestorer(ctx, { document, collectionId, revisionId });
 
@@ -1464,6 +1463,7 @@ router.post(
 router.post(
   "documents.update",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
@@ -1503,6 +1503,14 @@ router.post(
 
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
+    }
+
+    if (input.templateId && input.templateId !== document.templateId) {
+      const template = await Template.findByPk(input.templateId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "read", template);
     }
 
     document = await documentUpdater(ctx, {

@@ -83,7 +83,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       tenant: env.AZURE_TENANT_ID ? env.AZURE_TENANT_ID : undefined,
       passReqToCallback: true,
       resource: env.AZURE_RESOURCE_APP_ID,
-      // @ts-expect-error StateStore
+      // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
       store: new StateStore(),
       scope: scopes,
     },

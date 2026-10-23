@@ -11,7 +11,7 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       description:
-        "Connect your GitLab account to Outline to enable rich, realtime, issue and merge request previews inside documents.",
+        "Connect your GitLab account to Outline to enable rich, real-time issue and merge request previews inside documents.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },

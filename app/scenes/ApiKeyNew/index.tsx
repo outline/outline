@@ -125,9 +125,8 @@ function ApiKeyNew({ onSubmit }: Props) {
         />
         <Text type="secondary" size="small" as="p">
           {t(
-            "Space-separated scopes restrict the access of this API key to specific parts of the API. Leave blank for full access"
+            "Space-separated scopes restrict the access of this API key to specific parts of the API. Leave blank for full access."
           )}
-          .
         </Text>
         <Flex align="center" gap={8}>
           <StyledExpirySelect

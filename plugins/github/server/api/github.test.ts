@@ -1,4 +1,4 @@
-import { buildUser } from "@server/test/factories";
+import { buildUser, buildViewer } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import { SetupAction } from "./schema";
 
@@ -73,5 +73,22 @@ describe("#github.callback", () => {
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);
+  });
+
+  it.each([
+    ["member", buildUser],
+    ["viewer", buildViewer],
+  ])("should not allow a %s to create an integration", async (_, build) => {
+    const user = await build();
+    const state = JSON.stringify({ teamId: user.teamId, nonce: "nonce" });
+    const res = await server.get(
+      `/api/github.callback?state=${encodeURIComponent(state)}&code=123&setup_action=${SetupAction.install}&installation_id=1`,
+      user,
+      {
+        redirect: "manual",
+        headers: { Cookie: "githubOAuthNonce=nonce" },
+      }
+    );
+    expect(res.status).toEqual(403);
   });
 });

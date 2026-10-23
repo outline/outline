@@ -78,6 +78,9 @@ export class EditorStyleHelper {
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
 
+  /** Line number shown in the gutter at the start of each code block line */
+  static readonly codeBlockLineNumber = "code-block-line-number";
+
   // Diffs
 
   static readonly diffInsertion = "diff-insertion";

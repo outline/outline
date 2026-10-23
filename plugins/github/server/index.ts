@@ -33,6 +33,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
+      name: "GitHub",
       value: { unfurl: GitHub.unfurl, cacheExpiry: Minute.seconds },
     },
     {

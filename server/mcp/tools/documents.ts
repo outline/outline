@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { PersonalCollectionId } from "@shared/constants";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { McpServer, CallToolResult } from "@modelcontextprotocol/server";
 import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
@@ -81,7 +80,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: true,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           query: optionalString().describe(
             "A search query to find documents by content or title. When omitted, returns recent documents."
           ),
@@ -109,7 +108,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_documents",
@@ -330,13 +329,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: true,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           collectionId: z
             .string()
             .describe(
               "The ID of the collection whose document tree to return."
             ),
-        },
+        }),
       },
       withTracing(
         "list_collection_documents",
@@ -375,7 +374,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           title: optionalString().describe(
             "The title of the document. Defaults to the template's title when a templateId is provided."
           ),
@@ -421,7 +420,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen. Defaults to false. Do not set this to true for HTML input unless the user explicitly asks for a full-width document layout."
             ),
-        },
+        }),
       },
       withTracing("create_document", async (input, context) => {
         try {
@@ -516,7 +515,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to move."),
@@ -534,7 +533,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The zero-based position to insert the document among its siblings. Use this to reorder documents within the same collection and parent. Omit to place at the end."
             ),
-        },
+        }),
       },
       withTracing("move_document", async (input, context) => {
         try {
@@ -628,7 +627,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to update."),
@@ -677,7 +676,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
-        },
+        }),
       },
       withTracing("update_document", async (input, context) => {
         try {
@@ -794,7 +793,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to delete."),
@@ -812,7 +811,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "A plain text reason for archiving or deleting the document. Omit to keep the existing reason, or use null or an empty string to clear it."
             ),
-        },
+        }),
       },
       withTracing(
         "delete_document",
@@ -864,14 +863,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to restore."),
           collectionId: optionalString().describe(
             "The collection to restore the document into. Defaults to its original collection."
           ),
-        },
+        }),
       },
       withTracing("restore_document", async ({ id, collectionId }, context) => {
         try {
@@ -885,9 +884,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const document = await Document.findByPk(id, {
               userId: user.id,
               paranoid: false,
-              rejectOnEmpty: true,
               transaction,
             });
+            authorize(user, "read", document);
 
             if (!document.deletedAt && !document.archivedAt) {
               throw ValidationError("Document is not archived or trashed");

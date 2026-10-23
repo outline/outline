@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { Plan, TeamPreference, UserRole } from "@shared/types";
+import { EmailDisplay, Plan, TeamPreference, UserRole } from "@shared/types";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import { Team, TeamDomain } from "@server/models";
 import {
@@ -653,6 +653,119 @@ describe("#users.list filters", () => {
   });
 });
 
+describe("#users.list with emailDisplay none", () => {
+  const buildTeamWithoutEmails = async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+    await team.save();
+    return team;
+  };
+
+  it("should not match the query against other users' emails", async () => {
+    const team = await buildTeamWithoutEmails();
+    const member = await buildUser({ teamId: team.id });
+    await buildUser({
+      teamId: team.id,
+      name: "Jane Doe",
+      email: "secret.jane@example.com",
+    });
+
+    const res = await server.post("/api/users.list", member, {
+      body: { query: "secret.jane" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
+  });
+
+  it("should match the query against names", async () => {
+    const team = await buildTeamWithoutEmails();
+    const member = await buildUser({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id, name: "Jane Doe" });
+
+    const res = await server.post("/api/users.list", member, {
+      body: { query: "jane" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(other.id);
+  });
+
+  it("should match the query against emails for admins", async () => {
+    const team = await buildTeamWithoutEmails();
+    const admin = await buildAdmin({ teamId: team.id });
+    const other = await buildUser({
+      teamId: team.id,
+      email: "secret.jane@example.com",
+    });
+
+    const res = await server.post("/api/users.list", admin, {
+      body: { query: "secret.jane" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(other.id);
+  });
+
+  it("should not allow filtering by the emails param", async () => {
+    const team = await buildTeamWithoutEmails();
+    const member = await buildUser({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.list", member, {
+      body: { emails: [other.email] },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow filtering by an email filter", async () => {
+    const team = await buildTeamWithoutEmails();
+    const member = await buildUser({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.list", member, {
+      body: {
+        filters: [
+          {
+            operator: "OR",
+            filters: [
+              { field: "name", operator: "eq", value: "nobody" },
+              { field: "email", operator: "startsWith", value: other.email },
+            ],
+          },
+        ],
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow sorting by email", async () => {
+    const team = await buildTeamWithoutEmails();
+    const member = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.list", member, {
+      body: { sort: "email" },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow admins to filter by email", async () => {
+    const team = await buildTeamWithoutEmails();
+    const admin = await buildAdmin({ teamId: team.id });
+    const other = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.list", admin, {
+      body: { emails: [other.email] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(other.id);
+  });
+});
+
 describe("#users.info", () => {
   it("should return current user with no id", async () => {
     const user = await buildUser();
@@ -1265,6 +1378,34 @@ describe("#users.update_role", () => {
       },
     });
     expect(res.status).toEqual(400);
+  });
+
+  it("should return the same error for a user in another team", async () => {
+    const admin = await buildAdmin();
+    const user = await buildAdmin();
+
+    for (const role of [UserRole.Admin, UserRole.Member]) {
+      const res = await server.post("/api/users.update_role", admin, {
+        body: {
+          id: user.id,
+          role,
+        },
+      });
+      expect(res.status).toEqual(403);
+    }
+    expect((await user.reload()).role).toEqual(UserRole.Admin);
+  });
+
+  it("should return the same error for an unknown user", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/users.update_role", admin, {
+      body: {
+        id: faker.string.uuid(),
+        role: UserRole.Admin,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 

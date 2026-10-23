@@ -1,4 +1,4 @@
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { faker } from "@faker-js/faker";
 import { DeprecationValidation } from "@shared/validations";
 import {
   CollectionPermission,
@@ -25,6 +25,7 @@ import {
   UserMembership,
 } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { getTestServer } from "@server/test/support";
 import {
   buildOAuthUser,
@@ -1116,6 +1117,39 @@ describe("restore_document", () => {
     expect(reloaded?.collectionId).toEqual(destination.id);
   });
 
+  it("fails for a viewer with read_write membership", async () => {
+    const { user } = await buildOAuthUser();
+    const viewer = await buildViewer({ teamId: user.teamId });
+    const { accessToken } = await buildOAuthAuthentication({
+      user: viewer,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+    await UserMembership.create({
+      userId: viewer.id,
+      documentId: document.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken!, "restore_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).not.toBeNull();
+  });
+
   it("fails when the document is not archived or trashed", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -1133,6 +1167,24 @@ describe("restore_document", () => {
     });
 
     expect(res?.result?.isError).toBe(true);
+  });
+
+  it("returns the same error for a document in another team", async () => {
+    const { accessToken } = await buildOAuthUser();
+    const document = await buildDocument({ archivedAt: new Date() });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+    const unknown = await callMcpTool(server, accessToken, "restore_document", {
+      id: faker.string.uuid(),
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content).toEqual(unknown?.result?.content);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).not.toBeNull();
   });
 });
 

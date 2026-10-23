@@ -11,7 +11,7 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       description:
-        "Connect your GitHub account to Outline to enable rich, realtime, issue and pull request previews inside documents.",
+        "Connect your GitHub account to Outline to enable rich, real-time issue and pull request previews inside documents.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },

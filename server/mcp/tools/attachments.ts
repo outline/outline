@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import env from "@server/env";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import { Attachment, Team } from "@server/models";
@@ -38,7 +38,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           contentType: z
             .string()
             .describe("The MIME type of the file, e.g. image/png, image/jpeg."),
@@ -51,7 +51,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
             .nonnegative()
             .finite()
             .describe("The file size in bytes."),
-        },
+        }),
       },
       withTracing(
         "create_attachment",

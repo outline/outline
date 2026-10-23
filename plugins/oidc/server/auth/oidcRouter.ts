@@ -63,7 +63,7 @@ export function createOIDCRouter(
           callbackURL: `${env.URL}/auth/${config.id}.callback`,
           passReqToCallback: true,
           scope: env.OIDC_SCOPES,
-          // @ts-expect-error custom state store
+          // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
           store: new StateStore(endpoints.pkce),
           state: true,
           pkce: endpoints.pkce ?? false,

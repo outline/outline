@@ -195,17 +195,11 @@ function buildCollapseState(
     const isCollapsed = collapsedBlocks.has(pos);
 
     if (isCollapsed) {
-      const totalLines = (node.textContent.match(/\n/g)?.length ?? 0) + 1;
-      const gutterWidth = String(totalLines).length;
-      const lineNumberText = Array.from({ length: totalLines }, (_, i) =>
-        String(i + 1).padStart(gutterWidth, " ")
-      ).join("\n");
-
       decorations.push(
         Decoration.node(
           pos,
           pos + node.nodeSize,
-          { class: "collapsed", "data-line-numbers": lineNumberText },
+          { class: "collapsed" },
           { collapsed: true }
         )
       );
@@ -298,11 +292,8 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       toDOM: (node) => {
         const classes = [
           EditorStyleHelper.codeBlock,
-          node.attrs.wrap
-            ? "with-line-wrap"
-            : this.showLineNumbers
-              ? "with-line-numbers"
-              : "",
+          node.attrs.wrap ? "with-line-wrap" : "",
+          this.showLineNumbers ? "with-line-numbers" : "",
         ]
           .filter(Boolean)
           .join(" ");
@@ -710,12 +701,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
-      this.name === "code_fence"
-        ? Mermaid({
-            isDark: this.editor.props.theme.isDark,
-            editor: this.editor,
-          })
-        : undefined,
+      this.name === "code_fence" ? Mermaid({ editor: this.editor }) : undefined,
       new Plugin({
         key: new PluginKey("code-fence-split"),
         props: {

@@ -291,7 +291,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     let markdown = await DocumentHelper.toMarkdown(document || collection!, {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
-      teamId: team?.id,
+      teamId: share?.teamId,
       commonMark: true,
     });
 

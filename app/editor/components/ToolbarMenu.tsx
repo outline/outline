@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
 import { closeHistory } from "@shared/editor/lib/closeHistory";
 import { MenuItemGroup, type MenuItem } from "@shared/editor/types";
@@ -58,7 +58,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       : [];
     // Menu items are resolved against the editor state at the moment the menu
     // opens, recomputing on every transaction would rebuild the open menu.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {

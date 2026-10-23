@@ -18,7 +18,6 @@ import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor from "~/components/Editor";
@@ -110,11 +109,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
 
     window.addEventListener("click", finishObserving);
     window.addEventListener("wheel", finishObserving);
-    window.addEventListener(
-      "scroll",
-      syncScrollPosition,
-      supportsPassiveListener ? { passive: true } : false
-    );
+    window.addEventListener("scroll", syncScrollPosition, { passive: true });
 
     provider.on("authenticationFailed", () => {
       provider.shouldConnect = false;
@@ -248,7 +243,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     };
     // `token` is intentionally omitted, it is only read when establishing the
     // connection and a refreshed token must not tear down the provider.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     history,
     t,

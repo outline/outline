@@ -429,7 +429,9 @@ router.post(
   async (ctx: APIContext<T.SharesRevokeReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const share = await Share.findByPk(id);
+    const share = await Share.scope({
+      method: ["withCollectionPermissions", user.id],
+    }).findByPk(id);
 
     if (!share?.collection && !share?.document) {
       throw NotFoundError();
@@ -625,44 +627,76 @@ router.get(
   }
 );
 
+/**
+ * Marks the share subscription in the request as unsubscribed, if the token is
+ * valid.
+ *
+ * @param ctx The request context.
+ * @returns The updated subscription, or undefined if the token is not valid.
+ */
+const unsubscribeShare = async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
+  const { id, token } = ctx.input.query;
+  const { transaction } = ctx.state;
+
+  const subscription = await ShareSubscription.findByPk(id, {
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+
+  if (!subscription) {
+    return;
+  }
+
+  const expectedToken =
+    ShareSubscription.generateUnsubscribeToken(subscription);
+
+  if (!safeEqual(token, expectedToken)) {
+    return;
+  }
+
+  subscription.unsubscribedAt = new Date();
+  await subscription.save({ transaction });
+  return subscription;
+};
+
 router.get(
   "shares.unsubscribe",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
   validate(T.SharesUnsubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
-    const { id, token, follow } = ctx.input.query;
-    const { transaction } = ctx.state;
+    const { follow } = ctx.input.query;
 
     // Anti-prefetch: prevent email clients from pre-fetching the link
     if (!follow) {
       return ctx.redirectOnClient(ctx.request.href + "&follow=true");
     }
 
-    const subscription = await ShareSubscription.findByPk(id, {
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-
+    const subscription = await unsubscribeShare(ctx);
     if (!subscription) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
 
-    const expectedToken =
-      ShareSubscription.generateUnsubscribeToken(subscription);
-
-    if (!safeEqual(token, expectedToken)) {
-      ctx.redirect(`${env.URL}?notice=invalid-auth`);
-      return;
-    }
-
-    subscription.unsubscribedAt = new Date();
-    await subscription.save({ transaction });
-
     const share = await Share.findByPk(subscription.shareId);
     const shareUrl = share?.canonicalUrl ?? env.URL;
     ctx.redirect(`${shareUrl}?notice=${QueryNotices.Unsubscribed}`);
+  }
+);
+
+// Supports RFC 8058 one-click unsubscribe from the List-Unsubscribe header.
+router.post(
+  "shares.unsubscribe",
+  validate(T.SharesUnsubscribeSchema),
+  transaction(),
+  async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
+    const subscription = await unsubscribeShare(ctx);
+    if (!subscription) {
+      throw AuthenticationError("Invalid unsubscribe token");
+    }
+
+    ctx.body = {
+      success: true,
+    };
   }
 );
 

@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["dom", "es2020", "es2024.string", "dom.iterable", "esnext.asynciterable"],
+    "lib": ["dom", "es2020", "es2021.intl", "es2024.string", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolvePackageJsonExports": false,
@@ -34,10 +34,14 @@
       "@shared/*": ["./shared/*"],
       "~/*": ["./app/*"],
       "plugins/*": ["./plugins/*"],
-      // Vite 8 and its plugins ship types only via their exports map, which
+      // These packages ship types only via their exports map, which
       // resolvePackageJsonExports disables; point tsc at their declaration entries.
       "vite": ["./node_modules/vite/dist/node/index.d.ts"],
-      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"]
+      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"],
+      "pele/lazy": ["./node_modules/pele/dist/lazy.d.ts"],
+      "refractor": ["./node_modules/refractor/lib/common.d.ts"],
+      "refractor/core": ["./node_modules/refractor/lib/core.d.ts"],
+      "refractor/*": ["./node_modules/refractor/lang/*.d.ts"]
     }
   },
   "exclude": ["node_modules", "build", "server/migrations"]

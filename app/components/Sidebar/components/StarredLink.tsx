@@ -295,8 +295,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   const parentRef = React.useRef<HTMLDivElement>(null);
   const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
     collection,
-    handleExpand,
-    parentRef
+    handleExpand
   );
 
   const handleRename = React.useCallback(() => {

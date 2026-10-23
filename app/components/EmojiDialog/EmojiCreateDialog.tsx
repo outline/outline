@@ -116,7 +116,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
         error={
           !isValidName
             ? t(
-                "name can only contain lowercase letters, numbers, and underscores."
+                "Name can only contain lowercase letters, numbers, and underscores."
               )
             : undefined
         }

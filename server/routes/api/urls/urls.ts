@@ -31,7 +31,7 @@ import {
 import { getTeamFromContext } from "@server/utils/passport";
 import * as T from "./schema";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { Day } from "@shared/utils/time";
+import { Day, Minute } from "@shared/utils/time";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -56,13 +56,12 @@ router.post(
 
       if (shareId) {
         const actor = ctx.state.auth.user;
-        // teamId is only needed when the share identifier is a slug, not a UUID
-        let teamId: string | undefined = actor?.teamId;
-        if (!teamId && !isUUID(shareId)) {
-          const teamFromCtx = await getTeamFromContext(ctx, {
-            includeOAuthState: false,
-          });
-          teamId = teamFromCtx?.id;
+        // teamId is only passed for slugs, so shares of other teams can unfurl
+        let teamId: string | undefined;
+        if (!isUUID(shareId)) {
+          teamId =
+            actor?.teamId ??
+            (await getTeamFromContext(ctx, { includeOAuthState: false }))?.id;
         }
         const previewDocumentId = parseDocumentSlug(url);
         const { share, document } = await loadPublicShare({
@@ -214,7 +213,14 @@ router.post(
           })(() => plugin.value.unfurl(url, actor))();
           if (unfurl) {
             if ("error" in unfurl) {
-              return { data: { error: true as const }, expiry: 60 };
+              return {
+                data: { error: true as const },
+                expiry:
+                  "cacheExpiry" in unfurl &&
+                  typeof unfurl.cacheExpiry === "number"
+                    ? unfurl.cacheExpiry
+                    : Minute.seconds,
+              };
             }
             return {
               data: unfurl as Unfurl,

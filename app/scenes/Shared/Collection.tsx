@@ -3,7 +3,7 @@ import { EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { IconTitleWrapper } from "@shared/components/Icon";
 import useShare from "@shared/hooks/useShare";
 import type CollectionModel from "~/models/Collection";
@@ -11,6 +11,7 @@ import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
+import { headerMetaStyles } from "~/components/HeaderMeta";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Scene from "~/components/Scene";
@@ -102,8 +103,7 @@ const CollectionHeading = styled(Heading)`
 `;
 
 const SharedMeta = styled(Text)`
-  margin: -12px 0 2em 0;
-  font-size: 14px;
+  ${headerMetaStyles}
 `;
 
 export const Collection = observer(SharedCollection);

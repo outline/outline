@@ -122,7 +122,7 @@ export class MarkdownSerializerState {
   set out(value) {
     if (!warnedDirectOutAssignment) {
       warnedDirectOutAssignment = true;
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn(
         "MarkdownSerializerState: assigning `out` directly is slow on large documents, use append() instead."
       );
@@ -487,7 +487,6 @@ export class MarkdownSerializerState {
     this.write();
     this.append("\n");
 
-    // Render rows
     node.forEach((row, _, i) => {
       this.write();
       row.forEach((cell, _, j) => {

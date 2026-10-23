@@ -1,5 +1,7 @@
+import { addMinutes, subMinutes } from "date-fns";
 import { DocumentPermission, NotificationEventType } from "@shared/types";
-import { UserMembership } from "@server/models";
+import { UserMembership, View } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildComment,
   buildDocument,
@@ -280,6 +282,64 @@ describe("NotificationHelper", () => {
 
       expect(recipients.length).toEqual(1);
       expect(recipients[0].id).toEqual(notificationEnabledUserInThread.id);
+    });
+
+    it("should not return users who viewed the document after the comment", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const [viewedBefore, viewedAfter] = await Promise.all([
+        buildUser({
+          teamId: document.teamId,
+          notificationSettings: {
+            [NotificationEventType.CreateComment]: true,
+          },
+        }),
+        buildUser({
+          teamId: document.teamId,
+          notificationSettings: {
+            [NotificationEventType.CreateComment]: true,
+          },
+        }),
+      ]);
+      await Promise.all(
+        [viewedBefore, viewedAfter].map((user) =>
+          buildSubscription({ userId: user.id, documentId: document.id })
+        )
+      );
+
+      const comment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+      });
+      await Promise.all(
+        [
+          { user: viewedBefore, updatedAt: subMinutes(comment.createdAt, 1) },
+          { user: viewedAfter, updatedAt: addMinutes(comment.createdAt, 1) },
+        ].map(async ({ user, updatedAt }) => {
+          const view = await View.create({
+            userId: user.id,
+            documentId: document.id,
+          });
+          await sequelize.query(
+            'UPDATE views SET "updatedAt" = :updatedAt WHERE id = :id',
+            { replacements: { updatedAt, id: view.id } }
+          );
+        })
+      );
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          comment,
+          comment.createdById
+        );
+
+      expect(recipients.map((recipient) => recipient.id)).toEqual([
+        viewedBefore.id,
+      ]);
     });
   });
 

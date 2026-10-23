@@ -6,6 +6,7 @@ import { UserMembership, Share, ShareSubscription } from "@server/models";
 import {
   buildUser,
   buildDocument,
+  buildDraftDocument,
   buildShare,
   buildAdmin,
   buildViewer,
@@ -1312,6 +1313,28 @@ describe("#shares.revoke", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should allow author to revoke a share on a draft", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.revoke", user, {
+      body: {
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Share.unscoped().findByPk(share.id);
+    expect(reloaded!.revokedAt).toBeTruthy();
+  });
+
   it("should allow author to revoke collection share", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1788,6 +1811,61 @@ describe("#shares.unsubscribe", () => {
     );
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).toContain("notice=invalid-auth");
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).toBeNull();
+  });
+
+  it("should allow one-click unsubscribe with a form POST", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const token = ShareSubscription.generateUnsubscribeToken(subscription);
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token,
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(200);
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).not.toBeNull();
+  });
+
+  it("should reject one-click unsubscribe with an invalid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token: "invalid-token",
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(401);
 
     await subscription.reload();
     expect(subscription.unsubscribedAt).toBeNull();

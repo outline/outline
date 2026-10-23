@@ -50,7 +50,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/${config.id}.callback`,
       passReqToCallback: true,
-      // @ts-expect-error StateStore
+      // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
       store: new StateStore(),
       scope: scopes,
     },
