@@ -131,6 +131,30 @@ describe("POST /mcp/", () => {
       expect(result?.content?.[0]?.text).toContain(collection.id);
     });
 
+    it("should complete a subscriptions/listen request at once", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body, resultId } = mcpRequest("subscriptions/listen", {
+        notifications: {
+          toolsListChanged: true,
+          resourcesListChanged: true,
+        },
+        _meta: modernMeta("2026-07-28"),
+      });
+      const res = await server.post("/mcp/", {
+        headers: {
+          ...mcpHeaders(accessToken),
+          "MCP-Protocol-Version": "2026-07-28",
+          "Mcp-Method": "subscriptions/listen",
+        },
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const text = await res.text();
+      expect(text).toContain('"resultType":"complete"');
+      expect(text).toContain(`"id":${resultId}`);
+    });
+
     it("should handle initialize and return capabilities", async () => {
       const { accessToken } = await buildOAuthUser();
       const { body } = mcpRequest("initialize", {
