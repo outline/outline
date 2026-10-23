@@ -264,7 +264,7 @@ describe("POST /mcp/", () => {
         expect(tool.annotations, tool.name).toEqual({
           destructiveHint: expect.any(Boolean),
           idempotentHint: expect.any(Boolean),
-          openWorldHint: false,
+          openWorldHint: tool.name === "create_document",
           readOnlyHint: expect.any(Boolean),
         });
 

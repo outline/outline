@@ -377,7 +377,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         annotations: {
           destructiveHint: false,
           idempotentHint: false,
-          openWorldHint: false,
+
+          // HTML imports download remote images and videos.
+          openWorldHint: true,
           readOnlyHint: false,
         },
         inputSchema: z.object({
