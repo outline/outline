@@ -483,7 +483,11 @@ export default function DiagramService({
             diagramMeta && "editingId" in diagramMeta
               ? diagramMeta.editingId
               : pluginState.editingId,
-          decorationSet: mapDecorations(pluginState.decorationSet, transaction),
+          decorationSet: mapDecorations(
+            pluginState.decorationSet,
+            transaction,
+            state
+          ),
         };
 
         if (
@@ -528,7 +532,7 @@ export default function DiagramService({
           diagramMeta ||
           themeToggled ||
           codeBlockChanged ||
-          isRemoteTransaction(transaction)
+          isRemoteTransaction(transaction, state)
         ) {
           return getNewState({
             doc: transaction.doc,
@@ -540,7 +544,7 @@ export default function DiagramService({
               codeBlockChanged &&
               transaction.docChanged &&
               !isPaste &&
-              !isRemoteTransaction(transaction),
+              !isRemoteTransaction(transaction, state),
           });
         }
 

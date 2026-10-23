@@ -371,7 +371,12 @@ describe("#integrations.delete", () => {
       teamId: admin.teamId,
       service: IntegrationService.Kroki,
       type: IntegrationType.Embed,
-      settings: { kroki: { url: "https://kroki.example.com", mermaid: true } },
+      settings: {
+        kroki: {
+          url: "https://kroki.example.com",
+          enabledFormats: ["mermaid"],
+        },
+      },
     });
 
     const res = await server.post("/api/integrations.delete", admin, {

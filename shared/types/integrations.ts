@@ -168,6 +168,10 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                     diagrams?: {
                       url: string;
                     };
+                    kroki?: {
+                      url: string;
+                      enabledFormats?: string[];
+                    };
                   }
                 | { serviceTeamId: string }
                 | {
