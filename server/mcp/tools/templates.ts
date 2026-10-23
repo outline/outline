@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { Op } from "sequelize";
 import type { WhereOptions } from "sequelize";
 import { Collection, Template } from "@server/models";
@@ -57,7 +57,7 @@ export function templateTools(server: McpServer, scopes: string[]) {
           idempotentHint: true,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           collectionId: optionalString().describe(
             "A collection ID to filter templates by. Omit to include workspace-wide templates and templates from all accessible collections."
           ),
@@ -76,7 +76,7 @@ export function templateTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_templates",

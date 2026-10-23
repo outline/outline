@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/storage/database";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { CommentStatusFilter } from "@shared/types";
 import { commentParser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -58,7 +58,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           idempotentHint: true,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           documentId: optionalString().describe(
             "The document ID to list comments for."
           ),
@@ -89,7 +89,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_comments",
@@ -106,6 +106,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
         ) => {
           try {
             const user = getActorFromContext(extra);
+            authorize(user, "listComments", user.team);
 
             let document: Document | null = null;
             if (documentId) {
@@ -152,7 +153,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           documentId: z.string().describe("The document ID to comment on."),
           text: z
             .string()
@@ -169,7 +170,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           anchorSuffix: optionalString().describe(
             "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately follows anchorText."
           ),
-        },
+        }),
       },
       withTracing(
         "create_comment",
@@ -270,7 +271,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the comment to update."),
@@ -284,7 +285,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to 'resolved' to resolve or 'unresolved' to unresolve a top-level comment thread."
             ),
-        },
+        }),
       },
       withTracing("update_comment", async ({ id, text, status }, context) => {
         try {
@@ -354,11 +355,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
           idempotentHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the comment to delete."),
-        },
+        }),
       },
       withTracing("delete_comment", async ({ id }, context) => {
         try {

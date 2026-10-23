@@ -1,5 +1,5 @@
-import type { EmailAddress } from "addressparser";
-import addressparser from "addressparser";
+import type { MailboxAddress } from "nodemailer/lib/addressparser";
+import addressparser from "nodemailer/lib/addressparser";
 import type Bull from "bull";
 import invariant from "invariant";
 import { t as i18nT } from "i18next";
@@ -211,13 +211,13 @@ export default abstract class BaseEmail<
     }
   }
 
-  private from(props: S & T): EmailAddress {
+  private from(props: S & T): MailboxAddress {
     invariant(
       env.SMTP_FROM_EMAIL,
       "SMTP_FROM_EMAIL is required to send emails"
     );
 
-    const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
+    const parsedFrom = addressparser(env.SMTP_FROM_EMAIL, { flatten: true })[0];
     invariant(
       parsedFrom?.address?.includes("@"),
       `SMTP_FROM_EMAIL is not a valid email address: "${env.SMTP_FROM_EMAIL}"`
@@ -363,7 +363,7 @@ export default abstract class BaseEmail<
 
     // Process user mentions to ensure they are up to date with the database
     const processedNode = ProsemirrorHelper.toProsemirror(
-      await ProsemirrorHelper.processMentions(node)
+      await ProsemirrorHelper.processMentions(node, team.id)
     );
 
     let content = await ProsemirrorHelper.toHTML(processedNode, {

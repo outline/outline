@@ -88,6 +88,6 @@ describe("create_attachment", () => {
         size: 1000,
       }
     );
-    expect(res?.result?.isError).toBe(true);
+    expect(res?.error).toMatchObject({ code: -32602 });
   });
 });

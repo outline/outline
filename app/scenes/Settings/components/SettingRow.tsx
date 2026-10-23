@@ -1,7 +1,7 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
