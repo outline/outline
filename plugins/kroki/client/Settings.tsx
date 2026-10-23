@@ -17,7 +17,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
-import { disconnectIntegrationFactory } from "~/actions/definitions/integrations";
+import { disconnectIntegrationActionFactory } from "~/actions/definitions/integrations";
 import Icon from "./Icon";
 
 interface FormData {
@@ -192,7 +192,7 @@ function Kroki() {
           )}
 
           <Button
-            action={disconnectIntegrationFactory(integration)}
+            action={disconnectIntegrationActionFactory(integration)}
             disabled={formState.isSubmitting}
             neutral
             hideIcon
