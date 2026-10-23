@@ -26,12 +26,12 @@ export class HeadingSlugger {
   public slug(node: Node): string {
     const base = headingToSlug(node);
     let index = this.counts.get(base) ?? 0;
-    let id = headingToSlug(node, index);
+    let id = index === 0 ? base : `${base}-${index}`;
 
     // A heading whose text ends in a number can match a suffixed duplicate.
     while (this.used.has(id)) {
       index += 1;
-      id = headingToSlug(node, index);
+      id = `${base}-${index}`;
     }
 
     this.counts.set(base, index + 1);

@@ -403,13 +403,21 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @returns The content as a JSON object
    */
   static async signAttachmentUrls(doc: Node, teamId: string, expiresIn = 60) {
+    const json = doc.toJSON() as ProsemirrorData;
     const attachmentIds = ProsemirrorHelper.parseAttachmentIds(doc);
+    if (!attachmentIds.length) {
+      return json;
+    }
+
     const attachments = await Attachment.findAll({
       where: {
         id: attachmentIds,
         teamId,
       },
     });
+    if (!attachments.length) {
+      return json;
+    }
 
     const mapping = new Map<string, string>();
 
@@ -423,7 +431,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       })
     );
 
-    const json = doc.toJSON() as ProsemirrorData;
+    const regex = new RegExp(attachmentRedirectRegex.source, "i");
 
     function toRelativeHref(href: string): string | undefined {
       try {
@@ -450,7 +458,6 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
       // Extract attachment ID from URLs that may have extra query params
       // (e.g. /api/attachments.redirect?id=<uuid>&size=2)
-      const regex = new RegExp(attachmentRedirectRegex.source, "i");
       const match = regex.exec(relativeHref ?? href);
       if (match?.groups?.id) {
         const canonicalUrl = `/api/attachments.redirect?id=${match.groups.id}`;
@@ -889,17 +896,18 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     collectUserIds(json);
 
+    if (!userIds.length) {
+      return json;
+    }
+
     // Load all users in a single query
-    const uniqueUserIds = [...new Set(userIds)];
-    const users = uniqueUserIds.length
-      ? await User.findAll({
-          where: {
-            id: uniqueUserIds,
-            teamId,
-          },
-          attributes: ["id", "name"],
-        })
-      : [];
+    const users = await User.findAll({
+      where: {
+        id: [...new Set(userIds)],
+        teamId,
+      },
+      attributes: ["id", "name"],
+    });
 
     // Create a map for quick lookup
     const userMap = new Map();
@@ -1122,14 +1130,19 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     doc: Node,
     user: User
   ): Promise<Node> {
-    const images = ProsemirrorHelper.getImages(doc);
-    const videos = ProsemirrorHelper.getVideos(doc);
-    const nodes = [...images, ...videos];
+    const media: { href: string; name: string }[] = [];
 
     // Only data URIs are collected from links: an ordinary external link is a
     // reference to a page, not a file the document should take a copy of.
     const links: { href: string; name: string }[] = [];
     doc.descendants((node) => {
+      if (node.type.name === "image" || node.type.name === "video") {
+        media.push({
+          href: String(node.attrs.src ?? ""),
+          name: String(node.attrs.alt ?? node.type.name),
+        });
+      }
+
       const link = node.marks.find((mark) => mark.type.name === "link");
       const href = String(link?.attrs.href ?? "");
       if (href.startsWith("data:")) {
@@ -1138,17 +1151,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return true;
     });
 
-    if (!nodes.length && !links.length) {
+    const sources = [...media, ...links];
+    if (!sources.length) {
       return doc;
     }
-
-    const sources = [
-      ...nodes.map((node) => ({
-        href: String(node.attrs.src ?? ""),
-        name: String(node.attrs.alt ?? node.type.name),
-      })),
-      ...links,
-    ];
 
     const timeoutPerImage = Math.floor(
       Math.min(env.REQUEST_TIMEOUT / sources.length, 10000)
@@ -1202,6 +1208,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           }
         })
       );
+    }
+
+    if (!urlToAttachment.size) {
+      return doc;
     }
 
     // Transform the document to replace image/video src attributes and the
@@ -1293,13 +1303,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
-    const text = ProsemirrorHelper.markdownToPlainText(anchorText);
-    const range =
-      ProsemirrorHelper.findTextRange(doc, anchorText, { prefix, suffix }) ??
-      ProsemirrorHelper.findTextRange(doc, text, {
+    let text = anchorText;
+    let range = ProsemirrorHelper.findTextRange(doc, text, { prefix, suffix });
+    if (!range) {
+      text = ProsemirrorHelper.markdownToPlainText(anchorText);
+      range = ProsemirrorHelper.findTextRange(doc, text, {
         prefix: prefix && ProsemirrorHelper.markdownToPlainText(prefix),
         suffix: suffix && ProsemirrorHelper.markdownToPlainText(suffix),
       });
+    }
 
     if (!range) {
       const closest = ProsemirrorHelper.findClosestText(doc, text);
@@ -1480,6 +1492,33 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     const plain = textBetween(doc, 0, doc.content.size);
 
+    const prefix = options.prefix ?? "";
+    const suffix = options.suffix ?? "";
+
+    let startIdx = -1;
+    let searchFrom = 0;
+    while (true) {
+      const candidate = plain.indexOf(needle, searchFrom);
+      if (candidate === -1) {
+        return null;
+      }
+      const candidateEnd = candidate + needle.length;
+      const prefixOk =
+        prefix.length === 0 ||
+        (candidate >= prefix.length &&
+          plain.substring(candidate - prefix.length, candidate) === prefix);
+      const suffixOk =
+        suffix.length === 0 ||
+        (candidateEnd + suffix.length <= plain.length &&
+          plain.substring(candidateEnd, candidateEnd + suffix.length) ===
+            suffix);
+      if (prefixOk && suffixOk) {
+        startIdx = candidate;
+        break;
+      }
+      searchFrom = candidate + 1;
+    }
+
     // Mirror textBetween's traversal so segment.plainStart aligns with the
     // characters in `plain`. If textBetween's algorithm changes, this walk
     // must change with it.
@@ -1526,33 +1565,6 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
       return !isLeafText;
     });
-
-    const prefix = options.prefix ?? "";
-    const suffix = options.suffix ?? "";
-
-    let startIdx = -1;
-    let searchFrom = 0;
-    while (true) {
-      const candidate = plain.indexOf(needle, searchFrom);
-      if (candidate === -1) {
-        return null;
-      }
-      const candidateEnd = candidate + needle.length;
-      const prefixOk =
-        prefix.length === 0 ||
-        (candidate >= prefix.length &&
-          plain.substring(candidate - prefix.length, candidate) === prefix);
-      const suffixOk =
-        suffix.length === 0 ||
-        (candidateEnd + suffix.length <= plain.length &&
-          plain.substring(candidateEnd, candidateEnd + suffix.length) ===
-            suffix);
-      if (prefixOk && suffixOk) {
-        startIdx = candidate;
-        break;
-      }
-      searchFrom = candidate + 1;
-    }
 
     const endIdx = startIdx + needle.length;
 
