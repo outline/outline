@@ -11,6 +11,7 @@ import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
+import { headerMetaStyles } from "~/components/HeaderMeta";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Scene from "~/components/Scene";
@@ -102,8 +103,7 @@ const CollectionHeading = styled(Heading)`
 `;
 
 const SharedMeta = styled(Text)`
-  margin: -12px 0 2em 0;
-  font-size: 14px;
+  ${headerMetaStyles}
 `;
 
 export const Collection = observer(SharedCollection);
