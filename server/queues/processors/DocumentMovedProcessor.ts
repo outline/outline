@@ -38,8 +38,14 @@ export default class DocumentMovedProcessor extends BaseProcessor {
             : [],
         ]);
 
-      await this.destroyUserMemberships(document, transaction);
-      await this.destroyGroupMemberships(document, transaction);
+      const documentIds = [
+        document.id,
+        ...(await document.findAllChildDocumentIds(undefined, {
+          transaction,
+        })),
+      ];
+
+      await this.destroySourcedMemberships(documentIds, transaction);
 
       await this.recalculateUserMemberships(
         parentDocumentUserMemberships,
@@ -51,41 +57,40 @@ export default class DocumentMovedProcessor extends BaseProcessor {
         transaction,
         document.id
       );
+
+      // Direct memberships within the moved tree must also flow down again.
+      const [directUserMemberships, directGroupMemberships] = await Promise.all(
+        [
+          UserMembership.findAll({
+            where: { documentId: documentIds, sourceId: null },
+            transaction,
+          }),
+          GroupMembership.findAll({
+            where: { documentId: documentIds, sourceId: null },
+            transaction,
+          }),
+        ]
+      );
+
+      await this.recalculateUserMemberships(directUserMemberships, transaction);
+      await this.recalculateGroupMemberships(
+        directGroupMemberships,
+        transaction
+      );
     });
   }
 
-  private async destroyUserMemberships(
-    document: Document,
+  private async destroySourcedMemberships(
+    documentIds: string[],
     transaction: Transaction
   ) {
-    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
+    const where = {
+      sourceId: { [Op.ne]: null },
+      documentId: documentIds,
+    };
 
-    await UserMembership.destroy({
-      where: {
-        sourceId: { [Op.ne]: null },
-        documentId: [...childDocumentIds, document.id],
-      },
-      transaction,
-    });
-  }
-
-  private async destroyGroupMemberships(
-    document: Document,
-    transaction: Transaction
-  ) {
-    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
-
-    await GroupMembership.destroy({
-      where: {
-        sourceId: { [Op.ne]: null },
-        documentId: [...childDocumentIds, document.id],
-      },
-      transaction,
-    });
+    await UserMembership.destroy({ where, transaction });
+    await GroupMembership.destroy({ where, transaction });
   }
 
   private async recalculateUserMemberships(
