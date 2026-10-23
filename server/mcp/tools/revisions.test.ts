@@ -10,7 +10,13 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  mcpHeaders,
+  mcpRequest,
+  parseMcpResponse,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 
@@ -392,22 +398,24 @@ describe("get_document_changes", () => {
   });
 
   it("is not available without access to revisions", async () => {
-    const { user, document } = await setup();
-    const revision = await edit(document, user, "Content");
+    const { user } = await setup();
     const auth = await buildOAuthAuthentication({
       user,
       scope: ["documents:read"],
     });
 
-    const res = await callMcpTool(
-      server,
-      auth.accessToken!,
-      "get_document_changes",
-      { id: document.id, from: revision.id }
-    );
+    const { body } = mcpRequest("tools/list");
+    const res = await server.post("/mcp/", {
+      headers: mcpHeaders(auth.accessToken!),
+      body,
+    });
+    const parsed = (await parseMcpResponse(res)) as {
+      result?: { tools?: { name: string }[] };
+    };
+    const names = (parsed.result?.tools ?? []).map((tool) => tool.name);
 
-    expect(res?.result?.isError).toBe(true);
-    expect(JSON.stringify(res)).not.toContain("Content");
+    expect(names).toContain("fetch");
+    expect(names).not.toContain("get_document_changes");
   });
 
   it("is available with read scope", async () => {
