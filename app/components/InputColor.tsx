@@ -1,9 +1,9 @@
 import { WarningIcon } from "outline-icons";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import useMobile from "~/hooks/useMobile";
 import type { Props as InputProps } from "./Input";
 import Input from "./Input";
-import Relative from "./Sidebar/components/Relative";
 import { SwatchButton } from "./SwatchButton";
 import Text from "./Text";
 
@@ -30,26 +30,32 @@ const InputColor: React.FC<Props> = ({
   ...rest
 }: Props) => {
   const theme = useTheme();
+  const isMobile = useMobile();
   const warningId = React.useId();
 
   return (
     <>
-      <Relative>
-        <Input
-          value={value}
-          onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
-          placeholder="#"
-          maxLength={7}
-          aria-describedby={warning ? warningId : undefined}
-          {...rest}
-        />
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
+        placeholder="#"
+        maxLength={7}
+        aria-describedby={warning ? warningId : undefined}
+        {...rest}
+      >
         {warning && (
-          <PositionedWarning aria-hidden>
-            <WarningIcon color={theme.warning} size={22} />
-          </PositionedWarning>
+          <WarningIcon
+            aria-hidden
+            color={theme.warning}
+            size={isMobile ? 26 : 22}
+          />
         )}
-        <PositionedSwatchButton color={value} onChange={onChange} size={22} />
-      </Relative>
+        <StyledSwatchButton
+          color={value}
+          onChange={onChange}
+          size={isMobile ? 30 : 22}
+        />
+      </Input>
       {warning && (
         <WarningText id={warningId} type="secondary" size="xsmall">
           {warning}
@@ -59,18 +65,10 @@ const InputColor: React.FC<Props> = ({
   );
 };
 
-const PositionedSwatchButton = styled(SwatchButton)`
+const StyledSwatchButton = styled(SwatchButton)`
+  flex-shrink: 0;
   border: 1px solid ${(props) => props.theme.inputBorder};
-  position: absolute;
-  bottom: 21px;
-  inset-inline-end: 6px;
-`;
-
-const PositionedWarning = styled.span`
-  display: flex;
-  position: absolute;
-  bottom: 21px;
-  inset-inline-end: 32px;
+  margin-inline: 2px 6px;
 `;
 
 const WarningText = styled(Text)`
