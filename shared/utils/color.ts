@@ -1,6 +1,12 @@
 import { md5 } from "@noble/hashes/legacy.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
-import { darken, getLuminance, parseToHsl, parseToRgb } from "polished";
+import {
+  darken,
+  getContrast,
+  getLuminance,
+  parseToHsl,
+  parseToRgb,
+} from "polished";
 import theme from "../styles/theme";
 import type { RgbaColor } from "polished/lib/types/color";
 
@@ -54,6 +60,28 @@ export const ensureContrast = (
   const luminance = getLuminance(color);
   const isVisible = isDark ? luminance > 0.09 : luminance < 0.9;
   return isVisible ? color : fallback;
+};
+
+/**
+ * Whether two colors meet a minimum WCAG contrast ratio. The default ratio of
+ * 4.5 is the AA level for normal text, 3 is the AA level for large text and
+ * user interface components.
+ *
+ * @param color - the foreground color.
+ * @param background - the background color.
+ * @param minimum - the minimum contrast ratio.
+ * @returns true if the contrast is sufficient, or if a color cannot be parsed.
+ */
+export const hasSufficientContrast = (
+  color: string,
+  background: string,
+  minimum = 4.5
+): boolean => {
+  try {
+    return getContrast(color, background) >= minimum;
+  } catch {
+    return true;
+  }
 };
 
 const round = (

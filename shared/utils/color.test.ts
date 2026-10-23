@@ -1,6 +1,7 @@
 import {
   blendColors,
   ensureContrast,
+  hasSufficientContrast,
   palette,
   stringToColor,
   toColorFormats,
@@ -142,6 +143,27 @@ describe("ensureContrast", () => {
 
   it("returns currentColor unchanged", () => {
     expect(ensureContrast("currentColor", true, "#111")).toBe("currentColor");
+  });
+});
+
+describe("hasSufficientContrast", () => {
+  it("accepts colors with enough contrast", () => {
+    expect(hasSufficientContrast("#000", "#fff")).toBe(true);
+    expect(hasSufficientContrast("#fff", "#0366d6")).toBe(true);
+  });
+
+  it("rejects colors with low contrast", () => {
+    expect(hasSufficientContrast("#fff", "#fdea9b")).toBe(false);
+    expect(hasSufficientContrast("#111319", "#000")).toBe(false);
+  });
+
+  it("uses the given minimum ratio", () => {
+    expect(hasSufficientContrast("#0366d6", "#111319", 3)).toBe(true);
+    expect(hasSufficientContrast("#0366d6", "#111319", 4.5)).toBe(false);
+  });
+
+  it("does not reject colors that cannot be parsed", () => {
+    expect(hasSufficientContrast("#12", "#fff")).toBe(true);
   });
 });
 
