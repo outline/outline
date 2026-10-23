@@ -5,7 +5,7 @@ import type { Props as InputProps } from "./Input";
 import Input from "./Input";
 import Relative from "./Sidebar/components/Relative";
 import { SwatchButton } from "./SwatchButton";
-import Tooltip from "./Tooltip";
+import Text from "./Text";
 
 /**
  * Props for the InputColor component.
@@ -30,25 +30,32 @@ const InputColor: React.FC<Props> = ({
   ...rest
 }: Props) => {
   const theme = useTheme();
+  const warningId = React.useId();
 
   return (
-    <Relative>
-      <Input
-        value={value}
-        onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
-        placeholder="#"
-        maxLength={7}
-        {...rest}
-      />
-      {warning && (
-        <Tooltip content={warning}>
-          <PositionedWarning role="img" aria-label={warning}>
+    <>
+      <Relative>
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
+          placeholder="#"
+          maxLength={7}
+          aria-describedby={warning ? warningId : undefined}
+          {...rest}
+        />
+        {warning && (
+          <PositionedWarning aria-hidden>
             <WarningIcon color={theme.warning} size={22} />
           </PositionedWarning>
-        </Tooltip>
+        )}
+        <PositionedSwatchButton color={value} onChange={onChange} size={22} />
+      </Relative>
+      {warning && (
+        <WarningText id={warningId} type="secondary" size="xsmall">
+          {warning}
+        </WarningText>
       )}
-      <PositionedSwatchButton color={value} onChange={onChange} size={22} />
-    </Relative>
+    </>
   );
 };
 
@@ -64,6 +71,12 @@ const PositionedWarning = styled.span`
   position: absolute;
   bottom: 21px;
   inset-inline-end: 32px;
+`;
+
+const WarningText = styled(Text)`
+  display: block;
+  margin: -12px 0 16px;
+  line-height: 1.4;
 `;
 
 export default InputColor;
