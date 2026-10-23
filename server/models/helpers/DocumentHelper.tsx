@@ -14,6 +14,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { LineDiffHelper } from "@shared/utils/LineDiffHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -35,6 +36,9 @@ interface InlineSegment {
   /** Whether this segment is an atom node whose text length differs from nodeSize. */
   isAtom?: boolean;
 }
+
+/** The default number of milliseconds a Markdown diff can run before it stops. */
+const MarkdownDiffTimeout = 500;
 
 /** Context for a patch operation, shared across surgical patch methods. */
 interface PatchContext {
@@ -546,6 +550,35 @@ export class DocumentHelper {
         // Best effort, closing the window releases its timers and resources.
       }
     }
+  }
+
+  /**
+   * Generates a unified line diff between the Markdown of two documents or
+   * revisions. Lines are copied verbatim from the Markdown that patch edits
+   * search, so they can be used directly to find text in the document.
+   *
+   * @param before The before document, or null to treat it as empty.
+   * @param after The after document.
+   * @param options.context The number of unchanged lines around each change.
+   * @param options.timeout The number of milliseconds the diff can run.
+   * @returns The diff hunks, an empty string when the Markdown is identical,
+   * or undefined when the diff did not complete in the time limit.
+   */
+  static toMarkdownDiff(
+    before: Document | Revision | null,
+    after: Document | Revision,
+    options: { context?: number; timeout?: number } = {}
+  ): string | undefined {
+    // Patch edits match against the raw serializer output, so it is not normalized.
+    const toText = (document: Document | Revision | null) =>
+      document
+        ? serializer.serialize(DocumentHelper.toProsemirror(document))
+        : "";
+
+    return LineDiffHelper.unified(toText(before), toText(after), {
+      context: options.context ?? 2,
+      timeout: options.timeout ?? MarkdownDiffTimeout,
+    });
   }
 
   /**
