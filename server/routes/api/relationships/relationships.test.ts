@@ -74,15 +74,15 @@ describe("#relationships.info", () => {
     expect(body.message).toEqual("id: Invalid UUID");
   });
 
-  it("should fail with status 404 not found when relationship does not exist", async () => {
+  it("should fail with status 403 when relationship does not exist", async () => {
     const res = await server.post("/api/relationships.info", admin, {
       body: {
         id: "550e8400-e29b-41d4-a716-446655440000",
       },
     });
     const body = await res.json();
-    expect(res.status).toEqual(404);
-    expect(body.message).toEqual("Resource not found");
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization error");
   });
 
   it("should fail with status 403 forbidden when user cannot read the document", async () => {
@@ -364,13 +364,13 @@ describe("#relationships.list", () => {
     expect(body.pagination.offset).toEqual(0);
   });
 
-  it("should fail with status 404 not found when the anchor document does not exist", async () => {
+  it("should fail with status 403 when the anchor document does not exist", async () => {
     const res = await server.post("/api/relationships.list", admin, {
       body: {
         documentId: "550e8400-e29b-41d4-a716-446655440000",
       },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 
   it("should fail with status 403 forbidden when user cannot read the anchor document", async () => {

@@ -75,9 +75,7 @@ export function userTools(server: McpServer, scopes: string[]) {
         async ({ query, role, filter, offset, limit }, extra) => {
           try {
             const actor = getActorFromContext(extra);
-            const team = await Team.findByPk(actor.teamId, {
-              rejectOnEmpty: true,
-            });
+            const team = await Team.findByPk(actor.teamId);
             authorize(actor, "listUsers", team);
 
             const effectiveOffset = offset ?? 0;

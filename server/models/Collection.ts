@@ -684,7 +684,7 @@ class Collection extends ParanoidModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<Collection> & AdditionalFindOptions
+    options: NonNullFindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection>;
   static async findByPk(
     id: Identifier,

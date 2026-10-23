@@ -339,7 +339,7 @@ describe("#notifications.pixel", () => {
     expect(reloaded.viewedAt).toBeNull();
   });
 
-  it("should return 404 for notification that does not exist", async () => {
+  it("should return the same error for a notification that does not exist", async () => {
     const res = await server.get(
       `/api/notifications.pixel?${queryString.stringify({
         id: randomUUID(),
@@ -347,7 +347,7 @@ describe("#notifications.pixel", () => {
       })}`
     );
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
   });
 });
 

@@ -15,7 +15,7 @@ import {
   AuthenticationProvider,
 } from "@server/models";
 import { authorize } from "@server/policies";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import {
   presentGroup,
   presentGroupUser,
@@ -638,12 +638,15 @@ router.post(
         userId: user.id,
       },
       transaction,
-      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: GroupUser,
       },
     });
+
+    if (!groupUser) {
+      throw NotFoundError();
+    }
 
     await groupUser.updateWithCtx(ctx, { permission });
     groupUser.user = user;

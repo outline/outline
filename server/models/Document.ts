@@ -926,7 +926,7 @@ class Document extends ArchivableModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<Document> & AdditionalFindOptions
+    options: NonNullFindOptions<Document> & AdditionalFindOptions
   ): Promise<Document>;
   static async findByPk(
     id: Identifier,

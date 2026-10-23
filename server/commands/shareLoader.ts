@@ -108,9 +108,10 @@ export async function loadPublicShare({
   }
 
   if (documentId && documentId !== share.documentId) {
-    document = await Document.findByPk(documentId, {
-      rejectOnEmpty: true,
-    });
+    document = await Document.findByPk(documentId);
+    if (!document) {
+      throw AuthorizationError();
+    }
 
     let isDocumentAccessible = share.documentId === document.id;
 
@@ -192,8 +193,11 @@ export async function loadShareWithParent({
     const docCollection = await Collection.findByPk(docCollectionId, {
       userId: user.id,
       includeDocumentStructure: true,
-      rejectOnEmpty: true,
     });
+
+    if (!docCollection) {
+      throw NotFoundError("Collection not found for the shared document");
+    }
 
     const collectionShare = await Share.scope({
       method: ["withCollectionPermissions", user.id],

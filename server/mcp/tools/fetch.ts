@@ -125,7 +125,6 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           case "document": {
             const document = await Document.findByPk(id, {
               userId: actor.id,
-              rejectOnEmpty: true,
             });
 
             authorize(actor, "read", document);
@@ -163,7 +162,6 @@ export function fetchTool(server: McpServer, scopes: string[]) {
             const collection = await Collection.findByPk(id, {
               userId: actor.id,
               includeDocumentStructure: true,
-              rejectOnEmpty: true,
             });
 
             authorize(actor, "read", collection);
@@ -193,7 +191,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           case "user": {
             const user = SELF_TOKENS.has(id.toLowerCase())
               ? actor
-              : await User.findByPk(id, { rejectOnEmpty: true });
+              : await User.findByPk(id);
 
             authorize(actor, "read", user);
 
@@ -206,14 +204,12 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           }
 
           case "attachment": {
-            const attachment = await Attachment.findByPk(id, {
-              rejectOnEmpty: true,
-            });
+            const attachment = await Attachment.findByPk(id);
 
             // Private attachments are accessible to any member of the workspace they
             // belong to. This is intentional and not a permission bypass – attachments
             // are owned by the workspace (team), not by individual documents or users.
-            if (attachment.teamId !== actor?.teamId) {
+            if (!attachment || attachment.teamId !== actor?.teamId) {
               throw AuthorizationError();
             }
 
@@ -229,7 +225,6 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           case "template": {
             const template = await Template.findByPk(id, {
               userId: actor.id,
-              rejectOnEmpty: true,
             });
 
             authorize(actor, "read", template);

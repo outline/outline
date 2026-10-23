@@ -231,7 +231,7 @@ class FileOperation extends ParanoidModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<FileOperation> & AdditionalFindOptions
+    options: NonNullFindOptions<FileOperation> & AdditionalFindOptions
   ): Promise<FileOperation>;
   static async findByPk(
     id: Identifier,

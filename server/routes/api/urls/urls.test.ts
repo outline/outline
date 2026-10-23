@@ -465,7 +465,7 @@ Install instructions here.`
     expect(body.url).toContain(`/s/${share.id}/doc/`);
   });
 
-  it("should return 404 for share url with an invalid document slug", async () => {
+  it("should return 403 for share url with an invalid document slug", async () => {
     const document = await buildDocument({
       teamId: user.teamId,
     });
@@ -482,7 +482,7 @@ Install instructions here.`
         url: `${env.URL}/s/${share.id}/doc/invalid`,
       },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 
   it("should return 204 for collection share url without document", async () => {

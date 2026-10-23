@@ -52,7 +52,7 @@ import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { InvalidRequestError } from "@server/errors";
+import { InvalidRequestError, NotFoundError } from "@server/errors";
 
 const router = new Router();
 
@@ -103,8 +103,10 @@ router.post(
     const reloaded = await Collection.findByPk(collection.id, {
       userId: user.id,
       transaction,
-      rejectOnEmpty: true,
     });
+    if (!reloaded) {
+      throw NotFoundError();
+    }
 
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
@@ -127,7 +129,6 @@ router.post(
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       transaction,
-      rejectOnEmpty: true,
     });
     authorize(user, "duplicate", collection);
 
@@ -153,7 +154,6 @@ router.post(
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       includeArchivedBy: true,
-      rejectOnEmpty: true,
     });
 
     authorize(user, "read", collection);
@@ -730,7 +730,6 @@ router.post(
       await collection.reload({ transaction });
       const team = await Team.findByPk(user.teamId, {
         transaction,
-        rejectOnEmpty: true,
       });
 
       if (
@@ -905,7 +904,6 @@ router.post(
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       transaction,
-      rejectOnEmpty: true,
     });
 
     authorize(user, "archive", collection);
@@ -936,7 +934,6 @@ router.post(
     let collection = await Collection.findByPk(id, {
       userId: user.id,
       includeDocumentStructure: true,
-      rejectOnEmpty: true,
       transaction,
     });
 

@@ -103,9 +103,7 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const integration = await Integration.findByPk(id, {
-      rejectOnEmpty: true,
-    });
+    const integration = await Integration.findByPk(id);
     authorize(user, "read", integration);
 
     ctx.body = {
@@ -159,7 +157,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const integration = await Integration.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
       lock: transaction.LOCK.UPDATE,
     });

@@ -128,7 +128,7 @@ describe("#emojis.update", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should return 404 for non-existent emoji", async () => {
+  it("should return 403 for non-existent emoji", async () => {
     const user = await buildUser();
     const newAttachment = await buildAttachment({
       teamId: user.teamId,
@@ -142,10 +142,10 @@ describe("#emojis.update", () => {
       },
     });
 
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 
-  it("should return 404 for non-existent attachment", async () => {
+  it("should return 403 for non-existent attachment", async () => {
     const user = await buildUser();
     const emoji = await buildEmoji({
       teamId: user.teamId,
@@ -159,6 +159,6 @@ describe("#emojis.update", () => {
       },
     });
 
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });

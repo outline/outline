@@ -198,9 +198,12 @@ router.get(
       transaction,
     });
     const user = await User.scope("withTeam").findByPk(userId, {
-      rejectOnEmpty: true,
       transaction,
     });
+    if (!user) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
 
     const context = createContext({
       user,
@@ -252,7 +255,6 @@ router.post(
     const { id } = ctx.input.body;
 
     const subscription = await Subscription.findByPk(id, {
-      rejectOnEmpty: true,
       transaction,
     });
 

@@ -120,7 +120,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const webhookSubscription = await WebhookSubscription.findByPk(id, {
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
       transaction,
     });
@@ -149,7 +148,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const webhookSubscription = await WebhookSubscription.findByPk(id, {
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
       transaction,
     });

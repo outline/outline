@@ -2,7 +2,7 @@ import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -47,7 +47,7 @@ router.post(
       authorize(user, "createTemplate", user.team);
     }
 
-    let template = await Template.createWithCtx(ctx, {
+    const template = await Template.createWithCtx(ctx, {
       id,
       title: title ?? "",
       icon,
@@ -61,15 +61,17 @@ router.post(
       editorVersion,
     });
 
-    template = await Template.findByPk(template.id, {
+    const reloaded = await Template.findByPk(template.id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
     });
+    if (!reloaded) {
+      throw NotFoundError();
+    }
 
     ctx.body = {
-      data: presentTemplate(template),
-      policies: presentPolicies(user, [template]),
+      data: presentTemplate(reloaded),
+      policies: presentPolicies(user, [reloaded]),
     };
   }
 );
@@ -180,7 +182,6 @@ router.post(
 
     const template = await Template.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
     });
     authorize(user, "read", template);
 
@@ -203,7 +204,6 @@ router.post(
 
     const template = await Template.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
     });
     authorize(user, "delete", template);
@@ -228,7 +228,6 @@ router.post(
 
     const template = await Template.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
       paranoid: false,
     });
@@ -255,7 +254,6 @@ router.post(
 
     const original = await Template.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
     });
     authorize(user, "duplicate", original);
@@ -272,7 +270,7 @@ router.post(
       authorize(user, "createTemplate", user.team);
     }
 
-    let template = await Template.createWithCtx(ctx, {
+    const template = await Template.createWithCtx(ctx, {
       title: title ?? original.title,
       createdById: user.id,
       lastModifiedById: user.id,
@@ -286,15 +284,17 @@ router.post(
     });
 
     // reload to get all of the data needed to present (user, collection etc)
-    template = await Template.findByPk(template.id, {
+    const reloaded = await Template.findByPk(template.id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
     });
+    if (!reloaded) {
+      throw NotFoundError();
+    }
 
     ctx.body = {
-      data: presentTemplate(template),
-      policies: presentPolicies(user, [template]),
+      data: presentTemplate(reloaded),
+      policies: presentPolicies(user, [reloaded]),
     };
   }
 );
@@ -311,7 +311,6 @@ router.post(
 
     const template = await Template.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
     });
     authorize(user, "update", template);

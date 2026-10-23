@@ -759,8 +759,10 @@ router.post(
       if (user) {
         document = await Document.findByPk(document.id, {
           userId: user.id,
-          rejectOnEmpty: true,
         });
+        if (!document) {
+          throw NotFoundError();
+        }
       }
 
       isPublic = cannot(user, "read", document);
@@ -1676,7 +1678,6 @@ router.post(
 
     const document = await Document.findByPk(id, {
       userId: user.id,
-      rejectOnEmpty: true,
       transaction,
     });
     authorize(user, "archive", document);
@@ -1940,11 +1941,9 @@ router.post(
     const [document, user] = await Promise.all([
       Document.findByPk(id, {
         userId: actor.id,
-        rejectOnEmpty: true,
         transaction,
       }),
       User.findByPk(userId, {
-        rejectOnEmpty: true,
         transaction,
       }),
     ]);
@@ -2025,11 +2024,9 @@ router.post(
     const [document, user] = await Promise.all([
       Document.findByPk(id, {
         userId: actor.id,
-        rejectOnEmpty: true,
         transaction,
       }),
       User.findByPk(userId, {
-        rejectOnEmpty: true,
         transaction,
       }),
     ]);
@@ -2046,8 +2043,14 @@ router.post(
       },
       transaction,
       lock: transaction.LOCK.UPDATE,
-      rejectOnEmpty: true,
     });
+
+    if (!membership) {
+      // A user can remove their own access without other checks, so authorize
+      // here to keep the error the same for a document in another team.
+      authorize(actor, "read", document);
+      throw NotFoundError();
+    }
 
     if (membership.sourceId) {
       throw ValidationError(
@@ -2077,11 +2080,9 @@ router.post(
     const [document, group] = await Promise.all([
       Document.findByPk(id, {
         userId: user.id,
-        rejectOnEmpty: true,
         transaction,
       }),
       Group.findByPk(groupId, {
-        rejectOnEmpty: true,
         transaction,
       }),
     ]);
@@ -2138,11 +2139,9 @@ router.post(
     const [document, group] = await Promise.all([
       Document.findByPk(id, {
         userId: user.id,
-        rejectOnEmpty: true,
         transaction,
       }),
       Group.findByPk(groupId, {
-        rejectOnEmpty: true,
         transaction,
       }),
     ]);
@@ -2156,8 +2155,11 @@ router.post(
       },
       transaction,
       lock: transaction.LOCK.UPDATE,
-      rejectOnEmpty: true,
     });
+
+    if (!membership) {
+      throw NotFoundError();
+    }
 
     await membership.destroy(ctx.context);
 

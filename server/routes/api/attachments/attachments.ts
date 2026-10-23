@@ -279,12 +279,11 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const attachment = await Attachment.findByPk(id, {
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
       transaction,
     });
 
-    if (attachment.documentId) {
+    if (attachment?.documentId) {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
         transaction,
@@ -307,9 +306,10 @@ const handleAttachmentsRedirect = async (
   const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
 
   const user = ctx.state.auth?.user;
-  const attachment = await Attachment.findByPk(id, {
-    rejectOnEmpty: true,
-  });
+  const attachment = await Attachment.findByPk(id);
+  if (!attachment) {
+    throw AuthorizationError();
+  }
 
   // Private attachments are accessible to any member of the workspace they
   // belong to. This is intentional and not a permission bypass – attachments

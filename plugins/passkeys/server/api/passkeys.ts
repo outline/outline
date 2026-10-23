@@ -46,7 +46,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const passkey = await UserPasskey.findByPk(id, {
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "update", passkey);
@@ -70,7 +69,6 @@ router.post(
     const { transaction } = ctx.state;
 
     const passkey = await UserPasskey.findByPk(id, {
-      rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "delete", passkey);
