@@ -235,6 +235,48 @@ describe("POST /mcp/", () => {
       expect(user.getFlag(UserFlag.MCP)).toEqual(1);
     });
 
+    it("should set every annotation hint explicitly on every tool", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as
+        | {
+            tools: {
+              name: string;
+              title?: string;
+              annotations?: Record<string, unknown>;
+            }[];
+          }
+        | undefined;
+      const tools = result?.tools ?? [];
+      const names = tools.map((tool) => tool.name);
+      expect(names).toContain("delete_collection");
+      expect(names).toContain("delete_document");
+
+      for (const tool of tools) {
+        expect(tool.title, tool.name).toBeTruthy();
+        expect(tool.annotations, tool.name).toEqual({
+          destructiveHint: expect.any(Boolean),
+          idempotentHint: expect.any(Boolean),
+          openWorldHint: tool.name === "create_document",
+          readOnlyHint: expect.any(Boolean),
+        });
+
+        if (tool.annotations?.readOnlyHint) {
+          expect(tool.annotations.destructiveHint, tool.name).toBe(false);
+        }
+        if (/^(delete|update)_/.test(tool.name)) {
+          expect(tool.annotations?.destructiveHint, tool.name).toBe(true);
+        }
+      }
+    });
+
     it("should reject tool arguments with too many elements", async () => {
       const { accessToken } = await buildOAuthUser();
 

@@ -77,7 +77,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Archived documents are excluded unless includeArchived is set. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
         inputSchema: z.object({
@@ -326,7 +328,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Returns the complete hierarchical tree of published documents in a collection, including nested sub-documents. Use this to enumerate every document in a collection or to understand parent/child relationships. Drafts and archived documents are not included.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
         inputSchema: z.object({
@@ -371,7 +375,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
         title: "Create document",
         description: `Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Use the collectionId "${PersonalCollectionId}" to place the document in the user's personal collection, which only they can see and which is created if it does not exist yet. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.`,
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+
+          // HTML imports download remote images and videos.
+          openWorldHint: true,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -512,7 +520,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Moves a document to a different location or reorders it within its current parent. Provide a collectionId to move to the root of a collection, a parentDocumentId to nest under another document, and/or an index to control position among siblings.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -624,7 +634,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           'Updates an existing document by its ID. Only the fields provided will be updated. IMPORTANT: When editing an existing document\'s content, always prefer editMode "patch" with findText and text — this surgically replaces only the matched section and preserves all rich formatting (highlights, comments, table widths, etc) in the rest of the document. Using "replace" will overwrite the entire document and lose any formatting that cannot be represented in markdown.',
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -790,7 +802,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Deletes a document by its ID. The document is moved to the trash and can be restored later. Set archive to true to archive the document instead of deleting it.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -860,7 +874,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Restores an archived or trashed document, making it active again. Optionally provide a collectionId to restore the document into a different collection; otherwise it returns to its original collection.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({

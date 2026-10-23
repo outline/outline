@@ -31,7 +31,9 @@ export function userTools(server: McpServer, scopes: string[]) {
         title: "List users",
         description: "Lists users in the workspace.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
         inputSchema: z.object({

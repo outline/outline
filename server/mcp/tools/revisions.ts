@@ -37,7 +37,9 @@ export function revisionTools(server: McpServer, scopes: string[]) {
       title: "Get document changes",
       description: `Shows what changed in a document between two points in its history, and who changed it. Returns the revisions in the range with their authors, followed by a unified diff of the document markdown. Lines starting with "-" were removed and lines starting with "+" were added. Added and unchanged lines are verbatim markdown of the newer version, so when the range ends at the current document they can be used as findText with update_document in "patch" mode. Use this before editing a document that others may have changed, to review and merge their changes.`,
       annotations: {
+        destructiveHint: false,
         idempotentHint: true,
+        openWorldHint: false,
         readOnlyHint: true,
       },
       inputSchema: {
