@@ -5,32 +5,33 @@ import { asyncNoop } from "es-toolkit";
 import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
 
-const getBucketOrigin = () => {
+const getBucketOrigins = (): string[] => {
   if (env.AWS_S3_ACCELERATE_URL) {
-    return new URL(env.AWS_S3_ACCELERATE_URL).origin;
+    return [new URL(env.AWS_S3_ACCELERATE_URL).origin];
   }
 
   const url = env.AWS_S3_UPLOAD_BUCKET_URL || "";
   if (!url) {
-    return;
+    return [];
   }
 
   try {
     const parsedUrl = new URL(url);
+    const bucket = env.AWS_S3_UPLOAD_BUCKET_NAME;
+    const host =
+      bucket && parsedUrl.host.startsWith(`${bucket}.`)
+        ? parsedUrl.host.substring(bucket.length + 1) // +1 for the dot
+        : parsedUrl.host;
+    const origins = [`${parsedUrl.protocol}//${host}`];
 
-    if (
-      env.AWS_S3_UPLOAD_BUCKET_NAME &&
-      parsedUrl.hostname.startsWith(`${env.AWS_S3_UPLOAD_BUCKET_NAME}.`)
-    ) {
-      const hostnameWithoutBucket = parsedUrl.hostname.substring(
-        env.AWS_S3_UPLOAD_BUCKET_NAME.length + 1 // +1 for the dot
-      );
-      return `${parsedUrl.protocol}//${hostnameWithoutBucket}`;
+    // Without path-style the S3 client signs urls on the bucket subdomain.
+    if (bucket && !env.AWS_S3_FORCE_PATH_STYLE) {
+      origins.push(`${parsedUrl.protocol}//${bucket}.${host}`);
     }
 
-    return parsedUrl.origin;
+    return origins;
   } catch {
-    return;
+    return [];
   }
 };
 
@@ -111,10 +112,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
     defaultSrc.push(env.CDN_URL);
   }
 
-  const bucketOrigin = getBucketOrigin();
-  if (bucketOrigin) {
-    objectSrc.push(bucketOrigin);
-  }
+  objectSrc.push(...getBucketOrigins());
 
   const cloudFrontOrigin = getCloudFrontOrigin();
   if (cloudFrontOrigin) {
