@@ -103,7 +103,9 @@ export function fetchTool(server: McpServer, scopes: string[]) {
       description:
         'Fetches a document, collection, user, attachment, or template by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user. For attachments, the response includes a short-lived signed URL that can be used to download the file contents directly. For templates, the response includes the template body as markdown.',
       annotations: {
+        destructiveHint: false,
         idempotentHint: true,
+        openWorldHint: false,
         readOnlyHint: true,
       },
       inputSchema: z.object({

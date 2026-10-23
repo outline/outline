@@ -54,7 +54,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         description:
           "Lists all collections the authenticated user has access to. Returns a summary of each collection.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
         inputSchema: z.object({
@@ -175,7 +177,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         description:
           "Creates a new collection. Collections are used to organize documents.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -236,7 +240,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         description:
           "Updates an existing collection by its ID. Only the fields provided will be updated.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -323,7 +329,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         description:
           "Deletes a collection by its ID. Non-archived documents within the collection will also be deleted. Set archive to true to archive the collection instead of deleting it.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({

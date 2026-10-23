@@ -35,7 +35,9 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
         description:
           "Requests a pre-signed upload URL. Use the returned uploadUrl and form fields to upload a file directly via a multipart POST request (e.g. with curl). The returned attachment URL is returned for use in documents.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
