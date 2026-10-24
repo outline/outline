@@ -336,13 +336,11 @@ function getNewState({
   doc,
   editor,
   pluginState,
-  editor,
   autoEditEmpty = false,
 }: {
   doc: Node;
   editor: Editor;
   pluginState: MermaidState;
-  editor: Editor;
   autoEditEmpty?: boolean;
 }): MermaidState {
   if (isKrokiMermaidEnabled(editor)) {
@@ -450,7 +448,6 @@ export default function Mermaid({ editor }: { editor: Editor }) {
           doc,
           editor,
           pluginState,
-          editor,
         });
       },
       apply: (
@@ -533,7 +530,6 @@ export default function Mermaid({ editor }: { editor: Editor }) {
             doc: transaction.doc,
             editor,
             pluginState: nextPluginState,
-            editor,
             autoEditEmpty:
               codeBlockChanged &&
               transaction.docChanged &&

@@ -22,6 +22,11 @@ function createMockEditor(
       embeds,
       readOnly: false,
       onClickLink: vi.fn(),
+      theme: {
+        isDark: false,
+        fontFamily: "sans-serif",
+        fontFamilyMono: "monospace",
+      },
     },
     view: { dom: { clientWidth: 800 } },
     schema,
@@ -42,7 +47,7 @@ function getDecorationCount(
 describe.skipIf(!hasDom)("Mermaid plugin - decoration creation (Group 14)", () => {
   it("creates decorations for mermaid code fence when no Kroki integration", () => {
     const editor = createMockEditor([]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("graph TD\nA-->B", "mermaid")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBeGreaterThan(0);
@@ -50,7 +55,7 @@ describe.skipIf(!hasDom)("Mermaid plugin - decoration creation (Group 14)", () =
 
   it("creates decorations for mermaidjs code fence when no Kroki integration", () => {
     const editor = createMockEditor([]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("sequenceDiagram\nA->>B: Hi", "mermaidjs")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBeGreaterThan(0);
@@ -63,7 +68,7 @@ describe.skipIf(!hasDom)("Mermaid plugin - decoration creation (Group 14)", () =
         settings: { kroki: { url: "https://kroki.example.com", mermaid: false } },
       },
     ]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("graph TD\nA-->B", "mermaid")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBeGreaterThan(0);
@@ -76,7 +81,7 @@ describe.skipIf(!hasDom)("Mermaid plugin - decoration creation (Group 14)", () =
         settings: { kroki: { url: "https://kroki.example.com" } },
       },
     ]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("graph TD\nA-->B", "mermaid")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBeGreaterThan(0);
@@ -91,7 +96,7 @@ describe("Mermaid plugin - enabledFormats interaction, no-decoration (Group 8)",
         settings: { kroki: { url: "http://x", enabledFormats: ["d2", "mermaid"] } },
       },
     ]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("graph TD\nA-->B", "mermaid")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBe(0);
@@ -106,7 +111,7 @@ describe.skipIf(!hasDom)("Mermaid plugin - enabledFormats interaction, with-deco
         settings: { kroki: { url: "http://x", enabledFormats: ["d2"] } },
       },
     ]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("graph TD\nA-->B", "mermaid")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBeGreaterThan(0);
@@ -121,7 +126,7 @@ describe("Mermaid plugin - no-decoration cases (Group 14)", () => {
         settings: { kroki: { url: "https://kroki.example.com", mermaid: true } },
       },
     ]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("graph TD\nA-->B", "mermaid")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBe(0);
@@ -129,7 +134,7 @@ describe("Mermaid plugin - no-decoration cases (Group 14)", () => {
 
   it("ignores D2 code fences", () => {
     const editor = createMockEditor([]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([codeBlock("shape: circle", "d2")]);
     const state = createEditorState(testDoc, [plugin]);
     expect(getDecorationCount(state)).toBe(0);
@@ -137,7 +142,7 @@ describe("Mermaid plugin - no-decoration cases (Group 14)", () => {
 
   it("ignores PlantUML code fences", () => {
     const editor = createMockEditor([]);
-    const plugin = Mermaid({ isDark: false, editor });
+    const plugin = Mermaid({ editor });
     const testDoc = doc([
       codeBlock("@startuml\nAlice -> Bob\n@enduml", "plantuml"),
     ]);
