@@ -172,6 +172,7 @@ describe("#oauth.register", () => {
     "https://example.com/callback#fragment",
     "*",
     "ftp://example.com/callback",
+    "https:/example.com/callback",
   ])("should reject invalid redirect_uri %s", async (redirectUri) => {
     const res = await server.post("/oauth/register", {
       body: {

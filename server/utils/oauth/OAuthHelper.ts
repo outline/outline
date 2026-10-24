@@ -1,4 +1,5 @@
 import type { Context } from "koa";
+import isURL from "validator/lib/isURL";
 import type { OAuthClientValidation } from "@shared/validations";
 import { isLoopbackUri, isPrivateUseSchemeUrl } from "@shared/utils/urls";
 import env from "@server/env";
@@ -75,20 +76,23 @@ export class OAuthHelper {
       return true;
     }
 
-    let url: URL;
-    try {
-      url = new URL(uri);
-    } catch {
+    // Matches the syntax check of the IsUrlList model validator, and requires
+    // the "//" authority delimiter that new URL() would otherwise repair.
+    if (
+      !/^https?:\/\//i.test(uri) ||
+      !isURL(uri, {
+        protocols: ["http", "https"],
+        require_tld: false,
+        require_protocol: true,
+        allow_underscores: true,
+      })
+    ) {
       return false;
-    }
-
-    if (url.protocol === "https:") {
-      return !!url.hostname;
     }
 
     // Loopback addresses may use http:// since TLS certificates cannot be
     // obtained for them.
-    return url.protocol === "http:" && isLoopbackUri(uri);
+    return /^https:/i.test(uri) || isLoopbackUri(uri);
   }
 
   /**

@@ -32,6 +32,8 @@ describe("OAuthHelper", () => {
       "file:///etc/passwd",
       "https://example.com/call\nback",
       "https://example.com/call back",
+      "https:/example.com/callback",
+      "https:example.com/callback",
     ])("should reject %j", (uri) => {
       expect(OAuthHelper.isValidRedirectUri(uri)).toBe(false);
     });
