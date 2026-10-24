@@ -163,9 +163,9 @@ export default class Mention extends Node {
               ? node.type.name
               : `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
-          href:
+          href: sanitizeUrl(
             node.attrs.type === MentionType.User ||
-            node.attrs.type === MentionType.Date
+              node.attrs.type === MentionType.Date
               ? undefined
               : node.attrs.type === MentionType.Document
                 ? `${env.URL}/doc/${node.attrs.modelId}${
@@ -173,7 +173,8 @@ export default class Mention extends Node {
                   }`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
-                  : sanitizeUrl(node.attrs.href),
+                  : node.attrs.href
+          ),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,

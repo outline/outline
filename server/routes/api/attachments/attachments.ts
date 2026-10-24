@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import type { WhereOptions } from "sequelize";
+import type { Transaction, WhereOptions } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
@@ -15,7 +15,8 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Attachment, Document } from "@server/models";
+import type { User } from "@server/models";
+import { Attachment, Document, Template } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment, presentPolicies } from "@server/presenters";
@@ -30,6 +31,37 @@ import { assertIn } from "@server/validation";
 import * as T from "./schema";
 
 const router = new Router();
+
+/**
+ * Authorizes an action on the document or template that an attachment belongs to.
+ *
+ * @param user The user to authorize.
+ * @param action The action to authorize.
+ * @param documentId The ID of the document or template.
+ * @param transaction An optional transaction to load the model in.
+ * @throws AuthorizationError if the user cannot perform the action.
+ */
+async function authorizeParent(
+  user: User,
+  action: "read" | "update",
+  documentId: string,
+  transaction?: Transaction
+) {
+  const document = await Document.findByPk(documentId, {
+    userId: user.id,
+    transaction,
+  });
+  if (document) {
+    authorize(user, action, document);
+    return;
+  }
+
+  const template = await Template.findByPk(documentId, {
+    userId: user.id,
+    transaction,
+  });
+  authorize(user, action, template);
+}
 
 router.post(
   "attachments.list",
@@ -53,10 +85,7 @@ router.post(
 
     // If a specific document is passed then add to filters
     if (documentId) {
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
-      });
-      authorize(user, "read", document);
+      await authorizeParent(user, "read", documentId);
       where.documentId = documentId;
     }
 
@@ -92,11 +121,7 @@ router.post(
     const { user } = auth;
 
     if (documentId) {
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
-        transaction,
-      });
-      authorize(user, "update", document);
+      await authorizeParent(user, "update", documentId, transaction);
     }
 
     // All user types can upload an avatar so no additional authorization is needed.
@@ -213,10 +238,7 @@ router.post(
       );
     }
 
-    const document = await Document.findByPk(documentId, {
-      userId: user.id,
-    });
-    authorize(user, "update", document);
+    await authorizeParent(user, "update", documentId);
 
     const name = getFileNameFromUrl(url) ?? "file";
     const modelId = id ?? randomUUID();
@@ -285,11 +307,7 @@ router.post(
     });
 
     if (attachment.documentId) {
-      const document = await Document.findByPk(attachment.documentId, {
-        userId: user.id,
-        transaction,
-      });
-      authorize(user, "update", document);
+      await authorizeParent(user, "update", attachment.documentId, transaction);
     }
 
     authorize(user, "delete", attachment);
@@ -320,14 +338,7 @@ const handleAttachmentsRedirect = async (
     throw AuthorizationError();
   }
 
-  await attachment.update(
-    {
-      lastAccessedAt: new Date(),
-    },
-    {
-      silent: true,
-    }
-  );
+  await attachment.updateAccessedAt();
 
   if (attachment.isStoredInPublicBucket) {
     ctx.set("Cache-Control", `max-age=604800, immutable`);

@@ -1,4 +1,4 @@
-import { Scope } from "@shared/types";
+import { CommentingAccess, Scope, TeamPreference } from "@shared/types";
 import type { ProsemirrorData } from "@shared/types";
 import { Comment } from "@server/models";
 import {
@@ -13,6 +13,32 @@ import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
 const server = getTestServer();
+
+/**
+ * Builds a user, document and comment in a team that has commenting disabled.
+ *
+ * @returns the access token, document and comment.
+ */
+async function buildCommentWithCommentingDisabled() {
+  const { user, accessToken } = await buildOAuthUser();
+  const collection = await buildCollection({
+    teamId: user.teamId,
+    userId: user.id,
+  });
+  const document = await buildDocument({
+    teamId: user.teamId,
+    userId: user.id,
+    collectionId: collection.id,
+  });
+  const comment = await buildComment({
+    userId: user.id,
+    documentId: document.id,
+  });
+  user.team.setPreference(TeamPreference.Commenting, CommentingAccess.None);
+  await user.team.save();
+
+  return { accessToken, document, comment };
+}
 
 describe("list_comments", () => {
   it("returns comments on a document", async () => {
@@ -115,6 +141,43 @@ describe("list_comments", () => {
 
     expect(data.length).toBeGreaterThanOrEqual(1);
     expect(data[0].anchorText).toBeUndefined();
+  });
+});
+
+describe("commenting disabled", () => {
+  it("fails to list comments", async () => {
+    const { accessToken, document } =
+      await buildCommentWithCommentingDisabled();
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      documentId: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("fails to resolve a comment", async () => {
+    const { accessToken, comment } = await buildCommentWithCommentingDisabled();
+
+    const res = await callMcpTool(server, accessToken, "update_comment", {
+      id: comment.id,
+      status: "resolved",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await comment.reload();
+    expect(comment.resolvedAt).toBeNull();
+  });
+
+  it("fails to delete a comment", async () => {
+    const { accessToken, comment } = await buildCommentWithCommentingDisabled();
+
+    const res = await callMcpTool(server, accessToken, "delete_comment", {
+      id: comment.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(await Comment.findByPk(comment.id)).not.toBeNull();
   });
 });
 

@@ -9,6 +9,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
+import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { RequestHelper } from "@server/utils/RequestHelper";
@@ -61,6 +62,7 @@ router.get(
     }
 
     verifyOAuthStateNonce(ctx, GitHubOAuthNonceCookie, parsedState.nonce);
+    authorize(user, "createIntegration", user.team);
 
     const client = await GitHub.authenticateAsUser(code!, state);
     const installationsByUser = await client.requestAppInstallations();

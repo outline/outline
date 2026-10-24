@@ -13,7 +13,7 @@ import {
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import { Hour } from "@shared/utils/time";
 import env from "@server/env";
-import { allowScriptSrc } from "@server/middlewares/csp";
+import { allowFraming, allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
@@ -291,7 +291,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     let markdown = await DocumentHelper.toMarkdown(document || collection!, {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
-      teamId: team?.id,
+      teamId: share?.teamId,
       commonMark: true,
     });
 
@@ -320,7 +320,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const preventEmbedding =
     team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
   if (!preventEmbedding) {
-    ctx.remove("X-Frame-Options");
+    allowFraming(ctx);
   }
 
   const publicBranding =
@@ -344,16 +344,15 @@ export const renderShare = async (ctx: Context, next: Next) => {
         })
       : undefined;
 
-  const canonicalUrl =
-    share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
-      ? `${share.canonicalUrl}${
-          documentSlug && document
-            ? document.path
-            : collectionSlug && collection
-              ? collection.path
-              : ""
-        }`
-      : undefined;
+  const canonicalUrl = share
+    ? `${share.canonicalUrl}${
+        documentSlug && document
+          ? document.path
+          : collectionSlug && collection
+            ? collection.path
+            : ""
+      }`
+    : undefined;
 
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {

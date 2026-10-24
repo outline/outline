@@ -1,10 +1,7 @@
 import type { Context } from "koa";
+import isURL from "validator/lib/isURL";
 import type { OAuthClientValidation } from "@shared/validations";
-import {
-  isLoopbackUri,
-  isPrivateUseSchemeUrl,
-  isUrl,
-} from "@shared/utils/urls";
+import { isLoopbackUri, isPrivateUseSchemeUrl } from "@shared/utils/urls";
 import env from "@server/env";
 
 type ClientType = (typeof OAuthClientValidation.clientTypes)[number];
@@ -69,23 +66,33 @@ export class OAuthHelper {
    * @returns true if the URI is valid.
    */
   public static isValidRedirectUri(uri: string): boolean {
-    if (uri.includes("#") || uri.includes("*")) {
+    if (/[\s#*]/.test(uri)) {
+      return false;
+    }
+
+    // The recommended private-use form, e.g. com.example.app:/oauth2redirect,
+    // has no host so it is checked separately.
+    if (isPrivateUseSchemeUrl(uri)) {
+      return true;
+    }
+
+    // Matches the syntax check of the IsUrlList model validator, and requires
+    // the "//" authority delimiter that new URL() would otherwise repair.
+    if (
+      !/^https?:\/\//i.test(uri) ||
+      !isURL(uri, {
+        protocols: ["http", "https"],
+        require_tld: false,
+        require_protocol: true,
+        allow_underscores: true,
+      })
+    ) {
       return false;
     }
 
     // Loopback addresses may use http:// since TLS certificates cannot be
     // obtained for them.
-    if (isLoopbackUri(uri) && new URL(uri).protocol === "http:") {
-      return true;
-    }
-
-    // The recommended private-use form, e.g. com.example.app:/oauth2redirect,
-    // has no host so isUrl would reject it.
-    if (isPrivateUseSchemeUrl(uri)) {
-      return true;
-    }
-
-    return isUrl(uri, { requireHttps: true });
+    return /^https:/i.test(uri) || isLoopbackUri(uri);
   }
 
   /**

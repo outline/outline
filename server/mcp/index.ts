@@ -1,10 +1,11 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { iconNames } from "@shared/utils/IconNames";
 import { attachmentTools } from "./tools/attachments";
 import { collectionTools } from "./tools/collections";
 import { commentTools } from "./tools/comments";
 import { documentTools } from "./tools/documents";
 import { fetchTool } from "./tools/fetch";
+import { revisionTools } from "./tools/revisions";
 import { templateTools } from "./tools/templates";
 import { userTools } from "./tools/users";
 import { skillResources, skillsExtensionId } from "./skills";
@@ -49,9 +50,11 @@ export function createMcpServer(
       ],
     },
     {
+      // The lists never change during a request, so subscriptions/listen
+      // completes at once instead of holding a stream open.
       capabilities: {
-        tools: {},
-        resources: {},
+        tools: { listChanged: false },
+        resources: { listChanged: false, subscribe: false },
         extensions: {
           [skillsExtensionId]: {},
         },
@@ -92,6 +95,7 @@ export function createMcpServer(
   commentTools(server, scopes);
   documentTools(server, scopes);
   fetchTool(server, scopes);
+  revisionTools(server, scopes);
   templateTools(server, scopes);
   userTools(server, scopes);
 

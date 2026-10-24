@@ -25,6 +25,7 @@ import Logger from "@server/logging/Logger";
 import type { Replace, APIContext } from "@server/types";
 import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 
 export type EventOverrideOptions = {
   /** Override the default event name. */
@@ -386,15 +387,12 @@ class Model<
       return models.event.create(attrs, {
         transaction: context.transaction,
       });
-    } else if (context.transaction) {
-      (context.transaction.parent || context.transaction).afterCommit(() =>
-        // @ts-expect-error Event class
-        models.event.schedule(attrs)
-      );
-    } else {
-      // @ts-expect-error Event class
-      return models.event.schedule(attrs);
     }
+
+    return afterCommit(context.transaction, () =>
+      // @ts-expect-error Event class
+      models.event.schedule(attrs)
+    );
   }
 
   /**

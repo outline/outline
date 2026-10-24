@@ -1,6 +1,7 @@
 import copy from "copy-to-clipboard";
 import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
+import { chainCommands } from "prosemirror-commands";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
   NodeSpec,
@@ -27,6 +28,8 @@ import {
   moveToPreviousNewline,
   outdentInCode,
   enterInCode,
+  backspaceInCode,
+  deleteInCode,
   splitCodeBlockOnTripleBackticks,
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
@@ -435,7 +438,8 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       "Shift-Tab": outdentInCode,
       Tab: indentInCode,
       Enter: enterInCode,
-      Backspace: backspaceToParagraph(type),
+      Backspace: chainCommands(backspaceInCode, backspaceToParagraph(type)),
+      Delete: deleteInCode,
       "Shift-Enter": newlineInCode,
       "Mod-a": selectAll(type),
       "Mod-]": indentInCode,

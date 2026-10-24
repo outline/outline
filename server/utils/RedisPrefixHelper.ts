@@ -3,13 +3,27 @@
  */
 export class RedisPrefixHelper {
   /**
-   * Gets key against which unfurl response for the given url is stored.
+   * Gets key against which unfurl response for the given url is stored. The
+   * key includes the user as unfurls can depend on the user's linked accounts.
    *
    * @param teamId The team ID to generate a key for.
+   * @param userId The user ID to generate a key for.
    * @param url The url to generate a key for.
+   * @returns the cache key string.
    */
-  public static getUnfurlKey(teamId: string, url = "") {
-    return `unfurl:${teamId}:${url}`;
+  public static getUnfurlKey(teamId: string, userId: string, url: string) {
+    return `${RedisPrefixHelper.getUnfurlPrefix(teamId)}${userId}:${url}`;
+  }
+
+  /**
+   * Gets the prefix shared by all unfurl keys of a team, or of all teams if no
+   * team is given.
+   *
+   * @param teamId The team ID to generate a prefix for.
+   * @returns the cache key prefix string.
+   */
+  public static getUnfurlPrefix(teamId?: string) {
+    return teamId ? `unfurl:${teamId}:` : "unfurl:";
   }
 
   /**

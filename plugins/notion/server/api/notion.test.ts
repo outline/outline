@@ -1,4 +1,4 @@
-import { buildUser } from "@server/test/factories";
+import { buildUser, buildViewer } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -39,5 +39,22 @@ describe("#notion.callback", () => {
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);
+  });
+
+  it.each([
+    ["member", buildUser],
+    ["viewer", buildViewer],
+  ])("should not allow a %s to create an integration", async (_, build) => {
+    const user = await build();
+    const state = JSON.stringify({ teamId: user.teamId, nonce: "nonce" });
+    const res = await server.get(
+      `/api/notion.callback?state=${encodeURIComponent(state)}&code=123`,
+      user,
+      {
+        redirect: "manual",
+        headers: { Cookie: "notionOAuthNonce=nonce" },
+      }
+    );
+    expect(res.status).toEqual(403);
   });
 });

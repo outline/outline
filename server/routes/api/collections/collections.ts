@@ -249,14 +249,10 @@ router.post(
     authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
-      where: {
-        collectionId: id,
-        groupId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await GroupMembership.findOneForUpdate(
+      { collectionId: id, groupId },
+      { transaction }
+    );
 
     if (membership) {
       membership.permission = permission;
@@ -407,14 +403,10 @@ router.post(
     authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
-    let membership = await UserMembership.findOne({
-      where: {
-        collectionId: id,
-        userId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await UserMembership.findOneForUpdate(
+      { collectionId: id, userId },
+      { transaction }
+    );
 
     if (membership) {
       membership.permission = permission || user.defaultCollectionPermission;
@@ -653,13 +645,10 @@ router.post(
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      let membership = await UserMembership.findOne({
-        where: {
-          collectionId: collection.id,
-          userId: user.id,
-        },
-        transaction,
-      });
+      const membership = await UserMembership.findOneForUpdate(
+        { collectionId: collection.id, userId: user.id },
+        { transaction }
+      );
 
       if (!membership) {
         await UserMembership.create(

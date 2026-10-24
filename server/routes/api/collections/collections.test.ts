@@ -209,7 +209,7 @@ describe("#collections.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
-  it("should not include archived collections", async () => {
+  it("should not include a collection after it is archived", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({

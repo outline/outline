@@ -37,7 +37,94 @@ function updateDocumentText(document: Document, text: string) {
 }
 
 describe("revisions.create", () => {
-  test("should send a notification to other collaborators", async () => {
+  describe.each([MentionType.User, MentionType.Group])(
+    "%s mentions",
+    (type) => {
+      it.each(["missing", "null", "preserved", "self"])(
+        "should use the correct actor for %s attribution",
+        async (scenario) => {
+          const actor = await buildUser();
+          const originalActor = await buildUser({ teamId: actor.teamId });
+          const recipient =
+            scenario === "self"
+              ? actor
+              : await buildUser({ teamId: actor.teamId });
+          const group =
+            type === MentionType.Group
+              ? await buildGroup({ teamId: actor.teamId })
+              : undefined;
+          if (group) {
+            await buildGroupUser({ groupId: group.id, userId: recipient.id });
+          }
+          const eventType = group
+            ? NotificationEventType.GroupMentionedInDocument
+            : NotificationEventType.MentionedInDocument;
+          recipient.setNotificationEventType(eventType);
+          await recipient.save();
+
+          const document = await buildDocument({
+            teamId: actor.teamId,
+            userId: actor.id,
+          });
+          await Revision.createFromDocument(
+            createContext({ user: actor }),
+            document
+          );
+          document.content = buildProseMirrorDoc([
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "mention",
+                  attrs: {
+                    id: "mention-attribution-test",
+                    type,
+                    modelId: group?.id ?? recipient.id,
+                    actorId:
+                      scenario === "preserved"
+                        ? originalActor.id
+                        : scenario === "null"
+                          ? null
+                          : undefined,
+                    label: "Mention",
+                  },
+                },
+              ],
+            },
+          ]).toJSON();
+          await document.save();
+          const revision = await Revision.createFromDocument(
+            createContext({ user: actor }),
+            document
+          );
+          const task = new RevisionCreatedNotificationsTask();
+          await task.perform({
+            name: "revisions.create",
+            documentId: document.id,
+            teamId: document.teamId,
+            actorId: actor.id,
+            modelId: revision.id,
+            ip,
+          });
+
+          const notifications = await Notification.findAll({
+            where: { documentId: document.id, event: eventType },
+          });
+          if (scenario === "self") {
+            expect(notifications).toHaveLength(0);
+          } else {
+            expect(notifications).toHaveLength(1);
+            expect(notifications[0].userId).toBe(recipient.id);
+            expect(notifications[0].actorId).toBe(
+              scenario === "preserved" ? originalActor.id : actor.id
+            );
+          }
+        }
+      );
+    }
+  );
+
+  it("should send a notification to other collaborators", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
@@ -67,7 +154,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  test("should not send a notification if viewed since update", async () => {
+  it("should not send a notification if viewed since update", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
@@ -108,7 +195,7 @@ describe("revisions.create", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should not send a notification to last editor", async () => {
+  it("should not send a notification to last editor", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
@@ -134,7 +221,7 @@ describe("revisions.create", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should send a notification for subscriptions, even to collaborator", async () => {
+  it("should send a notification for subscriptions, even to collaborator", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
@@ -174,7 +261,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  test("should create subscriptions for collaborator", async () => {
+  it("should create subscriptions for collaborator", async () => {
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
@@ -234,7 +321,7 @@ describe("revisions.create", () => {
     expect(userIds.length).toBe(3);
   });
 
-  test("should not send multiple emails", async () => {
+  it("should not send multiple emails", async () => {
     const spy = vi.spyOn(Notification, "create");
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
@@ -274,7 +361,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
-  test("should not create subscriptions if previously unsubscribed", async () => {
+  it("should not create subscriptions if previously unsubscribed", async () => {
     const spy = vi.spyOn(Notification, "create");
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
@@ -342,7 +429,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  test("should send a notification for subscriptions to non-collaborators", async () => {
+  it("should send a notification for subscriptions to non-collaborators", async () => {
     const spy = vi.spyOn(Notification, "create");
     let document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
@@ -384,7 +471,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
+  it("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
     const spy = vi.spyOn(Notification, "create");
 
     let document = await buildDocument();
@@ -430,7 +517,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  test("should not send a notification for subscriptions to members outside of the team", async () => {
+  it("should not send a notification for subscriptions to members outside of the team", async () => {
     const spy = vi.spyOn(Notification, "create");
 
     let document = await buildDocument();
@@ -479,7 +566,7 @@ describe("revisions.create", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  test("should not send a notification if viewed since update", async () => {
+  it("should not send a notification for the first revision if viewed since update", async () => {
     const spy = vi.spyOn(Notification, "create");
 
     const document = await buildDocument();
@@ -515,7 +602,7 @@ describe("revisions.create", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should not send a notification to last editor", async () => {
+  it("should not send a notification to last editor for the first revision", async () => {
     const spy = vi.spyOn(Notification, "create");
 
     const user = await buildUser();
@@ -540,7 +627,7 @@ describe("revisions.create", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should send a mention notification even when change is below threshold", async () => {
+  it("should send a mention notification even when change is below threshold", async () => {
     const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const mentioned = await buildUser({ teamId: actor.teamId, name: "Kim" });
@@ -597,7 +684,7 @@ describe("revisions.create", () => {
     );
   });
 
-  test("should not send a notification for group mentions when disableMentions is true", async () => {
+  it("should not send a notification for group mentions when disableMentions is true", async () => {
     const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const group = await buildGroup({

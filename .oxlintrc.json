@@ -9,9 +9,38 @@
     "patches/**",
     "*.d.ts"
   ],
-  "jsPlugins": ["./.oxlint/mobx.mjs", "./.oxlint/bundle.mjs"],
+  "jsPlugins": [
+    "./.oxlint/mobx.mjs",
+    "./.oxlint/bundle.mjs",
+    "./.oxlint/sequelize.mjs",
+    "./.oxlint/vitest.mjs",
+    "./.oxlint/editor.mjs",
+    "./.oxlint/koa.mjs",
+    "./.oxlint/react-router.mjs",
+    "./.oxlint/classes.mjs"
+  ],
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "vitest"],
   "rules": {
     "mobx/observable-needs-initializer": "error",
+    "sequelize/prefer-after-commit-helper": "error",
+    "vitest/consistent-test-it": [
+      "error",
+      { "fn": "it", "withinDescribe": "it" }
+    ],
+    "vitest/no-focused-tests": "error",
+    "vitest/no-disabled-tests": "error",
+    "vitest/no-identical-title": "error",
+    "vitest/expect-expect": "off",
+    "vitest/no-conditional-expect": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "vitest/require-to-throw-message": "off",
+    "vitest/valid-expect": "off",
+    "vitest/valid-title": "off",
+    "vitest-local/require-isolate-directive": "error",
+    "editor/sanitize-url-in-to-dom": "error",
+    "koa/no-request-origin": "error",
+    "react-router/no-deferred-use-location": "error",
+    "classes/no-private-identifier": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
@@ -102,12 +131,19 @@
                 ],
                 "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
               }
+            ],
+            "patterns": [
+              {
+                "group": ["lodash", "lodash/*", "lodash.*", "lodash-es"],
+                "message": "Use es-toolkit instead."
+              }
             ]
           }
         ],
         "no-unused-expressions": "error",
         "arrow-body-style": ["error", "as-needed"],
         "react/react-in-jsx-scope": "off",
+        "react/button-has-type": "error",
         "typescript/await-thenable": "error",
         "typescript/no-duplicate-type-constituents": "error",
         "typescript/no-meaningless-void-operator": "error",

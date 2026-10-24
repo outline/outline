@@ -1,4 +1,5 @@
 import { createReadStream } from "node:fs";
+import { subMinutes } from "date-fns";
 import path from "node:path";
 import type { File } from "formidable";
 import type {
@@ -154,6 +155,23 @@ class Attachment extends IdModel<
       key: this.key,
       acl: this.acl,
     });
+  }
+
+  /**
+   * Record that the attachment was accessed. The write happens at most once
+   * every five minutes.
+   *
+   * @returns A promise resolving to the attachment.
+   */
+  async updateAccessedAt() {
+    const fiveMinutesAgo = subMinutes(new Date(), 5);
+
+    if (this.lastAccessedAt && this.lastAccessedAt >= fiveMinutesAgo) {
+      return this;
+    }
+
+    this.lastAccessedAt = new Date();
+    return this.save({ silent: true });
   }
 
   // hooks

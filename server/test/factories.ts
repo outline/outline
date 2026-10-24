@@ -642,7 +642,7 @@ export async function buildAttachment(
     overrides.userId = user.id;
   }
 
-  if (!overrides.documentId) {
+  if (overrides.documentId === undefined) {
     const document = await buildDocument({
       teamId: overrides.teamId,
       userId: overrides.userId,
@@ -714,6 +714,7 @@ export async function buildEmoji(
     const attachment = await buildAttachment({
       teamId: overrides.teamId,
       userId: overrides.createdById,
+      documentId: null,
       contentType: "image/png",
     });
     overrides.attachmentId = attachment.id;
