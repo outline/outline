@@ -166,11 +166,17 @@ describe("#oauth.register", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should reject invalid redirect_uris", async () => {
+  it.each([
+    "not-a-url",
+    "http://evil.com/callback",
+    "https://example.com/callback#fragment",
+    "*",
+    "ftp://example.com/callback",
+  ])("should reject invalid redirect_uri %s", async (redirectUri) => {
     const res = await server.post("/oauth/register", {
       body: {
         client_name: "Test Client",
-        redirect_uris: ["not-a-url"],
+        redirect_uris: ["https://example.com/callback", redirectUri],
       },
       headers: {
         host: `${subdomain}.outline.dev`,
@@ -178,6 +184,11 @@ describe("#oauth.register", () => {
     });
 
     expect(res.status).toEqual(400);
+    const body = await res.json();
+    expect(body.error).toEqual("invalid_redirect_uri");
+    expect(body.error_description).toEqual(
+      `Invalid redirect URI: ${redirectUri}`
+    );
   });
 
   it("should reject empty redirect_uris array", async () => {
@@ -469,6 +480,26 @@ describe("#oauth.register management (RFC 7592)", () => {
       });
 
       expect(res.status).toEqual(401);
+    });
+
+    it("should reject an invalid redirect_uri", async () => {
+      const registered = await registerClient(server, subdomain);
+      const res = await server.put(`/oauth/register/${registered.client_id}`, {
+        body: {
+          client_name: "Updated Client",
+          redirect_uris: ["http://evil.com/callback"],
+        },
+        headers: {
+          Authorization: `Bearer ${registered.registration_access_token}`,
+        },
+      });
+
+      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(body.error).toEqual("invalid_redirect_uri");
+
+      const client = await OAuthClient.findByClientId(registered.client_id);
+      expect(client!.redirectUris).toEqual(registered.redirect_uris);
     });
 
     it("should reject invalid body", async () => {

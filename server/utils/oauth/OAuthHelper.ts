@@ -1,10 +1,6 @@
 import type { Context } from "koa";
 import type { OAuthClientValidation } from "@shared/validations";
-import {
-  isLoopbackUri,
-  isPrivateUseSchemeUrl,
-  isUrl,
-} from "@shared/utils/urls";
+import { isLoopbackUri, isPrivateUseSchemeUrl } from "@shared/utils/urls";
 import env from "@server/env";
 
 type ClientType = (typeof OAuthClientValidation.clientTypes)[number];
@@ -69,23 +65,30 @@ export class OAuthHelper {
    * @returns true if the URI is valid.
    */
   public static isValidRedirectUri(uri: string): boolean {
-    if (uri.includes("#") || uri.includes("*")) {
+    if (/[\s#*]/.test(uri)) {
       return false;
     }
 
-    // Loopback addresses may use http:// since TLS certificates cannot be
-    // obtained for them.
-    if (isLoopbackUri(uri) && new URL(uri).protocol === "http:") {
-      return true;
-    }
-
     // The recommended private-use form, e.g. com.example.app:/oauth2redirect,
-    // has no host so isUrl would reject it.
+    // has no host so it is checked separately.
     if (isPrivateUseSchemeUrl(uri)) {
       return true;
     }
 
-    return isUrl(uri, { requireHttps: true });
+    let url: URL;
+    try {
+      url = new URL(uri);
+    } catch {
+      return false;
+    }
+
+    if (url.protocol === "https:") {
+      return !!url.hostname;
+    }
+
+    // Loopback addresses may use http:// since TLS certificates cannot be
+    // obtained for them.
+    return url.protocol === "http:" && isLoopbackUri(uri);
   }
 
   /**
