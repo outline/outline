@@ -328,7 +328,7 @@
     "ioredis-mock": "^8.13.1",
     "lint-staged": "^16.4.0",
     "msw": "^2.15.0",
-    "oxfmt": "0.72.0",
+    "oxfmt": "0.73.0",
     "oxlint": "1.81.0",
     "oxlint-tsgolint": "7.0.2001",
     "react-refresh": "^0.18.0",
