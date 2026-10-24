@@ -248,7 +248,7 @@
     "socket.io-client": "^4.8.4",
     "sonner": "^2.0.8",
     "string-replace-to-array": "^2.1.1",
-    "styled-components": "^6.5.3",
+    "styled-components": "^6.6.0",
     "tiny-cookie": "^2.5.1",
     "tmp": "^0.2.6",
     "tunnel-agent": "^0.6.0",
