@@ -49,7 +49,7 @@ const captureWebhook = (
 };
 
 describe("DeliverWebhookTask", () => {
-  test("should not deliver events in a personal collection", async () => {
+  it("should not deliver events in a personal collection", async () => {
     const owner = await buildUser();
     const subscription = await buildWebhookSubscription({
       teamId: owner.teamId,
@@ -93,7 +93,7 @@ describe("DeliverWebhookTask", () => {
     ).toBe(0);
   });
 
-  test("should hit the subscription url and record a delivery", async () => {
+  it("should hit the subscription url and record a delivery", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -137,7 +137,7 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.responseBody).toEqual("SUCCESS");
   });
 
-  test("should hit the subscription url with signature header", async () => {
+  it("should hit the subscription url with signature header", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -166,7 +166,7 @@ describe("DeliverWebhookTask", () => {
     );
   });
 
-  test("should include the document collectionId in comment events", async () => {
+  it("should include the document collectionId in comment events", async () => {
     const user = await buildUser();
     const subscription = await buildWebhookSubscription({
       teamId: user.teamId,
@@ -209,7 +209,7 @@ describe("DeliverWebhookTask", () => {
     expect(parsedBody.payload.model.documentId).toBe(document.id);
   });
 
-  test("should include the document collectionId in revision events", async () => {
+  it("should include the document collectionId in revision events", async () => {
     const user = await buildUser();
     const subscription = await buildWebhookSubscription({
       teamId: user.teamId,
@@ -249,7 +249,7 @@ describe("DeliverWebhookTask", () => {
     expect(parsedBody.payload.model.documentId).toBe(document.id);
   });
 
-  test("should hit the subscription url when the eventing model doesn't exist", async () => {
+  it("should hit the subscription url when the eventing model doesn't exist", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -291,7 +291,7 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.responseBody).toBeDefined();
   });
 
-  test("should mark delivery as failed if post fails", async () => {
+  it("should mark delivery as failed if post fails", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -334,7 +334,7 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.responseBody).toEqual("FAILED");
   });
 
-  test("should disable the subscription if past deliveries failed", async () => {
+  it("should disable the subscription if past deliveries failed", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -384,7 +384,7 @@ describe("DeliverWebhookTask", () => {
 });
 
 describe("isExpectedNetworkError", () => {
-  test("treats node-fetch FetchError as expected", () => {
+  it("treats node-fetch FetchError as expected", () => {
     expect(
       isExpectedNetworkError(
         new FetchError("request to https://example.com failed", "system")
@@ -392,7 +392,7 @@ describe("isExpectedNetworkError", () => {
     ).toBe(true);
   });
 
-  test("treats raw socket errors as expected", () => {
+  it("treats raw socket errors as expected", () => {
     expect(isExpectedNetworkError(new Error("socket hang up"))).toBe(true);
     expect(
       isExpectedNetworkError(
@@ -401,7 +401,7 @@ describe("isExpectedNetworkError", () => {
     ).toBe(true);
   });
 
-  test("treats connection error codes as expected", () => {
+  it("treats connection error codes as expected", () => {
     for (const code of [
       "ECONNREFUSED",
       "ETIMEDOUT",
@@ -415,7 +415,7 @@ describe("isExpectedNetworkError", () => {
     }
   });
 
-  test("treats invalid certificate errors as expected", () => {
+  it("treats invalid certificate errors as expected", () => {
     expect(
       isExpectedNetworkError(
         Object.assign(new Error("self signed certificate"), {
@@ -425,13 +425,13 @@ describe("isExpectedNetworkError", () => {
     ).toBe(true);
   });
 
-  test("treats the request timeout thrown by the fetch wrapper as expected", () => {
+  it("treats the request timeout thrown by the fetch wrapper as expected", () => {
     expect(
       isExpectedNetworkError(new Error("Request timeout after 5000ms"))
     ).toBe(true);
   });
 
-  test("does not treat unrelated errors as expected", () => {
+  it("does not treat unrelated errors as expected", () => {
     expect(
       isExpectedNetworkError(new TypeError("undefined is not a function"))
     ).toBe(false);

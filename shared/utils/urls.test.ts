@@ -260,11 +260,6 @@ describe("sanitizeUrl", () => {
         "mailto:outline@getoutline.com"
       );
     });
-    it("should return the url as it's if it's mailto:", () => {
-      expect(urlsUtils.sanitizeUrl("mailto:outline@getoutline.com")).toEqual(
-        "mailto:outline@getoutline.com"
-      );
-    });
     it("should return the url as it's if it's sms:, fax:, tel:", () => {
       expect(urlsUtils.sanitizeUrl("mailto:outline@getoutline.com")).toEqual(
         "mailto:outline@getoutline.com"

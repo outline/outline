@@ -282,6 +282,8 @@ describe("#auth.config", () => {
     expect(body.data.providers[1].name).toBe("Passkeys");
   });
 
+  // Self-hosted auth.config reads the newest team, which other test files create in parallel.
+  // oxlint-disable-next-line vitest/no-disabled-tests
   describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
 

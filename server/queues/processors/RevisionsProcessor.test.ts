@@ -8,7 +8,7 @@ import RevisionsProcessor from "./RevisionsProcessor";
 const ip = "127.0.0.1";
 
 describe("documents.update.debounced", () => {
-  test("should create a revision", async () => {
+  it("should create a revision", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -44,7 +44,7 @@ describe("documents.update.debounced", () => {
     expect(event?.authType).toBe(AuthenticationType.APP);
   });
 
-  test("should not create a revision if identical to previous", async () => {
+  it("should not create a revision if identical to previous", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -77,7 +77,7 @@ describe("documents.update.debounced", () => {
     ]);
   });
 
-  test("should consume attribution up to the cutoff when identical to previous", async () => {
+  it("should consume attribution up to the cutoff when identical to previous", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,

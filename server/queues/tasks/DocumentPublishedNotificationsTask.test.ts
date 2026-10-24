@@ -25,7 +25,7 @@ describe("documents.publish", () => {
   describe.each([MentionType.User, MentionType.Group])(
     "%s mentions",
     (type) => {
-      test.each(["missing", "null", "preserved", "self"])(
+      it.each(["missing", "null", "preserved", "self"])(
         "should use the correct actor for %s attribution",
         async (scenario) => {
           const actor = await buildUser();
@@ -101,7 +101,7 @@ describe("documents.publish", () => {
     }
   );
 
-  test("should not send a notification to author", async () => {
+  it("should not send a notification to author", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const document = await buildDocument({
@@ -123,7 +123,7 @@ describe("documents.publish", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should send a notification to other users in team", async () => {
+  it("should send a notification to other users in team", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const document = await buildDocument({
@@ -144,7 +144,7 @@ describe("documents.publish", () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  test("should send only one notification in a 12-hour window", async () => {
+  it("should send only one notification in a 12-hour window", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const document = await buildDocument({
@@ -181,7 +181,7 @@ describe("documents.publish", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  test("should not send a notification to users without collection access", async () => {
+  it("should not send a notification to users without collection access", async () => {
     const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const collection = await buildCollection({
@@ -207,7 +207,7 @@ describe("documents.publish", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should not send a notification for group mentions when disableMentions is true", async () => {
+  it("should not send a notification for group mentions when disableMentions is true", async () => {
     const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const group = await buildGroup({

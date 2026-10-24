@@ -804,7 +804,7 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toBe(share.id);
     expect(body.data.shares[0].published).toBe(true);
   });
-  it("should allow reading share by documentId", async () => {
+  it("should return no content when the document has no share", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
