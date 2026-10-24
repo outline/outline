@@ -113,7 +113,7 @@
     "@simplewebauthn/server": "^13.3.3",
     "@socket.io/redis-adapter": "^8.3.0",
     "@tanstack/react-table": "^8.21.3",
-    "@tanstack/react-virtual": "^3.14.9",
+    "@tanstack/react-virtual": "^3.14.21",
     "@types/mailparser": "^3.4.6",
     "@vitejs/plugin-react": "^6.1.1",
     "async-sema": "^3.1.1",
