@@ -36,10 +36,13 @@ const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.vi
 
 /** The content of a file in the editor, without its frame or hidden controls. */
 const uploadContent = [
-  `.${EditorStyleHelper.imageWrapper} > :is(a, img, .${EditorStyleHelper.imageHandle})`,
+  `.${EditorStyleHelper.imageWrapper} > a`,
+  `.${EditorStyleHelper.imageWrapper} > img`,
+  `.${EditorStyleHelper.imageWrapper} > .${EditorStyleHelper.imageHandle}`,
   `.${EditorStyleHelper.videoWrapper} > video`,
   ".widget > *",
-  `.${EditorStyleHelper.pdfWrapper} > :is(:first-child, embed)`,
+  `.${EditorStyleHelper.pdfWrapper} > :first-child`,
+  `.${EditorStyleHelper.pdfWrapper} > embed`,
 ].join(", ");
 
 export const pulse = (color: string) => keyframes`
@@ -1072,12 +1075,12 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   user-select: none;
 
   /* The content of the file is faded but not its frame, so that the progress bar on the frame is not faded */
-  :is(${uploadContent}) {
+  ${uploadContent} {
     opacity: 0.5;
   }
 
   /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
-  :is(${uploadFrame}) {
+  ${uploadFrame} {
     position: relative;
 
     &::after {
@@ -1100,9 +1103,11 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   animation: ${uploadScaleIn} 150ms ease-out;
 }
 
-.${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {
-  /* Starts halfway through, from the opacity of the placeholder */
-  animation: ${fadeIn} 500ms linear -250ms;
+.${EditorStyleHelper.uploadComplete} {
+  ${uploadContent} {
+    /* Starts halfway through, from the opacity of the placeholder */
+    animation: ${fadeIn} 500ms linear -250ms;
+  }
 }
 
 .${EditorStyleHelper.uploadStatus} {
@@ -1204,8 +1209,9 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   caret-color: transparent;
 }
 
-/* Text blocks selected with the drag handle do not get an outline. */
-.ProseMirror-selectednode:not(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, hr) {
+/* Text blocks selected with the drag handle do not get an outline. Chained
+   :not() as the email CSS inliner does not support selector lists in :not(). */
+.ProseMirror-selectednode:not(p):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(ul):not(ol):not(li):not(blockquote):not(hr) {
   outline: 2px solid ${props.readOnly ? "transparent" : props.theme.selected};
 
   @media print {
@@ -1969,6 +1975,7 @@ mark {
 .${EditorStyleHelper.codeBlock} {
   position: relative;
   font-size: 90%;
+  border-radius: ${EditorStyleHelper.blockRadius};
 
   &:hover + .${EditorStyleHelper.codeBlockToggle},
   &:focus-within + .${EditorStyleHelper.codeBlockToggle},
