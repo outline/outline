@@ -1792,7 +1792,7 @@
   "Webhooks": "Webhook",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as an HTTPS request with a JSON payload in near real-time.": "Webhook 可在 {{appName}} 發生事件時通知您的應用程式。事件會以含有 JSON 承載資料的 HTTPS 請求近乎即時傳送。",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier 是一個可讓 {{appName}} 輕鬆整合數千種商務工具的平台。您可以自動化工作流程、同步資料等。",
-  "Delayed notification": "延遲通知",
+  "This notification was delayed and may be out of date.": "此通知已延遲，可能已過期。",
   "“{{ collectionName }}” created": "「{{ collectionName }}」已建立",
   "{{ userName }} created a collection": "{{ userName }} 建立了文件集",
   "{{ userName }} created the collection “{{ collectionName }}”": "{{ userName }} 建立了文件集「{{ collectionName }}」",
