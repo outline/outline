@@ -12,11 +12,13 @@
   "jsPlugins": [
     "./.oxlint/mobx.mjs",
     "./.oxlint/bundle.mjs",
-    "./.oxlint/sequelize.mjs"
+    "./.oxlint/sequelize.mjs",
+    "./.oxlint/editor.mjs"
   ],
   "rules": {
     "mobx/observable-needs-initializer": "error",
     "sequelize/prefer-after-commit-helper": "error",
+    "editor/sanitize-url-in-to-dom": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
