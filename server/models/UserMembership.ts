@@ -144,6 +144,38 @@ class UserMembership extends IdModel<
   // static methods
 
   /**
+   * Find the membership of a user on a collection or document and lock it for
+   * the remainder of the transaction. The lock is held even when no membership
+   * exists, so that concurrent grants cannot each create a membership.
+   *
+   * @param where the user and the collection or document of the membership.
+   * @param options additional options to pass to the query, with a transaction.
+   * @returns a promise that resolves to the membership, or null.
+   */
+  public static async findOneForUpdate(
+    where: {
+      userId: string;
+      collectionId?: string | null;
+      documentId?: string | null;
+    },
+    options: FindOptions<UserMembership> & { transaction: Transaction }
+  ) {
+    const { userId, collectionId, documentId } = where;
+    const targetId = collectionId ?? documentId;
+    await LockHelper.acquire(
+      this.sequelize!,
+      `userMembership:${targetId}:${userId}`.toLowerCase(),
+      options.transaction
+    );
+
+    return this.findOne({
+      ...options,
+      where: collectionId ? { userId, collectionId } : { userId, documentId },
+      lock: options.transaction.LOCK.UPDATE,
+    });
+  }
+
+  /**
    * Copy user memberships from one document to another.
    *
    * @param where The where clause to find the user memberships to copy.

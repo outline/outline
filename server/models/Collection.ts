@@ -633,6 +633,7 @@ class Collection extends ParanoidModel<
   ) {
     const collection = await this.scope("withAllMemberships").findOne({
       where: { id: collectionId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",

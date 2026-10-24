@@ -12,7 +12,11 @@ import { Document, Event } from "@server/models";
 import { parser, schema } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
@@ -190,6 +194,37 @@ describe("documentUpdater", () => {
 
     expect(notifyUpdateSpy).not.toHaveBeenCalled();
     notifyUpdateSpy.mockRestore();
+  });
+
+  it("should keep the loaded collection when the title changes", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const { id } = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+    });
+    const loadedCollection = document.collection;
+
+    const result = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        title: "New Title",
+        document,
+      })
+    );
+
+    expect(result).toBe(document);
+    expect(result.collection).toBe(loadedCollection);
+    expect(result.collection?.documentStructure?.[0].title).toEqual(
+      "New Title"
+    );
   });
 
   describe("replace", () => {

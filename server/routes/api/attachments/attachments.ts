@@ -338,14 +338,7 @@ const handleAttachmentsRedirect = async (
     throw AuthorizationError();
   }
 
-  await attachment.update(
-    {
-      lastAccessedAt: new Date(),
-    },
-    {
-      silent: true,
-    }
-  );
+  await attachment.updateAccessedAt();
 
   if (attachment.isStoredInPublicBucket) {
     ctx.set("Cache-Control", `max-age=604800, immutable`);

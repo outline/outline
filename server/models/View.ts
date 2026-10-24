@@ -100,13 +100,20 @@ class View extends IdModel<
 
   static async findByDocument(
     documentId: string,
-    { includeSuspended }: { includeSuspended?: boolean }
+    {
+      includeSuspended,
+      offset,
+      limit,
+    }: { includeSuspended?: boolean; offset?: number; limit?: number }
   ) {
     return this.findAll({
       where: {
         documentId,
       },
-      order: [["updatedAt", "DESC"]],
+      order: [
+        ["updatedAt", "DESC"],
+        ["id", "ASC"],
+      ],
       include: [
         {
           model: User,
@@ -116,6 +123,8 @@ class View extends IdModel<
             : { where: { suspendedAt: { [Op.is]: null } } }),
         },
       ],
+      offset,
+      limit,
     });
   }
 
