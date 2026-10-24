@@ -13,6 +13,7 @@ import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -22,6 +23,7 @@ import { StickyFilters } from "./components/StickyFilters";
 
 function Shares() {
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { t } = useTranslation();
   const location = useLocation();
   const history = useHistory();
@@ -51,7 +53,7 @@ function Shares() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: shares.findByQuery(reqParams.query ?? ""),
+    data: shares.findListedByQuery(reqParams.query ?? "", user),
     sort,
     reqFn: shares.fetchPage,
     reqParams,
