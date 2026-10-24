@@ -13,12 +13,18 @@
     "./.oxlint/mobx.mjs",
     "./.oxlint/bundle.mjs",
     "./.oxlint/sequelize.mjs",
-    "./.oxlint/editor.mjs"
+    "./.oxlint/editor.mjs",
+    "./.oxlint/koa.mjs",
+    "./.oxlint/react-router.mjs",
+    "./.oxlint/classes.mjs"
   ],
   "rules": {
     "mobx/observable-needs-initializer": "error",
     "sequelize/prefer-after-commit-helper": "error",
     "editor/sanitize-url-in-to-dom": "error",
+    "koa/no-request-origin": "error",
+    "react-router/no-deferred-use-location": "error",
+    "classes/no-private-identifier": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
@@ -109,12 +115,19 @@
                 ],
                 "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
               }
+            ],
+            "patterns": [
+              {
+                "group": ["lodash", "lodash/*", "lodash.*", "lodash-es"],
+                "message": "Use es-toolkit instead."
+              }
             ]
           }
         ],
         "no-unused-expressions": "error",
         "arrow-body-style": ["error", "as-needed"],
         "react/react-in-jsx-scope": "off",
+        "react/button-has-type": "error",
         "typescript/await-thenable": "error",
         "typescript/no-duplicate-type-constituents": "error",
         "typescript/no-meaningless-void-operator": "error",
