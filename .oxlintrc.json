@@ -9,9 +9,14 @@
     "patches/**",
     "*.d.ts"
   ],
-  "jsPlugins": ["./.oxlint/mobx.mjs", "./.oxlint/bundle.mjs"],
+  "jsPlugins": [
+    "./.oxlint/mobx.mjs",
+    "./.oxlint/bundle.mjs",
+    "./.oxlint/sequelize.mjs"
+  ],
   "rules": {
     "mobx/observable-needs-initializer": "error",
+    "sequelize/prefer-after-commit-helper": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
