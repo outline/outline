@@ -363,7 +363,7 @@ describe("POST /mcp/", () => {
         if (tool.annotations?.readOnlyHint) {
           expect(tool.annotations.destructiveHint, tool.name).toBe(false);
         }
-        if (/^(delete|update)_/.test(tool.name)) {
+        if (/^(delete|update|move)_/.test(tool.name)) {
           expect(tool.annotations?.destructiveHint, tool.name).toBe(true);
         }
       }

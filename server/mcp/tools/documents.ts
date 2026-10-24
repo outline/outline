@@ -520,7 +520,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Moves a document to a different location or reorders it within its current parent. Provide a collectionId to move to the root of a collection, a parentDocumentId to nest under another document, and/or an index to control position among siblings.",
         annotations: {
-          destructiveHint: false,
+          destructiveHint: true,
           idempotentHint: false,
           openWorldHint: false,
           readOnlyHint: false,
