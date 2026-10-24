@@ -9,16 +9,30 @@
         "no-restricted-imports": [
           "error",
           {
-            "name": "fetch-with-proxy",
-            "message": "Use `@server/utils/fetch` instead"
-          },
-          {
-            "name": "node-fetch",
-            "message": "Use `@server/utils/fetch` instead"
-          },
-          {
-            "name": "passport",
-            "message": "Use the `@outlinewiki/koa-passport` package"
+            "paths": [
+              {
+                "name": "fetch-with-proxy",
+                "message": "Use `@server/utils/fetch` instead"
+              },
+              {
+                "name": "node-fetch",
+                "message": "Use `@server/utils/fetch` instead"
+              },
+              {
+                "name": "passport",
+                "message": "Use the `@outlinewiki/koa-passport` package"
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["date-fns/*"],
+                "message": "Import from the `date-fns` barrel, which loads faster on the server."
+              },
+              {
+                "group": ["lodash", "lodash/*", "lodash.*", "lodash-es"],
+                "message": "Use es-toolkit instead."
+              }
+            ]
           }
         ]
       },
@@ -30,20 +44,34 @@
         "no-restricted-imports": [
           "error",
           {
-            "name": "fetch-with-proxy",
-            "message": "Use `@server/utils/fetch` instead"
-          },
-          {
-            "name": "node-fetch",
-            "message": "Use `@server/utils/fetch` instead"
-          },
-          {
-            "name": "passport",
-            "message": "Use the `@outlinewiki/koa-passport` package"
-          },
-          {
-            "name": "class-validator",
-            "message": "class-validator decorators are never executed by Sequelize. Use a decorator from `server/models/validators` or sequelize-typescript, and import check functions from `validator/lib/*`."
+            "paths": [
+              {
+                "name": "fetch-with-proxy",
+                "message": "Use `@server/utils/fetch` instead"
+              },
+              {
+                "name": "node-fetch",
+                "message": "Use `@server/utils/fetch` instead"
+              },
+              {
+                "name": "passport",
+                "message": "Use the `@outlinewiki/koa-passport` package"
+              },
+              {
+                "name": "class-validator",
+                "message": "class-validator decorators are never executed by Sequelize. Use a decorator from `server/models/validators` or sequelize-typescript, and import check functions from `validator/lib/*`."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["date-fns/*"],
+                "message": "Import from the `date-fns` barrel, which loads faster on the server."
+              },
+              {
+                "group": ["lodash", "lodash/*", "lodash.*", "lodash-es"],
+                "message": "Use es-toolkit instead."
+              }
+            ]
           }
         ]
       },

@@ -344,16 +344,15 @@ export const renderShare = async (ctx: Context, next: Next) => {
         })
       : undefined;
 
-  const canonicalUrl =
-    share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
-      ? `${share.canonicalUrl}${
-          documentSlug && document
-            ? document.path
-            : collectionSlug && collection
-              ? collection.path
-              : ""
-        }`
-      : undefined;
+  const canonicalUrl = share
+    ? `${share.canonicalUrl}${
+        documentSlug && document
+          ? document.path
+          : collectionSlug && collection
+            ? collection.path
+            : ""
+      }`
+    : undefined;
 
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
