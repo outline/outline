@@ -28,6 +28,8 @@ export async function afterCommit<T>(
   while (root.parent) {
     root = root.parent;
   }
+
+  // oxlint-disable-next-line sequelize/prefer-after-commit-helper
   root.afterCommit(async () => {
     await callback();
   });
