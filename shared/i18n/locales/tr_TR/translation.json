@@ -1792,7 +1792,7 @@
   "Webhooks": "Webhook'lar",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as an HTTPS request with a JSON payload in near real-time.": "Webhook'lar, {{appName}} içinde olaylar gerçekleştiğinde uygulamanızı bilgilendirmek için kullanılabilir. Olaylar, neredeyse gerçek zamanlı olarak JSON yükü içeren bir HTTPS isteği şeklinde gönderilir.",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier, {{appName}}'in binlerce diğer iş aracıyla kolayca entegre olmasına olanak tanıyan bir platformdur. İş akışlarınızı otomatikleştirin, verileri senkronize edin ve daha fazlasını yapın.",
-  "Delayed notification": "Gecikmeli bildirim",
+  "This notification was delayed and may be out of date.": "Bu bildirim gecikti ve güncel olmayabilir.",
   "“{{ collectionName }}” created": "“{{ collectionName }}” oluşturuldu",
   "{{ userName }} created a collection": "{{ userName }} bir koleksiyon oluşturdu",
   "{{ userName }} created the collection “{{ collectionName }}”": "{{ userName }}, “{{ collectionName }}” koleksiyonunu oluşturdu",
