@@ -7,7 +7,6 @@ import {
   createMcpHandler,
   type McpServerFactory,
   ProtocolErrorCode,
-  validateOriginHeader,
 } from "@modelcontextprotocol/server";
 import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
@@ -82,15 +81,16 @@ const mcpHandler = createMcpHandler(createServer, {
  */
 async function validateOrigin(ctx: APIContext, next: Next) {
   const { user } = ctx.state.auth;
-  const result = validateOriginHeader(ctx.get("origin"), [
-    new URL(env.URL).hostname,
-    new URL(user.team.url).hostname,
-  ]);
-  if (!result.ok) {
+  const origin = ctx.get("origin");
+  const allowedOrigins = [
+    new URL(env.URL).origin,
+    new URL(user.team.url).origin,
+  ];
+  if (origin && !allowedOrigins.includes(origin)) {
     ctx.status = 403;
     ctx.body = {
       jsonrpc: "2.0",
-      error: { code: -32000, message: result.message },
+      error: { code: -32000, message: `Invalid Origin: ${origin}` },
       id: null,
     };
     return;

@@ -101,6 +101,25 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(403);
     });
 
+    it.each([
+      ["scheme", (url: URL) => (url.protocol = "http:")],
+      ["port", (url: URL) => (url.port = "9000")],
+    ])(
+      "should reject requests from the app host with another %s",
+      async (_name, mutate) => {
+        const { accessToken } = await buildOAuthUser();
+        const url = new URL(env.URL);
+        mutate(url);
+
+        const { body } = mcpRequest("tools/list");
+        const res = await server.post("/mcp/", {
+          headers: { ...mcpHeaders(accessToken), Origin: url.origin },
+          body,
+        });
+        expect(res.status).toEqual(403);
+      }
+    );
+
     it("should allow requests from the app origin", async () => {
       const { accessToken } = await buildOAuthUser();
       const { body } = mcpRequest("tools/list");
