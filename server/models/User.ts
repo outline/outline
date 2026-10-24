@@ -51,6 +51,7 @@ import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -909,17 +910,11 @@ class User extends ParanoidModel<
       return;
     }
 
-    const invalidate = () =>
+    await afterCommit(options.transaction, () =>
       CacheHelper.removeData(
         RedisPrefixHelper.getUserCollectionIdsKey(model.id)
-      );
-
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+      )
+    );
   }
 
   // When a user's suspension state changes, invalidate the cached member count
@@ -948,22 +943,15 @@ class User extends ParanoidModel<
       return;
     }
 
-    const invalidate = async () => {
-      await Promise.all(
+    await afterCommit(options.transaction, () =>
+      Promise.all(
         groupIds.map((groupId) =>
           CacheHelper.removeData(
             RedisPrefixHelper.getCounterCacheKey("Group", "members", groupId)
           )
         )
-      );
-    };
-
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+      )
+    );
   }
 
   @AfterUpdate

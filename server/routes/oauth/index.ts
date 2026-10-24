@@ -15,6 +15,7 @@ import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -255,12 +256,12 @@ router.post(
     // The logo is copied to file storage in the background, so the consent
     // screen never loads it from a host that the client controls.
     if (logo_uri) {
-      ctx.state.transaction.afterCommit(async () => {
-        await new UploadOAuthClientLogoTask().scheduleOptional({
+      await afterCommit(ctx.state.transaction, () =>
+        new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
-        });
-      });
+        })
+      );
     }
 
     Logger.info("authentication", "OAuth client registered", {
@@ -320,12 +321,12 @@ router.put(
 
     // The stored logo is kept until the background task replaces it.
     if (logo_uri) {
-      ctx.state.transaction.afterCommit(async () => {
-        await new UploadOAuthClientLogoTask().scheduleOptional({
+      await afterCommit(ctx.state.transaction, () =>
+        new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
-        });
-      });
+        })
+      );
     }
 
     ctx.body = presentDCRClient(team.url, client, {
