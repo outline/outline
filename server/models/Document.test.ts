@@ -440,6 +440,52 @@ describe("#findAllParentDocumentIds", () => {
   });
 });
 
+describe("#membershipUserIds", () => {
+  it("should return unique users with direct and group memberships", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const [direct, grouped, both] = await Promise.all([
+      buildUser({ teamId: team.id }),
+      buildUser({ teamId: team.id }),
+      buildUser({ teamId: team.id }),
+    ]);
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+    });
+    const group = await buildGroup({ teamId: team.id });
+    await group.$add("user", grouped, { through: { createdById: owner.id } });
+    await group.$add("user", both, { through: { createdById: owner.id } });
+    await GroupMembership.create({
+      createdById: owner.id,
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+    });
+    await UserMembership.create({
+      createdById: owner.id,
+      documentId: document.id,
+      userId: direct.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    await UserMembership.create({
+      createdById: owner.id,
+      documentId: document.id,
+      userId: both.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const userIds = await Document.membershipUserIds(document.id);
+    expect(userIds.sort()).toEqual([direct.id, grouped.id, both.id].sort());
+
+    const writerIds = await Document.membershipUserIds(
+      document.id,
+      DocumentPermission.ReadWrite
+    );
+    expect(writerIds).toEqual([direct.id]);
+  });
+});
+
 describe("#membershipDocumentIds", () => {
   it("should return empty array when the user has no document memberships", async () => {
     const user = await buildUser();
