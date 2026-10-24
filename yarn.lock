@@ -6524,13 +6524,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mailparser@npm:^3.4.6":
-  version: 3.4.6
-  resolution: "@types/mailparser@npm:3.4.6"
+"@types/mailparser@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "@types/mailparser@npm:3.9.0"
   dependencies:
     "@types/node": "npm:*"
     iconv-lite: "npm:^0.6.3"
-  checksum: 10c0/5b08f226d6911daf7b8102f88eece0cd6d33a56ea339b85334bd4fdafe6b15e556c22f06a8ede5d54c8990368a93a71f5c599d7f83718f1ae9eea9420ffcd27c
+  checksum: 10c0/45c6566dd88b0bb3ca98674fe4dc08a8b3f6020f21ce3d215d4809a90c34a609cdc27f962368ccf248c03ec561a470ec524f45a8b3f4b3a26e68773653d9c32a
   languageName: node
   linkType: hard
 
@@ -7309,14 +7309,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zone-eu/mailsplit@npm:5.4.18":
-  version: 5.4.18
-  resolution: "@zone-eu/mailsplit@npm:5.4.18"
+"@zone-eu/mailsplit@npm:5.4.27":
+  version: 5.4.27
+  resolution: "@zone-eu/mailsplit@npm:5.4.27"
   dependencies:
-    libbase64: "npm:1.3.0"
-    libmime: "npm:5.4.5"
-    libqp: "npm:2.1.1"
-  checksum: 10c0/4e047b4cf57812756e6284504226e36e86a46dfa111e3834ae0d9d750c3bc894ea7a7f569922fce984538710f435f7404a660cbb8b90beae5d8707d9377e755d
+    libbase64: "npm:1.4.1"
+    libmime: "npm:5.5.2"
+    libqp: "npm:3.0.1"
+  checksum: 10c0/b9b96e94d16f40ee672837f0acf7752c8d9eac2cdc7eb469c9c3a1834589fb5a0a1c7fa0ee2104043cc85404bfec304260b32023226ace8083c9efc95f5b3512
   languageName: node
   linkType: hard
 
@@ -12573,22 +12573,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libbase64@npm:1.3.0":
-  version: 1.3.0
-  resolution: "libbase64@npm:1.3.0"
-  checksum: 10c0/4ece76ce09fa389d0c578c83a121c16452916521b177f50c3e8637dd9919170c96c12e1c7de63b1c88da8e5aa7e7ab574c26d18f1f64666f46b358b4b5873c8b
+"libbase64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "libbase64@npm:1.4.1"
+  checksum: 10c0/e47aff881070598fe9323b70b6c87a09f17c71b16cb60c33423a8c4f95ed77711474729b6ad547b89a9d8ec5671d7fa4005be619938dce442a5839229fa80836
   languageName: node
   linkType: hard
 
-"libmime@npm:5.4.5":
-  version: 5.4.5
-  resolution: "libmime@npm:5.4.5"
+"libmime@npm:5.5.2":
+  version: 5.5.2
+  resolution: "libmime@npm:5.5.2"
   dependencies:
     encoding-japanese: "npm:2.4.0"
     iconv-lite: "npm:0.7.3"
-    libbase64: "npm:1.3.0"
-    libqp: "npm:2.1.1"
-  checksum: 10c0/d019951776c3d9a42bb8ffc0267d6dd66fe64b67efebb158274cb3c3b8931fedbbaa52dce215f74dc0295691ad199c8c6400e6549c063b0ae4328a260ad0f384
+    libbase64: "npm:1.4.1"
+    libqp: "npm:3.0.1"
+  checksum: 10c0/de3f334f2be06a6cd4be92980cf072c8765e60f51a183d5059ddce79f72c3a06a719b47d3d38b2fba32482268a45e7aac5a7d97d8de4dc9d35e4d57023b33026
   languageName: node
   linkType: hard
 
@@ -12599,10 +12599,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libqp@npm:2.1.1":
-  version: 2.1.1
-  resolution: "libqp@npm:2.1.1"
-  checksum: 10c0/6e78f0676cd2424b3ddbf3273ab8539871299310dba433b7e2ec10a41830acecb4d074ea8b78b706dea349996f011ce519d92f81ede712c4824a2dd402aa376c
+"libqp@npm:3.0.1":
+  version: 3.0.1
+  resolution: "libqp@npm:3.0.1"
+  checksum: 10c0/20e30540c89a6d29a892473717c48ce7d4c5fee71810cb81686bcf61a0b7d02d51b0d4aa5535e4cbcc99986004ca0638521d0cb34a48456639b8d6c19e744817
   languageName: node
   linkType: hard
 
@@ -13042,21 +13042,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mailparser@npm:^3.9.28":
-  version: 3.9.30
-  resolution: "mailparser@npm:3.9.30"
+"mailparser@npm:^3.9.47":
+  version: 3.9.47
+  resolution: "mailparser@npm:3.9.47"
   dependencies:
-    "@zone-eu/mailsplit": "npm:5.4.18"
+    "@zone-eu/mailsplit": "npm:5.4.27"
     encoding-japanese: "npm:2.4.0"
     he: "npm:1.2.0"
     html-to-text: "npm:10.0.1"
     iconv-lite: "npm:0.7.3"
-    libmime: "npm:5.4.5"
+    libmime: "npm:5.5.2"
     linkify-it: "npm:5.0.2"
-    nodemailer: "npm:10.0.12"
+    nodemailer: "npm:10.1.7"
     punycode.js: "npm:2.3.1"
     tlds: "npm:1.261.0"
-  checksum: 10c0/e760857a76ff39d5b3d27ee18ec4a97e172c9e44e38003c0bb7d2a618e47fad9f4aa9b07faabd98c1dfb976cf34ceb192bcade8c2b655404dad6279f86568918
+  checksum: 10c0/3096562996f574cc22e95eafa9fe760e8a33e69164551af67f59e22a952f9a9d9012f749ec610a9ae1ef3fe0dfe0560c508b83d85a94bb226f1438581d97f328
   languageName: node
   linkType: hard
 
@@ -13779,7 +13779,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:10.0.12, nodemailer@npm:^10.0.9":
+"nodemailer@npm:10.1.7":
+  version: 10.1.7
+  resolution: "nodemailer@npm:10.1.7"
+  checksum: 10c0/1bac1f2fb7a60ffa889973cfd1e71da2bdecacd82eb263a612a587a0c06cec43a9a7452fcbd830c39c3a047ef99eb101cb5cf2c6a0a9523624c38f1ae7f01bcb
+  languageName: node
+  linkType: hard
+
+"nodemailer@npm:^10.0.9":
   version: 10.0.12
   resolution: "nodemailer@npm:10.0.12"
   checksum: 10c0/1d816272d9b611f3dde6b9b25cb69a54dba558cc4655b60c620d96fee6bedda3c30ae1c002a30c6e45690559324f06a35b7e585d18ae64c303dc2eebc5e6a184
@@ -14168,7 +14175,7 @@ __metadata:
     "@types/koa-logger": "npm:^3.1.5"
     "@types/koa-mount": "npm:^4.0.5"
     "@types/koa-sslify": "npm:^4.0.6"
-    "@types/mailparser": "npm:^3.4.6"
+    "@types/mailparser": "npm:^3.9.0"
     "@types/markdown-it": "npm:14.2.0"
     "@types/markdown-it-container": "npm:^2.0.11"
     "@types/markdown-it-emoji": "npm:^3.0.1"
@@ -14259,7 +14266,7 @@ __metadata:
     koa-useragent: "npm:^4.1.0"
     lib0: "npm:^0.2.99"
     lint-staged: "npm:^16.4.0"
-    mailparser: "npm:^3.9.28"
+    mailparser: "npm:^3.9.47"
     mammoth: "npm:^1.11.0"
     markdown-it: "npm:^14.3.3"
     markdown-it-container: "npm:^3.0.0"
