@@ -2,8 +2,6 @@ import passport from "@outlinewiki/koa-passport";
 import type { Request } from "koa";
 import Router from "@koa/router";
 import { capitalize } from "es-toolkit/compat";
-import type { Profile } from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { toError } from "@shared/utils/error";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
@@ -26,6 +24,8 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { createContext } from "@server/context";
+import { GoogleStrategy } from "./GoogleStrategy";
+import type { GoogleProfile } from "./GoogleStrategy";
 
 const router = new Router();
 
@@ -33,15 +33,6 @@ const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
 ];
-
-type GoogleProfile = Profile & {
-  email: string;
-  picture: string;
-  _json: {
-    hd?: string;
-    locale?: string;
-  };
-};
 
 if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   const strategy = new GoogleStrategy(
@@ -117,7 +108,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
         // Request a larger size profile picture than the default by tweaking
         // the query parameter.
-        const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
+        const avatarUrl = profile.picture?.replace("=s96-c", "=s128-c");
         const locale = profile._json.locale;
         const language = locale
           ? languages.find((l) => l.startsWith(locale))
@@ -173,22 +164,36 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
       includeHostQueryParam: true,
     });
     let extraScopes: string[] = [];
+    let hostedDomain: string | undefined;
 
     if (team) {
-      const authProvider = await AuthenticationProvider.findOne({
+      const authProviders = await AuthenticationProvider.findAll({
         where: { name: config.id, teamId: team.id },
       });
+      const groupSyncProvider = authProviders.find(
+        (authProvider) => authProvider.settings?.groupSyncEnabled
+      );
 
-      if (authProvider?.settings?.groupSyncEnabled) {
-        extraScopes = authProvider.settings.groupSyncScopes ?? [
+      if (groupSyncProvider) {
+        extraScopes = groupSyncProvider.settings?.groupSyncScopes ?? [
           "https://www.googleapis.com/auth/admin.directory.group.readonly",
         ];
+      }
+
+      // Limit the account chooser to the Workspace domain when it is the only
+      // one, as Google accepts a single domain hint.
+      const enabledProviders = authProviders.filter(
+        (authProvider) => authProvider.enabled
+      );
+      if (enabledProviders.length === 1 && enabledProviders[0].providerId) {
+        hostedDomain = enabledProviders[0].providerId;
       }
     }
 
     return passport.authenticate(config.id, {
       accessType: "offline",
       prompt: "select_account consent",
+      hostedDomain,
       scope: [...scopes, ...extraScopes],
     })(ctx, next);
   });

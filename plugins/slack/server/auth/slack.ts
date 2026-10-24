@@ -1,8 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Request } from "koa";
 import Router from "@koa/router";
-import type { Profile } from "passport";
-import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -33,28 +31,13 @@ import { parseEmail } from "@shared/utils/email";
 import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
+import { SlackStrategy } from "./SlackStrategy";
+import type { SlackProfile } from "./SlackStrategy";
 import {
   SlackUtils,
   SlackOAuthNonceCookie,
 } from "plugins/slack/shared/SlackUtils";
 import { createContext } from "@server/context";
-
-type SlackProfile = Profile & {
-  team: {
-    id: string;
-    name: string;
-    domain: string;
-    image_192: string;
-    image_230: string;
-  };
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image_192: string;
-    image_230: string;
-  };
-};
 
 const router = new Router();
 const providerName = "slack";
@@ -135,9 +118,6 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       }
     }
   );
-  // For some reason the author made the strategy name capatilised, I don't know
-  // why but we need everything lowercase so we just monkey-patch it here.
-  strategy.name = providerName;
   passport.use(withProxyAgent(strategy));
 
   router.get("slack", startOAuthFlow, passport.authenticate(providerName));
