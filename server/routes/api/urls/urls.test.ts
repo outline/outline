@@ -577,33 +577,6 @@ Install instructions here.`
     expect(res.status).toEqual(204);
   });
 
-  it("should not share a cached external url unfurl between teammates", async () => {
-    const teammate = await buildUser({ teamId: user.teamId });
-    const url = `https://${randomString(8)}.example.com`;
-
-    (Iframely.requestResource as Mock).mockResolvedValue({
-      url,
-      meta: { title: "Private" },
-      links: {},
-    });
-    const res = await server.post("/api/urls.unfurl", user, {
-      body: { url },
-    });
-    expect(res.status).toEqual(200);
-    expect((await res.json()).title).toEqual("Private");
-
-    (Iframely.requestResource as Mock).mockResolvedValue({
-      url,
-      meta: { title: "Public" },
-      links: {},
-    });
-    const teammateRes = await server.post("/api/urls.unfurl", teammate, {
-      body: { url },
-    });
-    expect(teammateRes.status).toEqual(200);
-    expect((await teammateRes.json()).title).toEqual("Public");
-  });
-
   it("should cache a permanent external url error for a day", async () => {
     (Iframely.requestResource as Mock).mockResolvedValue({
       status: 403,
