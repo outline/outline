@@ -590,7 +590,7 @@ Install instructions here.`
 
     expect(res.status).toEqual(204);
     const ttl = await Redis.defaultClient.ttl(
-      RedisPrefixHelper.getUnfurlKey(user.teamId, url)
+      RedisPrefixHelper.getUnfurlKey(user.teamId, user.id, url)
     );
     expect(ttl).toBeGreaterThan(Hour.seconds);
   });
@@ -608,7 +608,7 @@ Install instructions here.`
 
     expect(res.status).toEqual(204);
     const ttl = await Redis.defaultClient.ttl(
-      RedisPrefixHelper.getUnfurlKey(user.teamId, url)
+      RedisPrefixHelper.getUnfurlKey(user.teamId, user.id, url)
     );
     expect(ttl).toBeGreaterThan(0);
     expect(ttl).toBeLessThanOrEqual(60);
