@@ -581,6 +581,38 @@ describe("ClientMetadataHelper", () => {
       }
     );
 
+    it("should accept a document that supports none alongside other methods", async () => {
+      const clientId = buildClientId();
+      mockDocument(
+        clientId,
+        buildDocument(clientId, {
+          token_endpoint_auth_method: "private_key_jwt",
+          token_endpoint_auth_methods_supported: ["none", "private_key_jwt"],
+          jwks_uri: "https://example.com/oauth/jwks.json",
+        })
+      );
+
+      const client = await ClientMetadataHelper.findOrFetchByClientId(
+        clientId,
+        team
+      );
+      expect(client?.clientType).toEqual("public");
+    });
+
+    it("should reject a document whose supported methods do not include none", async () => {
+      const clientId = buildClientId();
+      mockDocument(
+        clientId,
+        buildDocument(clientId, {
+          token_endpoint_auth_method: "none",
+          token_endpoint_auth_methods_supported: ["private_key_jwt"],
+        })
+      );
+
+      await expectInvalidMetadata(clientId, "token_endpoint_auth_method");
+      expect(await OAuthClient.findByClientId(clientId)).toBeNull();
+    });
+
     it("should reject a document with private key material", async () => {
       const clientId = buildClientId();
       mockDocument(
