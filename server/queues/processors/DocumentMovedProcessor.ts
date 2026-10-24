@@ -1,3 +1,4 @@
+import { groupBy } from "es-toolkit";
 import type { Transaction } from "sequelize";
 import { Document, GroupMembership, UserMembership } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -22,6 +23,18 @@ export default class DocumentMovedProcessor extends BaseProcessor {
         { transaction }
       );
       const documentIds = [document.id, ...childDocumentIds];
+
+      // Load the subtree once so that the published children of each
+      // membership document are found without a query per membership.
+      const documents = await Document.unscoped().findAll({
+        attributes: ["id", "parentDocumentId", "publishedAt"],
+        where: { id: documentIds },
+        transaction,
+      });
+      const documentsByParentId = groupBy(
+        documents,
+        (doc) => doc.parentDocumentId ?? ""
+      );
 
       // If there are any sourced memberships for this document, we need to go to the source
       // memberships and recalculate the membership for the user or group.
@@ -65,16 +78,26 @@ export default class DocumentMovedProcessor extends BaseProcessor {
       await this.recalculateUserMemberships(
         parentDocumentUserMemberships,
         transaction,
+        documentsByParentId,
         document.id
       );
       await this.recalculateGroupMemberships(
         parentDocumentGroupMemberships,
         transaction,
+        documentsByParentId,
         document.id
       );
 
-      await this.recalculateUserMemberships(ownUserMemberships, transaction);
-      await this.recalculateGroupMemberships(ownGroupMemberships, transaction);
+      await this.recalculateUserMemberships(
+        ownUserMemberships,
+        transaction,
+        documentsByParentId
+      );
+      await this.recalculateGroupMemberships(
+        ownGroupMemberships,
+        transaction,
+        documentsByParentId
+      );
     });
   }
 
@@ -106,31 +129,77 @@ export default class DocumentMovedProcessor extends BaseProcessor {
 
   private async recalculateUserMemberships(
     memberships: UserMembership[],
-    transaction?: Transaction,
+    transaction: Transaction,
+    documentsByParentId: Record<string, Document[]>,
     documentId?: string
   ) {
     await Promise.all(
-      memberships.map((membership) =>
-        UserMembership.createSourcedMemberships(membership, {
+      memberships.map(async (membership) => {
+        const targetDocumentId = documentId ?? membership.documentId;
+        if (!targetDocumentId) {
+          return;
+        }
+
+        await UserMembership.createSourcedMemberships(membership, {
           transaction,
           documentId,
-        })
-      )
+          childDocumentIds: this.getPublishedChildDocumentIds(
+            targetDocumentId,
+            documentsByParentId
+          ),
+        });
+      })
     );
   }
 
   private async recalculateGroupMemberships(
     memberships: GroupMembership[],
-    transaction?: Transaction,
+    transaction: Transaction,
+    documentsByParentId: Record<string, Document[]>,
     documentId?: string
   ) {
     await Promise.all(
-      memberships.map((membership) =>
-        GroupMembership.createSourcedMemberships(membership, {
+      memberships.map(async (membership) => {
+        const targetDocumentId = documentId ?? membership.documentId;
+        if (!targetDocumentId) {
+          return;
+        }
+
+        await GroupMembership.createSourcedMemberships(membership, {
           transaction,
           documentId,
-        })
-      )
+          childDocumentIds: this.getPublishedChildDocumentIds(
+            targetDocumentId,
+            documentsByParentId
+          ),
+        });
+      })
     );
+  }
+
+  /**
+   * Find the published descendants of a document, without passing through
+   * unpublished documents.
+   *
+   * @param documentId the id of the document to start from.
+   * @param documentsByParentId the documents of the subtree, grouped by parent id.
+   * @returns the ids of the published descendant documents.
+   */
+  private getPublishedChildDocumentIds(
+    documentId: string,
+    documentsByParentId: Record<string, Document[]>
+  ): string[] {
+    const result: string[] = [];
+    let parentIds = [documentId];
+
+    while (parentIds.length) {
+      parentIds = parentIds
+        .flatMap((parentId) => documentsByParentId[parentId] ?? [])
+        .filter((doc) => doc.publishedAt)
+        .map((doc) => doc.id);
+      result.push(...parentIds);
+    }
+
+    return result;
   }
 }

@@ -867,4 +867,71 @@ describe("DocumentMovedProcessor", () => {
     expect(childUserMemberships[0].sourceId).toBe(ownUserMembership.id);
     expect(childGroupMemberships[0].sourceId).toBe(ownGroupMembership.id);
   });
+
+  it("should not propagate sourced permissions to drafts or their children", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const topDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const sourceUserMembership = await UserMembership.create({
+      userId: user2.id,
+      documentId: topDocument.id,
+      createdById: user.id,
+    });
+
+    const movedDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: topDocument.id,
+    });
+    const publishedChild = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: movedDocument.id,
+    });
+    const draftChild = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: movedDocument.id,
+      publishedAt: null,
+    });
+    const childOfDraft = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: draftChild.id,
+    });
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: movedDocument.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    const memberships = await UserMembership.findAll({
+      where: { userId: user2.id, sourceId: sourceUserMembership.id },
+    });
+    const documentIds = memberships.map((membership) => membership.documentId);
+    expect(documentIds).toHaveLength(2);
+    expect(documentIds).toEqual(
+      expect.arrayContaining([movedDocument.id, publishedChild.id])
+    );
+    expect(documentIds).not.toContain(draftChild.id);
+    expect(documentIds).not.toContain(childOfDraft.id);
+  });
 });
