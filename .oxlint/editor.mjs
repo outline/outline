@@ -52,11 +52,22 @@ function isInsideToDOM(node) {
   return false;
 }
 
+/** Returns the variable that the identifier refers to, or null if it is not declared. */
+function resolveVariable(scope, identifier) {
+  for (let current = scope; current; current = current.upper) {
+    const variable = current.set.get(identifier.name);
+    if (variable) {
+      return variable;
+    }
+  }
+  return null;
+}
+
 /**
  * Returns true if the value cannot carry an unsafe url: a constant, an empty
  * value, a direct sanitizer call, or a choice between such values.
  */
-function isSafeValue(node, sanitizers) {
+function isSafeValue(node, isSanitizer) {
   switch (node.type) {
     case "Literal":
       return typeof node.value === "string" || node.value === null;
@@ -65,18 +76,16 @@ function isSafeValue(node, sanitizers) {
     case "Identifier":
       return node.name === "undefined";
     case "CallExpression":
-      return (
-        node.callee.type === "Identifier" && sanitizers.has(node.callee.name)
-      );
+      return node.callee.type === "Identifier" && isSanitizer(node.callee);
     case "ConditionalExpression":
       return (
-        isSafeValue(node.consequent, sanitizers) &&
-        isSafeValue(node.alternate, sanitizers)
+        isSafeValue(node.consequent, isSanitizer) &&
+        isSafeValue(node.alternate, isSanitizer)
       );
     case "LogicalExpression":
       return (
-        isSafeValue(node.left, sanitizers) &&
-        isSafeValue(node.right, sanitizers)
+        isSafeValue(node.left, isSanitizer) &&
+        isSafeValue(node.right, isSanitizer)
       );
     default:
       return false;
@@ -105,10 +114,22 @@ const plugin = {
           return {};
         }
 
-        const sanitizers = new Set();
+        const sanitizerImports = new Set();
+
+        // Resolve by binding so a local function that shadows the import is not trusted.
+        const isSanitizer = (identifier) => {
+          const variable = resolveVariable(
+            context.sourceCode.getScope(identifier),
+            identifier
+          );
+          return (
+            !!variable &&
+            variable.defs.some((def) => sanitizerImports.has(def.node))
+          );
+        };
 
         const check = (node, name, value) => {
-          if (!isSafeValue(value, sanitizers)) {
+          if (!isSafeValue(value, isSanitizer)) {
             context.report({
               node,
               messageId: "unsanitized",
@@ -127,7 +148,7 @@ const plugin = {
                 specifier.type === "ImportSpecifier" &&
                 SANITIZER_NAMES.has(keyName(specifier.imported, false))
               ) {
-                sanitizers.add(specifier.local.name);
+                sanitizerImports.add(specifier);
               }
             }
           },
@@ -151,7 +172,7 @@ const plugin = {
             ) {
               return;
             }
-            const name = keyName(node.arguments[0], false);
+            const name = keyName(node.arguments[0], true);
             if (!URL_ATTRIBUTES.has(name) || !isInsideToDOM(node)) {
               return;
             }
