@@ -3,7 +3,6 @@ import type {
   onDisconnectPayload,
   onChangePayload,
 } from "@hocuspocus/server";
-import { subMinutes } from "date-fns";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -42,19 +41,10 @@ export class ViewsExtension implements Extension {
         "multiplayer",
         `User ${context.user.id} viewed "${documentName}"`
       );
-      const { user } = context;
-      const promises: Promise<unknown>[] = [
-        View.touch(documentId, user.id, true),
-      ];
-
-      // Write user activity at most every five minutes, as in the API.
-      if (!user.lastActiveAt || user.lastActiveAt < subMinutes(new Date(), 5)) {
-        promises.push(
-          user.update({ lastActiveAt: new Date() }, { hooks: false })
-        );
-      }
-
-      await Promise.all(promises);
+      await Promise.all([
+        View.touch(documentId, context.user.id, true),
+        context.user.updateActiveAt(),
+      ]);
     }
   }
 
