@@ -1792,7 +1792,7 @@
   "Webhooks": "Webhooks",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as an HTTPS request with a JSON payload in near real-time.": "Les webhooks peuvent être utilisés pour avertir votre application lorsque des événements se produisent dans {{appName}}. Les événements sont envoyés sous forme de requête HTTPS avec une charge utile JSON en quasi-temps réel.",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier est une plate-forme qui permet à {{appName}} de s'intégrer facilement à des milliers d'autres outils professionnels. Automatisez vos flux de travail, synchronisez les données, et plus.",
-  "Delayed notification": "Notification différée",
+  "This notification was delayed and may be out of date.": "This notification was delayed and may be out of date.",
   "“{{ collectionName }}” created": "« {{ collectionName }} » créée",
   "{{ userName }} created a collection": "{{ userName }} a créé une collection",
   "{{ userName }} created the collection “{{ collectionName }}”": "{{ userName }} a créé la collection « {{ collectionName }} »",
