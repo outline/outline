@@ -369,6 +369,30 @@ describe("#hooks.slack", () => {
     expect(JSON.stringify(body)).not.toContain(document.title);
   });
 
+  it("should not match a suspended linked account", async () => {
+    const user = await buildUser({ suspendedAt: new Date() });
+    const slack = {
+      serviceTeamId: randomString(8),
+      serviceUserId: randomString(8),
+    };
+    await buildIntegration({
+      teamId: user.teamId,
+      userId: user.id,
+      type: IntegrationType.LinkedAccount,
+      settings: { slack },
+    });
+    const res = await server.post("/api/hooks.slack", {
+      body: {
+        token: env.SLACK_VERIFICATION_TOKEN,
+        user_id: slack.serviceUserId,
+        team_id: slack.serviceTeamId,
+        text: "contains",
+      },
+    });
+    const body = await res.json();
+    expect(body.blocks[0].text.text).toContain("haven’t linked");
+  });
+
   it("should error if incorrect verification token", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
