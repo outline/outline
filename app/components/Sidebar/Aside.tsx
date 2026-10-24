@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";

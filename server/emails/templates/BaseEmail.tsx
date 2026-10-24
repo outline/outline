@@ -1,5 +1,5 @@
-import type { EmailAddress } from "addressparser";
-import addressparser from "addressparser";
+import type { MailboxAddress } from "nodemailer/lib/addressparser";
+import addressparser from "nodemailer/lib/addressparser";
 import type Bull from "bull";
 import invariant from "invariant";
 import { t as i18nT } from "i18next";
@@ -9,6 +9,7 @@ import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { isRTLLanguage } from "@shared/utils/rtl";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
@@ -22,6 +23,8 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import type { NotificationMetadata } from "@server/types";
+import { BodyNoticeContext } from "./components/Body";
+import { DirectionContext } from "./components/Direction";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
@@ -151,31 +154,36 @@ export default abstract class BaseEmail<
       ? await Notification.emailReferences(notification)
       : undefined;
 
-    // Check if notification is considerably delayed and annotate
-    // the subject. This is in case of extended downtime or queue backlogs
-    let subject = this.subject(data);
-    if (notification) {
-      if (notification.createdAt < subMinutes(new Date(), 30)) {
-        subject = `${this.t("Delayed notification")}: ${subject}`;
-      }
-    }
+    // Note a considerable delay in the body, as a subject change breaks threading.
+    const delayedNotice =
+      notification && notification.createdAt < subMinutes(new Date(), 30)
+        ? this.t("This notification was delayed and may be out of date.")
+        : undefined;
+
+    const lang = this.locale;
+    const dir = isRTLLanguage(lang) ? "rtl" : "ltr";
 
     try {
+      const text = this.renderAsText(data);
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
         from: this.from(data),
-        subject,
+        subject: this.subject(data),
         messageId,
         references,
         previewText: this.preview(data),
+        lang,
+        dir,
         component: (
-          <>
-            {this.render(data)}
-            {notification ? this.pixel(notification) : null}
-          </>
+          <DirectionContext.Provider value={dir}>
+            <BodyNoticeContext.Provider value={delayedNotice}>
+              {this.render(data)}
+              {notification ? this.pixel(notification) : null}
+            </BodyNoticeContext.Provider>
+          </DirectionContext.Provider>
         ),
-        text: this.renderAsText(data),
+        text: delayedNotice ? `${delayedNotice}\n\n${text}` : text,
         headCSS: this.headCSS?.(data),
         unsubscribeUrl: this.unsubscribeUrl?.(data),
         tags: { category: this.category, template: templateName },
@@ -204,13 +212,13 @@ export default abstract class BaseEmail<
     }
   }
 
-  private from(props: S & T): EmailAddress {
+  private from(props: S & T): MailboxAddress {
     invariant(
       env.SMTP_FROM_EMAIL,
       "SMTP_FROM_EMAIL is required to send emails"
     );
 
-    const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
+    const parsedFrom = addressparser(env.SMTP_FROM_EMAIL, { flatten: true })[0];
     invariant(
       parsedFrom?.address?.includes("@"),
       `SMTP_FROM_EMAIL is not a valid email address: "${env.SMTP_FROM_EMAIL}"`
@@ -356,7 +364,7 @@ export default abstract class BaseEmail<
 
     // Process user mentions to ensure they are up to date with the database
     const processedNode = ProsemirrorHelper.toProsemirror(
-      await ProsemirrorHelper.processMentions(node)
+      await ProsemirrorHelper.processMentions(node, team.id)
     );
 
     let content = await ProsemirrorHelper.toHTML(processedNode, {

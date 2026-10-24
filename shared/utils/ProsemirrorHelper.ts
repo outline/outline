@@ -115,7 +115,7 @@ export class ProsemirrorHelper {
       if (!node) {
         break;
       }
-      isEmpty = ProsemirrorHelper.toPlainText(node).trim() === "";
+      isEmpty = !ProsemirrorHelper.hasText(node);
       if (isEmpty) {
         start += node.nodeSize;
       }
@@ -128,7 +128,7 @@ export class ProsemirrorHelper {
       if (!node) {
         break;
       }
-      isEmpty = ProsemirrorHelper.toPlainText(node).trim() === "";
+      isEmpty = !ProsemirrorHelper.hasText(node);
       if (isEmpty) {
         end -= node.nodeSize;
       }
@@ -147,23 +147,7 @@ export class ProsemirrorHelper {
       return !doc || doc.textContent.trim() === "";
     }
 
-    let empty = true;
-    doc.descendants((child: Node) => {
-      // If we've already found non-empty data, we can stop descending further
-      if (!empty) {
-        return false;
-      }
-
-      if (child.type.spec.leafText) {
-        empty = !child.type.spec.leafText(child).trim();
-      } else if (child.isText) {
-        empty = !child.text?.trim();
-      }
-
-      return empty;
-    });
-
-    return empty;
+    return !ProsemirrorHelper.hasText(doc);
   }
 
   /**
@@ -206,32 +190,33 @@ export class ProsemirrorHelper {
     return comments;
   }
 
-  private static getAnchorsForHeadingNodes(doc: Node): NodeAnchor[] {
+  /**
+   * Returns the anchors for headings and for nodes with comments in the
+   * document, headings first.
+   *
+   * @param doc Prosemirror document node.
+   * @returns array of anchors.
+   */
+  static getAnchors(doc: Node): NodeAnchor[] {
     const slugger = new HeadingSlugger();
-    const anchors: NodeAnchor[] = [];
+    const headingAnchors: NodeAnchor[] = [];
+    const imageAnchors: NodeAnchor[] = [];
+
     doc.descendants((node, pos) => {
-      if (node.type.name !== "heading") {
-        return;
+      if (node.type.name === "heading") {
+        headingAnchors.push({
+          pos,
+          id: slugger.slug(node),
+          className: EditorStyleHelper.headingPositionAnchor,
+        });
       }
 
-      anchors.push({
-        pos,
-        id: slugger.slug(node),
-        className: EditorStyleHelper.headingPositionAnchor,
-      });
-    });
-    return anchors;
-  }
-
-  private static getAnchorsForImageNodes(doc: Node): NodeAnchor[] {
-    const anchors: NodeAnchor[] = [];
-    doc.descendants((node, pos) => {
       if (Array.isArray(node.attrs?.marks)) {
         (
           node.attrs.marks as { type?: string; attrs?: { id?: string } }[]
         ).forEach((mark) => {
           if (mark?.type === "comment" && mark?.attrs?.id) {
-            anchors.push({
+            imageAnchors.push({
               pos,
               id: `comment-${mark.attrs.id}`,
               className: EditorStyleHelper.imagePositionAnchor,
@@ -241,14 +226,7 @@ export class ProsemirrorHelper {
       }
     });
 
-    return anchors;
-  }
-
-  static getAnchors(doc: Node): NodeAnchor[] {
-    return [
-      ...ProsemirrorHelper.getAnchorsForHeadingNodes(doc),
-      ...ProsemirrorHelper.getAnchorsForImageNodes(doc),
-    ];
+    return [...headingAnchors, ...imageAnchors];
   }
 
   /**
@@ -382,7 +360,8 @@ export class ProsemirrorHelper {
         videos.push(node);
       }
 
-      return true;
+      // Videos are block nodes, so they are never inside a textblock.
+      return !node.isTextblock;
     });
 
     return videos;
@@ -402,7 +381,8 @@ export class ProsemirrorHelper {
         attachments.push(node);
       }
 
-      return true;
+      // Attachments are block nodes, so they are never inside a textblock.
+      return !node.isTextblock;
     });
 
     return attachments;
@@ -418,7 +398,7 @@ export class ProsemirrorHelper {
     const tasks: Task[] = [];
 
     doc.descendants((node) => {
-      if (!node.isBlock) {
+      if (!node.isBlock || node.isTextblock) {
         return false;
       }
 
@@ -456,7 +436,7 @@ export class ProsemirrorHelper {
     let total = 0;
 
     doc.descendants((node) => {
-      if (!node.isBlock) {
+      if (!node.isBlock || node.isTextblock) {
         return false;
       }
 
@@ -499,6 +479,9 @@ export class ProsemirrorHelper {
           inTable: pos < tableEnd,
         });
       }
+
+      // Headings are never nested in a textblock.
+      return !node.isTextblock;
     });
     return headings;
   }
@@ -589,5 +572,29 @@ export class ProsemirrorHelper {
     return (data.content ?? []).every(
       (node) => !!node && ProsemirrorHelper.everyNode(node, predicate)
     );
+  }
+
+  /**
+   * Returns true if the node contains any non-whitespace text, including the
+   * text of leaf nodes such as mentions. Stops at the first text found.
+   */
+  private static hasText(node: Node): boolean {
+    let found = false;
+
+    node.descendants((child: Node) => {
+      if (found) {
+        return false;
+      }
+
+      if (child.type.spec.leafText) {
+        found = !!String(child.type.spec.leafText(child)).trim();
+      } else if (child.isText) {
+        found = !!child.text?.trim();
+      }
+
+      return !found;
+    });
+
+    return found;
   }
 }

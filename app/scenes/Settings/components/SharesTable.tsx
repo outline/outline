@@ -82,6 +82,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             </>
           ),
           width: "4fr",
+          minWidth: 240,
         },
         {
           type: "data",

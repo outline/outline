@@ -51,6 +51,7 @@ type SocketWithAuthentication = Socket & {
 const unreportableErrorIds = [
   "authentication_required",
   "invalid_authentication",
+  "user_suspended",
 ];
 
 export const WebsocketContext = createContext<SocketWithAuthentication | null>(

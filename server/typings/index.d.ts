@@ -1,5 +1,3 @@
-declare module "styled-components-breakpoint";
-
 declare module "oy-vey";
 
 declare module "email-providers" {

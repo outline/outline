@@ -109,7 +109,8 @@ export default async function documentUpdater(
         base64Only: true,
       }),
       editMode,
-      findText
+      findText,
+      user.id
     );
   }
 

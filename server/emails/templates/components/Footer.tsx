@@ -3,6 +3,7 @@ import * as React from "react";
 import theme from "@shared/styles/theme";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import env from "@server/env";
+import { DirectionContext } from "./Direction";
 
 type Props = {
   unsubscribeUrl?: string;
@@ -17,11 +18,12 @@ export const Link = ({
   href: string;
   children: React.ReactNode;
 }) => {
+  const dir = React.useContext(DirectionContext);
   const linkStyle = {
     color: theme.slate,
     fontWeight: 500,
     textDecoration: "none",
-    marginRight: "10px",
+    [dir === "rtl" ? "marginLeft" : "marginRight"]: "10px",
   };
 
   return (

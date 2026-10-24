@@ -21,7 +21,7 @@ import { CollapseIcon } from "outline-icons";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s, hover, hideScrollbars } from "@shared/styles";
 import type Pin from "~/models/Pin";
 import DocumentCard from "~/components/DocumentCard";

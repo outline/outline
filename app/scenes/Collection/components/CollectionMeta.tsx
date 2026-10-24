@@ -3,7 +3,7 @@ import { GlobeIcon, PadlockIcon, TeamIcon } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { flattenTree } from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";

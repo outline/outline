@@ -1,6 +1,7 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { sortBy } from "es-toolkit/compat";
 import { Op } from "sequelize";
+import { isUUID } from "validator";
 import {
   AllowNull,
   DataType,
@@ -170,6 +171,65 @@ class Revision extends ParanoidModel<
     return this.findOne({
       where: {
         documentId,
+      },
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  /**
+   * Find a revision by id that belongs to the given document.
+   *
+   * @param id The id of the revision.
+   * @param documentId The id of the document the revision must belong to.
+   * @returns A Promise that resolves to a Revision model, or null if not found.
+   */
+  static async findByIdForDocument(id: string, documentId: string) {
+    if (!isUUID(id)) {
+      return null;
+    }
+
+    return this.findOne({
+      where: {
+        id,
+        documentId,
+      },
+    });
+  }
+
+  /**
+   * Find the latest revision of a document that a user authored or
+   * collaborated on.
+   *
+   * @param documentId The id of the document.
+   * @param userId The id of the user.
+   * @returns A Promise that resolves to a Revision model, or null if not found.
+   */
+  static findLatestByUser(documentId: string, userId: string) {
+    return this.findOne({
+      where: {
+        documentId,
+        [Op.or]: [{ userId }, { collaboratorIds: { [Op.contains]: [userId] } }],
+      },
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  /**
+   * Find the revision that shows a document as it was at a given time, the
+   * latest revision created at or before that time.
+   *
+   * @param documentId The id of the document.
+   * @param date The point in time.
+   * @returns A Promise that resolves to a Revision model, or null if the
+   * document had no revision at that time.
+   */
+  static findAt(documentId: string, date: Date) {
+    return this.findOne({
+      where: {
+        documentId,
+        createdAt: {
+          [Op.lte]: date,
+        },
       },
       order: [["createdAt", "DESC"]],
     });

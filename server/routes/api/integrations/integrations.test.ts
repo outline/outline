@@ -257,3 +257,50 @@ describe("#integrations.list", () => {
     expect(body.data[0].settings.url).toEqual("https://example.com");
   });
 });
+
+describe("#integrations.info", () => {
+  const buildFigmaAccount = (owner: User) =>
+    Integration.create<Integration<IntegrationType.LinkedAccount>>({
+      userId: owner.id,
+      teamId: owner.teamId,
+      service: IntegrationService.Figma,
+      type: IntegrationType.LinkedAccount,
+      settings: {
+        figma: {
+          account: {
+            id: "123",
+            name: "owner",
+            email: "owner@example.com",
+            avatarUrl: "https://example.com/avatar.png",
+          },
+        },
+      },
+    });
+
+  it("should expose linked account settings to the owner", async () => {
+    const owner = await buildUser();
+    const integration = await buildFigmaAccount(owner);
+
+    const res = await server.post("/api/integrations.info", owner, {
+      body: { id: integration.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.settings.figma.account.email).toEqual("owner@example.com");
+  });
+
+  it("should not expose linked account settings to other users", async () => {
+    const owner = await buildUser();
+    const admin = await buildAdmin({ teamId: owner.teamId });
+    const integration = await buildFigmaAccount(owner);
+
+    const res = await server.post("/api/integrations.info", admin, {
+      body: { id: integration.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.settings).toBeUndefined();
+  });
+});

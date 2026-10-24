@@ -240,7 +240,7 @@ cmd_down() {
   local pid pids
   pid="$(cat "$PID_FILE" 2>/dev/null || true)"
   if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-    # throng forks a worker; stop the tree we started, never by process name.
+    # the cluster forks a worker; stop the tree we started, never by process name.
     pids="$(tree "$pid" | tr '\n' ' ')"
     kill $pids 2>/dev/null || true
     for _ in $(seq 1 10); do kill -0 $pids 2>/dev/null || break; sleep 1; done

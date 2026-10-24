@@ -986,6 +986,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           id,
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -994,6 +995,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           urlId: match[1],
+          template: false,
         },
         rejectOnEmpty: false,
       });

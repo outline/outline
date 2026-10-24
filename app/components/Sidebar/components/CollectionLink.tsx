@@ -59,8 +59,7 @@ const CollectionLink: React.FC<Props> = ({
   const parentRef = React.useRef<HTMLDivElement>(null);
   const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
     collection,
-    handleExpand,
-    parentRef
+    handleExpand
   );
 
   const handlePrefetch = React.useCallback(() => {

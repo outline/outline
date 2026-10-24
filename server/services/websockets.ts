@@ -15,7 +15,7 @@ import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { rejectUpgrade } from "@server/onupgrade";
 import Redis from "@server/storage/redis";
-import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
 import { websocketQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
@@ -89,6 +89,9 @@ export default function init(
   );
 
   ShutdownHelper.add("websockets", ShutdownOrder.normal, async () => {
+    // Close the clients of this process only, upgraded sockets are not closed
+    // by the HTTP server.
+    io.engine.close();
     Metrics.gaugePerInstance("websockets.count", 0);
   });
 
