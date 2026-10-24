@@ -25,6 +25,7 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { commentSchema, serializer } from "@server/editor";
 import { ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Document from "./Document";
@@ -332,21 +333,15 @@ class Comment extends ParanoidModel<
       );
     }
 
-    const invalidate = () =>
+    await afterCommit(options.transaction, () =>
       CacheHelper.removeData(
         RedisPrefixHelper.getCounterCacheKey(
           "Document",
           "unresolvedComments",
           model.documentId
         )
-      );
-
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+      )
+    );
   }
 
   @AfterDestroy

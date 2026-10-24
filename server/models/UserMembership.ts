@@ -1,8 +1,10 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Op,
-  type SaveOptions,
+  type CreateOptions,
   type FindOptions,
+  type InstanceDestroyOptions,
+  type SaveOptions,
   type Transaction,
 } from "sequelize";
 import type { WhereOptions } from "sequelize";
@@ -26,6 +28,7 @@ import type { DocumentPermission } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -264,12 +267,11 @@ class UserMembership extends IdModel<
   }
 
   @AfterCreate
-  static async invalidateCollectionIdsAfterCreate(model: UserMembership) {
-    if (model.collectionId) {
-      await CacheHelper.clearData(
-        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
-      );
-    }
+  static async invalidateCollectionIdsAfterCreate(
+    model: UserMembership,
+    options: CreateOptions<UserMembership>
+  ) {
+    await this.invalidateCollectionIds(model, options);
   }
 
   @AfterCreate
@@ -355,12 +357,11 @@ class UserMembership extends IdModel<
   }
 
   @AfterDestroy
-  static async invalidateCollectionIdsAfterDestroy(model: UserMembership) {
-    if (model.collectionId) {
-      await CacheHelper.clearData(
-        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
-      );
-    }
+  static async invalidateCollectionIdsAfterDestroy(
+    model: UserMembership,
+    options: InstanceDestroyOptions
+  ) {
+    await this.invalidateCollectionIds(model, options);
   }
 
   @AfterDestroy
@@ -467,6 +468,21 @@ class UserMembership extends IdModel<
     } else {
       await Document.insertEvent(name, this, hookContext);
     }
+  }
+
+  private static async invalidateCollectionIds(
+    model: UserMembership,
+    options: { transaction?: Transaction | null }
+  ) {
+    if (!model.collectionId) {
+      return;
+    }
+
+    await afterCommit(options.transaction, () =>
+      CacheHelper.removeData(
+        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
+      )
+    );
   }
 
   private static async validateLastAdminPermission(
