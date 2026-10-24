@@ -116,7 +116,7 @@ describe("auth provider routes", () => {
     expect(state.actorId).toBeUndefined();
   });
 
-  it("should not use a transfer token in the query as the actor", async () => {
+  it("should prefer the session cookie over a token in the query", async () => {
     const admin = await buildAdmin();
     const victim = await buildUser();
     const res = await server.get(
@@ -132,6 +132,6 @@ describe("auth provider routes", () => {
 
     const location = new URL(res.headers.get("location") ?? "");
     const state = verifyOAuthState(location.searchParams.get("state") ?? "");
-    expect(state.actorId).not.toEqual(admin.id);
+    expect(state.actorId).toEqual(victim.id);
   });
 });
