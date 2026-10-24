@@ -10,6 +10,7 @@ import { parseDomain } from "@shared/utils/domains";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import { denyFraming } from "@server/middlewares/csp";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
 import { getSessionRedirectUrl } from "@server/utils/authentication";
@@ -158,6 +159,12 @@ router.get("/sitemap.xml", async (ctx) => {
   } else {
     ctx.status = 404;
   }
+});
+
+// The OAuth consent screen must not be framed to prevent clickjacking.
+router.get("/oauth/authorize", async (ctx, next) => {
+  denyFraming(ctx);
+  return next();
 });
 
 // Client routes that render without an authenticated session.

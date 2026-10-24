@@ -313,6 +313,21 @@ describe("content security policy", () => {
     expect(csp).toContain("nonce-");
   });
 
+  it("should prevent framing of the OAuth consent screen", async () => {
+    const res = await server.get("/oauth/authorize?client_id=x");
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(res.headers.get("x-frame-options")).toEqual("DENY");
+  });
+
+  it("should not prevent framing of other app paths", async () => {
+    const res = await server.get("/");
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(csp).not.toContain("frame-ancestors");
+    expect(res.headers.get("x-frame-options")).toBeNull();
+  });
+
   it("should allow the Google Tag Manager script source when integration is enabled", async () => {
     const document = await buildDocument();
     const share = await buildShare({
