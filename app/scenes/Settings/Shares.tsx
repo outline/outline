@@ -4,7 +4,7 @@ import { GlobeIcon, WarningIcon } from "outline-icons";
 import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { Link, useHistory, useLocation } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
@@ -23,7 +23,6 @@ import { StickyFilters } from "./components/StickyFilters";
 function Shares() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const location = useLocation();
   const history = useHistory();
   const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
@@ -66,11 +65,11 @@ function Shares() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleSearch = useCallback(

@@ -1,9 +1,13 @@
-import OAuth2Server from "@node-oauth/oauth2-server";
+import OAuth2Server, { InvalidClientError } from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
 import env from "@server/env";
-import { ValidationError, NotFoundError } from "@server/errors";
+import {
+  InvalidRedirectUriError,
+  ValidationError,
+  NotFoundError,
+} from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -125,7 +129,7 @@ router.post(
     // Only client_secret_post is advertised, but the library also reads HTTP
     // Basic credentials, so reject them to keep the checks below complete.
     if (/^\s*basic\b/i.test(ctx.request.get("authorization"))) {
-      throw ValidationError(
+      throw new InvalidClientError(
         "Unsupported client authentication method, send credentials in the request body"
       );
     }
@@ -143,10 +147,12 @@ router.post(
       }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
-        throw ValidationError("Invalid client_id");
+        throw new InvalidClientError("Invalid client_id");
       }
       if (client.clientType === "confidential") {
-        throw ValidationError("Missing client_secret for confidential client");
+        throw new InvalidClientError(
+          "Missing client_secret for confidential client"
+        );
       }
     }
 
@@ -227,6 +233,8 @@ router.post(
       contacts,
     } = ctx.input.body;
 
+    assertValidRedirectUris(redirect_uris);
+
     const team = await getTeamFromContext(ctx, {
       includeOAuthState: false,
     });
@@ -300,6 +308,7 @@ router.put(
   async (ctx: APIContext<T.RegisterUpdateReq>) => {
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
+    assertValidRedirectUris(redirect_uris);
 
     const team = await client.$get("team", {
       transaction: ctx.state.transaction,
@@ -348,6 +357,21 @@ router.delete(
     ctx.body = "";
   }
 );
+
+/**
+ * Ensures that every redirect URI in a client registration request is valid.
+ *
+ * @param redirectUris - the redirect URIs to validate.
+ * @throws InvalidRedirectUriError if a redirect URI is not valid.
+ */
+function assertValidRedirectUris(redirectUris: string[]) {
+  const invalid = redirectUris.find(
+    (uri) => !OAuthHelper.isValidRedirectUri(uri)
+  );
+  if (invalid !== undefined) {
+    throw InvalidRedirectUriError(`Invalid redirect URI: ${invalid}`);
+  }
+}
 
 app.use(requestTracer());
 app.use(oauthErrorHandler());
