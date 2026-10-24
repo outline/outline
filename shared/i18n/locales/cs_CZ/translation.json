@@ -1792,7 +1792,7 @@
   "Webhooks": "Webhooky",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as an HTTPS request with a JSON payload in near real-time.": "Webhooky lze použít k upozornění vaší aplikace na události v {{appName}}. Události jsou odesílány jako požadavek HTTPS s datovou částí JSON téměř v reálném čase.",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier umožňuje snadno propojit {{appName}} s tisíci dalších nástrojů. Automatizujte své procesy a synchronizujte data.",
-  "Delayed notification": "Opožděné oznámení",
+  "This notification was delayed and may be out of date.": "Toto oznámení bylo zpožděno a může být neaktuální.",
   "“{{ collectionName }}” created": "Kolekce „{{ collectionName }}“ byla vytvořena",
   "{{ userName }} created a collection": "{{ userName }} vytvořil kolekci",
   "{{ userName }} created the collection “{{ collectionName }}”": "{{ userName }} vytvořil kolekci „{{ collectionName }}“",
