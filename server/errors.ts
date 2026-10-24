@@ -260,6 +260,15 @@ export function InvalidClientMetadataError(
   });
 }
 
+export function InvalidRedirectUriError(
+  message = "The redirect URI is invalid"
+) {
+  return httpErrors(400, message, {
+    id: "invalid_redirect_uri",
+    isReportable: false,
+  });
+}
+
 export function RequestTimeoutError(
   message = "Request took too long to complete"
 ) {

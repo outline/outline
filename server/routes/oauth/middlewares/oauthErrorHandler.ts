@@ -60,6 +60,12 @@ export default function oauthErrorHandler() {
         if (err instanceof OAuthError && status < 500) {
           // Keep the library's error code, as clients act on it.
           errorType = err.name;
+        } else if (
+          err instanceof Error &&
+          "id" in err &&
+          err.id === "invalid_redirect_uri"
+        ) {
+          errorType = "invalid_redirect_uri";
         } else if (status === 400) {
           errorType = "invalid_request";
         } else if (

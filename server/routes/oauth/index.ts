@@ -3,7 +3,11 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
 import env from "@server/env";
-import { ValidationError, NotFoundError } from "@server/errors";
+import {
+  InvalidRedirectUriError,
+  ValidationError,
+  NotFoundError,
+} from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -229,6 +233,8 @@ router.post(
       contacts,
     } = ctx.input.body;
 
+    assertValidRedirectUris(redirect_uris);
+
     const team = await getTeamFromContext(ctx, {
       includeOAuthState: false,
     });
@@ -302,6 +308,7 @@ router.put(
   async (ctx: APIContext<T.RegisterUpdateReq>) => {
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
+    assertValidRedirectUris(redirect_uris);
 
     const team = await client.$get("team", {
       transaction: ctx.state.transaction,
@@ -350,6 +357,21 @@ router.delete(
     ctx.body = "";
   }
 );
+
+/**
+ * Ensures that every redirect URI in a client registration request is valid.
+ *
+ * @param redirectUris - the redirect URIs to validate.
+ * @throws InvalidRedirectUriError if a redirect URI is not valid.
+ */
+function assertValidRedirectUris(redirectUris: string[]) {
+  const invalid = redirectUris.find(
+    (uri) => !OAuthHelper.isValidRedirectUri(uri)
+  );
+  if (invalid !== undefined) {
+    throw InvalidRedirectUriError(`Invalid redirect URI: ${invalid}`);
+  }
+}
 
 app.use(requestTracer());
 app.use(oauthErrorHandler());
