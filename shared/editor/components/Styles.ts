@@ -1975,6 +1975,7 @@ mark {
 .${EditorStyleHelper.codeBlock} {
   position: relative;
   font-size: 90%;
+  border-radius: ${EditorStyleHelper.blockRadius};
 
   &:hover + .${EditorStyleHelper.codeBlockToggle},
   &:focus-within + .${EditorStyleHelper.codeBlockToggle},
