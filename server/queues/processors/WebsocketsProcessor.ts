@@ -625,7 +625,7 @@ export default class WebsocketsProcessor {
 
       case "shares.create":
       case "shares.update": {
-        const share = await this.findShare(event.modelId);
+        const share = await Share.scope("withDrafts").findByPk(event.modelId);
         if (!share) {
           return;
         }
@@ -635,7 +635,7 @@ export default class WebsocketsProcessor {
       }
 
       case "shares.revoke": {
-        const share = await this.findShare(event.modelId);
+        const share = await Share.scope("withDrafts").findByPk(event.modelId);
         if (!share) {
           return;
         }
@@ -1076,37 +1076,6 @@ export default class WebsocketsProcessor {
     }
 
     return channels;
-  }
-
-  /**
-   * Loads a share with the associations needed to present it, including
-   * a document that is a draft.
-   *
-   * @param id the share ID.
-   * @returns the share, or null if not found.
-   */
-  private findShare(id: string): Promise<Share | null> {
-    return Share.unscoped().findByPk(id, {
-      include: [
-        {
-          association: "user",
-          paranoid: false,
-        },
-        {
-          association: "collection",
-          required: false,
-        },
-        {
-          model: Document.scope("withDrafts"),
-          as: "document",
-          required: false,
-        },
-        {
-          association: "team",
-          required: true,
-        },
-      ],
-    });
   }
 
   /**
