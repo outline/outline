@@ -341,6 +341,71 @@ describe("NotificationHelper", () => {
         viewedBefore.id,
       ]);
     });
+
+    it("should not return users in the thread who unsubscribed from the document after they were involved", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const userInThread = await buildUser({ teamId: document.teamId });
+      const parentComment = await buildComment({
+        documentId: document.id,
+        userId: userInThread.id,
+      });
+      await buildSubscription({
+        userId: userInThread.id,
+        documentId: document.id,
+        deletedAt: addMinutes(new Date(), 1),
+      });
+      const childComment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+        parentCommentId: parentComment.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          childComment,
+          childComment.createdById
+        );
+
+      expect(recipients.length).toEqual(0);
+    });
+
+    it("should return users in the thread who were involved again after they unsubscribed from the document", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const userInThread = await buildUser({ teamId: document.teamId });
+      await buildSubscription({
+        userId: userInThread.id,
+        documentId: document.id,
+        deletedAt: subMinutes(new Date(), 1),
+      });
+      const parentComment = await buildComment({
+        documentId: document.id,
+        userId: userInThread.id,
+      });
+      const childComment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+        parentCommentId: parentComment.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          childComment,
+          childComment.createdById
+        );
+
+      expect(recipients.length).toEqual(1);
+      expect(recipients[0].id).toEqual(userInThread.id);
+    });
   });
 
   describe("getDocumentNotificationRecipients", () => {

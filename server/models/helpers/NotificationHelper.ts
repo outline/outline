@@ -61,7 +61,7 @@ export default class NotificationHelper {
     // comment and all replies to it).
     if (comment.parentCommentId) {
       const contextComments = await Comment.findAll({
-        attributes: ["createdById", "data"],
+        attributes: ["createdById", "createdAt", "data"],
         where: {
           [Op.or]: [
             { id: comment.parentCommentId },
@@ -80,10 +80,16 @@ export default class NotificationHelper {
         )
         .map((mention) => mention.modelId);
 
+      const unsubscribedUserIds = await this.getUsersUnsubscribedFromThread(
+        document.id,
+        contextComments
+      );
       const userIdsInThread = uniq([
         ...createdUserIdsInThread,
         ...mentionedUserIdsInThread,
-      ]).filter((userId) => userId !== actorId);
+      ]).filter(
+        (userId) => userId !== actorId && !unsubscribedUserIds.has(userId)
+      );
 
       recipients = await User.findAll({
         where: {
@@ -145,6 +151,68 @@ export default class NotificationHelper {
     }
 
     return filtered;
+  };
+
+  /**
+   * Get the users involved in a comment thread who unsubscribed from the
+   * document after they were last involved in the thread. A user is involved
+   * in the thread when they author a comment, or are mentioned in one.
+   *
+   * @param documentId The id of the document the thread belongs to.
+   * @param comments The comments in the thread.
+   * @returns The ids of the users that unsubscribed.
+   */
+  public static getUsersUnsubscribedFromThread = async (
+    documentId: string,
+    comments: Comment[]
+  ): Promise<Set<string>> => {
+    const lastInvolvedAt = new Map<string, Date>();
+    const track = (userId: string, date: Date) => {
+      const current = lastInvolvedAt.get(userId);
+      if (!current || date > current) {
+        lastInvolvedAt.set(userId, date);
+      }
+    };
+
+    for (const comment of comments) {
+      track(comment.createdById, comment.createdAt);
+
+      const mentions = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(comment.data),
+        { type: MentionType.User }
+      );
+      for (const mention of mentions) {
+        track(mention.modelId, comment.createdAt);
+      }
+    }
+
+    if (!lastInvolvedAt.size) {
+      return new Set();
+    }
+
+    const deletedSubscriptions = await Subscription.findAll({
+      attributes: ["userId", "deletedAt"],
+      where: {
+        documentId,
+        event: SubscriptionType.Document,
+        userId: { [Op.in]: [...lastInvolvedAt.keys()] },
+        deletedAt: { [Op.ne]: null },
+      },
+      paranoid: false,
+    });
+
+    return new Set(
+      deletedSubscriptions
+        .filter((subscription) => {
+          const involvedAt = lastInvolvedAt.get(subscription.userId);
+          return (
+            !!subscription.deletedAt &&
+            !!involvedAt &&
+            subscription.deletedAt > involvedAt
+          );
+        })
+        .map((subscription) => subscription.userId)
+    );
   };
 
   /**
