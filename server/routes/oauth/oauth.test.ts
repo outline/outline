@@ -613,14 +613,10 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.client_id_metadata_document_supported).toBe(false);
   });
 
-  it("should return OAuth metadata at /mcp suffix path", async () => {
+  it("should not serve OAuth metadata at /mcp suffix path", async () => {
     const res = await server.get("/.well-known/oauth-authorization-server/mcp");
 
-    expect(res.status).toEqual(200);
-    const body = await res.json();
-    expect(body.issuer).toBeTruthy();
-    expect(body.authorization_endpoint).toContain("/oauth/authorize");
-    expect(body.token_endpoint).toContain("/oauth/token");
+    expect(res.status).toEqual(404);
   });
 
   it("should include port in URLs when configured with a custom port (self-hosted)", async () => {
@@ -648,7 +644,8 @@ describe("GET /.well-known/oauth-protected-resource", () => {
 
     expect(res.status).toEqual(200);
     const body = await res.json();
-    expect(body.resource).toContain("/mcp");
+    expect(body.resource).toEqual(body.authorization_servers[0]);
+    expect(body.resource_name).toEqual("Outline");
     expect(body.authorization_servers).toHaveLength(1);
     expect(body.scopes_supported).toEqual(["read", "write"]);
     expect(body.bearer_methods_supported).toEqual(["header"]);
@@ -659,7 +656,8 @@ describe("GET /.well-known/oauth-protected-resource", () => {
 
     expect(res.status).toEqual(200);
     const body = await res.json();
-    expect(body.resource).toContain("/mcp");
+    expect(body.resource).toEqual(`${body.authorization_servers[0]}/mcp`);
+    expect(body.resource_name).toEqual("Outline");
     expect(body.authorization_servers).toHaveLength(1);
   });
 
