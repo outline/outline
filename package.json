@@ -154,7 +154,7 @@
     "i18next-http-backend": "^4.0.3",
     "invariant": "^2.2.4",
     "ioredis": "^5.11.1",
-    "ipaddr.js": "^2.4.0",
+    "ipaddr.js": "^2.5.0",
     "iso-639-3": "^3.0.1",
     "js-yaml": "^4.3.2",
     "js.foresight": "^4.2.1",
