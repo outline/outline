@@ -6,6 +6,7 @@ import {
   buildGroup,
   buildUser,
 } from "@server/test/factories";
+import { sequelize } from "@server/storage/database";
 import { withAPIContext } from "@server/test/support";
 import Event from "./Event";
 import GroupMembership from "./GroupMembership";
@@ -103,6 +104,47 @@ describe("UserMembership", () => {
       await expect(two).rejects.toThrow(
         "At least one user or group must have manage permissions"
       );
+    });
+  });
+
+  describe("findOneForUpdate", () => {
+    it("should create one membership for concurrent grants", async () => {
+      const collection = await buildCollection();
+      const user = await buildUser({ teamId: collection.teamId });
+
+      const grant = (permission: CollectionPermission) =>
+        sequelize.transaction(async (transaction) => {
+          const membership = await UserMembership.findOneForUpdate(
+            { collectionId: collection.id, userId: user.id },
+            { transaction }
+          );
+          await sleep(50);
+
+          if (membership) {
+            membership.permission = permission;
+            return membership.save({ transaction });
+          }
+
+          return UserMembership.create(
+            {
+              collectionId: collection.id,
+              userId: user.id,
+              permission,
+              createdById: user.id,
+            },
+            { transaction }
+          );
+        });
+
+      await Promise.all([
+        grant(CollectionPermission.Read),
+        grant(CollectionPermission.ReadWrite),
+      ]);
+
+      const memberships = await UserMembership.findAll({
+        where: { collectionId: collection.id, userId: user.id },
+      });
+      expect(memberships).toHaveLength(1);
     });
   });
 });

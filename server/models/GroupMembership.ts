@@ -5,6 +5,7 @@ import {
   type FindOptions,
   type DestroyOptions,
   type WhereOptions,
+  type Transaction,
 } from "sequelize";
 import {
   BelongsTo,
@@ -134,6 +135,38 @@ class GroupMembership extends ParanoidModel<
   }
 
   // static methods
+
+  /**
+   * Find the membership of a group on a collection or document and lock it for
+   * the remainder of the transaction. The lock is held even when no membership
+   * exists, so that concurrent grants cannot each create a membership.
+   *
+   * @param where the group and the collection or document of the membership.
+   * @param options additional options to pass to the query, with a transaction.
+   * @returns a promise that resolves to the membership, or null.
+   */
+  public static async findOneForUpdate(
+    where: {
+      groupId: string;
+      collectionId?: string | null;
+      documentId?: string | null;
+    },
+    options: FindOptions<GroupMembership> & { transaction: Transaction }
+  ) {
+    const { groupId, collectionId, documentId } = where;
+    const targetId = collectionId ?? documentId;
+    await LockHelper.acquire(
+      this.sequelize!,
+      `groupMembership:${targetId}:${groupId}`,
+      options.transaction
+    );
+
+    return this.findOne({
+      ...options,
+      where: collectionId ? { groupId, collectionId } : { groupId, documentId },
+      lock: options.transaction.LOCK.UPDATE,
+    });
+  }
 
   /**
    * Copy group memberships from one document to another.

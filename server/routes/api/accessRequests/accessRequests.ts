@@ -114,14 +114,10 @@ router.post(
       throw InvalidRequestError("Access request has already been responded to");
     }
 
-    const membership = await UserMembership.findOne({
-      where: {
-        userId: accessRequest.userId,
-        documentId: accessRequest.documentId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      transaction,
-    });
+    const membership = await UserMembership.findOneForUpdate(
+      { userId: accessRequest.userId, documentId: accessRequest.documentId },
+      { transaction }
+    );
 
     if (!membership) {
       await UserMembership.createWithCtx(ctx, {
