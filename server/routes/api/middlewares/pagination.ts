@@ -59,10 +59,20 @@ export async function paginateQuery<T>(
   };
 }
 
-export default function pagination() {
+/**
+ * Middleware that parses and validates the limit and offset parameters of a
+ * request and stores them in ctx.state.pagination.
+ *
+ * @param options - optional settings for the middleware.
+ * @param options.defaultLimit - limit to use when the request does not set one.
+ * @returns the Koa middleware.
+ */
+export default function pagination({
+  defaultLimit = Pagination.defaultLimit,
+}: { defaultLimit?: number } = {}) {
   return async function paginationMiddleware(ctx: AppContext, next: Next) {
     const opts = {
-      defaultLimit: Pagination.defaultLimit,
+      defaultLimit,
       defaultOffset: Pagination.defaultOffset,
       maxLimit: Pagination.maxLimit,
     };
