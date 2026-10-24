@@ -18,6 +18,7 @@ import Time from "~/components/Time";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import isCloudHosted from "~/utils/isCloudHosted";
 import { isTruthyQueryValue } from "~/utils/urls";
 import GitHubIcon from "./Icon";
 import { GitHubConnectButton } from "./components/GitHubButton";
@@ -56,6 +57,31 @@ function GitHub() {
             Something went wrong while authenticating your request. Please try
             logging in again.
           </Trans>
+        </Notice>
+      )}
+      {error === "denied" && (
+        <Notice>
+          <Trans>
+            Only an owner of the GitHub account or organization can connect it
+            to {{ appName }}.
+          </Trans>
+        </Notice>
+      )}
+      {error === "missing_permission" && (
+        <Notice>
+          {isCloudHosted ? (
+            <Trans>
+              The GitHub app needs new permissions for the organization. Ask an
+              owner of the organization to accept them in GitHub, then try
+              again.
+            </Trans>
+          ) : (
+            <Trans>
+              The GitHub app needs the “Members” read permission for the
+              organization. Add this permission to your GitHub app, then ask an
+              owner of the organization to accept it in GitHub and try again.
+            </Trans>
+          )}
         </Notice>
       )}
       {isTruthyQueryValue(installRequest) && (
