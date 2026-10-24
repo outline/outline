@@ -1,7 +1,11 @@
 import { randomString } from "@shared/random";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import type { Document, User } from "@server/models";
-import { IntegrationAuthentication, SearchQuery } from "@server/models";
+import {
+  Integration,
+  IntegrationAuthentication,
+  SearchQuery,
+} from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -98,6 +102,18 @@ describe("#hooks.unfurl", () => {
         },
       })
     );
+  });
+
+  it("should not unfurl for a suspended user", async () => {
+    const user = await buildUser({ suspendedAt: new Date() });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildCommandIntegration(user);
+
+    await unfurl(user, document);
+    expect(Slack.post).not.toHaveBeenCalled();
   });
 
   it("should use the command token when a post integration exists", async () => {
@@ -334,6 +350,54 @@ describe("#hooks.slack", () => {
     );
   });
 
+  it("should not return search results for a suspended user", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id, suspendedAt: new Date() });
+    const document = await buildDocument({
+      title: "This title contains a search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/hooks.slack", {
+      body: {
+        token: env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.authentications[0].providerId,
+        team_id: team.authenticationProviders[0].providerId,
+        text: "contains",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should not match a suspended linked account", async () => {
+    const user = await buildUser({ suspendedAt: new Date() });
+    const slack = {
+      serviceTeamId: randomString(8),
+      serviceUserId: randomString(8),
+    };
+    await Integration.create<Integration<IntegrationType.LinkedAccount>>({
+      service: IntegrationService.Slack,
+      type: IntegrationType.LinkedAccount,
+      teamId: user.teamId,
+      userId: user.id,
+      settings: { slack },
+    });
+    const res = await server.post("/api/hooks.slack", {
+      body: {
+        token: env.SLACK_VERIFICATION_TOKEN,
+        user_id: slack.serviceUserId,
+        team_id: slack.serviceTeamId,
+        text: "contains",
+      },
+    });
+    const body = await res.json();
+    expect(body.blocks[0].text.text).toContain("haven’t linked");
+  });
+
   it("should error if incorrect verification token", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -409,6 +473,37 @@ describe("#hooks.interactive", () => {
     expect(res.status).toEqual(200);
     expect(body.response_type).toEqual("ephemeral");
     expect(body.blocks.length).toBeGreaterThan(0);
+    expect(body.attachments).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain(document.title);
+  });
+
+  it("should not post a document for a suspended user", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id, suspendedAt: new Date() });
+    const document = await buildDocument({
+      title: "This title contains a search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const payload = JSON.stringify({
+      type: "message_action",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      user: {
+        id: user.authentications[0].providerId,
+      },
+      team: {
+        id: team.authenticationProviders[0].providerId,
+      },
+      callback_id: document.id,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: {
+        payload,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual("ephemeral");
     expect(body.attachments).toBeUndefined();
     expect(JSON.stringify(body)).not.toContain(document.title);
   });
