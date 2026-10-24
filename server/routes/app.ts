@@ -15,12 +15,16 @@ import { Hour } from "@shared/utils/time";
 import env from "@server/env";
 import { allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
+import type { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import presentEnv from "@server/presenters/env";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
@@ -50,6 +54,28 @@ function formatChildDocumentsAsMarkdown(
   });
 
   return `\n\n---\n\n**Documents**\n\n${lines.join("\n")}`;
+}
+
+/**
+ * Renders the server-side HTML of a shared document or collection. The HTML is
+ * cached for each version of the model, and attachment urls are signed on each
+ * request.
+ *
+ * @param model The shared document or collection.
+ * @returns The HTML string, or undefined if it could not be rendered.
+ */
+async function renderShareContent(
+  model: Document | Collection
+): Promise<string | undefined> {
+  const html = await CacheHelper.getDataOrSet<string>(
+    RedisPrefixHelper.getShareContentKey(model.id, model.updatedAt),
+    () => DocumentHelper.toStaticHTML(model),
+    Hour.seconds
+  );
+  if (!html) {
+    return undefined;
+  }
+  return TextHelper.attachmentsToSignedUrls(html, model.teamId, Hour.seconds);
 }
 
 const readIndexFile = async (): Promise<Buffer> => {
@@ -334,15 +360,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.name
         : undefined;
 
-  const content =
-    document || collection
-      ? await DocumentHelper.toHTML(document || collection!, {
-          includeStyles: false,
-          includeHead: false,
-          includeTitle: true,
-          signedUrls: Hour.seconds,
-        })
-      : undefined;
+  const model = document || collection;
+  const content = model ? await renderShareContent(model) : undefined;
 
   const canonicalUrl =
     share && share.canonicalUrl !== ctx.request.origin + ctx.request.url

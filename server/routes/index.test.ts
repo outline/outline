@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { parser } from "@server/editor";
 import env from "@server/env";
 import {
+  buildAttachment,
   buildShare,
   buildDocument,
   buildIntegration,
@@ -101,6 +103,40 @@ describe("/s/:id", () => {
     const body = await res.text();
     expect(res.status).toEqual(200);
     expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
+  it("should render document content with signed attachment urls", async () => {
+    const team = await buildTeam();
+    const attachment = await buildAttachment({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      text: `Shared content\n\n![image](${attachment.redirectUrl})`,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain("Shared content");
+    expect(body).toContain("<img");
+    expect(body).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should render updated content after the document changes", async () => {
+    const document = await buildDocument({ text: "First version" });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const first = await server.get(`/s/${share.id}`);
+    expect(await first.text()).toContain("First version");
+
+    document.content = parser.parse("Second version")?.toJSON();
+    await document.save();
+    const second = await server.get(`/s/${share.id}`);
+    expect(await second.text()).toContain("Second version");
   });
 
   it("should return markdown when Accept header prefers text/markdown", async () => {
