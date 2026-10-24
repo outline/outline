@@ -33,6 +33,8 @@ router.get(
       grant_types_supported: OAuthHelper.grantTypes,
       token_endpoint_auth_methods_supported:
         OAuthHelper.tokenEndpointAuthMethods,
+      revocation_endpoint_auth_methods_supported:
+        OAuthHelper.tokenEndpointAuthMethods,
       code_challenge_methods_supported: ["S256"],
       scopes_supported: OAuthHelper.mcpScopes,
     };

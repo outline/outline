@@ -537,6 +537,10 @@ describe("GET /.well-known/oauth-authorization-server", () => {
       "client_secret_post",
       "none",
     ]);
+    expect(body.revocation_endpoint_auth_methods_supported).toEqual([
+      "client_secret_post",
+      "none",
+    ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
     expect(body.scopes_supported).toEqual(["read", "write"]);
   });
