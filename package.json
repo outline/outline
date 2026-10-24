@@ -231,7 +231,6 @@
     "react-use-measure": "^2.1.7",
     "react-window": "^2.3.4",
     "react-zoom-pan-pinch": "^3.7.0",
-    "redlock": "^5.0.0-beta2",
     "reflect-metadata": "^0.2.2",
     "refractor": "^5.0.0",
     "resolve-path": "^1.4.0",
