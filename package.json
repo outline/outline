@@ -121,7 +121,7 @@
     "chrono-node": "^2.10.3",
     "class-validator": "^0.15.1",
     "command-score": "^0.1.2",
-    "compressorjs": "^1.3.0",
+    "compressorjs": "^1.4.0",
     "content-disposition": "^0.5.4",
     "cookie": "^0.7.2",
     "copy-to-clipboard": "^3.3.3",
