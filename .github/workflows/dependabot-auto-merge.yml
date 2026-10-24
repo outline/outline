@@ -24,9 +24,17 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           DEPENDENCIES: ${{ steps.metadata.outputs.updated-dependencies-json }}
         run: |
-          if ! jq -e "length > 0" <<< "$DEPENDENCIES" > /dev/null; then
-            echo "No dependency metadata found, skipping auto-merge."
+          # Turn off auto-merge from an earlier run, as Dependabot can refresh a PR in place.
+          skip() {
+            echo "$1"
+            if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = "true" ]; then
+              gh pr merge --disable-auto "$PR_URL"
+            fi
             exit 0
+          }
+
+          if ! jq -e "length > 0" <<< "$DEPENDENCIES" > /dev/null; then
+            skip "No dependency metadata found, skipping auto-merge."
           fi
 
           ineligible=$(jq -r '
@@ -36,7 +44,7 @@ jobs:
                 or (.dependencyName | test("^(prosemirror-.*|yjs|y-.*|@hocuspocus/.*|sequelize.*|pg|pg-.*|react.*|mobx.*|koa.*|@koa/.*)$"))
                 or (
                   .updateType != "version-update:semver-patch"
-                  and (.updateType != "version-update:semver-minor" or (.prevVersion // "0." | startswith("0.")))
+                  and (.updateType != "version-update:semver-minor" or (.prevVersion // "" | test("^v?[1-9]") | not))
                 )
               )
             | "\(.dependencyName) \(.prevVersion) -> \(.newVersion) (\(.updateType)\(if .maintainerChanges then ", new publisher" else "" end))"
@@ -44,8 +52,7 @@ jobs:
 
           if [ -n "$ineligible" ]; then
             echo "Skipping auto-merge, these updates need review:"
-            echo "$ineligible"
-            exit 0
+            skip "$ineligible"
           fi
 
           gh pr merge --auto --squash "$PR_URL"
