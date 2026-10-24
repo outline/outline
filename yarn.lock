@@ -9917,10 +9917,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fake-indexeddb@npm:^6.2.5":
-  version: 6.2.5
-  resolution: "fake-indexeddb@npm:6.2.5"
-  checksum: 10c0/6c5e2fe84a61daa06d7ad63699d1041fe61847f15f92db12415634b3db94f363a64be9e08a3c3c4434af9c3c0132086b85c4d5dc5e8e06edae1e7daf70ce1f3c
+"fake-indexeddb@npm:^6.2.6":
+  version: 6.2.6
+  resolution: "fake-indexeddb@npm:6.2.6"
+  checksum: 10c0/d55b3155548f08da1c9d7552314eed30fd1880c1f7643654c8b0c1fdf80591682d9f88e7a5c481113f48b994cb09820d61eee0dd8b966ca4f4497fce0eb748de
   languageName: node
   linkType: hard
 
@@ -14095,7 +14095,7 @@ __metadata:
     emoji-mart: "npm:^5.6.0"
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.47.1"
-    fake-indexeddb: "npm:^6.2.5"
+    fake-indexeddb: "npm:^6.2.6"
     fast-deep-equal: "npm:^3.1.3"
     fast-myers-diff: "npm:^3.2.0"
     fetch-retry: "npm:^5.0.6"
