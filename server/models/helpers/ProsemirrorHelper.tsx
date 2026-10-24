@@ -9,7 +9,7 @@ import {
   EditorView,
   type DecorationSource,
 } from "prosemirror-view";
-import { Node, Fragment } from "prosemirror-model";
+import { DOMSerializer, Node, Fragment } from "prosemirror-model";
 import { Transform } from "prosemirror-transform";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
@@ -968,8 +968,65 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     });
   }
 
+  /**
+   * Converts a ProseMirror node to static HTML from the `toDOM` specs of the
+   * schema. Unlike toHTML it does not mount an editor or node components, so
+   * it is cheaper and can run concurrently, but the output has no styles.
+   *
+   * @param node The node to convert to HTML.
+   * @param options Options for the HTML output.
+   * @returns The content as a HTML string.
+   */
+  public static async toStaticHTML(
+    node: Node,
+    options?: Pick<HTMLOptions, "title" | "headingPrefix">
+  ): Promise<string> {
+    const doc = await ProsemirrorHelper.getStaticDocument();
+    const rtl = isRTL(node.textBetween(0, Math.min(node.content.size, 100)));
+    const article = doc.createElement("article");
+
+    if (options?.title) {
+      const title = doc.createElement("h1");
+      title.setAttribute("dir", rtl ? "rtl" : "ltr");
+      title.textContent = options.title;
+      article.appendChild(title);
+    }
+
+    const content = doc.createElement("div");
+    content.id = "content";
+    content.className = "ProseMirror exported";
+    content.appendChild(
+      DOMSerializer.fromSchema(schema).serializeFragment(node.content, {
+        document: doc,
+      })
+    );
+    article.appendChild(content);
+
+    if (options?.headingPrefix) {
+      HeadingPrefixHelper.applyToDOM(content, node, options.headingPrefix);
+    }
+
+    return article.outerHTML;
+  }
+
   /** Promise chain serializing HTML exports within the process. */
   private static htmlRenderQueue: Promise<void> = Promise.resolve();
+
+  /** Detached document that static HTML is built in, created on first use. */
+  private static staticDocument?: Promise<Document>;
+
+  /**
+   * Returns the shared detached document for static HTML. Loads jsdom lazily
+   * to keep it off the startup path.
+   *
+   * @returns A promise that resolves to the document.
+   */
+  private static getStaticDocument(): Promise<Document> {
+    ProsemirrorHelper.staticDocument ??= import("jsdom").then(
+      ({ JSDOM }) => new JSDOM().window.document
+    );
+    return ProsemirrorHelper.staticDocument;
+  }
 
   /**
    * Flushes React passive effects and the follow-on renders they trigger by
