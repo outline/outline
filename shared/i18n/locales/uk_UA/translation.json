@@ -1792,7 +1792,7 @@
   "Webhooks": "Вебхуки",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as an HTTPS request with a JSON payload in near real-time.": "Вебхуки можна використовувати, щоб сповіщати вашу програму про події в {{appName}}. Події надсилаються як HTTPS-запит із корисним навантаженням JSON майже в реальному часі.",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier — це платформа, яка дозволяє {{appName}} легко інтегруватися з тисячами інших бізнес-інструментів. Автоматизуйте свої робочі процеси, синхронізуйте дані тощо.",
-  "Delayed notification": "Delayed notification",
+  "This notification was delayed and may be out of date.": "Це сповіщення було затримано й воно може бути неактуальним.",
   "“{{ collectionName }}” created": "“{{ collectionName }}” created",
   "{{ userName }} created a collection": "{{ userName }} created a collection",
   "{{ userName }} created the collection “{{ collectionName }}”": "{{ userName }} created the collection “{{ collectionName }}”",
