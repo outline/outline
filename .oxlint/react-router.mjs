@@ -4,15 +4,7 @@
 
 const routerPackages = new Set(["react-router", "react-router-dom"]);
 
-/** Hooks whose callback runs as part of rendering or reacts to the location. */
-const renderTiedHooks = new Set([
-  "useEffect",
-  "useInsertionEffect",
-  "useLayoutEffect",
-  "useMemo",
-]);
-
-/** Hooks whose dependency array does not read the location during render. */
+/** Hooks whose callback runs later, outside of render. */
 const deferredHooks = new Set(["useCallback"]);
 
 /** Returns true if the node is a function. */
@@ -59,9 +51,25 @@ function isReference(node, parent) {
 }
 
 /**
- * Classifies a reference by where it is read: "render" when it is read while
- * rendering, "deferred" when it is only read later in a callback, or null when
- * it does not read the value (a `useCallback` dependency array).
+ * Returns true if the function is known to run later, outside of render: a
+ * JSX event handler such as `onClick`, or a `useCallback` callback.
+ */
+function isDeferredFunction(node, parent, grandparent) {
+  if (parent.type === "JSXExpressionContainer" && parent.expression === node) {
+    return (
+      grandparent?.type === "JSXAttribute" &&
+      grandparent.name.type === "JSXIdentifier" &&
+      /^on[A-Z]/.test(grandparent.name.name)
+    );
+  }
+
+  return deferredHooks.has(hookName(parent)) && parent.arguments[0] === node;
+}
+
+/**
+ * Classifies a reference by where it is read: "deferred" when it is read in a
+ * function known to run later, null when it does not read the value (a
+ * `useCallback` dependency array), and "render" otherwise.
  */
 function classify(ancestors, owner) {
   const start = ancestors.indexOf(owner);
@@ -71,11 +79,9 @@ function classify(ancestors, owner) {
     const parent = ancestors[i - 1];
 
     if (isFunction(node)) {
-      const name = hookName(parent);
-      if (name && renderTiedHooks.has(name) && parent.arguments[0] === node) {
-        return "render";
-      }
-      return "deferred";
+      return isDeferredFunction(node, parent, ancestors[i - 2])
+        ? "deferred"
+        : "render";
     }
 
     if (
