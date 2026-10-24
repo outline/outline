@@ -10,7 +10,6 @@ import { parseDomain } from "@shared/utils/domains";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { denyFraming } from "@server/middlewares/csp";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
 import { getSessionRedirectUrl } from "@server/utils/authentication";
@@ -174,33 +173,11 @@ function isPublicAppPath(path: string) {
   return publicAppPaths.includes(path.replace(/\/+$/, "") || "/");
 }
 
-/**
- * Normalize a request path the way the client router matches it, which
- * decodes the path and ignores case and trailing slashes.
- *
- * @param path the raw request path.
- * @returns the normalized path.
- */
-function clientRoutePath(path: string) {
-  let decoded = path;
-  try {
-    decoded = decodeURI(path);
-  } catch {
-    // The client router cannot decode the path either, use it as is.
-  }
-  return decoded.toLowerCase().replace(/\/+$/, "") || "/";
-}
-
 // catch all for application
 router.get("{/*path}", async (ctx, next) => {
   if (isInvalidAppPath(ctx.path)) {
     ctx.status = 404;
     return;
-  }
-
-  // The OAuth consent screen must not be framed to prevent clickjacking.
-  if (clientRoutePath(ctx.path) === "/oauth/authorize") {
-    denyFraming(ctx);
   }
 
   if (ctx.state?.rootShare) {

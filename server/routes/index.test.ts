@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import {
+  IntegrationService,
+  IntegrationType,
+  TeamPreference,
+} from "@shared/types";
 import env from "@server/env";
 import {
   buildShare,
@@ -313,27 +317,40 @@ describe("content security policy", () => {
     expect(csp).toContain("nonce-");
   });
 
-  it.each([
-    "/oauth/authorize",
-    "/oauth/authorize/",
-    "/OAuth/Authorize",
-    "/oauth/%61uthorize",
-  ])(
-    "should prevent framing of the OAuth consent screen at %s",
-    async (path) => {
-      const res = await server.get(`${path}?client_id=x`);
-      const csp = res.headers.get("content-security-policy") ?? "";
-      expect(res.status).toEqual(200);
-      expect(csp).toContain("frame-ancestors 'none'");
-      expect(res.headers.get("x-frame-options")).toEqual("DENY");
-    }
-  );
-
-  it("should not prevent framing of other app paths", async () => {
-    const res = await server.get("/");
+  it("should only allow framing of app pages on the same origin", async () => {
+    const res = await server.get("/oauth/authorize?client_id=x");
     const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
+  it("should allow framing of shares on any origin", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
     expect(csp).not.toContain("frame-ancestors");
-    expect(res.headers.get("x-frame-options")).toBeNull();
+  });
+
+  it("should not allow framing of shares when embedding is prevented", async () => {
+    const domain = `embed-${randomUUID()}.example.com`;
+    env.URL = `https://${domain}`;
+    const team = await buildTeam({ domain });
+    team.setPreference(TeamPreference.PreventDocumentEmbedding, true);
+    await team.save();
+    const document = await buildDocument({ teamId: team.id });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: team.id,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
   });
 
   it("should allow the Google Tag Manager script source when integration is enabled", async () => {
