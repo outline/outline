@@ -1,7 +1,11 @@
 import { randomString } from "@shared/random";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import type { Document, User } from "@server/models";
-import { IntegrationAuthentication, SearchQuery } from "@server/models";
+import {
+  Integration,
+  IntegrationAuthentication,
+  SearchQuery,
+} from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -375,10 +379,11 @@ describe("#hooks.slack", () => {
       serviceTeamId: randomString(8),
       serviceUserId: randomString(8),
     };
-    await buildIntegration({
+    await Integration.create<Integration<IntegrationType.LinkedAccount>>({
+      service: IntegrationService.Slack,
+      type: IntegrationType.LinkedAccount,
       teamId: user.teamId,
       userId: user.id,
-      type: IntegrationType.LinkedAccount,
       settings: { slack },
     });
     const res = await server.post("/api/hooks.slack", {
