@@ -231,7 +231,11 @@ class Notification extends Model<
       groupId: model.groupId,
     };
 
-    await afterCommit(options.transaction, () => void Event.schedule(params));
+    if (options.transaction) {
+      await afterCommit(options.transaction, () => void Event.schedule(params));
+      return;
+    }
+    await Event.schedule(params);
   }
 
   /**
