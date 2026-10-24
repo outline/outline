@@ -30,6 +30,7 @@ router.get(
         }),
       client_id_metadata_document_supported: mcpEnabled,
       response_types_supported: OAuthHelper.responseTypes,
+      response_modes_supported: ["query"],
       grant_types_supported: OAuthHelper.grantTypes,
       token_endpoint_auth_methods_supported:
         OAuthHelper.tokenEndpointAuthMethods,

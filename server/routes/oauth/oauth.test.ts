@@ -529,6 +529,7 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.revocation_endpoint).toContain("/oauth/revoke");
     expect(body.client_id_metadata_document_supported).toBe(true);
     expect(body.response_types_supported).toEqual(["code"]);
+    expect(body.response_modes_supported).toEqual(["query"]);
     expect(body.grant_types_supported).toEqual([
       "authorization_code",
       "refresh_token",
