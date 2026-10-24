@@ -76,9 +76,11 @@ export default function apiErrorHandler() {
         transformedErr.status === 401
       ) {
         const headers = transformedErr.headers ?? {};
-        const hasChallenge = Object.keys(headers).some(
-          (key) => key.toLowerCase() === "www-authenticate"
-        );
+        const hasChallenge =
+          !!ctx.response.get("WWW-Authenticate") ||
+          Object.keys(headers).some(
+            (key) => key.toLowerCase() === "www-authenticate"
+          );
         if (!hasChallenge) {
           transformedErr.headers = { ...headers, "WWW-Authenticate": "Bearer" };
         }
