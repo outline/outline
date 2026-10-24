@@ -26,7 +26,8 @@ void (async () => {
     )
   );
 
-  router.use(authMiddleware({ optional: true }));
+  // The OAuth actor must come from the browser session, not a link.
+  router.use(authMiddleware({ optional: true, transports: ["cookie"] }));
   for (const resolvedRouter of resolvedRouters) {
     if (resolvedRouter) {
       router.use("/", resolvedRouter.routes());

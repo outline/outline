@@ -22,6 +22,8 @@ type BaseAuthenticationOptions = {
   role?: UserRole;
   /** Type of authentication required to access the route. */
   type?: AuthenticationType | AuthenticationType[];
+  /** Transports the token may be received from, defaults to all. */
+  transports?: AuthTransport[];
 };
 
 type AuthenticationOptions =
@@ -168,6 +170,14 @@ async function validateAuthentication(
 
   if (!token) {
     throw AuthenticationError("Authentication required");
+  }
+
+  if (
+    transport &&
+    options.transports &&
+    !options.transports.includes(transport)
+  ) {
+    throw AuthenticationError(`Token must not be passed in the ${transport}`);
   }
 
   let user: User | null;
