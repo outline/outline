@@ -11,9 +11,9 @@ const readTranslations = (locale: string): Record<string, string> =>
   );
 
 const getPlaceholders = (text: string) =>
-  Array.from(new Set(Array.from(text.matchAll(placeholderRegex), (m) => m[1])))
-    .sort()
-    .join(", ");
+  Array.from(
+    new Set(Array.from(text.matchAll(placeholderRegex), (m) => m[1]))
+  ).sort();
 
 const source = readTranslations(sourceLocale);
 const locales = fs
@@ -42,11 +42,11 @@ describe("translations", () => {
         );
       }
 
-      const expected = getPlaceholders(key);
-      const actual = getPlaceholders(value);
+      const expected = JSON.stringify(getPlaceholders(key));
+      const actual = JSON.stringify(getPlaceholders(value));
       if (expected !== actual) {
         errors.push(
-          `${JSON.stringify(key)} has placeholders [${actual}], expected [${expected}]: ${JSON.stringify(value)}`
+          `${JSON.stringify(key)} has placeholders ${actual}, expected ${expected}: ${JSON.stringify(value)}`
         );
       }
     }
