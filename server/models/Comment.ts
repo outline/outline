@@ -346,24 +346,11 @@ class Comment extends ParanoidModel<
 
   @AfterDestroy
   public static async deleteChildComments(model: Comment, ctx: HookContext) {
-    const { transaction } = ctx;
-
-    const lock = transaction
-      ? {
-          level: transaction.LOCK.UPDATE,
-          of: this,
-        }
-      : undefined;
-
-    const childComments = await this.findAll({
-      where: { parentCommentId: model.id },
-      transaction,
-      lock,
+    await this.destroy({
+      where: { parentCommentId: model.id, documentId: model.documentId },
+      transaction: ctx.transaction,
+      hooks: false,
     });
-
-    await Promise.all(
-      childComments.map((childComment) => childComment.destroy({ transaction }))
-    );
   }
 }
 
