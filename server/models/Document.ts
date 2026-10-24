@@ -780,6 +780,7 @@ class Document extends ArchivableModel<
   ) {
     const document = await this.scope("withAllMemberships").findOne({
       where: { id: documentId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
