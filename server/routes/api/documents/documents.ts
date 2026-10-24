@@ -1973,14 +1973,10 @@ router.post(
       UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    let membership = await UserMembership.findOne({
-      where: {
-        documentId: id,
-        userId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await UserMembership.findOneForUpdate(
+      { documentId: id, userId },
+      { transaction }
+    );
 
     if (membership) {
       if (permission) {
@@ -2088,14 +2084,10 @@ router.post(
     authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
-      where: {
-        documentId: id,
-        groupId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await GroupMembership.findOneForUpdate(
+      { documentId: id, groupId },
+      { transaction }
+    );
 
     if (membership) {
       if (permission) {
