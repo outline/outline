@@ -28,7 +28,7 @@ describe("DocumentsStore", () => {
   });
 
   describe("deleted", () => {
-    test("should filter by the user that deleted the document", () => {
+    it("should filter by the user that deleted the document", () => {
       const deleter = stores.users.add({
         id: "22222222-2222-2222-2222-222222222222",
         name: "Deleter",

@@ -7,7 +7,8 @@ setSelfHosted();
 const server = getTestServer();
 
 describe("installation.create", () => {
-  // Skipped in CI because tests run in parallel and this requires a clean database state.
+  // Skipped because it truncates tables that other test files use in parallel.
+  // oxlint-disable-next-line vitest/no-disabled-tests
   it.skip("should create a team when no teams exist", async () => {
     await sequelize.query(
       "TRUNCATE TABLE teams, users, team_domains, user_authentications RESTART IDENTITY CASCADE"
@@ -55,14 +56,14 @@ describe("installation.create", () => {
 });
 
 describe("installation.info", () => {
-  it.skip("should require authentication", async () => {
+  it("should require authentication", async () => {
     const res = await server.post("/api/installation.info", {
       body: {},
     });
     expect(res.status).toEqual(401);
   });
 
-  it.skip("should return installation information", async () => {
+  it("should return installation information", async () => {
     const user = await buildUser();
     const res = await server.post("/api/installation.info", user);
 

@@ -12,11 +12,27 @@
   "jsPlugins": [
     "./.oxlint/mobx.mjs",
     "./.oxlint/bundle.mjs",
-    "./.oxlint/sequelize.mjs"
+    "./.oxlint/sequelize.mjs",
+    "./.oxlint/vitest.mjs"
   ],
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "vitest"],
   "rules": {
     "mobx/observable-needs-initializer": "error",
     "sequelize/prefer-after-commit-helper": "error",
+    "vitest/consistent-test-it": [
+      "error",
+      { "fn": "it", "withinDescribe": "it" }
+    ],
+    "vitest/no-focused-tests": "error",
+    "vitest/no-disabled-tests": "error",
+    "vitest/no-identical-title": "error",
+    "vitest/expect-expect": "off",
+    "vitest/no-conditional-expect": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "vitest/require-to-throw-message": "off",
+    "vitest/valid-expect": "off",
+    "vitest/valid-title": "off",
+    "vitest-local/require-isolate-directive": "error",
     "for-direction": "error",
     "no-async-promise-executor": "error",
     "no-case-declarations": "error",
