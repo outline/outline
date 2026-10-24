@@ -11377,10 +11377,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipaddr.js@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "ipaddr.js@npm:2.4.0"
-  checksum: 10c0/47c2f17677b40054ca50a09e1228cf818c0d02d4474c2e0e29232c6668b3c4d51a3cfc19d1e17897d7baf4d933b3111d6bdf5cfbe55ab184165469a75f2bf177
+"ipaddr.js@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "ipaddr.js@npm:2.5.0"
+  checksum: 10c0/5cef50d91a14f6388c3b5df3568ee7f8b18e07fa18896debc84d3393b78c1096e1b8e3a4f9fa9020c5ca5b556efc28550432f92a34d23c0cd643bd3194eb439d
   languageName: node
   linkType: hard
 
@@ -14101,7 +14101,7 @@ __metadata:
     invariant: "npm:^2.2.4"
     ioredis: "npm:^5.11.1"
     ioredis-mock: "npm:^8.13.1"
-    ipaddr.js: "npm:^2.4.0"
+    ipaddr.js: "npm:^2.5.0"
     iso-639-3: "npm:^3.0.1"
     js-yaml: "npm:^4.3.2"
     js.foresight: "npm:^4.2.1"
