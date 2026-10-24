@@ -161,7 +161,7 @@ class UserMembership extends IdModel<
     const targetId = collectionId ?? documentId;
     await LockHelper.acquire(
       this.sequelize!,
-      `userMembership:${targetId}:${userId}`,
+      `userMembership:${targetId}:${userId}`.toLowerCase(),
       options.transaction
     );
 

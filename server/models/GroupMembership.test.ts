@@ -40,10 +40,11 @@ describe("GroupMembership", () => {
       const document = await buildDocument();
       const group = await buildGroup({ teamId: document.teamId });
 
-      const grant = (permission: CollectionPermission) =>
+      const grant = (permission: CollectionPermission, ids: string[]) =>
         sequelize.transaction(async (transaction) => {
+          const [documentId, groupId] = ids;
           const membership = await GroupMembership.findOneForUpdate(
-            { documentId: document.id, groupId: group.id },
+            { documentId, groupId },
             { transaction }
           );
           await sleep(50);
@@ -55,8 +56,8 @@ describe("GroupMembership", () => {
 
           return GroupMembership.create(
             {
-              documentId: document.id,
-              groupId: group.id,
+              documentId,
+              groupId,
               permission,
               createdById: document.createdById,
             },
@@ -65,8 +66,11 @@ describe("GroupMembership", () => {
         });
 
       await Promise.all([
-        grant(CollectionPermission.Read),
-        grant(CollectionPermission.ReadWrite),
+        grant(CollectionPermission.Read, [document.id, group.id]),
+        grant(CollectionPermission.ReadWrite, [
+          document.id.toUpperCase(),
+          group.id.toUpperCase(),
+        ]),
       ]);
 
       const memberships = await GroupMembership.findAll({

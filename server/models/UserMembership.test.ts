@@ -112,10 +112,11 @@ describe("UserMembership", () => {
       const collection = await buildCollection();
       const user = await buildUser({ teamId: collection.teamId });
 
-      const grant = (permission: CollectionPermission) =>
+      const grant = (permission: CollectionPermission, ids: string[]) =>
         sequelize.transaction(async (transaction) => {
+          const [collectionId, userId] = ids;
           const membership = await UserMembership.findOneForUpdate(
-            { collectionId: collection.id, userId: user.id },
+            { collectionId, userId },
             { transaction }
           );
           await sleep(50);
@@ -127,8 +128,8 @@ describe("UserMembership", () => {
 
           return UserMembership.create(
             {
-              collectionId: collection.id,
-              userId: user.id,
+              collectionId,
+              userId,
               permission,
               createdById: user.id,
             },
@@ -137,8 +138,11 @@ describe("UserMembership", () => {
         });
 
       await Promise.all([
-        grant(CollectionPermission.Read),
-        grant(CollectionPermission.ReadWrite),
+        grant(CollectionPermission.Read, [collection.id, user.id]),
+        grant(CollectionPermission.ReadWrite, [
+          collection.id.toUpperCase(),
+          user.id.toUpperCase(),
+        ]),
       ]);
 
       const memberships = await UserMembership.findAll({

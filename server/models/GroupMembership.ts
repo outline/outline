@@ -157,7 +157,7 @@ class GroupMembership extends ParanoidModel<
     const targetId = collectionId ?? documentId;
     await LockHelper.acquire(
       this.sequelize!,
-      `groupMembership:${targetId}:${groupId}`,
+      `groupMembership:${targetId}:${groupId}`.toLowerCase(),
       options.transaction
     );
 
