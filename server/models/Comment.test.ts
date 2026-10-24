@@ -284,6 +284,31 @@ describe("Comment", () => {
         })
       ).rejects.toThrow("Parent comment must belong to the same document");
     });
+
+    it("rejects replies to a reply", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const thread = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+      const reply = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+        parentCommentId: thread.id,
+      });
+
+      await expect(
+        buildComment({
+          userId: user.id,
+          documentId: document.id,
+          parentCommentId: reply.id,
+        })
+      ).rejects.toThrow("Cannot reply to a reply");
+    });
   });
 
   describe("deleteChildComments", () => {

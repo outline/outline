@@ -163,7 +163,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .string()
             .describe("The markdown text content of the comment."),
           parentCommentId: optionalString().describe(
-            "The parent comment ID to reply to. Omit for a top-level comment."
+            "The ID of a top-level comment to reply to, replies cannot be nested. Omit for a top-level comment."
           ),
           anchorText: optionalString().describe(
             "A plain text substring of the document to anchor this comment to as an inline comment. The first occurrence is used unless anchorPrefix or anchorSuffix is provided, omit for a general document comment."
