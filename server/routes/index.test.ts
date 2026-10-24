@@ -313,13 +313,21 @@ describe("content security policy", () => {
     expect(csp).toContain("nonce-");
   });
 
-  it("should prevent framing of the OAuth consent screen", async () => {
-    const res = await server.get("/oauth/authorize?client_id=x");
-    const csp = res.headers.get("content-security-policy") ?? "";
-    expect(res.status).toEqual(200);
-    expect(csp).toContain("frame-ancestors 'none'");
-    expect(res.headers.get("x-frame-options")).toEqual("DENY");
-  });
+  it.each([
+    "/oauth/authorize",
+    "/oauth/authorize/",
+    "/OAuth/Authorize",
+    "/oauth/%61uthorize",
+  ])(
+    "should prevent framing of the OAuth consent screen at %s",
+    async (path) => {
+      const res = await server.get(`${path}?client_id=x`);
+      const csp = res.headers.get("content-security-policy") ?? "";
+      expect(res.status).toEqual(200);
+      expect(csp).toContain("frame-ancestors 'none'");
+      expect(res.headers.get("x-frame-options")).toEqual("DENY");
+    }
+  );
 
   it("should not prevent framing of other app paths", async () => {
     const res = await server.get("/");
