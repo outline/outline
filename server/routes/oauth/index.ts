@@ -1,4 +1,4 @@
-import OAuth2Server from "@node-oauth/oauth2-server";
+import OAuth2Server, { InvalidClientError } from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
@@ -125,7 +125,7 @@ router.post(
     // Only client_secret_post is advertised, but the library also reads HTTP
     // Basic credentials, so reject them to keep the checks below complete.
     if (/^\s*basic\b/i.test(ctx.request.get("authorization"))) {
-      throw ValidationError(
+      throw new InvalidClientError(
         "Unsupported client authentication method, send credentials in the request body"
       );
     }
@@ -143,10 +143,12 @@ router.post(
       }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
-        throw ValidationError("Invalid client_id");
+        throw new InvalidClientError("Invalid client_id");
       }
       if (client.clientType === "confidential") {
-        throw ValidationError("Missing client_secret for confidential client");
+        throw new InvalidClientError(
+          "Missing client_secret for confidential client"
+        );
       }
     }
 
