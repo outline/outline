@@ -680,7 +680,7 @@ describe("#users.list with emailDisplay none", () => {
 
   it("should match the query against names", async () => {
     const team = await buildTeamWithoutEmails();
-    const member = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id, name: "John Smith" });
     const other = await buildUser({ teamId: team.id, name: "Jane Doe" });
 
     const res = await server.post("/api/users.list", member, {
