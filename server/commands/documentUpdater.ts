@@ -178,9 +178,8 @@ export default async function documentUpdater(
   }
 
   // Publishing can move the document to another collection, and the save
-  // hooks that maintain the collection structure replace the loaded
-  // collection with one that has no membership data. Reload in those cases
-  // so that policies stay accurate.
+  // hooks can attach a collection that has no membership data. Reload in
+  // those cases so that policies stay accurate.
   if (publish || document.collection !== collection) {
     return await Document.findByPk(document.id, {
       userId: user.id,

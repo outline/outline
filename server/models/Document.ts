@@ -542,7 +542,13 @@ class Document extends ArchivableModel<
     }
 
     await collection.updateDocument(model, { transaction });
-    model.collection = collection;
+
+    // Keep a loaded collection so that its membership data stays available.
+    if (model.collection?.id === collection.id) {
+      model.collection.documentStructure = collection.documentStructure;
+    } else {
+      model.collection = collection;
+    }
   }
 
   @AfterCreate
