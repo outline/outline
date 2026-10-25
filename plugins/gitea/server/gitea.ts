@@ -328,10 +328,7 @@ export class Gitea {
     });
   }
 
-  /**
-   * The time to wait for a complete response. The signal applies it to the
-   * body as well, the fetch timeout only covers the headers.
-   */
+  /** The time to wait for a response from a Gitea instance. */
   private static timeout = 10 * Second.ms;
 
   /**
@@ -357,7 +354,6 @@ export class Gitea {
   }) {
     const res = await fetch(`${GiteaUtils.getApiUrl(baseUrl)}${path}`, {
       timeout: this.timeout,
-      signal: AbortSignal.timeout(this.timeout),
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
@@ -386,7 +382,6 @@ export class Gitea {
     const res = await fetch(`${GiteaUtils.getOauthUrl(baseUrl)}/access_token`, {
       method: "POST",
       timeout: this.timeout,
-      signal: AbortSignal.timeout(this.timeout),
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
