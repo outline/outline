@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState } from "react";
+import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import type Document from "~/models/Document";
-import { clearSuppressView, shouldSuppressView } from "~/utils/suppressView";
+import { SuppressViewParam } from "~/utils/suppressView";
+import { isTruthyQueryValue } from "~/utils/urls";
 
 const MARK_AS_VIEWED_AFTER = 3 * 1000;
 type Props = {
@@ -11,13 +13,16 @@ type Props = {
 function MarkAsViewed(props: Props) {
   const { document, children } = props;
   const viewTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppress = isTruthyQueryValue(useConsumeQueryParam(SuppressViewParam));
+
+  // Only the document that was linked to is suppressed, not any navigated to
+  // afterwards.
   const [suppressedDocumentId] = useState(() =>
-    shouldSuppressView() ? document.id : undefined
+    suppress ? document.id : undefined
   );
 
   useEffect(() => {
     if (document.id === suppressedDocumentId) {
-      clearSuppressView();
       return;
     }
 
