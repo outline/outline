@@ -17,6 +17,7 @@ describe("DocumentUpdateTextTask", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
       ip: "127.0.0.1",
     });
 
@@ -40,6 +41,7 @@ describe("DocumentUpdateTextTask", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
       ip: "127.0.0.1",
     });
 
