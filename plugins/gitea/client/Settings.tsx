@@ -61,7 +61,7 @@ function Gitea() {
       <Text as="p">
         <Trans>
           Enable previews of Gitea issues, pull requests, and repositories in
-          documents by connecting a Gitea instance to {{ appName }}.
+          documents by connecting a Gitea or Forgejo instance to {{ appName }}.
         </Trans>
       </Text>
 

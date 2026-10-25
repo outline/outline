@@ -6,10 +6,10 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
-import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { redirectTo } from "~/utils/urls";
+import { GiteaUtils } from "../../shared/GiteaUtils";
 
 /**
  * Dialog that collects the details of a Gitea instance and its OAuth
@@ -22,7 +22,7 @@ export function GiteaConnectDialog() {
   const [clientId, setClientId] = React.useState("");
   const [clientSecret, setClientSecret] = React.useState("");
   const [saving, setSaving] = React.useState(false);
-  const redirectUri = `${env.URL}/api/gitea.callback`;
+  const redirectUri = GiteaUtils.callbackUrl();
 
   const handleSubmit = React.useCallback(
     async (ev: React.FormEvent) => {
@@ -56,8 +56,9 @@ export function GiteaConnectDialog() {
       <Flex column gap={12}>
         <Text as="p" type="secondary">
           <Trans>
-            Create an OAuth2 application in the settings of your Gitea instance
-            with the redirect URI below, then enter its details.
+            Create an OAuth2 application in the settings of your Gitea or
+            Forgejo instance with the redirect URI below, then enter its
+            details.
           </Trans>
         </Text>
         <Input

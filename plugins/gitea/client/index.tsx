@@ -11,7 +11,7 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       description:
-        "Connect your Gitea instance to Outline to enable rich, real-time issue, pull request, and repository previews inside documents.",
+        "Connect your Gitea or Forgejo instance to Outline to enable rich, real-time issue, pull request, and repository previews inside documents.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },
