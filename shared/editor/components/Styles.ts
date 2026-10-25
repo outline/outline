@@ -1977,10 +1977,8 @@ mark {
   font-size: 90%;
   border-radius: ${EditorStyleHelper.blockRadius};
 
-  &:hover + .${EditorStyleHelper.codeBlockToggle},
-  &:focus-within + .${EditorStyleHelper.codeBlockToggle},
-  & + .${EditorStyleHelper.codeBlockToggle}:hover,
-  & + .${EditorStyleHelper.codeBlockToggle}:focus {
+  &:hover .${EditorStyleHelper.codeBlockToggle} button,
+  &:focus-within .${EditorStyleHelper.codeBlockToggle} button {
     opacity: 1;
   }
 }
@@ -2137,14 +2135,30 @@ mark {
   }
 }
 
+// Covers the block so the button can stick to the bottom of the viewport
+// while the block is in view.
 .${EditorStyleHelper.codeBlockToggle} {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+
+  @media print {
+    display: none !important;
+  }
+}
+
+.${EditorStyleHelper.codeBlockToggle} button {
   display: inline-flex;
   align-items: center;
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  transform: translate3d(-50%, -50px, 0);
-  margin: 0;
+  position: sticky;
+  bottom: 16px;
+  margin: 0 0 16px;
   padding: 0 8px;
   border: 0;
   border-radius: 100px;
@@ -2163,10 +2177,6 @@ mark {
 
   &:hover {
     background: ${props.theme.backgroundSecondary};
-  }
-
-  @media print {
-    display: none !important;
   }
 }
 
