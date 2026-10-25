@@ -1,5 +1,6 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import type Document from "~/models/Document";
+import { clearSuppressView, shouldSuppressView } from "~/utils/suppressView";
 
 const MARK_AS_VIEWED_AFTER = 3 * 1000;
 type Props = {
@@ -10,8 +11,16 @@ type Props = {
 function MarkAsViewed(props: Props) {
   const { document, children } = props;
   const viewTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [suppressedDocumentId] = useState(() =>
+    shouldSuppressView() ? document.id : undefined
+  );
 
   useEffect(() => {
+    if (document.id === suppressedDocumentId) {
+      clearSuppressView();
+      return;
+    }
+
     viewTimeout.current = setTimeout(async () => {
       const view = await document.view();
 
@@ -25,7 +34,7 @@ function MarkAsViewed(props: Props) {
         clearTimeout(viewTimeout.current);
       }
     };
-  }, [document]);
+  }, [document, suppressedDocumentId]);
 
   return children || null;
 }
