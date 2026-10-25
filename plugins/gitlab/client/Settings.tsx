@@ -70,8 +70,9 @@ function GitLab() {
       )}
       <Text as="p">
         <Trans>
-          Enable previews of GitLab issues and merge requests in documents by
-          connecting a GitLab group or specific projects to {{ appName }}.
+          Enable previews of GitLab issues, merge requests, and projects in
+          documents by connecting a GitLab group or specific projects to{" "}
+          {{ appName }}.
         </Trans>
       </Text>
 

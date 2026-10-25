@@ -1,0 +1,7 @@
+{
+  "id": "gitea",
+  "name": "Gitea",
+  "priority": 12,
+  "description": "Adds a Gitea integration for link unfurling.",
+  "after": "gitlab"
+}

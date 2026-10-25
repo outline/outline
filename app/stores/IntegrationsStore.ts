@@ -36,6 +36,13 @@ class IntegrationsStore extends Store<Integration> {
   }
 
   @computed
+  get gitea(): Integration<IntegrationType.Embed>[] {
+    return this.orderedData.filter(
+      (integration) => integration.service === IntegrationService.Gitea
+    );
+  }
+
+  @computed
   get linear(): Integration<IntegrationType.Embed>[] {
     return this.orderedData.filter(
       (integration) => integration.service === IntegrationService.Linear
