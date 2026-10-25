@@ -80,6 +80,23 @@ describe("CronTask", () => {
       }
     });
 
+    it("should stay within an explicit window", () => {
+      const names = [
+        "CleanupDeletedDocumentsTask",
+        "CleanupOldEventsTask",
+        "CleanupOldSearchQueriesTask",
+      ];
+      for (const name of names) {
+        const delay = CronTask.getStaggerDelay(
+          name,
+          TaskInterval.Hour,
+          Minute.ms
+        );
+        expect(delay).toBeGreaterThanOrEqual(0);
+        expect(delay).toBeLessThan(Minute.ms);
+      }
+    });
+
     it("should distribute delays across the window for real task names", () => {
       const names = [
         "CleanupDeletedDocumentsTask",

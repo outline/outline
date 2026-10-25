@@ -78,19 +78,20 @@ export abstract class CronTask extends BaseTask<Props> {
   public abstract get cron(): TaskSchedule;
 
   /**
-   * Compute a deterministic delay for a task based on its name and interval.
-   * Different tasks are likely to get different offsets within the stagger
-   * window for their interval, reducing concurrent heavy database operations.
+   * Compute a deterministic delay for a task based on its name and a stagger
+   * window. Different tasks are likely to get different offsets within the
+   * window, reducing concurrent heavy database operations.
    *
    * @param taskName the name of the task class.
-   * @param interval the task interval used to select the stagger window.
+   * @param interval the task interval used to select the default stagger window.
+   * @param windowMs an optional window in milliseconds that replaces the default.
    * @returns a delay in milliseconds.
    */
   public static getStaggerDelay(
     taskName: string,
-    interval: TaskInterval
+    interval: TaskInterval,
+    windowMs = staggerWindows[interval]
   ): number {
-    const windowMs = staggerWindows[interval];
     let hash = 0;
     for (let i = 0; i < taskName.length; i++) {
       hash = ((hash << 5) - hash + taskName.charCodeAt(i)) | 0;
