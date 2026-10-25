@@ -172,16 +172,17 @@ export class Gitea {
     const path = this.repositoryPath(params);
     const [repository, closed] = await Promise.all([
       this.request({ ...params, path, schema: RepositorySchema }),
+      // The issue list is not available when the issue tracker is disabled.
       this.request({
         ...params,
         path: `${path}/issues?state=closed&type=issues&limit=1`,
         schema: z.array(z.object({})),
-      }),
+      }).catch(() => undefined),
     ]);
 
     return {
       repository: repository.data,
-      closedIssues: Number(closed.headers.get("x-total-count")) || 0,
+      closedIssues: Number(closed?.headers.get("x-total-count")) || 0,
     };
   }
 
@@ -327,7 +328,10 @@ export class Gitea {
     });
   }
 
-  /** The time to wait for a response from a Gitea instance. */
+  /**
+   * The time to wait for a complete response. The signal applies it to the
+   * body as well, the fetch timeout only covers the headers.
+   */
   private static timeout = 10 * Second.ms;
 
   /**
@@ -353,6 +357,7 @@ export class Gitea {
   }) {
     const res = await fetch(`${GiteaUtils.getApiUrl(baseUrl)}${path}`, {
       timeout: this.timeout,
+      signal: AbortSignal.timeout(this.timeout),
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
@@ -381,6 +386,7 @@ export class Gitea {
     const res = await fetch(`${GiteaUtils.getOauthUrl(baseUrl)}/access_token`, {
       method: "POST",
       timeout: this.timeout,
+      signal: AbortSignal.timeout(this.timeout),
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",

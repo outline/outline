@@ -32,9 +32,19 @@ export class GiteaIssueProvider extends BaseIssueProvider {
     }
 
     try {
+      const { authentication } = integration;
+      const accessToken = await authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) =>
+          Gitea.refreshToken({
+            baseUrl,
+            refreshToken,
+            clientId: authentication.clientId,
+            clientSecret: authentication.clientSecret,
+          })
+      );
       const repositories = await Gitea.getRepositories({
         baseUrl,
-        accessToken: integration.authentication.token,
+        accessToken,
       });
 
       return repositories.map<IssueSource>((repo) => ({

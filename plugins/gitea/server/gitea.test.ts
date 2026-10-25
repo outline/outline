@@ -6,6 +6,7 @@ import {
 } from "@shared/types";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import { buildUser } from "@server/test/factories";
+import { GiteaIssueProvider } from "./GiteaIssueProvider";
 import { Gitea } from "./gitea";
 
 const installation = {
@@ -256,5 +257,40 @@ describe("Gitea.unfurl", () => {
     );
 
     expect(result).toEqual({ error: "Not found" });
+  });
+});
+
+describe("GiteaIssueProvider.fetchSources", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should refresh an expired token before fetching repositories", async () => {
+    const user = await buildUser();
+    const integration = await buildGiteaIntegration({
+      teamId: user.teamId,
+      userId: user.id,
+      url: "https://gitea.example.com",
+    });
+    await IntegrationAuthentication.update(
+      { expiresAt: new Date(Date.now() - 1000) },
+      { where: { id: integration.authenticationId } }
+    );
+    vi.spyOn(Gitea, "refreshToken").mockResolvedValue({
+      access_token: "new-token",
+      refresh_token: "new-refresh",
+      token_type: "bearer",
+      expires_in: 3600,
+    });
+    const getRepositories = vi
+      .spyOn(Gitea, "getRepositories")
+      .mockResolvedValue([]);
+
+    await new GiteaIssueProvider().fetchSources(integration);
+
+    expect(getRepositories).toHaveBeenCalledWith({
+      baseUrl: "https://gitea.example.com",
+      accessToken: "new-token",
+    });
   });
 });
