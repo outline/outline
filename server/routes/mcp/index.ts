@@ -26,6 +26,17 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 const app = new Koa();
 const router = new Router();
 
+// Connection-level headers that Node must set itself, see RFC 9110 §7.6.1.
+const hopByHopHeaders = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-connection",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+]);
+
 interface McpAuthExtra {
   user: User;
   scope: string[];
@@ -66,7 +77,8 @@ const createServer: McpServerFactory = ({ authInfo }) => {
   );
 };
 
-// Plain JSON replies, which reverse proxies handle more reliably than SSE.
+// Plain JSON replies for 2026-era clients, which reverse proxies handle more
+// reliably than SSE. The SDK still replies to 2025-era clients over SSE.
 const mcpHandler = createMcpHandler(createServer, {
   responseMode: "json",
   onerror: handleTransportError,
@@ -189,7 +201,11 @@ router.post(
       const response = await mcpHandler.fetch(request, options);
 
       ctx.status = response.status;
-      response.headers.forEach((value, key) => ctx.set(key, value));
+      response.headers.forEach((value, key) => {
+        if (!hopByHopHeaders.has(key)) {
+          ctx.set(key, value);
+        }
+      });
       ctx.body = response.body ? Readable.from(response.body) : "";
     } catch (error) {
       Logger.error(
