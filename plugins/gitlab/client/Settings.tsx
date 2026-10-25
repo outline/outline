@@ -25,6 +25,9 @@ import { GitLabConnectButton } from "./components/GitLabButton";
 function GitLab() {
   const { integrations } = useStores();
   const { t } = useTranslation();
+  const gitlabIntegrations = integrations.filterByService(
+    IntegrationService.GitLab
+  );
   const query = useQuery();
   const error = query.get("error");
   const installRequest = query.get("install_request");
@@ -76,7 +79,7 @@ function GitLab() {
         </Trans>
       </Text>
 
-      {integrations.gitlab.some((int) => int.settings.gitlab?.installation) ? (
+      {gitlabIntegrations.some((int) => int.settings.gitlab?.installation) ? (
         <>
           <Heading as="h2">
             <Flex justify="space-between" auto>
@@ -85,7 +88,7 @@ function GitLab() {
             </Flex>
           </Heading>
           <List>
-            {integrations.gitlab.map((integration) => {
+            {gitlabIntegrations.map((integration) => {
               const gitlabAccount =
                 integration.settings?.gitlab?.installation?.account;
               const integrationCreatedBy = integration.user

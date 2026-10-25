@@ -24,6 +24,9 @@ import { LinearConnectButton } from "./components/LinearButton";
 function Linear() {
   const { integrations } = useStores();
   const { t } = useTranslation();
+  const linearIntegrations = integrations.filterByService(
+    IntegrationService.Linear
+  );
   const query = useQuery();
   const error = query.get("error");
   const appName = env.APP_NAME;
@@ -71,7 +74,7 @@ function Linear() {
               Linear workspace to {{ appName }}.
             </Trans>
           </Text>
-          {integrations.linear.length ? (
+          {linearIntegrations.length ? (
             <>
               <Heading as="h2">
                 <Flex justify="space-between" auto>
@@ -80,7 +83,7 @@ function Linear() {
                 </Flex>
               </Heading>
               <List>
-                {integrations.linear.map((integration) => {
+                {linearIntegrations.map((integration) => {
                   const linearWorkspace =
                     integration.settings?.linear?.workspace;
                   const integrationCreatedBy = integration.user

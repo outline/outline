@@ -26,6 +26,9 @@ import { GitHubConnectButton } from "./components/GitHubButton";
 function GitHub() {
   const { integrations } = useStores();
   const { t } = useTranslation();
+  const githubIntegrations = integrations.filterByService(
+    IntegrationService.GitHub
+  );
   const query = useQuery();
   const error = query.get("error");
   const installRequest = query.get("install_request");
@@ -103,7 +106,7 @@ function GitHub() {
             </Trans>
           </Text>
 
-          {integrations.github.length ? (
+          {githubIntegrations.length ? (
             <>
               <Heading as="h2">
                 <Flex justify="space-between" auto>
@@ -112,7 +115,7 @@ function GitHub() {
                 </Flex>
               </Heading>
               <List>
-                {integrations.github.map((integration) => {
+                {githubIntegrations.map((integration) => {
                   const githubAccount =
                     integration.settings?.github?.installation.account;
                   const integrationCreatedBy = integration.user

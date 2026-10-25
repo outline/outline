@@ -35,9 +35,9 @@ function Gitea() {
     });
   }, [integrations]);
 
-  const connected = integrations.gitea.filter(
-    (integration) => integration.settings.gitea?.installation
-  );
+  const connected = integrations
+    .filterByService(IntegrationService.Gitea)
+    .filter((integration) => integration.settings.gitea?.installation);
 
   return (
     <IntegrationScene title="Gitea" icon={<GiteaIcon />}>
