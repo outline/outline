@@ -1,4 +1,4 @@
-import addressparser from "addressparser";
+import addressparser from "nodemailer/lib/addressparser";
 import type MimeNode from "nodemailer/lib/mime-node";
 import {
   type AccessToken,
@@ -44,7 +44,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
     const mailbox =
       env.AZURE_MAIL_FROM_USER_ID ||
       (env.SMTP_FROM_EMAIL
-        ? addressparser(env.SMTP_FROM_EMAIL)[0]?.address
+        ? addressparser(env.SMTP_FROM_EMAIL, { flatten: true })[0]?.address
         : undefined) ||
       message.getEnvelope().from;
 

@@ -1,4 +1,4 @@
-import addressparser from "addressparser";
+import addressparser from "nodemailer/lib/addressparser";
 import JWT from "jsonwebtoken";
 import type MimeNode from "nodemailer/lib/mime-node";
 import {
@@ -48,7 +48,7 @@ export class GmailEmailProvider extends BaseEmailProvider {
     const mailbox =
       env.GOOGLE_MAIL_FROM_USER_ID ||
       (env.SMTP_FROM_EMAIL
-        ? addressparser(env.SMTP_FROM_EMAIL)[0]?.address
+        ? addressparser(env.SMTP_FROM_EMAIL, { flatten: true })[0]?.address
         : undefined) ||
       from;
 
