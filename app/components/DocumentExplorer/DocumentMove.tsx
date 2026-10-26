@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import type { NavigationNode } from "@shared/types";
@@ -19,11 +19,42 @@ type Props = {
 };
 
 function DocumentMove({ documents }: Props) {
-  const { dialogs, policies } = useStores();
+  const { collections, dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [moving, setMoving] = useState<boolean>(false);
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
+  const [treesFailed, setTreesFailed] = useState<boolean>(false);
+
+  const sourceCollectionIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          documents
+            .map((document) => document.collectionId)
+            .filter((id): id is string => !!id)
+        )
+      ),
+    [documents]
+  );
+
+  // The source trees are needed to exclude descendants and to keep nesting,
+  // so load any that have not been loaded yet.
+  useEffect(() => {
+    Promise.all(
+      sourceCollectionIds
+        .map((id) => collections.get(id))
+        .filter((collection) => !!collection)
+        .map((collection) => collection.fetchDocuments())
+    ).catch(() => setTreesFailed(true));
+  }, [collections, sourceCollectionIds]);
+
+  const isLoadingTrees =
+    !treesFailed &&
+    sourceCollectionIds.some((id) => {
+      const collection = collections.get(id);
+      return !!collection && !collection.documents;
+    });
 
   const { items, movableDocuments } = useMemo(() => {
     const selectedIds = new Set(documents.map((document) => document.id));
@@ -78,6 +109,9 @@ function DocumentMove({ documents }: Props) {
   }, [policies, collectionTrees, documents]);
 
   const move = async (path = selectedPath) => {
+    if (isLoadingTrees) {
+      return;
+    }
     if (!path) {
       toast.message(t("Select a location to move"));
       return;
@@ -134,7 +168,10 @@ function DocumentMove({ documents }: Props) {
             t("Select a location to move")
           )}
         </Text>
-        <Button disabled={!selectedPath || moving} onClick={() => move()}>
+        <Button
+          disabled={!selectedPath || moving || isLoadingTrees}
+          onClick={() => move()}
+        >
           {moving ? `${t("Moving")}…` : t("Move")}
         </Button>
       </Footer>
