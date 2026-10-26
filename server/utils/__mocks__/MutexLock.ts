@@ -19,8 +19,8 @@ export class MutexLock {
     (
       _resource: string,
       _timeout: number,
-      routine: (signal: { aborted: boolean }) => unknown
-    ) => routine({ aborted: false })
+      routine: (signal: AbortSignal) => unknown
+    ) => routine(new AbortController().signal)
   );
 
   /**
@@ -30,24 +30,12 @@ export class MutexLock {
     (
       _resource: string,
       _timeout: number,
-      routine: (signal: { aborted: boolean }) => unknown
-    ) => routine({ aborted: false })
+      routine: (signal: AbortSignal) => unknown
+    ) => routine(new AbortController().signal)
   );
 
   /**
    * Releases a mock lock.
    */
   public static release = vi.fn().mockResolvedValue(true);
-
-  /**
-   * Returns the mock redlock instance
-   */
-  public static get lock() {
-    return {
-      acquire: vi.fn().mockResolvedValue({
-        release: vi.fn().mockResolvedValue(true),
-        expiration: Date.now() + 10000,
-      }),
-    };
-  }
 }
