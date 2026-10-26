@@ -1,20 +1,17 @@
-import type { IntegrationType } from "@shared/types";
-import { IntegrationService, AttachmentPreset } from "@shared/types";
+import { cloneDeep, set } from "es-toolkit/compat";
+import { AttachmentPreset } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import { Integration, User } from "@server/models";
 import { BaseTask, TaskPriority } from "@server/queues/tasks/base/BaseTask";
-
-const SupportedIntegrations = [
-  IntegrationService.Linear,
-  IntegrationService.Figma,
-];
 
 type Props = {
   /** The integrationId to operate on */
   integrationId: string;
   /** The original logoUrl from third-party service */
   logoUrl: string;
+  /** The path in the integration settings to store the uploaded url at */
+  settingsPath: string[];
 };
 
 /**
@@ -26,7 +23,7 @@ export default class UploadIntegrationLogoTask extends BaseTask<Props> {
     const integration = await Integration.scope("withAuthentication").findByPk(
       props.integrationId
     );
-    if (!integration || !SupportedIntegrations.includes(integration.service)) {
+    if (!integration) {
       return;
     }
 
@@ -52,23 +49,11 @@ export default class UploadIntegrationLogoTask extends BaseTask<Props> {
       return;
     }
 
-    switch (integration.service) {
-      case IntegrationService.Linear:
-        (
-          integration as Integration<IntegrationType.Embed>
-        ).settings.linear!.workspace.logoUrl = attachment.url;
-        break;
-      case IntegrationService.Figma:
-        (
-          integration as Integration<IntegrationType.LinkedAccount>
-        ).settings.figma!.account.avatarUrl = attachment.url;
-        break;
-      default:
-        throw new Error(
-          `Unsupported integration service: ${integration.service}`
-        ); // This should never happen
-    }
-
+    integration.settings = set(
+      cloneDeep(integration.settings ?? {}),
+      props.settingsPath,
+      attachment.url
+    );
     integration.changed("settings", true);
     await integration.save();
   }

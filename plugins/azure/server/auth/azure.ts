@@ -8,7 +8,6 @@ import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
@@ -30,6 +29,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { AttachmentPreset } from "@shared/types";
 import { UserFlag } from "@server/models/User";
 import { getEmailVerified } from "./getEmailVerified";
+import { MicrosoftGraphError } from "../errors";
 
 const router = new Router();
 const scopes: string[] = [];

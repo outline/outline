@@ -1,3 +1,4 @@
+import { IntegrationService } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
@@ -6,6 +7,10 @@ import router from "./api/gitea";
 import { Gitea } from "./gitea";
 
 PluginManager.add([
+  {
+    type: Hook.IntegrationSettings,
+    value: { service: IntegrationService.Gitea, keys: ["gitea"] },
+  },
   {
     ...config,
     type: Hook.API,

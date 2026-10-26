@@ -1,14 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import type {
-  IssueTrackerIntegrationService,
-  UnfurlResourceType,
-  UnfurlResponse,
-} from "../../types";
-import { IntegrationService } from "../../types";
-import { GitHubIssueStatusIcon } from "./GitHubIssueStatusIcon";
-import { LinearIssueStatusIcon } from "./LinearIssueStatusIcon";
-import { GitLabIssueStatusIcon } from "./GitLabIssueStatusIcon";
+import type { UnfurlResourceType, UnfurlResponse } from "../../types";
+import { DefaultIssueStatusIcon } from "./DefaultIssueStatusIcon";
 
 export type BaseIconProps = {
   state: UnfurlResponse[UnfurlResourceType.Issue]["state"];
@@ -16,28 +9,28 @@ export type BaseIconProps = {
   size?: number;
 };
 
+/** Returns the status icon registered for an integration service, if any. */
+export type IssueStatusIconResolver = (
+  service: string
+) => React.ComponentType<BaseIconProps> | undefined;
+
 type Props = BaseIconProps & {
-  service: IssueTrackerIntegrationService;
+  /** The icon to render, the default icon is used when not given. */
+  icon?: React.ComponentType<BaseIconProps>;
 };
 
-export function IssueStatusIcon(props: Props) {
+/**
+ * Renders the status icon of an issue.
+ *
+ * @param props the issue state, icon and display options.
+ * @returns the icon.
+ */
+export function IssueStatusIcon({ icon, ...props }: Props) {
   return (
     <Icon size={props.size} className={props.className}>
-      {getIcon(props)}
+      {React.createElement(icon ?? DefaultIssueStatusIcon, props)}
     </Icon>
   );
-}
-
-function getIcon(props: Props) {
-  switch (props.service) {
-    case IntegrationService.GitHub:
-    case IntegrationService.Gitea:
-      return <GitHubIssueStatusIcon {...props} />;
-    case IntegrationService.Linear:
-      return <LinearIssueStatusIcon {...props} />;
-    case IntegrationService.GitLab:
-      return <GitLabIssueStatusIcon {...props} />;
-  }
 }
 
 const Icon = styled.span<{ size?: number }>`

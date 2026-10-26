@@ -527,6 +527,7 @@ export class GitHub {
           : issue.state;
       return {
         type: UnfurlResourceType.Issue,
+        service: IntegrationService.GitHub,
         url: issue.html_url,
         id: `#${issue.number}`,
         title: issue.title,
@@ -551,6 +552,7 @@ export class GitHub {
     const prState = pr.merged ? "merged" : pr.state;
     return {
       type: UnfurlResourceType.PR,
+      service: IntegrationService.GitHub,
       url: pr.html_url,
       id: `#${pr.number}`,
       title: pr.title,

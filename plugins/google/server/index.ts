@@ -1,5 +1,6 @@
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
+import GoogleClient from "./google";
 import router from "./auth/google";
 import env from "./env";
 
@@ -10,7 +11,12 @@ if (enabled) {
     {
       ...config,
       type: Hook.AuthProvider,
-      value: { router, id: config.id, allowEmailMatch: true },
+      value: {
+        router,
+        id: config.id,
+        allowEmailMatch: true,
+        oauthClient: () => new GoogleClient(),
+      },
     },
   ]);
 }

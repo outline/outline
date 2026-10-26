@@ -21,7 +21,6 @@ if (env.SENTRY_DSN) {
       // Authentication
       "UnauthorizedError",
       "TeamDomainRequiredError",
-      "GmailAccountCreationError",
       "AuthRedirectError",
       "UserSuspendedError",
       "TooManyRequestsError",
