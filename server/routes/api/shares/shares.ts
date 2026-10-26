@@ -380,7 +380,7 @@ router.post(
       share.includeChildDocuments = true;
     }
 
-    share.setDefined({
+    share.fill({
       published,
       includeChildDocuments,
       urlId,

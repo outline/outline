@@ -671,7 +671,7 @@ router.post(
       }
     }
 
-    collection.setDefined({
+    collection.fill({
       name: name?.trim(),
       description,
       content: data,

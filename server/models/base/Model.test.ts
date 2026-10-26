@@ -59,10 +59,10 @@ describe("Model", () => {
     });
   });
 
-  describe("setDefined", () => {
+  describe("fill", () => {
     it("should skip undefined values", async () => {
       const team = await buildTeam({ name: "Test Team", guestSignin: true });
-      team.setDefined({ name: undefined, guestSignin: false });
+      team.fill({ name: undefined, guestSignin: false });
 
       expect(team.name).toEqual("Test Team");
       expect(team.guestSignin).toEqual(false);
@@ -71,7 +71,7 @@ describe("Model", () => {
 
     it("should set null values", async () => {
       const team = await buildTeam({ avatarUrl: "https://example.com/a.png" });
-      team.setDefined({ avatarUrl: null });
+      team.fill({ avatarUrl: null });
 
       expect(team.avatarUrl).toBeNull();
     });

@@ -75,7 +75,7 @@ export default async function documentUpdater(
   const { transaction } = ctx.state;
   const cId = collectionId || document.collectionId;
 
-  document.setDefined({
+  document.fill({
     title: title?.trim(),
     icon,
     color,

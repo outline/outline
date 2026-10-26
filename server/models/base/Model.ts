@@ -84,7 +84,7 @@ class Model<
   }
 
   /**
-   * This is the same as calling `setDefined` and then calling `save`.
+   * This is the same as calling `fill` and then calling `save`.
    */
   public updateWithCtx(
     ctx: APIContext,
@@ -98,7 +98,7 @@ class Model<
         publish: true,
       },
     };
-    this.setDefined(keys);
+    this.fill(keys);
     return this.save(hookContext);
   }
 
@@ -109,7 +109,7 @@ class Model<
    * @param keys the attributes to set.
    * @returns the instance.
    */
-  public setDefined(keys: Partial<TModelAttributes>) {
+  public fill(keys: Partial<TModelAttributes>) {
     return this.set(omitBy(keys, isUndefined));
   }
 

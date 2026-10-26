@@ -218,7 +218,7 @@ router.post(
     });
     authorize(user, "update", notification);
 
-    notification.setDefined({ viewedAt, archivedAt });
+    notification.fill({ viewedAt, archivedAt });
     await notification.saveWithCtx(ctx);
 
     ctx.body = {
