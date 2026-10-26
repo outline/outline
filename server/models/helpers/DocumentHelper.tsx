@@ -532,14 +532,19 @@ export class DocumentHelper {
    * @param text The markdown to apply
    * @param editMode The edit mode to use: "replace" (default), "append", "prepend", or "patch"
    * @param findText The markdown text to find when using "patch" edit mode
+   * @param actorId the authenticated writer to attribute new mentions to.
    * @returns The document
    */
   static applyMarkdownToDocument(
     document: Document,
     text: string,
     editMode: TextEditMode = TextEditMode.Replace,
-    findText?: string
+    findText?: string,
+    actorId?: string
   ) {
+    const previousDoc = actorId
+      ? DocumentHelper.toProsemirror(document)
+      : undefined;
     let doc: Node;
 
     if (editMode === TextEditMode.Patch) {
@@ -662,6 +667,10 @@ export class DocumentHelper {
       }
     } else {
       doc = parser.parse(text);
+    }
+
+    if (actorId) {
+      doc = ProsemirrorHelper.assignMentionActors(doc, actorId, previousDoc);
     }
 
     document.content = doc.toJSON();

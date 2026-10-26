@@ -59,11 +59,12 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
       }
       userIdsProcessed.add(mention.modelId);
 
+      const actorId = mention.actorId ?? event.actorId;
       const recipient = await User.findByPk(mention.modelId);
 
       if (
         !recipient ||
-        recipient.id === mention.actorId ||
+        recipient.id === actorId ||
         !(await canUserAccessDocument(recipient, document.id))
       ) {
         continue;
@@ -80,7 +81,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
           event: NotificationEventType.MentionedInDocument,
           userId: recipient.id,
           revisionId: event.modelId,
-          actorId: mention.actorId,
+          actorId,
           teamId: document.teamId,
           documentId: document.id,
         });
@@ -110,6 +111,8 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         continue;
       }
 
+      const actorId = group.actorId ?? event.actorId;
+
       // Check if the group has mentions disabled
       const groupModel = await Group.findByPk(group.modelId);
       if (groupModel?.disableMentions) {
@@ -132,7 +135,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         const recipient = await User.findByPk(user.userId);
         if (
           recipient &&
-          recipient.id !== group.actorId &&
+          recipient.id !== actorId &&
           recipient.subscribedToEventType(
             NotificationEventType.GroupMentionedInDocument
           ) &&
@@ -143,7 +146,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
             groupId: group.modelId,
             userId: recipient.id,
             revisionId: event.modelId,
-            actorId: group.actorId,
+            actorId,
             teamId: document.teamId,
             documentId: document.id,
           });

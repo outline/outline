@@ -2,6 +2,7 @@ import { t } from "i18next";
 import Router from "@koa/router";
 import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
+import { Op } from "sequelize";
 import { z } from "zod";
 import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
@@ -402,6 +403,7 @@ async function findUserForRequest(
         model: User,
         as: "user",
         required: true,
+        where: { suspendedAt: { [Op.is]: null } },
       },
       {
         model: Team,
@@ -439,6 +441,7 @@ async function findUserForRequest(
         model: User,
         as: "user",
         required: true,
+        where: { suspendedAt: { [Op.is]: null } },
         include: [
           {
             model: Team,

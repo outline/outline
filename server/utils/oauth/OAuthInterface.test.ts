@@ -434,7 +434,7 @@ describe("OAuthInterface", () => {
       expect(result).toEqual([]);
     });
 
-    it("should return empty array for empty scope", async () => {
+    it("should return empty array for undefined scope", async () => {
       const result = await OAuthInterface.validateScope(
         user,
         client,

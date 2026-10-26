@@ -52,7 +52,15 @@ export enum Hook {
  */
 type PluginValueMap = {
   [Hook.API]: Router;
-  [Hook.AuthProvider]: { router: Router | Promise<Router>; id: string };
+  [Hook.AuthProvider]: {
+    router: Router | Promise<Router>;
+    id: string;
+    /**
+     * Whether a verified email from another tenant of the provider, eg a
+     * different Google Workspace domain, can sign in to a matching account.
+     */
+    allowEmailMatch?: boolean;
+  };
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;
   [Hook.IssueProvider]: BaseIssueProvider;

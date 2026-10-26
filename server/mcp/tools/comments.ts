@@ -55,7 +55,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Lists comments the user has access to. Requires at least one of documentId or collectionId. Optionally filter by parent comment or resolution status.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
         inputSchema: z.object({
@@ -150,7 +152,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Creates a new comment on a document. Provide the comment content as markdown text. Optionally nest it as a reply under an existing comment.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -159,7 +163,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .string()
             .describe("The markdown text content of the comment."),
           parentCommentId: optionalString().describe(
-            "The parent comment ID to reply to. Omit for a top-level comment."
+            "The ID of a top-level comment to reply to, replies cannot be nested. Omit for a top-level comment."
           ),
           anchorText: optionalString().describe(
             "A plain text substring of the document to anchor this comment to as an inline comment. The first occurrence is used unless anchorPrefix or anchorSuffix is provided, omit for a general document comment."
@@ -268,7 +272,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Updates an existing comment by its ID. Can update the text content, resolve or unresolve the comment thread, or both. Only top-level comments (not replies) can be resolved or unresolved.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({
@@ -352,7 +358,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Deletes a comment by its ID. The user must be the comment author or a team admin.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
         inputSchema: z.object({

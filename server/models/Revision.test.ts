@@ -3,7 +3,7 @@ import { buildDocument, buildUser } from "@server/test/factories";
 import Revision from "./Revision";
 
 describe("#findLatest", () => {
-  test("should return latest revision", async () => {
+  it("should return latest revision", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       title: "Title",

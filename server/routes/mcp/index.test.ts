@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { Scope, TeamPreference } from "@shared/types";
 import { iconNames } from "@shared/utils/IconNames";
+import env from "@server/env";
 import { UserFlag } from "@server/models/User";
 import {
   buildUser,
@@ -8,6 +9,8 @@ import {
   buildDocument,
   buildComment,
   buildOAuthAuthentication,
+  buildSubdomain,
+  buildTeam,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import {
@@ -76,6 +79,95 @@ describe("POST /mcp/", () => {
     it("should return 405 for GET requests", async () => {
       const res = await server.get("/mcp/");
       expect(res.status).toEqual(405);
+    });
+
+    it("should reject requests from another origin", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Origin: "https://evil.example" },
+        body,
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should reject requests with an opaque origin", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Origin: "null" },
+        body,
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it.each([
+      ["scheme", (url: URL) => (url.protocol = "http:")],
+      ["port", (url: URL) => (url.port = "9000")],
+    ])(
+      "should reject requests from the app host with another %s",
+      async (_name, mutate) => {
+        const { accessToken } = await buildOAuthUser();
+        const url = new URL(env.URL);
+        mutate(url);
+
+        const { body } = mcpRequest("tools/list");
+        const res = await server.post("/mcp/", {
+          headers: { ...mcpHeaders(accessToken), Origin: url.origin },
+          body,
+        });
+        expect(res.status).toEqual(403);
+      }
+    );
+
+    it("should allow requests from the app origin", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: {
+          ...mcpHeaders(accessToken),
+          Origin: new URL(env.URL).origin,
+        },
+        body,
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should allow requests from the team subdomain", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      await user.team.update({ subdomain: buildSubdomain() });
+
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Origin: user.team.url },
+        body,
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should allow requests from the team custom domain", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      await user.team.update({ domain: `${buildSubdomain()}.example.com` });
+
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Origin: user.team.url },
+        body,
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should reject requests from another team subdomain", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      await user.team.update({ subdomain: buildSubdomain() });
+      const other = await buildTeam({ subdomain: buildSubdomain() });
+
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Origin: other.url },
+        body,
+      });
+      expect(res.status).toEqual(403);
     });
 
     it("should return 405 for DELETE requests", async () => {
@@ -200,6 +292,24 @@ describe("POST /mcp/", () => {
       ]);
     });
 
+    it("should not forward hop-by-hop headers from the SDK response", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("initialize", {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      });
+
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Connection: "close" },
+        body,
+      });
+
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("content-type")).toContain("text/event-stream");
+      expect(res.headers.get("connection")).toEqual("close");
+    });
+
     it("should return 202 for the notifications/initialized lifecycle message", async () => {
       const { accessToken } = await buildOAuthUser();
 
@@ -233,6 +343,48 @@ describe("POST /mcp/", () => {
 
       await user.reload();
       expect(user.getFlag(UserFlag.MCP)).toEqual(1);
+    });
+
+    it("should set every annotation hint explicitly on every tool", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as
+        | {
+            tools: {
+              name: string;
+              title?: string;
+              annotations?: Record<string, unknown>;
+            }[];
+          }
+        | undefined;
+      const tools = result?.tools ?? [];
+      const names = tools.map((tool) => tool.name);
+      expect(names).toContain("delete_collection");
+      expect(names).toContain("delete_document");
+
+      for (const tool of tools) {
+        expect(tool.title, tool.name).toBeTruthy();
+        expect(tool.annotations, tool.name).toEqual({
+          destructiveHint: expect.any(Boolean),
+          idempotentHint: expect.any(Boolean),
+          openWorldHint: tool.name === "create_document",
+          readOnlyHint: expect.any(Boolean),
+        });
+
+        if (tool.annotations?.readOnlyHint) {
+          expect(tool.annotations.destructiveHint, tool.name).toBe(false);
+        }
+        if (/^(delete|update|move)_/.test(tool.name)) {
+          expect(tool.annotations?.destructiveHint, tool.name).toBe(true);
+        }
+      }
     });
 
     it("should reject tool arguments with too many elements", async () => {

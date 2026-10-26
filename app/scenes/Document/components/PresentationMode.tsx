@@ -479,10 +479,9 @@ const TopBar = styled.div<{ $idle: boolean }>`
   transition: opacity 300ms ease;
 `;
 
-const SlideCounter = styled(Text)`
+const SlideCounter = styled(Text).attrs({ size: "small" })`
   font-variant-numeric: tabular-nums;
   color: ${s("textTertiary")};
-  font-size: 14px;
   min-width: 60px;
   text-align: center;
 `;

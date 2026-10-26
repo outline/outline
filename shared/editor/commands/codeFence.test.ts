@@ -1,7 +1,13 @@
 import { baseKeymap, chainCommands } from "prosemirror-commands";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { createEditorState, codeBlock, doc, p } from "@shared/test/editor";
-import { enterInCode, indentInCode, outdentInCode } from "./codeFence";
+import {
+  backspaceInCode,
+  deleteInCode,
+  enterInCode,
+  indentInCode,
+  outdentInCode,
+} from "./codeFence";
 
 /**
  * Helper that runs a command against a code block document with the given
@@ -160,5 +166,52 @@ describe("enterInCode", () => {
     expect(state.doc.child(1).textContent).toBe("graph TD; A-->B");
     expect(state.doc.lastChild?.type.name).toBe("paragraph");
     expect(state.doc.childCount).toBe(3);
+  });
+});
+
+describe("backspaceInCode", () => {
+  it("deletes an empty last line", () => {
+    const text = runInCodeBlock("hello\n", 7, 7, backspaceInCode);
+    expect(text).toBe("hello");
+  });
+
+  it("deletes an empty line between lines", () => {
+    const text = runInCodeBlock("hello\n\nworld", 8, 8, backspaceInCode);
+    expect(text).toBe("hello\nworld");
+  });
+
+  it("joins a line with the line above", () => {
+    const text = runInCodeBlock("hello\nworld", 7, 7, backspaceInCode);
+    expect(text).toBe("helloworld");
+  });
+
+  it("does not handle a character that is not a line break", () => {
+    const testDoc = doc([codeBlock("hello")]);
+    let state = createEditorState(testDoc);
+    state = state.apply(
+      state.tr.setSelection(TextSelection.create(state.doc, 6))
+    );
+    expect(backspaceInCode(state)).toBe(false);
+  });
+});
+
+describe("deleteInCode", () => {
+  it("deletes an empty last line", () => {
+    const text = runInCodeBlock("hello\n", 6, 6, deleteInCode);
+    expect(text).toBe("hello");
+  });
+
+  it("joins a line with the line below", () => {
+    const text = runInCodeBlock("hello\nworld", 6, 6, deleteInCode);
+    expect(text).toBe("helloworld");
+  });
+
+  it("does not handle a character that is not a line break", () => {
+    const testDoc = doc([codeBlock("hello")]);
+    let state = createEditorState(testDoc);
+    state = state.apply(
+      state.tr.setSelection(TextSelection.create(state.doc, 1))
+    );
+    expect(deleteInCode(state)).toBe(false);
   });
 });

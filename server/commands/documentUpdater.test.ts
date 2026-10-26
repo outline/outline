@@ -1,20 +1,96 @@
 import { randomUUID } from "node:crypto";
 import * as Y from "yjs";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
 import {
   TextEditMode,
+  MentionType,
   type ProsemirrorData,
   type ProsemirrorMark,
 } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
-import { type Document, Event } from "@server/models";
+import { Document, Event } from "@server/models";
 import { parser, schema } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
 describe("documentUpdater", () => {
+  it.each(Object.values(TextEditMode))(
+    "should attribute new mentions and preserve existing actors in %s mode",
+    async (editMode) => {
+      const user = await buildUser();
+      const originalActor = await buildUser({ teamId: user.teamId });
+      const mentionId = randomUUID();
+      const originalMention = `@[Original](mention://${mentionId}/user/${originalActor.id})`;
+      const initialDoc = ProsemirrorHelper.assignMentionActors(
+        parser.parse(`${originalMention} replace me`),
+        originalActor.id
+      );
+      let document = await buildDocument({
+        teamId: user.teamId,
+        content: initialDoc.toJSON(),
+        state: Buffer.from(
+          Y.encodeStateAsUpdate(ProsemirrorHelper.toYDoc(initialDoc.toJSON()))
+        ),
+      });
+      const newMention = `@[Writer](mention://user/${user.id})`;
+
+      document = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          document,
+          text:
+            editMode === TextEditMode.Replace
+              ? `${originalMention} ${newMention}`
+              : newMention,
+          editMode,
+          findText: editMode === TextEditMode.Patch ? "replace me" : undefined,
+        })
+      );
+
+      document = await Document.findByPk(document.id, {
+        includeState: true,
+        rejectOnEmpty: true,
+      });
+      expect(
+        DocumentHelper.parseMentions(document, { type: MentionType.User })
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: mentionId, actorId: originalActor.id }),
+          expect.objectContaining({ modelId: user.id, actorId: user.id }),
+        ])
+      );
+      if (!document.state) {
+        throw new Error("Expected collaborative state to be persisted");
+      }
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, document.state);
+      expect(yDocToProsemirrorJSON(ydoc, "default")).toEqual(document.content);
+    }
+  );
+
+  it("should leave retained mentions without attribution unchanged", async () => {
+    const user = await buildUser();
+    const mention = `@[Writer](mention://${randomUUID()}/user/${user.id})`;
+    let document = await buildDocument({
+      teamId: user.teamId,
+      content: parser.parse(mention).toJSON(),
+    });
+    const originalMentions = DocumentHelper.parseMentions(document);
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, { document, text: `${mention} updated` })
+    );
+
+    await document.reload();
+    expect(DocumentHelper.parseMentions(document)).toEqual(originalMentions);
+  });
+
   it("should change lastModifiedById", async () => {
     const user = await buildUser();
     let document = await buildDocument({
@@ -118,6 +194,37 @@ describe("documentUpdater", () => {
 
     expect(notifyUpdateSpy).not.toHaveBeenCalled();
     notifyUpdateSpy.mockRestore();
+  });
+
+  it("should keep the loaded collection when the title changes", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const { id } = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+    });
+    const loadedCollection = document.collection;
+
+    const result = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        title: "New Title",
+        document,
+      })
+    );
+
+    expect(result).toBe(document);
+    expect(result.collection).toBe(loadedCollection);
+    expect(result.collection?.documentStructure?.[0].title).toEqual(
+      "New Title"
+    );
   });
 
   describe("replace", () => {

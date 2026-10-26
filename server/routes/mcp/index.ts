@@ -2,7 +2,7 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
 import { Readable } from "node:stream";
-import type { Context } from "koa";
+import type { Context, Next } from "koa";
 import {
   createMcpHandler,
   type McpServerFactory,
@@ -10,6 +10,7 @@ import {
 } from "@modelcontextprotocol/server";
 import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
+import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { createMcpServer } from "@server/mcp";
@@ -18,12 +19,23 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import type { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import { AuthenticationType } from "@server/types";
+import { AuthenticationType, type APIContext } from "@server/types";
 import { OAuthHelper } from "@server/utils/oauth/OAuthHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 
 const app = new Koa();
 const router = new Router();
+
+// Connection-level headers that Node must set itself, see RFC 9110 §7.6.1.
+const hopByHopHeaders = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-connection",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+]);
 
 interface McpAuthExtra {
   user: User;
@@ -65,11 +77,38 @@ const createServer: McpServerFactory = ({ authInfo }) => {
   );
 };
 
-// Plain JSON replies, which reverse proxies handle more reliably than SSE.
+// Plain JSON replies for 2026-era clients, which reverse proxies handle more
+// reliably than SSE. The SDK still replies to 2025-era clients over SSE.
 const mcpHandler = createMcpHandler(createServer, {
   responseMode: "json",
   onerror: handleTransportError,
 });
+
+/**
+ * Rejects browser requests from origins other than the app or the team's own
+ * subdomain or custom domain. Requests without an Origin header pass.
+ *
+ * @param ctx - the authenticated Koa context.
+ * @param next - the next middleware.
+ */
+async function validateOrigin(ctx: APIContext, next: Next) {
+  const { user } = ctx.state.auth;
+  const origin = ctx.get("origin");
+  const allowedOrigins = [
+    new URL(env.URL).origin,
+    new URL(user.team.url).origin,
+  ];
+  if (origin && !allowedOrigins.includes(origin)) {
+    ctx.status = 403;
+    ctx.body = {
+      jsonrpc: "2.0",
+      error: { code: -32000, message: `Invalid Origin: ${origin}` },
+      id: null,
+    };
+    return;
+  }
+  return next();
+}
 
 /**
  * Converts the Koa request to a web request. The body is not copied, as the
@@ -128,6 +167,7 @@ router.post(
       AuthenticationType.API,
     ],
   }),
+  validateOrigin,
   async (ctx) => {
     const { user, token, scope } = ctx.state.auth;
 
@@ -161,7 +201,11 @@ router.post(
       const response = await mcpHandler.fetch(request, options);
 
       ctx.status = response.status;
-      response.headers.forEach((value, key) => ctx.set(key, value));
+      response.headers.forEach((value, key) => {
+        if (!hopByHopHeaders.has(key)) {
+          ctx.set(key, value);
+        }
+      });
       ctx.body = response.body ? Readable.from(response.body) : "";
     } catch (error) {
       Logger.error(

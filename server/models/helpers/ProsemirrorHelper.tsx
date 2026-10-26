@@ -10,6 +10,7 @@ import {
   type DecorationSource,
 } from "prosemirror-view";
 import { Node, Fragment } from "prosemirror-model";
+import { Transform } from "prosemirror-transform";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import {
@@ -179,6 +180,52 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return parser.parse(data);
     }
     return Node.fromJSON(schema, data);
+  }
+
+  /**
+   * Attributes new mentions to the writer, preserving the original actor of
+   * mentions retained from an earlier document, including Markdown round trips.
+   *
+   * @param doc the updated document.
+   * @param actorId the authenticated writer's ID.
+   * @param previousDoc the document before the update, if any.
+   * @returns the document with mention attribution restored or assigned.
+   */
+  static assignMentionActors(doc: Node, actorId: string, previousDoc?: Node) {
+    const previousMentions = new Map(
+      previousDoc
+        ? this.parseMentions(previousDoc).map((mention) => [
+            mention.id,
+            mention,
+          ])
+        : []
+    );
+    const transform = new Transform(doc);
+
+    doc.descendants((node, pos) => {
+      if (node.type.name !== "mention") {
+        return;
+      }
+
+      const previous = previousMentions.get(node.attrs.id);
+      const retained =
+        previous &&
+        previous.type === node.attrs.type &&
+        previous.modelId === node.attrs.modelId;
+      const mentionActorId = retained
+        ? previous.actorId
+        : (node.attrs.actorId ?? actorId);
+
+      if (mentionActorId !== node.attrs.actorId) {
+        transform.setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          actorId: mentionActorId,
+        });
+      }
+      return false;
+    });
+
+    return transform.doc;
   }
 
   /**

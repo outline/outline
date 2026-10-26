@@ -113,6 +113,7 @@ const validateTargetURL = async (
  * @param init.allowIPAddressList Private IP addresses or CIDR ranges that may
  *   be requested. Defaults to the ALLOWED_PRIVATE_IP_ADDRESSES environment
  *   variable; pass an empty list to block every private address.
+ * @param init.timeout Time limit in milliseconds.
  * @returns The response
  */
 export default async function fetch(
@@ -132,18 +133,13 @@ export default async function fetch(
     ...rest
   } = init || {};
 
-  // Create AbortController for timeout if specified
-  let abortController: AbortController | undefined;
-  let timeoutId: NodeJS.Timeout | undefined;
-
-  if (timeout && !rest.signal) {
-    abortController = new AbortController();
-    timeoutId = setTimeout(() => {
-      abortController?.abort();
-    }, timeout);
-  }
-
-  const signal = abortController?.signal || rest.signal;
+  // The timeout signal stays active after fetch returns so it also limits
+  // reading the body.
+  const timeoutSignal = timeout ? AbortSignal.timeout(timeout) : undefined;
+  const signal =
+    rest.signal && timeoutSignal
+      ? AbortSignal.any([rest.signal, timeoutSignal])
+      : (rest.signal ?? timeoutSignal);
 
   try {
     // When a proxy is configured, the request-filtering-agent's per-connection
@@ -192,7 +188,11 @@ export default async function fetch(
 
     return response;
   } catch (err) {
-    if (err instanceof Error && "name" in err && err.name === "AbortError") {
+    if (
+      timeoutSignal?.aborted &&
+      err instanceof Error &&
+      err.name === "AbortError"
+    ) {
       throw new Error(`Request timeout after ${timeout}ms`);
     }
     const message = errToString(err);
@@ -204,10 +204,6 @@ export default async function fetch(
       );
     }
     throw err;
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
   }
 }
 

@@ -1,3 +1,4 @@
+import { OAuthError } from "@node-oauth/oauth2-server";
 import type { Context, Next } from "koa";
 import {
   ValidationError as SequelizeValidationError,
@@ -56,7 +57,16 @@ export default function oauthErrorHandler() {
         status = statusCodeFromError(err);
         // Map common HTTP status codes to OAuth error types
         let errorType = "server_error";
-        if (status === 400) {
+        if (err instanceof OAuthError && status < 500) {
+          // Keep the library's error code, as clients act on it.
+          errorType = err.name;
+        } else if (
+          err instanceof Error &&
+          "id" in err &&
+          err.id === "invalid_redirect_uri"
+        ) {
+          errorType = "invalid_redirect_uri";
+        } else if (status === 400) {
           errorType = "invalid_request";
         } else if (
           status === 401 ||
