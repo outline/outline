@@ -498,8 +498,6 @@ router.post(
       );
     }
 
-    const userPermission = permission;
-
     const [groupUser, created] = await GroupUser.findOrCreateWithCtx(
       ctx,
       {
@@ -509,18 +507,15 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
-          permission: userPermission || GroupPermission.Member,
+          permission: permission ?? GroupPermission.Member,
         },
       },
       { name: "add_user" }
     );
 
     // If the user already exists in the group, update the permission if provided
-    if (
-      userPermission !== undefined &&
-      groupUser.permission !== userPermission
-    ) {
-      await groupUser.updateWithCtx(ctx, { permission: userPermission });
+    if (permission !== undefined && groupUser.permission !== permission) {
+      await groupUser.updateWithCtx(ctx, { permission });
     }
 
     if (created) {

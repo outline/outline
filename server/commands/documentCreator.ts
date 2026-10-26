@@ -139,11 +139,15 @@ export async function authorizeDocumentPublish(
     });
   }
 
-  if (document.parentDocumentId) {
-    const parentDocument = await Document.findByPk(document.parentDocumentId, {
-      userId: user.id,
-      transaction,
-    });
+  const parentDocument = document.parentDocumentId
+    ? await Document.findByPk(document.parentDocumentId, {
+        userId: user.id,
+        transaction,
+      })
+    : null;
+
+  // The parent only grants access when it is in the destination collection.
+  if (parentDocument && parentDocument.collectionId === collection?.id) {
     authorize(user, "createChildDocument", parentDocument, { collection });
   } else {
     authorize(user, "createDocument", collection);
@@ -213,7 +217,10 @@ export default async function documentCreator(
   const contentWithReplacements = content
     ? content
     : text
-      ? ProsemirrorHelper.toProsemirror(text).toJSON()
+      ? ProsemirrorHelper.assignMentionActors(
+          ProsemirrorHelper.toProsemirror(text),
+          user.id
+        ).toJSON()
       : template
         ? ProsemirrorHelper.replaceTemplateVariables(
             await DocumentHelper.toJSON(template),

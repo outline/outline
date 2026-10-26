@@ -30,7 +30,7 @@ export const AppearanceAction = observer(() => {
         content={
           resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
         }
-        placement="bottom"
+        side="bottom"
       >
         <Button
           icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
@@ -63,7 +63,7 @@ export function SubscribeAction({
   return (
     <Action>
       <Popover open={open} onOpenChange={setOpen}>
-        <Tooltip content={t("Subscribe to updates")} placement="bottom">
+        <Tooltip content={t("Subscribe to updates")} side="bottom">
           <PopoverTrigger>
             <Button
               icon={<SubscribeIcon />}

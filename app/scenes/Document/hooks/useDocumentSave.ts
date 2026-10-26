@@ -325,7 +325,7 @@ export function useDocumentSave({
   // Initial dirty check on mount
   useEffect(() => {
     updateIsDirty();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When readOnly changes from true to false, recalculate dirty state
@@ -338,35 +338,49 @@ export function useDocumentSave({
   }, [readOnly, updateIsDirty]);
 
   // Auto-delete/auto-save on unmount + debounce cleanup
-  useEffect(
-    () => () => {
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
       autosave.cancel();
+
+      // Read the editor now, as it may be destroyed by the time the check runs.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps
       const currentDoc = editorRef.current?.view.state.doc;
       const isEditorEmpty =
         !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
+      const currentTitle = titleRef.current;
 
-      if (
-        shouldAutoDeleteDraftOnUnmount({
-          isEditorEmpty,
-          title: titleRef.current,
-          createdById: document.createdBy?.id,
-          currentUserId: auth.user?.id,
-          isDraft: document.isDraft,
-          isActive: document.isActive,
-          hasEmptyTitle: document.hasEmptyTitle,
-          isPersistedOnce: document.isPersistedOnce,
-        })
-      ) {
-        void document.delete();
-      } else if (document.isDirty()) {
-        void document.save(undefined, {
-          autosave: true,
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+      // Defer the check so that a StrictMode remount does not count as an unmount.
+      queueMicrotask(() => {
+        if (isMountedRef.current) {
+          return;
+        }
+
+        if (
+          shouldAutoDeleteDraftOnUnmount({
+            isEditorEmpty,
+            title: currentTitle,
+            createdById: document.createdBy?.id,
+            currentUserId: auth.user?.id,
+            isDraft: document.isDraft,
+            isActive: document.isActive,
+            hasEmptyTitle: document.hasEmptyTitle,
+            isPersistedOnce: document.isPersistedOnce,
+          })
+        ) {
+          void document.delete();
+        } else if (document.isDirty()) {
+          void document.save(undefined, {
+            autosave: true,
+          });
+        }
+      });
+    };
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     isUploading,

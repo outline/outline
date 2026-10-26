@@ -1,9 +1,10 @@
-/* oxlint-disable no-irregular-whitespace */
-import { lighten, transparentize } from "polished";
+import { lighten, mix, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
 import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
+import { light } from "../../styles/theme";
+import { blendColors } from "../../utils/color";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -23,6 +24,26 @@ export const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
 `;
+
+/** A file that is added to the document scales in. */
+const uploadScaleIn = keyframes`
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+`;
+
+/** The frame of a file in the editor, which holds the progress bar of an upload. */
+const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
+
+/** The content of a file in the editor, without its frame or hidden controls. */
+const uploadContent = [
+  `.${EditorStyleHelper.imageWrapper} > a`,
+  `.${EditorStyleHelper.imageWrapper} > img`,
+  `.${EditorStyleHelper.imageWrapper} > .${EditorStyleHelper.imageHandle}`,
+  `.${EditorStyleHelper.videoWrapper} > video`,
+  ".widget > *",
+  `.${EditorStyleHelper.pdfWrapper} > :first-child`,
+  `.${EditorStyleHelper.pdfWrapper} > embed`,
+].join(", ");
 
 export const pulse = (color: string) => keyframes`
   0% { box-shadow: 0 0 0 1px ${color} }
@@ -46,6 +67,64 @@ const codeMarkCursor = () => css`
     z-index: 1;
   }
 `;
+
+/**
+ * Builds the colors and fonts of rendered diagrams from a theme.
+ *
+ * @param theme the theme to use.
+ * @returns the CSS declarations for a diagram container.
+ */
+const diagramTheme = (theme: DefaultTheme) => css`
+  background: ${theme.codeBackground};
+  border: 1px solid ${theme.codeBorder};
+  --pele-bg: ${theme.codeBackground};
+  --pele-fg: ${theme.text};
+  --pele-muted: ${theme.textSecondary};
+  --pele-line: ${theme.textSecondary};
+  --pele-surface: ${theme.background};
+  --pele-surface-alt: ${theme.backgroundSecondary};
+  --pele-border: ${theme.inputBorder};
+  --pele-accent: ${theme.accent};
+  --pele-critical: ${theme.danger};
+  --pele-font: ${theme.fontFamily};
+  --pele-font-mono: ${theme.fontFamilyMono};
+`;
+
+/**
+ * Builds the colors of a notice block from its base and text colors. The tint
+ * is not opaque, so colors for content in the notice are blended onto it.
+ *
+ * @param theme the current theme.
+ * @param base the base color of the notice.
+ * @param text the color of the notice text and icon.
+ * @returns the css for the notice colors.
+ */
+const noticeColors = (theme: DefaultTheme, base: string, text: string) => {
+  const opacity = theme.isDark ? 0.15 : 0.08;
+  const background = mix(opacity, base, theme.background);
+  const blend = (value: string) =>
+    blendColors(value, background, theme.isDark ? "screen" : "multiply");
+  const divider = blend(theme.divider);
+
+  return css`
+    background: ${transparentize(1 - opacity, base)};
+    border: 1px solid ${transparentize(theme.isDark ? 0.6 : 0.7, base)};
+    color: ${text};
+
+    --notice-background: ${background};
+    --notice-divider: ${divider};
+    --notice-table-header: ${mix(0.25, divider, background)};
+    --notice-code-background: ${blend(theme.codeBackground)};
+    --notice-code-border: ${blend(theme.codeBorder)};
+    --table-grip: ${divider};
+    --table-grip-border: ${background};
+
+    a,
+    .${EditorStyleHelper.noticeIcon} {
+      color: ${text};
+    }
+  `;
+};
 
 const mathStyle = (props: Props) => css`
   /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
@@ -540,6 +619,134 @@ const textStyle = () => css`
   }
 `;
 
+const noticeStyle = () => css`
+  .${EditorStyleHelper.notice} {
+    hr:not(.ProseMirror-selectednode)::before {
+      border-top-color: var(--notice-divider);
+    }
+
+    code,
+    pre {
+      background: var(--notice-code-background);
+      border-color: var(--notice-code-border);
+    }
+
+    pre code {
+      background: none;
+    }
+
+    .${EditorStyleHelper.codeBlock}.with-line-numbers::after {
+      background: var(--notice-code-background);
+    }
+
+    .${EditorStyleHelper.codeBlock}.collapsed::before {
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--notice-code-background) 70%,
+        var(--notice-code-background) 100%
+      );
+    }
+
+    @media not print {
+      .${EditorStyleHelper.mermaidDiagram} {
+        background: var(--notice-code-background);
+        border-color: var(--notice-code-border);
+        --pele-bg: var(--notice-code-background);
+      }
+    }
+
+    /* above the scroll shadow of a table that follows it */
+    .${EditorStyleHelper.noticeIcon} {
+      position: relative;
+      z-index: 21;
+    }
+
+    /* the scroll area fills the notice padding and icon gutter, which leaves
+       room for the row controls */
+    .${EditorStyleHelper.tableScrollable} {
+      margin-left: -36px;
+      margin-right: -10px;
+      padding-left: 36px;
+      padding-right: 10px;
+    }
+
+    /* keep the click area inside the scroll area so that it does not scroll */
+    .${EditorStyleHelper.tableAddColumn}:not(.first)::before {
+      right: -10px;
+    }
+
+    .${EditorStyleHelper.tableShadowLeft}::before {
+      left: -36px;
+      border-left: 36px solid var(--notice-background);
+    }
+
+    .${EditorStyleHelper.tableShadowRight}::after {
+      right: -10px;
+      border-right: 10px solid var(--notice-background);
+    }
+
+    &:dir(rtl) {
+      .${EditorStyleHelper.tableScrollable} {
+        margin-left: -8px;
+        margin-right: -38px;
+        padding-left: 8px;
+        padding-right: 38px;
+      }
+
+      .${EditorStyleHelper.tableShadowLeft}::before {
+        left: -8px;
+        border-left-width: 8px;
+      }
+
+      .${EditorStyleHelper.tableShadowRight}::after {
+        right: -38px;
+        border-right-width: 38px;
+      }
+    }
+
+    .${EditorStyleHelper.tableFullWidth} {
+      transform: none;
+
+      .${EditorStyleHelper.tableScrollable} {
+        width: auto;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      &.${EditorStyleHelper.tableShadowRight}::after {
+        left: auto;
+      }
+    }
+
+    table,
+    tr,
+    td,
+    th {
+      border-color: var(--notice-divider);
+    }
+
+    th {
+      background: var(--notice-table-header);
+    }
+
+    .${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+      box-shadow:
+        0 -1px 0 var(--notice-divider),
+        0 1px 0 var(--notice-divider);
+    }
+
+    td[data-bgcolor],
+    th[data-bgcolor] {
+      background:
+        linear-gradient(var(--cell-bg-color), var(--cell-bg-color)),
+        linear-gradient(var(--notice-background), var(--notice-background));
+    }
+  }
+`;
+
 const style = (props: Props) => css`
 --font-size-p: var(--font-size-body);
 --font-size-h1: 28px;
@@ -840,81 +1047,83 @@ iframe.embed {
   }
 }
 
-.image .image-wrapper,
-.image .image-wrapper img {
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
   width: var(--image-width, auto);
 }
 
+.image .${EditorStyleHelper.imageWrapper},
+.image .${EditorStyleHelper.imageWrapper} img {
+  border-radius: ${EditorStyleHelper.mediaRadius};
+}
+
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode,
+.image .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode img {
+  border-radius: ${EditorStyleHelper.mediaSelectedRadius};
+}
+
 /* Inside auto-layout table cells the plain pixel width would expand the cell  */
-td .image .image-wrapper,
-th .image .image-wrapper,
-td .image .image-wrapper img,
-th .image .image-wrapper img {
+td .image .${EditorStyleHelper.imageWrapper},
+th .image .${EditorStyleHelper.imageWrapper},
+td .image .${EditorStyleHelper.imageWrapper} img,
+th .image .${EditorStyleHelper.imageWrapper} img {
   width: min(var(--image-width), 100%);
 }
 
-.image.placeholder,
-.video.placeholder {
-  position: relative;
-  background: ${props.theme.background};
-  margin-bottom: calc(28px + 1.2em);
+.${EditorStyleHelper.uploadPlaceholder} {
+  pointer-events: none;
+  user-select: none;
 
-  img,
-  video {
+  /* The content of the file is faded but not its frame, so that the progress bar on the frame is not faded */
+  ${uploadContent} {
     opacity: 0.5;
   }
 
-  video {
-    border-radius: 8px;
+  /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
+  ${uploadFrame} {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      z-index: 1;
+      height: 3px;
+      width: calc(var(--upload-progress, 0) * 100%);
+      background: ${props.theme.accent};
+      opacity: 0;
+      transition: width 200ms ease-out;
+      animation: ${fadeIn} 200ms ease-in-out 2s forwards;
+    }
   }
 }
 
-.file.placeholder {
-  display: flex;
-  align-items: center;
-  background: ${props.theme.background};
-  box-shadow: 0 0 0 1px ${props.theme.divider};
+.${EditorStyleHelper.uploadEnter} {
+  animation: ${uploadScaleIn} 150ms ease-out;
+}
+
+.${EditorStyleHelper.uploadComplete} {
+  ${uploadContent} {
+    /* Starts halfway through, from the opacity of the placeholder */
+    animation: ${fadeIn} 500ms linear -250ms;
+  }
+}
+
+.${EditorStyleHelper.uploadStatus} {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  border-radius: 8px;
-  padding: 6px 8px;
-  max-width: 840px;
-  cursor: default;
-
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-
-  .title,
-  .subtitle {
-    margin-left: 8px;
-  }
-
-  .title {
-    font-weight: 600;
-    font-size: 14px;
-    color:  ${props.theme.text};
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: ${props.theme.textTertiary};
-    line-height: 0;
-  }
-
-  span {
-    font-family: ${props.theme.fontFamilyMono};
-  }
+  border: 0;
 }
 
-.attachment-replacement-uploading {
-  .widget {
-    opacity: 0.5;
-  }
-}
-
-.image-replacement-uploading {
-  img {
-    opacity: 0.5;
-  }
+.${EditorStyleHelper.uploadReplaced} {
+  display: none !important;
 }
 
 .image-icon {
@@ -923,7 +1132,7 @@ th .image .image-wrapper img {
   clear: initial;
   vertical-align: text-bottom;
 
-  .image-wrapper {
+  .${EditorStyleHelper.imageWrapper} {
     margin: 0;
   }
 }
@@ -1000,8 +1209,9 @@ th .image .image-wrapper img {
   caret-color: transparent;
 }
 
-/* Text blocks selected with the drag handle do not get an outline. */
-.ProseMirror-selectednode:not(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, hr) {
+/* Text blocks selected with the drag handle do not get an outline. Chained
+   :not() as the email CSS inliner does not support selector lists in :not(). */
+.ProseMirror-selectednode:not(p):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(ul):not(ol):not(li):not(blockquote):not(hr) {
   outline: 2px solid ${props.readOnly ? "transparent" : props.theme.selected};
 
   @media print {
@@ -1039,7 +1249,7 @@ img.ProseMirror-separator {
   vertical-align: text-bottom;
 }
 
-.image-commented .image-wrapper {
+.image-commented .${EditorStyleHelper.imageWrapper} {
   outline: ${props.theme.commentedImageOutlineLight} solid 2px;
 }
 
@@ -1172,18 +1382,18 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="true"] {
-  & .image-wrapper.ProseMirror-selectednode > a {
+  & .${EditorStyleHelper.imageWrapper}.ProseMirror-selectednode > a {
     /* force zoom-in cursor if image node is selected */
     cursor: zoom-in !important;
   }
   &.ProseMirror-focused {
-    .image-wrapper:not(.ProseMirror-selectednode) > a {
+    .${EditorStyleHelper.imageWrapper}:not(.ProseMirror-selectednode) > a {
       /* prevents cursor from turning to pointer on pointer down */
       pointer-events: none;
     }
   }
   &:not(.ProseMirror-focused) {
-    .image-wrapper  {
+    .${EditorStyleHelper.imageWrapper}  {
       & > a[href] {
         cursor: pointer;
       }
@@ -1196,7 +1406,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 }
 
 .ProseMirror[contenteditable="false"] {
-  .image-wrapper  {
+  .${EditorStyleHelper.imageWrapper}  {
     & > a[href] {
       cursor: pointer;
     }
@@ -1289,6 +1499,11 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   opacity: 1;
 }
 
+/** An empty paragraph that holds an uploading image is not empty to the user */
+.placeholder:has(> .${EditorStyleHelper.uploadPlaceholder})::before {
+  content: none;
+}
+
 ${
   props.commenting
     ? `
@@ -1322,15 +1537,12 @@ ${
   display: flex;
   align-items: center;
   position: relative;
-  background: ${transparentize(0.9, props.theme.noticeInfoBackground)};
-  border-left: 4px solid ${props.theme.noticeInfoBackground};
-  color: ${props.theme.noticeInfoText};
-  border-radius: 4px;
+  ${noticeColors(props.theme, props.theme.noticeInfoBackground, props.theme.noticeInfoText)}
+  border-radius: ${EditorStyleHelper.blockRadius};
   padding: 8px 10px 8px 8px;
   margin: 8px 0;
 
   a {
-    color: ${props.theme.noticeInfoText};
     text-decoration: underline;
   }
 
@@ -1354,7 +1566,6 @@ ${
     height: 24px;
     align-self: flex-start;
     margin-right: 4px;
-    color: ${props.theme.noticeInfoBackground};
   }
 
   &:dir(rtl) .${EditorStyleHelper.noticeIcon} {
@@ -1364,45 +1575,15 @@ ${
 }
 
 .${EditorStyleHelper.notice}.tip {
-  background: ${transparentize(0.9, props.theme.noticeTipBackground)};
-  border-left: 4px solid ${props.theme.noticeTipBackground};
-  color: ${props.theme.noticeTipText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeTipBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeTipText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeTipBackground, props.theme.noticeTipText)}
 }
 
 .${EditorStyleHelper.notice}.warning {
-  background: ${transparentize(0.9, props.theme.noticeWarningBackground)};
-  border-left: 4px solid ${props.theme.noticeWarningBackground};
-  color: ${props.theme.noticeWarningText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeWarningBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeWarningText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeWarningBackground, props.theme.noticeWarningText)}
 }
 
 .${EditorStyleHelper.notice}.success {
-  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
-  border-left: 4px solid ${props.theme.noticeSuccessBackground};
-  color: ${props.theme.noticeSuccessText};
-
-  .${EditorStyleHelper.noticeIcon} {
-    color: ${props.theme.noticeSuccessBackground};
-  }
-
-  a {
-    color: ${props.theme.noticeSuccessText};
-  }
+  ${noticeColors(props.theme, props.theme.noticeSuccessBackground, props.theme.noticeSuccessText)}
 }
 
 blockquote {
@@ -1794,11 +1975,10 @@ mark {
 .${EditorStyleHelper.codeBlock} {
   position: relative;
   font-size: 90%;
+  border-radius: ${EditorStyleHelper.blockRadius};
 
-  &:hover + .${EditorStyleHelper.codeBlockToggle},
-  &:focus-within + .${EditorStyleHelper.codeBlockToggle},
-  & + .${EditorStyleHelper.codeBlockToggle}:hover,
-  & + .${EditorStyleHelper.codeBlockToggle}:focus {
+  &:hover .${EditorStyleHelper.codeBlockToggle} button,
+  &:focus-within .${EditorStyleHelper.codeBlockToggle} button {
     opacity: 1;
   }
 }
@@ -1865,7 +2045,7 @@ mark {
         height: auto;
         overflow: visible;
 
-        &::after {
+        .${EditorStyleHelper.codeBlockLineNumber} {
           display: none;
         }
     }
@@ -1884,39 +2064,43 @@ mark {
 
 .${EditorStyleHelper.codeBlock}.with-line-numbers {
   pre {
+    // Position line numbers against the block, so they stay in place when
+    // the code scrolls horizontally.
+    position: static;
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
 
-  &::after {
-    content: attr(data-line-numbers);
+  code {
+    counter-reset: line;
+  }
+
+  .${EditorStyleHelper.codeBlockLineNumber} {
     position: absolute;
-    padding-left: 0.5em;
     left: 1px;
-    top: calc(1px + 0.75em);
-    width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
-    word-break: break-all;
-    white-space: break-spaces;
-    font-family: ${props.theme.fontFamilyMono};
-    line-height: 1.4em;
+    box-sizing: content-box;
+    width: calc(var(--line-number-gutter-width, 0) * 1em + .25em);
+    padding: 0 0.75em 0 0.5em;
     color: ${props.theme.textTertiary};
     background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
+    pointer-events: none;
+
+    &::before {
+      counter-increment: line;
+      content: counter(line);
+    }
   }
 }
 
 .${EditorStyleHelper.codeBlock}.collapsed {
+  overflow: clip;
+
   pre {
     pointer-events: none;
     max-height: calc(10 * 1.4em + 0.75em);
     overflow: hidden;
-  }
-
-  &::after {
-    max-height: calc(10 * 1.4em + 0.75em);
-    overflow: hidden;
-    clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
   }
 
   &::before {
@@ -1938,15 +2122,11 @@ mark {
   }
 
   @media print {
+    overflow: visible;
+
     pre {
       max-height: none;
       overflow: visible;
-    }
-
-    &::after {
-      max-height: none;
-      overflow: visible;
-      clip-path: none;
     }
 
     &::before {
@@ -1955,14 +2135,30 @@ mark {
   }
 }
 
+// Covers the block so the button can stick to the bottom of the viewport
+// while the block is in view.
 .${EditorStyleHelper.codeBlockToggle} {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+
+  @media print {
+    display: none !important;
+  }
+}
+
+.${EditorStyleHelper.codeBlockToggle} button {
   display: inline-flex;
   align-items: center;
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  transform: translate3d(-50%, -50px, 0);
-  margin: 0;
+  position: sticky;
+  bottom: 16px;
+  margin: 0 0 16px;
   padding: 0 8px;
   border: 0;
   border-radius: 100px;
@@ -1982,27 +2178,22 @@ mark {
   &:hover {
     background: ${props.theme.backgroundSecondary};
   }
-
-  @media print {
-    display: none !important;
-  }
 }
 
 .${EditorStyleHelper.mermaidDiagram} {
+  ${diagramTheme(props.theme)}
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0.75em 0;
   min-height: 1.6em;
-  background: ${props.theme.codeBackground};
   border-radius: ${EditorStyleHelper.blockRadius};
-  border: 1px solid ${props.theme.codeBorder};
   padding: 8px;
   user-select: none;
   cursor: default;
 
-  * {
-    font-family: ${props.theme.fontFamily};
+  @media print {
+    ${diagramTheme(light)}
   }
 
   &.empty {
@@ -2199,7 +2390,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2244,7 +2435,7 @@ table {
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-color: ${props.theme.divider};
+      background-color: var(--table-grip, ${props.theme.divider});
     }
 
     &:hover {
@@ -2286,7 +2477,7 @@ table {
       left: var(--span-start, 0);
       width: var(--span-size, 100%);
       height: 12px;
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add column controls so narrow columns stay draggable */
       z-index: 2;
@@ -2297,7 +2488,7 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2321,8 +2512,8 @@ table {
       top: var(--span-start, 0);
       height: var(--span-size, 100%);
       width: 12px;
-      background: ${props.theme.divider};
-      border-color: ${props.theme.background};
+      background: var(--table-grip, ${props.theme.divider});
+      border-color: var(--table-grip-border, ${props.theme.background});
       display: ${props.readOnly ? "none" : "block"};
       /* above the add row controls so short rows stay draggable */
       z-index: 2;
@@ -2333,7 +2524,7 @@ table {
     }
 
     body.${EditorStyleHelper.tableDragging} &:hover::after {
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2352,11 +2543,11 @@ table {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: ${props.theme.divider};
+      background: var(--table-grip, ${props.theme.divider});
       width: 13px;
       height: 13px;
       border-radius: 13px;
-      border: 2px solid ${props.theme.background};
+      border: 2px solid var(--table-grip-border, ${props.theme.background});
       position: absolute;
       top: -18px;
       left: -18px;
@@ -2848,6 +3039,7 @@ li > .${EditorStyleHelper.toggleBlock} {
 
 const EditorContainer = styled.div<Omit<Props, "theme">>`
   ${style}
+  ${noticeStyle}
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}

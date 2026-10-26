@@ -209,6 +209,25 @@ describe("PostgresSearchProvider", () => {
       });
       expect(total).toBe(0);
     });
+
+    it("should retry as a quoted query when there are no results", async () => {
+      const team = await buildTeam();
+      const collection = await buildCollection({
+        teamId: team.id,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "Platform",
+        text: "Container orchestration at scale",
+      });
+      const { results } = await provider.searchForTeam(team, {
+        query: "chestration",
+      });
+      expect(results.map((result) => result.document.id)).toEqual([
+        document.id,
+      ]);
+    });
   });
 
   describe("#searchForUser", () => {
@@ -910,6 +929,121 @@ describe("PostgresSearchProvider", () => {
       const { total } = await provider.searchForUser(user, {
         query: "env: ",
       });
+      expect(total).toBe(1);
+    });
+
+    it("should retry as a quoted query when there are no results", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Platform",
+        text: "Container orchestration at scale",
+      });
+      const { results, total } = await provider.searchForUser(user, {
+        query: "chestration",
+      });
+      expect(total).toBe(1);
+      expect(results[0].document.id).toBe(document.id);
+      expect(results[0].context).toContain("or<b>chestration</b>");
+    });
+
+    it("should keep urls separate when retrying as a quoted query", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Platform",
+        text: "Container orchestration, see https://example.com for more",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "https://example.com chestration",
+      });
+      expect(results.map((result) => result.document.id)).toEqual([
+        document.id,
+      ]);
+    });
+
+    it("should retry as a quoted query at the maximum query length", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const query = "bc".repeat(PostgresSearchProvider.maxQueryLength / 2);
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Platform",
+        text: `a${query}`,
+      });
+      const { results } = await provider.searchForUser(user, { query });
+      expect(results.map((result) => result.document.id)).toEqual([
+        document.id,
+      ]);
+    });
+
+    it("should not retry as a quoted query for short or stop word queries", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Box",
+        text: "Gather together inside, where it is nothing",
+      });
+
+      for (const query of ["o", "the", "The ", "it is", "to", "in", "not"]) {
+        const { total } = await provider.searchForUser(user, { query });
+        expect(total).toBe(0);
+      }
+    });
+
+    it("should not retry as a quoted query when paging past earlier results", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "test",
+        text: "attestation",
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "other",
+        text: "attestation",
+      });
+      const { results, total } = await provider.searchForUser(user, {
+        query: "test",
+        offset: 1,
+      });
+      expect(results.length).toBe(0);
       expect(total).toBe(1);
     });
 

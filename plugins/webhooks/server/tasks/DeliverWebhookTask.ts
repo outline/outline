@@ -432,15 +432,26 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CommentEvent
   ): Promise<void> {
-    const model = await Comment.findByPk(event.modelId, {
-      paranoid: false,
-    });
+    const [model, document] = await Promise.all([
+      Comment.findByPk(event.modelId, {
+        paranoid: false,
+      }),
+      Document.unscoped().findOne({
+        attributes: ["collectionId"],
+        where: { id: event.documentId },
+        paranoid: false,
+      }),
+    ]);
+
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentComment(model),
+        model: model && {
+          ...presentComment(model),
+          collectionId: document?.collectionId ?? null,
+        },
       },
     });
   }
@@ -494,7 +505,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentIntegration(model),
+        model: model && presentIntegration(undefined, model),
       },
     });
   }
@@ -744,7 +755,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       Revision.findByPk(event.modelId, {
         paranoid: false,
       }),
-      Document.findByPk(event.documentId, {
+      Document.unscoped().findOne({
+        attributes: ["collectionId"],
+        where: { id: event.documentId },
         paranoid: false,
       }),
     ]);

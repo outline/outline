@@ -135,7 +135,10 @@ async function accountProvisioner(
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
-    if (errToId(err) === "invalid_authentication") {
+    if (
+      errToId(err) === "invalid_authentication" &&
+      AuthenticationHelper.allowsEmailMatch(authenticationProviderParams.name)
+    ) {
       const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,
@@ -247,7 +250,16 @@ async function accountProvisioner(
   };
 }
 
-async function provisionFirstCollection(
+/**
+ * Creates the default "Welcome" collection and onboarding documents for a
+ * newly created team.
+ *
+ * @param ctx the request context.
+ * @param team the team to provision the collection for.
+ * @param user the user that will be recorded as the creator.
+ * @returns a promise that resolves when the collection has been created.
+ */
+export async function provisionFirstCollection(
   ctx: APIContext,
   team: Team,
   user: User

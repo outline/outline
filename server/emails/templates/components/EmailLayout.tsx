@@ -1,6 +1,7 @@
 import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
+import { DirectionContext } from "./Direction";
 
 const EmailLayout: React.FC<
   React.PropsWithChildren<{
@@ -9,6 +10,7 @@ const EmailLayout: React.FC<
     goToAction?: { url: string; name: string };
   }>
 > = ({ previewText, bgcolor = "#FFFFFF", goToAction, children }) => {
+  const dir = React.useContext(DirectionContext);
   let markup;
   if (goToAction) {
     markup = JSON.stringify({
@@ -60,7 +62,7 @@ const EmailLayout: React.FC<
             <Table width="550">
               <TBody>
                 <TR>
-                  <TD align="left">{children}</TD>
+                  <TD align={dir === "rtl" ? "right" : "left"}>{children}</TD>
                 </TR>
               </TBody>
             </Table>

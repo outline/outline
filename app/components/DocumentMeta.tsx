@@ -13,6 +13,7 @@ import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
 import { MetaButton, Separator, metaStyles } from "~/components/HeaderMeta";
 import Time from "~/components/Time";
+import useClickIntent from "~/hooks/useClickIntent";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
@@ -37,6 +38,8 @@ type Props = {
   to?: LocationDescriptor;
   /** Called when the meta content is clicked, renders it as a button. Takes precedence over `to`. */
   onClick?: () => void;
+  /** Called when the user is likely to click the meta content, used to preload. */
+  onClickIntent?: () => void;
 };
 
 const DocumentMeta: React.FC<Props> = ({
@@ -50,9 +53,15 @@ const DocumentMeta: React.FC<Props> = ({
   replace,
   to,
   onClick,
+  onClickIntent,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
+  const {
+    ref: intentRef,
+    handleMouseEnter,
+    handleMouseLeave,
+  } = useClickIntent(onClickIntent, { predict: !!onClickIntent });
   const { collections } = useStores();
   const user = useCurrentUser();
   const {
@@ -194,9 +203,22 @@ const DocumentMeta: React.FC<Props> = ({
   return (
     <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {onClick ? (
-        <MetaButton onClick={onClick}>{content}</MetaButton>
+        <MetaButton
+          ref={intentRef}
+          onClick={onClick}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {content}
+        </MetaButton>
       ) : to ? (
-        <Link to={to} replace={replace}>
+        <Link
+          ref={intentRef}
+          to={to}
+          replace={replace}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {content}
         </Link>
       ) : (

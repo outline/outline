@@ -10,7 +10,7 @@ import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -86,6 +86,16 @@ router.post(
       where[Op.and].push({ suspendedAt: { [Op.is]: null } });
     }
 
+    // Filtering or sorting by email would reveal addresses the actor may not see.
+    const canReadEmails = can(actor, "readEmail", actor.team);
+    if (
+      !canReadEmails &&
+      (sort === "email" ||
+        (filter !== undefined && hasFieldInFilter(filter, "email")))
+    ) {
+      throw AuthorizationError();
+    }
+
     if (filter) {
       where[Op.and].push(buildWhere<User>(filter));
     }
@@ -93,9 +103,13 @@ router.post(
     if (query) {
       where[Op.and].push({
         [Op.or]: [
-          Sequelize.literal(
-            `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
-          ),
+          ...(canReadEmails
+            ? [
+                Sequelize.literal(
+                  `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
+                ),
+              ]
+            : []),
           Sequelize.literal(
             `unaccent(LOWER("user"."name")) like unaccent(LOWER(:query))`
           ),
@@ -119,7 +133,6 @@ router.post(
       }),
       User.count({
         where,
-        // @ts-expect-error Types are incorrect for count
         replacements,
       }),
     ]);
@@ -372,10 +385,11 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   const actor = ctx.state.auth.user;
 
   const user = await User.findByPk(userId, {
-    rejectOnEmpty: true,
     transaction,
     lock: transaction.LOCK.UPDATE,
   });
+  authorize(actor, "update", user);
+
   await Team.findByPk(user.teamId, {
     transaction,
     lock: transaction.LOCK.UPDATE,

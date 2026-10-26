@@ -10,7 +10,6 @@ import {
   LogoutIcon,
   ProfileIcon,
   BrowserIcon,
-  ShapesIcon,
   DraftsIcon,
   BugIcon,
   ImportIcon,
@@ -138,15 +137,6 @@ export const navigateToProfileSettings = createInternalLinkAction({
   iconInContextMenu: false,
   icon: <ProfileIcon />,
   to: settingsPath(),
-});
-
-export const navigateToTemplateSettings = createInternalLinkAction({
-  name: ({ t }) => t("Templates"),
-  analyticsName: "Navigate to template settings",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <ShapesIcon />,
-  to: settingsPath("templates"),
 });
 
 export const navigateToNotificationSettings = createInternalLinkAction({

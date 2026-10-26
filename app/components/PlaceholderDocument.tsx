@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
 import DelayedMount from "~/components/DelayedMount";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -54,6 +55,10 @@ export default function PlaceholderDocument({
 
 const Wrapper = styled(Fade)`
   display: block;
-  margin: 6vh 0;
+  margin: 0 0 6vh;
   padding: 12px 0;
+
+  ${breakpoint("tablet")`
+    margin-top: 6vh;
+  `};
 `;

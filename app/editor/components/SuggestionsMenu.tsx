@@ -42,7 +42,6 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when the menu is closed */
   onClose: (insertNewLine?: boolean) => void;
   /** Optional callback when a suggestion is selected */
@@ -281,7 +280,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     } else {
       selectionRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isActive, props.search]);
 
   React.useEffect(() => {
@@ -525,12 +524,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   ) => {
     restoreSelection();
 
-    const {
-      uploadFile,
-      onFileUploadStart,
-      onFileUploadStop,
-      onFileUploadProgress,
-    } = props;
+    const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
     const attrs = event.currentTarget.dataset.attrs
@@ -548,7 +542,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
-        onFileUploadProgress,
         onNotice: toastNotice,
         isAttachment: inputRef.current?.accept === "*",
         attrs,

@@ -5,7 +5,7 @@ import { PlusIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import type Group from "~/models/Group";
 import { Action } from "~/components/Actions";
@@ -54,7 +54,6 @@ function Groups() {
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const history = useHistory();
-  const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
 
@@ -100,11 +99,11 @@ function Groups() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleSourceFilter = useCallback(

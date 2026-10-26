@@ -11,8 +11,6 @@ export type NodeWithPos = {
   node: ProsemirrorNode;
 };
 
-export type PlainTextSerializer = (node: ProsemirrorNode) => string;
-
 /** The severity of a notice surfaced to the user from the editor. */
 export type EditorNoticeType = "info" | "success" | "warning" | "error";
 

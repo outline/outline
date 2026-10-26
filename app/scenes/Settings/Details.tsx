@@ -18,7 +18,6 @@ import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import InputColor from "~/components/InputColor";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
@@ -32,6 +31,7 @@ import TeamDelete from "../TeamDelete";
 import { ActionRow } from "./components/ActionRow";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+import { ThemeColorInputs } from "./components/ThemeColorInputs";
 
 function Details() {
   const { dialogs, ui } = useStores();
@@ -56,12 +56,16 @@ function Details() {
     team.defaultCollectionId
   );
 
-  const customTheme: Partial<CustomTheme> = pickBy(
-    {
-      accent,
-      accentText,
-    },
-    isHexColor
+  const customTheme: Partial<CustomTheme> = React.useMemo(
+    () =>
+      pickBy(
+        {
+          accent,
+          accentText,
+        },
+        isHexColor
+      ),
+    [accent, accentText]
   );
 
   const [tocPosition, setTocPosition] = useState(
@@ -185,8 +189,8 @@ function Details() {
 
   return (
     <ThemeProvider theme={newTheme}>
-      <Scene title={t("Details")} icon={<TeamIcon />}>
-        <Heading>{t("Details")}</Heading>
+      <Scene title={t("General")} icon={<TeamIcon />}>
+        <Heading>{t("General")}</Heading>
         <Text as="p" type="secondary">
           <Trans>
             These settings affect the way that your workspace appears to
@@ -195,7 +199,7 @@ function Details() {
         </Text>
 
         <form onSubmit={handleSubmit} ref={form}>
-          <Heading as="h2">{t("Display")}</Heading>
+          <Heading as="h2">{t("Appearance")}</Heading>
           <SettingRow
             label={t("Logo")}
             name="avatarUrl"
@@ -264,19 +268,11 @@ function Details() {
               </>
             }
           >
-            <InputColor
-              id="accent"
-              value={accent ?? newTheme.accent}
-              label={t("Accent color")}
-              onChange={setAccent}
-              flex
-            />
-            <InputColor
-              id="accentText"
-              value={accentText ?? newTheme.accentText}
-              label={t("Accent text color")}
-              onChange={setAccentText}
-              flex
+            <ThemeColorInputs
+              accent={accent}
+              accentText={accentText}
+              onAccentChange={setAccent}
+              onAccentTextChange={setAccentText}
             />
           </SettingRow>
           {(team.avatarUrl || team.description) && (
@@ -363,7 +359,7 @@ function Details() {
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
-              "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
+              "When enabled, documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
             )}
           >
             <Switch

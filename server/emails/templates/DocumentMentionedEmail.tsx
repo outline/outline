@@ -1,9 +1,10 @@
 import { differenceBy } from "es-toolkit/compat";
 import * as React from "react";
-import { MentionType } from "@shared/types";
+import { MentionType, NotificationEventType } from "@shared/types";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import { mentionSnippet } from "@server/emails/snippets";
 import { can } from "@server/policies";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
@@ -12,6 +13,7 @@ import Button from "./components/Button";
 import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -80,7 +82,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
     let body: string | undefined;
 
     if (firstNewMention) {
-      const node = ProsemirrorHelper.getNodeForMentionEmail(
+      const node = mentionSnippet(
         DocumentHelper.toProsemirror(currDoc),
         firstNewMention
       );
@@ -90,6 +92,13 @@ export default class DocumentMentionedEmail extends BaseEmail<
     }
 
     return { document, body };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.MentionedInDocument
+    );
   }
 
   protected subject({ document }: Props) {
@@ -157,6 +166,11 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
             <Button href={documentLink}>{this.t("Open Document")}</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

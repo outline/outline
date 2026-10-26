@@ -13,7 +13,7 @@ import {
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import { Hour } from "@shared/utils/time";
 import env from "@server/env";
-import { allowScriptSrc } from "@server/middlewares/csp";
+import { allowFraming, allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
@@ -25,7 +25,7 @@ import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
-const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
+const viteHost = env.URL.replace(`:${env.PORT}`, `:${env.vitePort}`);
 
 let indexHtmlCache: Buffer | undefined;
 
@@ -96,7 +96,7 @@ export const renderApp = async (
     canonical = "",
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
-    allowIndexing = true,
+    allowIndexing = false,
   } = options;
 
   if (ctx.request.path === "/realtime/") {
@@ -291,7 +291,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     let markdown = await DocumentHelper.toMarkdown(document || collection!, {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
-      teamId: team?.id,
+      teamId: share?.teamId,
       commonMark: true,
     });
 
@@ -320,7 +320,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const preventEmbedding =
     team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
   if (!preventEmbedding) {
-    ctx.remove("X-Frame-Options");
+    allowFraming(ctx);
   }
 
   const publicBranding =
@@ -344,16 +344,15 @@ export const renderShare = async (ctx: Context, next: Next) => {
         })
       : undefined;
 
-  const canonicalUrl =
-    share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
-      ? `${share.canonicalUrl}${
-          documentSlug && document
-            ? document.path
-            : collectionSlug && collection
-              ? collection.path
-              : ""
-        }`
-      : undefined;
+  const canonicalUrl = share
+    ? `${share.canonicalUrl}${
+        documentSlug && document
+          ? document.path
+          : collectionSlug && collection
+            ? collection.path
+            : ""
+      }`
+    : undefined;
 
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {

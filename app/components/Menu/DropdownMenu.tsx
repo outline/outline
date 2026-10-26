@@ -1,5 +1,4 @@
 import * as React from "react";
-import type * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import styled from "styled-components";
 import Scrollable from "~/components/Scrollable";
 import {
@@ -46,9 +45,7 @@ type Props = {
   onOpen?: () => void;
   /** Callback when menu is closed */
   onClose?: () => void;
-  // TODO: Invert the dependency chain by forwarding dropdown ref and props to Tooltip component
-  ref?: React.Ref<React.ComponentRef<typeof TooltipPrimitive.Trigger>>;
-} & React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>;
+} & Omit<React.ComponentProps<typeof MenuTrigger>, "children">;
 
 export const DropdownMenu = observer(function DropdownMenu({
   ref,
@@ -229,7 +226,7 @@ function MobileDropdown({
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
       >
-        <DrawerTitle>{ariaLabel}</DrawerTitle>
+        <DrawerTitle hidden>{ariaLabel}</DrawerTitle>
         <StyledScrollable hiddenScrollbars>
           {content}
           {!submenuName ? append : null}

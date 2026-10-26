@@ -1,4 +1,3 @@
-/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {
@@ -63,6 +62,7 @@ import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
@@ -387,12 +387,6 @@ class Collection extends ParanoidModel<
     } else if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
     }
-
-    if (model.changed("documentStructure")) {
-      await CacheHelper.clearData(
-        RedisPrefixHelper.getCollectionDocumentsKey(model.id)
-      );
-    }
   }
 
   @AfterSave
@@ -408,13 +402,7 @@ class Collection extends ParanoidModel<
           Collection.DOCUMENT_STRUCTURE_CACHE_TTL
         );
 
-      if (options.transaction) {
-        return (options.transaction.parent || options.transaction).afterCommit(
-          setData
-        );
-      }
-
-      await setData();
+      await afterCommit(options.transaction, setData);
     }
   }
 
@@ -645,6 +633,7 @@ class Collection extends ParanoidModel<
   ) {
     const collection = await this.scope("withAllMemberships").findOne({
       where: { id: collectionId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
@@ -847,13 +836,9 @@ class Collection extends ParanoidModel<
     });
 
     // The owner membership is created without hooks, so clear the cache here.
-    const invalidate = () =>
-      CacheHelper.clearData(RedisPrefixHelper.getUserCollectionIdsKey(user.id));
-    if (transaction) {
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+    await afterCommit(transaction, () =>
+      CacheHelper.removeData(RedisPrefixHelper.getUserCollectionIdsKey(user.id))
+    );
 
     return this.findByPk(collection.id, {
       userId: user.id,

@@ -127,7 +127,6 @@ function parseMentions(state: StateCore) {
       precToken.content = precToken.content.slice(0, -1);
 
       // href must be present, otherwise the href test would've failed
-      // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
       const href = openToken.attrs![0][1];
       const mentionToken = new state.Token("mention", "", 0);
       const externalUrl = isMentionHref(href)

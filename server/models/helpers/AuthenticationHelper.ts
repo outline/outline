@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-var-requires */
 import { find } from "es-toolkit/compat";
 import env from "@server/env";
 import type Team from "@server/models/Team";
@@ -28,6 +27,19 @@ export default class AuthenticationHelper {
       (hook) => hook.value.id === id
     );
     return provider?.name ?? id;
+  }
+
+  /**
+   * Returns whether an authentication provider allows sign-in to an existing
+   * account by email from a tenant that the team is not connected to.
+   *
+   * @param id The authentication provider id, eg "google".
+   * @returns True if the provider allows matching by email.
+   */
+  public static allowsEmailMatch(id: string): boolean {
+    return AuthenticationHelper.providers.some(
+      (hook) => hook.value.id === id && hook.value.allowEmailMatch === true
+    );
   }
 
   /**

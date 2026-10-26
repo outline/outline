@@ -101,7 +101,7 @@ function DataLoader({ match, children }: Props) {
   const missingPolicy = !can || Object.keys(can).length === 0;
   const isJustCreated = React.useMemo(
     () => !!document?.isJustCreated,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [document?.id]
   );
 

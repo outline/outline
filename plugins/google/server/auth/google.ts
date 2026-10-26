@@ -37,6 +37,7 @@ const scopes = [
 type GoogleProfile = Profile & {
   email: string;
   picture: string;
+  email_verified?: boolean;
   _json: {
     hd?: string;
     locale?: string;
@@ -50,7 +51,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/${config.id}.callback`,
       passReqToCallback: true,
-      // @ts-expect-error StateStore
+      // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
       store: new StateStore(),
       scope: scopes,
     },
@@ -140,8 +141,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           },
           user: {
             email: profile.email,
-            // Google only returns confirmed workspace email addresses.
-            emailVerified: true,
+            emailVerified: profile.email_verified === true,
             name: profile.displayName,
             language,
             avatarUrl,

@@ -95,3 +95,12 @@ export const TeamsDeleteSchema = BaseSchema.extend({
 });
 
 export type TeamsDeleteSchemaReq = z.infer<typeof TeamsDeleteSchema>;
+
+export const TeamsCreateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Name of the new team */
+    name: z.string(),
+  }),
+});
+
+export type TeamsCreateSchemaReq = z.infer<typeof TeamsCreateSchema>;

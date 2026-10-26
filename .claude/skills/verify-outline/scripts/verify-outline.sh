@@ -147,7 +147,7 @@ EOF
   (cd "$SRC" && node build.js) >"$RUN_DIR/build-server.log" 2>&1 ||
     die "server build failed, see $RUN_DIR/build-server.log"
   log "building frontend (vite)"
-  (cd "$SRC" && NODE_ENV=production VITE_CJS_IGNORE_WARNING=true node_modules/.bin/vite build) \
+  (cd "$SRC" && NODE_ENV=production node_modules/.bin/vite build) \
     >"$RUN_DIR/build-app.log" 2>&1 || die "frontend build failed, see $RUN_DIR/build-app.log"
 
   log "migrating database"
@@ -240,7 +240,7 @@ cmd_down() {
   local pid pids
   pid="$(cat "$PID_FILE" 2>/dev/null || true)"
   if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-    # throng forks a worker; stop the tree we started, never by process name.
+    # the cluster forks a worker; stop the tree we started, never by process name.
     pids="$(tree "$pid" | tr '\n' ' ')"
     kill $pids 2>/dev/null || true
     for _ in $(seq 1 10); do kill -0 $pids 2>/dev/null || break; sleep 1; done

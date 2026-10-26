@@ -118,7 +118,8 @@ import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 
-const Insights = lazyWithRetry(
+/** Lazy insights dialog, exported so that triggers can preload it. */
+export const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
 );
 const SharePopover = lazyWithRetry(

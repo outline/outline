@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type Document from "~/models/Document";
 import { LRUCache } from "@shared/utils/LRUCache";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import {
   SearchIndex,
@@ -8,26 +9,37 @@ import {
   type SearchIndexResult,
 } from "./SearchIndex";
 
-const plainTextCache = new LRUCache<{ updatedAt: string; text: string }>({
+interface DocumentContent {
+  text: string;
+  headings: string[];
+}
+
+const contentCache = new LRUCache<{ updatedAt: string } & DocumentContent>({
   max: 100,
   storage: "memory",
 });
 
 /**
- * Returns the plain text content of a document, memoized so that repeated
- * indexing passes do not reparse unchanged ProseMirror data. The cache holds at
- * most one entry per document, invalidated when the document is edited, and is
- * bounded to the most recently used documents.
+ * Returns the plain text and heading texts of a document, memoized so that
+ * repeated indexing passes do not reparse unchanged ProseMirror data. The cache
+ * holds at most one entry per document, invalidated when the document is
+ * edited, and is bounded to the most recently used documents.
  */
-function getPlainText(doc: Document): string {
+function getContent(doc: Document): DocumentContent {
   const updatedAt = String(doc.updatedAt ?? "");
-  const cached = plainTextCache.get(doc.id);
+  const cached = contentCache.get(doc.id);
   if (cached?.updatedAt === updatedAt) {
-    return cached.text;
+    return cached;
   }
-  const text = ProsemirrorHelper.toPlainText(doc);
-  plainTextCache.set(doc.id, { updatedAt, text });
-  return text;
+  const node = ProsemirrorHelper.toNode(doc);
+  const content = {
+    text: SharedProsemirrorHelper.toPlainText(node),
+    headings: SharedProsemirrorHelper.getHeadings(node).map(
+      (heading) => heading.title
+    ),
+  };
+  contentCache.set(doc.id, { updatedAt, ...content });
+  return content;
 }
 
 /** Removes server-generated `<b>` highlight tags from a context snippet. */
@@ -47,11 +59,14 @@ export function toSearchRecord(
   doc: Document,
   context?: string
 ): SearchIndexDocument {
+  const content = doc.data ? getContent(doc) : undefined;
+
   return {
     id: doc.id,
     title: doc.displayTitle,
     url: doc.url,
-    text: doc.data ? getPlainText(doc) : stripHighlightTags(context),
+    text: content ? content.text : stripHighlightTags(context),
+    headings: content?.headings,
     icon: doc.icon,
     color: doc.color,
     isArchived: doc.isArchived,
@@ -110,14 +125,14 @@ export function useSearchIndex(query: string): UseSearchIndex {
 
   const reset = useCallback(() => {
     index.clear();
-    plainTextCache.clear();
+    contentCache.clear();
     setVersion((v) => v + 1);
   }, [index]);
 
   const results = useMemo<SearchIndexResult[]>(
     () => (query ? index.search(query) : []),
     // The index mutates in place, so `version` is what marks the memo stale.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [index, query, version]
   );
 

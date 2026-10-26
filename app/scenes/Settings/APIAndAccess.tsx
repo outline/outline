@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { CodeIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
 import type ApiKey from "~/models/ApiKey";
 import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
@@ -29,7 +29,7 @@ function APIAndAccess() {
   return (
     <Scene
       title={t("API & Access")}
-      icon={<PadlockIcon />}
+      icon={<CodeIcon />}
       actions={
         <>
           {can.createApiKey && (

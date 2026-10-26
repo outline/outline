@@ -2,15 +2,12 @@ import { t } from "i18next";
 import Router from "@koa/router";
 import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
+import { Op } from "sequelize";
 import { z } from "zod";
 import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import {
-  AuthenticationError,
-  InvalidRequestError,
-  ValidationError,
-} from "@server/errors";
+import { AuthenticationError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import validate from "@server/middlewares/validate";
 import {
@@ -20,7 +17,6 @@ import {
   Team,
   SearchQuery,
   Integration,
-  IntegrationAuthentication,
   AuthenticationProvider,
   Comment,
 } from "@server/models";
@@ -63,23 +59,22 @@ router.post(
       return;
     }
 
-    const auth = await IntegrationAuthentication.findOne({
+    const integration = await Integration.scope("withAuthentication").findOne({
       where: {
         service: IntegrationService.Slack,
+        type: IntegrationType.Command,
         teamId: user.teamId,
       },
+      order: [["createdAt", "DESC"]],
     });
 
-    if (!auth) {
-      Logger.debug(
-        "plugins",
-        "No Slack integration authentication found for team",
-        {
-          teamId: user.teamId,
-        }
-      );
+    if (!integration) {
+      Logger.debug("plugins", "No Slack command integration found for team", {
+        teamId: user.teamId,
+      });
       return;
     }
+
     // get content for unfurled links
     const unfurls: Record<
       string,
@@ -122,7 +117,7 @@ router.post(
     }
 
     await Slack.post("chat.unfurl", {
-      token: auth.token,
+      token: integration.authentication.token,
       channel: event.channel,
       ts: event.message_ts,
       unfurls,
@@ -140,22 +135,21 @@ router.post(
   validate(T.HooksInteractiveSchema),
   async (ctx: APIContext<T.HooksInteractiveReq>) => {
     const { payload } = ctx.input.body;
-    let callback_id, token;
+    let parsed;
 
     try {
       // https://api.slack.com/interactivity/handling#payloads
       const data = JSON.parse(payload);
 
-      const parsed = z
+      parsed = z
         .object({
           type: z.string(),
           callback_id: z.string(),
           token: z.string(),
+          user: z.object({ id: z.string() }).optional(),
+          team: z.object({ id: z.string() }).optional(),
         })
         .parse(data);
-
-      callback_id = parsed.callback_id;
-      token = parsed.token;
     } catch (err) {
       Logger.error("Failed to parse Slack interactive payload", toError(err), {
         payload,
@@ -163,17 +157,36 @@ router.post(
       throw ValidationError("Invalid payload");
     }
 
-    verifySlackToken(token);
+    verifySlackToken(parsed.token);
 
-    // we find the document based on the users teamId to ensure access
-    const document =
-      await Document.scope("withCollection").findByPk(callback_id);
-
-    if (!document) {
-      throw InvalidRequestError("Invalid callback_id");
+    if (!parsed.user || !parsed.team) {
+      throw ValidationError("Payload must include user and team");
     }
 
-    const team = await Team.findByPk(document.teamId, { rejectOnEmpty: true });
+    const user = await findUserForRequest(parsed.team.id, parsed.user.id);
+    if (!user) {
+      ctx.body = {
+        response_type: "ephemeral",
+        replace_original: false,
+        blocks: presentUserNotLinkedBlocks(
+          await findTeamForRequest(parsed.team.id)
+        ),
+      };
+      return;
+    }
+
+    const document = await Document.findByPk(parsed.callback_id, {
+      userId: user.id,
+    });
+
+    if (!document || !can(user, "read", document)) {
+      ctx.body = {
+        response_type: "ephemeral",
+        replace_original: false,
+        text: t("You do not have access to this document", opts(user)),
+      };
+      return;
+    }
 
     // respond with a public message that will be posted in the original channel
     ctx.body = {
@@ -182,7 +195,7 @@ router.post(
       attachments: [
         presentMessageAttachment(
           document,
-          team,
+          user.team,
           document.collection,
           document.getSummary()
         ),
@@ -390,6 +403,7 @@ async function findUserForRequest(
         model: User,
         as: "user",
         required: true,
+        where: { suspendedAt: { [Op.is]: null } },
       },
       {
         model: Team,
@@ -427,6 +441,7 @@ async function findUserForRequest(
         model: User,
         as: "user",
         required: true,
+        where: { suspendedAt: { [Op.is]: null } },
         include: [
           {
             model: Team,

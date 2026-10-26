@@ -166,11 +166,18 @@ describe("#oauth.register", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should reject invalid redirect_uris", async () => {
+  it.each([
+    "not-a-url",
+    "http://evil.com/callback",
+    "https://example.com/callback#fragment",
+    "*",
+    "ftp://example.com/callback",
+    "https:/example.com/callback",
+  ])("should reject invalid redirect_uri %s", async (redirectUri) => {
     const res = await server.post("/oauth/register", {
       body: {
         client_name: "Test Client",
-        redirect_uris: ["not-a-url"],
+        redirect_uris: ["https://example.com/callback", redirectUri],
       },
       headers: {
         host: `${subdomain}.outline.dev`,
@@ -178,6 +185,11 @@ describe("#oauth.register", () => {
     });
 
     expect(res.status).toEqual(400);
+    const body = await res.json();
+    expect(body.error).toEqual("invalid_redirect_uri");
+    expect(body.error_description).toEqual(
+      `Invalid redirect URI: ${redirectUri}`
+    );
   });
 
   it("should reject empty redirect_uris array", async () => {
@@ -471,6 +483,26 @@ describe("#oauth.register management (RFC 7592)", () => {
       expect(res.status).toEqual(401);
     });
 
+    it("should reject an invalid redirect_uri", async () => {
+      const registered = await registerClient(server, subdomain);
+      const res = await server.put(`/oauth/register/${registered.client_id}`, {
+        body: {
+          client_name: "Updated Client",
+          redirect_uris: ["http://evil.com/callback"],
+        },
+        headers: {
+          Authorization: `Bearer ${registered.registration_access_token}`,
+        },
+      });
+
+      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(body.error).toEqual("invalid_redirect_uri");
+
+      const client = await OAuthClient.findByClientId(registered.client_id);
+      expect(client!.redirectUris).toEqual(registered.redirect_uris);
+    });
+
     it("should reject invalid body", async () => {
       const registered = await registerClient(server, subdomain);
       const res = await server.put(`/oauth/register/${registered.client_id}`, {
@@ -529,11 +561,16 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.revocation_endpoint).toContain("/oauth/revoke");
     expect(body.client_id_metadata_document_supported).toBe(true);
     expect(body.response_types_supported).toEqual(["code"]);
+    expect(body.response_modes_supported).toEqual(["query"]);
     expect(body.grant_types_supported).toEqual([
       "authorization_code",
       "refresh_token",
     ]);
     expect(body.token_endpoint_auth_methods_supported).toEqual([
+      "client_secret_post",
+      "none",
+    ]);
+    expect(body.revocation_endpoint_auth_methods_supported).toEqual([
       "client_secret_post",
       "none",
     ]);
@@ -576,14 +613,10 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.client_id_metadata_document_supported).toBe(false);
   });
 
-  it("should return OAuth metadata at /mcp suffix path", async () => {
+  it("should not serve OAuth metadata at /mcp suffix path", async () => {
     const res = await server.get("/.well-known/oauth-authorization-server/mcp");
 
-    expect(res.status).toEqual(200);
-    const body = await res.json();
-    expect(body.issuer).toBeTruthy();
-    expect(body.authorization_endpoint).toContain("/oauth/authorize");
-    expect(body.token_endpoint).toContain("/oauth/token");
+    expect(res.status).toEqual(404);
   });
 
   it("should include port in URLs when configured with a custom port (self-hosted)", async () => {
@@ -611,7 +644,8 @@ describe("GET /.well-known/oauth-protected-resource", () => {
 
     expect(res.status).toEqual(200);
     const body = await res.json();
-    expect(body.resource).toContain("/mcp");
+    expect(body.resource).toEqual(body.authorization_servers[0]);
+    expect(body.resource_name).toEqual("Outline");
     expect(body.authorization_servers).toHaveLength(1);
     expect(body.scopes_supported).toEqual(["read", "write"]);
     expect(body.bearer_methods_supported).toEqual(["header"]);
@@ -622,7 +656,8 @@ describe("GET /.well-known/oauth-protected-resource", () => {
 
     expect(res.status).toEqual(200);
     const body = await res.json();
-    expect(body.resource).toContain("/mcp");
+    expect(body.resource).toEqual(`${body.authorization_servers[0]}/mcp`);
+    expect(body.resource_name).toEqual("Outline");
     expect(body.authorization_servers).toHaveLength(1);
   });
 

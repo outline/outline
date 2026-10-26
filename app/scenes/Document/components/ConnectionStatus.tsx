@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { DisconnectedIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import {
   AuthenticationFailed,
   AuthorizationFailed,
@@ -66,7 +66,7 @@ function ConnectionStatus() {
           </Centered>
         )
       }
-      placement="bottom"
+      side="bottom"
     >
       <Fade>
         <Button width="auto">

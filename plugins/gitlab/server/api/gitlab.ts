@@ -13,6 +13,7 @@ import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
+import { RequestHelper } from "@server/utils/RequestHelper";
 import {
   generateOAuthStateNonce,
   verifyOAuthStateNonce,
@@ -165,6 +166,7 @@ router.get(
     }
 
     verifyOAuthStateNonce(ctx, GitLabOAuthNonceCookie, parsedState.nonce);
+    authorize(user, "createIntegration", user.team);
 
     try {
       // Check for a pending IntegrationAuthentication with custom credentials
@@ -354,7 +356,8 @@ router.post(
     getSignatureFromHeader: getGitLabWebhookToken,
   }),
   async (ctx: APIContext) => {
-    const { headers, body } = ctx.request;
+    const { headers } = ctx.request;
+    const body = RequestHelper.getBodyObject(ctx.request);
     const teamIds: Array<string | null> = ctx.state.webhookTeamIds ?? [null];
 
     await Promise.all(

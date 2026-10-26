@@ -75,7 +75,6 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
       return;
     }
 
-    // Create the notification
     await Notification.create({
       event: NotificationEventType.ReactionsCreate,
       userId: recipient.id,

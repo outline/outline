@@ -10,7 +10,7 @@ if (enabled) {
   PluginManager.add({
     ...config,
     type: Hook.AuthProvider,
-    value: { router, id: config.id },
+    value: { router, id: config.id, allowEmailMatch: true },
   });
 }
 

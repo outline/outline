@@ -1,5 +1,4 @@
 import { isEqual, omit } from "es-toolkit/compat";
-import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -8,12 +7,12 @@ import {
   ChangesetHelper,
   type ExtendedChange,
 } from "@shared/editor/lib/ChangesetHelper";
-import headingToSlug from "@shared/editor/lib/headingToSlug";
+import { HeadingSlugger } from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { LineDiffHelper } from "@shared/utils/LineDiffHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -36,6 +35,9 @@ interface InlineSegment {
   isAtom?: boolean;
 }
 
+/** The default number of milliseconds a Markdown diff can run before it stops. */
+const MarkdownDiffTimeout = 500;
+
 /** Context for a patch operation, shared across surgical patch methods. */
 interface PatchContext {
   /** The full document markdown string. */
@@ -52,12 +54,12 @@ interface PatchContext {
   replacementText: string;
 }
 
-type HTMLOptions = {
+export type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
-  /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
+  /** Whether to include the Mermaid diagram renderer in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
   /** Whether to include the doctype,head, etc in the generated HTML (defaults to false) */
   includeHead?: boolean;
@@ -267,40 +269,34 @@ export class DocumentHelper {
 
     const node = DocumentHelper.toProsemirror(document);
 
-    // Headings are always top-level nodes, so iterating the document's direct
-    // children is sufficient to locate the section.
     const children: Node[] = [];
     node.content.forEach((child) => children.push(child));
 
-    const previouslySeen: Record<string, number> = {};
+    // Nested headings (eg. in tables) affect the numbering of duplicates, so
+    // every heading is visited, but a section can only start at a top-level one.
+    const slugger = new HeadingSlugger();
     let startIndex = -1;
-    let level = 0;
-
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      if (child.type.name !== "heading") {
-        continue;
+    node.forEach((child, _offset, index) => {
+      if (startIndex !== -1) {
+        return;
       }
-
-      // Calculate the heading id using the same de-duplication logic as the
-      // editor so that anchors to repeated headings resolve correctly.
-      const slug = headingToSlug(child);
-      const headingId =
-        previouslySeen[slug] > 0
-          ? headingToSlug(child, previouslySeen[slug])
-          : slug;
-      previouslySeen[slug] =
-        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
-
-      if (startIndex === -1 && headingId === id) {
-        startIndex = i;
-        level = child.attrs.level;
+      if (child.type.name === "heading") {
+        if (slugger.slug(child) === id) {
+          startIndex = index;
+        }
+        return;
       }
-    }
+      child.descendants((nested) => {
+        if (nested.type.name === "heading") {
+          slugger.slug(nested);
+        }
+      });
+    });
 
     if (startIndex === -1) {
       return undefined;
     }
+    const level = children[startIndex].attrs.level;
 
     const sectionNodes: Node[] = [children[startIndex]];
     for (let i = startIndex + 1; i < children.length; i++) {
@@ -499,193 +495,32 @@ export class DocumentHelper {
   }
 
   /**
-   * Generates a compact HTML diff between documents or revisions, the
-   * diff is reduced up to show only the parts of the document that changed and
-   * the immediate context. Breaks in the diff are denoted with
-   * "div.diff-context-break" nodes.
+   * Generates a unified line diff between the Markdown of two documents or
+   * revisions. Lines are copied verbatim from the Markdown that patch edits
+   * search, so they can be used directly to find text in the document.
    *
-   * @param before The before document
-   * @param after The after document
-   * @param options Options passed to HTML generation
-   * @returns The diff as an HTML string, an empty string when there is no
-   * before document, or undefined when the documents contain no changes or
-   * the changeset was too expensive to compute.
+   * @param before The before document, or null to treat it as empty.
+   * @param after The after document.
+   * @param options.context The number of unchanged lines around each change.
+   * @param options.timeout The number of milliseconds the diff can run.
+   * @returns The diff hunks, an empty string when the Markdown is identical,
+   * or undefined when the diff did not complete in the time limit.
    */
-  static async toEmailDiff(
+  static toMarkdownDiff(
     before: Document | Revision | null,
-    after: Revision,
-    options?: HTMLOptions
-  ): Promise<string | undefined> {
-    if (!before) {
-      return "";
-    }
+    after: Document | Revision,
+    options: { context?: number; timeout?: number } = {}
+  ): string | undefined {
+    // Patch edits match against the raw serializer output, so it is not normalized.
+    const toText = (document: Document | Revision | null) =>
+      document
+        ? serializer.serialize(DocumentHelper.toProsemirror(document))
+        : "";
 
-    addTags({
-      beforeId: before.id,
-      documentId: after.documentId,
-      options,
+    return LineDiffHelper.unified(toText(before), toText(after), {
+      context: options.context ?? 2,
+      timeout: options.timeout ?? MarkdownDiffTimeout,
     });
-
-    const beforeJSON = await DocumentHelper.toJSON(before);
-    const afterJSON = await DocumentHelper.toJSON(after);
-    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
-
-    // Without a changeset no diff elements can render, so skip the expensive
-    // HTML generation and clipping entirely.
-    if (!changeset?.changes.length) {
-      return undefined;
-    }
-
-    const html = await DocumentHelper.toHTML(after, {
-      ...options,
-      changes: changeset.changes,
-    });
-    // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
-    const { JSDOM } = await import("jsdom");
-    const dom = new JSDOM(html);
-    try {
-      return DocumentHelper.clipEmailDiff(dom.window.document);
-    } finally {
-      try {
-        dom.window.close();
-      } catch (_err) {
-        // Best effort, closing the window releases its timers and resources.
-      }
-    }
-  }
-
-  /**
-   * Clips a rendered diff document down to only the changed nodes and their
-   * surrounding context, returning the resulting HTML or undefined when the
-   * document contains no diff elements.
-   *
-   * @param doc The rendered diff document to clip.
-   * @returns The clipped HTML, or undefined when there is nothing to show.
-   */
-  private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
-    const containsDiffElement = (node: Element | null) => {
-      if (!node) {
-        return false;
-      }
-
-      const diffClasses = [
-        EditorStyleHelper.diffInsertion,
-        EditorStyleHelper.diffDeletion,
-        EditorStyleHelper.diffModification,
-        EditorStyleHelper.diffNodeInsertion,
-        EditorStyleHelper.diffNodeDeletion,
-        EditorStyleHelper.diffNodeModification,
-      ];
-
-      return diffClasses.some(
-        (className) =>
-          node.classList.contains(className) ||
-          node.querySelector(`.${className}`)
-      );
-    };
-
-    // The diffing lib isn't able to catch all changes currently, e.g. changing
-    // the type of a mark will result in an empty diff.
-    // see: https://github.com/tnwinc/htmldiff.js/issues/10
-    if (!containsDiffElement(doc.querySelector("#content"))) {
-      return;
-    }
-
-    // We use querySelectorAll to get a static NodeList as we'll be modifying
-    // it as we iterate, rather than getting content.childNodes.
-    const contents = doc.querySelectorAll("#content > *");
-    let previousNodeRemoved = false;
-    let previousDiffClipped = false;
-
-    const br = doc.createElement("div");
-    br.innerHTML = "…";
-    br.className = "diff-context-break";
-
-    for (const childNode of contents) {
-      // If the block node contains a diff tag then we want to keep it
-      if (containsDiffElement(childNode as Element)) {
-        if (previousNodeRemoved && previousDiffClipped) {
-          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
-        }
-        previousNodeRemoved = false;
-        previousDiffClipped = true;
-
-        // Special case for largetables, as this block can get very large we
-        // want to clip it to only the changed rows and surrounding context.
-        if (childNode.classList.contains(EditorStyleHelper.table)) {
-          const rows = childNode.querySelectorAll("tr");
-          if (rows.length < 3) {
-            continue;
-          }
-
-          let previousRowRemoved = false;
-          let previousRowDiffClipped = false;
-
-          for (const row of rows) {
-            if (containsDiffElement(row)) {
-              const cells = row.querySelectorAll("td");
-              if (previousRowRemoved && previousRowDiffClipped) {
-                const tr = doc.createElement("tr");
-                const br = doc.createElement("td");
-                br.colSpan = cells.length;
-                br.innerHTML = "…";
-                br.className = "diff-context-break";
-                tr.appendChild(br);
-                childNode.parentElement?.insertBefore(tr, childNode);
-              }
-              previousRowRemoved = false;
-              previousRowDiffClipped = true;
-              continue;
-            }
-
-            if (containsDiffElement(row.nextElementSibling)) {
-              previousRowRemoved = false;
-              continue;
-            }
-
-            if (containsDiffElement(row.previousElementSibling)) {
-              previousRowRemoved = false;
-              continue;
-            }
-
-            previousRowRemoved = true;
-            row.remove();
-          }
-        }
-
-        continue;
-      }
-
-      // If the block node does not contain a diff tag and the previous
-      // block node did not contain a diff tag then remove the previous.
-      if (
-        childNode.nodeName === "P" &&
-        childNode.textContent &&
-        childNode.nextElementSibling?.nodeName === "P" &&
-        containsDiffElement(childNode.nextElementSibling)
-      ) {
-        if (previousDiffClipped) {
-          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
-        }
-        previousNodeRemoved = false;
-        continue;
-      }
-      if (
-        childNode.nodeName === "P" &&
-        childNode.textContent &&
-        childNode.previousElementSibling?.nodeName === "P" &&
-        containsDiffElement(childNode.previousElementSibling)
-      ) {
-        previousNodeRemoved = false;
-        continue;
-      }
-      previousNodeRemoved = true;
-      childNode.remove();
-    }
-
-    const head = doc.querySelector("head");
-    const body = doc.querySelector("body");
-    return `${head?.innerHTML} ${body?.innerHTML}`;
   }
 
   /**
@@ -697,14 +532,19 @@ export class DocumentHelper {
    * @param text The markdown to apply
    * @param editMode The edit mode to use: "replace" (default), "append", "prepend", or "patch"
    * @param findText The markdown text to find when using "patch" edit mode
+   * @param actorId the authenticated writer to attribute new mentions to.
    * @returns The document
    */
   static applyMarkdownToDocument(
     document: Document,
     text: string,
     editMode: TextEditMode = TextEditMode.Replace,
-    findText?: string
+    findText?: string,
+    actorId?: string
   ) {
+    const previousDoc = actorId
+      ? DocumentHelper.toProsemirror(document)
+      : undefined;
     let doc: Node;
 
     if (editMode === TextEditMode.Patch) {
@@ -827,6 +667,10 @@ export class DocumentHelper {
       }
     } else {
       doc = parser.parse(text);
+    }
+
+    if (actorId) {
+      doc = ProsemirrorHelper.assignMentionActors(doc, actorId, previousDoc);
     }
 
     document.content = doc.toJSON();
@@ -1315,12 +1159,50 @@ export class DocumentHelper {
       return undefined;
     }
 
-    // Parse the replacement markdown and extract inline content only when it
-    // resolves to a single textblock. Multi-block or non-textblock content
-    // should fall back to block-level replacement rather than being silently
-    // truncated during inline patching. Markdown parsing can trim whitespace,
-    // so when the parsed result is plain text we use the raw replacement
-    // string to preserve exact whitespace.
+    const replacementContent = DocumentHelper.inlineReplacementContent(
+      blockNode,
+      replacementText
+    );
+
+    if (!replacementContent) {
+      return undefined;
+    }
+
+    // Splice: keep inline content before match + replacement + after match.
+    const inlineBefore = blockNode.content.cut(0, pmInlineFrom);
+    const inlineAfter = blockNode.content.cut(pmInlineTo);
+    const content = inlineBefore.append(replacementContent).append(inlineAfter);
+
+    if (!blockNode.type.validContent(content)) {
+      return undefined;
+    }
+
+    return blockNode.copy(content);
+  }
+
+  /**
+   * Build the inline content that replaces a match inside a textblock. Code
+   * blocks take the replacement verbatim. Other textblocks parse it as
+   * markdown, and use the raw string when the result is plain text so that
+   * whitespace is kept.
+   *
+   * @param blockNode The textblock node containing the match.
+   * @param replacementText The replacement text.
+   * @returns The inline content, or undefined if the replacement is not a
+   *   single textblock.
+   */
+  private static inlineReplacementContent(
+    blockNode: Node,
+    replacementText: string
+  ): Fragment | undefined {
+    if (blockNode.type.spec.code) {
+      return replacementText
+        ? Fragment.from(schema.text(replacementText))
+        : Fragment.empty;
+    }
+
+    // Multi-block or non-textblock content falls back to block-level
+    // replacement rather than being silently truncated.
     const parsed = parser.parse(replacementText);
     const firstBlock = parsed.firstChild;
 
@@ -1328,25 +1210,15 @@ export class DocumentHelper {
       return undefined;
     }
 
-    let replacementContent: Fragment;
-
     if (
       firstBlock.content.childCount === 1 &&
       firstBlock.firstChild?.isText &&
       !firstBlock.firstChild.marks.length
     ) {
-      // Plain text replacement — use the raw string to avoid whitespace trimming
-      replacementContent = Fragment.from(schema.text(replacementText));
-    } else {
-      replacementContent = firstBlock.content;
+      return Fragment.from(schema.text(replacementText));
     }
 
-    // Splice: keep inline content before match + replacement + after match.
-    const inlineBefore = blockNode.content.cut(0, pmInlineFrom);
-    const inlineAfter = blockNode.content.cut(pmInlineTo);
-    return blockNode.copy(
-      inlineBefore.append(replacementContent).append(inlineAfter)
-    );
+    return firstBlock.content;
   }
 
   /**

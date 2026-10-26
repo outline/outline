@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import {
+  IntegrationService,
+  IntegrationType,
+  TeamPreference,
+} from "@shared/types";
 import env from "@server/env";
 import {
   buildShare,
@@ -52,6 +56,43 @@ describe("/s/:id", () => {
     const body = await res.text();
     expect(res.status).toEqual(200);
     expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
+  it("should allow indexing of a published share that opts in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: true,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<meta name="robots" content="index, follow" />`);
+  });
+
+  it("should prevent indexing of a share that does not opt in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: false,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
+  it("should prevent indexing when share does not exist", async () => {
+    const res = await server.get(`/s/junk`);
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
   });
 
   it("should return document title in html when loading published share with nested doc route", async () => {
@@ -223,6 +264,23 @@ describe("/s/:id", () => {
     expect(body).not.toContain("**Documents**");
     expect(body).not.toContain("[Child Document]");
   });
+
+  it("should return 404 when the share belongs to another team", async () => {
+    const team = await buildTeam({ subdomain: `host-${randomUUID()}` });
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.get(`/s/${share.id}.md`, {
+      headers: { Host: `${team.subdomain}.outline.dev` },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(404);
+    expect(body).not.toContain(document.title);
+  });
 });
 
 describe("content security policy", () => {
@@ -257,6 +315,42 @@ describe("content security policy", () => {
     expect(res.status).toEqual(404);
     expect(csp).toContain("script-src");
     expect(csp).toContain("nonce-");
+  });
+
+  it("should only allow framing of app pages on the same origin", async () => {
+    const res = await server.get("/oauth/authorize?client_id=x");
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
+  it("should allow framing of shares on any origin", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).not.toContain("frame-ancestors");
+  });
+
+  it("should not allow framing of shares when embedding is prevented", async () => {
+    const domain = `embed-${randomUUID()}.example.com`;
+    env.URL = `https://${domain}`;
+    const team = await buildTeam({ domain });
+    team.setPreference(TeamPreference.PreventDocumentEmbedding, true);
+    await team.save();
+    const document = await buildDocument({ teamId: team.id });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: team.id,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
   });
 
   it("should allow the Google Tag Manager script source when integration is enabled", async () => {
@@ -376,6 +470,18 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(404);
     expect(body).not.toContain("<title>");
   });
+
+  it.each(["/", "/login", "/some-app-route"])(
+    "prevents indexing of the app shell at %s",
+    async (path) => {
+      const res = await server.get(path);
+      const body = await res.text();
+      expect(res.status).toEqual(200);
+      expect(body).toContain(
+        `<meta name="robots" content="noindex, nofollow" />`
+      );
+    }
+  );
 
   it("still serves the app shell for legitimate unknown paths", async () => {
     const res = await server.get("/some-app-route");

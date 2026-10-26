@@ -72,7 +72,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       clientSecret: env.SLACK_CLIENT_SECRET,
       callbackURL: SlackUtils.callbackUrl(),
       passReqToCallback: true,
-      // @ts-expect-error StateStore
+      // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
       store: new StateStore(),
       scope: scopes,
     },

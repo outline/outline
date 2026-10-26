@@ -1,5 +1,7 @@
 import {
+  blendColors,
   ensureContrast,
+  hasSufficientContrast,
   palette,
   stringToColor,
   toColorFormats,
@@ -141,5 +143,49 @@ describe("ensureContrast", () => {
 
   it("returns currentColor unchanged", () => {
     expect(ensureContrast("currentColor", true, "#111")).toBe("currentColor");
+  });
+});
+
+describe("hasSufficientContrast", () => {
+  it("accepts colors with enough contrast", () => {
+    expect(hasSufficientContrast("#000", "#fff")).toBe(true);
+    expect(hasSufficientContrast("#fff", "#0366d6")).toBe(true);
+  });
+
+  it("rejects colors with low contrast", () => {
+    expect(hasSufficientContrast("#fff", "#fdea9b")).toBe(false);
+    expect(hasSufficientContrast("#111319", "#000")).toBe(false);
+  });
+
+  it("uses the given minimum ratio", () => {
+    expect(hasSufficientContrast("#0366d6", "#111319", 3)).toBe(true);
+    expect(hasSufficientContrast("#0366d6", "#111319", 4.5)).toBe(false);
+  });
+
+  it("does not reject colors that cannot be parsed", () => {
+    expect(hasSufficientContrast("#12", "#fff")).toBe(true);
+  });
+});
+
+describe("blendColors", () => {
+  it("multiplies a color onto the backdrop", () => {
+    expect(blendColors("#ffffff", "#336699", "multiply")).toBe("#336699");
+    expect(blendColors("#000000", "#336699", "multiply")).toBe("#000000");
+    expect(blendColors("#808080", "#ff0000", "multiply")).toBe("#800000");
+  });
+
+  it("screens a color onto the backdrop", () => {
+    expect(blendColors("#000000", "#336699", "screen")).toBe("#336699");
+    expect(blendColors("#ffffff", "#336699", "screen")).toBe("#ffffff");
+    expect(blendColors("#808080", "#000000", "screen")).toBe("#808080");
+  });
+
+  it("applies the alpha of the color", () => {
+    expect(blendColors("rgba(0, 0, 0, 0.5)", "#ffffff", "multiply")).toBe(
+      "#808080"
+    );
+    expect(blendColors("rgba(255, 255, 255, 0)", "#336699", "screen")).toBe(
+      "#336699"
+    );
   });
 });

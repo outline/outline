@@ -1,4 +1,3 @@
-/* oxlint-disable react/no-unescaped-entities */
 import { WarningIcon } from "outline-icons";
 import { Trans } from "react-i18next";
 import Notice from "~/components/Notice";

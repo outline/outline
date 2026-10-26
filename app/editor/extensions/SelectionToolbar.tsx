@@ -22,6 +22,7 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import getVideoMenuItems from "../menus/video";
 
 export default class SelectionToolbarExtension extends Extension {
   get name() {
@@ -107,6 +108,11 @@ export default class SelectionToolbarExtension extends Extension {
         getItems: (ctx) => getAttachmentMenuItems(ctx),
       },
       {
+        priority: 50,
+        matches: (ctx) => ctx.selectedNodeType === "video",
+        getItems: (ctx) => getVideoMenuItems(ctx),
+      },
+      {
         priority: 30,
         matches: (ctx) => ctx.readOnly,
         getItems: (ctx) =>
@@ -163,7 +169,9 @@ export default class SelectionToolbarExtension extends Extension {
 
     if (
       selection instanceof NodeSelection &&
-      ["image", "attachment", "embed"].includes(selection.node.type.name)
+      ["image", "attachment", "embed", "video"].includes(
+        selection.node.type.name
+      )
     ) {
       return selection;
     }

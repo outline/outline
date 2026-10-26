@@ -107,7 +107,7 @@ function StickyBlockToolbar({ items, rtl, ref }: Props) {
 
   // Measure the block relative to the portal's offset parent. Runs after every
   // render by design, the rect comparison prevents a loop.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     const track = trackRef.current;
     if (!element || !track) {

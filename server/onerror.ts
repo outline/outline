@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import formidable from "formidable";
+import { errors as formidableErrors } from "formidable";
 import type Koa from "koa";
 import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
@@ -27,8 +27,8 @@ export default function onerror(app: Koa) {
     err = wrapInNativeError(err);
 
     // Client aborted errors are a 500 by default, but 499 is more appropriate
-    if (err instanceof formidable.errors.FormidableError) {
-      if (err.internalCode === 1002) {
+    if (err instanceof formidableErrors.default) {
+      if (err.code === formidableErrors.aborted) {
         err = ClientClosedRequestError();
       }
     } else if (
@@ -130,7 +130,6 @@ function wrapInNativeError(err: any): Error {
   if (typeof err === "object") {
     try {
       errMsg = JSON.stringify(err);
-      // oxlint-disable-next-line no-empty
     } catch (_err) {
       // Ignore
     }

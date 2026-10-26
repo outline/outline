@@ -154,7 +154,11 @@ export const AccessControlList = observer(
                   image={<Avatar model={user} />}
                   title={user.name}
                   subtitle={t("You have full access")}
-                  actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
+                  actions={
+                    collection.isPersonal ? undefined : (
+                      <AccessTooltip>{t("Can edit")}</AccessTooltip>
+                    )
+                  }
                 />
               )}
               {showLoading ? (

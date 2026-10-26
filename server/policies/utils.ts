@@ -3,6 +3,7 @@ import type { Collection, User } from "@server/models";
 import { Team, type Group } from "@server/models";
 import type Model from "@server/models/base/Model";
 import {
+  CommentingAccess,
   GroupPermission,
   TeamPreference,
   type PlanFeature,
@@ -132,6 +133,19 @@ export function isTeamMember(actor: User, model: Model | null | undefined) {
 }
 
 /**
+ * Check if commenting is enabled for the actor's team.
+ *
+ * @param actor The actor to check
+ * @returns True if the actor's team allows commenting
+ */
+export function isCommentingEnabled(actor: User): boolean {
+  const commenting = actor.team?.getPreference(TeamPreference.Commenting);
+
+  // A legacy boolean `false` (team not yet migrated) means disabled.
+  return commenting !== CommentingAccess.None && commenting !== false;
+}
+
+/**
  * Check the actors team is mutable, meaning the team models can be modified.
  *
  * @param actor The actor to check
@@ -177,7 +191,7 @@ export function isCloudHosted() {
  * @returns True if the actor is an admin of the group
  */
 export function isGroupAdmin(actor: User, model: Group | null): boolean {
-  if (!model || !("id" in model)) {
+  if (!model || !("id" in model) || !isTeamModel(actor, model)) {
     return false;
   }
 

@@ -12,9 +12,9 @@ export function ImportSlabDialog() {
       <Text as="p">
         <Trans>
           Import a zip file of Markdown documents exported from Slab –
-          collections, posts, and images will be imported. In Slab, open the
-          admin settings and use the <em>Export</em> option to download an
-          archive of your content.
+          collections, posts, images, and attachments will be imported. In Slab,
+          open the admin settings and use the <em>Export</em> option to download
+          an archive of your content.
         </Trans>
       </Text>
       <DropToImport

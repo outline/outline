@@ -1,9 +1,8 @@
-/* oxlint-disable @typescript-eslint/no-var-requires */
 import { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
-import { dnsPrefetchControl, referrerPolicy } from "koa-helmet";
+import helmet from "koa-helmet";
 import mount from "koa-mount";
 import enforceHttps, {
   httpsResolver,
@@ -15,7 +14,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import csp from "@server/middlewares/csp";
 import { attachCSRFToken } from "@server/middlewares/csrf";
-import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
@@ -99,12 +98,12 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   // Allow DNS prefetching for performance, we do not care about leaking requests
   // to our own CDN's
   app.use(
-    dnsPrefetchControl({
+    helmet.dnsPrefetchControl({
       allow: true,
     })
   );
   app.use(
-    referrerPolicy({
+    helmet.referrerPolicy({
       policy: "no-referrer",
     })
   );

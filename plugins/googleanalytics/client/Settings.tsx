@@ -85,7 +85,7 @@ function GoogleAnalytics() {
           label={t("Measurement ID")}
           name="measurementId"
           description={t(
-            'Create a "Web" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.'
+            "Create a “Web” stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install."
           )}
           border={false}
         >

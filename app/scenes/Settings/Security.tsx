@@ -31,7 +31,6 @@ function Security() {
     memberCollectionCreate: team.memberCollectionCreate,
     memberTeamCreate: team.memberTeamCreate,
     inviteRequired: team.inviteRequired,
-    passkeysEnabled: team.passkeysEnabled,
   });
 
   const userRoleOptions: Option[] = React.useMemo(
@@ -128,13 +127,6 @@ function Security() {
   const handleSharingChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ sharing: checked });
-    },
-    [saveData]
-  );
-
-  const handlePasskeysEnabledChange = React.useCallback(
-    async (checked: boolean) => {
-      await saveData({ passkeysEnabled: checked });
     },
     [saveData]
   );
@@ -311,21 +303,6 @@ function Security() {
           />
         </SettingRow>
       )}
-
-      <Heading as="h2">{t("Authentication")}</Heading>
-      <SettingRow
-        label={t("Passkeys")}
-        name="passkeysEnabled"
-        description={t(
-          "Allow users to sign in with passkeys for passwordless authentication"
-        )}
-      >
-        <Switch
-          id="passkeysEnabled"
-          checked={data.passkeysEnabled}
-          onChange={handlePasskeysEnabledChange}
-        />
-      </SettingRow>
 
       <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow

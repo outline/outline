@@ -13,7 +13,7 @@ function ImportMarkdownDialog() {
     <>
       <Text as="p">
         <Trans
-          defaults="You can import a zip file that was previously exported from an Outline installation – collections, documents, and images will be imported. In Outline, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>."
+          defaults="You can import a zip file that was previously exported from an Outline installation – collections, documents, and images will be imported. In Outline, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>."
           components={{
             em: <strong />,
           }}

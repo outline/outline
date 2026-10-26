@@ -284,5 +284,74 @@ describe("Comment", () => {
         })
       ).rejects.toThrow("Parent comment must belong to the same document");
     });
+
+    it("rejects replies to a reply", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const thread = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+      const reply = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+        parentCommentId: thread.id,
+      });
+
+      await expect(
+        buildComment({
+          userId: user.id,
+          documentId: document.id,
+          parentCommentId: reply.id,
+        })
+      ).rejects.toThrow("Cannot reply to a reply");
+    });
+  });
+
+  describe("deleteChildComments", () => {
+    it("deletes the replies when the thread is deleted", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const thread = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+      const replies = await Promise.all([
+        buildComment({
+          userId: user.id,
+          documentId: document.id,
+          parentCommentId: thread.id,
+        }),
+        buildComment({
+          userId: user.id,
+          documentId: document.id,
+          parentCommentId: thread.id,
+        }),
+      ]);
+      const otherThread = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      await thread.destroy();
+
+      const remaining = await Comment.findAll({
+        where: { documentId: document.id },
+      });
+      expect(remaining.map((comment) => comment.id)).toEqual([otherThread.id]);
+
+      const deleted = await Comment.findAll({
+        where: { id: replies.map((reply) => reply.id) },
+        paranoid: false,
+      });
+      expect(deleted).toHaveLength(2);
+      expect(deleted.every((comment) => comment.deletedAt)).toBe(true);
+    });
   });
 });

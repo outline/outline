@@ -1,5 +1,4 @@
 /* oxlint-disable no-console */
-// oxlint-disable-next-line import/order
 import environment from "./utils/environment";
 import os from "node:os";
 import wellKnownServices from "nodemailer/lib/well-known/services.json";
@@ -219,6 +218,17 @@ export class Environment {
   @Min(100)
   public REDIS_HEALTHCHECK_TIMEOUT = parseInt(
     environment.REDIS_HEALTHCHECK_TIMEOUT || "5000",
+    10
+  );
+
+  /**
+   * The time in milliseconds that a redis connection can stay unavailable
+   * before the process exits, so that the process manager can restart it.
+   */
+  @IsNumber()
+  @Min(1000)
+  public REDIS_UNAVAILABLE_TIMEOUT = parseInt(
+    environment.REDIS_UNAVAILABLE_TIMEOUT || "300000",
     10
   );
 
@@ -952,6 +962,13 @@ export class Environment {
    */
   public get isTest() {
     return this.ENVIRONMENT === "test";
+  }
+
+  /**
+   * Returns the port that the Vite development server listens on.
+   */
+  public get vitePort() {
+    return this.PORT + 1;
   }
 
   protected toOptionalString(value: string | undefined) {

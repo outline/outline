@@ -25,6 +25,7 @@ import Logger from "@server/logging/Logger";
 import type { Replace, APIContext } from "@server/types";
 import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 
 export type EventOverrideOptions = {
   /** Override the default event name. */
@@ -47,7 +48,7 @@ type EventOptions = EventOverrideOptions & {
 export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Sequelize's Attributes<M> resolves to never under object default; load-bearing for static helpers like saveWithCtx<M extends Model>.
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- Sequelize's Attributes<M> resolves to never under object default; load-bearing for static helpers like saveWithCtx<M extends Model>.
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
@@ -386,15 +387,12 @@ class Model<
       return models.event.create(attrs, {
         transaction: context.transaction,
       });
-    } else if (context.transaction) {
-      (context.transaction.parent || context.transaction).afterCommit(() =>
-        // @ts-expect-error Event class
-        models.event.schedule(attrs)
-      );
-    } else {
-      // @ts-expect-error Event class
-      return models.event.schedule(attrs);
     }
+
+    return afterCommit(context.transaction, () =>
+      // @ts-expect-error Event class
+      models.event.schedule(attrs)
+    );
   }
 
   /**
@@ -405,6 +403,7 @@ class Model<
    * @return The total number of results processed.
    */
   static async findAllInBatches<T extends Model>(
+    this: ModelStatic<T>,
     query: Omit<Replace<FindOptions<T>, "limit", "batchLimit">, "order"> & {
       /** The maximum number of results to return, after which the query will stop. */
       totalLimit?: number;
@@ -473,7 +472,6 @@ class Model<
         offset: currentOffset,
         where: cursor ? { [Op.and]: [rest.where ?? {}, cursor] } : rest.where,
       };
-      // @ts-expect-error this T
       results = await this.findAll<T>(findOptions);
       total += results.length;
       await callback(results, findOptions);
@@ -532,8 +530,10 @@ class Model<
       ) {
         const difference = Object.keys(previous)
           .concat(Object.keys(current))
-          // @ts-expect-error TODO
-          .filter((key) => !isEqual(previous[key], current[key]));
+          .filter(
+            (key) =>
+              !isEqual(Reflect.get(previous, key), Reflect.get(current, key))
+          );
 
         previousAttributes[change] = pick(
           previous,

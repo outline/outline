@@ -32,11 +32,18 @@ import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import StorePersistence from "./StorePersistence";
 
+// A concrete model constructor along with the static members of Model.
+type ModelClass<T extends Model> = (new (
+  fields: PartialExcept<T, "id">,
+  store: Store<T>
+) => T) &
+  Pick<typeof Model, keyof typeof Model>;
+
 type ListPredicate<T> =
   | ((value: T, index: number, collection: ArrayLike<T>) => boolean)
   | PropertyKey
   | [PropertyKey, unknown]
-  | Partial<T>;
+  | { [P in keyof T]?: T[P] extends object ? object : T[P] };
 
 export enum RPCAction {
   Info = "info",
@@ -85,7 +92,7 @@ export default abstract class Store<T extends Model> {
   // oxlint-disable-next-line no-explicit-any
   requests: Map<string, Promise<any>> = new Map();
 
-  model: typeof Model;
+  model: ModelClass<T>;
 
   modelName: string;
 
@@ -115,7 +122,7 @@ export default abstract class Store<T extends Model> {
     RPCAction.Delete,
   ];
 
-  constructor(rootStore: RootStore, model: typeof Model) {
+  constructor(rootStore: RootStore, model: ModelClass<T>) {
     this.rootStore = rootStore;
     this.model = model;
     this.modelName = model.modelName;
@@ -250,7 +257,6 @@ export default abstract class Store<T extends Model> {
         return existingModel;
       }
 
-      // @ts-expect-error TS thinks that we're instantiating an abstract class here
       const newModel: T = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
       this.persistence?.persist(newModel.id);
@@ -300,8 +306,7 @@ export default abstract class Store<T extends Model> {
           if (deleteBehavior === "cascade") {
             store.remove(item.id, options);
           } else if (deleteBehavior === "null") {
-            // @ts-expect-error TODO
-            item[relation.idKey] = null;
+            Reflect.set(item, relation.idKey, null);
           }
         });
       }
@@ -349,8 +354,7 @@ export default abstract class Store<T extends Model> {
           if (archiveBehavior === "cascade") {
             store.addToArchive(item);
           } else if (archiveBehavior === "null") {
-            // @ts-expect-error TODO
-            item[relation.idKey] = null;
+            Reflect.set(item, relation.idKey, null);
           }
         });
       }
@@ -600,7 +604,6 @@ export default abstract class Store<T extends Model> {
    * @param predicate A function that returns true if the item matches, or an object with the properties to match.
    */
   find = (predicate: ListPredicate<T>): T | undefined =>
-    // @ts-expect-error not sure why T is incompatible
     find(this.orderedData, predicate);
 
   /**
@@ -609,7 +612,6 @@ export default abstract class Store<T extends Model> {
    * @param predicate A function that returns true if the item matches, or an object with the properties to match.
    */
   filter = (predicate: ListPredicate<T>): T[] =>
-    // @ts-expect-error not sure why T is incompatible
     filter(this.orderedData, predicate);
 
   /**

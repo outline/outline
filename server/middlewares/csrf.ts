@@ -3,6 +3,7 @@ import { Scope } from "@shared/types";
 import env from "@server/env";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import type { AppContext } from "@server/types";
+import { RequestHelper } from "@server/utils/RequestHelper";
 import {
   generateRawToken,
   bundleToken,
@@ -87,8 +88,10 @@ export function verifyCSRFToken() {
 
     // Get token from header or form field depending on type
     // Access the already-parsed body from koa-body middleware
+    const fieldVal = RequestHelper.getBodyObject(ctx.request)[CSRF.fieldName];
     const inputVal =
-      ctx.get(CSRF.headerName) || ctx.request.body?.[CSRF.fieldName];
+      ctx.get(CSRF.headerName) ||
+      (typeof fieldVal === "string" ? fieldVal : undefined);
 
     if (!inputVal) {
       throw CSRFError("CSRF token missing from request");

@@ -70,6 +70,7 @@ export async function loadPublicShare({
 
   if (
     !share ||
+    (teamId && share.teamId !== teamId) ||
     !!share.team.suspendedAt ||
     !!share.collection?.archivedAt ||
     !!share.document?.archivedAt
@@ -208,7 +209,11 @@ export async function loadShareWithParent({
     });
 
     // prefer collection share if it exists and user has read access.
-    if (collectionShare && can(user, "read", collectionShare)) {
+    if (
+      collectionShare &&
+      can(user, "read", collectionShare) &&
+      can(user, "read", collectionShare.collection)
+    ) {
       parentShare = collectionShare;
     } else {
       const parentDocIds = docCollection.getDocumentParents(documentId);
@@ -229,7 +234,10 @@ export async function loadShareWithParent({
           })
         : null;
 
-      parentShare = allParentShares?.find((s) => can(user, "read", s)) ?? null;
+      parentShare =
+        allParentShares?.find(
+          (s) => can(user, "read", s) && can(user, "read", s.document)
+        ) ?? null;
     }
   }
 

@@ -119,7 +119,7 @@ export const DocumentTree = observer(function DocumentTree({
   );
 
   // Keep the active row mounted so that it can scroll into view, and the
-  // dragged row so that the drag does not end when it scrolls away.
+  // dragged row so that it keeps its dragging state when it scrolls away.
   const rangeExtractor = React.useCallback(
     (range: Range) => {
       const indexes = new Set(defaultRangeExtractor(range));
@@ -198,7 +198,7 @@ export const DocumentTree = observer(function DocumentTree({
       });
     }
     // Scroll when the active row appears, not when rows above it change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [activeNodeId, isActiveRowRendered, isScrollContext]);
 
   React.useEffect(() => {

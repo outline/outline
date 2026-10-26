@@ -5,7 +5,7 @@ import { mergeRefs } from "react-merge-refs";
 import { Link } from "react-router-dom";
 import { CheckmarkIcon, DocumentIcon } from "outline-icons";
 import styled, { css, useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
@@ -223,7 +223,7 @@ function DocumentListItem(props: Props) {
             {document.isDraft &&
               showDraft &&
               (isInteractive ? (
-                <Tooltip content={t("Only visible to you")} placement="top">
+                <Tooltip content={t("Only visible to you")}>
                   <Badge>{t("Draft")}</Badge>
                 </Tooltip>
               ) : (

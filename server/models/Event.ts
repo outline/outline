@@ -18,6 +18,7 @@ import {
   Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
+import { afterCommit } from "../storage/transaction";
 import type { APIContext } from "../types";
 import { AuthenticationType } from "../types";
 import { normalizeIp } from "../utils/ip";
@@ -82,16 +83,10 @@ class Event extends IdModel<
     model: Event,
     options: SaveOptions<InferAttributes<Event>>
   ) {
-    if (options.transaction) {
-      // 'findOrCreate' creates a new transaction always, and the transaction from the middleware is set as its parent.
-      // We want to use the parent transaction, otherwise the 'afterCommit' hook will never fire in this case.
-      // See: https://github.com/sequelize/sequelize/issues/17452
-      (options.transaction.parent || options.transaction).afterCommit(
-        () => void globalEventQueue().add(model)
-      );
-      return;
-    }
-    void globalEventQueue().add(model);
+    await afterCommit(
+      options.transaction,
+      () => void globalEventQueue().add(model)
+    );
   }
 
   // associations

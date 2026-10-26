@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
@@ -19,12 +19,6 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   /** When true, skip the entrance animation and render at full width immediately. */
   skipInitialAnimation?: boolean;
 }
-
-const slideTransition: Transition = {
-  type: "spring",
-  bounce: 0,
-  duration: sidebarAppearDuration / 1000,
-};
 
 function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
@@ -95,13 +89,11 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
         duration: sidebarAppearDuration / 1000,
       };
 
-  // The reserved width changes in one step so that the content beside the
-  // sidebar reflows once, rather than on every frame of the animation.
   const animationProps = {
     initial: skipInitialAnimation
       ? false
       : {
-          width: ui.sidebarRightWidth,
+          width: 0,
           opacity: 0.9,
         },
     animate: {
@@ -110,26 +102,18 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       opacity: 1,
     },
     exit: {
+      width: 0,
       opacity: 0,
-      transition: slideTransition,
     },
   };
 
   // The inner element is positioned out of flow, so it must follow the same width to stay in step
-  // with the container it visually fills. It slides into place with a transform, which does not
-  // cause layout.
-  const offscreenX =
-    direction === "rtl" ? -ui.sidebarRightWidth : ui.sidebarRightWidth;
+  // with the container it visually fills.
   const positionAnimationProps = {
-    initial: skipInitialAnimation ? false : { x: offscreenX },
+    initial: false,
     animate: {
-      transition: { ...transition, x: slideTransition },
+      transition,
       width: ui.sidebarRightWidth - (windowScrollbarWidth ?? 0),
-      x: 0,
-    },
-    exit: {
-      x: offscreenX,
-      transition: slideTransition,
     },
   };
 

@@ -1,7 +1,7 @@
 import { createGlobalStyle } from "styled-components";
-import styledNormalize from "styled-normalize";
 import { breakpoints, depths, s } from ".";
 import { EditorStyleHelper } from "../editor/styles/EditorStyleHelper";
+import { normalize } from "./normalize";
 
 type Props = {
   staticHTML?: boolean;
@@ -12,7 +12,7 @@ const dragHandleIcon =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=";
 
 export default createGlobalStyle<Props>`
-  ${styledNormalize}
+  ${normalize}
 
   * {
     box-sizing: border-box;
@@ -149,13 +149,6 @@ export default createGlobalStyle<Props>`
     }
   }
 
-  /* Mermaid.js injects these into the root of the page. It's very annoying, but we have to deal with it or they affect layout */
-  [id^="doffscreen-mermaid"] {
-      position: absolute !important;
-      left: -9999px !important;
-      top: -9999px !important;
-  }
-
   /* Table row/column drag and drop cursor */
   &.${EditorStyleHelper.tableDragging},
   &.${EditorStyleHelper.tableDragging} *,
@@ -184,12 +177,11 @@ export default createGlobalStyle<Props>`
     appearance: none;
     border: 0;
     padding: 0;
-    position: fixed;
+    position: absolute;
     width: 24px;
     height: 24px;
     cursor: grab;
-    opacity: 0;
-    pointer-events: none;
+    display: none;
     transition: background-color 150ms ease-in-out;
     background-color: ${s("textTertiary")};
     mask-image: url("${dragHandleIcon}");
@@ -206,8 +198,7 @@ export default createGlobalStyle<Props>`
     }
 
     &.visible {
-      opacity: 1;
-      pointer-events: auto;
+      display: block;
     }
 
     &.visible.dragging {

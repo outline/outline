@@ -48,7 +48,7 @@ const LocaleTime: React.FC<Props> = ({
           tooltipContent
         )
       }
-      placement="bottom"
+      side="bottom"
     >
       {time}
     </Tooltip>

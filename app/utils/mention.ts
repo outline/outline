@@ -15,6 +15,61 @@ const gitlabSystemPaths = new Set([
   "-",
 ]);
 
+const giteaSystemPaths = new Set([
+  "-",
+  ".well-known",
+  "admin",
+  "api",
+  "assets",
+  "attachments",
+  "avatars",
+  "explore",
+  "issues",
+  "login",
+  "milestones",
+  "notifications",
+  "org",
+  "pulls",
+  "repo",
+  "user",
+]);
+
+/**
+ * Returns the path segments of a URL relative to a connected Gitea instance,
+ * which can be served from a sub-path.
+ *
+ * @param url the URL to split.
+ * @param integration the Gitea integration.
+ * @returns the path segments, or undefined if the URL is not on the instance.
+ */
+const giteaPathParts = (
+  url: URL,
+  integration: Integration
+): string[] | undefined => {
+  const settings =
+    integration.settings as IntegrationSettings<IntegrationType.Embed>;
+  if (!settings.gitea?.installation) {
+    return undefined;
+  }
+
+  let base: URL;
+  try {
+    base = new URL(settings.gitea.url);
+  } catch {
+    return undefined;
+  }
+
+  const basePath = base.pathname.replace(/\/+$/, "");
+  if (
+    url.host !== base.host ||
+    (basePath && !url.pathname.startsWith(`${basePath}/`))
+  ) {
+    return undefined;
+  }
+
+  return url.pathname.slice(basePath.length).split("/").filter(Boolean);
+};
+
 /**
  * Checks whether a URL can be converted to a mention for the given
  * integration.
@@ -61,6 +116,10 @@ export const isURLMentionable = ({
       }
 
       return hostname === "gitlab.com" || hostname === gitlabHostname;
+    }
+
+    case IntegrationService.Gitea: {
+      return !!giteaPathParts(url, integration);
     }
 
     default:
@@ -128,6 +187,24 @@ export const determineMentionType = ({
         }
       }
       return undefined;
+    }
+
+    case IntegrationService.Gitea: {
+      const parts = giteaPathParts(url, integration);
+      if (!parts || parts.length < 2 || giteaSystemPaths.has(parts[0])) {
+        return undefined;
+      }
+      if (parts.length === 2) {
+        return MentionType.Project;
+      }
+      if (!/^\d+$/.test(parts[3] ?? "")) {
+        return undefined;
+      }
+      return parts[2] === "pulls"
+        ? MentionType.PullRequest
+        : parts[2] === "issues"
+          ? MentionType.Issue
+          : undefined;
     }
 
     default:

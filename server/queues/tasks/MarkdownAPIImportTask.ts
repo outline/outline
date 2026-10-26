@@ -2,6 +2,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { escapeRegExp, truncate } from "es-toolkit/compat";
 import mime from "mime-types";
+import type { Node } from "prosemirror-model";
 import { UniqueConstraintError } from "sequelize";
 import { replaceMarkdownLinks } from "@shared/utils/markdown";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
@@ -125,25 +126,33 @@ export function rewriteAttachmentPaths(
  *                     resolving relative link targets against docMap keys.
  * @param docMap Map of document path (as it appeared in the zip) to its
  *               pre-assigned externalId.
+ * @param resolve Optional fallback called with the destination and label of
+ *                links the path lookup cannot resolve; returns the
+ *                externalId of the linked document, or undefined to leave
+ *                the link untouched.
  * @returns Markdown text with internal `.md` link targets replaced by
  *          `<<id>>` references.
  */
 export function rewriteInternalLinks(
   markdown: string,
   documentPath: string,
-  docMap: Record<string, string>
+  docMap: Record<string, string>,
+  resolve?: (href: string, label: string) => string | undefined
 ): string {
   const basePath = path.dirname(documentPath);
 
-  return replaceMarkdownLinks(markdown, (href) => {
-    let normalizedDocPath: string;
+  return replaceMarkdownLinks(markdown, (href, label) => {
+    let referredDocId: string | undefined;
     try {
-      normalizedDocPath = decodeURI(path.normalize(`${basePath}/${href}`));
+      const normalizedDocPath = decodeURI(
+        path.normalize(`${basePath}/${href}`)
+      );
+      referredDocId = docMap[normalizedDocPath];
     } catch {
-      return undefined;
+      referredDocId = undefined;
     }
 
-    const referredDocId = docMap[normalizedDocPath];
+    referredDocId ??= resolve?.(href, label);
     return referredDocId ? `<<${referredDocId}>>` : undefined;
   });
 }
@@ -468,12 +477,14 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         });
       } else {
         const transformedMarkdown = this.rewriteMarkdown(item, docMap);
-        const { doc, title, icon } = await DocumentConverter.convert(
+        const converted = await DocumentConverter.convert(
           transformedMarkdown,
           path.basename(item.path),
           "text/markdown",
           { extractTitle: this.shouldExtractTitleFromHeading() }
         );
+        const { title, icon } = converted;
+        const doc = this.transformDocument(converted.doc);
 
         taskOutput.push({
           externalId: item.externalId,
@@ -515,7 +526,12 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     page: MarkdownPageImportTaskInputItem,
     docMap: Record<string, string>
   ): string {
-    let text = rewriteInternalLinks(page.markdownText, page.path, docMap);
+    let text = rewriteInternalLinks(
+      page.markdownText,
+      page.path,
+      docMap,
+      (href, label) => this.resolveLinkedDocument(href, label, docMap)
+    );
 
     // Convert `[label](<<id>>)` links from rewriteInternalLinks into mention
     // markdown the editor recognises: `@[label](mention://<uuid>/document/<id>)`.
@@ -569,6 +585,40 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    */
   protected resolveCollectionRootNodes(nodes: ZipTreeNode[]): ZipTreeNode[] {
     return nodes;
+  }
+
+  /**
+   * Resolves a link destination that does not point at a markdown file in the
+   * archive to a document in the import. The base implementation resolves
+   * nothing; subclasses can override to map a source's own document URLs
+   * onto the documents discovered in the archive.
+   *
+   * @param href The link destination as written in the markdown.
+   * @param label The link label as written in the markdown.
+   * @param docMap Map of document path in the zip to its externalId.
+   * @returns The externalId of the linked document, or undefined.
+   */
+  protected resolveLinkedDocument(
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    href: string,
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    label: string,
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    docMap: Record<string, string>
+  ): string | undefined {
+    return undefined;
+  }
+
+  /**
+   * Post-processes a converted document before it is handed to the attachment
+   * upload step. The base implementation returns the document unchanged;
+   * subclasses can override to reshape source-specific content.
+   *
+   * @param doc The converted ProseMirror document.
+   * @returns The document to persist.
+   */
+  protected transformDocument(doc: Node): Node {
+    return doc;
   }
 
   /**

@@ -33,7 +33,7 @@ function References({ document }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("children");
   const isJustCreated = useMemo(
     () => document.isJustCreated,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [document.id]
   );
 

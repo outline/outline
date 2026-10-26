@@ -30,6 +30,7 @@ import type { DefaultTheme } from "styled-components";
 import styled, { css } from "styled-components";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import insertFiles from "@shared/editor/commands/insertFiles";
+import { unfoldToggleBlocksAt } from "@shared/editor/commands/toggleBlock";
 import { draftCommentAnchorPluginKey } from "@shared/editor/plugins/DraftCommentAnchorPlugin";
 import Styles from "@shared/editor/components/Styles";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
@@ -59,7 +60,6 @@ import { headingPrefixPluginKey } from "@shared/editor/extensions/HeadingPrefix"
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import { getDataTransferFiles } from "@shared/utils/files";
-import { AttachmentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
@@ -162,8 +162,6 @@ export type Props = {
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
-  /** Callback when file upload progress changes */
-  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
   onCreateLink?: (
     params: Properties<Document>,
@@ -268,6 +266,18 @@ export class Editor extends React.PureComponent<
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
+  private observableState = observable.box<EditorState | undefined>(undefined, {
+    deep: false,
+  });
+
+  /**
+   * The current editor state. Unlike `view.state` it is observable, so an
+   * observer component that reads it during render updates on every
+   * transaction, and a component that does not read it is not rendered.
+   */
+  public get editorState(): EditorState {
+    return this.observableState.get() ?? this.view.state;
+  }
 
   /**
    * The markdown serializer for the editor schema, created on first use.
@@ -302,7 +312,9 @@ export class Editor extends React.PureComponent<
   public componentDidMount() {
     this.init();
     this.handleEditorInit();
-    window.addEventListener("theme-changed", this.dispatchThemeChanged);
+
+    // The widgets are created by init, render again to mount them.
+    this.forceUpdate();
 
     if (this.props.scrollTo) {
       void this.scrollToAnchor(this.props.scrollTo);
@@ -324,6 +336,7 @@ export class Editor extends React.PureComponent<
     if (this.props.value && prevProps.value !== this.props.value) {
       const newState = this.createState(this.props.value);
       this.view.updateState(newState);
+      this.syncObservableState();
 
       // Positions held by the lightbox refer to the previous document.
       if (this.state.activeLightboxImage) {
@@ -339,6 +352,8 @@ export class Editor extends React.PureComponent<
       this.init();
       const newState = this.createState(docJSON);
       this.view.updateState(newState);
+      this.syncObservableState();
+      this.forceUpdate();
     } else if (!prevProps.readOnly && this.props.readOnly) {
       // pass readOnly changes through to underlying editor instance
       this.view.update({
@@ -389,7 +404,6 @@ export class Editor extends React.PureComponent<
   }
 
   public componentWillUnmount(): void {
-    window.removeEventListener("theme-changed", this.dispatchThemeChanged);
     this.view?.destroy();
     this.mutationObserver?.disconnect();
     this.handleEditorDestroy();
@@ -420,6 +434,7 @@ export class Editor extends React.PureComponent<
     // Node views register their renderers as they are created, batch them so
     // that React renders them once.
     this.view = runInAction(() => this.createView());
+    this.syncObservableState();
     this.commands = this.createCommands();
     this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
   }
@@ -609,7 +624,10 @@ export class Editor extends React.PureComponent<
           this.state.applyTransaction(transaction);
 
         // Batch node view renderer changes so that React renders them once.
-        runInAction(() => this.updateState(state));
+        runInAction(() => {
+          this.updateState(state);
+          self.observableState.set(state);
+        });
 
         // If any of the transactions being dispatched resulted in the doc
         // changing then call our own change handler to let the outside world
@@ -630,10 +648,6 @@ export class Editor extends React.PureComponent<
         self.handleEditorInit();
 
         self.calculateDir();
-
-        // Because Prosemirror and React are not linked we must tell React that
-        // a render is needed whenever the Prosemirror state changes.
-        self.forceUpdate();
       },
     });
 
@@ -708,6 +722,10 @@ export class Editor extends React.PureComponent<
       trim ? ProsemirrorHelper.trim(this.view.state.doc) : this.view.state.doc
     ).toJSON();
   };
+
+  private syncObservableState() {
+    runInAction(() => this.observableState.set(this.view.state));
+  }
 
   private calculateDir = () => {
     const element = this.elementRef.current;
@@ -839,15 +857,7 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    // Insert all files as attachments if any of the files are not images.
-    const isAttachment = files.some(
-      (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
-    );
-
-    return insertFiles(view, event, pos, files, {
-      ...this.props,
-      isAttachment,
-    });
+    return insertFiles(view, event, pos, files, this.props);
   };
 
   /**
@@ -873,7 +883,7 @@ export class Editor extends React.PureComponent<
 
   public getLightboxImages = (): LightboxImage[] => {
     const lightboxNodes = ProsemirrorHelper.getLightboxNodes(
-      this.view.state.doc
+      this.editorState.doc
     );
 
     return map(lightboxNodes, (node) =>
@@ -894,6 +904,51 @@ export class Editor extends React.PureComponent<
    * @returns A list of comments in the document
    */
   public getComments = () => ProsemirrorHelper.getComments(this.view.state.doc);
+
+  /**
+   * Unfold any collapsed toggle blocks that hide the start of a comment.
+   *
+   * @param commentId the id of the comment to reveal.
+   */
+  public revealComment = (commentId: string) => {
+    const { state, dispatch } = this.view;
+
+    let commentPos: number | undefined;
+    state.doc.descendants((node, pos) => {
+      if (commentPos !== undefined) {
+        return false;
+      }
+
+      const hasComment =
+        node.marks.some(
+          (m) =>
+            m.type === state.schema.marks.comment && m.attrs.id === commentId
+        ) ||
+        (isArray(node.attrs?.marks) &&
+          (node.attrs.marks as ProsemirrorMark[]).some(
+            (m) => m.type === "comment" && m.attrs?.id === commentId
+          ));
+
+      if (hasComment) {
+        commentPos = pos;
+        return false;
+      }
+      return true;
+    });
+
+    // Pending comments from users without edit access exist only as decorations.
+    commentPos ??= draftCommentAnchorPluginKey
+      .getState(state)
+      ?.decorations.find(
+        undefined,
+        undefined,
+        (spec) => spec.id === commentId
+      )[0]?.from;
+
+    if (commentPos !== undefined) {
+      unfoldToggleBlocksAt(commentPos)(state, dispatch);
+    }
+  };
 
   /**
    * Remove all marks related to a specific comment from the document.
@@ -1006,10 +1061,6 @@ export class Editor extends React.PureComponent<
     return textBetween(doc, 0, doc.content.size);
   };
 
-  private dispatchThemeChanged = (event: CustomEvent) => {
-    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
-  };
-
   private handleChange = (event?: { remote: boolean }) => {
     if (!this.props.onChange) {
       return;
@@ -1102,7 +1153,7 @@ export class Editor extends React.PureComponent<
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
-    const { isRTL } = this.state;
+    const { isRTL, activeLightboxImage } = this.state;
 
     return (
       <PortalContext.Provider value={this.wrapperRef.current}>
@@ -1137,8 +1188,6 @@ export class Editor extends React.PureComponent<
                   key={String(index)}
                   rtl={isRTL}
                   readOnly={readOnly}
-                  selection={this.view.state.selection}
-                  storedMarks={this.view.state.storedMarks}
                   isEditorFocused={this.state.isEditorFocused}
                 />
               ))}
@@ -1152,14 +1201,18 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
-          {!isNull(this.state.activeLightboxImage) && (
-            <Lightbox
-              readOnly={readOnly}
-              images={this.getLightboxImages()}
-              activeImage={this.state.activeLightboxImage}
-              onUpdate={this.updateActiveLightboxImage}
-              onClose={this.view.focus.bind(this.view)}
-            />
+          {!isNull(activeLightboxImage) && (
+            <Observer>
+              {() => (
+                <Lightbox
+                  readOnly={readOnly}
+                  images={this.getLightboxImages()}
+                  activeImage={activeLightboxImage}
+                  onUpdate={this.updateActiveLightboxImage}
+                  onClose={this.view.focus.bind(this.view)}
+                />
+              )}
+            </Observer>
           )}
         </EditorContext.Provider>
       </PortalContext.Provider>
@@ -1185,7 +1238,7 @@ const StyledEditorContainer = styled(Styles)<{
       }
       a#comment-${props.focusedCommentId}
       ~ span.component-image
-      div.image-wrapper {
+      div.${EditorStyleHelper.imageWrapper} {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
@@ -1203,7 +1256,7 @@ const StyledEditorContainer = styled(Styles)<{
       }
       a#comment-${props.hoveredCommentId}
       ~ span.component-image
-      div.image-wrapper {
+      div.${EditorStyleHelper.imageWrapper} {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}

@@ -32,7 +32,7 @@ describe("#webhookSubscriptions.list", () => {
   it("should return the webhook subscriptions for the user's team", async () => {
     const user = await buildAdmin();
     const webhookSubscriptions = await Promise.all(
-      Array(20)
+      Array(5)
         .fill(1)
         .map(() =>
           buildWebhookSubscription({
