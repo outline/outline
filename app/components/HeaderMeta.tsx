@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+import { textSizeStyles } from "@shared/components/Text";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -47,7 +48,7 @@ export const metaStyles = css<{ $rtl?: boolean }>`
  */
 export const headerMetaStyles = css`
   margin: -12px 0 2em 0;
-  font-size: 14px;
+  ${textSizeStyles("small")}
   position: relative;
   user-select: none;
   z-index: 1;

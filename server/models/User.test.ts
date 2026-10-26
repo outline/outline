@@ -277,6 +277,36 @@ describe("user model", () => {
       expect(response.length).toEqual(1);
       expect(response[0]).toEqual(collection.id);
     });
+
+    it("should not return a cached response after a membership change", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      expect(await user.collectionIds()).toEqual([]);
+
+      const membership = await sequelize.transaction((transaction) =>
+        UserMembership.create(
+          {
+            createdById: user.id,
+            collectionId: collection.id,
+            userId: user.id,
+            permission: CollectionPermission.Read,
+          },
+          { transaction }
+        )
+      );
+      expect(await user.collectionIds()).toEqual([collection.id]);
+
+      await sequelize.transaction((transaction) =>
+        membership.destroy({ transaction })
+      );
+      expect(await user.collectionIds()).toEqual([]);
+    });
   });
 
   describe("updateMembershipPermissions", () => {

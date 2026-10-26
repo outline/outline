@@ -19,6 +19,14 @@ describe("fetch", () => {
       if (req.url === "/redirect") {
         res.writeHead(302, { Location: "https://127.0.0.1:1/" });
       }
+      if (req.url === "/stall-headers") {
+        return;
+      }
+      if (req.url === "/stall-body") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.write("partial");
+        return;
+      }
       res.end("ok");
     });
     await new Promise<void>((resolve) =>
@@ -30,6 +38,7 @@ describe("fetch", () => {
   });
 
   afterAll(async () => {
+    server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
     msw.listen({ onUnhandledRequest: "error" });
   });
@@ -170,6 +179,50 @@ describe("fetch", () => {
       expect(proxy.requests.map((request) => request.url)).toEqual([
         "http://192.0.2.1/redirect-private",
       ]);
+    });
+  });
+
+  describe("timeout", () => {
+    beforeEach(() => {
+      env.ALLOWED_PRIVATE_IP_ADDRESSES = ["127.0.0.1"];
+    });
+
+    it("should throw a timeout error when headers do not arrive", async () => {
+      await expect(
+        fetch(`${url}stall-headers`, { timeout: 100 })
+      ).rejects.toThrow("Request timeout after 100ms");
+    });
+
+    it("should abort a stalled response body", async () => {
+      const res = await fetch(`${url}stall-body`, { timeout: 100 });
+
+      await expect(res.text()).rejects.toMatchObject({ name: "AbortError" });
+    });
+
+    it("should apply the timeout when a signal is also given", async () => {
+      const controller = new AbortController();
+
+      await expect(
+        fetch(`${url}stall-headers`, {
+          timeout: 100,
+          signal: controller.signal,
+        })
+      ).rejects.toThrow("Request timeout after 100ms");
+    });
+
+    it("should rethrow a caller abort unchanged", async () => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 50);
+
+      const err = await fetch(`${url}stall-headers`, {
+        timeout: 5000,
+        signal: controller.signal,
+      }).catch((e: unknown) => e);
+
+      expect(err).toMatchObject({ name: "AbortError" });
+      expect(err).not.toMatchObject({
+        message: expect.stringContaining("timeout"),
+      });
     });
   });
 });

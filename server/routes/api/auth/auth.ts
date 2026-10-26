@@ -174,7 +174,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         (availableTeam) =>
           presentAvailableTeam(
             availableTeam,
-            signedInTeamIds.includes(team.id) ||
+            signedInTeamIds.includes(availableTeam.id) ||
               availableTeam.id === user.teamId
           )
       ),

@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import styled, { ThemeProvider, useTheme } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
@@ -266,6 +266,20 @@ function Sidebar({
     [isMobile, width]
   );
 
+  // On mobile the sidebar is a drawer, so it uses the drawer colors.
+  const sidebarTheme = React.useMemo(
+    () =>
+      isMobile
+        ? {
+            ...theme,
+            sidebarBackground: theme.menuBackground,
+            sidebarHoverBackground: theme.menuItemSelected,
+            sidebarActiveBackground: theme.menuItemSelected,
+          }
+        : theme,
+    [isMobile, theme]
+  );
+
   useSwipeToDismiss(internalRef, backdropRef, {
     enabled: isMobile && ui.mobileSidebarVisible,
     side: direction === "rtl" ? "right" : "left",
@@ -273,66 +287,68 @@ function Sidebar({
   });
 
   return (
-    <TooltipProvider>
-      <Container
-        id="sidebar"
-        ref={mergedRef}
-        style={style}
-        $hidden={hidden}
-        $isHovering={isHovering}
-        $isAnimating={isAnimating}
-        $isSmallerThanMinimum={isSmallerThanMinimum}
-        $mobileSidebarVisible={ui.mobileSidebarVisible}
-        $collapsed={collapsed}
-        $isMobile={isMobile}
-        className={className}
-        onPointerDown={handlePointerActivity}
-        onPointerMove={handlePointerActivity}
-        onPointerLeave={handlePointerLeave}
-        column
-      >
-        {children}
+    <ThemeProvider theme={sidebarTheme}>
+      <TooltipProvider>
+        <Container
+          id="sidebar"
+          ref={mergedRef}
+          style={style}
+          $hidden={hidden}
+          $isHovering={isHovering}
+          $isAnimating={isAnimating}
+          $isSmallerThanMinimum={isSmallerThanMinimum}
+          $mobileSidebarVisible={ui.mobileSidebarVisible}
+          $collapsed={collapsed}
+          $isMobile={isMobile}
+          className={className}
+          onPointerDown={handlePointerActivity}
+          onPointerMove={handlePointerActivity}
+          onPointerLeave={handlePointerLeave}
+          column
+        >
+          {children}
 
-        {user && showAccountMenu && (
-          <AccountMenu>
-            <SidebarButton
-              showMoreMenu
-              title={user.name}
-              position="bottom"
-              image={
-                <Avatar
-                  alt={t("Avatar of {{ name }}", { name: user.name })}
-                  model={user}
-                  size={24}
-                  showHoverCard={false}
-                />
-              }
-            >
-              <NotificationsPopover>
-                <SidebarButton
-                  position="bottom"
-                  image={<NotificationIcon />}
-                  aria-label={t("Notifications")}
-                  style={{ paddingInline: 4 }}
-                />
-              </NotificationsPopover>
-            </SidebarButton>
-          </AccountMenu>
-        )}
-        {!isMobile && (
-          <ResizeBorder
-            onMouseDown={handleMouseDown}
-            onDoubleClick={sidebarIsClosed ? undefined : handleReset}
-          />
-        )}
-      </Container>
-      <Backdrop
-        ref={backdropRef}
-        $visible={ui.mobileSidebarVisible}
-        onClick={ui.hideMobileSidebar}
-        aria-hidden
-      />
-    </TooltipProvider>
+          {user && showAccountMenu && (
+            <AccountMenu>
+              <SidebarButton
+                showMoreMenu
+                title={user.name}
+                position="bottom"
+                image={
+                  <Avatar
+                    alt={t("Avatar of {{ name }}", { name: user.name })}
+                    model={user}
+                    size={24}
+                    showHoverCard={false}
+                  />
+                }
+              >
+                <NotificationsPopover>
+                  <SidebarButton
+                    position="bottom"
+                    image={<NotificationIcon />}
+                    aria-label={t("Notifications")}
+                    style={{ paddingInline: 4 }}
+                  />
+                </NotificationsPopover>
+              </SidebarButton>
+            </AccountMenu>
+          )}
+          {!isMobile && (
+            <ResizeBorder
+              onMouseDown={handleMouseDown}
+              onDoubleClick={sidebarIsClosed ? undefined : handleReset}
+            />
+          )}
+        </Container>
+        <Backdrop
+          ref={backdropRef}
+          $visible={ui.mobileSidebarVisible}
+          onClick={ui.hideMobileSidebar}
+          aria-hidden
+        />
+      </TooltipProvider>
+    </ThemeProvider>
   );
 }
 

@@ -70,6 +70,7 @@ export async function loadPublicShare({
 
   if (
     !share ||
+    (teamId && share.teamId !== teamId) ||
     !!share.team.suspendedAt ||
     !!share.collection?.archivedAt ||
     !!share.document?.archivedAt

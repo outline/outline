@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { McpServer, CallToolResult } from "@modelcontextprotocol/server";
 import {
   Attachment,
   Collection,
@@ -104,17 +103,19 @@ export function fetchTool(server: McpServer, scopes: string[]) {
       description:
         'Fetches a document, collection, user, attachment, or template by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user. For attachments, the response includes a short-lived signed URL that can be used to download the file contents directly. For templates, the response includes the template body as markdown.',
       annotations: {
+        destructiveHint: false,
         idempotentHint: true,
+        openWorldHint: false,
         readOnlyHint: true,
       },
-      inputSchema: {
+      inputSchema: z.object({
         resource: z.enum(allowedTypes).describe("The resource to fetch."),
         id: z
           .string()
           .describe(
             'The unique identifier or URL. For users, "current_user" returns the authenticated user.'
           ),
-      },
+      }),
     },
     withTracing("fetch", async ({ resource, id: rawId }, extra) => {
       try {
@@ -172,11 +173,18 @@ export function fetchTool(server: McpServer, scopes: string[]) {
               presentCollection(collection),
               getPublicShareUrlForCollection(actor.team, collection.id),
             ]);
+            const metadata = {
+              ...pathToUrl(actor.team, presented),
+              ...(shareUrl !== undefined && { shareUrl }),
+            };
+
+            // Admins can read private collection metadata without access to its documents.
+            if (!can(actor, "readDocument", collection)) {
+              return success(metadata);
+            }
+
             return success([
-              {
-                ...pathToUrl(actor.team, presented),
-                ...(shareUrl !== undefined && { shareUrl }),
-              },
+              metadata,
               (collection.documentStructure ?? []).map((node) =>
                 presentNavigationNode(actor.team, node)
               ),

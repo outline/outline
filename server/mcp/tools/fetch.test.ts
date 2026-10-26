@@ -5,6 +5,7 @@ import {
   buildResolvedComment,
   buildShare,
   buildTemplate,
+  buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
@@ -30,6 +31,55 @@ describe("fetch", () => {
     const data = JSON.parse(res!.result!.content![0].text ?? "{}");
     expect(data.id).toEqual(collection.id);
     expect(data.url).toMatch(/^https?:\/\//);
+  });
+
+  it("does not return the document tree of a private collection to a non-member admin", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const author = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: collection.id,
+      title: "Secret plans",
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "collection",
+      id: collection.id,
+    });
+
+    const content = res?.result?.content ?? [];
+    expect(content.length).toEqual(1);
+    expect(JSON.parse(content[0].text ?? "{}").id).toEqual(collection.id);
+    expect(JSON.stringify(content)).not.toContain(document.id);
+  });
+
+  it("returns the document tree of a private collection to a member", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "collection",
+      id: collection.id,
+    });
+
+    const content = res?.result?.content ?? [];
+    expect(content.length).toEqual(2);
+    expect(content[1].text).toContain(document.id);
   });
 
   it("returns document metadata and markdown", async () => {

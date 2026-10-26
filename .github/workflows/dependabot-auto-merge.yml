@@ -1,0 +1,58 @@
+name: Dependabot Auto-merge
+
+on: pull_request
+
+jobs:
+  auto-merge:
+    if: github.repository == 'outline/outline' && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      # Patch bumps, and minor bumps from 1.0 or later, with no new publisher and
+      # that leave out packages the test suite does not cover well. The required
+      # "ci" check gates the merge.
+      - name: Enable auto-merge for eligible updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          DEPENDENCIES: ${{ steps.metadata.outputs.updated-dependencies-json }}
+        run: |
+          # Turn off auto-merge from an earlier run, as Dependabot can refresh a PR in place.
+          skip() {
+            echo "$1"
+            if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = "true" ]; then
+              gh pr merge --disable-auto "$PR_URL"
+            fi
+            exit 0
+          }
+
+          if ! jq -e "length > 0" <<< "$DEPENDENCIES" > /dev/null; then
+            skip "No dependency metadata found, skipping auto-merge."
+          fi
+
+          ineligible=$(jq -r '
+            .[]
+            | select(
+                .maintainerChanges
+                or (.dependencyName | test("^(prosemirror-.*|yjs|y-.*|@hocuspocus/.*|sequelize.*|pg|pg-.*|react.*|mobx.*|koa.*|@koa/.*)$"))
+                or (
+                  .updateType != "version-update:semver-patch"
+                  and (.updateType != "version-update:semver-minor" or (.prevVersion // "" | test("^v?[1-9]") | not))
+                )
+              )
+            | "\(.dependencyName) \(.prevVersion) -> \(.newVersion) (\(.updateType)\(if .maintainerChanges then ", new publisher" else "" end))"
+          ' <<< "$DEPENDENCIES")
+
+          if [ -n "$ineligible" ]; then
+            echo "Skipping auto-merge, these updates need review:"
+            skip "$ineligible"
+          fi
+
+          gh pr merge --auto --squash "$PR_URL"

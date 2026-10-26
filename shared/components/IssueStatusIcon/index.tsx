@@ -31,6 +31,7 @@ export function IssueStatusIcon(props: Props) {
 function getIcon(props: Props) {
   switch (props.service) {
     case IntegrationService.GitHub:
+    case IntegrationService.Gitea:
       return <GitHubIssueStatusIcon {...props} />;
     case IntegrationService.Linear:
       return <LinearIssueStatusIcon {...props} />;

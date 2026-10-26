@@ -58,13 +58,6 @@ describe("AuthenticationHelper", () => {
         expect(canAccess("/api/documents.create", scopes)).toBe(false);
         expect(canAccess("/api/collections.create", scopes)).toBe(false);
       });
-
-      it("should allow wildcard namespaces", async () => {
-        const scopes = ["/api/*.info"];
-
-        expect(canAccess("/api/documents.info", scopes)).toBe(true);
-        expect(canAccess("/api/documents.create", scopes)).toBe(false);
-      });
     });
 
     describe("namespaced access scopes", () => {

@@ -26,6 +26,7 @@ import type Import from "~/models/Import";
 import type Membership from "~/models/Membership";
 import type Notification from "~/models/Notification";
 import type Pin from "~/models/Pin";
+import type Share from "~/models/Share";
 import type Star from "~/models/Star";
 import type Subscription from "~/models/Subscription";
 import type Team from "~/models/Team";
@@ -51,6 +52,7 @@ type SocketWithAuthentication = Socket & {
 const unreportableErrorIds = [
   "authentication_required",
   "invalid_authentication",
+  "user_suspended",
 ];
 
 export const WebsocketContext = createContext<SocketWithAuthentication | null>(
@@ -827,6 +829,24 @@ function usePinHandlers() {
   };
 }
 
+function useShareHandlers() {
+  const { shares } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("shares.create", (event: PartialExcept<Share, "id">) => {
+      shares.add(event);
+    });
+
+    socket.on("shares.update", (event: PartialExcept<Share, "id">) => {
+      shares.add(event);
+    });
+
+    socket.on("shares.revoke", (event: WebsocketEntityDeletedEvent) => {
+      shares.remove(event.modelId);
+    });
+  };
+}
+
 function useStarHandlers() {
   const { stars } = useStores();
 
@@ -906,6 +926,7 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
   const registerUserHandlers = useUserHandlers();
   const registerNotificationHandlers = useNotificationHandlers();
   const registerPinHandlers = usePinHandlers();
+  const registerShareHandlers = useShareHandlers();
   const registerStarHandlers = useStarHandlers();
   const registerImportHandlers = useImportHandlers();
 
@@ -934,6 +955,7 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
       registerUserHandlers(currentSocket);
       registerNotificationHandlers(currentSocket);
       registerPinHandlers(currentSocket);
+      registerShareHandlers(currentSocket);
       registerStarHandlers(currentSocket);
       registerImportHandlers(currentSocket);
 

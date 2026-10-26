@@ -235,6 +235,52 @@ export const enterInCode: Command = (state, dispatch) => {
 };
 
 /**
+ * Delete the line break before the cursor in a code block. Browsers do not
+ * reliably delete a line break next to the line number widgets.
+ *
+ * @returns A prosemirror command
+ */
+export const backspaceInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { $from, from, empty } = state.selection;
+  if (
+    !empty ||
+    $from.parentOffset === 0 ||
+    state.doc.textBetween(from - 1, from) !== newline
+  ) {
+    return false;
+  }
+
+  dispatch?.(state.tr.delete(from - 1, from).scrollIntoView());
+  return true;
+};
+
+/**
+ * Delete the line break after the cursor in a code block. Browsers do not
+ * reliably delete a line break next to the line number widgets.
+ *
+ * @returns A prosemirror command
+ */
+export const deleteInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { $from, from, empty } = state.selection;
+  if (
+    !empty ||
+    $from.parentOffset === $from.parent.content.size ||
+    state.doc.textBetween(from, from + 1) !== newline
+  ) {
+    return false;
+  }
+
+  dispatch?.(state.tr.delete(from, from + 1).scrollIntoView());
+  return true;
+};
+
+/**
  * Split a code block into two when three backticks are typed within it.
  * This creates a new code block below the current one with the same language.
  *

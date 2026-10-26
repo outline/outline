@@ -24,6 +24,7 @@ export enum IntegrationService {
   Umami = "umami",
   GitHub = "github",
   GitLab = "gitlab",
+  Gitea = "gitea",
   Linear = "linear",
   Figma = "figma",
   Notion = "notion",
@@ -57,6 +58,7 @@ export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.GitHub
   | IntegrationService.GitLab
+  | IntegrationService.Gitea
   | IntegrationService.Linear
 >;
 
@@ -64,6 +66,7 @@ export type IssueTrackerIntegrationService = Extract<
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
   GitLab: IntegrationService.GitLab,
+  Gitea: IntegrationService.Gitea,
   Linear: IntegrationService.Linear,
 } as const;
 
@@ -100,6 +103,13 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
       gitlab?: {
         url?: string;
+        installation?: {
+          id: number;
+          account: { id: number; name: string; avatarUrl: string };
+        };
+      };
+      gitea?: {
+        url: string;
         installation?: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
@@ -149,6 +159,17 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                     };
                     gitlab?: {
                       url?: string;
+                      installation?: {
+                        id: number;
+                        account: {
+                          id?: number;
+                          name: string;
+                          avatarUrl?: string;
+                        };
+                      };
+                    };
+                    gitea?: {
+                      url: string;
                       installation?: {
                         id: number;
                         account: {
