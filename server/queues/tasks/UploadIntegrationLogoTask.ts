@@ -10,8 +10,8 @@ type Props = {
   integrationId: string;
   /** The original logoUrl from third-party service */
   logoUrl: string;
-  /** The path in the integration settings to store the uploaded url at */
-  settingsPath: string[];
+  /** The path in the integration settings to store the uploaded url at, missing on older jobs */
+  settingsPath?: string[];
 };
 
 /**
@@ -20,6 +20,11 @@ type Props = {
  */
 export default class UploadIntegrationLogoTask extends BaseTask<Props> {
   public async perform(props: Props) {
+    const { settingsPath } = props;
+    if (!settingsPath) {
+      return;
+    }
+
     const integration = await Integration.scope("withAuthentication").findByPk(
       props.integrationId
     );
@@ -51,7 +56,7 @@ export default class UploadIntegrationLogoTask extends BaseTask<Props> {
 
     integration.settings = set(
       cloneDeep(integration.settings ?? {}),
-      props.settingsPath,
+      settingsPath,
       attachment.url
     );
     integration.changed("settings", true);
