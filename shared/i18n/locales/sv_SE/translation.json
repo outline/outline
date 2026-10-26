@@ -1440,7 +1440,7 @@
   "When enabled, documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.": "När funktionen är aktiverad har dokument som standard ett separat redigeringsläge i stället för att alltid vara redigerbara. Den här inställningen kan åsidosättas av användarinställningar.",
   "Danger": "Varning",
   "You can delete this entire workspace including collections, documents, and users.": "Du kan ta bort hela arbetsytan inklusive samlingar, dokument och användare.",
-  "Allow supported providers to be inserted as interactive embeds in documents.": "Allow supported providers to be inserted as interactive embeds in documents.",
+  "Allow supported providers to be inserted as interactive embeds in documents.": "Tillåt leverantörer som stöds att infogas som interaktiva inbäddningar i dokument.",
   "Providers": "Providers",
   "Enabled providers will appear in the editor slash menu and embed automatically when a compatible link is pasted. Existing embeds in documents will continue to display regardless of these settings.": "Enabled providers will appear in the editor slash menu and embed automatically when a compatible link is pasted. Existing embeds in documents will continue to display regardless of these settings.",
   "All providers": "All providers",
