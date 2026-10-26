@@ -1390,31 +1390,32 @@ export const moveDocumentToCollection = createAction({
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) => !!context.stores.policies.abilities(document.id).move
+    ),
+  perform: ({ getActiveModels, stores, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
     }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
-  perform: ({ activeDocumentId, stores, t }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
-        return;
-      }
 
-      stores.dialogs.openModal({
-        title: (
+    stores.dialogs.openModal({
+      title:
+        documents.length === 1 ? (
           <DialogTitle
             title={t("Move {{ documentType }}", {
-              documentType: document.noun,
+              documentType: documents[0].noun,
             })}
-            model={document}
+            model={documents[0]}
           />
+        ) : (
+          t("Move {{ count }} document", { count: documents.length })
         ),
-        content: <DocumentMove document={document} />,
-      });
-    }
+      content: <DocumentMove documents={documents} />,
+    });
   },
 });
 
@@ -1423,16 +1424,7 @@ export const moveDocument = createAction({
   analyticsName: "Move document",
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
+  visible: moveDocumentToCollection.visible,
   perform: moveDocumentToCollection.perform,
 });
 

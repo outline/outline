@@ -1,4 +1,4 @@
-import { chunk, omit, snakeCase } from "es-toolkit/compat";
+import { omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
 import Router from "@koa/router";
@@ -47,6 +47,9 @@ const dispatchableRouters: Router[] = [documents, collections, stars, pins];
 
 /** The number of sub-requests dispatched in parallel, to limit pool pressure. */
 const BatchConcurrency = 2;
+
+/** Methods that run alone, so that their effects apply in request order. */
+const sequentialMethods = new Set<string>(["documents.move"]);
 
 interface HttpError extends Error {
   status?: number;
@@ -202,6 +205,42 @@ async function dispatch(
   }
 }
 
+/**
+ * Splits requests into groups that are dispatched in parallel, bounded so that
+ * a single batch can't exhaust the pool. Sequential methods get a group each.
+ *
+ * @param requests The batched requests, in order.
+ * @returns the groups to dispatch one after another.
+ */
+function groupRequests(
+  requests: T.BatchReq["body"]["requests"]
+): T.BatchReq["body"]["requests"][] {
+  const groups: T.BatchReq["body"]["requests"][] = [];
+  let group: T.BatchReq["body"]["requests"] = [];
+
+  for (const request of requests) {
+    if (sequentialMethods.has(request.method)) {
+      if (group.length) {
+        groups.push(group);
+        group = [];
+      }
+      groups.push([request]);
+      continue;
+    }
+
+    group.push(request);
+    if (group.length === BatchConcurrency) {
+      groups.push(group);
+      group = [];
+    }
+  }
+
+  if (group.length) {
+    groups.push(group);
+  }
+  return groups;
+}
+
 router.post(
   "batch",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
@@ -218,8 +257,7 @@ router.post(
 
     try {
       const data: BatchResult[] = [];
-      // Process in bounded groups so a single batch can't exhaust the pool.
-      for (const group of chunk(requests, BatchConcurrency)) {
+      for (const group of groupRequests(requests)) {
         const results = await Promise.all(
           group.map((request) =>
             dispatch(ctx, request.method, request.body ?? {})
