@@ -56,8 +56,12 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
         // Split the task into partitions to spread work across time window
         // by dividing the partitionWindow into minutes and scheduling a delayed
         // task for each minute. The taskDelay offsets the entire partition
-        // window so different tasks don't overlap.
-        const partitions = Math.ceil(partitionWindow / Minute.ms);
+        // window so different tasks don't overlap. Partitions are capped at the
+        // task limit so that every UUID range gets at least one item per run.
+        const partitions = Math.min(
+          Math.ceil(partitionWindow / Minute.ms),
+          cronConfig.limit ?? Infinity
+        );
         for (let i = 0; i < partitions; i++) {
           const delay =
             taskDelay + Math.floor((partitionWindow / partitions) * i);
@@ -74,9 +78,6 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
                 CronTask.getPartitionLimit(cronConfig.limit, partition)
               )
             : limit;
-          if (partitionLimit === 0) {
-            continue;
-          }
 
           Logger.debug(
             "task",
