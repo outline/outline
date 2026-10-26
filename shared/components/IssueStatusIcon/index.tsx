@@ -9,10 +9,11 @@ export type BaseIconProps = {
   size?: number;
 };
 
-/** Returns the status icon registered for an integration service, if any. */
-export type IssueStatusIconResolver = (
-  service: string
-) => React.ComponentType<BaseIconProps> | undefined;
+/** Returns the status icon registered for an issue, if any. */
+export type IssueStatusIconResolver = (issue: {
+  service?: string;
+  url: string;
+}) => React.ComponentType<BaseIconProps> | undefined;
 
 type Props = BaseIconProps & {
   /** The icon to render, the default icon is used when not given. */

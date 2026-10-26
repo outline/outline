@@ -73,6 +73,8 @@ type PluginValueMap = {
     service: IntegrationService;
     /** The component that renders the status of an issue. */
     component: React.ComponentType<BaseIconProps>;
+    /** Recognizes issue URLs from unfurls saved without a service. */
+    matchesUrl?: (url: URL) => boolean;
   };
   [Hook.InstanceUrl]: {
     /** The integration service that this resolver is used for. */
@@ -214,13 +216,23 @@ export function usePluginValue<T extends Hook>(type: T, id: string) {
 }
 
 /**
- * Returns the issue status icon that a plugin registered for a service.
+ * Returns the issue status icon that a plugin registered for an issue.
  *
- * @param service the integration service of the issue.
+ * @param issue the service and URL of the issue.
  * @returns the icon component, or undefined if none is registered.
  */
-export function getIssueStatusIcon(service: string) {
-  return PluginManager.getHooks(Hook.IssueStatusIcon).find(
-    (hook) => hook.value.service === service
-  )?.value.component;
+export function getIssueStatusIcon(issue: { service?: string; url: string }) {
+  const hooks = PluginManager.getHooks(Hook.IssueStatusIcon);
+  if (issue.service) {
+    return hooks.find((hook) => hook.value.service === issue.service)?.value
+      .component;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(issue.url);
+  } catch {
+    return undefined;
+  }
+  return hooks.find((hook) => hook.value.matchesUrl?.(url))?.value.component;
 }

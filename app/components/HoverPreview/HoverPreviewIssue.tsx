@@ -47,7 +47,7 @@ function HoverPreviewIssue({
             <Flex gap={2} column>
               <Title>
                 <StyledIssueStatusIcon
-                  icon={service ? getIssueStatusIcon(service) : undefined}
+                  icon={getIssueStatusIcon({ service, url })}
                   state={state}
                   size={18}
                 />

@@ -43,6 +43,7 @@ PluginManager.add([
     value: {
       service: IntegrationService.Linear,
       component: LinearIssueStatusIcon,
+      matchesUrl: (url) => url.hostname === "linear.app",
     },
   },
 ]);

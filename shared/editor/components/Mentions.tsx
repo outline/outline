@@ -382,11 +382,7 @@ export const MentionIssue = observer((props: IssueProps) => {
       <Flex align="center" gap={6}>
         <IssueStatusIcon
           size={14}
-          icon={
-            issue.service
-              ? props.getIssueStatusIcon?.(issue.service)
-              : undefined
-          }
+          icon={props.getIssueStatusIcon?.(issue)}
           state={issue.state}
         />
         <Flex align="center" gap={4}>

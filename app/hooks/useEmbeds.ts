@@ -35,6 +35,8 @@ export default function useEmbeds(loadIfMissing = false) {
     }
   }, [integrations, loadIfMissing]);
 
+  // Plugins may register instance URL resolvers after integrations load.
+  const pluginsLoaded = PluginManager.isLoaded;
   const disabledEmbeds =
     (team?.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
 
@@ -57,6 +59,6 @@ export default function useEmbeds(loadIfMissing = false) {
         return e;
       }),
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-    [integrations.orderedData, team?.preferences]
+    [integrations.orderedData, team?.preferences, pluginsLoaded]
   );
 }
