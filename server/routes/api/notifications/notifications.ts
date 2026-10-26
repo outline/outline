@@ -218,12 +218,7 @@ router.post(
     });
     authorize(user, "update", notification);
 
-    if (!isUndefined(viewedAt)) {
-      notification.viewedAt = viewedAt;
-    }
-    if (!isUndefined(archivedAt)) {
-      notification.archivedAt = archivedAt;
-    }
+    notification.fill({ viewedAt, archivedAt });
     await notification.saveWithCtx(ctx);
 
     ctx.body = {
