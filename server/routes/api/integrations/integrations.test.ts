@@ -13,6 +13,24 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#integrations.update", () => {
+  it("should preserve settings and events when they are omitted", async () => {
+    const admin = await buildAdmin();
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    const { settings, events } = integration;
+
+    const res = await server.post("/api/integrations.update", admin, {
+      body: { id: integration.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await integration.reload();
+    expect(integration.settings).toEqual(settings);
+    expect(integration.events).toEqual(events);
+  });
+
   it("should allow updating integration events", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });

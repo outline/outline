@@ -133,13 +133,15 @@ router.post(
     });
     authorize(user, "update", integration);
 
-    if (integration.type === IntegrationType.Post) {
+    if (events !== undefined && integration.type === IntegrationType.Post) {
       integration.events = events.filter((event: string) =>
         ["documents.update", "documents.publish"].includes(event)
       );
     }
 
-    integration.settings = settings;
+    if (settings !== undefined) {
+      integration.settings = settings;
+    }
 
     await integration.saveWithCtx(ctx);
 

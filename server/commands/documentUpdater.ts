@@ -75,32 +75,20 @@ export default async function documentUpdater(
   const { transaction } = ctx.state;
   const cId = collectionId || document.collectionId;
 
-  if (title !== undefined) {
-    document.title = title.trim();
-  }
-  if (icon !== undefined) {
-    document.icon = icon;
-  }
-  if (color !== undefined) {
-    document.color = color;
-  }
-  if (editorVersion) {
-    document.editorVersion = editorVersion;
-  }
-  if (templateId) {
-    document.templateId = templateId;
-  }
-  if (fullWidth !== undefined) {
-    document.fullWidth = fullWidth;
-  }
+  document.setDefined({
+    title: title?.trim(),
+    icon,
+    color,
+    editorVersion: editorVersion || undefined,
+    templateId: templateId || undefined,
+    fullWidth,
+    insightsEnabled,
+  });
   if (preferences) {
     document.preferences = {
       ...document.preferences,
       ...preferences,
     };
-  }
-  if (insightsEnabled !== undefined) {
-    document.insightsEnabled = insightsEnabled;
   }
   if (text !== undefined) {
     document = DocumentHelper.applyMarkdownToDocument(

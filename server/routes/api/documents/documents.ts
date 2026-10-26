@@ -13,6 +13,7 @@ import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  DocumentPermission,
   ExportContentType,
   FileOperationFormat,
   StatusFilter,
@@ -2101,7 +2102,7 @@ router.post(
         {
           documentId: id,
           groupId,
-          permission: permission || user.defaultDocumentPermission,
+          permission: permission ?? DocumentPermission.ReadWrite,
           createdById: user.id,
         },
         ctx.context
