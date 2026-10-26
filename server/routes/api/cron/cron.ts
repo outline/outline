@@ -66,6 +66,18 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
             partitionCount: partitions,
           };
 
+          // A task-defined limit applies to the whole run, so split it across
+          // partitions rather than allowing each partition the full amount.
+          const partitionLimit = cronConfig.limit
+            ? Math.min(
+                limit,
+                CronTask.getPartitionLimit(cronConfig.limit, partition)
+              )
+            : limit;
+          if (partitionLimit === 0) {
+            continue;
+          }
+
           Logger.debug(
             "task",
             `Scheduling partitioned task ${name} (partition ${
@@ -74,14 +86,14 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
           );
 
           await taskInstance.schedule(
-            { limit, partition, scheduledAt },
+            { limit: partitionLimit, partition, scheduledAt },
             { delay }
           );
         }
       } else {
         await taskInstance.schedule(
           {
-            limit,
+            limit: cronConfig.limit ? Math.min(limit, cronConfig.limit) : limit,
             partition: {
               partitionIndex: 0,
               partitionCount: 1,
