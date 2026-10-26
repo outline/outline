@@ -21,6 +21,12 @@ export type TaskSchedule = {
   /** The interval at which to run this task */
   interval: TaskInterval;
   /**
+   * The maximum number of items to process per scheduled run. When the run is
+   * partitioned, the limit is split across all partitions. When unset, the limit
+   * provided by the scheduler applies to each partition.
+   */
+  limit?: number;
+  /**
    * An optional time window (in milliseconds) over which to spread the START time
    * of this task when triggered by cron.
    *
@@ -97,6 +103,22 @@ export abstract class CronTask extends BaseTask<Props> {
       hash = ((hash << 5) - hash + taskName.charCodeAt(i)) | 0;
     }
     return Math.abs(hash) % windowMs;
+  }
+
+  /**
+   * Split a per-run limit across partitions so that the run as a whole never
+   * processes more than the limit. Any remainder goes to the first partitions.
+   *
+   * @param limit the maximum number of items to process across the whole run.
+   * @param partition the partition to compute the limit for.
+   * @returns the maximum number of items the partition may process, may be zero.
+   */
+  public static getPartitionLimit(
+    limit: number,
+    { partitionIndex, partitionCount }: PartitionInfo
+  ): number {
+    const base = Math.floor(limit / partitionCount);
+    return partitionIndex < limit % partitionCount ? base + 1 : base;
   }
 
   /**
