@@ -1271,6 +1271,36 @@ export class DocumentHelper {
   }
 
   /**
+   * Compares the content of two documents or revisions.
+   *
+   * @param first the first document or revision to compare.
+   * @param second the second document or revision to compare.
+   * @param options.ignoreMarks mark types to ignore in the comparison.
+   * @returns true if the content is the same.
+   */
+  public static isContentEqual(
+    first: Document | Revision,
+    second: Document | Revision,
+    options?: { ignoreMarks?: string[] }
+  ) {
+    if (isEqual(first.content, second.content)) {
+      return true;
+    }
+
+    const ignoreMarks = options?.ignoreMarks;
+    if (!ignoreMarks?.length) {
+      return false;
+    }
+
+    const toNode = (model: Document | Revision) =>
+      Node.fromJSON(
+        schema,
+        ProsemirrorHelper.removeMarks(this.toProsemirror(model), ignoreMarks)
+      );
+    return toNode(first).eq(toNode(second));
+  }
+
+  /**
    * Sorts an array of documents based on their order in the collection's document structure.
    * Documents are ordered according to their position in the navigation structure, with
    * documents not found in the structure placed at the end. The result is reversed to

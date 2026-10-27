@@ -2,6 +2,7 @@ import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import type { ProsemirrorData } from "@shared/types";
 import { HeadingPrefixStyle, TextEditMode } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -1379,6 +1380,116 @@ Install instructions here.`,
         DocumentHelper.getAnchorContent(document, "h-missing")
       ).toBeUndefined();
       expect(DocumentHelper.getAnchorContent(document, "")).toBeUndefined();
+    });
+  });
+
+  describe("isContentEqual", () => {
+    const paragraph = (text: string, marks?: ProsemirrorData["marks"]) => ({
+      type: "doc",
+      content: [
+        { type: "paragraph", content: [{ type: "text", text, marks }] },
+      ],
+    });
+    const comment = {
+      type: "comment",
+      attrs: { id: "comment-id", userId: "user-id" },
+    };
+
+    it("should return true for identical content", async () => {
+      const document = await buildDocument({ content: paragraph("Hello") });
+      const revision = Revision.buildFromDocument(document);
+
+      expect(DocumentHelper.isContentEqual(document, revision)).toBe(true);
+    });
+
+    it("should return false when marks differ and none are ignored", async () => {
+      const document = await buildDocument({ content: paragraph("Hello") });
+      const revision = Revision.buildFromDocument(document);
+      document.content = paragraph("Hello", [comment]);
+
+      expect(DocumentHelper.isContentEqual(document, revision)).toBe(false);
+    });
+
+    it("should return true when only ignored marks differ", async () => {
+      const document = await buildDocument({ content: paragraph("Hello") });
+      const revision = Revision.buildFromDocument(document);
+      document.content = paragraph("Hello", [comment]);
+
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
+    });
+
+    it("should return false when the text differs", async () => {
+      const document = await buildDocument({ content: paragraph("Hello") });
+      const revision = Revision.buildFromDocument(document);
+      document.content = paragraph("Hello world", [comment]);
+
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(false);
+    });
+
+    it("should return true when a comment covers part of a text node", async () => {
+      const document = await buildDocument({
+        content: paragraph("Hello world"),
+      });
+      const revision = Revision.buildFromDocument(document);
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Hello " },
+              { type: "text", text: "world", marks: [comment] },
+            ],
+          },
+        ],
+      };
+
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
+    });
+
+    it("should return true when only an image comment differs", async () => {
+      const image = (marks?: ProsemirrorData["marks"]) => ({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "image",
+                attrs: { src: "https://example.com/image.png", marks },
+              },
+            ],
+          },
+        ],
+      });
+      const document = await buildDocument({ content: image() });
+      const revision = Revision.buildFromDocument(document);
+      document.content = image([comment]);
+
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
+
+      document.content = image([]);
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
     });
   });
 });
