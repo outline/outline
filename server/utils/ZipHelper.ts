@@ -6,7 +6,7 @@ import type { Entry } from "yauzl";
 import yauzl, { validateFileName } from "yauzl";
 import { ZipFile } from "yazl";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import { ValidationError } from "@server/errors";
+import { FileImportError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { deserializeFilename } from "./fs";
@@ -110,6 +110,7 @@ export default class ZipHelper {
    * @param onEntry Handler invoked for each entry. Skip an entry by returning
    *                without calling `entry.readBuffer(maxSize)`.
    * @returns Promise that resolves once the archive has been fully walked.
+   * @throws {FileImportError} if the source is not a readable zip archive.
    */
   public static walk(
     source: string | Buffer,
@@ -127,7 +128,8 @@ export default class ZipHelper {
         zipfile: yauzl.ZipFile
       ): void {
         if (err) {
-          return reject(err);
+          // File system errors carry a code, format errors from yauzl do not.
+          return reject("code" in err ? err : ZipHelper.invalidArchiveError());
         }
 
         let settled = false;
@@ -161,7 +163,7 @@ export default class ZipHelper {
 
                 zipfile.openReadStream(entry, (rErr, readStream) => {
                   if (rErr) {
-                    return rej(rErr);
+                    return rej(ZipHelper.invalidArchiveError());
                   }
                   const chunks: Buffer[] = [];
                   let bytesRead = 0;
@@ -229,7 +231,7 @@ export default class ZipHelper {
           zipfile.on("end", done);
         }
 
-        zipfile.on("error", (error) => fail(error));
+        zipfile.on("error", () => fail(ZipHelper.invalidArchiveError()));
         zipfile.readEntry();
       };
 
@@ -321,6 +323,10 @@ export default class ZipHelper {
     });
 
     return root;
+  }
+
+  private static invalidArchiveError(): Error {
+    return FileImportError("The file is not a valid zip archive");
   }
 
   private static entryTooLargeError(fileName: string, maxSize: number): Error {

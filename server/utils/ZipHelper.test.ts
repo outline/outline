@@ -261,4 +261,24 @@ describe("ZipHelper.walk", () => {
       })
     ).rejects.toThrow("Collection/page.md is too large");
   });
+
+  it("rejects a file that is not a zip archive as an import error", async () => {
+    const filePath = tmp.fileSync({ postfix: ".zip" }).name;
+    await fs.writeFile(filePath, "not a zip file");
+
+    await expect(ZipHelper.walk(filePath, () => {})).rejects.toMatchObject({
+      id: "import_error",
+      message: "The file is not a valid zip archive",
+    });
+    await fs.remove(filePath);
+  });
+
+  it("rejects a buffer that is not a zip archive as an import error", async () => {
+    await expect(
+      ZipHelper.walk(Buffer.from("not a zip file"), () => {})
+    ).rejects.toMatchObject({
+      id: "import_error",
+      message: "The file is not a valid zip archive",
+    });
+  });
 });
