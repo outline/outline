@@ -254,6 +254,20 @@ John,25`;
         expect(result.title).toEqual("My Title");
         expect(result.text).toContain("Content here");
       });
+
+      it("should convert elements without a style property", async () => {
+        const html =
+          "<p>Before <math><mi>x</mi></math> <u>after</u></p><p><span style='text-decoration: underline'>styled</span></p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.text).toContain("Before");
+        expect(result.text).toContain("__after__");
+        expect(result.text).toContain("__styled__");
+      });
     });
 
     describe("mhtml", () => {
