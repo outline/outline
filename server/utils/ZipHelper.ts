@@ -1,6 +1,7 @@
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import fs from "fs-extra";
+import httpErrors from "http-errors";
 import tmp from "tmp";
 import type { Entry } from "yauzl";
 import yauzl, { validateFileName } from "yauzl";
@@ -128,8 +129,7 @@ export default class ZipHelper {
         zipfile: yauzl.ZipFile
       ): void {
         if (err) {
-          // File system errors carry a code, format errors from yauzl do not.
-          return reject("code" in err ? err : ZipHelper.invalidArchiveError());
+          return reject(ZipHelper.toArchiveError(err));
         }
 
         let settled = false;
@@ -163,7 +163,7 @@ export default class ZipHelper {
 
                 zipfile.openReadStream(entry, (rErr, readStream) => {
                   if (rErr) {
-                    return rej(ZipHelper.invalidArchiveError());
+                    return rej(ZipHelper.toArchiveError(rErr));
                   }
                   const chunks: Buffer[] = [];
                   let bytesRead = 0;
@@ -187,7 +187,7 @@ export default class ZipHelper {
                   readStream.on("error", (err) => {
                     if (!settled) {
                       settled = true;
-                      rej(err);
+                      rej(ZipHelper.toArchiveError(err));
                     }
                   });
                   readStream.on("close", () => {
@@ -231,7 +231,7 @@ export default class ZipHelper {
           zipfile.on("end", done);
         }
 
-        zipfile.on("error", () => fail(ZipHelper.invalidArchiveError()));
+        zipfile.on("error", (error) => fail(ZipHelper.toArchiveError(error)));
         zipfile.readEntry();
       };
 
@@ -325,7 +325,11 @@ export default class ZipHelper {
     return root;
   }
 
-  private static invalidArchiveError(): Error {
+  private static toArchiveError(error: Error): Error {
+    // System errors carry a syscall, parser and zlib errors do not.
+    if ("syscall" in error || httpErrors.isHttpError(error)) {
+      return error;
+    }
     return FileImportError("The file is not a valid zip archive");
   }
 

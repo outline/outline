@@ -281,4 +281,25 @@ describe("ZipHelper.walk", () => {
       message: "The file is not a valid zip archive",
     });
   });
+
+  it("rejects an entry with corrupt compressed data as an import error", async () => {
+    const buffer = await buildZip({ "page.md": "hello world ".repeat(100) });
+    // An invalid deflate block type follows the local header of the entry.
+    buffer[30 + "page.md".length] = 0xff;
+
+    await expect(
+      ZipHelper.walk(buffer, async (entry) => {
+        await entry.readBuffer(4096);
+      })
+    ).rejects.toMatchObject({
+      id: "import_error",
+      message: "The file is not a valid zip archive",
+    });
+  });
+
+  it("keeps file system errors when the archive cannot be opened", async () => {
+    await expect(
+      ZipHelper.walk("/does/not/exist.zip", () => {})
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });
