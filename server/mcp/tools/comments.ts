@@ -205,7 +205,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
               ctx.state.transaction = transaction;
               ctx.context.transaction = transaction;
 
-              const document = await Document.findByPk(documentId, {
+              let document = await Document.findByPk(documentId, {
                 userId: user.id,
                 transaction,
               });
@@ -214,18 +214,24 @@ export function commentTools(server: McpServer, scopes: string[]) {
               if (anchorText) {
                 // Acquire the row lock on the document directly when
                 // anchoring so a concurrent comment-mark application can't
-                // overwrite our state update. The state is read from the
-                // locked row.
-                const locked = await Document.unscoped().findOne({
+                // overwrite our state update.
+                await Document.unscoped().findOne({
                   where: { id: document.id },
-                  attributes: ["id", "state", "content", "text"],
+                  attributes: ["id"],
                   transaction,
                   lock: Transaction.LOCK.UPDATE,
+                });
+
+                // Reload under the lock, with the state needed for the mark.
+                document = await Document.findByPk(document.id, {
+                  userId: user.id,
+                  includeState: true,
+                  transaction,
                   rejectOnEmpty: true,
                 });
 
                 const updated = ProsemirrorHelper.applyCommentMarkByText({
-                  docState: DocumentHelper.toState(locked),
+                  docState: DocumentHelper.toState(document),
                   anchorText,
                   commentId,
                   userId: user.id,
