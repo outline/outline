@@ -68,6 +68,34 @@ describe("list_comments", () => {
     expect(ids).toContain(comment.id);
   });
 
+  it("returns comments in a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      collectionId: collection.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    const ids = data.map((c: { id: string }) => c.id);
+    expect(ids).toContain(comment.id);
+  });
+
   it("includes anchorText when comment is anchored", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -206,6 +234,33 @@ describe("create_comment", () => {
 
     const comment = await Comment.findByPk(data.id, { rejectOnEmpty: true });
     expect(comment.toMarkdown()).toContain("This is a **test** comment");
+  });
+
+  it("creates an anchored comment on a document referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Some highlighted text",
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_comment", {
+      documentId: document.urlId,
+      text: "An inline comment",
+      anchorText: "highlighted",
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.documentId).toEqual(document.id);
+
+    const comment = await Comment.findByPk(data.id, { rejectOnEmpty: true });
+    expect(comment.documentId).toEqual(document.id);
   });
 
   it("creates a reply to an existing comment", async () => {

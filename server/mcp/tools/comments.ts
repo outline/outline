@@ -111,6 +111,10 @@ export function commentTools(server: McpServer, scopes: string[]) {
             authorize(user, "listComments", user.team);
 
             let document: Document | null = null;
+
+            // The input may be a urlId, so the id of the loaded model is used.
+            let resolvedCollectionId: string | undefined;
+
             if (documentId) {
               document = await Document.findByPk(documentId, {
                 userId: user.id,
@@ -121,11 +125,12 @@ export function commentTools(server: McpServer, scopes: string[]) {
                 userId: user.id,
               });
               authorize(user, "read", collection);
+              resolvedCollectionId = collection.id;
             }
 
             const { comments } = await Comment.findAllForUser(user, {
               document,
-              collectionId,
+              collectionId: resolvedCollectionId,
               parentCommentId,
               statusFilter,
               includeDocuments: true,
@@ -200,29 +205,27 @@ export function commentTools(server: McpServer, scopes: string[]) {
               ctx.state.transaction = transaction;
               ctx.context.transaction = transaction;
 
-              if (anchorText) {
-                // Acquire the row lock on the document directly when
-                // anchoring so a concurrent comment-mark application can't
-                // overwrite our state update.
-                await Document.unscoped().findOne({
-                  where: { id: documentId },
-                  attributes: ["id"],
-                  transaction,
-                  lock: Transaction.LOCK.UPDATE,
-                });
-              }
-
               const document = await Document.findByPk(documentId, {
                 userId: user.id,
-                // We only need to load the state binary if applying a comment mark
-                includeState: !!anchorText,
                 transaction,
               });
               authorize(user, "comment", document);
 
               if (anchorText) {
+                // Acquire the row lock on the document directly when
+                // anchoring so a concurrent comment-mark application can't
+                // overwrite our state update. The state is read from the
+                // locked row.
+                const locked = await Document.unscoped().findOne({
+                  where: { id: document.id },
+                  attributes: ["id", "state", "content", "text"],
+                  transaction,
+                  lock: Transaction.LOCK.UPDATE,
+                  rejectOnEmpty: true,
+                });
+
                 const updated = ProsemirrorHelper.applyCommentMarkByText({
-                  docState: DocumentHelper.toState(document),
+                  docState: DocumentHelper.toState(locked),
                   anchorText,
                   commentId,
                   userId: user.id,
@@ -246,7 +249,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
                 id: commentId,
                 data,
                 createdById: user.id,
-                documentId,
+                documentId: document.id,
                 parentCommentId,
               });
             });
