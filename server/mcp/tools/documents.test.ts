@@ -998,6 +998,61 @@ describe("move_document", () => {
     expect(child.parentDocumentId).toEqual(parent.id);
   });
 
+  it("moves under a parent document referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: child.id,
+      parentDocumentId: parent.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+
+    await child.reload();
+    expect(child.parentDocumentId).toEqual(parent.id);
+  });
+
+  it("moves to a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection1 = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const collection2 = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection1.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      collectionId: collection2.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection2.id);
+  });
+
   it("fails without collectionId or parentDocumentId", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -1032,6 +1087,26 @@ describe("move_document", () => {
     const res = await callMcpTool(server, accessToken, "move_document", {
       id: document.id,
       parentDocumentId: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("fails when nesting a document inside itself by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      parentDocumentId: document.urlId,
     });
 
     expect(res?.result?.isError).toBe(true);

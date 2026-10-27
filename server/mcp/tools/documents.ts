@@ -568,19 +568,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
               ? input.collectionId
               : await resolvePersonalCollectionId(ctx, input.collectionId);
 
-            if (input.parentDocumentId) {
-              if (input.parentDocumentId === input.id) {
-                throw ValidationError("Cannot nest a document inside itself");
-              }
+            // The inputs may be urlIds, so the ids of the loaded models are used.
+            let parentDocumentId: string | null = null;
 
+            if (input.parentDocumentId) {
               const parent = await Document.findByPk(input.parentDocumentId, {
                 userId: user.id,
                 rejectOnEmpty: true,
                 transaction,
               });
 
+              if (parent.id === document.id) {
+                throw ValidationError("Cannot nest a document inside itself");
+              }
+
               authorize(user, "update", parent);
               collectionId = parent.collectionId!;
+              parentDocumentId = parent.id;
 
               if (!parent.publishedAt) {
                 throw ValidationError("Cannot move document inside a draft");
@@ -596,12 +600,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 transaction,
               });
               authorize(user, "updateDocument", collection);
+              collectionId = collection.id;
             }
 
             await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
-              parentDocumentId: input.parentDocumentId ?? null,
+              parentDocumentId,
               index: input.index,
             });
 
