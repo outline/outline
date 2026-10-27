@@ -1433,5 +1433,63 @@ Install instructions here.`,
         })
       ).toBe(false);
     });
+
+    it("should return true when a comment covers part of a text node", async () => {
+      const document = await buildDocument({
+        content: paragraph("Hello world"),
+      });
+      const revision = Revision.buildFromDocument(document);
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Hello " },
+              { type: "text", text: "world", marks: [comment] },
+            ],
+          },
+        ],
+      };
+
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
+    });
+
+    it("should return true when only an image comment differs", async () => {
+      const image = (marks?: ProsemirrorData["marks"]) => ({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "image",
+                attrs: { src: "https://example.com/image.png", marks },
+              },
+            ],
+          },
+        ],
+      });
+      const document = await buildDocument({ content: image() });
+      const revision = Revision.buildFromDocument(document);
+      document.content = image([comment]);
+
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
+
+      document.content = image([]);
+      expect(
+        DocumentHelper.isContentEqual(document, revision, {
+          ignoreMarks: ["comment"],
+        })
+      ).toBe(true);
+    });
   });
 });
