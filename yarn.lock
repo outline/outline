@@ -6481,12 +6481,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.19.43":
-  version: 20.19.43
-  resolution: "@types/node@npm:20.19.43"
+"@types/node@npm:22.20.5":
+  version: 22.20.5
+  resolution: "@types/node@npm:22.20.5"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/9bcec3b5295bdd77ff0b44a528a69f7e22028c347507ba2c69be47ec84e30299f45043b222e9c86c510e138c9c53b2419dd5cd34920602a4a5a381c288075318
+  checksum: 10c0/0cf61a89c6a69917ab49f976a6bb11a29e3b348a6ae19f5827ceb91d3ade781faab58dcf3b8fa625f975f5d7536b9166ff94e8250c29272c667164f77c28fa88
   languageName: node
   linkType: hard
 
@@ -14009,7 +14009,7 @@ __metadata:
     "@types/markdown-it-emoji": "npm:^3.0.1"
     "@types/mime-types": "npm:^3.0.1"
     "@types/natural-sort": "npm:^0.0.24"
-    "@types/node": "npm:20.19.43"
+    "@types/node": "npm:22.20.5"
     "@types/node-fetch": "npm:^2.6.13"
     "@types/passport-oauth2": "npm:^1.8.0"
     "@types/pluralize": "npm:^0.0.33"
