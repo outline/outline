@@ -1,3 +1,4 @@
+import { createServer } from "node:http";
 import type { Readable } from "node:stream";
 import { buffer } from "node:stream/consumers";
 import { http, HttpResponse } from "msw";
@@ -414,6 +415,49 @@ describe("BaseStorage", () => {
 
         expect(result).toBeUndefined();
         expect(storage.storedFiles).toHaveLength(0);
+      });
+
+      it("should close the connection when the Content-Length is over the size limit", async () => {
+        // A real server is used, as the mocked responses do not report when
+        // the connection is closed.
+        let handleClose = () => {};
+        const closed = new Promise<void>((resolve) => {
+          handleClose = resolve;
+        });
+        const remote = createServer((_req, res) => {
+          res.on("close", handleClose);
+          res.writeHead(200, { "Content-Length": "800" });
+          res.write(Buffer.alloc(100, "a"));
+        });
+        await new Promise<void>((resolve) =>
+          remote.listen(0, "127.0.0.1", resolve)
+        );
+        const address = remote.address();
+        if (!address || typeof address === "string") {
+          throw new Error("Server is not listening on a port");
+        }
+        const allowed = env.ALLOWED_PRIVATE_IP_ADDRESSES;
+        env.ALLOWED_PRIVATE_IP_ADDRESSES = ["127.0.0.1"];
+
+        try {
+          const result = await storage.storeFromUrl(
+            `http://127.0.0.1:${address.port}/file.bin`,
+            "test-key",
+            "private"
+          );
+
+          expect(result).toBeUndefined();
+          await expect(
+            Promise.race([
+              closed.then(() => "closed"),
+              new Promise((resolve) => setTimeout(resolve, 1000, "open")),
+            ])
+          ).resolves.toBe("closed");
+        } finally {
+          env.ALLOWED_PRIVATE_IP_ADDRESSES = allowed;
+          remote.closeAllConnections();
+          remote.close();
+        }
       });
 
       it("should not store an empty file", async () => {

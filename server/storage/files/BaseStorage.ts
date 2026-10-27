@@ -234,6 +234,7 @@ export default abstract class BaseStorage {
     );
     let source: NodeJS.ReadableStream;
     let contentType: string;
+    const fetchController = new AbortController();
     const match = isBase64Url(url);
 
     if (match) {
@@ -256,7 +257,7 @@ export default abstract class BaseStorage {
         if (!headers.has("User-Agent")) {
           headers.set("User-Agent", chromeUserAgent);
         }
-        const initWithoutHeaders = omit(init, ["headers"]);
+        const initWithoutHeaders = omit(init, ["headers", "signal"]);
 
         const res = await fetch(url, {
           follow: 3,
@@ -264,13 +265,19 @@ export default abstract class BaseStorage {
           headers,
           timeout: 10000,
           ...initWithoutHeaders,
+          signal: init?.signal
+            ? AbortSignal.any([init.signal, fetchController.signal])
+            : fetchController.signal,
         });
 
+        // The body is not read in these cases, so close the connection.
         if (!res.ok) {
+          fetchController.abort();
           throw new Error(`Error fetching URL to upload: ${res.status}`);
         }
 
         if (Number(res.headers.get("content-length")) > maxSize) {
+          fetchController.abort();
           throw new UploadSizeExceededError(maxSize);
         }
 
@@ -319,6 +326,7 @@ export default abstract class BaseStorage {
           key,
         });
         limiter.destroy();
+        fetchController.abort();
         return;
       }
       contentType = imageType.contentType;
@@ -342,6 +350,7 @@ export default abstract class BaseStorage {
     } catch (err) {
       const sourceFailed = limiter.errored !== null;
       limiter.destroy();
+      fetchController.abort();
 
       // Remove any part of the file that was written before the failure.
       if (sourceFailed) {
