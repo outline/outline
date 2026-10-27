@@ -1,6 +1,10 @@
+import type { Readable } from "node:stream";
+import { buffer } from "node:stream/consumers";
+import { http, HttpResponse } from "msw";
 import { Hour, Minute, Week } from "@shared/utils/time";
 import BaseStorage from "./BaseStorage";
 import env from "@server/env";
+import { server } from "@server/test/msw";
 
 /**
  * Mock implementation of BaseStorage for testing purposes.
@@ -39,14 +43,14 @@ class MockStorage extends BaseStorage {
     key,
     acl,
   }: {
-    body: Buffer;
+    body: Buffer | Readable;
     contentType?: string;
     key: string;
     acl?: string;
   }) {
     this.storedFiles.push({
       key,
-      body: body as Buffer,
+      body: Buffer.isBuffer(body) ? body : await buffer(body),
       contentType,
       acl,
     });
@@ -63,7 +67,11 @@ class MockStorage extends BaseStorage {
 
   async moveFile() {}
 
-  async deleteFile() {}
+  public deletedKeys: string[] = [];
+
+  async deleteFile(key: string) {
+    this.deletedKeys.push(key);
+  }
 
   static signingDateFor(expiresIn: number) {
     return MockStorage.getSigningDate(expiresIn);
@@ -315,6 +323,139 @@ describe("BaseStorage", () => {
 
         const result = await storage.storeFromUrl(
           `data:image/png;base64,${svg}`,
+          "test-key",
+          "public-read",
+          undefined,
+          { imagesOnly: true }
+        );
+
+        expect(result).toBeUndefined();
+        expect(storage.storedFiles).toHaveLength(0);
+      });
+    });
+
+    describe("remote URLs", () => {
+      const remoteUrl = "https://files.example.com/file.bin";
+
+      /**
+       * Responds to the remote URL with a body that is streamed in chunks and
+       * has no Content-Length header.
+       *
+       * @param chunks The chunks of the body.
+       * @param contentType The content type of the response.
+       */
+      const respondWithChunks = (chunks: Buffer[], contentType: string) =>
+        server.use(
+          http.get(
+            remoteUrl,
+            () =>
+              new HttpResponse(
+                new ReadableStream({
+                  start(controller) {
+                    chunks.forEach((chunk) => controller.enqueue(chunk));
+                    controller.close();
+                  },
+                }),
+                { headers: { "Content-Type": contentType } }
+              )
+          )
+        );
+
+      it("should stream the file to storage", async () => {
+        respondWithChunks(
+          [Buffer.alloc(100, "a"), Buffer.alloc(150, "b")],
+          "application/pdf"
+        );
+
+        const result = await storage.storeFromUrl(
+          remoteUrl,
+          "test-key",
+          "private"
+        );
+
+        expect(result?.contentLength).toBe(250);
+        expect(result?.contentType).toBe("application/pdf");
+        expect(storage.storedFiles).toHaveLength(1);
+        expect(storage.storedFiles[0].body.byteLength).toBe(250);
+      });
+
+      it("should not store a file that exceeds the size limit while streaming", async () => {
+        respondWithChunks(
+          [Buffer.alloc(400, "a"), Buffer.alloc(400, "b")],
+          "application/pdf"
+        );
+
+        const result = await storage.storeFromUrl(
+          remoteUrl,
+          "test-key",
+          "private"
+        );
+
+        expect(result).toBeUndefined();
+        expect(storage.deletedKeys).toEqual(["test-key"]);
+      });
+
+      it("should not download a file with a Content-Length over the size limit", async () => {
+        server.use(
+          http.get(
+            remoteUrl,
+            () =>
+              new HttpResponse(Buffer.alloc(800, "a"), {
+                headers: { "Content-Length": "800" },
+              })
+          )
+        );
+
+        const result = await storage.storeFromUrl(
+          remoteUrl,
+          "test-key",
+          "private"
+        );
+
+        expect(result).toBeUndefined();
+        expect(storage.storedFiles).toHaveLength(0);
+      });
+
+      it("should not store an empty file", async () => {
+        respondWithChunks([], "application/pdf");
+
+        const result = await storage.storeFromUrl(
+          remoteUrl,
+          "test-key",
+          "private"
+        );
+
+        expect(result).toBeUndefined();
+        expect(storage.storedFiles).toHaveLength(0);
+      });
+
+      it("should detect an image from leading bytes split across chunks", async () => {
+        const png = Buffer.from([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00,
+        ]);
+        respondWithChunks(
+          [png.subarray(0, 3), png.subarray(3), Buffer.alloc(20)],
+          "text/html"
+        );
+
+        const result = await storage.storeFromUrl(
+          remoteUrl,
+          "test-key",
+          "public-read",
+          undefined,
+          { imagesOnly: true }
+        );
+
+        expect(result?.contentType).toBe("image/png");
+        expect(result?.contentLength).toBe(30);
+        expect(storage.storedFiles[0].body.byteLength).toBe(30);
+      });
+
+      it("should not store a remote file that is not an image", async () => {
+        respondWithChunks([Buffer.from("<html></html>")], "image/png");
+
+        const result = await storage.storeFromUrl(
+          remoteUrl,
           "test-key",
           "public-read",
           undefined,

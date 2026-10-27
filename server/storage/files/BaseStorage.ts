@@ -1,5 +1,5 @@
 import type { Blob } from "node:buffer";
-import type { Readable } from "node:stream";
+import { pipeline, Readable, Transform } from "node:stream";
 import { buffer } from "node:stream/consumers";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import contentDisposition from "content-disposition";
@@ -228,19 +228,19 @@ export default abstract class BaseStorage {
       return;
     }
 
-    let buffer, contentType;
+    const maxSize = Math.min(
+      options?.maxUploadSize ?? Infinity,
+      env.FILE_STORAGE_UPLOAD_MAX_SIZE
+    );
+    let source: NodeJS.ReadableStream;
+    let contentType: string;
     const match = isBase64Url(url);
 
     if (match) {
       contentType = match[1];
-      buffer = Buffer.from(match[2], "base64");
+      const buffer = Buffer.from(match[2], "base64");
 
       // Validate size for base64 URLs, same as for remote URLs
-      const maxSize = Math.min(
-        options?.maxUploadSize ?? Infinity,
-        env.FILE_STORAGE_UPLOAD_MAX_SIZE
-      );
-
       if (buffer.byteLength > maxSize) {
         Logger.warn("Base64 URL exceeds size limit", {
           size: buffer.byteLength,
@@ -249,6 +249,7 @@ export default abstract class BaseStorage {
         });
         return;
       }
+      source = Readable.from([buffer]);
     } else {
       try {
         const headers = new Headers(init?.headers);
@@ -260,10 +261,6 @@ export default abstract class BaseStorage {
         const res = await fetch(url, {
           follow: 3,
           redirect: "follow",
-          size: Math.min(
-            options?.maxUploadSize ?? Infinity,
-            env.FILE_STORAGE_UPLOAD_MAX_SIZE
-          ),
           headers,
           timeout: 10000,
           ...initWithoutHeaders,
@@ -273,8 +270,11 @@ export default abstract class BaseStorage {
           throw new Error(`Error fetching URL to upload: ${res.status}`);
         }
 
-        buffer = await res.buffer();
+        if (Number(res.headers.get("content-length")) > maxSize) {
+          throw new UploadSizeExceededError(maxSize);
+        }
 
+        source = res.body;
         contentType =
           res.headers.get("content-type") ?? "application/octet-stream";
       } catch (err) {
@@ -288,18 +288,37 @@ export default abstract class BaseStorage {
       }
     }
 
-    const contentLength = buffer.byteLength;
-    if (contentLength === 0) {
+    // The file is streamed to storage so that it is never held in memory.
+    // Only the leading bytes are read first, to detect an empty file or the
+    // image type.
+    const limiter = new SizeLimitStream(maxSize);
+    pipeline(source, limiter, () => undefined);
+
+    let head: { data: Buffer; ended: boolean };
+    try {
+      head = await readHead(limiter, ImageSignatureLength);
+    } catch (err) {
+      Logger.warn("Error fetching URL to upload", {
+        error: errToString(err),
+        url,
+        key,
+        acl,
+      });
+      return;
+    }
+
+    if (head.data.byteLength === 0) {
       return;
     }
 
     if (options?.imagesOnly) {
-      const imageType = ImageHelper.detectType(buffer);
+      const imageType = ImageHelper.detectType(head.data);
       if (!imageType) {
         Logger.info("utils", "URL to upload is not a supported image", {
           url,
           key,
         });
+        limiter.destroy();
         return;
       }
       contentType = imageType.contentType;
@@ -307,7 +326,7 @@ export default abstract class BaseStorage {
 
     try {
       const result = await this.store({
-        body: buffer,
+        body: head.ended ? Readable.from([head.data]) : limiter,
         contentType,
         key,
         acl,
@@ -316,11 +335,24 @@ export default abstract class BaseStorage {
       return result
         ? {
             url: result,
-            contentLength,
+            contentLength: limiter.bytes,
             contentType,
           }
         : undefined;
     } catch (err) {
+      const sourceFailed = limiter.errored !== null;
+      limiter.destroy();
+
+      // Remove any part of the file that was written before the failure.
+      if (sourceFailed) {
+        await this.deleteFile(key).catch(() => undefined);
+      }
+
+      if (err instanceof UploadSizeExceededError) {
+        Logger.warn("URL to upload exceeds size limit", { maxSize, url, key });
+        return;
+      }
+
       Logger.error("Error uploading to file storage from URL", toError(err), {
         url,
         key,
@@ -409,4 +441,99 @@ export default abstract class BaseStorage {
   private static getSigningWindow(expiresIn: number): number {
     return Math.min(BaseStorage.maxSigningWindow, Math.floor(expiresIn / 2));
   }
+}
+
+/** The number of leading bytes that are needed to detect an image type. */
+const ImageSignatureLength = 12;
+
+class UploadSizeExceededError extends Error {
+  constructor(maxSize: number) {
+    super(`File exceeds the maximum upload size of ${maxSize} bytes`);
+  }
+}
+
+/**
+ * A stream that passes data through unchanged, counts the bytes, and fails
+ * when the total exceeds the maximum size.
+ */
+class SizeLimitStream extends Transform {
+  /** The number of bytes that have passed through the stream. */
+  public bytes = 0;
+
+  constructor(private readonly maxSize: number) {
+    super();
+  }
+
+  _transform(
+    chunk: Buffer,
+    _encoding: BufferEncoding,
+    callback: (error?: Error | null, data?: Buffer) => void
+  ) {
+    this.bytes += chunk.byteLength;
+    if (this.bytes > this.maxSize) {
+      callback(new UploadSizeExceededError(this.maxSize));
+      return;
+    }
+    callback(null, chunk);
+  }
+}
+
+/**
+ * Reads the leading bytes of a stream. If the stream has more data, it is
+ * paused and the bytes are put back so that the full content can be read.
+ *
+ * @param stream The stream to read from.
+ * @param length The minimum number of bytes to read.
+ * @returns the bytes that were read, and whether the stream has ended.
+ * @throws if the stream fails or closes before the bytes are read.
+ */
+function readHead(
+  stream: Readable,
+  length: number
+): Promise<{ data: Buffer; ended: boolean }> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+
+    const cleanup = () => {
+      stream.off("data", handleData);
+      stream.off("end", handleEnd);
+      stream.off("error", handleError);
+      stream.off("close", handleClose);
+    };
+
+    const handleData = (chunk: Buffer) => {
+      chunks.push(chunk);
+      size += chunk.byteLength;
+      if (size >= length) {
+        stream.pause();
+        cleanup();
+        const data = Buffer.concat(chunks);
+        stream.unshift(data);
+        resolve({ data, ended: false });
+      }
+    };
+
+    const handleEnd = () => {
+      cleanup();
+      resolve({ data: Buffer.concat(chunks), ended: true });
+    };
+
+    const handleError = (err: Error) => {
+      cleanup();
+      reject(err);
+    };
+
+    // A stream that is destroyed without an error emits neither "end" nor
+    // "error", only "close".
+    const handleClose = () => {
+      cleanup();
+      reject(new Error("Stream closed before it ended"));
+    };
+
+    stream.on("data", handleData);
+    stream.once("end", handleEnd);
+    stream.once("error", handleError);
+    stream.once("close", handleClose);
+  });
 }
