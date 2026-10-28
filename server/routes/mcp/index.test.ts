@@ -292,6 +292,24 @@ describe("POST /mcp/", () => {
       ]);
     });
 
+    it("should not forward hop-by-hop headers from the SDK response", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("initialize", {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      });
+
+      const res = await server.post("/mcp/", {
+        headers: { ...mcpHeaders(accessToken), Connection: "close" },
+        body,
+      });
+
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("content-type")).toContain("text/event-stream");
+      expect(res.headers.get("connection")).toEqual("close");
+    });
+
     it("should return 202 for the notifications/initialized lifecycle message", async () => {
       const { accessToken } = await buildOAuthUser();
 
@@ -363,7 +381,7 @@ describe("POST /mcp/", () => {
         if (tool.annotations?.readOnlyHint) {
           expect(tool.annotations.destructiveHint, tool.name).toBe(false);
         }
-        if (/^(delete|update)_/.test(tool.name)) {
+        if (/^(delete|update|move)_/.test(tool.name)) {
           expect(tool.annotations?.destructiveHint, tool.name).toBe(true);
         }
       }

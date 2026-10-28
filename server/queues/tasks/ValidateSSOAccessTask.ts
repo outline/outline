@@ -50,9 +50,7 @@ export default class ValidateSSOAccessTask extends BaseTask<Props> {
           })
         );
 
-        if (signal.aborted) {
-          throw signal.error;
-        }
+        signal.throwIfAborted();
 
         if (validity.some((isValid) => isValid)) {
           // Re-sync group memberships from each provider that was just

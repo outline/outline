@@ -80,6 +80,23 @@ describe("CronTask", () => {
       }
     });
 
+    it("should stay within an explicit window", () => {
+      const names = [
+        "CleanupDeletedDocumentsTask",
+        "CleanupOldEventsTask",
+        "CleanupOldSearchQueriesTask",
+      ];
+      for (const name of names) {
+        const delay = CronTask.getStaggerDelay(
+          name,
+          TaskInterval.Hour,
+          Minute.ms
+        );
+        expect(delay).toBeGreaterThanOrEqual(0);
+        expect(delay).toBeLessThan(Minute.ms);
+      }
+    });
+
     it("should distribute delays across the window for real task names", () => {
       const names = [
         "CleanupDeletedDocumentsTask",
@@ -94,6 +111,43 @@ describe("CronTask", () => {
       );
       const unique = new Set(delays);
       expect(unique.size).toBe(delays.length);
+    });
+  });
+
+  describe("getPartitionLimit", () => {
+    const sumLimits = (limit: number, partitionCount: number) =>
+      Array.from({ length: partitionCount }, (_, partitionIndex) =>
+        CronTask.getPartitionLimit(limit, { partitionIndex, partitionCount })
+      ).reduce((sum, value) => sum + value, 0);
+
+    it("should return the full limit for a single partition", () => {
+      expect(
+        CronTask.getPartitionLimit(500, {
+          partitionIndex: 0,
+          partitionCount: 1,
+        })
+      ).toBe(500);
+    });
+
+    it("should never exceed the limit across all partitions", () => {
+      expect(sumLimits(500, 30)).toBe(500);
+      expect(sumLimits(10, 30)).toBe(10);
+      expect(sumLimits(10000, 7)).toBe(10000);
+    });
+
+    it("should give the remainder to the first partitions", () => {
+      expect(
+        CronTask.getPartitionLimit(500, {
+          partitionIndex: 0,
+          partitionCount: 30,
+        })
+      ).toBe(17);
+      expect(
+        CronTask.getPartitionLimit(500, {
+          partitionIndex: 29,
+          partitionCount: 30,
+        })
+      ).toBe(16);
     });
   });
 

@@ -119,6 +119,9 @@ function Authorize() {
     if (redirectUri && !clientError) {
       const url = new URL(redirectUri);
       url.searchParams.set("error", "access_denied");
+      if (state) {
+        url.searchParams.set("state", state);
+      }
       window.location.href = url.toString();
       return;
     }

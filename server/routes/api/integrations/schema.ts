@@ -135,7 +135,7 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
       .optional(),
 
     /** Integration events */
-    events: z.array(z.string()).prefault([]),
+    events: z.array(z.string()).optional(),
   }),
 });
 

@@ -1,4 +1,3 @@
-import "zod/compile";
 import "./logging/tracer"; // must come before importing any instrumented module
 
 import os from "node:os";

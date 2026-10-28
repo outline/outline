@@ -8882,6 +8882,35 @@ describe("#documents.remove_user", () => {
 });
 
 describe("#documents.add_group", () => {
+  it("should preserve existing permission when permission is omitted", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({ teamId: user.teamId });
+    const membership = await GroupMembership.create({
+      createdById: user.id,
+      documentId: document.id,
+      groupId: group.id,
+      permission: DocumentPermission.Admin,
+    });
+
+    const res = await server.post("/api/documents.add_group", user, {
+      body: { id: document.id, groupId: group.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await membership.reload();
+    expect(membership.permission).toEqual(DocumentPermission.Admin);
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.add_group", user);

@@ -193,7 +193,7 @@ function DocumentScene({
       if (abilities.move) {
         dialogs.openModal({
           title: t("Move document"),
-          content: <DocumentMove document={document} />,
+          content: <DocumentMove documents={[document]} />,
         });
       }
     },

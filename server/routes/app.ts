@@ -13,7 +13,7 @@ import {
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import { Hour } from "@shared/utils/time";
 import env from "@server/env";
-import { allowScriptSrc } from "@server/middlewares/csp";
+import { allowFraming, allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
@@ -320,7 +320,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const preventEmbedding =
     team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
   if (!preventEmbedding) {
-    ctx.remove("X-Frame-Options");
+    allowFraming(ctx);
   }
 
   const publicBranding =

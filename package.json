@@ -42,7 +42,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">=20.19 <21 || >=22.23.1 <23 || >=24.18.0 <25 || >=26.4.0 <27"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1 <27"
   },
   "repository": {
     "type": "git",
@@ -127,7 +127,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.50.0",
     "date-fns": "^3.6.0",
-    "dd-trace": "^5.130.0",
+    "dd-trace": "^5.131.1",
     "diff": "^5.2.2",
     "email-providers": "^1.14.0",
     "emoji-mart": "^5.6.0",
@@ -231,7 +231,6 @@
     "react-use-measure": "^2.1.7",
     "react-window": "^2.3.4",
     "react-zoom-pan-pinch": "^3.7.0",
-    "redlock": "^5.0.0-beta2",
     "reflect-metadata": "^0.2.2",
     "refractor": "^5.0.0",
     "resolve-path": "^1.4.0",
@@ -298,7 +297,7 @@
     "@types/markdown-it-emoji": "^3.0.1",
     "@types/mime-types": "^3.0.1",
     "@types/natural-sort": "^0.0.24",
-    "@types/node": "20.19.43",
+    "@types/node": "22.20.5",
     "@types/node-fetch": "^2.6.13",
     "@types/passport-oauth2": "^1.8.0",
     "@types/pluralize": "^0.0.33",

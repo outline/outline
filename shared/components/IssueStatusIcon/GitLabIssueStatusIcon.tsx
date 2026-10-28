@@ -6,6 +6,7 @@ export function GitLabIssueStatusIcon(props: BaseIconProps) {
 
   switch (state.name) {
     case "opened":
+    case "open":
       return (
         <svg
           viewBox="0 0 16 16"

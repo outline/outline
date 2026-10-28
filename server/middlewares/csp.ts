@@ -75,6 +75,17 @@ export function allowStyleSrc(ctx: Context, sources: string[]) {
 }
 
 /**
+ * Allow the current response to be rendered in a frame on any origin. Must be
+ * called before the response is sent.
+ *
+ * @param ctx The Koa context of the current request.
+ */
+export function allowFraming(ctx: Context) {
+  ctx.state.cspAllowFraming = true;
+  ctx.remove("X-Frame-Options");
+}
+
+/**
  * Create a Content Security Policy middleware for the application.
  *
  * @param options Optional configuration for the CSP middleware.
@@ -158,11 +169,11 @@ export default function createCSPMiddleware(options?: CSPOptions) {
           // Do not use connect-src: because self + websockets does not work in
           // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
           connectSrc: ["*"],
+          ...(ctx.state.cspAllowFraming ? {} : { frameAncestors: ["'self'"] }),
         };
 
         // Helmet's default directives are not merged in, they include
-        // frame-ancestors and form-action restrictions that break embeds and
-        // OAuth redirects.
+        // form-action restrictions that break OAuth redirects.
         await helmet.contentSecurityPolicy({ useDefaults: false, directives })(
           ctx,
           asyncNoop
