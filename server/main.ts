@@ -1,3 +1,4 @@
+import "zod/compile";
 import http from "node:http";
 import https from "node:https";
 import type { AddressInfo, Socket } from "node:net";
