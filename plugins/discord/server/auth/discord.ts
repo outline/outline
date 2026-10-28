@@ -13,7 +13,7 @@ import { toError } from "@shared/utils/error";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";

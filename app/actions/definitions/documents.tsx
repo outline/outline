@@ -152,10 +152,11 @@ export const openDocument = createActionWithChildren({
       .filter((item) => !recentIds.has(item.id))
       .map((item) => {
         const document = stores.documents.get(item.id);
+        const path = item instanceof Document ? item.path : item.url;
         return createInternalLinkAction({
-          // Note: using url which includes the slug rather than id here to bust
+          // Note: using path which includes the slug rather than id here to bust
           // cache if the document is renamed
-          id: item.url,
+          id: path,
           name: item.title,
           description: document
             ? documentBreadcrumbText(document, t)
@@ -170,7 +171,7 @@ export const openDocument = createActionWithChildren({
             <DocumentIcon empty={document?.isEmpty} />
           ),
           section: DocumentSection,
-          to: item.url,
+          to: path,
         });
       });
   },
