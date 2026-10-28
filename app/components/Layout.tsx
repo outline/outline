@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import type { DefaultTheme } from "styled-components";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";

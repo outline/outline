@@ -74,6 +74,10 @@ export enum TeamFlag {
 
 const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
 
+const maxSubdomainLength = env.isCloudHosted
+  ? TeamValidation.maxSubdomainLength
+  : TeamValidation.maxSubdomainSelfHostedLength;
+
 @Scopes(() => ({
   withDomains: {
     include: [{ model: TeamDomain }],
@@ -113,14 +117,8 @@ class Team extends ParanoidModel<
   @Unique
   @Length({
     min: TeamValidation.minSubdomainLength,
-    max: env.isCloudHosted
-      ? TeamValidation.maxSubdomainLength
-      : TeamValidation.maxSubdomainSelfHostedLength,
-    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${
-      env.isCloudHosted
-        ? TeamValidation.maxSubdomainLength
-        : TeamValidation.maxSubdomainSelfHostedLength
-    } characters`,
+    max: maxSubdomainLength,
+    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${maxSubdomainLength} characters`,
   })
   @Is({
     args: [/^[a-z\d-]+$/, "i"],
@@ -626,7 +624,8 @@ class Team extends ParanoidModel<
   /**
    * Find a subdomain that is not yet in use, derived from the requested value.
    * A trailing top-level domain is removed and the remainder is slugified,
-   * a numeric suffix is appended until a free subdomain is found.
+   * a numeric suffix is appended until a free subdomain is found. The result
+   * is truncated to fit the maximum subdomain length.
    *
    * @param requested - The preferred subdomain or team name.
    * @param options - Additional find options to pass to the query.
@@ -647,7 +646,10 @@ class Team extends ParanoidModel<
         ? "team"
         : normalized;
 
-    let subdomain = base;
+    const withSuffix = (suffix: string) =>
+      `${base.slice(0, maxSubdomainLength - suffix.length).replace(/-+$/, "")}${suffix}`;
+
+    let subdomain = withSuffix("");
     let append = 0;
 
     for (;;) {
@@ -661,7 +663,7 @@ class Team extends ParanoidModel<
         return subdomain;
       }
 
-      subdomain = `${base}${++append}`;
+      subdomain = withSuffix(String(++append));
     }
   }
 

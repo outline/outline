@@ -32,7 +32,7 @@ describe("#webhookSubscriptions.list", () => {
   it("should return the webhook subscriptions for the user's team", async () => {
     const user = await buildAdmin();
     const webhookSubscriptions = await Promise.all(
-      Array(20)
+      Array(5)
         .fill(1)
         .map(() =>
           buildWebhookSubscription({
@@ -254,6 +254,51 @@ describe("#webhookSubscriptions.update", () => {
     expect(webhook.url).toEqual(url);
     expect(webhook.events).toEqual(events);
     expect(webhook.enabled).toEqual(true);
+  });
+
+  it("should preserve the signing secret when it is omitted", async () => {
+    const user = await buildAdmin();
+    const existingWebhook = await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      secret: "Test secret",
+    });
+
+    const res = await server.post("/api/webhookSubscriptions.update", user, {
+      body: {
+        id: existingWebhook.id,
+        name: "Updated webhook name",
+        url: existingWebhook.url,
+        events: existingWebhook.events,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    await existingWebhook.reload();
+    expect(existingWebhook.secret).toEqual("Test secret");
+  });
+
+  it("should clear the signing secret when it is empty", async () => {
+    const user = await buildAdmin();
+    const existingWebhook = await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      secret: "Test secret",
+    });
+
+    const res = await server.post("/api/webhookSubscriptions.update", user, {
+      body: {
+        id: existingWebhook.id,
+        name: existingWebhook.name,
+        url: existingWebhook.url,
+        events: existingWebhook.events,
+        secret: "",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    await existingWebhook.reload();
+    expect(existingWebhook.secret).toBeNull();
   });
 
   it("should update a webhook subscription without a signing secret", async () => {

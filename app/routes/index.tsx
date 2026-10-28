@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Switch, Redirect } from "react-router-dom";
+import AsyncEditor from "~/components/AsyncEditor";
 import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
@@ -15,6 +16,16 @@ const Shared = lazy(() => import("~/scenes/Shared"));
 const Login = lazy(() => import("~/scenes/Login"));
 const Logout = lazy(() => import("~/scenes/Logout"));
 const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
+
+/**
+ * Loads the chunks that a share page renders, so that the first render of the
+ * page does not suspend.
+ *
+ * @returns A promise that resolves when the chunks have loaded.
+ */
+export function preloadShared() {
+  return Promise.all([Shared.preload(), AsyncEditor.preload()]);
+}
 
 export default function Routes() {
   useAutoRefresh();

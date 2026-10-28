@@ -37,6 +37,7 @@ const scopes = [
 type GoogleProfile = Profile & {
   email: string;
   picture: string;
+  email_verified?: boolean;
   _json: {
     hd?: string;
     locale?: string;
@@ -140,8 +141,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           },
           user: {
             email: profile.email,
-            // Google only returns confirmed workspace email addresses.
-            emailVerified: true,
+            emailVerified: profile.email_verified === true,
             name: profile.displayName,
             language,
             avatarUrl,

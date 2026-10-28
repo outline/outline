@@ -13,6 +13,24 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#integrations.update", () => {
+  it("should preserve settings and events when they are omitted", async () => {
+    const admin = await buildAdmin();
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    const { settings, events } = integration;
+
+    const res = await server.post("/api/integrations.update", admin, {
+      body: { id: integration.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await integration.reload();
+    expect(integration.settings).toEqual(settings);
+    expect(integration.events).toEqual(events);
+  });
+
   it("should allow updating integration events", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
@@ -255,5 +273,52 @@ describe("#integrations.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].settings.url).toEqual("https://example.com");
+  });
+});
+
+describe("#integrations.info", () => {
+  const buildFigmaAccount = (owner: User) =>
+    Integration.create<Integration<IntegrationType.LinkedAccount>>({
+      userId: owner.id,
+      teamId: owner.teamId,
+      service: IntegrationService.Figma,
+      type: IntegrationType.LinkedAccount,
+      settings: {
+        figma: {
+          account: {
+            id: "123",
+            name: "owner",
+            email: "owner@example.com",
+            avatarUrl: "https://example.com/avatar.png",
+          },
+        },
+      },
+    });
+
+  it("should expose linked account settings to the owner", async () => {
+    const owner = await buildUser();
+    const integration = await buildFigmaAccount(owner);
+
+    const res = await server.post("/api/integrations.info", owner, {
+      body: { id: integration.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.settings.figma.account.email).toEqual("owner@example.com");
+  });
+
+  it("should not expose linked account settings to other users", async () => {
+    const owner = await buildUser();
+    const admin = await buildAdmin({ teamId: owner.teamId });
+    const integration = await buildFigmaAccount(owner);
+
+    const res = await server.post("/api/integrations.info", admin, {
+      body: { id: integration.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.settings).toBeUndefined();
   });
 });

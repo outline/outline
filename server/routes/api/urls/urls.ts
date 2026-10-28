@@ -56,13 +56,12 @@ router.post(
 
       if (shareId) {
         const actor = ctx.state.auth.user;
-        // teamId is only needed when the share identifier is a slug, not a UUID
-        let teamId: string | undefined = actor?.teamId;
-        if (!teamId && !isUUID(shareId)) {
-          const teamFromCtx = await getTeamFromContext(ctx, {
-            includeOAuthState: false,
-          });
-          teamId = teamFromCtx?.id;
+        // teamId is only passed for slugs, so shares of other teams can unfurl
+        let teamId: string | undefined;
+        if (!isUUID(shareId)) {
+          teamId =
+            actor?.teamId ??
+            (await getTeamFromContext(ctx, { includeOAuthState: false }))?.id;
         }
         const previewDocumentId = parseDocumentSlug(url);
         const { share, document } = await loadPublicShare({
@@ -194,7 +193,11 @@ router.post(
     // External resources
     // Use getDataOrSet which handles distributed locking to prevent thundering herd
     // when multiple clients request the same URL simultaneously
-    const cacheKey = RedisPrefixHelper.getUnfurlKey(actor.teamId, url);
+    const cacheKey = RedisPrefixHelper.getUnfurlKey(
+      actor.teamId,
+      actor.id,
+      url
+    );
     const defaultCacheExpiry = 3600;
 
     const unfurlResult = await CacheHelper.getDataOrSet<

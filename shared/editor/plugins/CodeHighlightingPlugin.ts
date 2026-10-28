@@ -2,7 +2,7 @@ import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import type refractorType from "refractor/core";
+import type { Refractor } from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
@@ -38,11 +38,14 @@ const languagePromises: Record<
   Promise<string | undefined> | undefined
 > = {};
 
-let refractor: typeof refractorType | undefined;
+/** A node in the tree returned by refractor. */
+type RefractorNode = ReturnType<Refractor["highlight"]>["children"][number];
+
+let refractor: Refractor | undefined;
 
 /** Lazily load refractor core. */
 async function getRefractor() {
-  refractor ??= (await import("refractor/core")).default;
+  refractor ??= (await import("refractor/core")).refractor;
   return refractor;
 }
 
@@ -151,7 +154,7 @@ function lineNumberDecorations({ node, pos }: CodeBlock): Decoration[] {
  * @returns the accumulated tokens and current offset.
  */
 function parseNodes(
-  nodes: refractorType.RefractorNode[],
+  nodes: RefractorNode[],
   classNames: string[] = [],
   state: { tokens: TokenRange[]; offset: number } = { tokens: [], offset: 0 }
 ) {
@@ -162,6 +165,9 @@ function parseNodes(
         [...classNames, ...(node.properties.className || [])],
         state
       );
+      continue;
+    }
+    if (node.type !== "text") {
       continue;
     }
 
@@ -262,7 +268,9 @@ export function CodeHighlighting({
       return;
     }
 
-    const { tokens } = parseNodes(refractor.highlight(node.textContent, lang));
+    const { tokens } = parseNodes(
+      refractor.highlight(node.textContent, lang).children
+    );
     tokenCache.set(node, tokens);
     return tokens;
   }

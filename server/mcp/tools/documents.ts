@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { PersonalCollectionId } from "@shared/constants";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { McpServer, CallToolResult } from "@modelcontextprotocol/server";
 import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
@@ -78,10 +77,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Archived documents are excluded unless includeArchived is set. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           query: optionalString().describe(
             "A search query to find documents by content or title. When omitted, returns recent documents."
           ),
@@ -109,14 +110,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_documents",
-        async (
-          { query, collectionId, includeArchived, offset, limit },
-          extra
-        ) => {
+        async ({ query, includeArchived, offset, limit, ...input }, extra) => {
           try {
             const user = getActorFromContext(extra);
             const effectiveOffset = offset ?? 0;
@@ -124,14 +122,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             let indexMap: Map<string, number> | undefined;
 
-            if (collectionId) {
-              const collection = await Collection.findByPk(collectionId, {
+            // The input may be a urlId, so the id of the loaded model is used.
+            let collectionId: string | undefined;
+
+            if (input.collectionId) {
+              const collection = await Collection.findByPk(input.collectionId, {
                 userId: user.id,
                 includeDocumentStructure: true,
               });
               authorize(user, "readDocument", collection);
+              collectionId = collection.id;
 
-              if (collection?.documentStructure) {
+              if (collection.documentStructure) {
                 indexMap = buildSiblingIndexMap(collection.documentStructure);
               }
             }
@@ -327,16 +329,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Returns the complete hierarchical tree of published documents in a collection, including nested sub-documents. Use this to enumerate every document in a collection or to understand parent/child relationships. Drafts and archived documents are not included.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           collectionId: z
             .string()
             .describe(
               "The ID of the collection whose document tree to return."
             ),
-        },
+        }),
       },
       withTracing(
         "list_collection_documents",
@@ -372,10 +376,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
         title: "Create document",
         description: `Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Use the collectionId "${PersonalCollectionId}" to place the document in the user's personal collection, which only they can see and which is created if it does not exist yet. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.`,
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+
+          // HTML imports download remote images and videos.
+          openWorldHint: true,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           title: optionalString().describe(
             "The title of the document. Defaults to the template's title when a templateId is provided."
           ),
@@ -421,7 +429,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen. Defaults to false. Do not set this to true for HTML input unless the user explicitly asks for a full-width document layout."
             ),
-        },
+        }),
       },
       withTracing("create_document", async (input, context) => {
         try {
@@ -429,10 +437,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const { collection } = await authorizeDocumentCreate(ctx, {
-            collectionId,
-            parentDocumentId,
-          });
+          const { collection, parentDocument } = await authorizeDocumentCreate(
+            ctx,
+            { collectionId, parentDocumentId }
+          );
 
           let template: Template | null | undefined;
           if (templateId) {
@@ -461,7 +469,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   userId: user.id,
                   publish: input.publish !== false,
                   collectionId: collection?.id,
-                  parentDocumentId,
+                  parentDocumentId: parentDocument?.id,
                   authType: ctx.state.auth.type,
                   ip: ctx.context.ip,
                 })
@@ -474,7 +482,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     text: input.text,
                     icon: input.icon,
                     color: input.color,
-                    parentDocumentId,
+                    parentDocumentId: parentDocument?.id,
                     publish: input.publish !== false,
                     collectionId: collection?.id,
                     template,
@@ -513,10 +521,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Moves a document to a different location or reorders it within its current parent. Provide a collectionId to move to the root of a collection, a parentDocumentId to nest under another document, and/or an index to control position among siblings.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to move."),
@@ -534,7 +544,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The zero-based position to insert the document among its siblings. Use this to reorder documents within the same collection and parent. Omit to place at the end."
             ),
-        },
+        }),
       },
       withTracing("move_document", async (input, context) => {
         try {
@@ -559,19 +569,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
               ? input.collectionId
               : await resolvePersonalCollectionId(ctx, input.collectionId);
 
-            if (input.parentDocumentId) {
-              if (input.parentDocumentId === input.id) {
-                throw ValidationError("Cannot nest a document inside itself");
-              }
+            // The inputs may be urlIds, so the ids of the loaded models are used.
+            let parentDocumentId: string | null = null;
 
+            if (input.parentDocumentId) {
               const parent = await Document.findByPk(input.parentDocumentId, {
                 userId: user.id,
                 rejectOnEmpty: true,
                 transaction,
               });
 
+              if (parent.id === document.id) {
+                throw ValidationError("Cannot nest a document inside itself");
+              }
+
               authorize(user, "update", parent);
               collectionId = parent.collectionId!;
+              parentDocumentId = parent.id;
 
               if (!parent.publishedAt) {
                 throw ValidationError("Cannot move document inside a draft");
@@ -587,12 +601,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 transaction,
               });
               authorize(user, "updateDocument", collection);
+              collectionId = collection.id;
             }
 
             await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
-              parentDocumentId: input.parentDocumentId ?? null,
+              parentDocumentId,
               index: input.index,
             });
 
@@ -625,10 +640,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           'Updates an existing document by its ID. Only the fields provided will be updated. IMPORTANT: When editing an existing document\'s content, always prefer editMode "patch" with findText and text — this surgically replaces only the matched section and preserves all rich formatting (highlights, comments, table widths, etc) in the rest of the document. Using "replace" will overwrite the entire document and lose any formatting that cannot be represented in markdown.',
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to update."),
@@ -677,7 +694,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
-        },
+        }),
       },
       withTracing("update_document", async (input, context) => {
         try {
@@ -703,7 +720,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             // The collection is only used when publishing a draft that has
             // none, so the personal collection is only created in that case.
-            const collectionId =
+            let collectionId =
               input.collectionId === PersonalCollectionId
                 ? input.publish && !document.collectionId
                   ? await resolvePersonalCollectionId(ctx, input.collectionId)
@@ -711,7 +728,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 : input.collectionId;
 
             if (input.publish) {
-              await authorizeDocumentPublish(ctx, document, collectionId);
+              // The input may be a urlId, so the id of the loaded model is used.
+              const collection = await authorizeDocumentPublish(
+                ctx,
+                document,
+                collectionId
+              );
+              collectionId = collection?.id;
             }
 
             const { revisionCount } = document;
@@ -791,10 +814,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Deletes a document by its ID. The document is moved to the trash and can be restored later. Set archive to true to archive the document instead of deleting it.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to delete."),
@@ -812,7 +837,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "A plain text reason for archiving or deleting the document. Omit to keep the existing reason, or use null or an empty string to clear it."
             ),
-        },
+        }),
       },
       withTracing(
         "delete_document",
@@ -861,17 +886,19 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           "Restores an archived or trashed document, making it active again. Optionally provide a collectionId to restore the document into a different collection; otherwise it returns to its original collection.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the document to restore."),
           collectionId: optionalString().describe(
             "The collection to restore the document into. Defaults to its original collection."
           ),
-        },
+        }),
       },
       withTracing("restore_document", async ({ id, collectionId }, context) => {
         try {
@@ -885,9 +912,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const document = await Document.findByPk(id, {
               userId: user.id,
               paranoid: false,
-              rejectOnEmpty: true,
               transaction,
             });
+            authorize(user, "read", document);
 
             if (!document.deletedAt && !document.archivedAt) {
               throw ValidationError("Document is not archived or trashed");

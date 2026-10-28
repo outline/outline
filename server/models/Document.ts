@@ -60,6 +60,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
@@ -560,7 +561,13 @@ class Document extends ArchivableModel<
     }
 
     await collection.updateDocument(model, { transaction });
-    model.collection = collection;
+
+    // Keep a loaded collection so that its membership data stays available.
+    if (model.collection?.id === collection.id) {
+      model.collection.documentStructure = collection.documentStructure;
+    } else {
+      model.collection = collection;
+    }
   }
 
   @AfterCreate
@@ -679,12 +686,7 @@ class Document extends ArchivableModel<
         await APIUpdateExtension.notifyUpdate(model.id, actorId);
       };
 
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+      void afterCommit(ctx.transaction, notify);
     }
   }
 
@@ -798,6 +800,7 @@ class Document extends ArchivableModel<
   ) {
     const document = await this.scope("withAllMemberships").findOne({
       where: { id: documentId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
@@ -1042,6 +1045,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           id,
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -1050,6 +1054,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           urlId: match[1],
+          template: false,
         },
         rejectOnEmpty: false,
       });

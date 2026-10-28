@@ -731,4 +731,40 @@ describe("#notifications.unsubscribe", () => {
     expect(res.status).toBe(302);
     expect(res.headers.get("location")).toContain("?notice=invalid-auth");
   });
+
+  it("should allow one-click unsubscribe with a form POST", async () => {
+    const user = await buildUser();
+    const token = NotificationSettingsHelper.unsubscribeToken(
+      user.id,
+      NotificationEventType.UpdateDocument
+    );
+
+    const res = await server.post(
+      `/api/notifications.unsubscribe?userId=${user.id}&token=${token}&eventType=documents.update`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toBe(200);
+
+    const events = (await user.reload()).notificationSettings;
+    expect(events["documents.update"]).toBe(false);
+  });
+
+  it("should not allow one-click unsubscribe with invalid token", async () => {
+    const user = await buildUser();
+
+    const res = await server.post(
+      `/api/notifications.unsubscribe?userId=${user.id}&token=invalid-token&eventType=documents.update`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toBe(401);
+
+    const events = (await user.reload()).notificationSettings;
+    expect(events["documents.update"]).toBeUndefined();
+  });
 });

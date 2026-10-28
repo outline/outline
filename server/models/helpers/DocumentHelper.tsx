@@ -1,5 +1,4 @@
 import { isEqual, omit } from "es-toolkit/compat";
-import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -10,10 +9,10 @@ import {
 } from "@shared/editor/lib/ChangesetHelper";
 import { HeadingSlugger } from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { LineDiffHelper } from "@shared/utils/LineDiffHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { parser, serializer, schema } from "@server/editor";
@@ -36,6 +35,9 @@ interface InlineSegment {
   isAtom?: boolean;
 }
 
+/** The default number of milliseconds a Markdown diff can run before it stops. */
+const MarkdownDiffTimeout = 500;
+
 /** Context for a patch operation, shared across surgical patch methods. */
 interface PatchContext {
   /** The full document markdown string. */
@@ -52,7 +54,7 @@ interface PatchContext {
   replacementText: string;
 }
 
-type HTMLOptions = {
+export type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
@@ -493,193 +495,32 @@ export class DocumentHelper {
   }
 
   /**
-   * Generates a compact HTML diff between documents or revisions, the
-   * diff is reduced up to show only the parts of the document that changed and
-   * the immediate context. Breaks in the diff are denoted with
-   * "div.diff-context-break" nodes.
+   * Generates a unified line diff between the Markdown of two documents or
+   * revisions. Lines are copied verbatim from the Markdown that patch edits
+   * search, so they can be used directly to find text in the document.
    *
-   * @param before The before document
-   * @param after The after document
-   * @param options Options passed to HTML generation
-   * @returns The diff as an HTML string, an empty string when there is no
-   * before document, or undefined when the documents contain no changes or
-   * the changeset was too expensive to compute.
+   * @param before The before document, or null to treat it as empty.
+   * @param after The after document.
+   * @param options.context The number of unchanged lines around each change.
+   * @param options.timeout The number of milliseconds the diff can run.
+   * @returns The diff hunks, an empty string when the Markdown is identical,
+   * or undefined when the diff did not complete in the time limit.
    */
-  static async toEmailDiff(
+  static toMarkdownDiff(
     before: Document | Revision | null,
-    after: Revision,
-    options?: HTMLOptions
-  ): Promise<string | undefined> {
-    if (!before) {
-      return "";
-    }
+    after: Document | Revision,
+    options: { context?: number; timeout?: number } = {}
+  ): string | undefined {
+    // Patch edits match against the raw serializer output, so it is not normalized.
+    const toText = (document: Document | Revision | null) =>
+      document
+        ? serializer.serialize(DocumentHelper.toProsemirror(document))
+        : "";
 
-    addTags({
-      beforeId: before.id,
-      documentId: after.documentId,
-      options,
+    return LineDiffHelper.unified(toText(before), toText(after), {
+      context: options.context ?? 2,
+      timeout: options.timeout ?? MarkdownDiffTimeout,
     });
-
-    const beforeJSON = await DocumentHelper.toJSON(before);
-    const afterJSON = await DocumentHelper.toJSON(after);
-    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
-
-    // Without a changeset no diff elements can render, so skip the expensive
-    // HTML generation and clipping entirely.
-    if (!changeset?.changes.length) {
-      return undefined;
-    }
-
-    const html = await DocumentHelper.toHTML(after, {
-      ...options,
-      changes: changeset.changes,
-    });
-    // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
-    const { JSDOM } = await import("jsdom");
-    const dom = new JSDOM(html);
-    try {
-      return DocumentHelper.clipEmailDiff(dom.window.document);
-    } finally {
-      try {
-        dom.window.close();
-      } catch (_err) {
-        // Best effort, closing the window releases its timers and resources.
-      }
-    }
-  }
-
-  /**
-   * Clips a rendered diff document down to only the changed nodes and their
-   * surrounding context, returning the resulting HTML or undefined when the
-   * document contains no diff elements.
-   *
-   * @param doc The rendered diff document to clip.
-   * @returns The clipped HTML, or undefined when there is nothing to show.
-   */
-  private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
-    const containsDiffElement = (node: Element | null) => {
-      if (!node) {
-        return false;
-      }
-
-      const diffClasses = [
-        EditorStyleHelper.diffInsertion,
-        EditorStyleHelper.diffDeletion,
-        EditorStyleHelper.diffModification,
-        EditorStyleHelper.diffNodeInsertion,
-        EditorStyleHelper.diffNodeDeletion,
-        EditorStyleHelper.diffNodeModification,
-      ];
-
-      return diffClasses.some(
-        (className) =>
-          node.classList.contains(className) ||
-          node.querySelector(`.${className}`)
-      );
-    };
-
-    // The diffing lib isn't able to catch all changes currently, e.g. changing
-    // the type of a mark will result in an empty diff.
-    // see: https://github.com/tnwinc/htmldiff.js/issues/10
-    if (!containsDiffElement(doc.querySelector("#content"))) {
-      return;
-    }
-
-    // We use querySelectorAll to get a static NodeList as we'll be modifying
-    // it as we iterate, rather than getting content.childNodes.
-    const contents = doc.querySelectorAll("#content > *");
-    let previousNodeRemoved = false;
-    let previousDiffClipped = false;
-
-    const br = doc.createElement("div");
-    br.innerHTML = "…";
-    br.className = "diff-context-break";
-
-    for (const childNode of contents) {
-      // If the block node contains a diff tag then we want to keep it
-      if (containsDiffElement(childNode as Element)) {
-        if (previousNodeRemoved && previousDiffClipped) {
-          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
-        }
-        previousNodeRemoved = false;
-        previousDiffClipped = true;
-
-        // Special case for largetables, as this block can get very large we
-        // want to clip it to only the changed rows and surrounding context.
-        if (childNode.classList.contains(EditorStyleHelper.table)) {
-          const rows = childNode.querySelectorAll("tr");
-          if (rows.length < 3) {
-            continue;
-          }
-
-          let previousRowRemoved = false;
-          let previousRowDiffClipped = false;
-
-          for (const row of rows) {
-            if (containsDiffElement(row)) {
-              const cells = row.querySelectorAll("td");
-              if (previousRowRemoved && previousRowDiffClipped) {
-                const tr = doc.createElement("tr");
-                const br = doc.createElement("td");
-                br.colSpan = cells.length;
-                br.innerHTML = "…";
-                br.className = "diff-context-break";
-                tr.appendChild(br);
-                childNode.parentElement?.insertBefore(tr, childNode);
-              }
-              previousRowRemoved = false;
-              previousRowDiffClipped = true;
-              continue;
-            }
-
-            if (containsDiffElement(row.nextElementSibling)) {
-              previousRowRemoved = false;
-              continue;
-            }
-
-            if (containsDiffElement(row.previousElementSibling)) {
-              previousRowRemoved = false;
-              continue;
-            }
-
-            previousRowRemoved = true;
-            row.remove();
-          }
-        }
-
-        continue;
-      }
-
-      // If the block node does not contain a diff tag and the previous
-      // block node did not contain a diff tag then remove the previous.
-      if (
-        childNode.nodeName === "P" &&
-        childNode.textContent &&
-        childNode.nextElementSibling?.nodeName === "P" &&
-        containsDiffElement(childNode.nextElementSibling)
-      ) {
-        if (previousDiffClipped) {
-          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
-        }
-        previousNodeRemoved = false;
-        continue;
-      }
-      if (
-        childNode.nodeName === "P" &&
-        childNode.textContent &&
-        childNode.previousElementSibling?.nodeName === "P" &&
-        containsDiffElement(childNode.previousElementSibling)
-      ) {
-        previousNodeRemoved = false;
-        continue;
-      }
-      previousNodeRemoved = true;
-      childNode.remove();
-    }
-
-    const head = doc.querySelector("head");
-    const body = doc.querySelector("body");
-    return `${head?.innerHTML} ${body?.innerHTML}`;
   }
 
   /**
@@ -691,14 +532,19 @@ export class DocumentHelper {
    * @param text The markdown to apply
    * @param editMode The edit mode to use: "replace" (default), "append", "prepend", or "patch"
    * @param findText The markdown text to find when using "patch" edit mode
+   * @param actorId the authenticated writer to attribute new mentions to.
    * @returns The document
    */
   static applyMarkdownToDocument(
     document: Document,
     text: string,
     editMode: TextEditMode = TextEditMode.Replace,
-    findText?: string
+    findText?: string,
+    actorId?: string
   ) {
+    const previousDoc = actorId
+      ? DocumentHelper.toProsemirror(document)
+      : undefined;
     let doc: Node;
 
     if (editMode === TextEditMode.Patch) {
@@ -821,6 +667,10 @@ export class DocumentHelper {
       }
     } else {
       doc = parser.parse(text);
+    }
+
+    if (actorId) {
+      doc = ProsemirrorHelper.assignMentionActors(doc, actorId, previousDoc);
     }
 
     document.content = doc.toJSON();
@@ -1418,6 +1268,36 @@ export class DocumentHelper {
     const second = after.title + this.toPlainText(after);
     const distance = ukkonen(first, second, threshold + 1);
     return distance > threshold;
+  }
+
+  /**
+   * Compares the content of two documents or revisions.
+   *
+   * @param first the first document or revision to compare.
+   * @param second the second document or revision to compare.
+   * @param options.ignoreMarks mark types to ignore in the comparison.
+   * @returns true if the content is the same.
+   */
+  public static isContentEqual(
+    first: Document | Revision,
+    second: Document | Revision,
+    options?: { ignoreMarks?: string[] }
+  ) {
+    if (isEqual(first.content, second.content)) {
+      return true;
+    }
+
+    const ignoreMarks = options?.ignoreMarks;
+    if (!ignoreMarks?.length) {
+      return false;
+    }
+
+    const toNode = (model: Document | Revision) =>
+      Node.fromJSON(
+        schema,
+        ProsemirrorHelper.removeMarks(this.toProsemirror(model), ignoreMarks)
+      );
+    return toNode(first).eq(toNode(second));
   }
 
   /**

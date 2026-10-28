@@ -21,7 +21,7 @@ type Handler = {
  * Coordinates graceful shutdown of the process by executing registered
  * handlers in order.
  */
-export default class ShutdownHelper {
+export class ShutdownHelper {
   /**
    * The amount of time to wait for connections to close before forcefully
    * closing them. This allows for regular HTTP requests to complete but

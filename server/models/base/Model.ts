@@ -1,4 +1,5 @@
 import isEqual from "fast-deep-equal";
+import { isUndefined, omitBy } from "es-toolkit";
 import { isArray, isObject, pick } from "es-toolkit/compat";
 import type {
   Attributes,
@@ -25,6 +26,7 @@ import Logger from "@server/logging/Logger";
 import type { Replace, APIContext } from "@server/types";
 import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 
 export type EventOverrideOptions = {
   /** Override the default event name. */
@@ -82,7 +84,7 @@ class Model<
   }
 
   /**
-   * This is the same as calling `set` and then calling `save`.
+   * This is the same as calling `fill` and then calling `save`.
    */
   public updateWithCtx(
     ctx: APIContext,
@@ -96,8 +98,19 @@ class Model<
         publish: true,
       },
     };
-    this.set(keys);
+    this.fill(keys);
     return this.save(hookContext);
+  }
+
+  /**
+   * Sets the given attributes on the instance, skipping any with an undefined
+   * value. Use `null` to clear an attribute.
+   *
+   * @param keys the attributes to set.
+   * @returns the instance.
+   */
+  public fill(keys: Partial<TModelAttributes>) {
+    return this.set(omitBy(keys, isUndefined));
   }
 
   /**
@@ -386,15 +399,12 @@ class Model<
       return models.event.create(attrs, {
         transaction: context.transaction,
       });
-    } else if (context.transaction) {
-      (context.transaction.parent || context.transaction).afterCommit(() =>
-        // @ts-expect-error Event class
-        models.event.schedule(attrs)
-      );
-    } else {
-      // @ts-expect-error Event class
-      return models.event.schedule(attrs);
     }
+
+    return afterCommit(context.transaction, () =>
+      // @ts-expect-error Event class
+      models.event.schedule(attrs)
+    );
   }
 
   /**

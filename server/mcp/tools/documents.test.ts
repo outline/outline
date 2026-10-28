@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import { DeprecationValidation } from "@shared/validations";
 import {
   CollectionPermission,
@@ -24,6 +25,7 @@ import {
   UserMembership,
 } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { getTestServer } from "@server/test/support";
 import {
   buildOAuthUser,
@@ -126,6 +128,54 @@ describe("list_documents", () => {
           d.document.collectionId === collection1.id
       )
     ).toBe(true);
+  });
+
+  it("filters by a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      collectionId: collection.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toEqual([document.id]);
+  });
+
+  it("returns an exact match in a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: document.id,
+      collectionId: collection.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    expect(data[0].document.id).toEqual(document.id);
   });
 
   it("returns documents shared directly with the user", async () => {
@@ -391,6 +441,28 @@ describe("list_documents", () => {
 });
 
 describe("create_document", () => {
+  it("attributes Markdown mentions to the authenticated user", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const mentioned = await buildUser({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Mentions",
+      collectionId: collection.id,
+      text: `@[${mentioned.name}](mention://user/${mentioned.id})`,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(DocumentHelper.parseMentions(document)).toEqual([
+      expect.objectContaining({ modelId: mentioned.id, actorId: user.id }),
+    ]);
+  });
+
   it("creates in the personal collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     user.team.setPreference(TeamPreference.PersonalDocs, true);
@@ -494,6 +566,37 @@ describe("create_document", () => {
     const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
     expect(document.parentDocumentId).toEqual(parent.id);
   });
+
+  it.each(["markdown", "html"] as const)(
+    "creates %s nested under a parent document referenced by urlId",
+    async (format) => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const parent = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "create_document", {
+        title: "Child Document",
+        text: format === "html" ? "<p>Nested content</p>" : "Nested content",
+        format,
+        parentDocumentId: parent.urlId,
+      });
+
+      expect(res?.result?.isError).toBeUndefined();
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+      const document = await Document.findByPk(data.id, {
+        rejectOnEmpty: true,
+      });
+      expect(document.parentDocumentId).toEqual(parent.id);
+      expect(document.collectionId).toEqual(collection.id);
+    }
+  );
 
   it("creates from a template", async () => {
     const { user, accessToken } = await buildOAuthUser();
@@ -631,6 +734,26 @@ describe("create_document", () => {
 });
 
 describe("update_document", () => {
+  it("attributes Markdown mentions to the authenticated editor", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const author = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: author.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: `@[Author](mention://user/${author.id})`,
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    await document.reload();
+    expect(DocumentHelper.parseMentions(document)).toEqual([
+      expect.objectContaining({ modelId: author.id, actorId: user.id }),
+    ]);
+  });
+
   it("does not create the personal collection when it is not used", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -676,6 +799,30 @@ describe("update_document", () => {
     });
     await document.reload();
     expect(document.collectionId).toEqual(personal.id);
+    expect(document.publishedAt).not.toBeNull();
+  });
+
+  it("publishes a draft to a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      publish: true,
+      collectionId: collection.urlId,
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection.id);
     expect(document.publishedAt).not.toBeNull();
   });
 
@@ -954,6 +1101,61 @@ describe("move_document", () => {
     expect(child.parentDocumentId).toEqual(parent.id);
   });
 
+  it("moves under a parent document referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: child.id,
+      parentDocumentId: parent.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+
+    await child.reload();
+    expect(child.parentDocumentId).toEqual(parent.id);
+  });
+
+  it("moves to a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection1 = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const collection2 = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection1.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      collectionId: collection2.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection2.id);
+  });
+
   it("fails without collectionId or parentDocumentId", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -988,6 +1190,26 @@ describe("move_document", () => {
     const res = await callMcpTool(server, accessToken, "move_document", {
       id: document.id,
       parentDocumentId: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("fails when nesting a document inside itself by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      parentDocumentId: document.urlId,
     });
 
     expect(res?.result?.isError).toBe(true);
@@ -1073,6 +1295,39 @@ describe("restore_document", () => {
     expect(reloaded?.collectionId).toEqual(destination.id);
   });
 
+  it("fails for a viewer with read_write membership", async () => {
+    const { user } = await buildOAuthUser();
+    const viewer = await buildViewer({ teamId: user.teamId });
+    const { accessToken } = await buildOAuthAuthentication({
+      user: viewer,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+    await UserMembership.create({
+      userId: viewer.id,
+      documentId: document.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken!, "restore_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).not.toBeNull();
+  });
+
   it("fails when the document is not archived or trashed", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
@@ -1090,6 +1345,24 @@ describe("restore_document", () => {
     });
 
     expect(res?.result?.isError).toBe(true);
+  });
+
+  it("returns the same error for a document in another team", async () => {
+    const { accessToken } = await buildOAuthUser();
+    const document = await buildDocument({ archivedAt: new Date() });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+    const unknown = await callMcpTool(server, accessToken, "restore_document", {
+      id: faker.string.uuid(),
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content).toEqual(unknown?.result?.content);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).not.toBeNull();
   });
 });
 

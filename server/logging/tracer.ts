@@ -1,4 +1,5 @@
 import cluster from "node:cluster";
+import type { IncomingMessage } from "node:http";
 import type { Span, Tracer } from "dd-trace";
 import env from "@server/env";
 
@@ -60,10 +61,64 @@ const allowedQueryParameters = [
 /** Matches the value of each query string parameter that is not allowed. */
 export const queryStringObfuscation = `(?<=(?:^|&)(?!(?:${allowedQueryParameters.join("|")})=)[^=&]+=)[^&]+`;
 
+/**
+ * Replaces the host of a traced URL with the first X-Forwarded-Host value, so
+ * that the span shows the host the client requested.
+ *
+ * @param url the traced URL.
+ * @param forwardedHost the value of the X-Forwarded-Host header.
+ * @returns the URL with the forwarded host, or the URL unchanged.
+ */
+export function applyForwardedHost(
+  url: string,
+  forwardedHost: string | string[] | undefined
+): string {
+  const value = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+  const host = value?.split(",")[0].trim();
+
+  if (!host || !/^[a-z0-9.\-:[\]]+$/i.test(host)) {
+    return url;
+  }
+
+  let authority: string;
+  try {
+    authority = new URL(`http://${host}`).host;
+  } catch {
+    return url;
+  }
+
+  return url.replace(/^([a-z]+:\/\/)[^/?#]*/i, `$1${authority}`);
+}
+
+interface PrivateSpanContext {
+  getTag(key: string): unknown;
+  setTag(key: string, value: unknown): void;
+}
+
+/**
+ * Rewrites the traced URL to use X-Forwarded-Host when Koa trusts proxy
+ * headers, as dd-trace always reads the Host header.
+ */
+function handleRequestFinish(span?: Span, req?: IncomingMessage) {
+  if (!span || !req) {
+    return;
+  }
+
+  const context = span.context() as unknown as PrivateSpanContext;
+  const url = context.getTag("http.url");
+
+  if (typeof url === "string") {
+    context.setTag(
+      "http.url",
+      applyForwardedHost(url, req.headers["x-forwarded-host"])
+    );
+  }
+}
+
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer. This
 // must happen before any instrumented module is imported.
-// Note: the tracer is only loaded in worker processes. The throng master
+// Note: the tracer is only loaded in worker processes. The cluster primary
 // supervises forked workers and never serves traffic.
 if (env.DD_API_KEY && cluster.isWorker) {
   // oxlint-disable-next-line typescript/no-require-imports -- kept lazy so dd-trace stays off the startup path
@@ -79,7 +134,14 @@ if (env.DD_API_KEY && cluster.isWorker) {
 
   // Disable per-middleware spans so that non-reportable errors are not captured
   // This is also generally excessive noise
-  tracer.use("koa", { middleware: false, queryStringObfuscation });
+  tracer.use("koa", {
+    middleware: false,
+    queryStringObfuscation,
+    hooks:
+      env.isProduction && env.PROXY_HEADERS_TRUSTED
+        ? { request: handleRequestFinish }
+        : undefined,
+  });
   tracer.use("http", { server: { queryStringObfuscation } });
 } else {
   tracer = {

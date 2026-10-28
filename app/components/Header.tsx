@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import styled, { css } from "styled-components";
 import type { DefaultTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT, MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { depths, hover, s } from "@shared/styles";
@@ -168,13 +168,16 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
 /** Height of the fade at the bottom of the mobile header background. */
 const HeaderFadeHeight = 64;
 
-/** Eased mask stops for the header fade, so it has no visible start or end. */
-const headerFadeStops = [1, 0.85, 0.5, 0.15, 0]
-  .map(
-    (opacity, index, stops) =>
-      `rgb(0 0 0 / ${opacity}) calc(100% - ${HeaderFadeHeight * (1 - index / (stops.length - 1))}px)`
-  )
-  .join(", ");
+/** Eased mask stops for a fade of the given height, so it has no visible start or end. */
+const fadeStops = (height: number) =>
+  [1, 0.85, 0.5, 0.15, 0]
+    .map(
+      (opacity, index, stops) =>
+        `rgb(0 0 0 / ${opacity}) calc(100% - ${height * (1 - index / (stops.length - 1))}px)`
+    )
+    .join(", ");
+
+const headerFadeStops = fadeStops(HeaderFadeHeight);
 
 /** Raised capsule that holds header buttons on mobile, like an iOS toolbar. */
 const mobilePill = css`
@@ -241,7 +244,8 @@ const Actions = styled(Flex)`
     }
 
     && [data-variant="primary"] {
-      color: ${s("accent")};
+      color: ${(props) =>
+        props.theme.isDark ? props.theme.text : props.theme.accent};
     }
 
     && [data-variant="primary"]:disabled {
@@ -342,12 +346,22 @@ const Wrapper = styled(Flex)<WrapperProps>`
         mask-image: linear-gradient(to bottom, ${headerFadeStops});
       }
 
-      /* A stuck tab bar continues the header, so the header is solid above it. */
-      body:has([data-sticky-tabs][data-stuck]) &::before {
+      /* A stuck tab bar or table header continues the header, so the header is solid above it. */
+      body:has([data-stuck]) &::before {
         inset: 0;
         background: ${props.theme.background};
         backdrop-filter: none;
         mask-image: none;
+      }
+
+      /* iOS blurs the top of an installed web app unless the sticky header has a solid background. */
+      @media (display-mode: standalone) {
+        background: ${props.theme.background};
+
+        &::before {
+          background: ${props.theme.background};
+          mask-image: linear-gradient(to bottom, ${fadeStops(HeaderFadeHeight / 2)});
+        }
       }
       `}
   `};

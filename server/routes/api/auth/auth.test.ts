@@ -48,6 +48,13 @@ describe("#auth.info", () => {
     expect(availableTeamIds).toContain(team.id);
     expect(availableTeamIds).toContain(team2.id);
     expect(availableTeamIds).toContain(team3.id);
+
+    const isSignedIn = (id: string) =>
+      body.data.availableTeams.find((t: { id: string }) => t.id === id)
+        .isSignedIn;
+    expect(isSignedIn(team.id)).toBe(true);
+    expect(isSignedIn(team2.id)).toBe(false);
+    expect(isSignedIn(team3.id)).toBe(true);
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
     expect(body.data.team.allowedDomains).toEqual([]);
@@ -275,6 +282,8 @@ describe("#auth.config", () => {
     expect(body.data.providers[1].name).toBe("Passkeys");
   });
 
+  // Self-hosted auth.config reads the newest team, which other test files create in parallel.
+  // oxlint-disable-next-line vitest/no-disabled-tests
   describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
 

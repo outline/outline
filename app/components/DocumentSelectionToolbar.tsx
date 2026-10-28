@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import {
   archiveDocument,
   deleteDocument,
+  moveDocument,
   pinDocumentToCollection,
   restoreDocument,
   starDocument,
@@ -25,6 +26,7 @@ const toolbarActions: Action[] = [
   unstarDocument,
   pinDocumentToCollection,
   unpinDocument,
+  moveDocument,
   archiveDocument,
   unpublishDocument,
   restoreDocument,

@@ -62,7 +62,9 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: integrations.map(presentIntegration),
+      data: integrations.map((integration) =>
+        presentIntegration(ctx, integration)
+      ),
       policies: presentPolicies(user, integrations),
     };
   }
@@ -89,7 +91,7 @@ router.post(
     });
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(ctx, integration),
       policies: presentPolicies(user, [integration]),
     };
   }
@@ -109,7 +111,7 @@ router.post(
     authorize(user, "read", integration);
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(ctx, integration),
       policies: presentPolicies(user, [integration]),
     };
   }
@@ -131,18 +133,20 @@ router.post(
     });
     authorize(user, "update", integration);
 
-    if (integration.type === IntegrationType.Post) {
+    if (events !== undefined && integration.type === IntegrationType.Post) {
       integration.events = events.filter((event: string) =>
         ["documents.update", "documents.publish"].includes(event)
       );
     }
 
-    integration.settings = settings;
+    if (settings !== undefined) {
+      integration.settings = settings;
+    }
 
     await integration.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(ctx, integration),
       policies: presentPolicies(user, [integration]),
     };
   }

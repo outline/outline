@@ -9,12 +9,13 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
+import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { RequestHelper } from "@server/utils/RequestHelper";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
 import env from "../env";
-import { GitHub } from "../github";
+import { GitHub, InstallationAccess } from "../github";
 import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import * as T from "./schema";
 
@@ -61,6 +62,7 @@ router.get(
     }
 
     verifyOAuthStateNonce(ctx, GitHubOAuthNonceCookie, parsedState.nonce);
+    authorize(user, "createIntegration", user.team);
 
     const client = await GitHub.authenticateAsUser(code!, state);
     const installationsByUser = await client.requestAppInstallations();
@@ -71,6 +73,11 @@ router.get(
 
     if (!installation) {
       return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
+    }
+
+    const access = await GitHub.canManageInstallation(client, installation);
+    if (access !== InstallationAccess.Allowed) {
+      return ctx.redirect(GitHubUtils.errorUrl(access));
     }
 
     const scopes = Object.entries(installation.permissions).map(

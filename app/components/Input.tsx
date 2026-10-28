@@ -2,7 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";

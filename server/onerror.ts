@@ -8,6 +8,7 @@ import env from "@server/env";
 import {
   ClientClosedRequestError,
   InternalError,
+  InvalidRequestError,
   RequestTimeoutError,
 } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
@@ -44,6 +45,8 @@ export default function onerror(app: Koa) {
       err = ClientClosedRequestError();
     } else if (isQueryCanceledError(err)) {
       err = RequestTimeoutError();
+    } else if (isDecompressionError(err)) {
+      err = InvalidRequestError("Request body could not be decompressed");
     }
 
     // Push only errors explicitly marked for Sentry reporting.
@@ -112,6 +115,20 @@ export default function onerror(app: Koa) {
   };
 
   return app;
+}
+
+/**
+ * Checks if an error was raised by zlib for malformed or truncated input.
+ *
+ * @param err the error to check.
+ * @returns true if the compressed data is invalid.
+ */
+function isDecompressionError(err: Error & { code?: unknown }) {
+  return (
+    err.code === "Z_DATA_ERROR" ||
+    err.code === "Z_BUF_ERROR" ||
+    (typeof err.code === "string" && err.code.startsWith("ERR__ERROR_FORMAT_"))
+  );
 }
 
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any

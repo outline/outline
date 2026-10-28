@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { IconTitleWrapper } from "@shared/components/Icon";
 
 const Heading = styled.h1<{ as?: string; centered?: boolean }>`

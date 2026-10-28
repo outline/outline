@@ -4,10 +4,10 @@ import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Prompt, matchPath, useHistory, useLocation } from "react-router-dom";
+import { Prompt, matchPath, useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
@@ -27,6 +27,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import useEventListener from "~/hooks/useEventListener";
+import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
@@ -53,6 +54,7 @@ type LocationState = {
   title?: string;
   restore?: boolean;
   revisionId?: string;
+  sidebarContext?: SidebarContextType;
 };
 
 interface Props {
@@ -94,8 +96,7 @@ function DocumentScene({
   const documentContext = useDocumentContext();
   const isMobile = useMobile();
   const { t } = useTranslation();
-  const history = useHistory();
-  const location = useLocation<LocationState>();
+  const history = useHistory<LocationState>();
   const sidebarContext = useLocationSidebarContext();
   const { team, user } = auth;
 
@@ -117,8 +118,8 @@ function DocumentScene({
   } = useDocumentSave({ document, editorRef, readOnly });
 
   const onSynced = useCallback(async () => {
-    const restore = location.state?.restore;
-    const revisionId = location.state?.revisionId;
+    const restore = history.location.state?.restore;
+    const revisionId = history.location.state?.revisionId;
     const editor = editorRef.current;
 
     if (!editor) {
@@ -126,7 +127,7 @@ function DocumentScene({
     }
 
     // Highlight search term when navigating from search results
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(history.location.search);
     const searchTerm = params.get("q");
     if (searchTerm) {
       editor.commands.find({ text: searchTerm });
@@ -137,7 +138,7 @@ function DocumentScene({
     }
 
     history.replace(document.url, {
-      ...location.state,
+      ...history.location.state,
       restore: undefined,
       revisionId: undefined,
     });
@@ -157,7 +158,7 @@ function DocumentScene({
       );
       toast.success(t("Document restored"));
     }
-  }, [location, replaceSelection, t, history, document.url]);
+  }, [replaceSelection, t, history, document.url]);
 
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
@@ -192,7 +193,7 @@ function DocumentScene({
       if (abilities.move) {
         dialogs.openModal({
           title: t("Move document"),
-          content: <DocumentMove document={document} />,
+          content: <DocumentMove documents={[document]} />,
         });
       }
     },
@@ -258,7 +259,7 @@ function DocumentScene({
       }
       ev.preventDefault();
 
-      if (location.pathname.endsWith("history")) {
+      if (history.location.pathname.endsWith("history")) {
         history.push({
           pathname: document.path,
           state: { sidebarContext },
@@ -270,7 +271,7 @@ function DocumentScene({
         });
       }
     },
-    [readOnly, location.pathname, history, document, sidebarContext]
+    [readOnly, history, document, sidebarContext]
   );
 
   const onPublish = useCallback(
@@ -394,13 +395,7 @@ function DocumentScene({
         }}
         handler={onPublish}
       />
-      <Background
-        column
-        auto
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        data-drop-area
-      >
+      <Background column auto onDragOver={handleDragOver} onDrop={handleDrop}>
         <PageTitle title={pageTitle} favicon={favicon} />
         {(isUploading || isSaving) && <LoadingIndicator />}
         <Container column auto>

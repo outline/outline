@@ -24,6 +24,12 @@ const schema = new Schema({
         marks: { default: undefined },
       },
     },
+    video: {
+      group: "block",
+      atom: true,
+      attrs: { title: { default: null } },
+      leafText: (node) => node.attrs.title,
+    },
     text: { group: "inline" },
   },
 });
@@ -307,7 +313,7 @@ describe("ProsemirrorHelper", () => {
       };
 
       const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
-      expect(result.content![0].content![0].content![0].marks).toEqual([]);
+      expect(result.content![0].content![0].content![0].marks).toBeUndefined();
     });
 
     it("should remove marks from node attrs.marks", () => {
@@ -400,6 +406,32 @@ describe("ProsemirrorHelper", () => {
 
       const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
       expect(result.content![0].content![0].marks).toBeUndefined();
+    });
+  });
+
+  describe("trim", () => {
+    it("removes empty paragraphs from the start and end", () => {
+      const result = ProsemirrorHelper.trim(
+        doc(
+          paragraph(),
+          paragraph({ type: "text", text: "Hello" }),
+          paragraph()
+        )
+      );
+
+      expect(result.childCount).toEqual(1);
+      expect(result.textContent).toEqual("Hello");
+    });
+
+    it("keeps a boundary block containing an untitled video", () => {
+      const result = ProsemirrorHelper.trim(
+        doc(
+          paragraph({ type: "text", text: "Hello" }),
+          table({ type: "video" })
+        )
+      );
+
+      expect(result.childCount).toEqual(2);
     });
   });
 
