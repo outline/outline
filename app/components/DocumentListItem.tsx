@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { Link } from "react-router-dom";
-import { CheckmarkIcon, DocumentIcon } from "outline-icons";
+import { CheckmarkIcon } from "outline-icons";
 import styled, { css, useTheme } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
@@ -32,6 +32,7 @@ import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
 import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 type Props = {
   document: Document;
@@ -204,7 +205,7 @@ function DocumentListItem(props: Props) {
               />
             ) : (
               <DocumentIcon
-                outline={document.isEmpty}
+                empty={document.isEmpty}
                 color={theme.textSecondary}
               />
             )}

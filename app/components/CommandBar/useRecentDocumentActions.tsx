@@ -1,4 +1,3 @@
-import { DocumentIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { createInternalLinkAction } from "~/actions";
@@ -8,6 +7,7 @@ import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
 import type Document from "~/models/Document";
 import { documentPath } from "~/utils/routeHelpers";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 /** The number of documents listed under "Recently viewed" in the command bar. */
 export const recentDocumentCount = 6;
@@ -55,7 +55,7 @@ const useRecentDocumentActions = (count = recentDocumentCount) => {
               color={item.color ?? undefined}
             />
           ) : (
-            <DocumentIcon outline={item.isEmpty} />
+            <DocumentIcon empty={item.isEmpty} />
           ),
           to: documentPath(item),
         })

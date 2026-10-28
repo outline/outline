@@ -7,7 +7,6 @@ import {
   StarredIcon,
   PrintIcon,
   UnstarredIcon,
-  DocumentIcon,
   NewDocumentIcon,
   ShapesIcon,
   ImportIcon,
@@ -117,6 +116,7 @@ import env from "~/env";
 import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 /** Lazy insights dialog, exported so that triggers can preload it. */
 export const Insights = lazyWithRetry(
@@ -167,7 +167,7 @@ export const openDocument = createActionWithChildren({
               color={item.color ?? undefined}
             />
           ) : (
-            <DocumentIcon outline={document?.isEmpty} />
+            <DocumentIcon empty={document?.isEmpty} />
           ),
           section: DocumentSection,
           to: item.url,

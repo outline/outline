@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon } from "outline-icons";
+import { CloseIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -14,6 +14,7 @@ import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
 import { DocumentContextMenu } from "~/menus/DocumentContextMenu";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 type Props = {
   /** The document to display */
@@ -68,7 +69,7 @@ export const DocumentChip = observer(function DocumentChip_({
             initial={document.initial}
           />
         ) : (
-          <DocumentIcon outline={document.isEmpty} />
+          <DocumentIcon empty={document.isEmpty} />
         )}
         <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
         {pin && canUnpin && (

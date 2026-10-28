@@ -1,8 +1,9 @@
-import { DocumentIcon, QuestionMarkIcon } from "outline-icons";
+import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import Icon from "@shared/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 interface SidebarItem {
   documentId?: string;
@@ -46,7 +47,7 @@ export function useSidebarLabelAndIcon({
             color={color ?? undefined}
           />
         ) : groupId ? null : (
-          <DocumentIcon outline={isEmpty} />
+          <DocumentIcon empty={isEmpty} />
         ),
       };
     }
