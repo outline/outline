@@ -32,7 +32,7 @@ export function useSidebarLabelAndIcon({
   const documentIcon = document?.icon;
   const initial = document?.initial;
   const color = document?.color;
-  const isDraft = document?.isDraft;
+  const isEmpty = document?.isEmpty;
   const collectionName = collection?.displayName;
 
   return React.useMemo(() => {
@@ -46,7 +46,7 @@ export function useSidebarLabelAndIcon({
             color={color ?? undefined}
           />
         ) : groupId ? null : (
-          <DocumentIcon outline={isDraft} />
+          <DocumentIcon outline={isEmpty} />
         ),
       };
     }
@@ -68,7 +68,7 @@ export function useSidebarLabelAndIcon({
     documentIcon,
     initial,
     color,
-    isDraft,
+    isEmpty,
     groupId,
     collection,
     collectionName,

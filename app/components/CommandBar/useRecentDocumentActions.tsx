@@ -55,7 +55,7 @@ const useRecentDocumentActions = (count = recentDocumentCount) => {
               color={item.color ?? undefined}
             />
           ) : (
-            <DocumentIcon outline={item.isDraft} />
+            <DocumentIcon outline={item.isEmpty} />
           ),
           to: documentPath(item),
         })

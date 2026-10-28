@@ -51,7 +51,7 @@ export const DialogTitle = observer(function DialogTitle_({
       color={model.color ?? undefined}
     />
   ) : (
-    <DocumentIcon outline={model.isDraft} />
+    <DocumentIcon outline={model.isEmpty} />
   );
 
   return (

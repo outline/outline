@@ -172,6 +172,7 @@ const DocumentLink = observer(function DocumentLink({
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
   const initial = document?.initial || node.title.charAt(0).toUpperCase();
+  const isEmpty = document?.isEmpty;
 
   // Rows at the top level of a section show the default icon, so that they
   // align with the other rows in the sidebar.
@@ -180,9 +181,9 @@ const DocumentLink = observer(function DocumentLink({
       icon ? (
         <Icon value={icon} color={color} initial={initial} />
       ) : depth === 0 ? (
-        <DocumentIcon outline={isDraft} />
+        <DocumentIcon outline={isEmpty} />
       ) : undefined,
-    [icon, color, initial, depth, isDraft]
+    [icon, color, initial, depth, isEmpty]
   );
 
   const [{ isDragging }, drag] = useDragDocument(

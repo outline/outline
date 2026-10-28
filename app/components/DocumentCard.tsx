@@ -162,7 +162,7 @@ function DocumentCard(props: Props) {
                   pinnedToHome ? (
                     <CollectionIcon collection={collection} color="white" />
                   ) : (
-                    <DocumentIcon color="white" />
+                    <DocumentIcon color="white" outline={document.isEmpty} />
                   )}
                 </Squircle>
               )}

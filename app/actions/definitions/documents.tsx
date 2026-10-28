@@ -167,7 +167,7 @@ export const openDocument = createActionWithChildren({
               color={item.color ?? undefined}
             />
           ) : (
-            <DocumentIcon outline={item.isDraft} />
+            <DocumentIcon outline={document?.isEmpty} />
           ),
           section: DocumentSection,
           to: item.url,

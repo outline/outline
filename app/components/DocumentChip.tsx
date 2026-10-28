@@ -68,7 +68,7 @@ export const DocumentChip = observer(function DocumentChip_({
             initial={document.initial}
           />
         ) : (
-          <DocumentIcon />
+          <DocumentIcon outline={document.isEmpty} />
         )}
         <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
         {pin && canUnpin && (

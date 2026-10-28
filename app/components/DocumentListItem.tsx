@@ -204,7 +204,7 @@ function DocumentListItem(props: Props) {
               />
             ) : (
               <DocumentIcon
-                outline={document.isDraft}
+                outline={document.isEmpty}
                 color={theme.textSecondary}
               />
             )}
