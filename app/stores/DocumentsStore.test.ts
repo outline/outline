@@ -55,4 +55,38 @@ describe("DocumentsStore", () => {
       expect(results.map((doc) => doc.id)).toEqual([mine.id]);
     });
   });
+
+  describe("editedByUser", () => {
+    it("should return documents the user collaborated on, newest first", () => {
+      const userId = "55555555-5555-5555-5555-555555555555";
+      const otherId = "66666666-6666-6666-6666-666666666666";
+
+      const older = stores.documents.add({
+        id: "77777777-7777-7777-7777-777777777777",
+        title: "Older",
+        collaboratorIds: [otherId, userId],
+        updatedAt: "2026-08-01T00:00:00.000Z",
+      });
+      const newer = stores.documents.add({
+        id: "88888888-8888-8888-8888-888888888888",
+        title: "Newer",
+        collaboratorIds: [userId],
+        updatedAt: "2026-08-02T00:00:00.000Z",
+      });
+      stores.documents.add({
+        id: "99999999-9999-9999-9999-999999999999",
+        title: "Not mine",
+        collaboratorIds: [otherId],
+        updatedAt: "2026-08-03T00:00:00.000Z",
+      });
+      stores.documents.add({
+        id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        title: "No collaborators",
+        updatedAt: "2026-08-04T00:00:00.000Z",
+      });
+
+      const results = stores.documents.editedByUser(userId);
+      expect(results.map((doc) => doc.id)).toEqual([newer.id, older.id]);
+    });
+  });
 });
