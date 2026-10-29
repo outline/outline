@@ -6,6 +6,7 @@ import type {
   NonNullFindOptions,
   WhereOptions,
 } from "sequelize";
+import { truncate } from "es-toolkit/compat";
 import { EmptyResultError, Op } from "sequelize";
 import {
   ForeignKey,
@@ -410,8 +411,9 @@ class FileOperation extends ParanoidModel<
     teamId: string;
     format: FileOperationFormat;
   }) {
+    const prefix = truncate(name, { length: 100, omission: "" });
     const fileName = ValidateKey.sanitizeSegment(
-      `${name}-export.${format.replace(/outline-/, "")}.zip`
+      `${prefix}-export.${format.replace(/outline-/, "")}.zip`
     );
 
     return `${Buckets.uploads}/${teamId}/${uuidv4()}/${fileName}`;

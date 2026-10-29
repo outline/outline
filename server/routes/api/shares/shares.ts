@@ -1,5 +1,4 @@
 import Router from "@koa/router";
-import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { randomString } from "@shared/random";
@@ -376,41 +375,22 @@ router.post(
 
     authorize(user, "update", share);
 
-    if (published !== undefined) {
-      share.published = published;
-      if (published) {
-        share.includeChildDocuments = true;
-      }
+    // Publishing a share includes child documents unless specified otherwise.
+    if (published) {
+      share.includeChildDocuments = true;
     }
 
-    if (includeChildDocuments !== undefined) {
-      share.includeChildDocuments = includeChildDocuments;
-    }
-
-    if (!isUndefined(urlId)) {
-      share.urlId = urlId;
-    }
-
-    if (allowIndexing !== undefined) {
-      share.allowIndexing = allowIndexing;
-    }
-    if (allowSubscriptions !== undefined) {
-      share.allowSubscriptions = allowSubscriptions;
-    }
-    if (showLastUpdated !== undefined) {
-      share.showLastUpdated = showLastUpdated;
-    }
-    if (showTOC !== undefined) {
-      share.showTOC = showTOC;
-    }
-
-    if (!isUndefined(title)) {
-      share.title = title || null;
-    }
-
-    if (!isUndefined(iconUrl)) {
-      share.iconUrl = iconUrl || null;
-    }
+    share.fill({
+      published,
+      includeChildDocuments,
+      urlId,
+      allowIndexing,
+      allowSubscriptions,
+      showLastUpdated,
+      showTOC,
+      title: title === "" ? null : title,
+      iconUrl: iconUrl === "" ? null : iconUrl,
+    });
 
     await share.saveWithCtx(ctx);
 

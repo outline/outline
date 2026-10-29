@@ -114,10 +114,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing(
         "list_documents",
-        async (
-          { query, collectionId, includeArchived, offset, limit },
-          extra
-        ) => {
+        async ({ query, includeArchived, offset, limit, ...input }, extra) => {
           try {
             const user = getActorFromContext(extra);
             const effectiveOffset = offset ?? 0;
@@ -125,14 +122,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             let indexMap: Map<string, number> | undefined;
 
-            if (collectionId) {
-              const collection = await Collection.findByPk(collectionId, {
+            // The input may be a urlId, so the id of the loaded model is used.
+            let collectionId: string | undefined;
+
+            if (input.collectionId) {
+              const collection = await Collection.findByPk(input.collectionId, {
                 userId: user.id,
                 includeDocumentStructure: true,
               });
               authorize(user, "readDocument", collection);
+              collectionId = collection.id;
 
-              if (collection?.documentStructure) {
+              if (collection.documentStructure) {
                 indexMap = buildSiblingIndexMap(collection.documentStructure);
               }
             }
@@ -436,10 +437,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const { collection } = await authorizeDocumentCreate(ctx, {
-            collectionId,
-            parentDocumentId,
-          });
+          const { collection, parentDocument } = await authorizeDocumentCreate(
+            ctx,
+            { collectionId, parentDocumentId }
+          );
 
           let template: Template | null | undefined;
           if (templateId) {
@@ -468,7 +469,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   userId: user.id,
                   publish: input.publish !== false,
                   collectionId: collection?.id,
-                  parentDocumentId,
+                  parentDocumentId: parentDocument?.id,
                   authType: ctx.state.auth.type,
                   ip: ctx.context.ip,
                 })
@@ -481,7 +482,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     text: input.text,
                     icon: input.icon,
                     color: input.color,
-                    parentDocumentId,
+                    parentDocumentId: parentDocument?.id,
                     publish: input.publish !== false,
                     collectionId: collection?.id,
                     template,
@@ -568,19 +569,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
               ? input.collectionId
               : await resolvePersonalCollectionId(ctx, input.collectionId);
 
-            if (input.parentDocumentId) {
-              if (input.parentDocumentId === input.id) {
-                throw ValidationError("Cannot nest a document inside itself");
-              }
+            // The inputs may be urlIds, so the ids of the loaded models are used.
+            let parentDocumentId: string | null = null;
 
+            if (input.parentDocumentId) {
               const parent = await Document.findByPk(input.parentDocumentId, {
                 userId: user.id,
                 rejectOnEmpty: true,
                 transaction,
               });
 
+              if (parent.id === document.id) {
+                throw ValidationError("Cannot nest a document inside itself");
+              }
+
               authorize(user, "update", parent);
               collectionId = parent.collectionId!;
+              parentDocumentId = parent.id;
 
               if (!parent.publishedAt) {
                 throw ValidationError("Cannot move document inside a draft");
@@ -596,12 +601,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 transaction,
               });
               authorize(user, "updateDocument", collection);
+              collectionId = collection.id;
             }
 
             await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
-              parentDocumentId: input.parentDocumentId ?? null,
+              parentDocumentId,
               index: input.index,
             });
 
@@ -714,7 +720,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             // The collection is only used when publishing a draft that has
             // none, so the personal collection is only created in that case.
-            const collectionId =
+            let collectionId =
               input.collectionId === PersonalCollectionId
                 ? input.publish && !document.collectionId
                   ? await resolvePersonalCollectionId(ctx, input.collectionId)
@@ -722,7 +728,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 : input.collectionId;
 
             if (input.publish) {
-              await authorizeDocumentPublish(ctx, document, collectionId);
+              // The input may be a urlId, so the id of the loaded model is used.
+              const collection = await authorizeDocumentPublish(
+                ctx,
+                document,
+                collectionId
+              );
+              collectionId = collection?.id;
             }
 
             const { revisionCount } = document;

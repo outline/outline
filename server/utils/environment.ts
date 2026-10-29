@@ -1,13 +1,19 @@
 import fs from "node:fs";
 import path from "node:path";
-import dotenv from "@dotenvx/dotenvx";
+import type dotenv from "@dotenvx/dotenvx";
+
+// dotenvx adds ~40MB to every process, so it is only loaded when an env file
+// exists, which is rare in container and PaaS deployments.
+function parseEnvFile(filePath: string): Record<string, string> {
+  // oxlint-disable-next-line typescript/no-require-imports -- kept lazy so dotenvx stays off the startup path
+  const dotenvx = require("@dotenvx/dotenvx") as typeof dotenv;
+  return dotenvx.parse(fs.readFileSync(filePath, "utf8"));
+}
 
 let environment: Record<string, string> = {};
 
 const envPath = path.resolve(process.cwd(), `.env`);
-const envDefault = fs.existsSync(envPath)
-  ? dotenv.parse(fs.readFileSync(envPath, "utf8"))
-  : {};
+const envDefault = fs.existsSync(envPath) ? parseEnvFile(envPath) : {};
 
 // Load environment specific variables, in reverse order of precedence
 const environments = ["production", "development", "local", "test"];
@@ -24,7 +30,7 @@ for (const env of environments) {
     if (fs.existsSync(resolvedPath)) {
       environment = {
         ...environment,
-        ...dotenv.parse(fs.readFileSync(resolvedPath, "utf8")),
+        ...parseEnvFile(resolvedPath),
       };
     }
   }
