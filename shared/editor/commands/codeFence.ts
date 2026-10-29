@@ -281,6 +281,34 @@ export const deleteInCode: Command = (state, dispatch) => {
 };
 
 /**
+ * Move the cursor back over the line break before it in a code block.
+ * Browsers otherwise place the caret beside the line number widget, where it
+ * is not visible.
+ *
+ * @returns A prosemirror command
+ */
+export const arrowLeftInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { $from, from, empty } = state.selection;
+  if (
+    !empty ||
+    $from.parentOffset === 0 ||
+    state.doc.textBetween(from - 1, from) !== newline
+  ) {
+    return false;
+  }
+
+  dispatch?.(
+    state.tr
+      .setSelection(TextSelection.create(state.doc, from - 1))
+      .scrollIntoView()
+  );
+  return true;
+};
+
+/**
  * Split a code block into two when three backticks are typed within it.
  * This creates a new code block below the current one with the same language.
  *
