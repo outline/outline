@@ -337,7 +337,7 @@
     "typescript": "^7.0.2",
     "unplugin-swc": "^1.5.11",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "resolutions": {
     "@types/react": "19.3.0",
