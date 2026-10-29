@@ -107,8 +107,8 @@ export class ClientMetadataHelper {
    *
    * @param clientId The public client identifier.
    * @param team The team of the user that requests the client.
-   * @returns The OAuth client, or null if it is not found or the client_id is
-   *   not a valid metadata document URL.
+   * @returns The OAuth client, or null if it is not found, the client_id is
+   *   not a valid metadata document URL, or metadata documents are disabled.
    * @throws AuthorizationError if the client is a metadata document and the
    *   team has turned MCP off.
    * @throws InvalidClientMetadataError if the metadata document cannot be
@@ -120,6 +120,9 @@ export class ClientMetadataHelper {
   ): Promise<OAuthClient | null> {
     if (!OAuthClient.isMetadataDocumentClientId(clientId)) {
       return OAuthClient.findByClientId(clientId);
+    }
+    if (env.OAUTH_DISABLE_CIMD) {
+      return null;
     }
 
     // Metadata documents only serve MCP, so do not fetch one for a team that
