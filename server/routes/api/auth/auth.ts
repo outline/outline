@@ -21,6 +21,7 @@ import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
+import { clearCSRFCookie } from "@server/utils/csrf";
 import RateLimiter from "@server/utils/RateLimiter";
 import type * as T from "./schema";
 
@@ -207,6 +208,7 @@ router.post(
       sameSite: "lax",
       expires: subMinutes(new Date(), 1),
     });
+    clearCSRFCookie(ctx);
 
     ctx.body = {
       success: true,
