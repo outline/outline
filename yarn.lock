@@ -10095,7 +10095,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"file-selector@npm:^5.0.0":
+"file-selector@npm:^5.0.1":
   version: 5.0.1
   resolution: "file-selector@npm:5.0.1"
   checksum: 10c0/ea4c36f4c50f509973244050882c6b0e7b68d215c1deaaf13d55739b1d1cbe7f738bd6e6bfd9b7c439f4e928ebb52b471049ed244042045dd4bf89b8d978db59
@@ -14211,7 +14211,7 @@ __metadata:
     react-colorful: "npm:^5.8.0"
     react-day-picker: "npm:^8.10.2"
     react-dom: "npm:^19.3.0"
-    react-dropzone: "npm:^20.1.2"
+    react-dropzone: "npm:^20.1.4"
     react-hook-form: "npm:^7.85.0"
     react-i18next: "npm:^12.3.1"
     react-is: "npm:^19.3.0"
@@ -15642,19 +15642,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:^20.1.2":
-  version: 20.1.2
-  resolution: "react-dropzone@npm:20.1.2"
+"react-dropzone@npm:^20.1.4":
+  version: 20.1.4
+  resolution: "react-dropzone@npm:20.1.4"
   dependencies:
     attr-accept: "npm:^4.0.0"
-    file-selector: "npm:^5.0.0"
+    file-selector: "npm:^5.0.1"
   peerDependencies:
     "@types/react": "*"
     react: ">= 18"
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/bd7942180283304f143b0a314f1f8687d395434943a405b6dceb2b731aa635e3f5d8533478771d500cf7e98e7c3a41e3a7d3ba1d391bc8422aaec4833bbff20f
+  checksum: 10c0/7a7db2101054d3f2aec404f28fc97a57b236691c97b02096cf2c5849c258b642c776674e8ebcf302ecfb7638ef7be6f602d9abde963e65fd7037ac78d85c90fe
   languageName: node
   linkType: hard
 

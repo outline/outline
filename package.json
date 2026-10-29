@@ -222,7 +222,7 @@
     "react-colorful": "^5.8.0",
     "react-day-picker": "^8.10.2",
     "react-dom": "^19.3.0",
-    "react-dropzone": "^20.1.2",
+    "react-dropzone": "^20.1.4",
     "react-hook-form": "^7.85.0",
     "react-i18next": "^12.3.1",
     "react-is": "^19.3.0",
