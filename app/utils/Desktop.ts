@@ -33,10 +33,15 @@ export default class Desktop {
   }
 
   /**
-   * Returns true if the client is running in a desktop app.
+   * Returns true if the client is running in the Outline desktop app. Other
+   * Electron based browsers also include "Electron" in the user agent, so the
+   * app name token is required too.
+   *
+   * @returns true if the client is the Outline desktop app.
    */
   static isElectron() {
-    return navigator?.userAgent?.includes("Electron");
+    const userAgent = navigator?.userAgent ?? "";
+    return userAgent.includes("Electron/") && userAgent.includes("Outline/");
   }
 
   /**
