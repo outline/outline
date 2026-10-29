@@ -171,7 +171,7 @@
     "koa-mount": "^4.2.0",
     "koa-sslify": "5.0.1",
     "koa-useragent": "^4.1.0",
-    "lib0": "^0.2.99",
+    "lib0": "^0.2.119",
     "mailparser": "^3.9.47",
     "mammoth": "^1.11.0",
     "markdown-it": "^14.3.3",
