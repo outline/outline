@@ -24,6 +24,7 @@ import {
   NotificationEventType,
 } from "@shared/types";
 import { DocumentPreferenceDefaults } from "@shared/constants";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
@@ -419,6 +420,15 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get isDraft(): boolean {
     return !this.publishedAt;
+  }
+
+  /**
+   * Whether the document has no content. Returns false if the content is not
+   * loaded.
+   */
+  @computed
+  get isEmpty(): boolean {
+    return !!this.data && ProsemirrorDataHelper.isEmpty(this.data);
   }
 
   get hasEmptyTitle(): boolean {
