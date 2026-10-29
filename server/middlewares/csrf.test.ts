@@ -39,6 +39,13 @@ describe("attachCSRFToken", () => {
     expect(setCookie).toEqual("");
   });
 
+  it("should replace a malformed existing token", async () => {
+    const token = `${generateRawToken(16).toString("hex")}.${"é".repeat(64)}`;
+    const setCookie = await getSetCookie(`${CSRF.cookieName}=${token}`);
+    expect(setCookie).toContain(`${CSRF.cookieName}=`);
+    expect(setCookie).not.toContain(token);
+  });
+
   it("should replace an invalid existing token", async () => {
     const token = bundleToken(generateRawToken(16), "wrong-secret");
     const setCookie = await getSetCookie(`${CSRF.cookieName}=${token}`);
