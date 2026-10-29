@@ -6639,10 +6639,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.7.1":
-  version: 7.7.1
-  resolution: "@types/semver@npm:7.7.1"
-  checksum: 10c0/c938aef3bf79a73f0f3f6037c16e2e759ff40c54122ddf0b2583703393d8d3127130823facb880e694caa324eb6845628186aac1997ee8b31dc2d18fafe26268
+"@types/semver@npm:^7.8.0":
+  version: 7.8.0
+  resolution: "@types/semver@npm:7.8.0"
+  checksum: 10c0/46a1f38e36013448b279798e8b134e7e8de3b3630b1f40683903b9d57d36dd1d70838515570ed9a149fa09e9c381b9e39319b58d7b9f3b929b42ae2becff7aa3
   languageName: node
   linkType: hard
 
@@ -14022,7 +14022,7 @@ __metadata:
     "@types/readable-stream": "npm:^4.0.24"
     "@types/redis-info": "npm:^3.0.3"
     "@types/resolve-path": "npm:^1.4.3"
-    "@types/semver": "npm:^7.7.1"
+    "@types/semver": "npm:^7.8.0"
     "@types/slug": "npm:^5.0.9"
     "@types/tmp": "npm:^0.2.6"
     "@types/utf8": "npm:^3.0.3"

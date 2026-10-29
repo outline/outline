@@ -310,7 +310,7 @@
     "@types/readable-stream": "^4.0.24",
     "@types/redis-info": "^3.0.3",
     "@types/resolve-path": "^1.4.3",
-    "@types/semver": "^7.7.1",
+    "@types/semver": "^7.8.0",
     "@types/slug": "^5.0.9",
     "@types/tmp": "^0.2.6",
     "@types/utf8": "^3.0.3",
