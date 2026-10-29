@@ -243,15 +243,16 @@ export const renderApp = async (
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
   ctx.response.set("Expires", "-1");
 
+  // Replacer functions prevent "$" sequences in user content being expanded.
   ctx.body = page
     .toString()
-    .replace(/\{env\}/g, environment)
+    .replace(/\{env\}/g, () => environment)
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
-    .replace(/\{title\}/g, escape(title))
-    .replace(/\{description\}/g, escape(description))
-    .replace(/\{content\}/g, content)
+    .replace(/\{title\}/g, () => escape(title))
+    .replace(/\{description\}/g, () => escape(description))
+    .replace(/\{content\}/g, () => content)
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
-    .replace(/\{head-tags\}/g, headTags)
+    .replace(/\{head-tags\}/g, () => headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
@@ -412,7 +413,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
       (publicBranding && team?.description ? team.description : undefined),
     content,
     shortcutIcon: avatarUrl,
-    image: avatarUrl,
+    image: avatarUrl ? new URL(avatarUrl, env.URL).toString() : undefined,
     siteName: publicBranding && team?.name ? team.name : undefined,
     analytics,
     isShare: true,
