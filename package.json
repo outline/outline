@@ -125,7 +125,7 @@
     "content-disposition": "^0.5.4",
     "cookie": "^0.7.2",
     "copy-to-clipboard": "^3.3.3",
-    "core-js": "^3.50.0",
+    "core-js": "^3.51.0",
     "date-fns": "^3.6.0",
     "dd-trace": "^5.131.1",
     "diff": "^5.2.2",
