@@ -107,9 +107,6 @@ function lineNumberWidget(pos: number) {
     side: -1,
     marks: [],
     key: "line-number",
-    // Keep the widget editable, Chrome otherwise deletes it on Backspace at
-    // the start of a line instead of the line break.
-    raw: true,
   });
 }
 
