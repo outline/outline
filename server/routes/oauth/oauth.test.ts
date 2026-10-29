@@ -613,6 +613,23 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.client_id_metadata_document_supported).toBe(false);
   });
 
+  it("should not advertise metadata documents when they are disabled", async () => {
+    const team = await buildTeam({ subdomain: buildSubdomain() });
+    env.OAUTH_DISABLE_CIMD = true;
+
+    try {
+      const res = await server.get("/.well-known/oauth-authorization-server", {
+        headers: { host: `${team.subdomain}.outline.dev` },
+      });
+
+      const body = await res.json();
+      expect(body.registration_endpoint).toContain("/oauth/register");
+      expect(body.client_id_metadata_document_supported).toBe(false);
+    } finally {
+      env.OAUTH_DISABLE_CIMD = false;
+    }
+  });
+
   it("should not serve OAuth metadata at /mcp suffix path", async () => {
     const res = await server.get("/.well-known/oauth-authorization-server/mcp");
 
