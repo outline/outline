@@ -2980,14 +2980,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@node-oauth/oauth2-server@npm:^5.3.0":
-  version: 5.3.0
-  resolution: "@node-oauth/oauth2-server@npm:5.3.0"
+"@node-oauth/oauth2-server@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "@node-oauth/oauth2-server@npm:5.3.1"
   dependencies:
     "@node-oauth/formats": "npm:1.0.0"
     basic-auth: "npm:2.0.1"
-    type-is: "npm:2.0.1"
-  checksum: 10c0/bb136a5569f71b2086686972680849f8fde90d861c20775ea59966a54a7473d2d61b1b9531a3585399e6a028c7078e7e32eaf1c0c475b4f6c7766db65a6a78b6
+    type-is: "npm:2.1.0"
+  checksum: 10c0/8684a70a877564f61148fec5840e9a69f97548a807fc7ec22456f6971b956e2b8037714471a6976678183572898b46811184031a50d6de05dbbc7d32c25541c5
   languageName: node
   linkType: hard
 
@@ -13976,7 +13976,7 @@ __metadata:
     "@linear/sdk": "npm:^97.2.0"
     "@modelcontextprotocol/server": "npm:^2.3.1"
     "@noble/hashes": "npm:^2.4.0"
-    "@node-oauth/oauth2-server": "npm:^5.3.0"
+    "@node-oauth/oauth2-server": "npm:^5.3.1"
     "@notionhq/client": "npm:^2.3.0"
     "@octokit/auth-app": "npm:^8.3.1"
     "@octokit/openapi-webhooks-types": "npm:^12.2.0"
@@ -17964,14 +17964,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-is@npm:2.0.1":
-  version: 2.0.1
-  resolution: "type-is@npm:2.0.1"
+"type-is@npm:2.1.0, type-is@npm:^2.0.1":
+  version: 2.1.0
+  resolution: "type-is@npm:2.1.0"
   dependencies:
-    content-type: "npm:^1.0.5"
+    content-type: "npm:^2.0.0"
     media-typer: "npm:^1.1.0"
     mime-types: "npm:^3.0.0"
-  checksum: 10c0/7f7ec0a060b16880bdad36824ab37c26019454b67d73e8a465ed5a3587440fbe158bc765f0da68344498235c877e7dbbb1600beccc94628ed05599d667951b99
+  checksum: 10c0/a6018f8f509de48f2c7429305e3a920e73b374fa93127dd0877ae1c2df65a5d33907caac8afb0c37a9b9fc7c49f29e3f55d668963dc845d966930b667c07f50e
   languageName: node
   linkType: hard
 
@@ -17982,17 +17982,6 @@ __metadata:
     media-typer: "npm:0.3.0"
     mime-types: "npm:~2.1.24"
   checksum: 10c0/a23daeb538591b7efbd61ecf06b6feb2501b683ffdc9a19c74ef5baba362b4347e42f1b4ed81f5882a8c96a3bfff7f93ce3ffaf0cbbc879b532b04c97a55db9d
-  languageName: node
-  linkType: hard
-
-"type-is@npm:^2.0.1":
-  version: 2.1.0
-  resolution: "type-is@npm:2.1.0"
-  dependencies:
-    content-type: "npm:^2.0.0"
-    media-typer: "npm:^1.1.0"
-    mime-types: "npm:^3.0.0"
-  checksum: 10c0/a6018f8f509de48f2c7429305e3a920e73b374fa93127dd0877ae1c2df65a5d33907caac8afb0c37a9b9fc7c49f29e3f55d668963dc845d966930b667c07f50e
   languageName: node
   linkType: hard
 
