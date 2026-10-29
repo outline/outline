@@ -148,9 +148,19 @@ export function createOIDCRouter(
               (await getUserFromOAuthState(context));
             const { domain } = parseEmail(email);
 
-            // Only a single OIDC provider is supported – find the existing, if any.
+            const oidcURL = new URL(endpoints.authorizationURL);
+
+            // Only a single OIDC provider is supported – find the existing, if
+            // any, preferring the record for the configured location.
             const authenticationProvider = team
               ? ((await AuthenticationProvider.findOne({
+                  where: {
+                    name: "oidc",
+                    teamId: team.id,
+                    providerId: oidcURL.hostname,
+                  },
+                })) ??
+                (await AuthenticationProvider.findOne({
                   where: {
                     name: "oidc",
                     teamId: team.id,
@@ -166,7 +176,6 @@ export function createOIDCRouter(
               : undefined;
 
             // Derive a providerId from the OIDC location if there is no existing provider.
-            const oidcURL = new URL(endpoints.authorizationURL);
             let providerId =
               authenticationProvider?.providerId ?? oidcURL.hostname;
 
