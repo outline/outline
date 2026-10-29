@@ -11,6 +11,7 @@ import Logger from "@server/logging/Logger";
 import { Event, Collection, Team, View } from "@server/models";
 import type { APIContext, AuthenticationResult } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import { clearCSRFCookie } from "./csrf";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -188,6 +189,7 @@ export async function signIn(
       sameSite: "lax",
       expires,
     });
+    clearCSRFCookie(ctx);
 
     const defaultCollectionId = team.defaultCollectionId;
 
