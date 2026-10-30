@@ -1,4 +1,19 @@
+import { Transform } from "prosemirror-transform";
 import { parser, schema, serializer } from "../../test/editor";
+
+/**
+ * Parses markdown and resets the ids generated for checkbox lists and toggle
+ * blocks, so the result can be compared with a document built without ids.
+ */
+function parseWithoutIds(markdown: string) {
+  const tr = new Transform(parser.parse(markdown)!);
+  tr.doc.descendants((node, pos) => {
+    if (["checkbox_list", "container_toggle"].includes(node.type.name)) {
+      tr.setNodeAttribute(pos, "id", node.type.spec.attrs?.id?.default);
+    }
+  });
+  return tr.doc.toJSON();
+}
 
 /**
  * Wraps block nodes in a single-cell table so cell serialization/parsing can
@@ -104,7 +119,7 @@ it("round-trips a toggle block inside a table cell", () => {
   });
 
   const markdown = serializer.serialize(doc, { commonMark: true });
-  expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
+  expect(parseWithoutIds(markdown)).toEqual(doc.toJSON());
 });
 
 it("round-trips a math block inside a table cell", () => {
@@ -213,7 +228,7 @@ it("round-trips a checkbox list inside a table cell", () => {
   );
 
   const markdown = serializer.serialize(doc, { commonMark: true });
-  expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
+  expect(parseWithoutIds(markdown)).toEqual(doc.toJSON());
 });
 
 it("keeps formatting in list items inside a table cell", () => {
@@ -261,7 +276,7 @@ it("parses checkbox items without a list marker inside a table cell", () => {
   });
 
   const markdown = "| Header |\n|--------|\n| [ ] First<br>[x] Second |";
-  expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
+  expect(parseWithoutIds(markdown)).toEqual(doc.toJSON());
 });
 
 it("keeps a paragraph that starts with a dash as text inside a table cell", () => {

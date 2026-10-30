@@ -3,7 +3,7 @@ import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { TableMap } from "prosemirror-tables";
 import { changedDescendants } from "../lib/changedDescendants";
-import { isLocalDocChange } from "../lib/multiplayer";
+import { applyLocalChangeState, isLocalDocChange } from "../lib/multiplayer";
 import { isValidCellSpan } from "../lib/table";
 
 /**
@@ -17,10 +17,10 @@ export class FixTablesPlugin extends Plugin<boolean> {
   constructor() {
     super({
       state: {
-        // Whether any local document change has been applied since load
+        // Whether the document changed locally since load or the last remote change
         init: () => false,
         apply: (tr, hasChanged, _oldState, newState) =>
-          hasChanged || isLocalDocChange(tr, newState),
+          applyLocalChangeState(tr, hasChanged, newState),
       },
       appendTransaction: (transactions, oldState, state) => {
         if (!transactions.some((tr) => isLocalDocChange(tr, state))) {
@@ -34,8 +34,8 @@ export class FixTablesPlugin extends Plugin<boolean> {
           }
         };
 
-        // Tables loaded in a bad state are repaired on the first edit. After
-        // that only changed tables are checked.
+        // Tables loaded or received in a bad state are repaired on the next
+        // local edit. After that only changed tables are checked.
         if (!this.getState(oldState)) {
           state.doc.descendants(check);
         } else {

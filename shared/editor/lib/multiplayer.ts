@@ -69,6 +69,24 @@ export function isLocalDocChange(tr: Transaction, state: EditorState): boolean {
 }
 
 /**
+ * Plugin state reducer tracking whether the document has been changed locally
+ * since load or the last remote change. Repair plugins use it to scan the
+ * whole document on the next local change after receiving unrepaired content.
+ *
+ * @param tr The Prosemirror transaction
+ * @param hasChanged The current plugin state
+ * @param state The editor state after the transaction
+ * @returns the next plugin state
+ */
+export function applyLocalChangeState(
+  tr: Transaction,
+  hasChanged: boolean,
+  state: EditorState
+): boolean {
+  return tr.docChanged ? !isRemoteTransaction(tr, state) : hasChanged;
+}
+
+/**
  * Stops the collaborative undo manager from capturing further changes, if
  * the multiplayer extension is mounted in the editor.
  *

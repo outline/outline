@@ -45,7 +45,11 @@ import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
-import { isLocalDocChange, isRemoteTransaction } from "../lib/multiplayer";
+import {
+  applyLocalChangeState,
+  isLocalDocChange,
+  isRemoteTransaction,
+} from "../lib/multiplayer";
 
 export enum Action {
   INIT,
@@ -123,18 +127,18 @@ export default class ToggleBlock extends Node {
     const plugin = new Plugin<boolean>({
       key: toggleIdPluginKey,
       state: {
-        // Whether any local document change has been applied since load
+        // Whether the document changed locally since load or the last remote change
         init: () => false,
         apply: (tr, hasChanged, _oldState, newState) =>
-          hasChanged || isLocalDocChange(tr, newState),
+          applyLocalChangeState(tr, hasChanged, newState),
       },
       appendTransaction: (transactions, oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
           return null;
         }
 
-        // Blocks loaded without ids are repaired on the first edit. After
-        // that only structural edits can add toggle blocks or empty bodies.
+        // Blocks loaded or received without ids are repaired on the next local
+        // edit. After that only structural edits can add toggle blocks or empty bodies.
         const isFirstChange = !toggleIdPluginKey.getState(oldState);
         if (
           !isFirstChange &&
@@ -495,6 +499,7 @@ export default class ToggleBlock extends Node {
   parseMarkdown(): ParseSpec | void {
     return {
       block: "container_toggle",
+      getAttrs: () => ({ id: v4() }),
     };
   }
 

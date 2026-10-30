@@ -391,5 +391,22 @@ describe("FixTablesPlugin", () => {
 
       expect(newState.doc.firstChild!.child(1).child(1).type.name).toBe("td");
     });
+
+    it("should repair tables received after an earlier local change", () => {
+      const state = createEditorState(doc(p("Intro")), [
+        facade,
+        new FixTablesPlugin(),
+      ]);
+
+      const localState = state.apply(state.tr.insertText("x", 1));
+      const remoteState = localState.apply(
+        localState.tr
+          .insert(localState.doc.content.size, brokenTable().content)
+          .setMeta("remote", true)
+      );
+      const newState = remoteState.apply(remoteState.tr.insertText("y", 1));
+
+      expect(newState.doc.child(1).child(1).child(1).type.name).toBe("td");
+    });
   });
 });

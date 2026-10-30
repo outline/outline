@@ -8,7 +8,7 @@ import { Plugin, PluginKey } from "prosemirror-state";
 import { v4 as generateUuid } from "uuid";
 import toggleList from "../commands/toggleList";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { isLocalDocChange } from "../lib/multiplayer";
+import { applyLocalChangeState, isLocalDocChange } from "../lib/multiplayer";
 import {
   checkboxListInputRule,
   listWrappingInputRule,
@@ -47,18 +47,18 @@ export default class CheckboxList extends Node {
     const assignIdsPlugin = new Plugin<boolean>({
       key: assignIdsPluginKey,
       state: {
-        // Whether any local document change has been applied since load
+        // Whether the document changed locally since load or the last remote change
         init: () => false,
         apply: (tr, hasChanged, _oldState, newState) =>
-          hasChanged || isLocalDocChange(tr, newState),
+          applyLocalChangeState(tr, hasChanged, newState),
       },
       appendTransaction: (txs, oldSt, newSt) => {
         if (!txs.some((t) => isLocalDocChange(t, newSt))) {
           return null;
         }
 
-        // Lists loaded without ids are repaired on the first edit. After that
-        // only structural edits can introduce a list without an id.
+        // Lists loaded or received without ids are repaired on the next local
+        // edit. After that only structural edits can introduce a list without an id.
         const isFirstChange = !assignIdsPluginKey.getState(oldSt);
         const hasStructuralChange = txs.some(
           (t) =>
@@ -123,6 +123,6 @@ export default class CheckboxList extends Node {
   }
 
   parseMarkdown() {
-    return { block: "checkbox_list" };
+    return { block: "checkbox_list", getAttrs: () => ({ id: generateUuid() }) };
   }
 }
