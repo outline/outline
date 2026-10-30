@@ -33,7 +33,7 @@ import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
 import { RepairPlugin } from "../plugins/RepairPlugin";
 import mentionRule from "../rules/mention";
-import type { ComponentProps } from "../types";
+import type { ComponentProps, NodeWithPos } from "../types";
 import Node from "./Node";
 
 /**
@@ -244,28 +244,28 @@ export default class Mention extends Node {
 
   get plugins() {
     return [
-      // Ensure mentions have unique IDs, changed mentions are given a new id
-      // when they have none or share it with another mention.
+      // Ensure mentions have unique IDs. Unchanged mentions keep their id, so
+      // a pasted copy is given a new id rather than the original.
       new RepairPlugin({
         needsRepair: (node) => node.type.name === this.name,
         repair: (state, mentions) => {
-          const counts = new Map<string, number>();
-          state.doc.descendants((node) => {
-            const { id } = node.attrs;
-            if (node.type.name === this.name && id) {
-              counts.set(id, (counts.get(id) ?? 0) + 1);
+          const changed = mentions.filter((mention) => mention.changed);
+          const changedPositions = new Set(changed.map(({ pos }) => pos));
+          const ordered: NodeWithPos[] = [];
+          state.doc.descendants((node, pos) => {
+            if (node.type.name === this.name && !changedPositions.has(pos)) {
+              ordered.push({ node, pos });
             }
           });
+          ordered.push(...changed);
 
+          const seen = new Set<string>();
           const tr = state.tr;
-          mentions.forEach(({ node, pos }) => {
+          ordered.forEach(({ node, pos }) => {
             const { id } = node.attrs;
-            const count = id ? (counts.get(id) ?? 0) : 0;
-            if (count === 1) {
+            if (id && !seen.has(id)) {
+              seen.add(id);
               return;
-            }
-            if (id) {
-              counts.set(id, count - 1);
             }
             tr.setNodeAttribute(pos, "id", uuidv4());
           });

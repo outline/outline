@@ -2328,4 +2328,74 @@ describe("documentUpdater", () => {
       expect(result.text).toContain("other");
     });
   });
+
+  describe("block ids", () => {
+    const paragraph = (text: string) => ({
+      type: "paragraph",
+      content: [{ type: "text", text }],
+    });
+    const listId = randomUUID();
+    const toggleId = randomUUID();
+    const content: ProsemirrorData = {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          attrs: { id: listId },
+          content: ["one", "two"].map((text) => ({
+            type: "checkbox_item",
+            attrs: { checked: false },
+            content: [paragraph(text)],
+          })),
+        },
+        {
+          type: "container_toggle",
+          attrs: { id: toggleId },
+          content: [paragraph("Title"), paragraph("Body")],
+        },
+      ],
+    };
+
+    const blockIds = (document: Document) =>
+      (document.content?.content ?? []).map((node) => node.attrs?.id);
+
+    it("assigns ids to checkbox lists and toggle blocks written as markdown", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      const result = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          document,
+          text: "- [ ] one\n\n+++ Title\nBody\n+++",
+        })
+      );
+
+      const [checklist, toggle] = blockIds(result);
+      expect(checklist).toEqual(expect.any(String));
+      expect(toggle).toEqual(expect.any(String));
+    });
+
+    it.each([
+      ["checkbox list", "two", "three"],
+      ["toggle block", "Body", "Changed body"],
+    ])("keeps the id of a patched %s", async (_name, findText, replacement) => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        content,
+      });
+
+      const result = await withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          document,
+          text: replacement,
+          editMode: TextEditMode.Patch,
+          findText,
+        })
+      );
+
+      expect(result.text).toContain(replacement);
+      expect(blockIds(result)).toEqual([listId, toggleId]);
+    });
+  });
 });

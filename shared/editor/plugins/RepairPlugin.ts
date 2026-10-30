@@ -5,6 +5,11 @@ import { changedDescendants } from "../lib/changedDescendants";
 import { isLocalDocChange, isRemoteTransaction } from "../lib/multiplayer";
 import type { NodeWithPos } from "../types";
 
+export interface RepairNode extends NodeWithPos {
+  /** Whether the node was changed by the local transactions being repaired. */
+  changed: boolean;
+}
+
 export interface RepairSpec {
   /**
    * Whether the node must be repaired. Called for changed nodes, and for every
@@ -24,7 +29,7 @@ export interface RepairSpec {
    * @param nodes The nodes that need repair, in document order.
    * @returns a transaction with the repairs, or null if nothing changed.
    */
-  repair: (state: EditorState, nodes: NodeWithPos[]) => Transaction | null;
+  repair: (state: EditorState, nodes: RepairNode[]) => Transaction | null;
 }
 
 /**
@@ -36,23 +41,28 @@ export interface RepairSpec {
  */
 export class RepairPlugin extends Plugin<boolean> {
   constructor({ needsRepair, repair }: RepairSpec) {
-    const find = (
-      state: EditorState,
-      iterate: (callback: (node: Node, pos: number) => void) => void
-    ) => {
-      const nodes: NodeWithPos[] = [];
-      iterate((node, pos) => {
+    const findChanged = (oldState: EditorState, state: EditorState) => {
+      const nodes: RepairNode[] = [];
+      changedDescendants(oldState.doc, state.doc, 0, (node, pos) => {
         if (needsRepair(node, pos, state)) {
-          nodes.push({ node, pos });
+          nodes.push({ node, pos, changed: true });
         }
       });
       return nodes;
     };
 
-    const findChanged = (oldState: EditorState, state: EditorState) =>
-      find(state, (callback) =>
-        changedDescendants(oldState.doc, state.doc, 0, callback)
+    const findAll = (oldState: EditorState, state: EditorState) => {
+      const changed = new Set(
+        findChanged(oldState, state).map(({ pos }) => pos)
       );
+      const nodes: RepairNode[] = [];
+      state.doc.descendants((node, pos) => {
+        if (needsRepair(node, pos, state)) {
+          nodes.push({ node, pos, changed: changed.has(pos) });
+        }
+      });
+      return nodes;
+    };
 
     super({
       state: {
@@ -75,7 +85,7 @@ export class RepairPlugin extends Plugin<boolean> {
         }
 
         const nodes = this.getState(oldState)
-          ? find(newState, (callback) => newState.doc.descendants(callback))
+          ? findAll(oldState, newState)
           : findChanged(oldState, newState);
 
         return nodes.length > 0 ? repair(newState, nodes) : null;

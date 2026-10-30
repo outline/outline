@@ -201,6 +201,40 @@ describe("Mention ids", () => {
     expect(copy).not.toBe(id);
   });
 
+  it("keeps the original id when a duplicate is pasted as the first change", () => {
+    const state = createEditorState(
+      schema.nodes.doc.create(null, [
+        schema.nodes.paragraph.create(null, [mention(id)]),
+        schema.nodes.paragraph.create(),
+      ]),
+      new Mention().plugins
+    );
+
+    const pasted = state.apply(state.tr.insert(4, mention(id)));
+
+    const [original, copy] = ids(pasted);
+    expect(original).toBe(id);
+    expect(copy).toEqual(expect.any(String));
+    expect(copy).not.toBe(id);
+  });
+
+  it("gives the later of two loaded duplicates a new id", () => {
+    const state = createEditorState(
+      schema.nodes.doc.create(null, [
+        schema.nodes.paragraph.create(null, [mention(id)]),
+        schema.nodes.paragraph.create(null, [mention(id)]),
+        schema.nodes.paragraph.create(),
+      ]),
+      new Mention().plugins
+    );
+
+    const newState = state.apply(state.tr.insertText("x", 7));
+
+    const [first, second] = ids(newState);
+    expect(first).toBe(id);
+    expect(second).not.toBe(id);
+  });
+
   it("assigns an id to a mention without one", () => {
     const state = createEditorState(
       schema.nodes.doc.create(null, [schema.nodes.paragraph.create()]),

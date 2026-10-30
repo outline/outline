@@ -480,7 +480,6 @@ export default class ToggleBlock extends Node {
   parseMarkdown(): ParseSpec | void {
     return {
       block: "container_toggle",
-      getAttrs: () => ({ id: generateUuid() }),
     };
   }
 

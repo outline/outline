@@ -90,6 +90,6 @@ export default class CheckboxList extends Node {
   }
 
   parseMarkdown() {
-    return { block: "checkbox_list", getAttrs: () => ({ id: generateUuid() }) };
+    return { block: "checkbox_list" };
   }
 }

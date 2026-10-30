@@ -136,15 +136,3 @@ it("leaves neighbouring lists untouched when a checklist has multiple items", ()
   expect(output).toContain("A1 b");
   expect(output).not.toContain("[ ] B2 a");
 });
-
-it("assigns a unique id to each parsed checkbox list", () => {
-  const ast = parser.parse("- [ ] One\n\nText\n\n- [ ] Two");
-  const ids = findNodes(ast?.toJSON(), "checkbox_list").map(
-    (node) => node.attrs?.id
-  );
-
-  expect(ids).toHaveLength(2);
-  expect(ids[0]).toEqual(expect.any(String));
-  expect(ids[1]).toEqual(expect.any(String));
-  expect(ids[0]).not.toEqual(ids[1]);
-});

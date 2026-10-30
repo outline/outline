@@ -672,6 +672,7 @@ export class DocumentHelper {
     if (actorId) {
       doc = ProsemirrorHelper.assignMentionActors(doc, actorId, previousDoc);
     }
+    doc = ProsemirrorHelper.assignMissingIds(doc);
 
     document.content = doc.toJSON();
     document.text = serializer.serialize(doc);
