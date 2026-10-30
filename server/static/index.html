@@ -3,6 +3,10 @@
   <head>
     <title>{title}</title>
     <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"
+    />
+    <meta
       name="theme-color"
       content="#FFF"
       media="(prefers-color-scheme: light)"
@@ -30,7 +34,10 @@
           (theme !== "light" &&
             window.matchMedia &&
             window.matchMedia("(prefers-color-scheme: dark)").matches);
-        var color = isDark ? "#111319" : "#FFF";
+        // Matches useBuildTheme, which uses a pitch black theme on mobile.
+        var isMobile =
+          window.matchMedia && window.matchMedia("(max-width: 737px)").matches;
+        var color = isDark ? (isMobile ? "#000" : "#111319") : "#FFF";
 
         document
           .querySelectorAll('meta[name="theme-color"]')
@@ -40,10 +47,6 @@
       })();
     </script>
     <meta name="slack-app-id" content="{slack-app-id}" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"
-    />
     <meta name="color-scheme" content="light dark" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="description" content="{description}" />
@@ -111,7 +114,7 @@
     <div id="root"></div>
     {env}
     <script nonce="{csp-nonce}">
-      document.querySelector("#root").style.background = document
+      document.body.style.background = document
         .querySelector('meta[name="theme-color"]')
         .getAttribute("content");
     </script>
