@@ -9,6 +9,7 @@ import {
 } from "@shared/editor/lib/ChangesetHelper";
 import { HeadingSlugger } from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
+import { withTrailingNode } from "@shared/editor/lib/trailingNode";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -673,9 +674,12 @@ export class DocumentHelper {
       doc = ProsemirrorHelper.assignMentionActors(doc, actorId, previousDoc);
     }
     doc = ProsemirrorHelper.assignMissingIds(doc);
-
-    document.content = doc.toJSON();
     document.text = serializer.serialize(doc);
+
+    // Match the editor's normalized form, so open editors do not write their
+    // own repairs back in response to this change.
+    doc = withTrailingNode(doc);
+    document.content = doc.toJSON();
 
     if (document.state) {
       const ydoc = new Y.Doc();

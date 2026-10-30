@@ -738,6 +738,7 @@ describe("documentUpdater", () => {
               listItem("Third item"),
             ],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -823,6 +824,7 @@ describe("documentUpdater", () => {
               listItem("gamma"),
             ],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -936,6 +938,7 @@ describe("documentUpdater", () => {
               listItem("gamma", [commentMark]),
             ],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -980,6 +983,7 @@ describe("documentUpdater", () => {
             type: "bullet_list",
             content: [listItem("beta"), listItem("gamma", [commentMark])],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -1032,6 +1036,7 @@ describe("documentUpdater", () => {
         "bullet_list",
         "ordered_list",
         "bullet_list",
+        "paragraph",
       ]);
       expect(document.text).toContain("alpha");
       expect(document.text).toContain("beta EDITED");
@@ -1066,6 +1071,7 @@ describe("documentUpdater", () => {
               listItem("three"),
             ],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -1099,6 +1105,7 @@ describe("documentUpdater", () => {
             attrs: { listStyle: "number" },
             content: [listItem("numeric")],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -1142,6 +1149,7 @@ describe("documentUpdater", () => {
               listItem("beta"),
             ],
           },
+          { type: "paragraph" },
         ],
       });
     });
@@ -2148,7 +2156,8 @@ describe("documentUpdater", () => {
       );
       const content = result.content!.content!;
 
-      expect(content).toHaveLength(1);
+      expect(content).toHaveLength(2);
+      expect(content[1].type).toBe("paragraph");
       expect(content[0]).toMatchObject({
         type: "code_block",
         content: [
@@ -2177,7 +2186,8 @@ describe("documentUpdater", () => {
       );
       const content = result.content!.content!;
 
-      expect(content).toHaveLength(1);
+      expect(content).toHaveLength(2);
+      expect(content[1].type).toBe("paragraph");
       expect(content[0]).toMatchObject({
         type: "code_block",
         content: [
@@ -2357,9 +2367,11 @@ describe("documentUpdater", () => {
     };
 
     const blockIds = (document: Document) =>
-      (document.content?.content ?? []).map((node) => node.attrs?.id);
+      (document.content?.content ?? [])
+        .filter((node) => node.type !== "paragraph")
+        .map((node) => node.attrs?.id);
 
-    it("assigns ids to checkbox lists and toggle blocks written as markdown", async () => {
+    it("assigns ids and a trailing paragraph to markdown written through the API", async () => {
       const user = await buildUser();
       const document = await buildDocument({ teamId: user.teamId });
 
@@ -2373,6 +2385,8 @@ describe("documentUpdater", () => {
       const [checklist, toggle] = blockIds(result);
       expect(checklist).toEqual(expect.any(String));
       expect(toggle).toEqual(expect.any(String));
+      expect(result.content?.content?.at(-1)?.type).toBe("paragraph");
+      expect(result.text.trim().endsWith("+++")).toBe(true);
     });
 
     it.each([
