@@ -347,12 +347,14 @@ export class Editor extends React.PureComponent<
     // When transitioning from readOnly to editable, reinitialize to create
     // editing extensions, keymaps, input rules, and commands that were skipped.
     if (prevProps.readOnly && !this.props.readOnly) {
-      const docJSON = this.view.state.doc.toJSON();
-      this.view.destroy();
-      this.init();
-      const newState = this.createState(docJSON);
-      this.view.updateState(newState);
-      this.syncObservableState();
+      this.preserveScroll(() => {
+        const docJSON = this.view.state.doc.toJSON();
+        this.view.destroy();
+        this.init();
+        const newState = this.createState(docJSON);
+        this.view.updateState(newState);
+        this.syncObservableState();
+      });
       this.forceUpdate();
     } else if (!prevProps.readOnly && this.props.readOnly) {
       // pass readOnly changes through to underlying editor instance
@@ -725,6 +727,29 @@ export class Editor extends React.PureComponent<
 
   private syncObservableState() {
     runInAction(() => this.observableState.set(this.view.state));
+  }
+
+  /**
+   * Run a callback that redraws the editor DOM, restoring the scroll position
+   * of the editor's scrolled ancestors afterwards.
+   *
+   * @param callback the function that redraws the editor.
+   */
+  private preserveScroll(callback: () => void) {
+    const positions: [Element, number][] = [];
+    for (let el = this.view.dom.parentElement; el; el = el.parentElement) {
+      if (el.scrollTop) {
+        positions.push([el, el.scrollTop]);
+      }
+    }
+
+    callback();
+
+    for (const [el, scrollTop] of positions) {
+      if (el.scrollTop !== scrollTop) {
+        el.scrollTop = scrollTop;
+      }
+    }
   }
 
   private calculateDir = () => {
