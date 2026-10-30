@@ -193,7 +193,7 @@
     "passport-oauth2": "^1.8.0",
     "passport-slack-oauth2": "^1.2.0",
     "patch-package": "^8.0.1",
-    "pele": "1.6.0",
+    "pele": "1.12.0",
     "pg": "^8.23.0",
     "pg-tsquery": "^8.4.2",
     "pluralize": "^8.0.0",
