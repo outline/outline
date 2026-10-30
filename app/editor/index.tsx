@@ -347,15 +347,16 @@ export class Editor extends React.PureComponent<
     // When transitioning from readOnly to editable, reinitialize to create
     // editing extensions, keymaps, input rules, and commands that were skipped.
     if (prevProps.readOnly && !this.props.readOnly) {
-      this.preserveScroll(() => {
-        const docJSON = this.view.state.doc.toJSON();
-        this.view.destroy();
-        this.init();
-        const newState = this.createState(docJSON);
-        this.view.updateState(newState);
-        this.syncObservableState();
-      });
-      this.forceUpdate();
+      const restoreScroll = this.saveScroll();
+      const docJSON = this.view.state.doc.toJSON();
+      this.view.destroy();
+      this.init();
+      const newState = this.createState(docJSON);
+      this.view.updateState(newState);
+      this.syncObservableState();
+
+      // Restore once the node views have rendered and the content has its height.
+      this.forceUpdate(restoreScroll);
     } else if (!prevProps.readOnly && this.props.readOnly) {
       // pass readOnly changes through to underlying editor instance
       this.view.update({
@@ -730,12 +731,11 @@ export class Editor extends React.PureComponent<
   }
 
   /**
-   * Run a callback that redraws the editor DOM, restoring the scroll position
-   * of the editor's scrolled ancestors afterwards.
+   * Record the scroll position of the editor's scrolled ancestors.
    *
-   * @param callback the function that redraws the editor.
+   * @returns a function that restores the recorded scroll positions.
    */
-  private preserveScroll(callback: () => void) {
+  private saveScroll() {
     const positions: [Element, number][] = [];
     for (let el = this.view.dom.parentElement; el; el = el.parentElement) {
       if (el.scrollTop) {
@@ -743,13 +743,13 @@ export class Editor extends React.PureComponent<
       }
     }
 
-    callback();
-
-    for (const [el, scrollTop] of positions) {
-      if (el.scrollTop !== scrollTop) {
-        el.scrollTop = scrollTop;
+    return () => {
+      for (const [el, scrollTop] of positions) {
+        if (el.scrollTop !== scrollTop) {
+          el.scrollTop = scrollTop;
+        }
       }
-    }
+    };
   }
 
   private calculateDir = () => {
