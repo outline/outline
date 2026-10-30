@@ -261,6 +261,11 @@ describe("documentMover", () => {
       teamId: team.id,
     });
     const personal = await buildPersonalCollection(user);
+    const existing = await buildDocument({
+      userId: user.id,
+      collectionId: personal.id,
+      teamId: team.id,
+    });
 
     await withAPIContext(user, (ctx) =>
       documentMover(ctx, {
@@ -277,6 +282,7 @@ describe("documentMover", () => {
       includeDocumentStructure: true,
     });
     expect(reloaded?.documentStructure?.map((node) => node.id)).toEqual([
+      existing.id,
       document.id,
     ]);
   });
