@@ -3,6 +3,7 @@ import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { TableMap } from "prosemirror-tables";
 import { changedDescendants } from "../lib/changedDescendants";
+import { isLocalDocChange } from "../lib/multiplayer";
 
 /**
  * A ProseMirror plugin that watches for changes to the "layout" attribute on tables
@@ -29,7 +30,7 @@ export class TableLayoutPlugin extends Plugin {
         if (!oldState) {
           // Initial state - check all tables
           newState.doc.descendants(check);
-        } else if (oldState.doc !== newState.doc) {
+        } else if (transactions.some((tr) => isLocalDocChange(tr, newState))) {
           // Document changed - check only changed tables
           changedDescendants(oldState.doc, newState.doc, 0, check);
         }

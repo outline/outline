@@ -8,7 +8,12 @@ import {
   th,
   tr,
 } from "@shared/test/editor";
+import { Plugin } from "prosemirror-state";
 import { TableMap } from "prosemirror-tables";
+import {
+  multiplayerPluginKey,
+  type MultiplayerOperations,
+} from "../lib/multiplayer";
 import { FixTablesPlugin } from "./FixTablesPlugin";
 
 describe("FixTablesPlugin", () => {
@@ -348,6 +353,43 @@ describe("FixTablesPlugin", () => {
       expect(newTable.child(0).child(1).type.name).toBe("th");
       expect(newTable.child(1).child(0).type.name).toBe("th");
       expect(newTable.child(1).child(1).type.name).toBe("td");
+    });
+  });
+
+  describe("collaboration", () => {
+    const multiplayer: MultiplayerOperations = {
+      isRemoteTransaction: (transaction) => !!transaction.getMeta("remote"),
+      stopCapturing: () => {},
+    };
+    const facade = new Plugin({ key: multiplayerPluginKey, multiplayer });
+    const brokenTable = () =>
+      doc(table([tr([th("H1"), th("H2")]), tr([th("R1"), th("Wrong")])]));
+
+    it("should not repair tables in response to remote changes", () => {
+      const state = createEditorState(brokenTable(), [
+        facade,
+        new FixTablesPlugin(),
+      ]);
+
+      const newState = state.apply(
+        state.tr.insertText("x", 5).setMeta("remote", true)
+      );
+
+      expect(newState.doc.firstChild!.child(1).child(1).type.name).toBe("th");
+    });
+
+    it("should repair tables on the first local change after a remote change", () => {
+      const state = createEditorState(brokenTable(), [
+        facade,
+        new FixTablesPlugin(),
+      ]);
+
+      const remoteState = state.apply(
+        state.tr.insertText("x", 5).setMeta("remote", true)
+      );
+      const newState = remoteState.apply(remoteState.tr.insertText("y", 5));
+
+      expect(newState.doc.firstChild!.child(1).child(1).type.name).toBe("td");
     });
   });
 });

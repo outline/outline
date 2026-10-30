@@ -27,6 +27,7 @@ import {
   MentionUser,
 } from "../components/Mentions";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { isLocalDocChange } from "../lib/multiplayer";
 import { transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
@@ -245,7 +246,11 @@ export default class Mention extends Node {
     return [
       // Ensure mentions have unique IDs
       new Plugin({
-        appendTransaction: (_transactions, _oldState, newState) => {
+        appendTransaction: (transactions, _oldState, newState) => {
+          if (!transactions.some((t) => isLocalDocChange(t, newState))) {
+            return null;
+          }
+
           const tr = newState.tr;
           const existingIds = new Set();
           let modified = false;

@@ -45,7 +45,7 @@ import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
-import { isRemoteTransaction } from "../lib/multiplayer";
+import { isLocalDocChange, isRemoteTransaction } from "../lib/multiplayer";
 
 export enum Action {
   INIT,
@@ -123,9 +123,10 @@ export default class ToggleBlock extends Node {
     const plugin = new Plugin<boolean>({
       key: toggleIdPluginKey,
       state: {
-        // Whether any document change has been applied since load
+        // Whether any local document change has been applied since load
         init: () => false,
-        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
+        apply: (tr, hasChanged, _oldState, newState) =>
+          hasChanged || isLocalDocChange(tr, newState),
       },
       appendTransaction: (transactions, oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
@@ -154,7 +155,12 @@ export default class ToggleBlock extends Node {
         let tr: Transaction | null = null;
 
         // Assign IDs to blocks that need them and default to unfolded in this browser
-        const blocksNeedingIds = toggleBlocks.filter((b) => !b.node.attrs.id);
+        const isLocal = transactions.some((tr) =>
+          isLocalDocChange(tr, newState)
+        );
+        const blocksNeedingIds = isLocal
+          ? toggleBlocks.filter((b) => !b.node.attrs.id)
+          : [];
         if (blocksNeedingIds.length > 0) {
           tr = newState.tr;
           blocksNeedingIds.forEach((block) => {

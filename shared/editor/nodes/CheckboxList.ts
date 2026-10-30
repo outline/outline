@@ -8,6 +8,7 @@ import { Plugin, PluginKey } from "prosemirror-state";
 import { v4 as generateUuid } from "uuid";
 import toggleList from "../commands/toggleList";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { isLocalDocChange } from "../lib/multiplayer";
 import {
   checkboxListInputRule,
   listWrappingInputRule,
@@ -46,12 +47,13 @@ export default class CheckboxList extends Node {
     const assignIdsPlugin = new Plugin<boolean>({
       key: assignIdsPluginKey,
       state: {
-        // Whether any document change has been applied since load
+        // Whether any local document change has been applied since load
         init: () => false,
-        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
+        apply: (tr, hasChanged, _oldState, newState) =>
+          hasChanged || isLocalDocChange(tr, newState),
       },
       appendTransaction: (txs, oldSt, newSt) => {
-        if (!txs.some((t) => t.docChanged)) {
+        if (!txs.some((t) => isLocalDocChange(t, newSt))) {
           return null;
         }
 
@@ -60,7 +62,7 @@ export default class CheckboxList extends Node {
         const isFirstChange = !assignIdsPluginKey.getState(oldSt);
         const hasStructuralChange = txs.some(
           (t) =>
-            t.docChanged &&
+            isLocalDocChange(t, newSt) &&
             !isInlineTransaction(t, (node) => node.type.name === this.name)
         );
         if (!isFirstChange && !hasStructuralChange) {
