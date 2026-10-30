@@ -12,7 +12,7 @@ import type { Command, EditorState, Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { v4 } from "uuid";
+import { v4 as generateUuid } from "uuid";
 import { LRUCache } from "../../utils/LRUCache";
 import {
   deleteSelectionPreservingBody,
@@ -168,7 +168,7 @@ export default class ToggleBlock extends Node {
         if (blocksNeedingIds.length > 0) {
           tr = newState.tr;
           blocksNeedingIds.forEach((block) => {
-            const id = v4();
+            const id = generateUuid();
             tr!.setNodeAttribute(block.pos, "id", id);
             foldStateCache.set(id, { fold: false });
           });
@@ -446,7 +446,7 @@ export default class ToggleBlock extends Node {
       if ($from.parent.type === state.schema.nodes.heading) {
         const $fr_ = TextSelection.near($from, 1).$from;
         const $to_ = TextSelection.near(findCutAfterHeading($from), -1).$to;
-        const id = v4();
+        const id = generateUuid();
         const range = $fr_.blockRange($to_),
           wrapping = range && findWrapping(range, type, { id });
         if (!wrapping) {
@@ -459,7 +459,7 @@ export default class ToggleBlock extends Node {
       }
       // if para
       if ($from.parent.type === state.schema.nodes.paragraph) {
-        const id = v4();
+        const id = generateUuid();
         const range = $from.blockRange($to),
           wrapping = range && findWrapping(range, type, { id });
         if (!wrapping) {
@@ -499,7 +499,7 @@ export default class ToggleBlock extends Node {
   parseMarkdown(): ParseSpec | void {
     return {
       block: "container_toggle",
-      getAttrs: () => ({ id: v4() }),
+      getAttrs: () => ({ id: generateUuid() }),
     };
   }
 
