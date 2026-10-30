@@ -344,19 +344,8 @@ export class Editor extends React.PureComponent<
       }
     }
 
-    // When transitioning from readOnly to editable, reinitialize to create
-    // editing extensions, keymaps, input rules, and commands that were skipped.
     if (prevProps.readOnly && !this.props.readOnly) {
-      const restoreScroll = this.saveScroll();
-      const docJSON = this.view.state.doc.toJSON();
-      this.view.destroy();
-      this.init();
-      const newState = this.createState(docJSON);
-      this.view.updateState(newState);
-      this.syncObservableState();
-
-      // Restore once the node views have rendered and the content has its height.
-      this.forceUpdate(restoreScroll);
+      this.setEditable();
     } else if (!prevProps.readOnly && this.props.readOnly) {
       // pass readOnly changes through to underlying editor instance
       this.view.update({
@@ -536,35 +525,33 @@ export class Editor extends React.PureComponent<
   }
 
   private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
-    const doc = this.createDocument(value || this.props.defaultValue);
-
-    if (this.props.readOnly) {
-      return EditorState.create({
-        schema: this.schema,
-        doc,
-        plugins: [...this.plugins, anchorPlugin()],
-      });
-    }
-
     return EditorState.create({
       schema: this.schema,
-      doc,
-      plugins: [
-        ...this.plugins,
-        ...this.keymaps,
-        anchorPlugin(),
-        dropCursor({
-          color: this.props.theme.accent,
-          width: 2,
-          class: EditorStyleHelper.dropCursor,
-        }),
-        gapCursor(),
-        inputRules({
-          rules: this.inputRules,
-        }),
-        keymap(baseKeymap),
-      ],
+      doc: this.createDocument(value || this.props.defaultValue),
+      plugins: this.createStatePlugins(),
     });
+  }
+
+  private createStatePlugins() {
+    if (this.props.readOnly) {
+      return [...this.plugins, anchorPlugin()];
+    }
+
+    return [
+      ...this.plugins,
+      ...this.keymaps,
+      anchorPlugin(),
+      dropCursor({
+        color: this.props.theme.accent,
+        width: 2,
+        class: EditorStyleHelper.dropCursor,
+      }),
+      gapCursor(),
+      inputRules({
+        rules: this.inputRules,
+      }),
+      keymap(baseKeymap),
+    ];
   }
 
   private createDocument(content: string | object | ProsemirrorNode) {
@@ -731,25 +718,36 @@ export class Editor extends React.PureComponent<
   }
 
   /**
-   * Record the scroll position of the editor's scrolled ancestors.
-   *
-   * @returns a function that restores the recorded scroll positions.
+   * Add the extensions, keymaps, input rules and commands that were skipped in
+   * read-only mode. The document, schema and node views are kept, so the editor
+   * DOM is not redrawn.
    */
-  private saveScroll() {
-    const positions: [Element, number][] = [];
-    for (let el = this.view.dom.parentElement; el; el = el.parentElement) {
-      if (el.scrollTop) {
-        positions.push([el, el.scrollTop]);
-      }
-    }
+  private setEditable() {
+    this.extensions.setEditable(this.props.extensions, this);
+    this.plugins = this.createPlugins();
+    this.rulePlugins = this.createRulePlugins();
+    this.cachedSerializer = undefined;
+    this.cachedParser = undefined;
+    this.cachedPasteParser = undefined;
+    this.widgets = this.createWidgets();
+    this.keymaps = this.createKeymaps();
+    this.inputRules = this.createInputRules();
 
-    return () => {
-      for (const [el, scrollTop] of positions) {
-        if (el.scrollTop !== scrollTop) {
-          el.scrollTop = scrollTop;
-        }
-      }
-    };
+    this.view.setProps({
+      attributes: { translate: "no" },
+      editable: () => !this.props.readOnly,
+      state: this.view.state.reconfigure({
+        plugins: this.createStatePlugins(),
+      }),
+    });
+    this.syncObservableState();
+    this.commands = this.createCommands();
+    this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
+
+    Array.from(this.nodeRenderers).forEach((view) =>
+      view.setProp("isEditable", true)
+    );
+    this.forceUpdate();
   }
 
   private calculateDir = () => {
