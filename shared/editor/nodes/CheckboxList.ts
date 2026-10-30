@@ -4,17 +4,15 @@ import type {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Plugin, PluginKey } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { v4 as generateUuid } from "uuid";
 import toggleList from "../commands/toggleList";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { applyLocalChangeState, isLocalDocChange } from "../lib/multiplayer";
 import {
   checkboxListInputRule,
   listWrappingInputRule,
 } from "../lib/listInputRule";
-import { findBlockNodes } from "../queries/findChildren";
-import { isInlineTransaction } from "../queries/isInlineTransaction";
+import { RepairPlugin } from "../plugins/RepairPlugin";
 import { CheckboxListView } from "./CheckboxListView";
 import Node from "./Node";
 
@@ -43,45 +41,14 @@ export default class CheckboxList extends Node {
     const userIdentifier = this.editor.props.userId;
 
     // Plugin to auto-assign IDs to checkbox lists
-    const assignIdsPluginKey = new PluginKey<boolean>("checkboxListIds");
-    const assignIdsPlugin = new Plugin<boolean>({
-      key: assignIdsPluginKey,
-      state: {
-        // Whether the document changed locally since load or the last remote change
-        init: () => false,
-        apply: (tr, hasChanged, _oldState, newState) =>
-          applyLocalChangeState(tr, hasChanged, newState),
-      },
-      appendTransaction: (txs, oldSt, newSt) => {
-        if (!txs.some((t) => isLocalDocChange(t, newSt))) {
-          return null;
-        }
-
-        // Lists loaded or received without ids are repaired on the next local
-        // edit. After that only structural edits can introduce a list without an id.
-        const isFirstChange = !assignIdsPluginKey.getState(oldSt);
-        const hasStructuralChange = txs.some(
-          (t) =>
-            isLocalDocChange(t, newSt) &&
-            !isInlineTransaction(t, (node) => node.type.name === this.name)
-        );
-        if (!isFirstChange && !hasStructuralChange) {
-          return null;
-        }
-
-        const checkboxLists = findBlockNodes(newSt.doc, true).filter(
-          (b) => b.node.type.name === this.name && !b.node.attrs.id
-        );
-
-        if (checkboxLists.length === 0) {
-          return null;
-        }
-
-        let modifyTx = newSt.tr;
-        checkboxLists.forEach((listBlock) => {
-          modifyTx.setNodeAttribute(listBlock.pos, "id", generateUuid());
+    const assignIdsPlugin = new RepairPlugin({
+      needsRepair: (node) => node.type.name === this.name && !node.attrs.id,
+      repair: (state, lists) => {
+        const tr = state.tr;
+        lists.forEach(({ pos }) => {
+          tr.setNodeAttribute(pos, "id", generateUuid());
         });
-        return modifyTx;
+        return tr;
       },
     });
 

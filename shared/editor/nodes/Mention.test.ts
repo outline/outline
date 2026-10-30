@@ -1,5 +1,7 @@
+import type { EditorState } from "prosemirror-state";
 import { MentionType } from "../../types";
-import { schema, serializer } from "../../test/editor";
+import { createEditorState, schema, serializer } from "../../test/editor";
+import Mention from "./Mention";
 
 const id = "0c440212-8b40-49fa-8a64-2548d6b60d59";
 const modelId = "c85a0d80-3a89-4b25-a0cd-e7fc83f0d226";
@@ -159,5 +161,54 @@ describe("Mention serialization", () => {
         )
       ).toBe(`[Engineering](/collection/${modelId})`);
     });
+  });
+});
+
+describe("Mention ids", () => {
+  const mention = (mentionId: string | null) =>
+    schema.nodes.mention.create({
+      id: mentionId,
+      modelId,
+      type: MentionType.User,
+      label: "Name",
+    });
+
+  const ids = (state: EditorState) => {
+    const result: string[] = [];
+    state.doc.descendants((node) => {
+      if (node.type.name === "mention") {
+        result.push(node.attrs.id);
+      }
+    });
+    return result;
+  };
+
+  it("gives a pasted duplicate a new id and keeps the original", () => {
+    const state = createEditorState(
+      schema.nodes.doc.create(null, [
+        schema.nodes.paragraph.create(null, [mention(id)]),
+        schema.nodes.paragraph.create(),
+      ]),
+      new Mention().plugins
+    );
+
+    const typed = state.apply(state.tr.insertText("x", 4));
+    const pasted = typed.apply(typed.tr.insert(4, mention(id)));
+
+    const [original, copy] = ids(pasted);
+    expect(original).toBe(id);
+    expect(copy).toEqual(expect.any(String));
+    expect(copy).not.toBe(id);
+  });
+
+  it("assigns an id to a mention without one", () => {
+    const state = createEditorState(
+      schema.nodes.doc.create(null, [schema.nodes.paragraph.create()]),
+      new Mention().plugins
+    );
+
+    const newState = state.apply(state.tr.insert(1, mention(null)));
+
+    expect(ids(newState)[0]).toEqual(expect.any(String));
   });
 });

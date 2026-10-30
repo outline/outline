@@ -45,11 +45,8 @@ import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
-import {
-  applyLocalChangeState,
-  isLocalDocChange,
-  isRemoteTransaction,
-} from "../lib/multiplayer";
+import { isRemoteTransaction } from "../lib/multiplayer";
+import { RepairPlugin } from "../plugins/RepairPlugin";
 
 export enum Action {
   INIT,
@@ -77,7 +74,7 @@ export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
 /** Plugin key for toggle block fold/unfold events. */
 export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 
-const toggleIdPluginKey = new PluginKey<boolean>("toggleBlockIds");
+const toggleAutoFoldPluginKey = new PluginKey<boolean>("toggleBlockAutoFold");
 
 /** Build the localStorage key used to persist a toggle block's fold state. */
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
@@ -123,23 +120,36 @@ export default class ToggleBlock extends Node {
   }
 
   get plugins() {
-    // Assign IDs and auto-fold empty
+    // Assign IDs and default to unfolded in this browser
+    const idPlugin = new RepairPlugin({
+      needsRepair: (node) => node.type.name === this.name && !node.attrs.id,
+      repair: (state, blocks) => {
+        const tr = state.tr;
+        blocks.forEach(({ pos }) => {
+          const id = generateUuid();
+          tr.setNodeAttribute(pos, "id", id);
+          foldStateCache.set(id, { fold: false });
+        });
+        return tr;
+      },
+    });
+
+    // Auto-fold empty
     const plugin = new Plugin<boolean>({
-      key: toggleIdPluginKey,
+      key: toggleAutoFoldPluginKey,
       state: {
-        // Whether the document changed locally since load or the last remote change
+        // Whether any document change has been applied since load
         init: () => false,
-        apply: (tr, hasChanged, _oldState, newState) =>
-          applyLocalChangeState(tr, hasChanged, newState),
+        apply: (tr, hasChanged) => hasChanged || tr.docChanged,
       },
       appendTransaction: (transactions, oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
           return null;
         }
 
-        // Blocks loaded or received without ids are repaired on the next local
-        // edit. After that only structural edits can add toggle blocks or empty bodies.
-        const isFirstChange = !toggleIdPluginKey.getState(oldState);
+        // Only structural edits can add toggle blocks or empty bodies after
+        // the first change.
+        const isFirstChange = !toggleAutoFoldPluginKey.getState(oldState);
         if (
           !isFirstChange &&
           !transactions.some((tr) => this.isStructuralChange(tr, newState))
@@ -147,55 +157,25 @@ export default class ToggleBlock extends Node {
           return null;
         }
 
-        // Single pass to find all toggle blocks
-        const toggleBlocks = findBlockNodes(newState.doc, true).filter(
-          (b) => b.node.type.name === this.name
-        );
-
-        if (toggleBlocks.length === 0) {
+        const pluginState = toggleFoldPluginKey.getState(newState);
+        if (!pluginState) {
           return null;
         }
 
-        let tr: Transaction | null = null;
-
-        // Assign IDs to blocks that need them and default to unfolded in this browser
-        const isLocal = transactions.some((tr) =>
-          isLocalDocChange(tr, newState)
+        const emptyBodyBlock = findBlockNodes(newState.doc, true).find(
+          (b) =>
+            b.node.type.name === this.name &&
+            b.node.childCount === 1 &&
+            b.node.attrs.id &&
+            !pluginState.foldedIds.has(b.node.attrs.id)
         );
-        const blocksNeedingIds = isLocal
-          ? toggleBlocks.filter((b) => !b.node.attrs.id)
-          : [];
-        if (blocksNeedingIds.length > 0) {
-          tr = newState.tr;
-          blocksNeedingIds.forEach((block) => {
-            const id = generateUuid();
-            tr!.setNodeAttribute(block.pos, "id", id);
-            foldStateCache.set(id, { fold: false });
-          });
-        }
 
-        // Auto-fold toggle blocks with empty bodies, only if no structural
-        // changes were made (positions would be invalid)
-        if (!tr) {
-          const pluginState = toggleFoldPluginKey.getState(newState);
-          if (pluginState) {
-            const emptyBodyBlock = toggleBlocks.find(
-              (b) =>
-                b.node.childCount === 1 &&
-                b.node.attrs.id &&
-                !pluginState.foldedIds.has(b.node.attrs.id)
-            );
-
-            if (emptyBodyBlock) {
-              return newState.tr.setMeta(toggleFoldPluginKey, {
-                type: Action.FOLD,
-                at: emptyBodyBlock.pos,
-              });
-            }
-          }
-        }
-
-        return tr;
+        return emptyBodyBlock
+          ? newState.tr.setMeta(toggleFoldPluginKey, {
+              type: Action.FOLD,
+              at: emptyBodyBlock.pos,
+            })
+          : null;
       },
     });
 
@@ -340,6 +320,7 @@ export default class ToggleBlock extends Node {
     });
 
     return [
+      idPlugin,
       plugin,
       foldPlugin,
       eventPlugin,

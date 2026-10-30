@@ -8,7 +8,7 @@ import type {
   Schema,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
@@ -27,11 +27,11 @@ import {
   MentionUser,
 } from "../components/Mentions";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { isLocalDocChange } from "../lib/multiplayer";
 import { transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
+import { RepairPlugin } from "../plugins/RepairPlugin";
 import mentionRule from "../rules/mention";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
@@ -244,35 +244,32 @@ export default class Mention extends Node {
 
   get plugins() {
     return [
-      // Ensure mentions have unique IDs
-      new Plugin({
-        appendTransaction: (transactions, _oldState, newState) => {
-          if (!transactions.some((t) => isLocalDocChange(t, newState))) {
-            return null;
-          }
-
-          const tr = newState.tr;
-          const existingIds = new Set();
-          let modified = false;
-
-          tr.doc.descendants((node, pos) => {
-            let nodeId = node.attrs.id;
-            if (
-              node.type.name === this.name &&
-              (!nodeId || existingIds.has(nodeId))
-            ) {
-              nodeId = uuidv4();
-              modified = true;
-              tr.setNodeAttribute(pos, "id", nodeId);
+      // Ensure mentions have unique IDs, changed mentions are given a new id
+      // when they have none or share it with another mention.
+      new RepairPlugin({
+        needsRepair: (node) => node.type.name === this.name,
+        repair: (state, mentions) => {
+          const counts = new Map<string, number>();
+          state.doc.descendants((node) => {
+            const { id } = node.attrs;
+            if (node.type.name === this.name && id) {
+              counts.set(id, (counts.get(id) ?? 0) + 1);
             }
-            existingIds.add(nodeId);
           });
 
-          if (modified) {
-            return tr;
-          }
-
-          return null;
+          const tr = state.tr;
+          mentions.forEach(({ node, pos }) => {
+            const { id } = node.attrs;
+            const count = id ? (counts.get(id) ?? 0) : 0;
+            if (count === 1) {
+              return;
+            }
+            if (id) {
+              counts.set(id, count - 1);
+            }
+            tr.setNodeAttribute(pos, "id", uuidv4());
+          });
+          return tr.docChanged ? tr : null;
         },
       }),
     ];
