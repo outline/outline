@@ -5641,17 +5641,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0":
-  version: 3.35.2
-  resolution: "@smithy/core@npm:3.35.2"
-  dependencies:
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/23daaff0937343c5ba971bdd26434bbc41fb317b9f35f282c45ba1f8dbabac594f76a7bd2b5b4c501d5ae0796de919fadaafb2821e4b43a9f2f078af3f07c2ef
-  languageName: node
-  linkType: hard
-
-"@smithy/core@npm:^3.36.1":
+"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0, @smithy/core@npm:^3.36.1":
   version: 3.37.0
   resolution: "@smithy/core@npm:3.37.0"
   dependencies:
@@ -5942,7 +5932,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.14.23":
+"@tanstack/react-virtual@npm:^3.14.23, @tanstack/react-virtual@npm:^3.14.9":
   version: 3.14.23
   resolution: "@tanstack/react-virtual@npm:3.14.23"
   dependencies:
@@ -5954,29 +5944,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.14.9":
-  version: 3.14.21
-  resolution: "@tanstack/react-virtual@npm:3.14.21"
-  dependencies:
-    "@tanstack/virtual-core": "npm:3.19.6"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/a6de53b4a86550c1708a8ca0222e09864bf591443f89c9218ae8e565f2dfdf013195e87795ea908e391206e319d59cbff0807bb1df0ee04cf18e249f903a92f4
-  languageName: node
-  linkType: hard
-
 "@tanstack/table-core@npm:8.21.3":
   version: 8.21.3
   resolution: "@tanstack/table-core@npm:8.21.3"
   checksum: 10c0/40e3560e6d55e07cc047024aa7f83bd47a9323d21920d4adabba8071fd2d21230c48460b26cedf392588f8265b9edc133abb1b0d6d0adf4dae0970032900a8c9
-  languageName: node
-  linkType: hard
-
-"@tanstack/virtual-core@npm:3.19.6":
-  version: 3.19.6
-  resolution: "@tanstack/virtual-core@npm:3.19.6"
-  checksum: 10c0/c1a2f5b7599351cfcefbf7a4d5f36997a04dc01f54c89ada058a58c116bf0ff444ee5cab0d858264a5be9c004711cf202c16a560fe2d0696453201a46ffb524e
   languageName: node
   linkType: hard
 
@@ -12461,20 +12432,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.109, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
-  version: 0.2.114
-  resolution: "lib0@npm:0.2.114"
-  dependencies:
-    isomorphic.js: "npm:^0.2.4"
-  bin:
-    0ecdsa-generate-keypair: bin/0ecdsa-generate-keypair.js
-    0gentesthtml: bin/gentesthtml.js
-    0serve: bin/0serve.js
-  checksum: 10c0/3edaebb4ac80da164dfc097720a610bba4d08f44dc60ecb186aa42924d8e67679c12a6b7415eaffc07c47f1fbddccb15fd925bee7745c7aef16ab1a1e0a3cdc0
-  languageName: node
-  linkType: hard
-
-"lib0@npm:^0.2.119":
+"lib0@npm:^0.2.109, lib0@npm:^0.2.119, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
   version: 0.2.119
   resolution: "lib0@npm:0.2.119"
   dependencies:
@@ -14162,7 +14120,7 @@ __metadata:
     passport-oauth2: "npm:^1.8.0"
     passport-slack-oauth2: "npm:^1.2.0"
     patch-package: "npm:^8.0.1"
-    pele: "npm:1.6.0"
+    pele: "npm:1.12.0"
     pg: "npm:^8.23.0"
     pg-tsquery: "npm:^8.4.2"
     pluralize: "npm:^8.0.0"
@@ -14923,10 +14881,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pele@npm:1.6.0":
-  version: 1.6.0
-  resolution: "pele@npm:1.6.0"
-  checksum: 10c0/cb18979fb4869c97a68fb5327061f5d0772d3a87e31cb245cbea3627fc4f48e652e7ff41b4c80e18966f15f90076dac2fe119a5e070c06d3e78cd91b31766ddc
+"pele@npm:1.12.0":
+  version: 1.12.0
+  resolution: "pele@npm:1.12.0"
+  checksum: 10c0/b79435e1b0da049f4fe0ff7cd4192b779b5258edcc0d41f1230ff98c065a7365cbf1d0bf30778af83f82744ea9a9ee5f7a8f31a33a311166e8cce10aadd28610
   languageName: node
   linkType: hard
 
