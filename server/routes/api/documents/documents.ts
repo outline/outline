@@ -611,49 +611,30 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const userId = user.id;
-    const [collectionIds, membershipDocumentIds] = await Promise.all([
-      user.collectionIds(),
-      Document.membershipDocumentIds(userId),
-    ]);
-    const views = await View.findAll({
-      where: {
-        userId,
-      },
-      order: [[sort, direction]],
-      include: [
-        {
-          model: Document.scope([
-            "withDrafts",
-            "withoutStateOrText",
-            { method: ["withMembership", userId] },
-          ]),
-          required: true,
-          where: {
-            teamId: user.teamId,
-            [Op.and]: [
-              {
-                [Op.or]: [
-                  { collectionId: collectionIds },
-                  { id: membershipDocumentIds },
-                  { createdById: userId, collectionId: { [Op.is]: null } },
-                ],
-              },
-              {
-                [Op.or]: [
-                  { publishedAt: { [Op.ne]: null } },
-                  { createdById: userId },
-                  { id: membershipDocumentIds },
-                ],
-              },
-            ],
-          },
-        },
-      ],
+    const viewIds = await View.findAccessibleIds(user, {
+      sort,
+      direction,
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
-      subQuery: false,
     });
+    const views = viewIds.length
+      ? await View.findAll({
+          where: {
+            id: viewIds,
+          },
+          order: [[sort, direction]],
+          include: [
+            {
+              model: Document.scope([
+                "withDrafts",
+                "withoutStateOrText",
+                { method: ["withMembership", user.id] },
+              ]),
+              required: true,
+            },
+          ],
+        })
+      : [];
     const documents = views.map((view) => {
       const document = view.document;
       document.views = [view];
