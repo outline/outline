@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
-import { addMonths } from "date-fns";
 import { isNil } from "es-toolkit/compat";
 import {
   action,
@@ -10,13 +9,13 @@ import {
   observable,
   runInAction,
 } from "mobx";
-import { getCookie, removeCookie, setCookie } from "tiny-cookie";
+import { getCookie, setCookie } from "tiny-cookie";
 import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import {
-  getActiveSessions,
+  getRememberedSessions,
   getSessionsCookieExpiry,
   parseSessionsCookie,
 } from "@shared/utils/sessions";
@@ -370,7 +369,7 @@ export default class AuthStore extends Store<Team> {
       }
     }
 
-    // remove session record on apex cookie
+    // Retain the workspace as logged out so it remains available for login.
     const team = this.team;
 
     if (
@@ -378,11 +377,16 @@ export default class AuthStore extends Store<Team> {
       isCloudHosted &&
       !parseDomain(window.location.hostname).custom
     ) {
-      const sessions = getActiveSessions(
-        parseSessionsCookie(getCookie("sessions") || "{}"),
-        addMonths(new Date(), 3)
+      const sessions = getRememberedSessions(
+        parseSessionsCookie(getCookie("sessions") || "{}")
       );
-      delete sessions[team.id];
+      sessions[team.id] = {
+        name: team.name,
+        logoUrl: team.avatarUrl ?? null,
+        url: team.url,
+        expiresAt: new Date().toISOString(),
+        lastUsedAt: new Date().toISOString(),
+      };
       const expires = getSessionsCookieExpiry(sessions);
       const options = {
         domain: getCookieDomain(window.location.hostname, isCloudHosted),
@@ -393,8 +397,6 @@ export default class AuthStore extends Store<Team> {
           ...options,
           expires,
         });
-      } else {
-        removeCookie("sessions", options);
       }
     }
 

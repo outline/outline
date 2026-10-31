@@ -4,20 +4,29 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { s } from "@shared/styles";
+import type { Sessions } from "@shared/utils/sessions";
+import { isSessionActive } from "@shared/utils/sessions";
 import { AvatarSize } from "~/components/Avatar";
 import Avatar, { AvatarVariant } from "~/components/Avatar/Avatar";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
 import OutlineIcon from "~/components/Icons/OutlineIcon";
 import env from "~/env";
-import type { Sessions } from "~/hooks/useLoggedInSessions";
 import { detectLanguage } from "~/utils/language";
 import Login from "../Login";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
 
-type Props = { sessions: Sessions };
+interface Props {
+  sessions: Sessions;
+}
 
+/**
+ * Shows remembered workspaces with a login path for logged-out sessions.
+ *
+ * @param props the remembered workspace sessions.
+ * @returns the workspace selector.
+ */
 export function TeamSwitcher({ sessions }: Props) {
   const { t } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
@@ -56,7 +65,14 @@ export function TeamSwitcher({ sessions }: Props) {
                 size={AvatarSize.Large}
                 alt={session.name}
               />
-              {session.name}
+              <WorkspaceName>
+                {session.name}
+                {!isSessionActive(session) && (
+                  <Text type="tertiary" size="xsmall" weight="normal">
+                    {t("Logged out")}
+                  </Text>
+                )}
+              </WorkspaceName>
               <StyledArrowIcon />
             </TeamLink>
           );
@@ -75,6 +91,11 @@ const StyledArrowIcon = styled(ArrowIcon)`
   transition: all 0.2s ease-in-out;
   opacity: 0;
   right: 12px;
+`;
+
+const WorkspaceName = styled.span`
+  display: flex;
+  flex-direction: column;
 `;
 
 const TeamLink = styled.a`

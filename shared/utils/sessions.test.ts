@@ -2,7 +2,9 @@ import { addMonths, subDays } from "date-fns";
 import type { Sessions } from "./sessions";
 import {
   getActiveSessions,
+  getRememberedSessions,
   getSessionsCookieExpiry,
+  isSessionActive,
   parseSessionsCookie,
 } from "./sessions";
 
@@ -51,33 +53,74 @@ describe("getActiveSessions", () => {
     });
   });
 
-  it("assigns an expiry to legacy entries without extending dated entries", () => {
-    const expiresAt = addMonths(new Date(), 1).toISOString();
-    const legacyExpiry = addMonths(new Date(), 3);
-    expect(
-      getActiveSessions(
-        { legacy: session, active: { ...session, expiresAt } },
-        legacyExpiry
-      )
-    ).toEqual({
-      legacy: { ...session, expiresAt: legacyExpiry.toISOString() },
-      active: { ...session, expiresAt },
-    });
+  it("keeps expired workspace history in the original sessions", () => {
+    const expired = {
+      ...session,
+      expiresAt: subDays(new Date(), 1).toISOString(),
+    };
+    const sessions = { expired };
+    expect(getActiveSessions(sessions)).toEqual({});
+    expect(sessions.expired).toEqual(expired);
+    expect(isSessionActive(expired)).toBe(false);
   });
 });
 
-describe("getSessionsCookieExpiry", () => {
-  it("uses the latest entry expiry", () => {
-    const latest = addMonths(new Date(), 3);
+describe("workspace retention", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-31T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("removes a workspace after three months of inactivity even when another workspace is used", () => {
+    const sessions = {
+      recent: {
+        ...session,
+        expiresAt: subDays(new Date(), 1).toISOString(),
+        lastUsedAt: "2026-10-01T12:00:00.000Z",
+      },
+      boundary: { ...session, lastUsedAt: "2026-07-31T12:00:00.000Z" },
+      old: { ...session, lastUsedAt: "2026-07-01T12:00:00.000Z" },
+      invalid: { ...session, lastUsedAt: "invalid" },
+    };
+    expect(getRememberedSessions(sessions)).toEqual({
+      recent: sessions.recent,
+    });
+    expect(getSessionsCookieExpiry(sessions)).toEqual(
+      new Date("2027-01-01T12:00:00.000Z")
+    );
+  });
+
+  it("starts tracking legacy workspaces without extending retention on later reads", () => {
+    const sessions = getRememberedSessions({ legacy: session });
+    expect(sessions.legacy.lastUsedAt).toEqual(new Date().toISOString());
+    vi.setSystemTime(new Date("2026-12-01T12:00:00.000Z"));
+    expect(getRememberedSessions(sessions)).toEqual(sessions);
+    expect(getSessionsCookieExpiry(sessions)).toEqual(
+      new Date("2027-01-31T12:00:00.000Z")
+    );
+  });
+
+  it("retains workspace history for three months even when every session has expired", () => {
     expect(
       getSessionsCookieExpiry({
-        later: { ...session, expiresAt: latest.toISOString() },
-        earlier: {
+        expired: {
           ...session,
-          expiresAt: addMonths(new Date(), 1).toISOString(),
+          expiresAt: subDays(new Date(), 1).toISOString(),
         },
       })
-    ).toEqual(latest);
+    ).toEqual(addMonths(new Date(), 3));
+  });
+
+  it("expires the cookie when every workspace has been unused for three months", () => {
+    expect(
+      getSessionsCookieExpiry({
+        old: { ...session, lastUsedAt: "2026-07-01T12:00:00.000Z" },
+      })
+    ).toBeUndefined();
   });
 
   it("returns no expiry for an empty cookie", () => {

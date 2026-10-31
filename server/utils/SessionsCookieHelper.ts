@@ -3,7 +3,7 @@ import type { Context } from "koa";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import type { Sessions } from "@shared/utils/sessions";
 import {
-  getActiveSessions,
+  getRememberedSessions,
   getSessionsCookieExpiry,
   parseSessionsCookie,
 } from "@shared/utils/sessions";
@@ -13,15 +13,17 @@ import { Team } from "@server/models";
 /** Manages workspace entries in the cloud sessions cookie. */
 export class SessionsCookieHelper {
   /**
-   * Reads the sessions cookie without changing its entries.
+   * Reads remembered workspaces, removing entries unused for three months.
    *
    * @param ctx the Koa context.
    * @returns the valid session entries.
    */
   public static read(ctx: Context): Sessions {
     try {
-      return parseSessionsCookie(
-        decodeURIComponent(ctx.cookies.get("sessions") || "{}")
+      return getRememberedSessions(
+        parseSessionsCookie(
+          decodeURIComponent(ctx.cookies.get("sessions") || "{}")
+        )
       );
     } catch (_err) {
       return {};
@@ -29,7 +31,7 @@ export class SessionsCookieHelper {
   }
 
   /**
-   * Writes active sessions with a consistent domain, path, and expiry.
+   * Writes remembered workspaces, including expired sessions, with a persistent expiry.
    *
    * @param ctx the Koa context.
    * @param sessions the session entries to write.
@@ -39,10 +41,16 @@ export class SessionsCookieHelper {
       return;
     }
 
-    const active = getActiveSessions(sessions, addMonths(new Date(), 3));
-    const expires = getSessionsCookieExpiry(active);
+    const legacyExpiry = addMonths(new Date(), 3).toISOString();
+    const remembered = Object.fromEntries(
+      Object.entries(getRememberedSessions(sessions)).map(([id, session]) => [
+        id,
+        { ...session, expiresAt: session.expiresAt ?? legacyExpiry },
+      ])
+    );
+    const expires = getSessionsCookieExpiry(remembered);
     const value = expires
-      ? encodeURIComponent(JSON.stringify(active))
+      ? encodeURIComponent(JSON.stringify(remembered))
       : undefined;
     const existing = ctx.cookies.get("sessions");
     if (value === existing) {
@@ -72,31 +80,40 @@ export class SessionsCookieHelper {
         logoUrl: team.avatarUrl,
         url: team.url,
         expiresAt: expires.toISOString(),
+        lastUsedAt: new Date().toISOString(),
       },
     });
   }
 
   /**
-   * Removes a workspace entry from the sessions cookie.
+   * Marks a workspace as logged out while retaining its login path.
    *
    * @param ctx the Koa context.
-   * @param teamId the workspace ID to remove.
+   * @param teamId the workspace ID to mark as logged out.
    */
-  public static remove(ctx: Context, teamId: string): void {
+  public static logout(ctx: Context, teamId: string): void {
     const sessions = this.read(ctx);
-    delete sessions[teamId];
+    if (!sessions[teamId]) {
+      return;
+    }
+
+    sessions[teamId] = {
+      ...sessions[teamId],
+      expiresAt: new Date().toISOString(),
+      lastUsedAt: new Date().toISOString(),
+    };
     this.write(ctx, sessions);
   }
 
   /**
    * Removes unavailable workspaces and refreshes their details from the database.
    * Uses the authenticated token expiry for the current workspace and preserves
-   * other entry expiry dates when workspace details change.
+   * other entry expiry and last-use dates when workspace details change.
    *
    * @param ctx the Koa context.
    * @param currentTeam the authenticated workspace to include if missing.
    * @param currentTeamExpiresAt the authenticated token expiry, when available.
-   * @returns the active workspaces in cookie order.
+   * @returns the remembered workspaces in cookie order, including logged-out ones.
    */
   public static async reconcile(
     ctx: Context,
@@ -108,7 +125,7 @@ export class SessionsCookieHelper {
     }
 
     const expires = addMonths(new Date(), 3);
-    const sessions = getActiveSessions(this.read(ctx), expires);
+    const sessions = this.read(ctx);
     const teamIds = Object.keys(sessions);
     const teams = teamIds.length
       ? await Team.findAll({ where: { id: teamIds } })
@@ -119,7 +136,7 @@ export class SessionsCookieHelper {
     }
 
     const reconciled: Sessions = {};
-    const activeTeams: Team[] = [];
+    const rememberedTeams: Team[] = [];
     const ids = new Set([...teamIds, ...(currentTeam ? [currentTeam.id] : [])]);
     for (const id of ids) {
       const team = teamsById.get(id);
@@ -137,12 +154,16 @@ export class SessionsCookieHelper {
             : undefined) ??
           sessions[id]?.expiresAt ??
           expires.toISOString(),
+        lastUsedAt:
+          id === currentTeam?.id
+            ? new Date().toISOString()
+            : (sessions[id]?.lastUsedAt ?? new Date().toISOString()),
       };
-      activeTeams.push(team);
+      rememberedTeams.push(team);
     }
 
     this.write(ctx, reconciled);
-    return activeTeams;
+    return rememberedTeams;
   }
 
   private static canWrite(ctx: Context): boolean {

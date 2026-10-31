@@ -639,11 +639,16 @@ describe("root domain session redirects", () => {
       domain: `docs-${randomUUID()}.example.com`,
     });
     const suspended = await buildTeam({ suspendedAt: new Date() });
+    const loggedOut = await buildTeam();
+    const forgotten = await buildTeam();
+    const expiredAt = subDays(new Date(), 1).toISOString();
+    const lastUsedAt = subDays(new Date(), 2).toISOString();
     const expiresAt = addMonths(new Date(), 1).toISOString();
     const stale = {
       name: "Old workspace",
       logoUrl: null,
       url: "https://old.outline.dev",
+      lastUsedAt,
     };
     const res = await server.get("/oauth/authorize?client_id=x", {
       headers: {
@@ -653,9 +658,13 @@ describe("root domain session redirects", () => {
             [team.id]: { ...stale, expiresAt },
             [suspended.id]: stale,
             [randomUUID()]: stale,
-            [randomUUID()]: {
+            [loggedOut.id]: {
               ...stale,
-              expiresAt: subDays(new Date(), 1).toISOString(),
+              expiresAt: expiredAt,
+            },
+            [forgotten.id]: {
+              ...stale,
+              lastUsedAt: addMonths(new Date(), -4).toISOString(),
             },
             invalid: stale,
           })
@@ -673,9 +682,60 @@ describe("root domain session redirects", () => {
         logoUrl: team.avatarUrl,
         url: team.url,
         expiresAt,
+        lastUsedAt,
+      },
+      [loggedOut.id]: {
+        name: loggedOut.name,
+        logoUrl: loggedOut.avatarUrl,
+        url: loggedOut.url,
+        expiresAt: expiredAt,
+        lastUsedAt,
       },
     });
   });
+
+  it.each([false, true])(
+    "should retain an expired workspace without redirecting to it (active workspace: %s)",
+    async (includeActive) => {
+      const expired = await buildTeam({ subdomain: `expired-${randomUUID()}` });
+      const active = await buildTeam({ subdomain: `active-${randomUUID()}` });
+      const expiresAt = subDays(new Date(), 1).toISOString();
+      const sessions = {
+        [expired.id]: {
+          name: expired.name,
+          logoUrl: expired.avatarUrl,
+          url: expired.url,
+          expiresAt,
+          lastUsedAt: subDays(new Date(), 1).toISOString(),
+        },
+        ...(includeActive
+          ? {
+              [active.id]: {
+                name: active.name,
+                logoUrl: active.avatarUrl,
+                url: active.url,
+                expiresAt: addMonths(new Date(), 1).toISOString(),
+                lastUsedAt: subDays(new Date(), 1).toISOString(),
+              },
+            }
+          : {}),
+      };
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
+        },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(includeActive ? 302 : 200);
+      expect(res.headers.get("location")).toEqual(
+        includeActive ? `${active.url}/settings/billing` : null
+      );
+      const cookies = res.headers.raw()["set-cookie"];
+      const cookie = cookies?.find((value) => value.startsWith("sessions="));
+      expect(cookie).toBeUndefined();
+    }
+  );
 
   it("should not redirect without a sessions cookie", async () => {
     const res = await server.get("/settings/billing", {

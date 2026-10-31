@@ -5,6 +5,7 @@ import { pick } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
+import { getActiveSessions } from "@shared/utils/sessions";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Event, Collection, View } from "@server/models";
@@ -17,7 +18,7 @@ import { clearCSRFCookie } from "./csrf";
 /**
  * Finds the workspace to send a request for the app root domain to, using the
  * first usable workspace in the "sessions" cookie. Entries that are malformed,
- * deleted, suspended, or already the current host are ignored.
+ * expired, deleted, suspended, or already the current host are ignored.
  *
  * @param ctx the Koa context.
  * @param teams the reconciled workspaces in cookie order.
@@ -27,7 +28,10 @@ export function getSessionRedirectUrl(
   ctx: Context,
   teams: Team[]
 ): string | undefined {
-  const team = teams.find((team) => !team.isTeamUrl(ctx.href));
+  const activeSessions = getActiveSessions(SessionsCookieHelper.read(ctx));
+  const team = teams.find(
+    (team) => activeSessions[team.id] && !team.isTeamUrl(ctx.href)
+  );
   if (!team) {
     return;
   }

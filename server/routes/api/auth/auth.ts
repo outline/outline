@@ -3,6 +3,7 @@ import Router from "@koa/router";
 import { uniqBy } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
+import { getActiveSessions } from "@shared/utils/sessions";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -134,12 +135,14 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     type === AuthenticationType.APP
       ? getJWTPayload(token).expiresAt
       : undefined;
-  const signedInTeams = await SessionsCookieHelper.reconcile(
+  const rememberedTeams = await SessionsCookieHelper.reconcile(
     ctx,
     type === AuthenticationType.APP ? team : undefined,
     typeof expiresAt === "string" ? new Date(expiresAt) : undefined
   );
-  const signedInTeamIds = new Set(signedInTeams.map((team) => team.id));
+  const signedInTeamIds = new Set(
+    Object.keys(getActiveSessions(SessionsCookieHelper.read(ctx)))
+  );
 
   // If the user did not _just_ sign in then we need to check if they continue
   // to have access to the workspace they are signed into. This only applies
@@ -174,7 +177,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         type === AuthenticationType.APP
           ? user.getCollaborationToken()
           : undefined,
-      availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
+      availableTeams: uniqBy([...rememberedTeams, ...availableTeams], "id").map(
         (availableTeam) =>
           presentAvailableTeam(
             availableTeam,
@@ -212,6 +215,7 @@ router.post(
       expires: subMinutes(new Date(), 1),
     });
     clearCSRFCookie(ctx);
+    SessionsCookieHelper.logout(ctx, user.teamId);
 
     ctx.body = {
       success: true,
