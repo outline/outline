@@ -51,6 +51,7 @@ import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -574,23 +575,31 @@ class User extends ParanoidModel<
     );
   };
 
-  updateActiveAt = async (ctx: Context, force = false) => {
-    const { ip } = ctx.request;
+  /**
+   * Updates the lastActiveAt timestamp, at most once every five minutes.
+   *
+   * @param ctx the request context, if any, used to record the IP and client.
+   * @param force whether to update even if the last update was recent.
+   * @returns a promise that resolves with the updated user.
+   */
+  updateActiveAt = async (ctx?: Context, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
     // we'll be constantly writing to the DB as API requests happen
     if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo || force) {
       this.lastActiveAt = new Date();
-      this.lastActiveIp = ip;
+      if (ctx) {
+        this.lastActiveIp = ctx.request.ip;
+      }
     }
 
     // Track the clients each user is using
-    if (ctx.userAgent?.source.includes("Outline/")) {
+    if (ctx?.userAgent?.source.includes("Outline/")) {
       this.setFlag(UserFlag.Desktop);
-    } else if (ctx.userAgent?.isDesktop) {
+    } else if (ctx?.userAgent?.isDesktop) {
       this.setFlag(UserFlag.DesktopWeb);
-    } else if (ctx.userAgent?.isMobile) {
+    } else if (ctx?.userAgent?.isMobile) {
       this.setFlag(UserFlag.MobileWeb);
     }
 
@@ -909,17 +918,11 @@ class User extends ParanoidModel<
       return;
     }
 
-    const invalidate = () =>
+    await afterCommit(options.transaction, () =>
       CacheHelper.removeData(
         RedisPrefixHelper.getUserCollectionIdsKey(model.id)
-      );
-
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+      )
+    );
   }
 
   // When a user's suspension state changes, invalidate the cached member count
@@ -948,22 +951,15 @@ class User extends ParanoidModel<
       return;
     }
 
-    const invalidate = async () => {
-      await Promise.all(
+    await afterCommit(options.transaction, () =>
+      Promise.all(
         groupIds.map((groupId) =>
           CacheHelper.removeData(
             RedisPrefixHelper.getCounterCacheKey("Group", "members", groupId)
           )
         )
-      );
-    };
-
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+      )
+    );
   }
 
   @AfterUpdate

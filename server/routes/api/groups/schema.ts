@@ -73,7 +73,7 @@ export const GroupsCreateSchema = z.object({
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
     /** Whether mentions are disabled for this group */
-    disableMentions: z.boolean().optional().prefault(false),
+    disableMentions: z.boolean().prefault(false),
   }),
 });
 
@@ -135,10 +135,7 @@ export const GroupsAddUserSchema = z.object({
     /** User Id */
     userId: z.uuid(),
     /** The permission of the user in the group */
-    permission: z
-      .enum(GroupPermission)
-      .optional()
-      .prefault(GroupPermission.Member),
+    permission: z.enum(GroupPermission).optional(),
   }),
 });
 

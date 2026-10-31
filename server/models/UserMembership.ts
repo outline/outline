@@ -1,8 +1,10 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Op,
-  type SaveOptions,
+  type CreateOptions,
   type FindOptions,
+  type InstanceDestroyOptions,
+  type SaveOptions,
   type Transaction,
 } from "sequelize";
 import type { WhereOptions } from "sequelize";
@@ -26,6 +28,7 @@ import type { DocumentPermission } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -241,7 +244,10 @@ class UserMembership extends IdModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: UserMembership,
-    options: SaveOptions<UserMembership> & { documentId?: string }
+    options: SaveOptions<UserMembership> & {
+      documentId?: string;
+      childDocumentIds?: string[];
+    }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -261,12 +267,11 @@ class UserMembership extends IdModel<
   }
 
   @AfterCreate
-  static async invalidateCollectionIdsAfterCreate(model: UserMembership) {
-    if (model.collectionId) {
-      await CacheHelper.clearData(
-        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
-      );
-    }
+  static async invalidateCollectionIdsAfterCreate(
+    model: UserMembership,
+    options: CreateOptions<UserMembership>
+  ) {
+    await this.invalidateCollectionIds(model, options);
   }
 
   @AfterCreate
@@ -352,12 +357,11 @@ class UserMembership extends IdModel<
   }
 
   @AfterDestroy
-  static async invalidateCollectionIdsAfterDestroy(model: UserMembership) {
-    if (model.collectionId) {
-      await CacheHelper.clearData(
-        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
-      );
-    }
+  static async invalidateCollectionIdsAfterDestroy(
+    model: UserMembership,
+    options: InstanceDestroyOptions
+  ) {
+    await this.invalidateCollectionIds(model, options);
   }
 
   @AfterDestroy
@@ -369,33 +373,39 @@ class UserMembership extends IdModel<
 
   /**
    * Recreate all sourced permissions for a given permission.
+   *
+   * @param model the source membership.
+   * @param options the save options, with an optional target document id and
+   * precomputed published child document ids of the target document.
    */
   static async recreateSourcedMemberships(
     model: UserMembership,
-    options: SaveOptions<UserMembership> & { documentId?: string }
+    options: SaveOptions<UserMembership> & {
+      documentId?: string;
+      childDocumentIds?: string[];
+    }
   ) {
     if (!model.documentId) {
       return;
     }
     const { transaction, documentId } = options;
+    let { childDocumentIds } = options;
 
-    const document = await Document.unscoped()
-      .scope("withoutState")
-      .findOne({
-        attributes: ["id"],
-        where: {
-          id: documentId ?? model.documentId,
-        },
-        transaction,
-      });
+    if (!childDocumentIds) {
+      const document = await Document.unscoped()
+        .scope("withoutState")
+        .findOne({
+          attributes: ["id"],
+          where: {
+            id: documentId ?? model.documentId,
+          },
+          transaction,
+        });
+      if (!document) {
+        return;
+      }
 
-    if (!document) {
-      return;
-    }
-
-    const childDocumentIds = [
-      ...(documentId ? [documentId] : []),
-      ...(await document.findAllChildDocumentIds(
+      childDocumentIds = await document.findAllChildDocumentIds(
         {
           publishedAt: {
             [Op.ne]: null,
@@ -404,39 +414,43 @@ class UserMembership extends IdModel<
         {
           transaction,
         }
-      )),
-    ];
-
-    if (childDocumentIds.length) {
-      await this.destroy({
-        where: {
-          userId: model.userId,
-          sourceId: model.id,
-          documentId: {
-            [Op.in]: childDocumentIds,
-          },
-        },
-        transaction,
-      });
-    }
-
-    for (const childDocumentId of childDocumentIds) {
-      await this.create(
-        {
-          documentId: childDocumentId,
-          userId: model.userId,
-          permission: model.permission,
-          sourceId: model.id,
-          createdById: model.createdById,
-          createdAt: model.createdAt,
-          updatedAt: model.updatedAt,
-        },
-        {
-          transaction,
-          hooks: false,
-        }
       );
     }
+
+    const documentIds = [
+      ...(documentId ? [documentId] : []),
+      ...childDocumentIds,
+    ];
+    if (!documentIds.length) {
+      return;
+    }
+
+    await this.destroy({
+      where: {
+        userId: model.userId,
+        sourceId: model.id,
+        documentId: {
+          [Op.in]: documentIds,
+        },
+      },
+      transaction,
+    });
+
+    await this.bulkCreate(
+      documentIds.map((childDocumentId) => ({
+        documentId: childDocumentId,
+        userId: model.userId,
+        permission: model.permission,
+        sourceId: model.id,
+        createdById: model.createdById,
+        createdAt: model.createdAt,
+        updatedAt: model.updatedAt,
+      })),
+      {
+        transaction,
+        hooks: false,
+      }
+    );
   }
 
   private async insertEvent(
@@ -454,6 +468,21 @@ class UserMembership extends IdModel<
     } else {
       await Document.insertEvent(name, this, hookContext);
     }
+  }
+
+  private static async invalidateCollectionIds(
+    model: UserMembership,
+    options: { transaction?: Transaction | null }
+  ) {
+    if (!model.collectionId) {
+      return;
+    }
+
+    await afterCommit(options.transaction, () =>
+      CacheHelper.removeData(
+        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
+      )
+    );
   }
 
   private static async validateLastAdminPermission(

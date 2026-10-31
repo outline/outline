@@ -2,6 +2,7 @@ import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import DuplicateCollectionDocumentsTask from "@server/queues/tasks/DuplicateCollectionDocumentsTask";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -57,7 +58,7 @@ export default async function collectionDuplicator(
     });
 
   if (transaction) {
-    transaction.afterCommit(async () => {
+    await afterCommit(transaction, async () => {
       try {
         await scheduleTask();
       } catch (err) {

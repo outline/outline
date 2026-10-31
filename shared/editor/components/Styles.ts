@@ -31,15 +31,24 @@ const uploadScaleIn = keyframes`
   to { transform: scale(1); }
 `;
 
+/** The header row of a table moves down with the scroll position of the page. */
+const stickyTableHeader = keyframes`
+  from { transform: translateY(0); }
+  to { transform: translateY(var(--sticky-header-travel)); }
+`;
+
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
 const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
 
 /** The content of a file in the editor, without its frame or hidden controls. */
 const uploadContent = [
-  `.${EditorStyleHelper.imageWrapper} > :is(a, img, .${EditorStyleHelper.imageHandle})`,
+  `.${EditorStyleHelper.imageWrapper} > a`,
+  `.${EditorStyleHelper.imageWrapper} > img`,
+  `.${EditorStyleHelper.imageWrapper} > .${EditorStyleHelper.imageHandle}`,
   `.${EditorStyleHelper.videoWrapper} > video`,
   ".widget > *",
-  `.${EditorStyleHelper.pdfWrapper} > :is(:first-child, embed)`,
+  `.${EditorStyleHelper.pdfWrapper} > :first-child`,
+  `.${EditorStyleHelper.pdfWrapper} > embed`,
 ].join(", ");
 
 export const pulse = (color: string) => keyframes`
@@ -1072,12 +1081,12 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   user-select: none;
 
   /* The content of the file is faded but not its frame, so that the progress bar on the frame is not faded */
-  :is(${uploadContent}) {
+  ${uploadContent} {
     opacity: 0.5;
   }
 
   /* Progress of the upload along the bottom of the file, after a delay so that quick uploads do not show it */
-  :is(${uploadFrame}) {
+  ${uploadFrame} {
     position: relative;
 
     &::after {
@@ -1100,9 +1109,11 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   animation: ${uploadScaleIn} 150ms ease-out;
 }
 
-.${EditorStyleHelper.uploadComplete} :is(${uploadContent}) {
-  /* Starts halfway through, from the opacity of the placeholder */
-  animation: ${fadeIn} 500ms linear -250ms;
+.${EditorStyleHelper.uploadComplete} {
+  ${uploadContent} {
+    /* Starts halfway through, from the opacity of the placeholder */
+    animation: ${fadeIn} 500ms linear -250ms;
+  }
 }
 
 .${EditorStyleHelper.uploadStatus} {
@@ -1204,8 +1215,9 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   caret-color: transparent;
 }
 
-/* Text blocks selected with the drag handle do not get an outline. */
-.ProseMirror-selectednode:not(p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, hr) {
+/* Text blocks selected with the drag handle do not get an outline. Chained
+   :not() as the email CSS inliner does not support selector lists in :not(). */
+.ProseMirror-selectednode:not(p):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(ul):not(ol):not(li):not(blockquote):not(hr) {
   outline: 2px solid ${props.readOnly ? "transparent" : props.theme.selected};
 
   @media print {
@@ -1969,11 +1981,10 @@ mark {
 .${EditorStyleHelper.codeBlock} {
   position: relative;
   font-size: 90%;
+  border-radius: ${EditorStyleHelper.blockRadius};
 
-  &:hover + .${EditorStyleHelper.codeBlockToggle},
-  &:focus-within + .${EditorStyleHelper.codeBlockToggle},
-  & + .${EditorStyleHelper.codeBlockToggle}:hover,
-  & + .${EditorStyleHelper.codeBlockToggle}:focus {
+  &:hover .${EditorStyleHelper.codeBlockToggle} button,
+  &:focus-within .${EditorStyleHelper.codeBlockToggle} button {
     opacity: 1;
   }
 }
@@ -2130,14 +2141,30 @@ mark {
   }
 }
 
+// Covers the block so the button can stick to the bottom of the viewport
+// while the block is in view.
 .${EditorStyleHelper.codeBlockToggle} {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+
+  @media print {
+    display: none !important;
+  }
+}
+
+.${EditorStyleHelper.codeBlockToggle} button {
   display: inline-flex;
   align-items: center;
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  transform: translate3d(-50%, -50px, 0);
-  margin: 0;
+  position: sticky;
+  bottom: 16px;
+  margin: 0 0 16px;
   padding: 0 8px;
   border: 0;
   border-radius: 100px;
@@ -2156,10 +2183,6 @@ mark {
 
   &:hover {
     background: ${props.theme.backgroundSecondary};
-  }
-
-  @media print {
-    display: none !important;
   }
 }
 
@@ -2633,6 +2656,25 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+
+  // The browser moves the header row in the same frame as the scroll, a scroll
+  // listener is always one frame behind.
+  @supports (animation-timeline: view()) {
+    view-timeline: --sticky-table-header block;
+    view-timeline-inset: var(--header-offset, ${HEADER_HEIGHT}px) 0px;
+
+    > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+      animation: ${stickyTableHeader} linear both;
+      animation-timeline: --sticky-table-header;
+      animation-range:
+        exit-crossing var(--sticky-header-start, 0px)
+        exit-crossing calc(var(--sticky-header-start, 0px) + var(--sticky-header-travel, 0px));
+    }
+  }
+}
+
+table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+  animation: none;
 }
 
 .${EditorStyleHelper.tableStickyHeader} {
@@ -2647,7 +2689,9 @@ table {
   }
 
   > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
-    transform: translateY(calc(var(--header-offset, ${HEADER_HEIGHT}px) + var(--sticky-scroll-offset, 0px)));
+    @supports not (animation-timeline: view()) {
+      transform: translateY(calc(var(--header-offset, ${HEADER_HEIGHT}px) + var(--sticky-scroll-offset, 0px)));
+    }
 
     // Mask content scrolling past the top of the header (first shadow) and draw
     // the divider below it (second shadow). Using box-shadow rather than a real

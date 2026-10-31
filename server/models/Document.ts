@@ -54,9 +54,10 @@ import type {
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
@@ -542,7 +543,13 @@ class Document extends ArchivableModel<
     }
 
     await collection.updateDocument(model, { transaction });
-    model.collection = collection;
+
+    // Keep a loaded collection so that its membership data stays available.
+    if (model.collection?.id === collection.id) {
+      model.collection.documentStructure = collection.documentStructure;
+    } else {
+      model.collection = collection;
+    }
   }
 
   @AfterCreate
@@ -661,12 +668,7 @@ class Document extends ArchivableModel<
         await APIUpdateExtension.notifyUpdate(model.id, actorId);
       };
 
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+      void afterCommit(ctx.transaction, notify);
     }
   }
 

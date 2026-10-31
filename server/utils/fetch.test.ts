@@ -1,6 +1,9 @@
+import dns from "node:dns";
 import http from "node:http";
+import type { MockInstance } from "vitest";
 import env from "@server/env";
 import { server as msw } from "@server/test/msw";
+import { getTestProxy } from "@server/test/support";
 import fetch from "./fetch";
 
 describe("fetch", () => {
@@ -12,7 +15,20 @@ describe("fetch", () => {
     // The request interceptor swallows socket errors from the filtering
     // agent, so these requests use the real network stack.
     msw.close();
-    server = http.createServer((_req, res) => res.end("ok"));
+    server = http.createServer((req, res) => {
+      if (req.url === "/redirect") {
+        res.writeHead(302, { Location: "https://127.0.0.1:1/" });
+      }
+      if (req.url === "/stall-headers") {
+        return;
+      }
+      if (req.url === "/stall-body") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.write("partial");
+        return;
+      }
+      res.end("ok");
+    });
     await new Promise<void>((resolve) =>
       server.listen(0, "127.0.0.1", resolve)
     );
@@ -22,6 +38,7 @@ describe("fetch", () => {
   });
 
   afterAll(async () => {
+    server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
     msw.listen({ onUnhandledRequest: "error" });
   });
@@ -33,7 +50,7 @@ describe("fetch", () => {
   it("should block a private address", async () => {
     env.ALLOWED_PRIVATE_IP_ADDRESSES = [];
 
-    await expect(fetch(url)).rejects.toThrow();
+    await expect(fetch(url)).rejects.toMatchObject({ status: 400 });
   });
 
   it("should allow a private address in ALLOWED_PRIVATE_IP_ADDRESSES", async () => {
@@ -47,5 +64,165 @@ describe("fetch", () => {
     env.ALLOWED_PRIVATE_IP_ADDRESSES = ["127.0.0.1"];
 
     await expect(fetch(url, { allowIPAddressList: [] })).rejects.toThrow();
+  });
+
+  it("should follow a redirect from http to https", async () => {
+    env.ALLOWED_PRIVATE_IP_ADDRESSES = ["127.0.0.1"];
+
+    await expect(fetch(`${url}redirect`)).rejects.toThrow("ECONNREFUSED");
+  });
+
+  describe("with a proxy", () => {
+    const proxy = getTestProxy((req, res) => {
+      if (req.url === "http://192.0.2.1/redirect") {
+        res.writeHead(302, { Location: "https://192.0.2.1/" });
+      }
+      if (req.url === "http://192.0.2.1/redirect-private") {
+        res.writeHead(302, { Location: "http://10.0.0.1/" });
+      }
+      res.end("proxied");
+    });
+
+    beforeEach(() => {
+      // TEST-NET-1 is never routed, so a request that skips the proxy fails.
+      env.ALLOWED_PRIVATE_IP_ADDRESSES = ["192.0.2.1"];
+      const proxyURL = new URL(proxy.url);
+      proxyURL.username = "us%40er";
+      proxyURL.password = "p%40ss";
+      process.env.HTTP_PROXY = proxyURL.href;
+      process.env.HTTPS_PROXY = proxyURL.href;
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      delete process.env.HTTP_PROXY;
+      delete process.env.HTTPS_PROXY;
+    });
+
+    it("should send an http request through the proxy", async () => {
+      const res = await fetch("http://192.0.2.1/");
+
+      expect(await res.text()).toEqual("proxied");
+      expect(proxy.requests).toEqual([
+        {
+          method: "GET",
+          url: "http://192.0.2.1/",
+          auth: `Basic ${Buffer.from("us@er:p@ss").toString("base64")}`,
+        },
+      ]);
+    });
+
+    it("should tunnel an https request through the proxy", async () => {
+      const res = await fetch("https://192.0.2.1/");
+
+      expect(res.status).toEqual(403);
+      expect(proxy.requests).toEqual([
+        {
+          method: "CONNECT",
+          url: "192.0.2.1:443",
+          auth: `Basic ${Buffer.from("us@er:p@ss").toString("base64")}`,
+        },
+      ]);
+    });
+
+    it("should tunnel an https redirect through the proxy", async () => {
+      const res = await fetch("http://192.0.2.1/redirect");
+
+      expect(res.status).toEqual(403);
+      expect(proxy.requests.map((request) => request.method)).toEqual([
+        "GET",
+        "CONNECT",
+      ]);
+    });
+
+    it("should block a private target address", async () => {
+      await expect(fetch("https://10.0.0.1/")).rejects.toMatchObject({
+        status: 400,
+      });
+      expect(proxy.requests).toEqual([]);
+    });
+
+    it("should keep the target host for a path that starts with //", async () => {
+      await fetch("http://192.0.2.1//1.1.1.1/payload");
+
+      expect(proxy.requests.map((request) => request.url)).toEqual([
+        "http://192.0.2.1//1.1.1.1/payload",
+      ]);
+    });
+
+    it("should keep the target host when a Host header is set", async () => {
+      await fetch("http://192.0.2.1/", { headers: { Host: "10.0.0.1" } });
+
+      expect(proxy.requests.map((request) => request.url)).toEqual([
+        "http://192.0.2.1/",
+      ]);
+    });
+
+    it("should not connect to the proxy after a timeout", async () => {
+      const lookupSpy: MockInstance = vi.spyOn(dns.promises, "lookup");
+      lookupSpy.mockImplementation(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        return [{ address: "192.0.2.1", family: 4 }];
+      });
+
+      await expect(
+        fetch("http://slow.example/", { timeout: 50 })
+      ).rejects.toThrow("Request timeout after 50ms");
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(proxy.connections).toEqual(0);
+    });
+
+    it("should block a redirect to a private target address", async () => {
+      await expect(
+        fetch("http://192.0.2.1/redirect-private")
+      ).rejects.toMatchObject({ status: 400 });
+      expect(proxy.requests.map((request) => request.url)).toEqual([
+        "http://192.0.2.1/redirect-private",
+      ]);
+    });
+  });
+
+  describe("timeout", () => {
+    beforeEach(() => {
+      env.ALLOWED_PRIVATE_IP_ADDRESSES = ["127.0.0.1"];
+    });
+
+    it("should throw a timeout error when headers do not arrive", async () => {
+      await expect(
+        fetch(`${url}stall-headers`, { timeout: 100 })
+      ).rejects.toThrow("Request timeout after 100ms");
+    });
+
+    it("should abort a stalled response body", async () => {
+      const res = await fetch(`${url}stall-body`, { timeout: 100 });
+
+      await expect(res.text()).rejects.toMatchObject({ name: "AbortError" });
+    });
+
+    it("should apply the timeout when a signal is also given", async () => {
+      const controller = new AbortController();
+
+      await expect(
+        fetch(`${url}stall-headers`, {
+          timeout: 100,
+          signal: controller.signal,
+        })
+      ).rejects.toThrow("Request timeout after 100ms");
+    });
+
+    it("should rethrow a caller abort unchanged", async () => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 50);
+
+      const err = await fetch(`${url}stall-headers`, {
+        timeout: 5000,
+        signal: controller.signal,
+      }).catch((e: unknown) => e);
+
+      expect(err).toMatchObject({ name: "AbortError" });
+      expect(err).not.toMatchObject({
+        message: expect.stringContaining("timeout"),
+      });
+    });
   });
 });

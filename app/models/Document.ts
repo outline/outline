@@ -24,9 +24,9 @@ import {
   NotificationEventType,
 } from "@shared/types";
 import { DocumentPreferenceDefaults } from "@shared/constants";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
-import slugify from "@shared/utils/slugify";
 import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { Properties } from "~/types";
@@ -231,11 +231,9 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   popularityScore: number;
 
-  /**
-   * @deprecated Use path instead
-   */
+  /** The path to the document. The server makes the slug from the title. */
   @observable
-  url: string;
+  path: string;
 
   @observable
   urlId: string;
@@ -301,18 +299,6 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get initial(): string {
     return (this.title?.charAt(0) ?? "?").toUpperCase();
-  }
-
-  @computed
-  get path(): string {
-    const prefix = "/doc";
-
-    if (!this.title) {
-      return `${prefix}/untitled-${this.urlId}`;
-    }
-
-    const slugifiedTitle = slugify(this.title);
-    return `${prefix}/${slugifiedTitle}-${this.urlId}`;
   }
 
   @computed
@@ -419,6 +405,15 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get isDraft(): boolean {
     return !this.publishedAt;
+  }
+
+  /**
+   * Whether the document has no content. Returns false if the content is not
+   * loaded.
+   */
+  @computed
+  get isEmpty(): boolean {
+    return !!this.data && ProsemirrorDataHelper.isEmpty(this.data);
   }
 
   get hasEmptyTitle(): boolean {
@@ -717,7 +712,7 @@ export default class Document extends ArchivableModel implements Searchable {
       color: this.color ?? undefined,
       icon: this.icon ?? undefined,
       children: this.childDocuments.map((doc) => doc.asNavigationNode),
-      url: this.url,
+      url: this.path,
       isDraft: this.isDraft,
     };
   }

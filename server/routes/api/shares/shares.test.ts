@@ -804,7 +804,7 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toBe(share.id);
     expect(body.data.shares[0].published).toBe(true);
   });
-  it("should allow reading share by documentId", async () => {
+  it("should return no content when the document has no share", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -1462,6 +1462,13 @@ describe("#shares.sitemap", () => {
 });
 
 describe("#shares.subscribe", () => {
+  beforeEach(async () => {
+    // Requests share a loopback IP, so earlier runs would reach the per-IP limit.
+    await ShareSubscription.destroy({
+      where: { ipAddress: ["127.0.0.1", "::1", "::ffff:127.0.0.1"] },
+    });
+  });
+
   it("should fail with status 400 bad request when shareId is invalid", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {

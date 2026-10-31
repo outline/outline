@@ -4,6 +4,7 @@ import { action, computed, makeObservable, observable, override } from "mobx";
 import type { NavigationNode, PublicTeam } from "@shared/types";
 import type Document from "~/models/Document";
 import Share from "~/models/Share";
+import type User from "~/models/User";
 import type { PartialExcept } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
@@ -107,7 +108,9 @@ export default class SharesStore extends Store<Share> {
       "collectionId" in params
         ? this.getByCollectionId(params.collectionId)
         : this.getByDocumentId(params.documentId);
-    if (share) {
+
+    // shares received over websockets do not include a policy.
+    if (share && this.rootStore.policies.get(share.id)) {
       return share;
     }
     this.isFetching = true;
@@ -125,6 +128,23 @@ export default class SharesStore extends Store<Share> {
       this.isFetching = false;
     }
   }
+
+  /**
+   * Returns the shares to list in settings that match the query, as filtered
+   * by the shares.list endpoint: published shares created by the user, or all
+   * published shares for an admin. Shares without a loaded policy are left out.
+   *
+   * @param query the search query.
+   * @param user the current user.
+   * @returns the matching shares.
+   */
+  findListedByQuery = (query: string, user: User): Share[] =>
+    this.findByQuery(query).filter(
+      (share) =>
+        share.published &&
+        !!this.rootStore.policies.get(share.id) &&
+        (user.isAdmin || share.createdBy?.id === user.id)
+    );
 
   getByDocumentParents = (document: Document): Share | undefined => {
     const collectionShare = document.collectionId

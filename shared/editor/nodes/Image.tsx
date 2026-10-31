@@ -177,6 +177,11 @@ export default class Image extends SimpleImage {
             const img = dom.getElementsByTagName("img")[0] as
               | HTMLImageElement
               | undefined;
+            const src = img?.getAttribute("src");
+            if (!src) {
+              return false;
+            }
+
             const className = dom.className;
             const layoutClassMatched =
               className && className.match(/image-(.*)$/);
@@ -193,7 +198,7 @@ export default class Image extends SimpleImage {
             const href = sanitizeUrl(img?.closest("a")?.getAttribute("href"));
 
             return {
-              src: img?.getAttribute("src"),
+              src,
               alt: img?.getAttribute("alt"),
               title: img?.getAttribute("title"),
               source: img?.getAttribute("source"),
@@ -210,6 +215,11 @@ export default class Image extends SimpleImage {
             // Don't parse images from our own editor with this rule. A linked
             // image nests the <img> inside an <a>, so check ancestors too.
             if (dom.closest(".image") || dom.closest(".emoji")) {
+              return false;
+            }
+
+            const src = dom.getAttribute("src");
+            if (!src) {
               return false;
             }
 
@@ -232,7 +242,7 @@ export default class Image extends SimpleImage {
             }
 
             return {
-              src: dom.getAttribute("src"),
+              src,
               alt: dom.getAttribute("alt"),
               title: dom.getAttribute("title"),
               width: width ? parseInt(width, 10) : undefined,

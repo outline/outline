@@ -14,7 +14,7 @@ import {
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import { Hour } from "@shared/utils/time";
 import env from "@server/env";
-import { allowScriptSrc } from "@server/middlewares/csp";
+import { allowFraming, allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
 import type { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -79,6 +79,41 @@ async function renderShareContent(
   return TextHelper.attachmentsToSignedUrls(html, model.teamId, Hour.seconds);
 }
 
+/**
+ * Builds Open Graph and Twitter card meta tags for link unfurls.
+ *
+ * @param tags The values to include, empty values are omitted.
+ * @returns HTML meta tags.
+ */
+function socialMetaTags(tags: {
+  title: string;
+  description: string;
+  url: string;
+  siteName: string;
+  image?: string;
+}): string {
+  const properties: [string, string, string | undefined][] = [
+    ["property", "og:type", "article"],
+    ["property", "og:site_name", tags.siteName],
+    ["property", "og:title", tags.title],
+    ["property", "og:description", tags.description],
+    ["property", "og:url", tags.url],
+    ["property", "og:image", tags.image],
+    ["name", "twitter:card", "summary"],
+    ["name", "twitter:title", tags.title],
+    ["name", "twitter:description", tags.description],
+    ["name", "twitter:image", tags.image],
+  ];
+
+  return properties
+    .filter(([, , content]) => content)
+    .map(
+      ([attribute, key, content]) =>
+        `<meta ${attribute}="${key}" content="${escape(content)}" />`
+    )
+    .join("\n    ");
+}
+
 const readIndexFile = async (): Promise<Buffer> => {
   if (env.isProduction || env.isTest) {
     if (indexHtmlCache) {
@@ -110,6 +145,8 @@ export const renderApp = async (
     content?: string;
     canonical?: string;
     shortcutIcon?: string;
+    image?: string;
+    siteName?: string;
     rootShareId?: string;
     isShare?: boolean;
     markdownUrl?: string;
@@ -119,8 +156,9 @@ export const renderApp = async (
 ) => {
   const {
     title = env.APP_NAME,
-    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
+    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, & more…",
     canonical = "",
+    siteName = env.APP_NAME,
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
     allowIndexing = false,
@@ -178,6 +216,13 @@ export const renderApp = async (
     `;
 
   if (options.isShare) {
+    headTags += socialMetaTags({
+      title,
+      description,
+      url: canonical,
+      siteName,
+      image: options.image,
+    });
     headTags += `
     <link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${escape(options.rootShareId || shareId)}">
     `;
@@ -225,15 +270,16 @@ export const renderApp = async (
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
   ctx.response.set("Expires", "-1");
 
+  // Replacer functions prevent "$" sequences in user content being expanded.
   ctx.body = page
     .toString()
-    .replace(/\{env\}/g, environment)
+    .replace(/\{env\}/g, () => environment)
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
-    .replace(/\{title\}/g, escape(title))
-    .replace(/\{description\}/g, escape(description))
-    .replace(/\{content\}/g, content)
+    .replace(/\{title\}/g, () => escape(title))
+    .replace(/\{description\}/g, () => escape(description))
+    .replace(/\{content\}/g, () => content)
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
-    .replace(/\{head-tags\}/g, headTags)
+    .replace(/\{head-tags\}/g, () => headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
@@ -348,7 +394,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const preventEmbedding =
     team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
   if (!preventEmbedding) {
-    ctx.remove("X-Frame-Options");
+    allowFraming(ctx);
   }
 
   const publicBranding =
@@ -362,20 +408,24 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.name
         : undefined;
 
+  const avatarUrl =
+    publicBranding && team?.avatarUrl
+      ? ((await team.publicAvatarUrl()) ?? undefined)
+      : undefined;
+
   // Only bots read the server-rendered content, so skip the render for others.
   const model = document || collection;
   const content = model && isBot ? await renderShareContent(model) : undefined;
 
-  const canonicalUrl =
-    share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
-      ? `${share.canonicalUrl}${
-          documentSlug && document
-            ? document.path
-            : collectionSlug && collection
-              ? collection.path
-              : ""
-        }`
-      : undefined;
+  const canonicalUrl = share
+    ? `${share.canonicalUrl}${
+        documentSlug && document
+          ? document.path
+          : collectionSlug && collection
+            ? collection.path
+            : ""
+      }`
+    : undefined;
 
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
@@ -384,10 +434,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
       document?.getSummary() ||
       (publicBranding && team?.description ? team.description : undefined),
     content,
-    shortcutIcon:
-      publicBranding && team?.avatarUrl
-        ? ((await team.publicAvatarUrl()) ?? undefined)
-        : undefined,
+    shortcutIcon: avatarUrl,
+    image: avatarUrl ? new URL(avatarUrl, env.URL).toString() : undefined,
+    siteName: publicBranding && team?.name ? team.name : undefined,
     analytics,
     isShare: true,
     rootShareId,

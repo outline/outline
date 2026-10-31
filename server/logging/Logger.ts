@@ -137,8 +137,9 @@ class Logger {
     });
     Tracing.setError(error);
 
-    if (env.SENTRY_DSN) {
-      Sentry.withScope((scope) => {
+    const sentry = Sentry;
+    if (sentry) {
+      sentry.withScope((scope) => {
         scope.setLevel("error");
 
         for (const key in extra) {
@@ -149,7 +150,7 @@ class Logger {
           scope.setSDKProcessingMetadata({ request });
         }
 
-        Sentry.captureException(error);
+        sentry.captureException(error);
       });
     }
 

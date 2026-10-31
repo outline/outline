@@ -14,6 +14,7 @@ import Logger from "@server/logging/Logger";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { Integration, IntegrationAuthentication } from "@server/models";
+import { afterCommit } from "@server/storage/transaction";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { addSeconds } from "date-fns";
 import { Figma } from "../figma";
@@ -94,12 +95,12 @@ router.get(
         { transaction }
       );
 
-      transaction.afterCommit(async () => {
-        await new UploadIntegrationLogoTask().schedule({
+      await afterCommit(transaction, () =>
+        new UploadIntegrationLogoTask().schedule({
           integrationId: integration.id,
           logoUrl: figmaAccount.img_url,
-        });
-      });
+        })
+      );
 
       ctx.redirect(FigmaUtils.successUrl());
     } catch (err) {

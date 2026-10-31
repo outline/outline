@@ -9,6 +9,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { Linear } from "../linear";
@@ -99,7 +100,7 @@ router.get(
         { transaction }
       );
 
-      transaction.afterCommit(async () => {
+      await afterCommit(transaction, async () => {
         if (workspace.logoUrl) {
           await new UploadIntegrationLogoTask().schedule({
             integrationId: integration.id,

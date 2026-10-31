@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { addMonths, subDays } from "date-fns";
+import {
+  IntegrationService,
+  IntegrationType,
+  TeamPreference,
+} from "@shared/types";
+import { parseSessionsCookie } from "@shared/utils/sessions";
 import { parser } from "@server/editor";
 import env from "@server/env";
 import {
@@ -374,6 +380,42 @@ describe("content security policy", () => {
     expect(csp).toContain("nonce-");
   });
 
+  it("should only allow framing of app pages on the same origin", async () => {
+    const res = await server.get("/oauth/authorize?client_id=x");
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
+  it("should allow framing of shares on any origin", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).not.toContain("frame-ancestors");
+  });
+
+  it("should not allow framing of shares when embedding is prevented", async () => {
+    const domain = `embed-${randomUUID()}.example.com`;
+    env.URL = `https://${domain}`;
+    const team = await buildTeam({ domain });
+    team.setPreference(TeamPreference.PreventDocumentEmbedding, true);
+    await team.save();
+    const document = await buildDocument({ teamId: team.id });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: team.id,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
   it("should allow the Google Tag Manager script source when integration is enabled", async () => {
     const document = await buildDocument();
     const share = await buildShare({
@@ -650,6 +692,111 @@ describe("root domain session redirects", () => {
       expect(res.status).toEqual(200);
     }
   });
+
+  it("should clean and refresh the cookie before rendering the workspace chooser", async () => {
+    const team = await buildTeam({
+      name: "Updated workspace",
+      subdomain: `updated-${randomUUID()}`,
+      domain: `docs-${randomUUID()}.example.com`,
+    });
+    const suspended = await buildTeam({ suspendedAt: new Date() });
+    const loggedOut = await buildTeam();
+    const forgotten = await buildTeam();
+    const expiredAt = subDays(new Date(), 1).toISOString();
+    const lastUsedAt = subDays(new Date(), 2).toISOString();
+    const expiresAt = addMonths(new Date(), 1).toISOString();
+    const stale = {
+      name: "Old workspace",
+      logoUrl: null,
+      url: "https://old.outline.dev",
+      lastUsedAt,
+    };
+    const res = await server.get("/oauth/authorize?client_id=x", {
+      headers: {
+        Host: host,
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team.id]: { ...stale, expiresAt },
+            [suspended.id]: stale,
+            [randomUUID()]: stale,
+            [loggedOut.id]: {
+              ...stale,
+              expiresAt: expiredAt,
+            },
+            [forgotten.id]: {
+              ...stale,
+              lastUsedAt: addMonths(new Date(), -4).toISOString(),
+            },
+            invalid: stale,
+          })
+        )}`,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(200);
+    const cookies = res.headers.raw()["set-cookie"];
+    const cookie = cookies.find((value) => value.startsWith("sessions="));
+    const value = cookie?.split(";")[0].slice("sessions=".length);
+    expect(parseSessionsCookie(decodeURIComponent(value || "{}"))).toEqual({
+      [team.id]: {
+        name: team.name,
+        logoUrl: team.avatarUrl,
+        url: team.url,
+        expiresAt,
+        lastUsedAt,
+      },
+      [loggedOut.id]: {
+        name: loggedOut.name,
+        logoUrl: loggedOut.avatarUrl,
+        url: loggedOut.url,
+        expiresAt: expiredAt,
+        lastUsedAt,
+      },
+    });
+  });
+
+  it.each([false, true])(
+    "should retain an expired workspace without redirecting to it (active workspace: %s)",
+    async (includeActive) => {
+      const expired = await buildTeam({ subdomain: `expired-${randomUUID()}` });
+      const active = await buildTeam({ subdomain: `active-${randomUUID()}` });
+      const expiresAt = subDays(new Date(), 1).toISOString();
+      const sessions = {
+        [expired.id]: {
+          name: expired.name,
+          logoUrl: expired.avatarUrl,
+          url: expired.url,
+          expiresAt,
+          lastUsedAt: subDays(new Date(), 1).toISOString(),
+        },
+        ...(includeActive
+          ? {
+              [active.id]: {
+                name: active.name,
+                logoUrl: active.avatarUrl,
+                url: active.url,
+                expiresAt: addMonths(new Date(), 1).toISOString(),
+                lastUsedAt: subDays(new Date(), 1).toISOString(),
+              },
+            }
+          : {}),
+      };
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
+        },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(includeActive ? 302 : 200);
+      expect(res.headers.get("location")).toEqual(
+        includeActive ? `${active.url}/settings/billing` : null
+      );
+      const cookies = res.headers.raw()["set-cookie"];
+      const cookie = cookies?.find((value) => value.startsWith("sessions="));
+      expect(cookie).toBeUndefined();
+    }
+  );
 
   it("should not redirect without a sessions cookie", async () => {
     const res = await server.get("/settings/billing", {

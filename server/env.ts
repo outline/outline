@@ -835,6 +835,16 @@ export class Environment {
   );
 
   /**
+   * Whether to disable OAuth Client ID Metadata Documents (CIMD). When set to
+   * true, clients must use Dynamic Client Registration instead. Use this when
+   * the server cannot fetch metadata documents from client hosts.
+   */
+  @IsBoolean()
+  public OAUTH_DISABLE_CIMD = this.toBoolean(
+    environment.OAUTH_DISABLE_CIMD ?? "false"
+  );
+
+  /**
    * Enable unsafe-inline in script-src CSP directive
    */
   @IsBoolean()

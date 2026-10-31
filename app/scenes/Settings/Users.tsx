@@ -4,7 +4,7 @@ import { PlusIcon, UserIcon } from "outline-icons";
 import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
@@ -34,7 +34,6 @@ import { HStack } from "~/components/primitives/HStack";
 
 function Users() {
   const appName = env.APP_NAME;
-  const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
   const { users } = useStores();
@@ -87,11 +86,11 @@ function Users() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleStatusFilter = useCallback(

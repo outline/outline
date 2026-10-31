@@ -22,7 +22,7 @@ import {
   BeforeValidate,
   IsDate,
 } from "sequelize-typescript";
-import slugify from "slugify";
+import slugify from "@server/utils/slugify";
 import type { ProsemirrorData } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DocumentValidation } from "@shared/validations";

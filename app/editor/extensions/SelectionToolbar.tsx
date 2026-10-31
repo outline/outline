@@ -11,6 +11,7 @@ import {
   MenuType,
   type SelectionToolbarMenuDescriptor,
 } from "@shared/editor/types";
+import { CodeBlockHoverToolbar } from "../components/CodeBlockHoverToolbar";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
@@ -217,14 +218,22 @@ export default class SelectionToolbarExtension extends Extension {
     const editorProps = this.editor.props;
 
     return (
-      <SelectionToolbar
-        {...props}
-        isActive={!!this.state}
-        selection={this.state ? (this.state as Selection) : undefined}
-        canUpdate={editorProps.canUpdate}
-        canComment={editorProps.canComment}
-        isTemplate={editorProps.template === true}
-      />
+      <>
+        <SelectionToolbar
+          {...props}
+          isActive={!!this.state}
+          selection={this.state ? (this.state as Selection) : undefined}
+          canUpdate={editorProps.canUpdate}
+          canComment={editorProps.canComment}
+          isTemplate={editorProps.template === true}
+        />
+        {props.readOnly && (
+          <CodeBlockHoverToolbar
+            rtl={props.rtl}
+            isTemplate={editorProps.template === true}
+          />
+        )}
+      </>
     );
   };
 }

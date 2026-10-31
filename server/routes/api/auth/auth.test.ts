@@ -1,4 +1,3 @@
-// @vitest-isolate true
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { Scope } from "@shared/types";
@@ -12,23 +11,13 @@ import {
 } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
-const mockTeamInSessionId = randomUUID();
-
-vi.mock("@server/utils/authentication", () => ({
-  getSessionsInCookie() {
-    return { [mockTeamInSessionId]: {} };
-  },
-}));
-
 const server = getTestServer();
 
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
-    const team3 = await buildTeam({
-      id: mockTeamInSessionId,
-    });
+    const team3 = await buildTeam();
 
     const user = await buildUser({ teamId: team.id });
     await buildUser();
@@ -36,7 +25,20 @@ describe("#auth.info", () => {
       teamId: team2.id,
       email: user.email,
     });
-    const res = await server.post("/api/auth.info", user);
+    const res = await server.post("/api/auth.info", user, {
+      headers: {
+        Host: "app.outline.dev",
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team3.id]: {
+              name: team3.name,
+              logoUrl: team3.avatarUrl,
+              url: team3.url,
+            },
+          })
+        )}`,
+      },
+    });
     const body = await res.json();
     expect(res.status).toEqual(200);
 
@@ -282,6 +284,8 @@ describe("#auth.config", () => {
     expect(body.data.providers[1].name).toBe("Passkeys");
   });
 
+  // Self-hosted auth.config reads the newest team, which other test files create in parallel.
+  // oxlint-disable-next-line vitest/no-disabled-tests
   describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
 

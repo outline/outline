@@ -1,6 +1,7 @@
 import copy from "copy-to-clipboard";
 import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
+import { chainCommands } from "prosemirror-commands";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
   NodeSpec,
@@ -15,7 +16,12 @@ import {
   PluginKey,
   TextSelection,
 } from "prosemirror-state";
-import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
+import {
+  Decoration,
+  DecorationSet,
+  type EditorView,
+  type NodeViewConstructor,
+} from "prosemirror-view";
 import type { Primitive } from "utility-types";
 import type { UserPreferences } from "../../types";
 import { isBrowser, isMac } from "../../utils/browser";
@@ -27,6 +33,9 @@ import {
   moveToPreviousNewline,
   outdentInCode,
   enterInCode,
+  backspaceInCode,
+  deleteInCode,
+  arrowLeftInCode,
   splitCodeBlockOnTripleBackticks,
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
@@ -54,6 +63,7 @@ import {
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
+import { CodeFenceView } from "./CodeFenceView";
 import Node from "./Node";
 
 const DEFAULT_LANGUAGE = "javascript";
@@ -91,7 +101,7 @@ interface CollapseState {
   tallBlocks: Set<number>;
   /** Positions of code blocks currently collapsed by the user or auto-collapse. */
   collapsedBlocks: Set<number>;
-  /** Node decorations that add the `collapsed` CSS class. */
+  /** Node decorations that mark collapsible and collapsed blocks. */
   decorations: DecorationSet;
 }
 
@@ -175,15 +185,13 @@ function findAutoCollapsedBlocks(
 }
 
 /**
- * Build a CollapseState with node decorations for the collapsed class and
- * widget decorations for toggle buttons on all tall blocks.
+ * Build a CollapseState with node decorations that mark tall blocks as
+ * collapsible and add the collapsed class to collapsed blocks.
  */
 function buildCollapseState(
   doc: ProsemirrorNode,
   tallBlocks: Set<number>,
-  collapsedBlocks: Set<number>,
-  expandLabel: string,
-  collapseLabel: string
+  collapsedBlocks: Set<number>
 ): CollapseState {
   const decorations: Decoration[] = [];
   for (const pos of tallBlocks) {
@@ -193,31 +201,12 @@ function buildCollapseState(
     }
 
     const isCollapsed = collapsedBlocks.has(pos);
-
-    if (isCollapsed) {
-      decorations.push(
-        Decoration.node(
-          pos,
-          pos + node.nodeSize,
-          { class: "collapsed" },
-          { collapsed: true }
-        )
-      );
-    }
-
-    const label = isCollapsed ? expandLabel : collapseLabel;
     decorations.push(
-      Decoration.widget(
+      Decoration.node(
+        pos,
         pos + node.nodeSize,
-        () => {
-          const button = document.createElement("button");
-          button.className = EditorStyleHelper.codeBlockToggle;
-          button.contentEditable = "false";
-          button.type = "button";
-          button.textContent = label;
-          return button;
-        },
-        { side: 1, key: `toggle-${pos}-${isCollapsed}` }
+        isCollapsed ? { class: "collapsed" } : {},
+        { collapsible: true, collapsed: isCollapsed }
       )
     );
   }
@@ -388,38 +377,45 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         }
         return true;
       },
-      copyToClipboard: (): Command => (state, dispatch) => {
-        const codeBlock = findParentNode(isCode)(state.selection);
+      copyToClipboard:
+        (attrs?: { pos?: number }): Command =>
+        (state, dispatch) => {
+          const node =
+            attrs?.pos !== undefined ? state.doc.nodeAt(attrs.pos) : null;
+          const codeBlock =
+            node && isCode(node)
+              ? node
+              : findParentNode(isCode)(state.selection)?.node;
 
-        if (codeBlock) {
-          copy(codeBlock.node.textContent);
-          this.editor.props.onNotice?.(t("Copied to clipboard"));
-          return true;
-        }
+          if (codeBlock) {
+            copy(codeBlock.textContent);
+            this.editor.props.onNotice?.(t("Copied to clipboard"));
+            return true;
+          }
 
-        const { doc, tr } = state;
-        const range =
-          getMarkRange(
-            doc.resolve(state.selection.from),
-            this.editor.schema.marks.code_inline
-          ) ||
-          getMarkRange(
-            doc.resolve(state.selection.to),
-            this.editor.schema.marks.code_inline
-          );
+          const { doc, tr } = state;
+          const range =
+            getMarkRange(
+              doc.resolve(state.selection.from),
+              this.editor.schema.marks.code_inline
+            ) ||
+            getMarkRange(
+              doc.resolve(state.selection.to),
+              this.editor.schema.marks.code_inline
+            );
 
-        if (range) {
-          const $end = doc.resolve(range.to);
-          tr.setSelection(new TextSelection($end, $end));
-          dispatch?.(tr);
+          if (range) {
+            const $end = doc.resolve(range.to);
+            tr.setSelection(new TextSelection($end, $end));
+            dispatch?.(tr);
 
-          copy(tr.doc.textBetween(state.selection.from, state.selection.to));
-          this.editor.props.onNotice?.(t("Copied to clipboard"));
-          return true;
-        }
+            copy(tr.doc.textBetween(state.selection.from, state.selection.to));
+            this.editor.props.onNotice?.(t("Copied to clipboard"));
+            return true;
+          }
 
-        return false;
-      },
+          return false;
+        },
     };
   }
 
@@ -435,7 +431,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       "Shift-Tab": outdentInCode,
       Tab: indentInCode,
       Enter: enterInCode,
-      Backspace: backspaceToParagraph(type),
+      Backspace: chainCommands(backspaceInCode, backspaceToParagraph(type)),
+      Delete: deleteInCode,
+      ArrowLeft: arrowLeftInCode,
       "Shift-Enter": newlineInCode,
       "Mod-a": selectAll(type),
       "Mod-]": indentInCode,
@@ -455,11 +453,12 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
   /** Plugins for collapsible code block behavior. */
   private collapsePlugins(): Plugin[] {
-    const build = (
-      doc: ProsemirrorNode,
-      tall: Set<number>,
-      collapsed: Set<number>
-    ) => buildCollapseState(doc, tall, collapsed, t("Expand"), t("Collapse"));
+    const createCodeFenceView: NodeViewConstructor = (
+      node,
+      _view,
+      _getPos,
+      decorations
+    ) => new CodeFenceView(node, decorations);
 
     return [
       // Main collapse plugin: manages state and decorations
@@ -468,7 +467,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         state: {
           init: (_config, state) => {
             const tallBlocks = findTallBlocks(state.doc);
-            return build(
+            return buildCollapseState(
               state.doc,
               tallBlocks,
               findAutoCollapsedBlocks(state.doc, tallBlocks)
@@ -485,7 +484,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               } else {
                 next.add(meta.toggle);
               }
-              return build(newState.doc, prev.tallBlocks, next);
+              return buildCollapseState(newState.doc, prev.tallBlocks, next);
             }
 
             // Expand a specific block (auto-expand on focus)
@@ -493,7 +492,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               if (prev.collapsedBlocks.has(meta.expand)) {
                 const next = new Set(prev.collapsedBlocks);
                 next.delete(meta.expand);
-                return build(newState.doc, prev.tallBlocks, next);
+                return buildCollapseState(newState.doc, prev.tallBlocks, next);
               }
               return prev;
             }
@@ -562,7 +561,11 @@ export default class CodeFence extends Node<CodeFenceOptions> {
                 }
               }
 
-              return build(newState.doc, tallBlocks, collapsedBlocks);
+              return buildCollapseState(
+                newState.doc,
+                tallBlocks,
+                collapsedBlocks
+              );
             }
 
             return prev;
@@ -571,6 +574,11 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         props: {
           decorations(state) {
             return this.getState(state)?.decorations ?? DecorationSet.empty;
+          },
+          // Collapse applies to every code node type, see isCode.
+          nodeViews: {
+            code_fence: createCodeFenceView,
+            code_block: createCodeFenceView,
           },
         },
       }),
@@ -618,12 +626,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
                 return false;
               }
 
-              const codeBlockEl =
-                button.previousElementSibling?.classList.contains(
-                  EditorStyleHelper.codeBlock
-                )
-                  ? button.previousElementSibling
-                  : null;
+              const codeBlockEl = button.closest(
+                `.${EditorStyleHelper.codeBlock}`
+              );
               if (!codeBlockEl) {
                 return false;
               }

@@ -7,7 +7,6 @@ import {
   StarredIcon,
   PrintIcon,
   UnstarredIcon,
-  DocumentIcon,
   NewDocumentIcon,
   ShapesIcon,
   ImportIcon,
@@ -117,6 +116,7 @@ import env from "~/env";
 import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 /** Lazy insights dialog, exported so that triggers can preload it. */
 export const Insights = lazyWithRetry(
@@ -152,10 +152,11 @@ export const openDocument = createActionWithChildren({
       .filter((item) => !recentIds.has(item.id))
       .map((item) => {
         const document = stores.documents.get(item.id);
+        const path = item instanceof Document ? item.path : item.url;
         return createInternalLinkAction({
-          // Note: using url which includes the slug rather than id here to bust
+          // Note: using path which includes the slug rather than id here to bust
           // cache if the document is renamed
-          id: item.url,
+          id: path,
           name: item.title,
           description: document
             ? documentBreadcrumbText(document, t)
@@ -167,10 +168,10 @@ export const openDocument = createActionWithChildren({
               color={item.color ?? undefined}
             />
           ) : (
-            <DocumentIcon outline={item.isDraft} />
+            <DocumentIcon empty={document?.isEmpty} />
           ),
           section: DocumentSection,
-          to: item.url,
+          to: path,
         });
       });
   },
@@ -1390,31 +1391,32 @@ export const moveDocumentToCollection = createAction({
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) => !!context.stores.policies.abilities(document.id).move
+    ),
+  perform: ({ getActiveModels, stores, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
     }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
-  perform: ({ activeDocumentId, stores, t }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
-        return;
-      }
 
-      stores.dialogs.openModal({
-        title: (
+    stores.dialogs.openModal({
+      title:
+        documents.length === 1 ? (
           <DialogTitle
             title={t("Move {{ documentType }}", {
-              documentType: document.noun,
+              documentType: documents[0].noun,
             })}
-            model={document}
+            model={documents[0]}
           />
+        ) : (
+          t("Move {{ count }} document", { count: documents.length })
         ),
-        content: <DocumentMove document={document} />,
-      });
-    }
+      content: <DocumentMove documents={documents} />,
+    });
   },
 });
 
@@ -1423,16 +1425,7 @@ export const moveDocument = createAction({
   analyticsName: "Move document",
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
+  visible: moveDocumentToCollection.visible,
   perform: moveDocumentToCollection.perform,
 });
 

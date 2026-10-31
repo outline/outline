@@ -237,7 +237,10 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership> & { documentId?: string }
+    options: SaveOptions<GroupMembership> & {
+      documentId?: string;
+      childDocumentIds?: string[];
+    }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -366,32 +369,39 @@ class GroupMembership extends ParanoidModel<
 
   /**
    * Recreate all sourced permissions for a given permission.
+   *
+   * @param model the source membership.
+   * @param options the save options, with an optional target document id and
+   * precomputed published child document ids of the target document.
    */
   static async recreateSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership> & { documentId?: string }
+    options: SaveOptions<GroupMembership> & {
+      documentId?: string;
+      childDocumentIds?: string[];
+    }
   ) {
     if (!model.documentId) {
       return;
     }
     const { transaction, documentId } = options;
+    let { childDocumentIds } = options;
 
-    const document = await Document.unscoped()
-      .scope("withoutState")
-      .findOne({
-        attributes: ["id"],
-        where: {
-          id: documentId ?? model.documentId,
-        },
-        transaction,
-      });
-    if (!document) {
-      return;
-    }
+    if (!childDocumentIds) {
+      const document = await Document.unscoped()
+        .scope("withoutState")
+        .findOne({
+          attributes: ["id"],
+          where: {
+            id: documentId ?? model.documentId,
+          },
+          transaction,
+        });
+      if (!document) {
+        return;
+      }
 
-    const childDocumentIds = [
-      ...(documentId ? [documentId] : []),
-      ...(await document.findAllChildDocumentIds(
+      childDocumentIds = await document.findAllChildDocumentIds(
         {
           publishedAt: {
             [Op.ne]: null,
@@ -400,39 +410,43 @@ class GroupMembership extends ParanoidModel<
         {
           transaction,
         }
-      )),
-    ];
-
-    if (childDocumentIds.length) {
-      await this.destroy({
-        where: {
-          groupId: model.groupId,
-          sourceId: model.id,
-          documentId: {
-            [Op.in]: childDocumentIds,
-          },
-        },
-        transaction,
-      });
-    }
-
-    for (const childDocumentId of childDocumentIds) {
-      await this.create(
-        {
-          documentId: childDocumentId,
-          groupId: model.groupId,
-          permission: model.permission,
-          sourceId: model.id,
-          createdById: model.createdById,
-          createdAt: model.createdAt,
-          updatedAt: model.updatedAt,
-        },
-        {
-          transaction,
-          hooks: false,
-        }
       );
     }
+
+    const documentIds = [
+      ...(documentId ? [documentId] : []),
+      ...childDocumentIds,
+    ];
+    if (!documentIds.length) {
+      return;
+    }
+
+    await this.destroy({
+      where: {
+        groupId: model.groupId,
+        sourceId: model.id,
+        documentId: {
+          [Op.in]: documentIds,
+        },
+      },
+      transaction,
+    });
+
+    await this.bulkCreate(
+      documentIds.map((childDocumentId) => ({
+        documentId: childDocumentId,
+        groupId: model.groupId,
+        permission: model.permission,
+        sourceId: model.id,
+        createdById: model.createdById,
+        createdAt: model.createdAt,
+        updatedAt: model.updatedAt,
+      })),
+      {
+        transaction,
+        hooks: false,
+      }
+    );
   }
 
   /**

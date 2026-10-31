@@ -8,7 +8,7 @@ import type {
   Schema,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
@@ -31,8 +31,9 @@ import { transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
+import { RepairPlugin } from "../plugins/RepairPlugin";
 import mentionRule from "../rules/mention";
-import type { ComponentProps } from "../types";
+import type { ComponentProps, NodeWithPos } from "../types";
 import Node from "./Node";
 
 /**
@@ -163,9 +164,9 @@ export default class Mention extends Node {
               ? node.type.name
               : `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
-          href:
+          href: sanitizeUrl(
             node.attrs.type === MentionType.User ||
-            node.attrs.type === MentionType.Date
+              node.attrs.type === MentionType.Date
               ? undefined
               : node.attrs.type === MentionType.Document
                 ? `${env.URL}/doc/${node.attrs.modelId}${
@@ -173,7 +174,8 @@ export default class Mention extends Node {
                   }`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
-                  : sanitizeUrl(node.attrs.href),
+                  : node.attrs.href
+          ),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
@@ -242,31 +244,32 @@ export default class Mention extends Node {
 
   get plugins() {
     return [
-      // Ensure mentions have unique IDs
-      new Plugin({
-        appendTransaction: (_transactions, _oldState, newState) => {
-          const tr = newState.tr;
-          const existingIds = new Set();
-          let modified = false;
-
-          tr.doc.descendants((node, pos) => {
-            let nodeId = node.attrs.id;
-            if (
-              node.type.name === this.name &&
-              (!nodeId || existingIds.has(nodeId))
-            ) {
-              nodeId = uuidv4();
-              modified = true;
-              tr.setNodeAttribute(pos, "id", nodeId);
+      // Ensure mentions have unique IDs. Unchanged mentions keep their id, so
+      // a pasted copy is given a new id rather than the original.
+      new RepairPlugin({
+        needsRepair: (node) => node.type.name === this.name,
+        repair: (state, mentions) => {
+          const changed = mentions.filter((mention) => mention.changed);
+          const changedPositions = new Set(changed.map(({ pos }) => pos));
+          const ordered: NodeWithPos[] = [];
+          state.doc.descendants((node, pos) => {
+            if (node.type.name === this.name && !changedPositions.has(pos)) {
+              ordered.push({ node, pos });
             }
-            existingIds.add(nodeId);
           });
+          ordered.push(...changed);
 
-          if (modified) {
-            return tr;
-          }
-
-          return null;
+          const seen = new Set<string>();
+          const tr = state.tr;
+          ordered.forEach(({ node, pos }) => {
+            const { id } = node.attrs;
+            if (id && !seen.has(id)) {
+              seen.add(id);
+              return;
+            }
+            tr.setNodeAttribute(pos, "id", uuidv4());
+          });
+          return tr.docChanged ? tr : null;
         },
       }),
     ];

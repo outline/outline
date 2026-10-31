@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {
@@ -58,7 +58,7 @@ describe("#restoreTo", () => {
 });
 
 describe("#getSummary", () => {
-  test("should strip markdown", async () => {
+  it("should strip markdown", async () => {
     const document = await buildDocument({
       version: 1,
       text: `*paragraph*
@@ -68,7 +68,7 @@ paragraph 2`,
     expect(document.getSummary()).toBe("paragraph");
   });
 
-  test("should strip title when no version", async () => {
+  it("should strip title when no version", async () => {
     const document = await buildDocument({
       version: 0,
       text: `# Heading
@@ -80,7 +80,7 @@ paragraph 2`,
 });
 
 describe("#destroyWithCtx", () => {
-  test("should soft delete and set last modified", async () => {
+  it("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
     await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
@@ -92,7 +92,7 @@ describe("#destroyWithCtx", () => {
     expect(newDocument?.deletedAt).toBeTruthy();
   });
 
-  test("should soft delete archived", async () => {
+  it("should soft delete archived", async () => {
     const document = await buildDocument({
       archivedAt: new Date(),
     });
@@ -105,7 +105,7 @@ describe("#destroyWithCtx", () => {
     expect(newDocument?.deletedAt).toBeTruthy();
   });
 
-  test("should soft delete archived document in an archived collection", async () => {
+  it("should soft delete archived document in an archived collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       archivedAt: new Date(),
@@ -144,19 +144,19 @@ describe("#destroyWithCtx", () => {
 });
 
 describe("#save", () => {
-  test("should have empty previousTitles by default", async () => {
+  it("should have empty previousTitles by default", async () => {
     const document = await buildDocument();
     expect(document.previousTitles).toBe(null);
   });
 
-  test("should include previousTitles on save", async () => {
+  it("should include previousTitles on save", async () => {
     const document = await buildDocument();
     document.title = "test";
     await document.save();
     expect(document.previousTitles.length).toBe(1);
   });
 
-  test("should not duplicate previousTitles", async () => {
+  it("should not duplicate previousTitles", async () => {
     const document = await buildDocument();
     document.title = "test";
     await document.save();
@@ -188,7 +188,7 @@ describe("#save", () => {
 });
 
 describe("#findAllChildDocumentIds", () => {
-  test("should return empty array if no children", async () => {
+  it("should return empty array if no children", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -205,7 +205,7 @@ describe("#findAllChildDocumentIds", () => {
     expect(results.length).toBe(0);
   });
 
-  test("should return nested child document ids", async () => {
+  it("should return nested child document ids", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -238,7 +238,7 @@ describe("#findAllChildDocumentIds", () => {
     expect(results[1]).toBe(document3.id);
   });
 
-  test("should apply where filter and prune unmatched branches", async () => {
+  it("should apply where filter and prune unmatched branches", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -284,7 +284,7 @@ describe("#findAllChildDocumentIds", () => {
     expect(results).toEqual([publishedChild.id]);
   });
 
-  test("should include soft-deleted children when paranoid is false", async () => {
+  it("should include soft-deleted children when paranoid is false", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -384,13 +384,13 @@ describe("#toNavigationNode", () => {
 });
 
 describe("#findAllParentDocumentIds", () => {
-  test("should return empty array if there is no parent", async () => {
+  it("should return empty array if there is no parent", async () => {
     const document = await buildDocument();
 
     expect(await document.findAllParentDocumentIds()).toEqual([]);
   });
 
-  test("should return nested parent document ids in one query", async () => {
+  it("should return nested parent document ids in one query", async () => {
     const parent = await buildDocument();
     const child = await buildDocument({
       parentDocumentId: parent.id,
@@ -417,7 +417,7 @@ describe("#findAllParentDocumentIds", () => {
     }
   });
 
-  test("should stop at soft-deleted parents unless paranoid is false", async () => {
+  it("should stop at soft-deleted parents unless paranoid is false", async () => {
     const parent = await buildDocument();
     const child = await buildDocument({
       parentDocumentId: parent.id,
@@ -722,14 +722,14 @@ describe("#membershipDocumentIds", () => {
 });
 
 describe("#findByPk", () => {
-  test("should return document when urlId is correct", async () => {
+  it("should return document when urlId is correct", async () => {
     const document = await buildDocument();
     const id = `${slugify(document.title)}-${document.urlId}`;
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);
   });
 
-  test("should return document when urlId is given without the slug prefix", async () => {
+  it("should return document when urlId is given without the slug prefix", async () => {
     const document = await buildDocument();
     const id = document.urlId;
     const response = await Document.findByPk(id);
@@ -877,14 +877,14 @@ describe("#withMembershipScope", () => {
 });
 
 describe("findByIds", () => {
-  test("should return documents by ids", async () => {
+  it("should return documents by ids", async () => {
     const document1 = await buildDocument();
     const document2 = await buildDocument();
     const documents = await Document.findByIds([document1.id, document2.id]);
     expect(documents.length).toBe(2);
   });
 
-  test("should return documents filtered to user access", async () => {
+  it("should return documents filtered to user access", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document1 = await buildDocument({ teamId: team.id });
@@ -899,7 +899,7 @@ describe("findByIds", () => {
     expect(documents.length).toBe(2);
   });
 
-  test("should return documents filtered to private collection access", async () => {
+  it("should return documents filtered to private collection access", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -921,7 +921,7 @@ describe("findByIds", () => {
     expect(documents.length).toBe(1);
   });
 
-  test("should return documents filtered to guest access", async () => {
+  it("should return documents filtered to guest access", async () => {
     const team = await buildTeam();
     const user = await buildGuestUser({ teamId: team.id });
     const document1 = await buildDocument({ teamId: team.id });
@@ -998,7 +998,7 @@ describe("findByIds", () => {
 });
 
 describe("tasks", () => {
-  test("should return tasks keys set to 0 if check items isn't present", async () => {
+  it("should return tasks keys set to 0 if check items isn't present", async () => {
     const document = await buildDocument({
       text: `text`,
     });
@@ -1007,7 +1007,7 @@ describe("tasks", () => {
     expect(tasks.total).toBe(0);
   });
 
-  test("should return tasks keys set to 0 if the text contains broken check items", async () => {
+  it("should return tasks keys set to 0 if the text contains broken check items", async () => {
     const document = await buildDocument({
       text: `
 - [x ] test
@@ -1019,7 +1019,7 @@ describe("tasks", () => {
     expect(tasks.total).toBe(0);
   });
 
-  test("should return tasks", async () => {
+  it("should return tasks", async () => {
     const document = await buildDocument({
       text: `
 - [x] list item
@@ -1030,7 +1030,7 @@ describe("tasks", () => {
     expect(tasks.total).toBe(2);
   });
 
-  test("should update tasks on save", async () => {
+  it("should update tasks on save", async () => {
     const document = await buildDocument({
       text: `
 - [x] list item

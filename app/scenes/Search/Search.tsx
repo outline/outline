@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
@@ -52,7 +52,6 @@ function Search() {
 
   // routing
   const params = useQuery();
-  const location = useLocation();
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
   const handleGoBack = React.useCallback(() => history.goBack(), [history]);
@@ -219,12 +218,14 @@ function Search() {
 
   const updateLocation = (query: string) => {
     // If query came from route params, navigate to base search path
-    const pathname = routeMatch.params.query ? searchPath() : location.pathname;
+    const pathname = routeMatch.params.query
+      ? searchPath()
+      : history.location.pathname;
 
     history.replace({
       pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), q: query },
+        { ...queryString.parse(history.location.search), q: query },
         {
           skipEmptyString: true,
         }
@@ -250,9 +251,9 @@ function Search() {
     }
 
     history.replace({
-      pathname: location.pathname,
+      pathname: history.location.pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), ...search },
+        { ...queryString.parse(history.location.search), ...search },
         {
           skipEmptyString: true,
         }
