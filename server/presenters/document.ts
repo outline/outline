@@ -83,6 +83,7 @@ async function presentDocument(
     deprecatedReason: document.deprecatedReason,
     deletedAt: document.deletedAt,
     deletedBy: undefined,
+    destroyedAt: document.destroyedAt,
     collaboratorIds: [],
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
