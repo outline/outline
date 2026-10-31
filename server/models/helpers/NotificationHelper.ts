@@ -154,9 +154,8 @@ export default class NotificationHelper {
   };
 
   /**
-   * Get the users involved in a comment thread who unsubscribed from the
-   * document after they were last involved in the thread. A user is involved
-   * in the thread when they author a comment, or are mentioned in one.
+   * Get the users who unsubscribed from the document and did not comment in
+   * the thread after they unsubscribed.
    *
    * @param documentId The id of the document the thread belongs to.
    * @param comments The comments in the thread.
@@ -166,36 +165,11 @@ export default class NotificationHelper {
     documentId: string,
     comments: Comment[]
   ): Promise<Set<string>> => {
-    const lastInvolvedAt = new Map<string, Date>();
-    const track = (userId: string, date: Date) => {
-      const current = lastInvolvedAt.get(userId);
-      if (!current || date > current) {
-        lastInvolvedAt.set(userId, date);
-      }
-    };
-
-    for (const comment of comments) {
-      track(comment.createdById, comment.createdAt);
-
-      const mentions = ProsemirrorHelper.parseMentions(
-        ProsemirrorHelper.toProsemirror(comment.data),
-        { type: MentionType.User }
-      );
-      for (const mention of mentions) {
-        track(mention.modelId, comment.createdAt);
-      }
-    }
-
-    if (!lastInvolvedAt.size) {
-      return new Set();
-    }
-
     const deletedSubscriptions = await Subscription.findAll({
       attributes: ["userId", "deletedAt"],
       where: {
         documentId,
         event: SubscriptionType.Document,
-        userId: { [Op.in]: [...lastInvolvedAt.keys()] },
         deletedAt: { [Op.ne]: null },
       },
       paranoid: false,
@@ -203,14 +177,14 @@ export default class NotificationHelper {
 
     return new Set(
       deletedSubscriptions
-        .filter((subscription) => {
-          const involvedAt = lastInvolvedAt.get(subscription.userId);
-          return (
-            !!subscription.deletedAt &&
-            !!involvedAt &&
-            subscription.deletedAt > involvedAt
-          );
-        })
+        .filter(
+          ({ userId, deletedAt }) =>
+            !!deletedAt &&
+            !comments.some(
+              (comment) =>
+                comment.createdById === userId && comment.createdAt > deletedAt
+            )
+        )
         .map((subscription) => subscription.userId)
     );
   };
