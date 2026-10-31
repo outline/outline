@@ -3,6 +3,7 @@ import path from "node:path";
 import util from "node:util";
 import type { Context, Next } from "koa";
 import { escape } from "es-toolkit/compat";
+import { isbot } from "isbot";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import {
@@ -250,6 +251,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Find the share record if published so that the document title can be returned
   // in the server-rendered HTML. This allows it to appear in unfurls more reliably.
   let share, collection, document, team;
+  const isBot = isbot(ctx.get("user-agent"));
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 
   let sharedTree;
@@ -278,7 +280,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
       share.teamId
     );
 
-    if (share && !ctx.userAgent.isBot) {
+    if (share && !isBot) {
       await share.update(
         {
           lastAccessedAt: new Date(),
@@ -360,8 +362,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.name
         : undefined;
 
+  // Only bots read the server-rendered content, so skip the render for others.
   const model = document || collection;
-  const content = model ? await renderShareContent(model) : undefined;
+  const content = model && isBot ? await renderShareContent(model) : undefined;
 
   const canonicalUrl =
     share && share.canonicalUrl !== ctx.request.origin + ctx.request.url

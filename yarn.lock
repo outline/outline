@@ -11836,6 +11836,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isbot@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "isbot@npm:5.2.2"
+  checksum: 10c0/df8356dd8745d7fe1922fc8df894bf5560fe959ad7826ac97311c430dc9c6dd628c8aab68d3e45769b50b61411bd4530d874aae07947f6cd04e25206566a7bb3
+  languageName: node
+  linkType: hard
+
 "isexe@npm:^2.0.0":
   version: 2.0.0
   resolution: "isexe@npm:2.0.0"
@@ -14102,6 +14109,7 @@ __metadata:
     ioredis: "npm:^5.11.1"
     ioredis-mock: "npm:^8.13.1"
     ipaddr.js: "npm:^2.4.0"
+    isbot: "npm:^5.2.2"
     iso-639-3: "npm:^3.0.1"
     js-yaml: "npm:^4.3.2"
     js.foresight: "npm:^4.2.1"

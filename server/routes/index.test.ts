@@ -13,6 +13,11 @@ import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
+const botHeaders = {
+  "User-Agent":
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+};
+
 describe("/s/:id", () => {
   it("should return standard title in html when loading unpublished share", async () => {
     const share = await buildShare({
@@ -116,12 +121,30 @@ describe("/s/:id", () => {
       documentId: document.id,
       teamId: document.teamId,
     });
-    const res = await server.get(`/s/${share.id}`);
+    const res = await server.get(`/s/${share.id}`, { headers: botHeaders });
     const body = await res.text();
     expect(res.status).toEqual(200);
     expect(body).toContain("Shared content");
     expect(body).toContain("<img");
     expect(body).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should not render document content for browsers", async () => {
+    const document = await buildDocument({ text: "Shared content" });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      },
+    });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<title>${document.title}</title>`);
+    expect(body).not.toContain('<div id="content"');
   });
 
   it("should render updated content after the document changes", async () => {
@@ -130,12 +153,14 @@ describe("/s/:id", () => {
       documentId: document.id,
       teamId: document.teamId,
     });
-    const first = await server.get(`/s/${share.id}`);
+    const first = await server.get(`/s/${share.id}`, { headers: botHeaders });
     expect(await first.text()).toContain("First version");
 
     document.content = parser.parse("Second version")?.toJSON();
     await document.save();
-    const second = await server.get(`/s/${share.id}`);
+    const second = await server.get(`/s/${share.id}`, {
+      headers: botHeaders,
+    });
     expect(await second.text()).toContain("Second version");
   });
 
