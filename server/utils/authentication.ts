@@ -1,62 +1,37 @@
 import querystring from "node:querystring";
 import { addMonths } from "date-fns";
 import type { Context } from "koa";
-import { isPlainObject, pick } from "es-toolkit/compat";
-import isUUID from "validator/lib/isUUID";
+import { pick } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
+import { getActiveSessions } from "@shared/utils/sessions";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { Event, Collection, Team, View } from "@server/models";
+import { Event, Collection, View } from "@server/models";
+import type { Team } from "@server/models";
 import type { APIContext, AuthenticationResult } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import { SessionsCookieHelper } from "./SessionsCookieHelper";
 import { clearCSRFCookie } from "./csrf";
-
-/**
- * Parse and return the details from the "sessions" cookie in the request, if
- * any. The cookie is on the apex domain and includes session details for
- * other subdomains.
- *
- * @param ctx The Koa context
- * @returns The session details
- */
-export function getSessionsInCookie(ctx: Context) {
-  try {
-    const sessionCookie = ctx.cookies.get("sessions") || "";
-    const decodedSessionCookie = decodeURIComponent(sessionCookie);
-    const sessions = decodedSessionCookie
-      ? JSON.parse(decodedSessionCookie)
-      : {};
-    return isPlainObject(sessions) ? sessions : {};
-  } catch (_err) {
-    return {};
-  }
-}
 
 /**
  * Finds the workspace to send a request for the app root domain to, using the
  * first usable workspace in the "sessions" cookie. Entries that are malformed,
- * deleted, suspended, or already the current host are ignored.
+ * expired, deleted, suspended, or already the current host are ignored.
  *
- * @param ctx The Koa context
- * @returns The workspace url for the requested path, if there is one.
+ * @param ctx the Koa context.
+ * @param teams the reconciled workspaces in cookie order.
+ * @returns the workspace url for the requested path, if there is one.
  */
-export async function getSessionRedirectUrl(
-  ctx: Context
-): Promise<string | undefined> {
-  const teamIds = Object.keys(getSessionsInCookie(ctx)).filter((id) =>
-    isUUID(id)
+export function getSessionRedirectUrl(
+  ctx: Context,
+  teams: Team[]
+): string | undefined {
+  const activeSessions = getActiveSessions(SessionsCookieHelper.read(ctx));
+  const team = teams.find(
+    (team) => activeSessions[team.id] && !team.isTeamUrl(ctx.href)
   );
-  if (teamIds.length === 0) {
-    return;
-  }
-
-  // Preserve cookie order so the earliest sign-in wins.
-  const teams = await Team.findAll({ where: { id: teamIds } });
-  const team = teamIds
-    .map((id) => teams.find((t) => t.id === id))
-    .find((t) => t && !t.isSuspended && !t.isTeamUrl(ctx.href));
   if (!team) {
     return;
   }
@@ -150,23 +125,7 @@ export async function signIn(
   // sessions cookie so the web team switcher stays in sync. This applies to
   // both web and desktop clients.
   if (env.isCloudHosted && team.subdomain) {
-    // get any existing sessions (teams signed in) and add this team
-    const existing = getSessionsInCookie(ctx);
-    const sessions = encodeURIComponent(
-      JSON.stringify({
-        ...existing,
-        [team.id]: {
-          name: team.name,
-          logoUrl: team.avatarUrl,
-          url: team.url,
-        },
-      })
-    );
-    ctx.cookies.set("sessions", sessions, {
-      httpOnly: false,
-      expires,
-      domain,
-    });
+    SessionsCookieHelper.add(ctx, team, expires);
   }
 
   // If the authentication request originally came from the desktop app then we send the user
