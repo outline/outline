@@ -61,7 +61,7 @@ export default class NotificationHelper {
     // comment and all replies to it).
     if (comment.parentCommentId) {
       const contextComments = await Comment.findAll({
-        attributes: ["createdById", "data"],
+        attributes: ["createdById", "createdAt", "data"],
         where: {
           [Op.or]: [
             { id: comment.parentCommentId },
@@ -80,10 +80,16 @@ export default class NotificationHelper {
         )
         .map((mention) => mention.modelId);
 
+      const unsubscribedUserIds = await this.getUsersUnsubscribedFromThread(
+        document.id,
+        contextComments
+      );
       const userIdsInThread = uniq([
         ...createdUserIdsInThread,
         ...mentionedUserIdsInThread,
-      ]).filter((userId) => userId !== actorId);
+      ]).filter(
+        (userId) => userId !== actorId && !unsubscribedUserIds.has(userId)
+      );
 
       recipients = await User.findAll({
         where: {
@@ -145,6 +151,42 @@ export default class NotificationHelper {
     }
 
     return filtered;
+  };
+
+  /**
+   * Get the users who unsubscribed from the document and did not comment in
+   * the thread after they unsubscribed.
+   *
+   * @param documentId The id of the document the thread belongs to.
+   * @param comments The comments in the thread.
+   * @returns The ids of the users that unsubscribed.
+   */
+  public static getUsersUnsubscribedFromThread = async (
+    documentId: string,
+    comments: Comment[]
+  ): Promise<Set<string>> => {
+    const deletedSubscriptions = await Subscription.findAll({
+      attributes: ["userId", "deletedAt"],
+      where: {
+        documentId,
+        event: SubscriptionType.Document,
+        deletedAt: { [Op.ne]: null },
+      },
+      paranoid: false,
+    });
+
+    return new Set(
+      deletedSubscriptions
+        .filter(
+          ({ userId, deletedAt }) =>
+            !!deletedAt &&
+            !comments.some(
+              (comment) =>
+                comment.createdById === userId && comment.createdAt > deletedAt
+            )
+        )
+        .map((subscription) => subscription.userId)
+    );
   };
 
   /**
