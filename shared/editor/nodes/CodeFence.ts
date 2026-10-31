@@ -35,6 +35,7 @@ import {
   enterInCode,
   backspaceInCode,
   deleteInCode,
+  arrowLeftInCode,
   splitCodeBlockOnTripleBackticks,
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
@@ -425,6 +426,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       Enter: enterInCode,
       Backspace: chainCommands(backspaceInCode, backspaceToParagraph(type)),
       Delete: deleteInCode,
+      ArrowLeft: arrowLeftInCode,
       "Shift-Enter": newlineInCode,
       "Mod-a": selectAll(type),
       "Mod-]": indentInCode,

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import emojiRegex from "emoji-regex";
 import type { JSDOM } from "jsdom";
@@ -180,6 +181,23 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return parser.parse(data);
     }
     return Node.fromJSON(schema, data);
+  }
+
+  /**
+   * Assigns a new id to every node that has an empty id attribute, such as
+   * checkbox lists and toggle blocks parsed from Markdown.
+   *
+   * @param doc the document.
+   * @returns the document with missing ids assigned.
+   */
+  static assignMissingIds(doc: Node) {
+    const tr = new Transform(doc);
+    doc.descendants((node, pos) => {
+      if (node.type.spec.attrs?.id && !node.attrs.id) {
+        tr.setNodeAttribute(pos, "id", randomUUID());
+      }
+    });
+    return tr.doc;
   }
 
   /**

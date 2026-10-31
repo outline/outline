@@ -1,13 +1,13 @@
-import { DocumentIcon } from "outline-icons";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { createInternalLinkAction } from "~/actions";
 import { RecentSection } from "~/actions/sections";
 import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
+import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
 import type Document from "~/models/Document";
 import { documentPath } from "~/utils/routeHelpers";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 /** The number of documents listed under "Recently viewed" in the command bar. */
 export const recentDocumentCount = 6;
@@ -35,7 +35,7 @@ const useRecentDocumentActions = (count = recentDocumentCount) => {
   const { documents, ui } = useStores();
   const { t } = useTranslation();
 
-  return useMemo(
+  return useComputed(
     () =>
       recentDocuments(
         documents.recentlyViewed,
@@ -55,12 +55,12 @@ const useRecentDocumentActions = (count = recentDocumentCount) => {
               color={item.color ?? undefined}
             />
           ) : (
-            <DocumentIcon outline={item.isDraft} />
+            <DocumentIcon empty={item.isEmpty} />
           ),
           to: documentPath(item),
         })
       ),
-    [count, ui.activeDocumentId, documents.recentlyViewed, t]
+    [count, documents, ui, t]
   );
 };
 

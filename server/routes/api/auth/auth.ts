@@ -20,6 +20,7 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import { clearCSRFCookie } from "@server/utils/csrf";
 import { getJWTPayload } from "@server/utils/jwt";
 import { SessionsCookieHelper } from "@server/utils/SessionsCookieHelper";
 import RateLimiter from "@server/utils/RateLimiter";
@@ -210,6 +211,7 @@ router.post(
       sameSite: "lax",
       expires: subMinutes(new Date(), 1),
     });
+    clearCSRFCookie(ctx);
 
     ctx.body = {
       success: true,

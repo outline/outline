@@ -344,7 +344,7 @@ export const SelectionToolbar = observer(function SelectionToolbar(
         />
       ) : (activeToolbar === Toolbar.Menu || isMobileEditing) &&
         items.length ? (
-        <ToolbarMenu items={items} {...rest} />
+        <ToolbarMenu items={items} showUndo={isMobileEditing} {...rest} />
       ) : null}
     </FloatingToolbar>
   );

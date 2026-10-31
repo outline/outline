@@ -1,6 +1,8 @@
+import { Collection } from "@server/models";
 import Pin from "@server/models/Pin";
 import {
   buildDocument,
+  buildDraftDocument,
   buildCollection,
   buildPersonalCollection,
   buildTeam,
@@ -244,6 +246,45 @@ describe("documentMover", () => {
     );
 
     expect(await Pin.count({ where: { teamId: team.id } })).toBe(0);
+  });
+
+  it("should publish a draft moved to a personal collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const personal = await buildPersonalCollection(user);
+    const existing = await buildDocument({
+      userId: user.id,
+      collectionId: personal.id,
+      teamId: team.id,
+    });
+
+    await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: personal.id,
+      })
+    );
+
+    await document.reload();
+    expect(document.collectionId).toEqual(personal.id);
+    expect(document.publishedAt).toBeTruthy();
+
+    const reloaded = await Collection.findByPk(personal.id, {
+      includeDocumentStructure: true,
+    });
+    expect(reloaded?.documentStructure?.map((node) => node.id)).toEqual([
+      existing.id,
+      document.id,
+    ]);
   });
 
   it("should detach document from collection and move it to drafts", async () => {

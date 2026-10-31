@@ -12,6 +12,7 @@ import type { Team } from "@server/models";
 import type { APIContext, AuthenticationResult } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { SessionsCookieHelper } from "./SessionsCookieHelper";
+import { clearCSRFCookie } from "./csrf";
 
 /**
  * Finds the workspace to send a request for the app root domain to, using the
@@ -143,6 +144,7 @@ export async function signIn(
       sameSite: "lax",
       expires,
     });
+    clearCSRFCookie(ctx);
 
     const defaultCollectionId = team.defaultCollectionId;
 
