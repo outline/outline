@@ -7,7 +7,13 @@ import {
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import type { Document, Collection } from "@server/models";
-import { User, Subscription, Comment, View } from "@server/models";
+import {
+  User,
+  Subscription,
+  Comment,
+  Notification,
+  View,
+} from "@server/models";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
@@ -61,7 +67,7 @@ export default class NotificationHelper {
     // comment and all replies to it).
     if (comment.parentCommentId) {
       const contextComments = await Comment.findAll({
-        attributes: ["createdById", "createdAt", "data"],
+        attributes: ["id", "createdById", "createdAt", "data"],
         where: {
           [Op.or]: [
             { id: comment.parentCommentId },
@@ -154,8 +160,9 @@ export default class NotificationHelper {
   };
 
   /**
-   * Get the users who unsubscribed from the document and did not comment in
-   * the thread after they unsubscribed.
+   * Get the users who unsubscribed from the document and were not involved in
+   * the thread after they unsubscribed. A user is involved when they comment in
+   * the thread, or are mentioned in a comment in the thread.
    *
    * @param documentId The id of the document the thread belongs to.
    * @param comments The comments in the thread.
@@ -174,6 +181,19 @@ export default class NotificationHelper {
       },
       paranoid: false,
     });
+    if (!deletedSubscriptions.length) {
+      return new Set();
+    }
+
+    // Mention notifications record when a user was mentioned, including in edits.
+    const mentions = await Notification.unscoped().findAll({
+      attributes: ["userId", "createdAt"],
+      where: {
+        event: NotificationEventType.MentionedInComment,
+        userId: deletedSubscriptions.map((subscription) => subscription.userId),
+        commentId: comments.map((comment) => comment.id),
+      },
+    });
 
     return new Set(
       deletedSubscriptions
@@ -183,6 +203,10 @@ export default class NotificationHelper {
             !comments.some(
               (comment) =>
                 comment.createdById === userId && comment.createdAt > deletedAt
+            ) &&
+            !mentions.some(
+              (mention) =>
+                mention.userId === userId && mention.createdAt > deletedAt
             )
         )
         .map((subscription) => subscription.userId)
@@ -227,29 +251,53 @@ export default class NotificationHelper {
       const userFilter = { userId: { [Op.ne]: actorId } };
       const userInclude = [{ association: "user" as const, required: true }];
 
-      const [collectionSubs, documentSubs] = await Promise.all([
-        document.collectionId
-          ? Subscription.findAll({
-              where: {
-                ...userFilter,
-                event: SubscriptionType.Document,
-                collectionId: document.collectionId,
-              },
-              include: userInclude,
-            })
-          : [],
-        Subscription.findAll({
-          where: {
-            ...userFilter,
-            event: SubscriptionType.Document,
-            documentId: document.id,
-          },
-          include: userInclude,
-        }),
-      ]);
+      const [collectionSubs, documentSubs]: Subscription[][] =
+        await Promise.all([
+          document.collectionId
+            ? Subscription.findAll({
+                where: {
+                  ...userFilter,
+                  event: SubscriptionType.Document,
+                  collectionId: document.collectionId,
+                },
+                include: userInclude,
+              })
+            : [],
+          Subscription.findAll({
+            where: {
+              ...userFilter,
+              event: SubscriptionType.Document,
+              documentId: document.id,
+            },
+            include: userInclude,
+          }),
+        ]);
+
+      // A document opt-out takes precedence over an older collection subscription.
+      const optedOut = collectionSubs.length
+        ? await Subscription.findAll({
+            attributes: ["userId", "deletedAt"],
+            where: {
+              event: SubscriptionType.Document,
+              documentId: document.id,
+              userId: collectionSubs.map((s) => s.userId),
+              deletedAt: { [Op.ne]: null },
+            },
+            paranoid: false,
+          })
+        : [];
+      const activeCollectionSubs = collectionSubs.filter(
+        (collectionSub) =>
+          !optedOut.some(
+            (optOut) =>
+              optOut.userId === collectionSub.userId &&
+              !!optOut.deletedAt &&
+              optOut.deletedAt > collectionSub.updatedAt
+          )
+      );
 
       recipients = uniqBy(
-        [...collectionSubs, ...documentSubs].map((s) => s.user),
+        [...activeCollectionSubs, ...documentSubs].map((s) => s.user),
         (user) => user.id
       );
     }

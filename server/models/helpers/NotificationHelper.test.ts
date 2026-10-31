@@ -6,6 +6,7 @@ import {
   buildComment,
   buildDocument,
   buildDraftDocument,
+  buildNotification,
   buildSubscription,
   buildUser,
 } from "@server/test/factories";
@@ -406,9 +407,115 @@ describe("NotificationHelper", () => {
       expect(recipients.length).toEqual(1);
       expect(recipients[0].id).toEqual(userInThread.id);
     });
+
+    it("should return users in the thread who were mentioned after they unsubscribed from the document", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const userInThread = await buildUser({ teamId: document.teamId });
+      const parentComment = await buildComment({
+        documentId: document.id,
+        userId: userInThread.id,
+      });
+      await buildSubscription({
+        userId: userInThread.id,
+        documentId: document.id,
+        deletedAt: addMinutes(new Date(), 1),
+      });
+      const mention = await buildNotification({
+        event: NotificationEventType.MentionedInComment,
+        userId: userInThread.id,
+        teamId: document.teamId,
+        documentId: document.id,
+        commentId: parentComment.id,
+      });
+      await sequelize.query(
+        'UPDATE notifications SET "createdAt" = :createdAt WHERE id = :id',
+        {
+          replacements: {
+            createdAt: addMinutes(new Date(), 2),
+            id: mention.id,
+          },
+        }
+      );
+      const childComment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+        parentCommentId: parentComment.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          childComment,
+          childComment.createdById
+        );
+
+      expect(recipients.map((recipient) => recipient.id)).toEqual([
+        userInThread.id,
+      ]);
+    });
   });
 
   describe("getDocumentNotificationRecipients", () => {
+    it("should not return collection subscribers who opted out of the document later", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const subscribedUser = await buildUser({ teamId: document.teamId });
+      await buildSubscription({
+        userId: subscribedUser.id,
+        collectionId: document.collectionId!,
+      });
+      await buildSubscription({
+        userId: subscribedUser.id,
+        documentId: document.id,
+        deletedAt: addMinutes(new Date(), 1),
+      });
+
+      const recipients =
+        await NotificationHelper.getDocumentNotificationRecipients({
+          document,
+          notificationType: NotificationEventType.UpdateDocument,
+          actorId: documentAuthor.id,
+        });
+
+      expect(recipients.length).toEqual(0);
+    });
+
+    it("should return collection subscribers who subscribed after they opted out of the document", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const subscribedUser = await buildUser({ teamId: document.teamId });
+      await buildSubscription({
+        userId: subscribedUser.id,
+        documentId: document.id,
+        deletedAt: subMinutes(new Date(), 1),
+      });
+      await buildSubscription({
+        userId: subscribedUser.id,
+        collectionId: document.collectionId!,
+      });
+
+      const recipients =
+        await NotificationHelper.getDocumentNotificationRecipients({
+          document,
+          notificationType: NotificationEventType.UpdateDocument,
+          actorId: documentAuthor.id,
+        });
+
+      expect(recipients.map((recipient) => recipient.id)).toEqual([
+        subscribedUser.id,
+      ]);
+    });
+
     it("should return users who have subscribed to the document", async () => {
       const documentAuthor = await buildUser();
       const document = await buildDocument({
