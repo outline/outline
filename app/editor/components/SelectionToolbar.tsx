@@ -294,6 +294,11 @@ export const SelectionToolbar = observer(function SelectionToolbar(
     return <InlineMenu items={items} rtl={rtl} />;
   }
 
+  // Read-only code blocks show their toolbar on hover, see CodeBlockHoverToolbar.
+  if (matched?.sticky && readOnly && !isMobile) {
+    return null;
+  }
+
   // Block toolbars (code, notice) stick to the top of the viewport as the block
   // scrolls instead of floating at a position fixed on selection. On mobile the
   // floating toolbar renders as a bottom bar, so the sticky path is desktop only.
