@@ -18,13 +18,29 @@ type LoadPublicShareProps = {
   collectionId?: string;
   documentId?: string;
   teamId?: string;
+  /** Whether to load the collection, document and shared tree, defaults to true. */
+  includeContent?: boolean;
 };
 
+/**
+ * Loads a published share with its document, collection and shared tree, and
+ * checks that it is available to the public.
+ *
+ * @param props.id The share ID or URL slug.
+ * @param props.collectionId An optional collection ID that must match the share.
+ * @param props.documentId An optional document ID within the shared tree, not resolved when includeContent is false.
+ * @param props.teamId The team ID, required when the share is fetched by URL slug.
+ * @param props.includeContent Whether to load the collection, document and shared tree.
+ * @returns The share, shared tree, collection and document.
+ * @throws NotFoundError if the share is not found or not published.
+ * @throws AuthorizationError if sharing is disabled or the document is not in the share.
+ */
 export async function loadPublicShare({
   id,
   collectionId,
   documentId,
   teamId,
+  includeContent = true,
 }: LoadPublicShareProps) {
   const urlId =
     !isUUID(id) && UrlHelper.SHARE_URL_SLUG_REGEX.test(id) ? id : undefined;
@@ -47,26 +63,55 @@ export async function loadPublicShare({
     where.id = id;
   }
 
-  const share = await Share.findOne({
-    where,
-    include: [
-      {
-        model: Document.scope("withDrafts"),
-        as: "document",
+  const share = includeContent
+    ? await Share.findOne({
+        where,
         include: [
           {
-            model: Collection.scope("withDocumentStructure"),
+            model: Document.scope("withDrafts"),
+            as: "document",
+            include: [
+              {
+                model: Collection,
+                as: "collection",
+                required: false,
+              },
+            ],
+          },
+          {
+            model: Collection,
             as: "collection",
-            required: false,
           },
         ],
-      },
-      {
-        model: Collection.scope("withDocumentStructure"),
-        as: "collection",
-      },
-    ],
-  });
+      })
+    : await Share.unscoped().findOne({
+        where,
+        include: [
+          {
+            association: "team",
+            attributes: ["id", "sharing", "suspendedAt"],
+            required: true,
+          },
+          {
+            model: Document.unscoped(),
+            as: "document",
+            attributes: ["id", "collectionId", "publishedAt", "archivedAt"],
+            include: [
+              {
+                model: Collection.unscoped(),
+                as: "collection",
+                attributes: ["id", "sharing", "archivedAt"],
+                required: false,
+              },
+            ],
+          },
+          {
+            model: Collection.unscoped(),
+            as: "collection",
+            attributes: ["id", "sharing", "archivedAt"],
+          },
+        ],
+      });
 
   if (
     !share ||
@@ -89,8 +134,28 @@ export async function loadPublicShare({
     throw AuthorizationError();
   }
 
+  if (collectionId && collectionId !== share.collectionId) {
+    throw AuthorizationError();
+  }
+
+  if (!includeContent) {
+    return { share, sharedTree: null, collection: null, document: null };
+  }
+
   let sharedTree: NavigationNode | null = null;
   let document: Document | null = null;
+
+  if (
+    associatedCollection &&
+    (share.collection || share.includeChildDocuments)
+  ) {
+    // Raw set so that the cached structure is not marked as changed.
+    associatedCollection.set(
+      "documentStructure",
+      await associatedCollection.getCachedDocumentStructure(),
+      { raw: true }
+    );
+  }
 
   if (share.collection) {
     sharedTree = associatedCollection?.toNavigationNode() ?? null;
@@ -100,11 +165,7 @@ export async function loadPublicShare({
   }
 
   if (sharedTree && share.domain) {
-    sharedTree.url = "";
-  }
-
-  if (collectionId && collectionId !== share.collectionId) {
-    throw AuthorizationError();
+    sharedTree = { ...sharedTree, url: "" };
   }
 
   if (documentId && documentId !== share.documentId) {
@@ -116,7 +177,16 @@ export async function loadPublicShare({
 
     if (share.includeChildDocuments) {
       const allIdsInSharedTree = getAllIdsInSharedTree(sharedTree);
-      isDocumentAccessible = allIdsInSharedTree.includes(document.id);
+
+      // The tree can be cached, so also confirm the current location.
+      isDocumentAccessible =
+        allIdsInSharedTree.includes(document.id) &&
+        !document.archivedAt &&
+        document.collectionId === associatedCollection?.id &&
+        (!share.documentId ||
+          (await document.findAllParentDocumentIds()).includes(
+            share.documentId
+          ));
     }
 
     if (!isDocumentAccessible) {
