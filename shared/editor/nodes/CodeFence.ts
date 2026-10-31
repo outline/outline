@@ -41,6 +41,10 @@ import {
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import { CodeHighlighting } from "../plugins/CodeHighlightingPlugin";
+import DiagramService, {
+  pluginKey as diagramServicePluginKey,
+  type DiagramServiceState,
+} from "../extensions/DiagramService";
 import Mermaid, {
   pluginKey as mermaidPluginKey,
   type MermaidState,
@@ -350,7 +354,39 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           isCode(state.selection.node)
             ? { pos: state.selection.from, node: state.selection.node }
             : findParentNode(isCode)(state.selection);
-        if (!codeBlock || !isMermaid(codeBlock.node)) {
+        if (!codeBlock) {
+          return false;
+        }
+
+        // Diagrams rendered through Kroki are owned by the DiagramService
+        // plugin, all others by the Mermaid plugin.
+        const dsState = diagramServicePluginKey.getState(
+          state
+        ) as DiagramServiceState;
+        const dsDeco = dsState?.decorationSet
+          .find(codeBlock.pos, codeBlock.pos + codeBlock.node.nodeSize)
+          .find((d) => d.spec.diagramId && d.from === codeBlock.pos);
+
+        if (dsDeco) {
+          if (dispatch) {
+            dispatch(
+              state.tr
+                .setMeta(diagramServicePluginKey, {
+                  editingId:
+                    dsState.editingId === dsDeco.spec.diagramId
+                      ? undefined
+                      : dsDeco.spec.diagramId,
+                })
+                .setSelection(
+                  TextSelection.create(state.doc, codeBlock.pos + 1)
+                )
+                .scrollIntoView()
+            );
+          }
+          return true;
+        }
+
+        if (!isMermaid(codeBlock.node)) {
           return false;
         }
 
@@ -670,7 +706,18 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         return DecorationSet.empty;
       }
 
-      if (isMermaid(codeBlock.node)) {
+      const dsState = diagramServicePluginKey.getState(
+        state
+      ) as DiagramServiceState;
+      const dsDeco = dsState?.decorationSet
+        .find(codeBlock.pos, codeBlock.pos + codeBlock.node.nodeSize)
+        .find((d) => d.spec.diagramId && d.from === codeBlock.pos);
+
+      if (dsDeco) {
+        if (dsState.editingId !== dsDeco.spec.diagramId) {
+          return DecorationSet.empty;
+        }
+      } else if (isMermaid(codeBlock.node)) {
         const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
         const decorations = mermaidState?.decorationSet.find(
           codeBlock.pos,
@@ -700,6 +747,12 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         lineNumbers: this.showLineNumbers,
       }),
       this.name === "code_fence" ? Mermaid({ editor: this.editor }) : undefined,
+      this.name === "code_fence"
+        ? DiagramService({
+            isDark: this.editor.props.theme.isDark,
+            editor: this.editor,
+          })
+        : undefined,
       new Plugin({
         key: new PluginKey("code-fence-split"),
         props: {

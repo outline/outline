@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: outline
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d outline"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  outline:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      URL: http://127.0.0.1:3000
+      PORT: "3000"
+      DATABASE_URL: postgres://user:pass@127.0.0.1:5432/outline
+      PGSSLMODE: disable
+      REDIS_URL: redis://127.0.0.1:6379
+      SECRET_KEY: 2d84e2ea5e11c7e15b3e2d70a820e53cb3e4127ea78d808ca8d0a5eae1a6af7e
+      UTILS_SECRET: 9f0c3e7a5b1d4f8e2a6c9d0b3f7e1a4c8d2b5f9e6a3c7d0b4f8e1a5c9d2b6f0
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      SMTP_HOST: 127.0.0.1
+      SMTP_PORT: "1025"
+      SMTP_FROM_EMAIL: outline@example.com
+      SMTP_SECURE: "false"
+      WEB_CONCURRENCY: "1"
+      FORCE_HTTPS: "false"
+      LOG_LEVEL: info
+
+volumes:
+  postgres-data:
