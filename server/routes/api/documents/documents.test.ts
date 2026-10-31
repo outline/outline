@@ -9767,3 +9767,186 @@ describe("#documents.documents", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe("document owners", () => {
+  it("should set owners when creating a document", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/documents.create", user, {
+      body: { title: "Owned", ownerIds: [owner.id, owner.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([owner.id]);
+
+    const events = await Event.findAll({
+      where: { name: "documents.add_owner", documentId: body.data.id },
+    });
+    expect(events.map((event) => event.userId)).toEqual([owner.id]);
+  });
+
+  it("should not create a document when the user cannot manage owners", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Owned",
+        collectionId: collection.id,
+        publish: true,
+        ownerIds: [owner.id],
+      },
+    });
+    expect(res.status).toEqual(403);
+    expect(
+      await Document.count({ where: { collectionId: collection.id } })
+    ).toEqual(0);
+  });
+
+  it("should allow a user that can manage the document to change owners", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const other = await buildAdmin({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: [owner.id],
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [other.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([other.id]);
+    expect(body.policies[0].abilities.manageOwners).toBe(true);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+
+    const events = await Event.findAll({
+      where: {
+        documentId: document.id,
+        name: ["documents.add_owner", "documents.remove_owner"],
+      },
+    });
+    expect(events.map((event) => [event.name, event.userId])).toEqual(
+      expect.arrayContaining([
+        ["documents.add_owner", other.id],
+        ["documents.remove_owner", owner.id],
+      ])
+    );
+    expect(events).toHaveLength(2);
+  });
+
+  it("should not allow an editor without manage permission to change owners", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, ownerIds: [owner.id] },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow an editor to send unchanged owners", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+      ownerIds: [owner.id],
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: { id: document.id, title: "Renamed", ownerIds: [owner.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([owner.id]);
+    expect(body.policies[0].abilities.manageOwners).toBe(false);
+  });
+
+  it.each([
+    ["a viewer", (teamId: string) => buildViewer({ teamId })],
+    ["a guest", (teamId: string) => buildGuestUser({ teamId })],
+    [
+      "a suspended user",
+      (teamId: string) => buildUser({ teamId, suspendedAt: new Date() }),
+    ],
+    ["a user in another team", () => buildUser()],
+  ])("should not allow %s to be an owner", async (_, build) => {
+    const admin = await buildAdmin();
+    const candidate = await build(admin.teamId);
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [candidate.id] },
+    });
+    expect(res.status).toEqual(400);
+    await document.reload();
+    expect(document.ownerIds).toEqual([]);
+  });
+
+  it("should filter documents by owner", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const owned = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Ownership handbook",
+      ownerIds: [owner.id],
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Ownership notes",
+    });
+
+    const filters = [{ field: "ownerIds", operator: "eq", value: owner.id }];
+
+    const list = await server.post("/api/documents.list", user, {
+      body: { filters },
+    });
+    const listBody = await list.json();
+    expect(list.status).toEqual(200);
+    expect(listBody.data.map((d: { id: string }) => d.id)).toEqual([owned.id]);
+
+    const search = await server.post("/api/documents.search", user, {
+      body: { query: "ownership", filters },
+    });
+    const searchBody = await search.json();
+    expect(search.status).toEqual(200);
+    expect(
+      searchBody.data.map((r: { document: { id: string } }) => r.document.id)
+    ).toEqual([owned.id]);
+  });
+
+  it("should reject unsupported operators for the owner filter", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        filters: [{ field: "ownerIds", operator: "neq", value: user.id }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});

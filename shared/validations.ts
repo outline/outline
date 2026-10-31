@@ -88,6 +88,9 @@ export const DocumentValidation = {
 
   /** The maximum length of the document text content */
   maxLength: 1500 * 1024,
+
+  /** The maximum number of owners of a document */
+  maxOwners: 25,
 };
 
 export const GroupValidation = {

@@ -21,6 +21,14 @@ describe("PlanHelper", () => {
     );
   });
 
+  it("should include document owners in every plan", () => {
+    for (const plan of Object.values(Plan)) {
+      expect(PlanHelper.hasFeature(plan, PlanFeature.DocumentOwners)).toBe(
+        true
+      );
+    }
+  });
+
   it("should return the lowest plan with a feature", () => {
     expect(PlanHelper.getMinimumPlan(PlanFeature.AuditLog)).toBe(Plan.Business);
   });

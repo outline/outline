@@ -212,6 +212,12 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   collaboratorIds: string[] | undefined = undefined;
 
+  /**
+   * The ids of users that are responsible for this document.
+   */
+  @observable
+  ownerIds: string[] = [];
+
   @Relation(() => User)
   createdBy: User | undefined;
 
@@ -329,6 +335,17 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get collaborators(): User[] {
     return (this.collaboratorIds ?? [])
+      .map((id) => this.store.rootStore.users.get(id))
+      .filter(Boolean) as User[];
+  }
+
+  /**
+   * The users that are responsible for this document, excluding any that are
+   * not loaded.
+   */
+  @computed
+  get owners(): User[] {
+    return this.ownerIds
       .map((id) => this.store.rootStore.users.get(id))
       .filter(Boolean) as User[];
   }
@@ -608,6 +625,7 @@ export default class Document extends ArchivableModel implements Searchable {
           notification.documentId === this.id &&
           [
             NotificationEventType.AddUserToDocument,
+            NotificationEventType.AddOwnerToDocument,
             NotificationEventType.UpdateDocument,
             NotificationEventType.PublishDocument,
           ].includes(notification.event)

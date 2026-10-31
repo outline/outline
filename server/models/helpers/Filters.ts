@@ -94,6 +94,17 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
     throw new Error("`userId` only supports `eq` or `in` operators");
   }
 
+  // `ownerIds` is an array column, matching documents owned by any given user.
+  if (field === "ownerIds") {
+    if (operator === "eq" && value !== undefined) {
+      return { ownerIds: { [Op.contains]: [String(value)] } };
+    }
+    if (operator === "in" && Array.isArray(value)) {
+      return { ownerIds: { [Op.overlap]: value.map(String) } };
+    }
+    throw new Error("`ownerIds` only supports `eq` or `in` operators");
+  }
+
   switch (operator) {
     case "isNull":
       return { [field]: { [Op.is]: null } };
