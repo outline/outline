@@ -7,6 +7,10 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { assertPresent } from "@server/validation";
+import {
+  createDocumentOwnerEvents,
+  validateDocumentOwnerIds,
+} from "./documentOwners";
 import personalCollectionLoader from "./personalCollectionLoader";
 
 type Props = Optional<
@@ -32,6 +36,7 @@ type Props = Optional<
     | "updatedAt"
     | "createdById"
     | "lastModifiedById"
+    | "ownerIds"
   >
 > & {
   state?: Buffer;
@@ -184,6 +189,7 @@ export default async function documentCreator(
     sourceMetadata,
     createdById,
     lastModifiedById,
+    ownerIds,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
@@ -230,6 +236,10 @@ export default async function documentCreator(
           )
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
+  const validatedOwnerIds = ownerIds
+    ? await validateDocumentOwnerIds(ctx, ownerIds)
+    : [];
+
   const document = Document.build({
     id,
     urlId,
@@ -253,6 +263,7 @@ export default async function documentCreator(
     title: titleWithReplacements,
     content: contentWithReplacements,
     state,
+    ownerIds: validatedOwnerIds,
   });
 
   document.text = await DocumentHelper.toMarkdown(document, {
@@ -284,9 +295,16 @@ export default async function documentCreator(
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  return Document.findByPk(document.id, {
+  const reloaded = await Document.findByPk(document.id, {
     userId: user.id,
     rejectOnEmpty: true,
     transaction,
   });
+
+  if (validatedOwnerIds.length > 0) {
+    authorize(user, "manageOwners", reloaded);
+    await createDocumentOwnerEvents(ctx, reloaded, []);
+  }
+
+  return reloaded;
 }

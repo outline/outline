@@ -2,6 +2,7 @@ import invariant from "invariant";
 import {
   CommentingAccess,
   DocumentPermission,
+  PlanFeature,
   TeamPreference,
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
@@ -15,6 +16,7 @@ import {
   isTeamModel,
   isTeamMutable,
   or,
+  teamHasEntitlement,
 } from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>
@@ -128,6 +130,14 @@ allow(User, "manageUsers", Document, (actor, document) =>
       can(actor, "update", document?.collection),
       !!document?.isDraft && actor.id === document?.createdById
     )
+  )
+);
+
+allow(User, "manageOwners", Document, (actor, document) =>
+  and(
+    !!document?.isActive,
+    teamHasEntitlement(actor.team, PlanFeature.DocumentOwners),
+    can(actor, "manageUsers", document)
   )
 );
 

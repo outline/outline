@@ -7,6 +7,7 @@ import type {
   CommentEvent,
   CollectionUserEvent,
   DocumentUserEvent,
+  DocumentOwnerEvent,
   DocumentGroupEvent,
   CommentReactionEvent,
   GroupUserEvent,
@@ -19,6 +20,7 @@ import ReactionCreatedNotificationsTask from "../tasks/ReactionCreatedNotificati
 import ReactionRemovedNotificationsTask from "../tasks/ReactionRemovedNotificationsTask";
 import DocumentAccessRequestNotificationsTask from "../tasks/DocumentAccessRequestNotificationsTask";
 import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
+import DocumentAddOwnerNotificationsTask from "../tasks/DocumentAddOwnerNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
 import GroupUserNotificationsTask from "../tasks/GroupUserNotificationsTask";
@@ -30,6 +32,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
     "documents.add_user",
+    "documents.add_owner",
     "documents.add_group",
     "access_requests.create",
     "revisions.create",
@@ -49,6 +52,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.documentPublished(event);
       case "documents.add_user":
         return this.documentAddUser(event);
+      case "documents.add_owner":
+        return this.documentAddOwner(event);
       case "documents.add_group":
         return this.documentAddGroup(event);
       case "access_requests.create":
@@ -88,6 +93,13 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
     await new DocumentAddUserNotificationsTask().schedule(event);
+  }
+
+  async documentAddOwner(event: DocumentOwnerEvent) {
+    if (event.userId === event.actorId) {
+      return;
+    }
+    await new DocumentAddOwnerNotificationsTask().schedule(event);
   }
 
   async documentAddGroup(event: DocumentGroupEvent) {

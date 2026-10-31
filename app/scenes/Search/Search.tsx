@@ -68,6 +68,7 @@ function Search() {
   const query = decodedQuery !== "" ? decodedQuery : undefined;
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
+  const ownerId = params.get("ownerId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
   // Keyed on the serialized value so the array keeps a stable identity between
@@ -84,7 +85,7 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  const isSearchable = !!(query || collectionId || userId);
+  const isSearchable = !!(query || collectionId || userId || ownerId);
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -92,6 +93,7 @@ function Search() {
     document: !!document,
     collection: !document,
     user: !document || !!(document && query),
+    owner: !document || !!(document && query),
     documentType: isSearchable,
     date: isSearchable,
     title: !!query && !document,
@@ -109,6 +111,9 @@ function Search() {
     }
     if (userId) {
       children.push({ field: "userId", operator: "eq", value: userId });
+    }
+    if (ownerId) {
+      children.push({ field: "ownerIds", operator: "eq", value: ownerId });
     }
     if (documentId) {
       children.push({
@@ -158,7 +163,7 @@ function Search() {
       return undefined;
     }
     return children;
-  }, [collectionId, userId, documentId, dateFilter, statusFilter]);
+  }, [collectionId, userId, ownerId, documentId, dateFilter, statusFilter]);
 
   const requestParams = React.useMemo(
     () => ({
@@ -239,6 +244,7 @@ function Search() {
     collectionId?: string | undefined;
     documentId?: string | undefined;
     userId?: string | undefined;
+    ownerId?: string | undefined;
     dateFilter?: TDateFilter;
     statusFilter?: TStatusFilter[];
     titleFilter?: boolean | undefined;
@@ -364,6 +370,13 @@ function Search() {
                 <UserFilter
                   userId={userId}
                   onSelect={(userId) => handleFilterChange({ userId })}
+                />
+              )}
+              {filterVisibility.owner && (
+                <UserFilter
+                  userId={ownerId}
+                  anyLabel={t("Any owner")}
+                  onSelect={(ownerId) => handleFilterChange({ ownerId })}
                 />
               )}
               {filterVisibility.documentType && (

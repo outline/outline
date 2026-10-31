@@ -1485,3 +1485,82 @@ describe("delete_document", () => {
     }
   );
 });
+
+describe("document owners", () => {
+  it("creates a document with owners", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Owned",
+      publish: false,
+      ownerIds: [owner.id],
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.success).toBe(true);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.ownerIds).toEqual([owner.id]);
+  });
+
+  it("updates the owners of a document", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const owner = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      ownerIds: [owner.id],
+    });
+    expect(res?.result?.isError).toBeFalsy();
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([owner.id]);
+  });
+
+  it("rejects owner changes without manage permission", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      ownerIds: [owner.id],
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([]);
+  });
+
+  it("filters documents by owner", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const owned = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      ownerIds: [owner.id],
+    });
+    await buildDocument({ teamId: user.teamId, userId: user.id });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      ownerId: owner.id,
+    });
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    expect(
+      data.map((d: { document: { id: string } }) => d.document.id)
+    ).toEqual([owned.id]);
+  });
+});

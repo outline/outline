@@ -28,6 +28,9 @@ const documentFilterFields = {
   // `userId` maps to the collaboratorIds array column and only supports
   // membership checks.
   userId: { kind: "uuid", operators: ["eq", "in"] },
+  // `ownerIds` maps to the ownerIds array column and only supports membership
+  // checks.
+  ownerIds: { kind: "uuid", operators: ["eq", "in"] },
   documentId: "uuid",
   parentDocumentId: "uuid",
 } as const;
@@ -453,6 +456,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
+
+    /** IDs of the users that own the doc */
+    ownerIds: z.array(z.uuid()).max(DocumentValidation.maxOwners).optional(),
   }),
 })
   .refine(
@@ -638,6 +644,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
         headingPrefix: z.enum(HeadingPrefixStyle).optional(),
       })
       .nullish(),
+
+    /** IDs of the users that own the document */
+    ownerIds: z.array(z.uuid()).max(DocumentValidation.maxOwners).optional(),
   }),
 }).refine(
   (req) =>

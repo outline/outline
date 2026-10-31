@@ -21,7 +21,7 @@ import {
 } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { DeprecationValidation } from "@shared/validations";
+import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import {
   error,
   success,
@@ -88,6 +88,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
           ),
           collectionId: optionalString().describe(
             "A collection ID to filter documents by."
+          ),
+          ownerId: optionalString().describe(
+            "A user ID to filter documents by, only documents owned by this user are returned."
           ),
           includeArchived: z
             .boolean()
@@ -173,6 +176,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   field: "collectionId",
                   operator: "eq",
                   value: collectionId,
+                });
+              }
+              if (input.ownerId) {
+                searchFilters.push({
+                  field: "ownerIds",
+                  operator: "eq",
+                  value: input.ownerId,
                 });
               }
               const { results, total } = await searchProvider.searchForUser(
@@ -274,6 +284,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 field: "collectionId",
                 operator: "eq",
                 value: collectionId,
+              });
+            }
+            if (input.ownerId) {
+              filters.push({
+                field: "ownerIds",
+                operator: "eq",
+                value: input.ownerId,
               });
             }
             const { results } = await searchProvider.searchForUser(user, {
@@ -429,6 +446,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen. Defaults to false. Do not set this to true for HTML input unless the user explicitly asks for a full-width document layout."
             ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(DocumentValidation.maxOwners)
+            .optional()
+            .describe(
+              "The IDs of users responsible for the document. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("create_document", async (input, context) => {
@@ -465,6 +489,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     icon: input.icon,
                     color: input.color,
                     fullWidth: input.fullWidth,
+                    ownerIds: input.ownerIds,
                   },
                   userId: user.id,
                   publish: input.publish !== false,
@@ -487,6 +512,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     collectionId: collection?.id,
                     template,
                     fullWidth: input.fullWidth,
+                    ownerIds: input.ownerIds,
                     sourceMetadata: input.sourceFileName
                       ? {
                           fileName: input.sourceFileName,
@@ -693,6 +719,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .optional()
             .describe(
               "Whether the document should occupy full width of the screen."
+            ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(DocumentValidation.maxOwners)
+            .optional()
+            .describe(
+              "The complete list of IDs of users responsible for the document, replacing any existing owners. Pass an empty array to remove all owners. Owners must be members or admins of the workspace, use list_users to find user IDs."
             ),
         }),
       },
