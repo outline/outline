@@ -1,3 +1,5 @@
+import type { IntegrationService } from "./integrations";
+
 /** The kinds of resource that a mention can refer to. */
 export enum MentionType {
   User = "user",
@@ -88,6 +90,8 @@ export type UnfurlResponse = {
   [UnfurlResourceType.Issue]: {
     /** The resource type */
     type: UnfurlResourceType.Issue;
+    /** The integration service that the issue belongs to */
+    service: IntegrationService;
     /** Issue link */
     url: string;
     /** Issue identifier */
@@ -113,6 +117,8 @@ export type UnfurlResponse = {
   [UnfurlResourceType.PR]: {
     /** The resource type */
     type: UnfurlResourceType.PR;
+    /** The integration service that the pull request belongs to */
+    service: IntegrationService;
     /** Pull Request link */
     url: string;
     /** Pull Request identifier */

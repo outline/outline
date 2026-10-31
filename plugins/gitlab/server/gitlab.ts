@@ -403,6 +403,7 @@ export class GitLab {
 
     return {
       type: UnfurlResourceType.Issue,
+      service: IntegrationService.GitLab,
       url: issue.web_url,
       id: `#${issue.iid}`,
       title: issue.title,
@@ -429,6 +430,7 @@ export class GitLab {
     const mrState = mr.merged_at ? "merged" : mr.state;
     return {
       type: UnfurlResourceType.PR,
+      service: IntegrationService.GitLab,
       url: mr.web_url,
       id: `!${mr.iid}`,
       title: mr.title,

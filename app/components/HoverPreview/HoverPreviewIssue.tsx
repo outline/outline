@@ -5,10 +5,10 @@ import { Backticks } from "@shared/components/Backticks";
 import { IssueStatusIcon } from "@shared/components/IssueStatusIcon";
 import { richExtensions } from "@shared/editor/nodes";
 import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
-import { IntegrationService } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
+import { getIssueStatusIcon } from "~/utils/PluginManager";
 import Text from "../Text";
 import Time from "../Time";
 import {
@@ -26,6 +26,7 @@ type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type"> & {
 };
 
 function HoverPreviewIssue({
+  service,
   url,
   id,
   title,
@@ -37,13 +38,6 @@ function HoverPreviewIssue({
   ref,
 }: Props) {
   const authorName = author.name;
-  const urlObj = new URL(url);
-  const service =
-    urlObj.hostname === "linear.app"
-      ? IntegrationService.Linear
-      : urlObj.hostname === "github.com"
-        ? IntegrationService.GitHub
-        : IntegrationService.GitLab;
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
@@ -53,7 +47,7 @@ function HoverPreviewIssue({
             <Flex gap={2} column>
               <Title>
                 <StyledIssueStatusIcon
-                  service={service}
+                  icon={getIssueStatusIcon({ service, url })}
                   state={state}
                   size={18}
                 />

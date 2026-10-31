@@ -76,6 +76,8 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
+import type { IssueStatusIconResolver } from "@shared/components/IssueStatusIcon";
+import { getIssueStatusIcon } from "~/utils/PluginManager";
 import { toastNotice } from "./toastNotice";
 
 export type Props = {
@@ -181,6 +183,8 @@ export type Props = {
   onNotice?: EditorNotice;
   /** Collection of embed types to render in the document */
   embeds: EmbedDescriptor[];
+  /** Returns the status icon registered for an issue tracker service. */
+  getIssueStatusIcon?: IssueStatusIconResolver;
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
   /** The style of prefix displayed before headings in the document. */
@@ -228,6 +232,7 @@ export class Editor extends React.PureComponent<
     },
     onNotice: toastNotice,
     embeds: [],
+    getIssueStatusIcon,
     extensions,
   };
 

@@ -18,7 +18,10 @@ import {
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
-import { IssueStatusIcon } from "../../components/IssueStatusIcon";
+import {
+  IssueStatusIcon,
+  type IssueStatusIconResolver,
+} from "../../components/IssueStatusIcon";
 import { PullRequestIcon } from "../../components/PullRequestIcon";
 import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
@@ -27,7 +30,6 @@ import useShare from "../../hooks/useShare";
 import env from "../../env";
 import theme from "../../styles/theme";
 import {
-  IntegrationService,
   UnfurlResourceType,
   type JSONValue,
   type UnfurlResponse,
@@ -309,7 +311,12 @@ export const MentionURL = (props: IssueUrlProps) => {
   );
 };
 
-export const MentionIssue = observer((props: IssuePrProps) => {
+type IssueProps = IssuePrProps & {
+  /** Returns the status icon registered for an issue tracker service. */
+  getIssueStatusIcon?: IssueStatusIconResolver;
+};
+
+export const MentionIssue = observer((props: IssueProps) => {
   const { unfurls } = useStores();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
@@ -362,19 +369,6 @@ export const MentionIssue = observer((props: IssuePrProps) => {
 
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
-  let service = IntegrationService.GitLab;
-  try {
-    const parsedUrl = new URL(issue.url);
-    service =
-      parsedUrl.hostname === "github.com"
-        ? IntegrationService.GitHub
-        : parsedUrl.hostname === "linear.app"
-          ? IntegrationService.Linear
-          : IntegrationService.GitLab;
-  } catch {
-    // Invalid URL in unfurl data, default to GitLab
-  }
-
   return (
     <a
       {...attrs}
@@ -386,7 +380,11 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <IssueStatusIcon size={14} service={service} state={issue.state} />
+        <IssueStatusIcon
+          size={14}
+          icon={props.getIssueStatusIcon?.(issue)}
+          state={issue.state}
+        />
         <Flex align="center" gap={4}>
           <Text>
             <Backticks content={issue.title} />

@@ -1,17 +1,9 @@
-import type { NotionImportInput } from "@shared/schema";
-import {
-  CollectionPermission,
-  ImportableIntegrationService,
-  ImportState,
-  IntegrationService,
-  IntegrationType,
-} from "@shared/types";
+import { ImportState, IntegrationService } from "@shared/types";
 import type { Import } from "@server/models";
-import { Integration } from "@server/models";
 import {
   buildAdmin,
+  buildAttachment,
   buildImport,
-  buildIntegration,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -19,71 +11,41 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#imports.create", () => {
-  it("should create an import", async () => {
+  it("should create an import from an uploaded file", async () => {
     const admin = await buildAdmin();
-    const integration = await Integration.create<
-      Integration<IntegrationType.Import>
-    >({
-      service: IntegrationService.Notion,
-      type: IntegrationType.Import,
-      userId: admin.id,
+    const attachment = await buildAttachment({
       teamId: admin.teamId,
-      settings: {
-        externalWorkspace: {
-          id: "testId",
-          name: "testWorkspaceName",
-        },
-      },
+      userId: admin.id,
     });
-    const input: NotionImportInput = [{ permission: undefined }];
 
     const res = await server.post("/api/imports.create", admin, {
       body: {
-        integrationId: integration.id,
-        service: IntegrationService.Notion,
-        input,
+        attachmentId: attachment.id,
+        service: IntegrationService.Markdown,
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.id).toBeTruthy();
-    expect(body.data.name).toEqual("testWorkspaceName");
     expect(body.data.state).toEqual(ImportState.Created);
-    expect(body.data.service).toEqual(IntegrationService.Notion);
-    expect(body.data.createdById).toEqual(admin.id);
+    expect(body.data.service).toEqual(IntegrationService.Markdown);
   });
 
-  it("should not allow more than one active import at a time", async () => {
+  it("should reject an unknown service", async () => {
     const admin = await buildAdmin();
-    const integration = await buildIntegration({
+    const attachment = await buildAttachment({
+      teamId: admin.teamId,
       userId: admin.id,
-      teamId: admin.teamId,
-      service: IntegrationService.Notion,
-      type: IntegrationType.Import,
-      settings: {
-        externalWorkspace: { id: "ws-1", name: "Test Workspace" },
-        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
-    });
-    const input: NotionImportInput = [
-      { permission: CollectionPermission.Read },
-    ];
-    await buildImport({
-      createdById: admin.id,
-      teamId: admin.teamId,
-      integrationId: integration.id,
     });
 
     const res = await server.post("/api/imports.create", admin, {
       body: {
-        integrationId: integration.id,
-        service: ImportableIntegrationService.Notion,
-        input,
+        attachmentId: attachment.id,
+        service: "unknown",
       },
     });
 
-    expect(res.status).toEqual(422);
+    expect(res.status).toEqual(400);
   });
 
   it("should require authentication", async () => {

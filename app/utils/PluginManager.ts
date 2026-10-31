@@ -1,6 +1,14 @@
 import { isArray, sortBy } from "es-toolkit/compat";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import type { IObservableArray } from "mobx";
+import type { BaseIconProps } from "@shared/components/IssueStatusIcon";
+import type {
+  IntegrationService,
+  IntegrationSettings,
+  IntegrationType,
+  MentionType,
+} from "@shared/types";
+import type Integration from "~/models/Integration";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
 import type { LazyComponent } from "~/components/LazyLoad";
@@ -15,6 +23,9 @@ export enum Hook {
   Settings = "settings",
   Imports = "imports",
   Icon = "icon",
+  MentionProvider = "mentionProvider",
+  IssueStatusIcon = "issueStatusIcon",
+  InstanceUrl = "instanceUrl",
 }
 
 /**
@@ -46,6 +57,33 @@ type PluginValueMap = {
     action: React.ReactElement;
   };
   [Hook.Icon]: React.ElementType;
+  [Hook.MentionProvider]: {
+    /** The integration service that this provider handles. */
+    service: IntegrationService;
+    /** Whether the URL belongs to the integration. */
+    isMentionable: (url: URL, integration: Integration) => boolean;
+    /** The mention type of the URL, or undefined if it cannot be mentioned. */
+    mentionType: (
+      url: URL,
+      integration: Integration
+    ) => MentionType | undefined;
+  };
+  [Hook.IssueStatusIcon]: {
+    /** The integration service that this icon is used for. */
+    service: IntegrationService;
+    /** The component that renders the status of an issue. */
+    component: React.ComponentType<BaseIconProps>;
+    /** Recognizes issue URLs from unfurls saved without a service. */
+    matchesUrl?: (url: URL) => boolean;
+  };
+  [Hook.InstanceUrl]: {
+    /** The integration service that this resolver is used for. */
+    service: IntegrationService;
+    /** Returns the URL of the instance that the integration is configured with. */
+    url: (
+      settings: IntegrationSettings<IntegrationType.Embed>
+    ) => string | undefined;
+  };
 };
 
 export type Plugin<T extends Hook> = {
@@ -175,4 +213,26 @@ export function usePluginValue<T extends Hook>(type: T, id: string) {
     () => PluginManager.getHook<T>(type, id)?.value,
     [type, id]
   );
+}
+
+/**
+ * Returns the issue status icon that a plugin registered for an issue.
+ *
+ * @param issue the service and URL of the issue.
+ * @returns the icon component, or undefined if none is registered.
+ */
+export function getIssueStatusIcon(issue: { service?: string; url: string }) {
+  const hooks = PluginManager.getHooks(Hook.IssueStatusIcon);
+  if (issue.service) {
+    return hooks.find((hook) => hook.value.service === issue.service)?.value
+      .component;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(issue.url);
+  } catch {
+    return undefined;
+  }
+  return hooks.find((hook) => hook.value.matchesUrl?.(url))?.value.component;
 }

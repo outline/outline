@@ -2,8 +2,15 @@ import path from "node:path";
 import { glob } from "glob";
 import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
-import type { Concrete } from "@shared/types";
+import type { z } from "zod";
+import type {
+  Concrete,
+  EmbedIntegrationSettings,
+  IntegrationService,
+  LinkedAccountIntegrationSettings,
+} from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
+import type { ImportsCreateBody } from "@server/routes/api/imports/schema";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
@@ -13,6 +20,7 @@ import type {
   UnfurlSignature,
   UninstallSignature,
 } from "@server/types";
+import type OAuthClient from "./oauth";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
 import type { GroupSyncProvider } from "./GroupSyncProvider";
 import type { BaseSearchProvider } from "./BaseSearchProvider";
@@ -36,6 +44,8 @@ export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
+  ImportSchema = "importSchema",
+  IntegrationSettings = "integrationSettings",
   IssueProvider = "issueProvider",
   Processor = "processor",
   SearchProvider = "searchProvider",
@@ -60,9 +70,23 @@ type PluginValueMap = {
      * different Google Workspace domain, can sign in to a matching account.
      */
     allowEmailMatch?: boolean;
+    /** Creates a client to validate and refresh the provider's access tokens. */
+    oauthClient?: () => OAuthClient;
   };
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;
+  [Hook.ImportSchema]: z.ZodType<ImportsCreateBody>;
+  [Hook.IntegrationSettings]: {
+    /** The integration service that the settings belong to. */
+    service: IntegrationService;
+    /** The settings keys that are presented to clients. */
+    keys: (
+      | keyof EmbedIntegrationSettings
+      | keyof LinkedAccountIntegrationSettings
+    )[];
+    /** A schema to validate settings given through the integrations API. */
+    schema?: z.ZodType<EmbedIntegrationSettings>;
+  };
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.MentionProvider]: MentionSignature;
   [Hook.Processor]: Concrete<typeof BaseProcessor>;

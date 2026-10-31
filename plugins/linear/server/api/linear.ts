@@ -105,6 +105,7 @@ router.get(
           await new UploadIntegrationLogoTask().schedule({
             integrationId: integration.id,
             logoUrl: workspace.logoUrl,
+            settingsPath: ["linear", "workspace", "logoUrl"],
           });
         }
       });

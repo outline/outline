@@ -72,7 +72,6 @@ function loadSentry(dsn: string): typeof SentryNode {
       // Authentication
       "UnauthorizedError",
       "TeamDomainRequiredError",
-      "GmailAccountCreationError",
       "AuthRedirectError",
       "UserSuspendedError",
       "TooManyRequestsError",

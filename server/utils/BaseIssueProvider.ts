@@ -1,14 +1,11 @@
 import type { IssueSource } from "@shared/schema";
-import type {
-  IntegrationType,
-  IssueTrackerIntegrationService,
-} from "@shared/types";
+import type { IntegrationService, IntegrationType } from "@shared/types";
 import type { Integration } from "@server/models";
 
 export abstract class BaseIssueProvider {
-  service: IssueTrackerIntegrationService;
+  service: IntegrationService;
 
-  constructor(service: IssueTrackerIntegrationService) {
+  constructor(service: IntegrationService) {
     this.service = service;
   }
 

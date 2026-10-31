@@ -401,6 +401,7 @@ export class Gitea {
   private static transformIssue(issue: z.infer<typeof IssueSchema>) {
     return {
       type: UnfurlResourceType.Issue,
+      service: IntegrationService.Gitea,
       url: issue.html_url,
       id: `#${issue.number}`,
       title: issue.title,
@@ -427,6 +428,7 @@ export class Gitea {
 
     return {
       type: UnfurlResourceType.PR,
+      service: IntegrationService.Gitea,
       url: pr.html_url,
       id: `#${pr.number}`,
       title: pr.title,

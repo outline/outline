@@ -1,6 +1,7 @@
 import Logger from "@server/logging/Logger";
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
+import OIDCClient from "./oidc";
 import router from "./auth/oidc";
 import env from "./env";
 
@@ -27,7 +28,11 @@ if (enabled) {
     {
       ...config,
       type: Hook.AuthProvider,
-      value: { router, id: config.id },
+      value: {
+        router,
+        id: config.id,
+        oauthClient: () => new OIDCClient(),
+      },
       name: env.OIDC_DISPLAY_NAME || config.name,
     },
   ]);

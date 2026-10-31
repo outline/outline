@@ -175,6 +175,7 @@ const HoverPreviewDesktop = observer(
               ) : data.type === UnfurlResourceType.Issue ? (
                 <HoverPreviewIssue
                   ref={cardRef}
+                  service={data.service}
                   url={data.url}
                   id={data.id}
                   title={data.title}
