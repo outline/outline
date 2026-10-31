@@ -15,7 +15,7 @@ import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import { useLoggedInSessions } from "~/hooks/useLoggedInSessions";
+import { useWorkspaceSessions } from "~/hooks/useWorkspaceSessions";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
@@ -37,7 +37,7 @@ import { Form } from "~/components/primitives/Form";
 
 export default function OAuthAuthorize() {
   const team = useCurrentTeam({ rejectOnEmpty: false });
-  const sessions = useLoggedInSessions();
+  const sessions = useWorkspaceSessions();
 
   // We're self-hosted or on a team subdomain already, just show the authorize screen.
   if (team) {
@@ -47,8 +47,8 @@ export default function OAuthAuthorize() {
   // Cloud hosted and on root domain – show the workspace switcher.
   const isAppRoot =
     parseDomain(window.location.hostname).host === parseDomain(env.URL).host;
-  const hasLoggedInSessions = Object.keys(sessions).length > 0;
-  if (isCloudHosted && hasLoggedInSessions && isAppRoot) {
+  const hasRememberedWorkspaces = Object.keys(sessions).length > 0;
+  if (isCloudHosted && hasRememberedWorkspaces && isAppRoot) {
     return <TeamSwitcher sessions={sessions} />;
   }
 
