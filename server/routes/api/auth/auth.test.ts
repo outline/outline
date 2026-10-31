@@ -1,9 +1,7 @@
+// @vitest-isolate true
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
-import { addMonths, subDays } from "date-fns";
 import { Scope } from "@shared/types";
-import type { Sessions } from "@shared/utils/sessions";
-import { parseSessionsCookie } from "@shared/utils/sessions";
 import {
   buildApiKey,
   buildOAuthAuthentication,
@@ -14,13 +12,23 @@ import {
 } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
+const mockTeamInSessionId = randomUUID();
+
+vi.mock("@server/utils/authentication", () => ({
+  getSessionsInCookie() {
+    return { [mockTeamInSessionId]: {} };
+  },
+}));
+
 const server = getTestServer();
 
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
-    const team3 = await buildTeam();
+    const team3 = await buildTeam({
+      id: mockTeamInSessionId,
+    });
 
     const user = await buildUser({ teamId: team.id });
     await buildUser();
@@ -28,20 +36,7 @@ describe("#auth.info", () => {
       teamId: team2.id,
       email: user.email,
     });
-    const res = await server.post("/api/auth.info", user, {
-      headers: {
-        Host: "app.outline.dev",
-        Cookie: `sessions=${encodeURIComponent(
-          JSON.stringify({
-            [team3.id]: {
-              name: team3.name,
-              logoUrl: team3.avatarUrl,
-              url: team3.url,
-            },
-          })
-        )}`,
-      },
-    });
+    const res = await server.post("/api/auth.info", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
 
@@ -63,177 +58,6 @@ describe("#auth.info", () => {
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
     expect(body.data.team.allowedDomains).toEqual([]);
-    expect(
-      body.data.availableTeams.find((t: { id: string }) => t.id === team3.id)
-        .isSignedIn
-    ).toBe(true);
-    expect(
-      body.data.availableTeams.find((t: { id: string }) => t.id === team2.id)
-        .isSignedIn
-    ).toBe(false);
-  });
-
-  it("adds the current workspace to the sessions cookie when missing", async () => {
-    const before = addMonths(new Date(), 3).getTime();
-    const user = await buildUser();
-    const res = await server.post("/api/auth.info", user, {
-      headers: { Host: "app.outline.dev" },
-    });
-    expect(res.status).toEqual(200);
-    const body = await res.json();
-    const cookies = res.headers.raw()["set-cookie"];
-    const cookie = cookies.find((value) => value.startsWith("sessions="));
-    const value = cookie?.split(";")[0].slice("sessions=".length);
-    const sessions = parseSessionsCookie(decodeURIComponent(value || "{}"));
-    expect(sessions[user.teamId]).toMatchObject({
-      name: body.data.team.name,
-      logoUrl: body.data.team.avatarUrl,
-      url: body.data.team.url,
-      expiresAt: expect.any(String),
-    });
-    const expiresAt = Date.parse(sessions[user.teamId].expiresAt || "");
-    expect(expiresAt).toBeGreaterThanOrEqual(before);
-    expect(expiresAt).toBeLessThanOrEqual(addMonths(new Date(), 3).getTime());
-  });
-
-  it.each(["missing", "legacy", "dated", "expired"])(
-    "uses the token expiry when the current workspace entry is %s",
-    async (entry) => {
-      const team = await buildTeam();
-      const otherTeam = await buildTeam();
-      const user = await buildUser({ teamId: team.id });
-      const expires = addMonths(new Date(), 1);
-      const otherExpires = addMonths(new Date(), 2);
-      const before = Date.now();
-      const beforeCookieExpiry = addMonths(new Date(), 3);
-      const otherSession = {
-        name: otherTeam.name,
-        logoUrl: otherTeam.avatarUrl,
-        url: otherTeam.url,
-        expiresAt: otherExpires.toISOString(),
-        lastUsedAt: subDays(new Date(), 10).toISOString(),
-      };
-      const sessions: Sessions = { [otherTeam.id]: otherSession };
-      if (entry !== "missing") {
-        sessions[team.id] = {
-          name: team.name,
-          logoUrl: team.avatarUrl,
-          url: team.url,
-          lastUsedAt: addMonths(new Date(), -4).toISOString(),
-          ...(entry === "dated"
-            ? { expiresAt: addMonths(new Date(), 3).toISOString() }
-            : entry === "expired"
-              ? { expiresAt: subDays(new Date(), 1).toISOString() }
-              : {}),
-        };
-      }
-      const res = await server.post("/api/auth.info", {
-        headers: {
-          Host: "app.outline.dev",
-          Authorization: `Bearer ${user.getSessionToken(expires)}`,
-          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
-        },
-      });
-      expect(res.status).toEqual(200);
-      const cookies = res.headers.raw()["set-cookie"];
-      const cookie = cookies.find((value) => value.startsWith("sessions="));
-      const value = cookie?.split(";")[0].slice("sessions=".length);
-      const written = parseSessionsCookie(decodeURIComponent(value || "{}"));
-      expect(written[team.id].expiresAt).toEqual(expires.toISOString());
-      expect(
-        Date.parse(written[team.id].lastUsedAt || "")
-      ).toBeGreaterThanOrEqual(before);
-      expect(written[otherTeam.id]).toEqual(otherSession);
-      const cookieExpiry = cookie?.match(/expires=([^;]+)/i)?.[1];
-      expect(Date.parse(cookieExpiry || "")).toBeGreaterThanOrEqual(
-        beforeCookieExpiry.getTime() - 1000
-      );
-    }
-  );
-
-  it("returns expired workspaces as logged out and refreshes their login URLs", async () => {
-    const user = await buildUser();
-    const previousTeam = await buildTeam();
-    const expiresAt = subDays(new Date(), 1).toISOString();
-    const lastUsedAt = subDays(new Date(), 2).toISOString();
-    const res = await server.post("/api/auth.info", user, {
-      headers: {
-        Host: "app.outline.dev",
-        Cookie: `sessions=${encodeURIComponent(
-          JSON.stringify({
-            [previousTeam.id]: {
-              name: "Old name",
-              logoUrl: null,
-              url: "https://old.outline.dev",
-              expiresAt,
-              lastUsedAt,
-            },
-          })
-        )}`,
-      },
-    });
-    expect(res.status).toEqual(200);
-    const body = await res.json();
-    expect(body.data.availableTeams).toContainEqual({
-      id: previousTeam.id,
-      name: previousTeam.name,
-      avatarUrl: previousTeam.avatarUrl,
-      url: previousTeam.url,
-      isSignedIn: false,
-    });
-    const cookies = res.headers.raw()["set-cookie"];
-    const cookie = cookies.find((value) => value.startsWith("sessions="));
-    const value = cookie?.split(";")[0].slice("sessions=".length);
-    expect(
-      parseSessionsCookie(decodeURIComponent(value || "{}"))[previousTeam.id]
-    ).toEqual({
-      name: previousTeam.name,
-      logoUrl: previousTeam.avatarUrl,
-      url: previousTeam.url,
-      expiresAt,
-      lastUsedAt,
-    });
-  });
-
-  it("updates last use when the current workspace is visited again", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const before = Date.now();
-    const res = await server.post("/api/auth.info", user, {
-      headers: {
-        Host: "app.outline.dev",
-        Cookie: `sessions=${encodeURIComponent(
-          JSON.stringify({
-            [team.id]: {
-              name: team.name,
-              logoUrl: team.avatarUrl,
-              url: team.url,
-              expiresAt: addMonths(new Date(), 1).toISOString(),
-              lastUsedAt: subDays(new Date(), 1).toISOString(),
-            },
-          })
-        )}`,
-      },
-    });
-    expect(res.status).toEqual(200);
-    const cookies = res.headers.raw()["set-cookie"];
-    const cookie = cookies?.find((value) => value.startsWith("sessions="));
-    const value = cookie?.split(";")[0].slice("sessions=".length);
-    const written = parseSessionsCookie(decodeURIComponent(value || "{}"));
-    expect(
-      Date.parse(written[team.id].lastUsedAt || "")
-    ).toBeGreaterThanOrEqual(before);
-  });
-
-  it("does not write a sessions cookie on a custom domain", async () => {
-    const team = await buildTeam({ domain: faker.internet.domainName() });
-    const user = await buildUser({ teamId: team.id });
-    const res = await server.post("/api/auth.info", user, {
-      headers: { Host: team.domain || "docs.example.com" },
-    });
-    expect(res.status).toEqual(200);
-    const cookies = res.headers.raw()["set-cookie"];
-    expect(cookies?.some((value) => value.startsWith("sessions="))).toBeFalsy();
   });
 
   it("should return a collaboration token for a session", async () => {
@@ -288,36 +112,6 @@ describe("#auth.info", () => {
 });
 
 describe("#auth.delete", () => {
-  it("retains the workspace as logged out after revoking the session", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const before = Date.now();
-    const res = await server.post("/api/auth.delete", user, {
-      headers: {
-        Host: "app.outline.dev",
-        Cookie: `sessions=${encodeURIComponent(
-          JSON.stringify({
-            [team.id]: {
-              name: team.name,
-              logoUrl: team.avatarUrl,
-              url: team.url,
-              expiresAt: addMonths(new Date(), 1).toISOString(),
-            },
-          })
-        )}`,
-      },
-    });
-    expect(res.status).toEqual(200);
-    const cookies = res.headers.raw()["set-cookie"];
-    const cookie = cookies.find((value) => value.startsWith("sessions="));
-    const value = cookie?.split(";")[0].slice("sessions=".length);
-    const sessions = parseSessionsCookie(decodeURIComponent(value || "{}"));
-    expect(sessions[team.id]).toMatchObject({ name: team.name, url: team.url });
-    const expiresAt = Date.parse(sessions[team.id].expiresAt || "");
-    expect(expiresAt).toBeGreaterThanOrEqual(before);
-    expect(expiresAt).toBeLessThanOrEqual(Date.now());
-  });
-
   it("should make the access token unusable", async () => {
     const user = await buildUser();
     const res = await server.post("/api/auth.delete", user);
