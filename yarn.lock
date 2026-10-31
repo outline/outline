@@ -14123,6 +14123,7 @@ __metadata:
     pele: "npm:1.12.0"
     pg: "npm:^8.23.0"
     pg-tsquery: "npm:^8.4.2"
+    pinyin-pro: "npm:^3.29.5"
     pluralize: "npm:^8.0.0"
     png-chunks-extract: "npm:^1.0.0"
     polished: "npm:^4.3.1"
@@ -15015,6 +15016,13 @@ __metadata:
   version: 4.0.1
   resolution: "pify@npm:4.0.1"
   checksum: 10c0/6f9d404b0d47a965437403c9b90eca8bb2536407f03de165940e62e72c8c8b75adda5516c6b9b23675a5877cc0bcac6bdfb0ef0e39414cd2476d5495da40e7cf
+  languageName: node
+  linkType: hard
+
+"pinyin-pro@npm:^3.29.5":
+  version: 3.29.5
+  resolution: "pinyin-pro@npm:3.29.5"
+  checksum: 10c0/a10d201833c98f2d719253961b16b107e44308bb7c1e8b37f3a36397fa3b72b2c64298226204c9b2933d1a095473cef7afa5bcce51349660948f4d43d3f4682e
   languageName: node
   linkType: hard
 

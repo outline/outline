@@ -53,7 +53,7 @@ import type {
 import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import {
   CollectionValidation,
   DeprecationValidation,

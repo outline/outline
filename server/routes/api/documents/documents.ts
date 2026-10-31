@@ -20,7 +20,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { Day } from "@shared/utils/time";
 import documentCreator, {
   authorizeDocumentCreate,

@@ -31,7 +31,7 @@ describe("Collection model", () => {
     const document = stores.documents.add({
       id: "doc-1",
       title: "Doc",
-      url: "/doc/doc-1",
+      path: "/doc/doc-1",
       collectionId: collection.id,
     });
 
