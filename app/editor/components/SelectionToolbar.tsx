@@ -295,7 +295,7 @@ export const SelectionToolbar = observer(function SelectionToolbar(
   }
 
   // Read-only code blocks show their toolbar on hover, see CodeBlockHoverToolbar.
-  if (matched?.sticky && readOnly && !isMobile) {
+  if (matched?.sticky && readOnly && !isMobile && !ctx.isTouch) {
     return null;
   }
 

@@ -5,6 +5,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { isTouchDevice } from "@shared/utils/browser";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import getCodeMenuItems from "../menus/code";
@@ -46,7 +47,13 @@ export const CodeBlockHoverToolbar = observer(function CodeBlockHoverToolbar({
   // Hide after a delay so the pointer can cross the gap to the toolbar.
   const scheduleHide = React.useCallback(() => {
     clearTimeout(hideTimeout.current);
-    hideTimeout.current = setTimeout(() => setElement(null), hideDelay);
+    hideTimeout.current = setTimeout(() => {
+      // Keep the toolbar while it holds keyboard focus.
+      if (toolbarRef.current?.contains(document.activeElement)) {
+        return;
+      }
+      setElement(null);
+    }, hideDelay);
   }, []);
 
   React.useEffect(() => cancelHide, [cancelHide]);
@@ -84,7 +91,7 @@ export const CodeBlockHoverToolbar = observer(function CodeBlockHoverToolbar({
     view.dom
   );
 
-  if (isMobile || !element || !view.dom.contains(element)) {
+  if (isMobile || isTouchDevice() || !element || !view.dom.contains(element)) {
     return null;
   }
 
