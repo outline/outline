@@ -264,7 +264,6 @@ export default async function documentCreator(
     title: titleWithReplacements,
     content: contentWithReplacements,
     state,
-    ownerIds: validatedOwnerIds,
   });
 
   document.text = await DocumentHelper.toMarkdown(document, {
@@ -302,8 +301,14 @@ export default async function documentCreator(
     transaction,
   });
 
+  // Owners are assigned after authorizing, as ownership grants permissions.
   if (validatedOwnerIds.length > 0) {
     authorize(user, "manageOwners", reloaded);
+    await Document.unscoped().update(
+      { ownerIds: validatedOwnerIds },
+      { where: { id: reloaded.id }, silent: true, transaction }
+    );
+    reloaded.ownerIds = validatedOwnerIds;
     await createDocumentOwnerEvents(ctx, reloaded, []);
     await grantDocumentOwnerAccess(ctx, reloaded, validatedOwnerIds);
   }
