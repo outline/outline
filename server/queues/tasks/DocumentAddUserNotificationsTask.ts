@@ -1,7 +1,7 @@
 import type { DocumentPermission } from "@shared/types";
 import { NotificationEventType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Notification, User } from "@server/models";
+import { Document, Notification, User } from "@server/models";
 import type { DocumentUserEvent } from "@server/types";
 import { isElevatedPermission } from "@server/utils/permissions";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -31,6 +31,18 @@ export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentU
       !recipient.subscribedToEventType(NotificationEventType.AddUserToDocument)
     ) {
       return;
+    }
+
+    // Owners receive a notification for being made an owner instead.
+    if (
+      recipient.subscribedToEventType(NotificationEventType.AddOwnerToDocument)
+    ) {
+      const document = await Document.unscoped().findByPk(event.documentId, {
+        attributes: ["id", "ownerIds"],
+      });
+      if (document?.ownerIds?.includes(recipient.id)) {
+        return;
+      }
     }
 
     const isElevated = await isElevatedPermission({

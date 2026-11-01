@@ -12,7 +12,6 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import type Document from "~/models/Document";
 import { useLayoutEffect, useRef } from "react";
-import DocumentOwners from "./DocumentOwners";
 
 type Props = {
   document: Document;
@@ -64,8 +63,6 @@ function Insights({ document }: Props) {
                 </List>
               </Text>
             </Flex>
-
-            <DocumentOwners document={document} />
 
             <Flex column>
               <Text as="h2" size="large">

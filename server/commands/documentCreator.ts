@@ -9,6 +9,7 @@ import type { APIContext } from "@server/types";
 import { assertPresent } from "@server/validation";
 import {
   createDocumentOwnerEvents,
+  grantDocumentOwnerAccess,
   validateDocumentOwnerIds,
 } from "./documentOwners";
 import personalCollectionLoader from "./personalCollectionLoader";
@@ -304,6 +305,7 @@ export default async function documentCreator(
   if (validatedOwnerIds.length > 0) {
     authorize(user, "manageOwners", reloaded);
     await createDocumentOwnerEvents(ctx, reloaded, []);
+    await grantDocumentOwnerAccess(ctx, reloaded, validatedOwnerIds);
   }
 
   return reloaded;
