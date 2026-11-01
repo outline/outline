@@ -91,6 +91,7 @@ router.get(
       const { share } = await loadPublicShare({
         id: shareId,
         teamId: teamFromCtx?.id,
+        includeContent: false,
       });
 
       // Note: This is purposefully using a somewhat looser authorization check.
