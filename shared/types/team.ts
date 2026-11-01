@@ -1,3 +1,8 @@
+import type { RetentionPeriodPresets } from "../constants";
+
+/** Allowed retention period in days. 0 means infinite (never delete). */
+export type RetentionPeriodPreset = (typeof RetentionPeriodPresets)[number];
+
 /** Custom brand colors for a workspace. */
 export type CustomTheme = {
   accent: string;
@@ -59,6 +64,10 @@ export enum TeamPreference {
   TocPosition = "tocPosition",
   /** Whether to prevent shared documents from being embedded in iframes on external websites. */
   PreventDocumentEmbedding = "preventDocumentEmbedding",
+  /** The number of days to keep documents in the trash before moving to the retention phase. */
+  TrashRetentionDays = "trashRetentionDays",
+  /** The number of days to keep documents in the retention phase before permanent deletion. */
+  DataRetentionDays = "dataRetentionDays",
   /** Who can see user email addresses. */
   EmailDisplay = "emailDisplay",
   /** Whether external MCP clients can connect to the workspace. */
@@ -68,6 +77,11 @@ export enum TeamPreference {
   /** Whether users can create documents in a personal collection. */
   PersonalDocs = "personalDocs",
 }
+
+/** Team preferences that express a retention period, in days. */
+export type RetentionPreference =
+  | TeamPreference.TrashRetentionDays
+  | TeamPreference.DataRetentionDays;
 
 /** Workspace preference values, keyed by preference. */
 export type TeamPreferences = {
@@ -82,6 +96,8 @@ export type TeamPreferences = {
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
+  [TeamPreference.TrashRetentionDays]?: RetentionPeriodPreset;
+  [TeamPreference.DataRetentionDays]?: RetentionPeriodPreset;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
