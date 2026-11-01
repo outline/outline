@@ -356,6 +356,6 @@
     "deepmerge-ts@npm:^7.1.5": "^8.0.1",
     "i18next-parser/i18next": "^23.16.8"
   },
-  "version": "1.12.0",
+  "version": "1.12.0.1",
   "packageManager": "yarn@4.18.0"
 }
