@@ -123,7 +123,7 @@ export default async function subscriptionCreator({
 export const subscribeUserToDocument = async (
   user: User,
   document: Document,
-  event: DocumentEvent | RevisionEvent,
+  event: Pick<DocumentEvent | RevisionEvent, "authType" | "ip">,
   options: { transaction?: Transaction } = {}
 ): Promise<void> => {
   const run = (transaction: Transaction) =>

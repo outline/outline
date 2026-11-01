@@ -9,6 +9,7 @@ import { ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import DocumentOwnersLabel from "~/components/DocumentOwnersLabel";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
 import { MetaButton, Separator, metaStyles } from "~/components/HeaderMeta";
@@ -28,6 +29,8 @@ type Props = {
   showLastViewed?: boolean;
   /** Show the number of documents nested under this one. */
   showParentDocuments?: boolean;
+  /** Show who owns the document, when it has owners. */
+  showOwners?: boolean;
   /** The document to display meta information for. */
   document: Document;
   /** A revision of the document, when displaying meta for a point in history. */
@@ -47,6 +50,7 @@ const DocumentMeta: React.FC<Props> = ({
   showCollection,
   showLastViewed,
   showParentDocuments,
+  showOwners,
   document,
   revision,
   children,
@@ -232,6 +236,12 @@ const DocumentMeta: React.FC<Props> = ({
           </Strong>
         </span>
       )}
+      {showOwners && !revision && document.ownerIds?.length > 0 && (
+        <Owners>
+          <Separator />
+          <DocumentOwnersLabel document={document} />
+        </Owners>
+      )}
       {showParentDocuments && nestedDocumentsCount > 0 && (
         <span>
           <Separator />
@@ -259,6 +269,10 @@ const Strong = styled.strong`
 
 const Container = styled(Flex)<{ $rtl?: boolean }>`
   ${metaStyles}
+`;
+
+const Owners = styled.span`
+  ${ellipsis()}
 `;
 
 const Viewed = styled.span`

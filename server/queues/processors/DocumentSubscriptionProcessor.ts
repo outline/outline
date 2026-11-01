@@ -3,10 +3,12 @@ import type {
   CollectionGroupEvent,
   CollectionUserEvent,
   DocumentGroupEvent,
+  DocumentOwnerEvent,
   DocumentUserEvent,
   Event,
 } from "@server/types";
 import CollectionSubscriptionRemoveUserTask from "../tasks/CollectionSubscriptionRemoveUserTask";
+import DocumentSubscriptionAddOwnerTask from "../tasks/DocumentSubscriptionAddOwnerTask";
 import DocumentSubscriptionRemoveUserTask from "../tasks/DocumentSubscriptionRemoveUserTask";
 import BaseProcessor from "./BaseProcessor";
 
@@ -14,7 +16,8 @@ type ReceivedEvent =
   | CollectionUserEvent
   | CollectionGroupEvent
   | DocumentUserEvent
-  | DocumentGroupEvent;
+  | DocumentGroupEvent
+  | DocumentOwnerEvent;
 
 export default class DocumentSubscriptionProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -22,6 +25,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
     "collections.remove_group",
     "documents.remove_user",
     "documents.remove_group",
+    "documents.add_owner",
   ];
 
   async perform(event: ReceivedEvent) {
@@ -41,6 +45,11 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
 
       case "documents.remove_group":
         return this.handleRemoveGroupFromDocument(event);
+
+      case "documents.add_owner": {
+        await new DocumentSubscriptionAddOwnerTask().schedule(event);
+        return;
+      }
 
       default:
     }

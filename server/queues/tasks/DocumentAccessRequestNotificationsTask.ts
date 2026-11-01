@@ -15,6 +15,7 @@ import {
   AccessRequest,
 } from "@server/models";
 import { AccessRequestStatus } from "@server/models/AccessRequest";
+import { can } from "@server/policies";
 import type { AccessRequestEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
@@ -88,13 +89,18 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
 
   /**
    * Find users who can manage the document, with tiered fallback:
-   * document admins → collection admins → workspace admins. The first tier
-   * with any users is used.
+   * document owners → document admins → collection admins → workspace admins.
+   * The first tier with any users is used.
    *
    * @param document - the document to find managers for.
    * @returns list of users who can manage the document.
    */
   private async findDocumentAdmins(document: Document): Promise<User[]> {
+    const owners = await this.findDocumentOwners(document);
+    if (owners.length > 0) {
+      return owners;
+    }
+
     const documentManagerIds = await Document.membershipUserIds(
       document.id,
       DocumentPermission.Admin
@@ -136,6 +142,37 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
         suspendedAt: null,
       },
     });
+  }
+
+  /**
+   * Find the owners of the document that are able to approve access requests.
+   *
+   * @param document the document to find owners for.
+   * @returns the owners that can manage access to the document.
+   */
+  private async findDocumentOwners(document: Document): Promise<User[]> {
+    if (!document.ownerIds?.length) {
+      return [];
+    }
+
+    const owners = await User.scope("withTeam").findAll({
+      where: {
+        id: { [Op.in]: document.ownerIds },
+        teamId: document.teamId,
+        suspendedAt: null,
+      },
+    });
+
+    const managers = await Promise.all(
+      owners.map(async (owner) => {
+        const ownerDocument = await Document.findByPk(document.id, {
+          userId: owner.id,
+        });
+        return can(owner, "manageUsers", ownerDocument) ? owner : undefined;
+      })
+    );
+
+    return managers.filter((owner): owner is User => !!owner);
   }
 
   private async loadUsers(ids: string[], teamId: string): Promise<User[]> {

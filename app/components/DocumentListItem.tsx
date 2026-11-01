@@ -251,6 +251,7 @@ function DocumentListItem(props: Props) {
             showPublished={showPublished}
             showParentDocuments={showParentDocuments}
             showLastViewed
+            showOwners
           />
         </Content>
       </Flex>

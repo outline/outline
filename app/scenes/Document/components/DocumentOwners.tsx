@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { CloseIcon, PlusIcon } from "outline-icons";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -14,6 +14,7 @@ import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useDocumentOwners from "~/hooks/useDocumentOwners";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import type Document from "~/models/Document";
@@ -35,13 +36,8 @@ function DocumentOwners({ document }: Props) {
   const team = useCurrentTeam();
   const can = usePolicy(document);
   const canTeam = usePolicy(team);
-  const { ownerIds, owners } = document;
-
-  useEffect(() => {
-    ownerIds
-      .filter((id) => !users.get(id))
-      .forEach((id) => void users.fetch(id).catch(() => undefined));
-  }, [ownerIds, users]);
+  const { ownerIds } = document;
+  const owners = useDocumentOwners(document);
 
   const handleSave = useCallback(
     async (nextOwnerIds: string[]) => {
