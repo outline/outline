@@ -49,7 +49,14 @@ export default class UploadAttachmentFromUrlTask extends BaseTask<Props> {
   public get options() {
     return {
       attempts: 3,
-      priority: TaskPriority.Normal,
+
+      // A request waits for this task, so it runs ahead of background work.
+      priority: TaskPriority.High,
+
+      // Keep the result for a short time so that Job.finished can read it if
+      // the completed event is missed.
+      removeOnComplete: { age: 60 },
+      removeOnFail: { age: 60 },
     };
   }
 }
