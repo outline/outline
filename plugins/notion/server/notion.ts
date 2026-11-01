@@ -134,20 +134,22 @@ export class NotionClient {
           error instanceof APIResponseError &&
           error.code === APIErrorCode.RateLimited
         ) {
-          if (rateLimitRetries < this.maxRateLimitRetries) {
-            rateLimitRetries++;
-            const delay = Math.min(
-              this.getRetryAfter(error) ??
-                this.retryDelay * 2 ** (rateLimitRetries - 1),
+          const delay =
+            this.getRetryAfter(error) ??
+            Math.min(
+              this.retryDelay * 2 ** rateLimitRetries,
               this.maxRateLimitDelay
             );
+
+          // Pause all requests from this client, not only this one.
+          this.pausedUntil = Math.max(this.pausedUntil, Date.now() + delay);
+
+          if (rateLimitRetries < this.maxRateLimitRetries) {
+            rateLimitRetries++;
             Logger.info(
               "task",
               `Notion API rate limit hit, retrying in ${delay}ms (retry ${rateLimitRetries}/${this.maxRateLimitRetries})`
             );
-
-            // Pause all requests from this client, not only this one.
-            this.pausedUntil = Math.max(this.pausedUntil, Date.now() + delay);
             continue;
           }
 

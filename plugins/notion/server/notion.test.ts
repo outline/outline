@@ -33,12 +33,12 @@ describe("NotionClient", () => {
     const notion = new NotionClient("token");
     const search = vi
       .spyOn(notion["client"], "search")
-      .mockRejectedValueOnce(rateLimitError({ "Retry-After": "5" }))
+      .mockRejectedValueOnce(rateLimitError({ "Retry-After": "120" }))
       .mockResolvedValue(emptySearch);
 
     const promise = notion.fetchRootPages();
 
-    await vi.advanceTimersByTimeAsync(4900);
+    await vi.advanceTimersByTimeAsync(119900);
     expect(search).toHaveBeenCalledTimes(1);
 
     await vi.advanceTimersByTimeAsync(500);
