@@ -50,6 +50,7 @@ export function toMenuItems(items: MenuItem[]) {
             selected={item.selected}
             dangerous={item.dangerous}
             shortcut={item.shortcut}
+            badge={item.badge}
             onClick={item.onClick}
           />
         );
@@ -62,6 +63,7 @@ export function toMenuItems(items: MenuItem[]) {
             icon={icon}
             disabled={item.disabled}
             shortcut={item.shortcut}
+            badge={item.badge}
             to={item.to}
           />
         );
@@ -74,6 +76,7 @@ export function toMenuItems(items: MenuItem[]) {
             icon={icon}
             disabled={item.disabled}
             shortcut={item.shortcut}
+            badge={item.badge}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
               typeof item.href === "string" ? undefined : item.href.target
