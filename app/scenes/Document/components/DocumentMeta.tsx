@@ -88,6 +88,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
       revision={revision}
       onClick={to ? handleClickMeta : undefined}
       onClickIntent={to ? DocumentHistory.preload : undefined}
+      showOwners
       $rtl={rtl}
       {...rest}
     >
