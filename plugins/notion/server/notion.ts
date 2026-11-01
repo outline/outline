@@ -17,8 +17,10 @@ import type {
 import { RateLimit } from "async-sema";
 import emojiRegex from "emoji-regex";
 import { compact, truncate } from "es-toolkit/compat";
+import { Headers } from "node-fetch";
 import { z } from "zod";
-import { Second } from "@shared/utils/time";
+import { Minute, Second } from "@shared/utils/time";
+import { sleep } from "@shared/utils/timers";
 import { isUrl } from "@shared/utils/urls";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
@@ -61,8 +63,11 @@ export class NotionClient {
   private limiter: ReturnType<typeof RateLimit>;
   private pageSize = 100;
   private maxRetries = 3;
+  private maxRateLimitRetries = 8;
   private maxServerErrorRetries = 8;
   private retryDelay = 1000;
+  private maxRateLimitDelay = Minute.ms;
+  private pausedUntil = 0;
   private skipChildrenForBlock = [
     "unsupported",
     "child_page",
@@ -96,11 +101,12 @@ export class NotionClient {
    */
   private async fetchWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
     let retries = 0;
+    let rateLimitRetries = 0;
     let serverErrorRetries = 0;
 
     while (true) {
       try {
-        await this.limiter();
+        await this.acquire();
         return await apiCall();
       } catch (error) {
         // Check if this is a timeout and try again
@@ -128,25 +134,25 @@ export class NotionClient {
           error instanceof APIResponseError &&
           error.code === APIErrorCode.RateLimited
         ) {
-          if (retries < this.maxRetries) {
-            retries++;
-            const headers = error.headers as Record<string, string>;
-            const retryAfter = headers["Retry-After"]
-              ? parseInt(headers["Retry-After"], 10) * 1000 // Convert seconds to milliseconds
-              : undefined;
-            const delay = retryAfter ?? this.retryDelay * retries;
+          if (rateLimitRetries < this.maxRateLimitRetries) {
+            rateLimitRetries++;
+            const delay = Math.min(
+              this.getRetryAfter(error) ??
+                this.retryDelay * 2 ** (rateLimitRetries - 1),
+              this.maxRateLimitDelay
+            );
             Logger.info(
               "task",
-              `Notion API rate limit hit, retrying in ${delay}ms (retry ${retries}/${this.maxRetries})`
+              `Notion API rate limit hit, retrying in ${delay}ms (retry ${rateLimitRetries}/${this.maxRateLimitRetries})`
             );
 
-            // Wait before retrying
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            // Pause all requests from this client, not only this one.
+            this.pausedUntil = Math.max(this.pausedUntil, Date.now() + delay);
             continue;
           }
 
           Logger.warn(
-            `Notion API rate limit exceeded after ${this.maxRetries} retries`,
+            `Notion API rate limit exceeded after ${this.maxRateLimitRetries} retries`,
             { error: error.message }
           );
         }
@@ -181,6 +187,39 @@ export class NotionClient {
         throw error;
       }
     }
+  }
+
+  /**
+   * Waits for a slot from the rate limiter and for any rate limit pause to end.
+   *
+   * @returns a promise that resolves when a request can be sent.
+   */
+  private async acquire() {
+    while (true) {
+      if (Date.now() < this.pausedUntil) {
+        await sleep(this.pausedUntil - Date.now());
+      }
+      await this.limiter();
+
+      // A pause can start while this request waits in the limiter queue.
+      if (Date.now() >= this.pausedUntil) {
+        return;
+      }
+    }
+  }
+
+  /**
+   * Reads the Retry-After header from a rate limit error.
+   *
+   * @param error the error returned by the Notion API.
+   * @returns the delay in milliseconds, or undefined if the header is missing.
+   */
+  private getRetryAfter(error: APIResponseError) {
+    if (!(error.headers instanceof Headers)) {
+      return undefined;
+    }
+    const seconds = parseInt(error.headers.get("retry-after") ?? "", 10);
+    return Number.isFinite(seconds) ? seconds * Second.ms : undefined;
   }
 
   static async oauthAccess(code: string) {
