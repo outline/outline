@@ -437,6 +437,23 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns the document or collection as static HTML with its title. The
+   * output is rendered from the schema without node components or styles.
+   *
+   * @param model The document or collection to convert.
+   * @returns The title and content as a HTML string.
+   */
+  static async toStaticHTML(model: Document | Collection) {
+    return ProsemirrorHelper.toStaticHTML(DocumentHelper.toProsemirror(model), {
+      title: model instanceof Collection ? model.name : model.title,
+      headingPrefix:
+        model instanceof Document
+          ? model.getPreference(DocumentPreference.HeadingPrefix)
+          : undefined,
+    });
+  }
+
+  /**
    * Parse a list of mentions contained in a document or revision
    *
    * @param document Document or Revision

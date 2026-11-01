@@ -3,6 +3,7 @@ import path from "node:path";
 import util from "node:util";
 import type { Context, Next } from "koa";
 import { escape } from "es-toolkit/compat";
+import { isbot } from "isbot";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import {
@@ -15,12 +16,16 @@ import { Hour } from "@shared/utils/time";
 import env from "@server/env";
 import { allowFraming, allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
+import type { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import presentEnv from "@server/presenters/env";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
@@ -50,6 +55,28 @@ function formatChildDocumentsAsMarkdown(
   });
 
   return `\n\n---\n\n**Documents**\n\n${lines.join("\n")}`;
+}
+
+/**
+ * Renders the server-side HTML of a shared document or collection. The HTML is
+ * cached for each version of the model, and attachment urls are signed on each
+ * request.
+ *
+ * @param model The shared document or collection.
+ * @returns The HTML string, or undefined if it could not be rendered.
+ */
+async function renderShareContent(
+  model: Document | Collection
+): Promise<string | undefined> {
+  const html = await CacheHelper.getDataOrSet<string>(
+    RedisPrefixHelper.getShareContentKey(model.id, model.updatedAt),
+    () => DocumentHelper.toStaticHTML(model),
+    Hour.seconds
+  );
+  if (!html) {
+    return undefined;
+  }
+  return TextHelper.attachmentsToSignedUrls(html, model.teamId, Hour.seconds);
 }
 
 /**
@@ -270,6 +297,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Find the share record if published so that the document title can be returned
   // in the server-rendered HTML. This allows it to appear in unfurls more reliably.
   let share, collection, document, team;
+  const isBot = isbot(ctx.get("user-agent"));
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 
   let sharedTree;
@@ -298,7 +326,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
       share.teamId
     );
 
-    if (share && !ctx.userAgent.isBot) {
+    if (share && !isBot) {
       await share.update(
         {
           lastAccessedAt: new Date(),
@@ -385,15 +413,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
       ? ((await team.publicAvatarUrl()) ?? undefined)
       : undefined;
 
-  const content =
-    document || collection
-      ? await DocumentHelper.toHTML(document || collection!, {
-          includeStyles: false,
-          includeHead: false,
-          includeTitle: true,
-          signedUrls: Hour.seconds,
-        })
-      : undefined;
+  // Only bots read the server-rendered content, so skip the render for others.
+  const model = document || collection;
+  const content = model && isBot ? await renderShareContent(model) : undefined;
 
   const canonicalUrl = share
     ? `${share.canonicalUrl}${

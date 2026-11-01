@@ -1,4 +1,5 @@
 import { escape } from "es-toolkit/compat";
+import { isbot } from "isbot";
 import type { Context } from "koa";
 import { addMissingUrlPort } from "@shared/utils/urls";
 
@@ -33,7 +34,7 @@ export function redirectOnClient(
 
     // Bots are shown a manual submit button instead of auto-submitting, so that
     // link scanners in email clients don't follow the redirect.
-    const isBot = this.userAgent.isBot;
+    const isBot = isbot(this.get("user-agent"));
 
     if (isBot) {
       formFields += `
