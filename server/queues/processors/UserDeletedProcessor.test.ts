@@ -1,7 +1,8 @@
 import UserAuthentication from "@server/models/UserAuthentication";
-import { Collection } from "@server/models";
+import { Collection, Document } from "@server/models";
 import {
   buildAdmin,
+  buildDocument,
   buildPersonalCollection,
   buildUser,
   buildWebhookSubscription,
@@ -85,5 +86,37 @@ describe("UserDeletedProcessor", () => {
     const abilities = serialize(admin, collection);
     expect(abilities.read).toBeTruthy();
     expect(abilities.manageUsers).toBeTruthy();
+  });
+
+  it("should remove the user from document owners", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      ownerIds: [user.id, other.id],
+    });
+    const deleted = await buildDocument({
+      teamId: user.teamId,
+      ownerIds: [user.id],
+      deletedAt: new Date(),
+    });
+
+    const processor = new UserDeletedProcessor();
+    await processor.perform({
+      name: "users.delete",
+      userId: user.id,
+      actorId: user.id,
+      teamId: user.teamId,
+      ip,
+    });
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+
+    const reloaded = await Document.unscoped().findByPk(deleted.id, {
+      paranoid: false,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.ownerIds).toEqual([]);
   });
 });

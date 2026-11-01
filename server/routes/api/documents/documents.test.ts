@@ -9906,6 +9906,186 @@ describe("document owners", () => {
     expect(document.ownerIds).toEqual([]);
   });
 
+  it("should allow owners to be changed when an existing owner is suspended", async () => {
+    const admin = await buildAdmin();
+    const suspended = await buildUser({ teamId: admin.teamId });
+    const other = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: [suspended.id],
+    });
+    await suspended.update({ suspendedAt: new Date() });
+
+    const added = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [suspended.id, other.id] },
+    });
+    expect(added.status).toEqual(200);
+    await document.reload();
+    expect(document.ownerIds).toEqual([suspended.id, other.id]);
+
+    const removed = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [other.id] },
+    });
+    expect(removed.status).toEqual(200);
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+  });
+
+  it("should give added owners the manage permission", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.update", admin, {
+      body: { id: document.id, ownerIds: [owner.id, admin.id] },
+    });
+    expect(res.status).toEqual(200);
+
+    const memberships = await UserMembership.findAll({
+      where: { documentId: document.id },
+    });
+    expect(
+      memberships.map((membership) => [
+        membership.userId,
+        membership.permission,
+      ])
+    ).toEqual([[owner.id, DocumentPermission.Admin]]);
+  });
+
+  it("should add an owner with documents.add_user", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: owner.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: owner.id, owner: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships[0].permission).toEqual(
+      DocumentPermission.Admin
+    );
+    expect(body.data.documents[0].ownerIds).toEqual([owner.id]);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([owner.id]);
+  });
+
+  it("should require the manage permission for owners", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: {
+        id: document.id,
+        userId: owner.id,
+        owner: true,
+        permission: DocumentPermission.Read,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not add a guest as an owner with documents.add_user", async () => {
+    const admin = await buildAdmin();
+    const guest = await buildGuestUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: guest.id, owner: true },
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      await UserMembership.count({ where: { documentId: document.id } })
+    ).toEqual(0);
+  });
+
+  it.each([
+    ["a lower permission", { permission: DocumentPermission.ReadWrite }],
+    [
+      "owner set to false",
+      { permission: DocumentPermission.Admin, owner: false },
+    ],
+  ])(
+    "should remove an owner when documents.add_user is called with %s",
+    async (_, params) => {
+      const admin = await buildAdmin();
+      const owner = await buildUser({ teamId: admin.teamId });
+      const document = await buildDocument({
+        userId: admin.id,
+        teamId: admin.teamId,
+        ownerIds: [owner.id],
+      });
+      await UserMembership.create({
+        documentId: document.id,
+        userId: owner.id,
+        createdById: admin.id,
+        permission: DocumentPermission.Admin,
+      });
+
+      const res = await server.post("/api/documents.add_user", admin, {
+        body: { id: document.id, userId: owner.id, ...params },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.memberships[0].permission).toEqual(params.permission);
+      expect(body.data.documents[0].ownerIds).toEqual([]);
+
+      await document.reload();
+      expect(document.ownerIds).toEqual([]);
+
+      const events = await Event.findAll({
+        where: { documentId: document.id, name: "documents.remove_owner" },
+      });
+      expect(events.map((event) => event.userId)).toEqual([owner.id]);
+    }
+  );
+
+  it("should remove an owner when their access is removed", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const other = await buildUser({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+      ownerIds: [owner.id, other.id],
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: owner.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Admin,
+    });
+
+    const res = await server.post("/api/documents.remove_user", admin, {
+      body: { id: document.id, userId: owner.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.ownerIds).toEqual([other.id]);
+  });
+
   it("should filter documents by owner", async () => {
     const user = await buildUser();
     const owner = await buildUser({ teamId: user.teamId });

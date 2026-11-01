@@ -1,3 +1,4 @@
+import { difference } from "es-toolkit";
 import type { DocumentPreferences, TextEditMode } from "@shared/types";
 import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Event, Document } from "@server/models";
@@ -7,6 +8,7 @@ import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import {
   createDocumentOwnerEvents,
+  grantDocumentOwnerAccess,
   validateDocumentOwnerIds,
 } from "./documentOwners";
 
@@ -85,7 +87,11 @@ export default async function documentUpdater(
   const previousOwnerIds = document.ownerIds ?? [];
 
   if (ownerIds) {
-    const validatedOwnerIds = await validateDocumentOwnerIds(ctx, ownerIds);
+    const validatedOwnerIds = await validateDocumentOwnerIds(
+      ctx,
+      ownerIds,
+      previousOwnerIds
+    );
     const isChanged =
       validatedOwnerIds.length !== previousOwnerIds.length ||
       validatedOwnerIds.some((id) => !previousOwnerIds.includes(id));
@@ -188,6 +194,11 @@ export default async function documentUpdater(
 
   if (document.ownerIds !== previousOwnerIds) {
     await createDocumentOwnerEvents(ctx, document, previousOwnerIds);
+    await grantDocumentOwnerAccess(
+      ctx,
+      document,
+      difference(document.ownerIds, previousOwnerIds)
+    );
   }
 
   // Publishing can move the document to another collection, and the save

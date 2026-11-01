@@ -681,8 +681,16 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
     userId: z.uuid(),
     /** Permission to be granted to the added user */
     permission: z.enum(DocumentPermission).optional(),
+    /** Whether the user is an owner of the document, owners can manage it */
+    owner: z.boolean().optional(),
   }),
-});
+}).refine(
+  (req) =>
+    !req.body.owner ||
+    req.body.permission === undefined ||
+    req.body.permission === DocumentPermission.Admin,
+  { message: "Owners must have the manage permission" }
+);
 
 export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
 

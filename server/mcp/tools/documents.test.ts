@@ -1519,6 +1519,12 @@ describe("document owners", () => {
 
     await document.reload();
     expect(document.ownerIds).toEqual([owner.id]);
+
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: owner.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(DocumentPermission.Admin);
   });
 
   it("rejects owner changes without manage permission", async () => {
