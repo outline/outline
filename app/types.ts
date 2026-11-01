@@ -311,13 +311,17 @@ export type AwarenessChangeEvent = {
 
 export const EmptySelectValue = "__empty__";
 
+/** Select value for making a user an owner of a document. */
+export const OwnerSelectValue = "__owner__";
+
 export type Permission = {
   label: string;
   value:
     | CollectionPermission
     | DocumentPermission
     | GroupPermission
-    | typeof EmptySelectValue;
+    | typeof EmptySelectValue
+    | typeof OwnerSelectValue;
   divider?: boolean;
 };
 

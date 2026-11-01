@@ -66,12 +66,17 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
   );
 
   const handleUpdateUser = React.useCallback(
-    async (userToUpdate: User, permission: DocumentPermission) => {
+    async (
+      userToUpdate: User,
+      permission: DocumentPermission,
+      owner: boolean
+    ) => {
       try {
         await userMemberships.create({
           documentId: document.id,
           userId: userToUpdate.id,
           permission,
+          owner,
         });
         toast.success(
           t(`Permissions for {{ userName }} updated`, {
@@ -85,8 +90,8 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
     [t, userMemberships, document]
   );
 
-  // Order newly added users first during the current editing session, on reload members are
-  // ordered by name
+  // Order owners first, then newly added users during the current editing
+  // session, on reload members are ordered by name
   const members = React.useMemo(
     () =>
       orderBy(
@@ -96,11 +101,12 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
           ).values()
         ),
         (memberUser) =>
+          (document.ownerIds.includes(memberUser.id) ? "0" : "1") +
           (invitedInSession.includes(memberUser.id) ? "_" : "") +
           memberUser.name.toLocaleLowerCase(),
         "asc"
       ),
-    [document.members, invitedInSession]
+    [document.members, document.ownerIds, invitedInSession]
   );
 
   const permissions = React.useMemo(
@@ -207,10 +213,16 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
           key={item.id}
           user={item}
           membership={item.getMembership(document)}
+          isOwner={document.ownerIds.includes(item.id)}
+          canBeOwner={
+            !!can.manageOwners &&
+            (item.isAdmin || item.isMember) &&
+            !item.isSuspended
+          }
           onRemove={() => handleRemoveUser(item)}
           onUpdate={
             can.manageUsers
-              ? (permission) => handleUpdateUser(item, permission)
+              ? (permission, owner) => handleUpdateUser(item, permission, owner)
               : undefined
           }
           onLeave={

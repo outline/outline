@@ -464,6 +464,11 @@ class Document extends ArchivableModel<
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[];
 
+  /** An array of user IDs that are responsible for this document. */
+  @Default([])
+  @Column(DataType.ARRAY(DataType.UUID))
+  ownerIds: string[];
+
   // getters
 
   /**

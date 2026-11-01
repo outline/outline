@@ -334,3 +334,69 @@ describe("DocumentAccessRequestNotificationsTask", () => {
     });
   });
 });
+
+describe("DocumentAccessRequestNotificationsTask with owners", () => {
+  const request = async (ownerPermission: DocumentPermission) => {
+    const team = await buildTeam();
+    const admin = await buildUser({ teamId: team.id });
+    const owner = await buildUser({ teamId: team.id });
+    const actor = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      ownerIds: [owner.id],
+    });
+    await UserMembership.create({
+      userId: admin.id,
+      documentId: document.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Admin,
+    });
+    await UserMembership.create({
+      userId: owner.id,
+      documentId: document.id,
+      createdById: admin.id,
+      permission: ownerPermission,
+    });
+    const accessRequest = await AccessRequest.create({
+      documentId: document.id,
+      userId: actor.id,
+      teamId: team.id,
+    });
+
+    await new DocumentAccessRequestNotificationsTask().perform({
+      name: "access_requests.create",
+      modelId: accessRequest.id,
+      documentId: document.id,
+      teamId: team.id,
+      actorId: actor.id,
+      ip,
+    });
+
+    const notifications = await Notification.findAll({
+      where: {
+        documentId: document.id,
+        event: NotificationEventType.RequestDocumentAccess,
+      },
+    });
+    return {
+      admin,
+      owner,
+      recipientIds: notifications.map((notification) => notification.userId),
+    };
+  };
+
+  it("should notify owners that can manage the document instead of admins", async () => {
+    const { owner, recipientIds } = await request(DocumentPermission.ReadWrite);
+    expect(recipientIds).toEqual([owner.id]);
+  });
+
+  it("should fall back to document admins when owners cannot manage the document", async () => {
+    const { admin, recipientIds } = await request(DocumentPermission.Read);
+    expect(recipientIds).toEqual([admin.id]);
+  });
+});

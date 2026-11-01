@@ -122,6 +122,14 @@ function Notifications() {
       ),
     },
     {
+      events: [NotificationEventType.AddOwnerToDocument],
+      icon: <DocumentIcon />,
+      title: t("Document owner"),
+      description: t(
+        "Receive a notification when you are made an owner of a document"
+      ),
+    },
+    {
       events: [NotificationEventType.AddUserToCollection],
       icon: <CollectionIcon />,
       title: t("Invited to collection"),

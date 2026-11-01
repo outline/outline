@@ -2,6 +2,7 @@ import invariant from "invariant";
 import {
   CommentingAccess,
   DocumentPermission,
+  PlanFeature,
   TeamPreference,
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
@@ -15,6 +16,7 @@ import {
   isTeamModel,
   isTeamMutable,
   or,
+  teamHasEntitlement,
 } from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>
@@ -126,8 +128,17 @@ allow(User, "manageUsers", Document, (actor, document) =>
       includesMembership(document, [DocumentPermission.Admin]),
       isTeamAdmin(actor, document),
       can(actor, "update", document?.collection),
-      !!document?.isDraft && actor.id === document?.createdById
+      !!document?.isDraft && actor.id === document?.createdById,
+      and(isDocumentOwner(actor, document), can(actor, "update", document))
     )
+  )
+);
+
+allow(User, "manageOwners", Document, (actor, document) =>
+  and(
+    !!document?.isActive,
+    teamHasEntitlement(actor.team, PlanFeature.DocumentOwners),
+    can(actor, "manageUsers", document)
   )
 );
 
@@ -249,7 +260,8 @@ allow(User, "archive", Document, (actor, document) =>
         or(
           includesMembership(document, [DocumentPermission.Admin]),
           and(isTeamAdmin(actor, document), can(actor, "read", document)),
-          can(actor, "updateDocument", document?.collection)
+          can(actor, "updateDocument", document?.collection),
+          isDocumentOwner(actor, document)
         )
       ),
       isPersonalOwner(actor, document)
@@ -325,6 +337,21 @@ allow(User, "unpublish", Document, (user, document) => {
  * @param document The document to check.
  * @returns True if the actor owns the personal collection of the document.
  */
+/**
+ * Check if the actor is an owner of the document, ownership only has an effect
+ * when the team is entitled to document owners.
+ *
+ * @param actor the user to check.
+ * @param document the document to check.
+ * @returns true if the actor is an owner of the document.
+ */
+function isDocumentOwner(actor: User, document: Document | null) {
+  return (
+    !!document?.ownerIds?.includes(actor.id) &&
+    teamHasEntitlement(actor.team, PlanFeature.DocumentOwners)
+  );
+}
+
 function isPersonalOwner(actor: User, document: Document | null) {
   return !!and(
     isTeamMutable(actor),

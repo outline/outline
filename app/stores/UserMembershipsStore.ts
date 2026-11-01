@@ -49,16 +49,23 @@ export default class UserMembershipsStore extends IndexedStore<UserMembership> {
     ]);
 
   @override
-  async create({ documentId, userId, permission }: Partial<UserMembership>) {
+  async create({
+    documentId,
+    userId,
+    permission,
+    owner,
+  }: Partial<UserMembership> & { owner?: boolean }) {
     const res = await client.post("/documents.add_user", {
       id: documentId,
       userId,
       permission,
+      owner,
     });
 
     return runInAction(() => {
       invariant(res?.data, "Membership data should be available");
       res.data.users.forEach(this.rootStore.users.add);
+      res.data.documents?.forEach(this.rootStore.documents.add);
 
       const memberships = res.data.memberships.map(this.add);
       return memberships[0];
@@ -72,6 +79,16 @@ export default class UserMembershipsStore extends IndexedStore<UserMembership> {
       userId,
     });
     this.removeAll({ userId, documentId });
+
+    // Removing access also removes the user from the owners on the server.
+    const document = documentId
+      ? this.rootStore.documents.get(documentId)
+      : undefined;
+    if (document?.ownerIds.includes(userId)) {
+      document.updateData({
+        ownerIds: document.ownerIds.filter((id) => id !== userId),
+      });
+    }
   }
 
   /**

@@ -54,6 +54,7 @@ class Notification extends Model {
         NotificationEventType.UpdateDocument,
         NotificationEventType.CreateRevision,
         NotificationEventType.AddUserToDocument,
+        NotificationEventType.AddOwnerToDocument,
         NotificationEventType.RequestDocumentAccess,
       ],
       collections: [
@@ -225,6 +226,8 @@ class Notification extends Model {
         });
       case NotificationEventType.AddUserToDocument:
         return t("shared");
+      case NotificationEventType.AddOwnerToDocument:
+        return t("made you an owner of");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
       case NotificationEventType.AddUserToGroup:
@@ -287,6 +290,7 @@ class Notification extends Model {
       }
       case NotificationEventType.RequestDocumentAccess:
       case NotificationEventType.AddUserToDocument:
+      case NotificationEventType.AddOwnerToDocument:
       case NotificationEventType.GroupMentionedInDocument:
       case NotificationEventType.MentionedInDocument: {
         return this.document?.path;

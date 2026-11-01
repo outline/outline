@@ -220,6 +220,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "documents.update.delayed":
       case "documents.update.debounced":
+      case "documents.add_owner":
+      case "documents.remove_owner":
       case "documents.empty_trash":
         // Ignored
         return;

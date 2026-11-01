@@ -24,6 +24,7 @@ type Props = {
     icon?: string;
     color?: string;
     fullWidth?: boolean;
+    ownerIds?: string[];
   };
   publish?: boolean;
   collectionId?: string | null;
@@ -87,7 +88,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
         throw InvalidRequestError("one of key or content is required");
       }
 
-      const user = await User.findByPk(userId, {
+      const user = await User.scope("withTeam").findByPk(userId, {
         rejectOnEmpty: true,
       });
 
@@ -116,6 +117,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
             icon: attributes?.icon ?? icon,
             color: attributes?.color,
             fullWidth: attributes?.fullWidth,
+            ownerIds: attributes?.ownerIds,
             text,
             state,
             publish,
