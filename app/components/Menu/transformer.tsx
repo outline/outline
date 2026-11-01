@@ -184,6 +184,9 @@ export function toMobileMenuItems(
           >
             {icon}
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            {item.badge && (
+              <Components.MenuBadge>{item.badge}</Components.MenuBadge>
+            )}
             {item.selected !== undefined && (
               <Components.SelectedIconWrapper aria-hidden>
                 {item.selected ? <CheckmarkIcon size={18} /> : null}
@@ -202,6 +205,9 @@ export function toMobileMenuItems(
           >
             {icon}
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            {item.badge && (
+              <Components.MenuBadge>{item.badge}</Components.MenuBadge>
+            )}
           </Components.MenuInternalLink>
         );
 
@@ -218,6 +224,9 @@ export function toMobileMenuItems(
           >
             {icon}
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            {item.badge && (
+              <Components.MenuBadge>{item.badge}</Components.MenuBadge>
+            )}
           </Components.MenuExternalLink>
         );
 
