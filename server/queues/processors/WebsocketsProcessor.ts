@@ -234,6 +234,20 @@ export default class WebsocketsProcessor {
         return socketio.to(channels).emit(event.name, data);
       }
 
+      // Owners can be removed without saving the document, so the update is
+      // sent separately.
+      case "documents.remove_owner": {
+        const document = await Document.findByPk(event.documentId, {
+          paranoid: false,
+        });
+        if (!document) {
+          return;
+        }
+        const data = await presentDocument(undefined, document);
+        const channels = await this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit("documents.update", data);
+      }
+
       case "documents.move": {
         const documents = await Document.findAll({
           where: {

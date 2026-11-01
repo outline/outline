@@ -772,10 +772,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const { revisionCount } = document;
 
-            updated = await documentUpdater(ctx, {
-              document,
-              ...input,
-              collectionId,
+            updated = await sequelize.transaction(async (transaction) => {
+              ctx.state.transaction = transaction;
+              ctx.context.transaction = transaction;
+
+              return documentUpdater(ctx, {
+                document,
+                ...input,
+                collectionId,
+              });
             });
 
             // Every save increments revisionCount, so an unchanged count means

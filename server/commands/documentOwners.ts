@@ -1,10 +1,9 @@
 import { difference, uniq } from "es-toolkit";
 import { Op, Sequelize } from "sequelize";
 import { DocumentPermission, UserRole } from "@shared/types";
-import { createContext } from "@server/context";
+import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import { Document, Event, User, UserMembership } from "@server/models";
-import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 
 /**
@@ -27,6 +26,12 @@ export async function validateDocumentOwnerIds(
   const { transaction } = ctx.state;
   const ids = uniq(ownerIds);
   const addedIds = difference(ids, previousOwnerIds);
+
+  if (ids.length > DocumentValidation.maxOwners) {
+    throw ValidationError(
+      `A document can have at most ${DocumentValidation.maxOwners} owners`
+    );
+  }
 
   if (addedIds.length === 0) {
     return ids;
@@ -105,23 +110,6 @@ export async function grantDocumentOwnerAccess(
 ): Promise<void> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-
-  // Memberships are locked while they are changed, which needs a transaction.
-  if (!transaction) {
-    await sequelize.transaction((t) =>
-      grantDocumentOwnerAccess(
-        createContext({
-          user,
-          authType: ctx.state.auth.type,
-          ip: ctx.context.ip,
-          transaction: t,
-        }),
-        document,
-        userIds
-      )
-    );
-    return;
-  }
 
   for (const userId of userIds) {
     if (userId === user.id) {

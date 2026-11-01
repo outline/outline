@@ -1943,9 +1943,20 @@ router.post(
     const previousOwnerIds = document.ownerIds ?? [];
 
     if (owner) {
+      // Lock the document so that concurrent invitations do not overwrite the
+      // owners added by each other.
+      const locked = await Document.unscoped().findOne({
+        attributes: ["id", "ownerIds"],
+        where: { id: document.id },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
+      });
+      document.ownerIds = locked.ownerIds ?? [];
+
       const updated = await documentUpdater(ctx, {
         document,
-        ownerIds: [...previousOwnerIds, userId],
+        ownerIds: [...document.ownerIds, userId],
       });
       await grantDocumentOwnerAccess(ctx, updated, [userId]);
 
