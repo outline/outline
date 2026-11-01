@@ -118,6 +118,11 @@ class Integration<T = unknown> extends ParanoidModel<
       case IntegrationType.Embed: {
         const settings = this
           .settings as IntegrationSettings<IntegrationType.Embed>;
+
+        // Guests only need the URLs used to render and edit embeds.
+        if (viewer?.isGuest) {
+          return { url: settings?.url, diagrams: settings?.diagrams };
+        }
         return {
           url: settings?.url,
           github: settings?.github,

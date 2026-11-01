@@ -12,6 +12,7 @@ import {
   buildDocument,
   buildShare,
   buildTeam,
+  buildGuestUser,
   buildUser,
 } from "@server/test/factories";
 import Redis from "@server/storage/redis";
@@ -556,6 +557,22 @@ Install instructions here.`
     );
     expect(body.thumbnailUrl).toEqual(
       "https://combo.staticflickr.com/66a031f9fc343c5e42d965ca/671aaf5d51c929e483e8b26d_Open%20Graph%20Home.jpg"
+    );
+  });
+
+  it("should not unfurl external urls for guests", async () => {
+    const guest = await buildGuestUser({ teamId: user.teamId });
+    const callCount = (Iframely.requestResource as Mock).mock.calls.length;
+
+    const res = await server.post("/api/urls.unfurl", guest, {
+      body: {
+        url: "https://github.com/acme/private/issues/1",
+      },
+    });
+
+    expect(res.status).toEqual(204);
+    expect((Iframely.requestResource as Mock).mock.calls.length).toEqual(
+      callCount
     );
   });
 
