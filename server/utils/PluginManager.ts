@@ -2,6 +2,7 @@ import path from "node:path";
 import { glob } from "glob";
 import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
+import type { BaseEmailProvider } from "@server/emails/providers/BaseEmailProvider";
 import type { Concrete } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
@@ -35,6 +36,7 @@ export enum PluginPriority {
 export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
+  EmailProvider = "emailProvider",
   EmailTemplate = "emailTemplate",
   IssueProvider = "issueProvider",
   Processor = "processor",
@@ -61,6 +63,7 @@ type PluginValueMap = {
      */
     allowEmailMatch?: boolean;
   };
+  [Hook.EmailProvider]: BaseEmailProvider;
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;
   [Hook.IssueProvider]: BaseIssueProvider;
