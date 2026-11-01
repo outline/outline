@@ -35,15 +35,16 @@ router.post(
       where = { ...where, service };
     }
 
-    // Linked account is special as these are user-specific, other integrations are workspace-wide.
+    // Linked account is special as these are user-specific, other integrations
+    // are workspace-wide. Guests only receive embeds, which the editor needs.
     where = {
       ...where,
       [Op.or]: [
         { userId: user.id, type: IntegrationType.LinkedAccount },
         {
-          type: {
-            [Op.not]: IntegrationType.LinkedAccount,
-          },
+          type: user.isGuest
+            ? IntegrationType.Embed
+            : { [Op.not]: IntegrationType.LinkedAccount },
         },
       ],
     };

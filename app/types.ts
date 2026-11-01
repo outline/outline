@@ -27,6 +27,7 @@ export type MenuItemButton = {
   icon?: React.ReactNode;
   tooltip?: React.ReactNode;
   shortcut?: string[];
+  badge?: React.ReactNode;
 };
 
 export type MenuItemWithChildren = {
@@ -62,6 +63,7 @@ export type MenuInternalLink = {
   disabled?: boolean;
   icon?: React.ReactNode;
   shortcut?: string[];
+  badge?: React.ReactNode;
 };
 
 export type MenuExternalLink = {
@@ -74,6 +76,7 @@ export type MenuExternalLink = {
   level?: number;
   icon?: React.ReactNode;
   shortcut?: string[];
+  badge?: React.ReactNode;
 };
 
 export type MenuGroup = {

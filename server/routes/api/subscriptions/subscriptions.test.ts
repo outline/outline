@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import queryString from "query-string";
 import { QueryNotices, SubscriptionType } from "@shared/types";
 import { Event, Subscription } from "@server/models";
@@ -762,7 +763,7 @@ describe("#subscriptions.delete", () => {
       expect(await Subscription.findByPk(subscription.id)).toBeNull();
     });
 
-    it("should delete user's collection subscription", async () => {
+    it("should keep the collection subscription and record a document opt-out", async () => {
       const user = await buildUser();
       const document = await buildDocument({
         userId: user.id,
@@ -787,23 +788,56 @@ describe("#subscriptions.delete", () => {
 
       expect(res.status).toEqual(302);
       expect(res.headers.get("location")).toContain(
-        `/home?notice=${QueryNotices.UnsubscribeCollection}`
+        `/home?notice=${QueryNotices.UnsubscribeDocument}`
       );
-      expect(await Subscription.findByPk(subscription.id)).toBeNull();
+      expect(await Subscription.findByPk(subscription.id)).not.toBeNull();
+
+      const optOut = await Subscription.findOne({
+        where: { userId: user.id, documentId: document.id },
+        paranoid: false,
+      });
+      expect(optOut?.deletedAt).toBeTruthy();
     });
 
-    it("should not fail if subscription is already deleted", async () => {
+    it("should record a document opt-out when no subscription exists", async () => {
       const user = await buildUser();
       const document = await buildDocument({
         userId: user.id,
         teamId: user.teamId,
       });
+
+      const res = await server.get(
+        `/api/subscriptions.delete?${queryString.stringify({
+          userId: user.id,
+          documentId: document.id,
+          follow: true,
+          token: SubscriptionHelper.unsubscribeToken(user.id, document.id),
+        })}`,
+        {
+          redirect: "manual",
+        }
+      );
+
+      expect(res.status).toEqual(302);
+      const optOut = await Subscription.findOne({
+        where: { userId: user.id, documentId: document.id },
+        paranoid: false,
+      });
+      expect(optOut?.deletedAt).toBeTruthy();
+    });
+
+    it("should refresh the opt-out if subscription is already deleted", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const deletedAt = subDays(new Date(), 1);
       const subscription = await buildSubscription({
         userId: user.id,
         documentId: document.id,
+        deletedAt,
       });
-
-      await subscription.destroy();
 
       const res = await server.get(
         `/api/subscriptions.delete?${queryString.stringify({
@@ -820,6 +854,11 @@ describe("#subscriptions.delete", () => {
       expect(res.status).toEqual(302);
       expect(res.headers.get("location")).toContain(`/home`);
       expect(await Subscription.findByPk(subscription.id)).toBeNull();
+
+      await subscription.reload({ paranoid: false });
+      expect(subscription.deletedAt!.getTime()).toBeGreaterThan(
+        deletedAt.getTime()
+      );
     });
   });
 

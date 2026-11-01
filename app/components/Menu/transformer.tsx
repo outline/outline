@@ -50,6 +50,7 @@ export function toMenuItems(items: MenuItem[]) {
             selected={item.selected}
             dangerous={item.dangerous}
             shortcut={item.shortcut}
+            badge={item.badge}
             onClick={item.onClick}
           />
         );
@@ -62,6 +63,7 @@ export function toMenuItems(items: MenuItem[]) {
             icon={icon}
             disabled={item.disabled}
             shortcut={item.shortcut}
+            badge={item.badge}
             to={item.to}
           />
         );
@@ -74,6 +76,7 @@ export function toMenuItems(items: MenuItem[]) {
             icon={icon}
             disabled={item.disabled}
             shortcut={item.shortcut}
+            badge={item.badge}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
               typeof item.href === "string" ? undefined : item.href.target
@@ -181,6 +184,9 @@ export function toMobileMenuItems(
           >
             {icon}
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            {item.badge && (
+              <Components.MenuBadge>{item.badge}</Components.MenuBadge>
+            )}
             {item.selected !== undefined && (
               <Components.SelectedIconWrapper aria-hidden>
                 {item.selected ? <CheckmarkIcon size={18} /> : null}
@@ -199,6 +205,9 @@ export function toMobileMenuItems(
           >
             {icon}
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            {item.badge && (
+              <Components.MenuBadge>{item.badge}</Components.MenuBadge>
+            )}
           </Components.MenuInternalLink>
         );
 
@@ -215,6 +224,9 @@ export function toMobileMenuItems(
           >
             {icon}
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            {item.badge && (
+              <Components.MenuBadge>{item.badge}</Components.MenuBadge>
+            )}
           </Components.MenuExternalLink>
         );
 
