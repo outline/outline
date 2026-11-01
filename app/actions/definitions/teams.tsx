@@ -25,10 +25,8 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
   stores.auth.availableTeams?.map<ExternalLinkAction>((session) =>
     createExternalLinkAction({
       id: `switch-${session.id}`,
-      name: ({ t }) =>
-        session.isSignedIn
-          ? session.name
-          : t("{{ name }} (Logged out)", { name: session.name }),
+      name: session.name,
+      badge: ({ t }) => (session.isSignedIn ? undefined : t("Logged out")),
       analyticsName: "Switch workspace",
       section: TeamSection,
       keywords: "change switch workspace organization team",

@@ -722,20 +722,17 @@ export const shareDocument = createAction({
   },
 });
 
-/**
- * Shows a file extension in the shortcut slot of menu items only, the command
- * bar would otherwise register it as a key sequence.
- */
+/** Shows a file extension at the end of menu items only. */
 const fileExtensionHint =
   (extension: string) =>
   ({ isMenu }: ActionContext) =>
-    isMenu ? [extension] : undefined;
+    isMenu ? extension : undefined;
 
 export const downloadDocumentAsMarkdown = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Markdown") : t("Download as Markdown")),
   analyticsName: "Download document as Markdown",
   section: ActiveDocumentSection,
-  shortcut: fileExtensionHint(".md"),
+  badge: fileExtensionHint(".md"),
   keywords: "md markdown export download",
   icon: <MarkdownIcon />,
   iconInContextMenu: false,
@@ -757,7 +754,7 @@ export const downloadDocumentAsHTML = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("HTML") : t("Download as HTML")),
   analyticsName: "Download document as HTML",
   section: ActiveDocumentSection,
-  shortcut: fileExtensionHint(".html"),
+  badge: fileExtensionHint(".html"),
   keywords: "xml html export download",
   icon: <CodeIcon />,
   iconInContextMenu: false,
@@ -780,7 +777,7 @@ export const downloadDocumentAsTextBundle = createAction({
     isMenu ? t("TextBundle") : t("Download as TextBundle"),
   analyticsName: "Download document as TextBundle",
   section: ActiveDocumentSection,
-  shortcut: fileExtensionHint(".textpack"),
+  badge: fileExtensionHint(".textpack"),
   keywords: "textbundle textpack bear ulysses export download",
   icon: <ArchiveIcon />,
   iconInContextMenu: false,
@@ -802,7 +799,7 @@ export const downloadDocumentAsPDF = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("PDF") : t("Download as PDF")),
   analyticsName: "Download document as PDF",
   section: ActiveDocumentSection,
-  shortcut: fileExtensionHint(".pdf"),
+  badge: fileExtensionHint(".pdf"),
   keywords: "pdf export download",
   icon: <PDFIcon />,
   iconInContextMenu: false,
@@ -1818,12 +1815,9 @@ const headingPrefixNames: Record<HeadingPrefixStyle, (t: TFunction) => string> =
 const changeHeadingPrefixFactory = (style: HeadingPrefixStyle) =>
   createAction({
     name: ({ t }) => headingPrefixNames[style](t),
-    // The example is displayed in the shortcut slot of menu items, but must
-    // not be set on the command bar action where shortcuts are registered as
-    // key sequences.
-    shortcut: ({ isMenu }) =>
+    badge: ({ isMenu }) =>
       isMenu && headingPrefixExamples[style]
-        ? [headingPrefixExamples[style]]
+        ? headingPrefixExamples[style]
         : undefined,
     keywords: headingPrefixExamples[style],
     analyticsName: "Change heading numbering",

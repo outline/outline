@@ -152,6 +152,7 @@ export function actionToMenuItem(
       const visible = resolve<boolean>(action.visible, context) ?? true;
       const disabled = resolve<boolean>(action.disabled, context);
       const shortcut = resolve<string[] | undefined>(action.shortcut, context);
+      const badge = resolve<React.ReactNode>(action.badge, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
           ? resolve<React.ReactNode>(action.icon, context)
@@ -169,6 +170,7 @@ export function actionToMenuItem(
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             shortcut,
+            badge,
             onClick: () => performAction(action, context),
           };
 
@@ -181,6 +183,7 @@ export function actionToMenuItem(
             visible,
             disabled,
             shortcut,
+            badge,
             to,
           };
         }
@@ -193,6 +196,7 @@ export function actionToMenuItem(
             visible,
             disabled,
             shortcut,
+            badge,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,
