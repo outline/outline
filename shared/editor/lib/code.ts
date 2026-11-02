@@ -63,6 +63,7 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "CSV",
     loader: () => import("refractor/csv").then((m) => m.default),
   },
+  d2: { lang: "d2", label: "D2" },
   dart: {
     lang: "dart",
     label: "Dart",
@@ -219,6 +220,8 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Perl",
     loader: () => import("refractor/perl").then((m) => m.default),
   },
+  plantuml: { lang: "plantuml", label: "PlantUML" },
+  puml: { lang: "plantuml", label: "PlantUML", alias: true },
   php: {
     lang: "php",
     label: "PHP",
@@ -380,7 +383,7 @@ export const getLoaderForLanguage = (language: string) =>
 
 // Mermaid diagrams have a separate insertion entry point, so they should never
 // be remembered as a recently or frequently used code language.
-const nonPersistableLanguages = ["mermaid", "mermaidjs"];
+const nonPersistableLanguages = ["mermaid", "mermaidjs", "d2", "plantuml", "puml"];
 
 const isPersistableCodeLanguage = (language: string) =>
   !nonPersistableLanguages.includes(language);

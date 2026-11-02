@@ -2011,7 +2011,9 @@ mark {
   }
 
   &:is(.code-active)
-    + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
+    + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty),
+  &:is(.code-active)
+    + .diagram-service-wrapper:not(.parse-error):not(.empty) {
     cursor: zoom-in;
   }
 
@@ -2026,7 +2028,8 @@ mark {
   &.ProseMirror-selectednode {
     outline: none;
 
-    & + .${EditorStyleHelper.mermaidDiagram} {
+    & + .${EditorStyleHelper.mermaidDiagram},
+    & + .diagram-service-wrapper {
       &:not(.parse-error):not(.empty) {
         cursor: zoom-in;
       }
@@ -2040,7 +2043,54 @@ mark {
     height: 0;
     overflow: hidden;
 
-    & + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty) {
+    & + .${EditorStyleHelper.mermaidDiagram}:not(.parse-error):not(.empty),
+    & + .diagram-service-wrapper:not(.parse-error):not(.empty) {
+      cursor: zoom-in;
+    }
+}
+
+.${EditorStyleHelper.codeBlock}:has(+ .diagram-service-wrapper) {
+  ${
+    !props.staticHTML &&
+    css`
+      pre {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-bottom: -20px;
+        overflow: hidden;
+      }
+    `
+  }
+
+  &:is(.code-active)
+    + .diagram-service-wrapper:not(.parse-error):not(.empty) {
+    cursor: zoom-in;
+  }
+
+  &:not(.code-active) {
+    height: ${props.staticHTML || props.readOnly ? "auto" : "0"};
+    margin: 0.5em 0 -0.75em 0px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  &.ProseMirror-selectednode {
+    outline: none;
+
+    & + .diagram-service-wrapper {
+      &:not(.parse-error):not(.empty) {
+        cursor: zoom-in;
+      }
+      outline: 2px solid ${props.theme.selected};
+    }
+  }
+}
+
+.ProseMirror[contenteditable="false"] .${EditorStyleHelper.codeBlock}:has(+ .diagram-service-wrapper) {
+    height: 0;
+    overflow: hidden;
+
+    & + .diagram-service-wrapper:not(.parse-error):not(.empty) {
       cursor: zoom-in;
     }
 }
@@ -2186,7 +2236,8 @@ mark {
   }
 }
 
-.${EditorStyleHelper.mermaidDiagram} {
+.${EditorStyleHelper.mermaidDiagram},
+.diagram-service-wrapper {
   ${diagramTheme(props.theme)}
   display: flex;
   align-items: center;

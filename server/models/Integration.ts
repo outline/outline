@@ -130,6 +130,7 @@ class Integration<T = unknown> extends ParanoidModel<
           gitea: settings?.gitea,
           linear: settings?.linear,
           diagrams: settings?.diagrams,
+          kroki: settings?.kroki,
         };
       }
       case IntegrationType.Analytics: {

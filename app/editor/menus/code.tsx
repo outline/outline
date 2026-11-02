@@ -2,6 +2,10 @@ import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import {
+  pluginKey as diagramServicePluginKey,
+  type DiagramServiceState,
+} from "@shared/editor/extensions/DiagramService";
+import {
   pluginKey as mermaidPluginKey,
   type MermaidState,
 } from "@shared/editor/extensions/Mermaid";
@@ -10,7 +14,7 @@ import {
   codeLanguages,
   getLabelForLanguage,
 } from "@shared/editor/lib/code";
-import { isMermaid } from "@shared/editor/lib/isCode";
+import { isCode, isMermaid } from "@shared/editor/lib/isCode";
 import { t } from "i18next";
 import type {
   MenuItem,
@@ -64,6 +68,18 @@ export default function codeMenuItems(
 
   const isEditingMermaid = !!(mermaidPluginKey.getState(state) as MermaidState)
     ?.editingId;
+  const dsState = diagramServicePluginKey.getState(state) as DiagramServiceState;
+  const isEditingDiagramService = !!dsState?.editingId;
+  const isEditingDiagram = isEditingMermaid || isEditingDiagramService;
+
+  const nodePos =
+    state.selection instanceof NodeSelection ? state.selection.from : undefined;
+  const isDiagramServiceNode =
+    nodePos !== undefined &&
+    isCode(node) &&
+    (dsState?.decorationSet.find(nodePos, nodePos + node.nodeSize) ?? []).some(
+      (d) => !!d.spec.diagramId
+    );
 
   return [
     {
@@ -83,7 +99,10 @@ export default function codeMenuItems(
       icon: <EditIcon />,
       tooltip: t("Edit diagram"),
       shortcut: `${metaDisplay} Enter`,
-      visible: isMermaid(node) && !isEditingMermaid && !readOnly,
+      visible:
+        (isMermaid(node) || isDiagramServiceNode) &&
+        !isEditingDiagram &&
+        !readOnly,
     },
     {
       name: "separator",
@@ -93,7 +112,9 @@ export default function codeMenuItems(
       icon: <TextWrapIcon />,
       tooltip: t("Wrap text"),
       active: () => node.attrs.wrap,
-      visible: !readOnly && (!isMermaid(node) || isEditingMermaid),
+      visible:
+        !readOnly &&
+        ((!isMermaid(node) && !isDiagramServiceNode) || isEditingDiagram),
     },
     {
       name: "separator",

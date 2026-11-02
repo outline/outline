@@ -1,0 +1,23 @@
+FROM node:26.3.0-slim
+
+WORKDIR /opt/outline
+
+RUN apt-get update && apt-get install -y cmake wget && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g corepack && corepack enable
+
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY patches ./patches
+
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+RUN yarn install --immutable --network-timeout 1000000 && yarn cache clean
+
+COPY . .
+RUN yarn build
+
+RUN mkdir -p /var/lib/outline/data
+
+ENV PORT=3000
+EXPOSE 3000
+
+CMD ["sh", "-c", "yarn db:migrate --env=production-ssl-disabled && node build/server/index.js"]
