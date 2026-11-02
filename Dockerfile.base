@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM node:26.12.1 AS deps
+FROM node:26.13.0 AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH
