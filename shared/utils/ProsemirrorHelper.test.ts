@@ -313,7 +313,7 @@ describe("ProsemirrorHelper", () => {
       };
 
       const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
-      expect(result.content![0].content![0].content![0].marks).toEqual([]);
+      expect(result.content![0].content![0].content![0].marks).toBeUndefined();
     });
 
     it("should remove marks from node attrs.marks", () => {

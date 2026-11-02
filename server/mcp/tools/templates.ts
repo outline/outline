@@ -109,7 +109,7 @@ export function templateTools(server: McpServer, scopes: string[]) {
                 userId: user.id,
               });
               authorize(user, "read", collection);
-              where[Op.and].push({ collectionId });
+              where[Op.and].push({ collectionId: collection.id });
             } else {
               where[Op.and].push({
                 [Op.or]: [

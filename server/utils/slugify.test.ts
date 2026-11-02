@@ -15,6 +15,19 @@ describe("slugify", () => {
     expect(slugify("θεός")).toBe("theos");
   });
 
+  it("should convert Chinese characters to Pinyin", () => {
+    expect(slugify("Python 快速开始")).toBe("python-kuai-su-kai-shi");
+    expect(slugify("中文English混合")).toBe("zhong-wen-english-hun-he");
+    expect(slugify("API接口v2.0")).toBe("api-jie-kou-v20");
+    expect(slugify("重庆银行")).toBe("chong-qing-yin-hang");
+    expect(slugify("繁體中文")).toBe("fan-ti-zhong-wen");
+    expect(slugify("绿色")).toBe("lv-se");
+  });
+
+  it("should not convert Japanese text to Pinyin", () => {
+    expect(slugify("日本語のテスト")).not.toContain("ri-ben");
+  });
+
   it("should keep surrogate pairs", () => {
     expect(slugify("emoji 🎉 test")).toBe("emoji-test");
   });

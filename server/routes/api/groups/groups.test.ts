@@ -918,6 +918,54 @@ describe("#groups.add_user", () => {
     );
   });
 
+  it("should preserve existing permission when permission is omitted", async () => {
+    const user = await buildAdmin();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const group = await buildGroup({ teamId: user.teamId });
+    const groupUser = await buildGroupUser({
+      groupId: group.id,
+      teamId: group.teamId,
+      userId: anotherUser.id,
+      permission: GroupPermission.Admin,
+    });
+
+    const res = await server.post("/api/groups.add_user", user, {
+      body: { id: group.id, userId: anotherUser.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Admin
+    );
+    await groupUser.reload();
+    expect(groupUser.permission).toEqual(GroupPermission.Admin);
+  });
+
+  it("should update existing permission when permission is provided", async () => {
+    const user = await buildAdmin();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const group = await buildGroup({ teamId: user.teamId });
+    const groupUser = await buildGroupUser({
+      groupId: group.id,
+      teamId: group.teamId,
+      userId: anotherUser.id,
+      permission: GroupPermission.Admin,
+    });
+
+    const res = await server.post("/api/groups.add_user", user, {
+      body: {
+        id: group.id,
+        userId: anotherUser.id,
+        permission: GroupPermission.Member,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    await groupUser.reload();
+    expect(groupUser.permission).toEqual(GroupPermission.Member);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.add_user");
     expect(res.status).toEqual(401);

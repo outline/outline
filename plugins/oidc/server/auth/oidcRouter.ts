@@ -13,7 +13,6 @@ import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
-import { AuthenticationProvider } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
 import { LogoutTokenStore } from "@server/utils/LogoutTokenStore";
 import {
@@ -28,6 +27,7 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
+import { resolveProviderId } from "./resolveProviderId";
 import { createContext } from "@server/context";
 import { OIDCMalformedUserInfoError } from "../errors";
 
@@ -146,43 +146,11 @@ export function createOIDCRouter(
               (await getUserFromOAuthState(context));
             const { domain } = parseEmail(email);
 
-            // Only a single OIDC provider is supported – find the existing, if any.
-            const authenticationProvider = team
-              ? ((await AuthenticationProvider.findOne({
-                  where: {
-                    name: "oidc",
-                    teamId: team.id,
-                    providerId: domain,
-                  },
-                })) ??
-                (await AuthenticationProvider.findOne({
-                  where: {
-                    name: "oidc",
-                    teamId: team.id,
-                  },
-                })))
-              : undefined;
-
-            // Derive a providerId from the OIDC location if there is no existing provider.
-            const oidcURL = new URL(endpoints.authorizationURL);
-            let providerId =
-              authenticationProvider?.providerId ?? oidcURL.hostname;
-
-            // The provider can move to a different domain, in which case the
-            // stored identifier must follow the configured location.
-            if (authenticationProvider && providerId !== oidcURL.hostname) {
-              try {
-                await authenticationProvider.update({
-                  providerId: oidcURL.hostname,
-                });
-                providerId = oidcURL.hostname;
-              } catch (error) {
-                Logger.warn(
-                  "Could not update OIDC authentication provider identifier",
-                  { providerId, hostname: oidcURL.hostname, error }
-                );
-              }
-            }
+            const providerId = await resolveProviderId(
+              team?.id,
+              new URL(endpoints.authorizationURL).hostname,
+              domain
+            );
 
             if (!domain) {
               throw OIDCMalformedUserInfoError();

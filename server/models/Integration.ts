@@ -119,7 +119,7 @@ class Integration<T = unknown> extends ParanoidModel<
       case IntegrationType.Embed: {
         const settings = this
           .settings as IntegrationSettings<IntegrationType.Embed>;
-        return { url: settings?.url, ...this.presentPluginSettings() };
+        return { url: settings?.url, ...this.presentPluginSettings(viewer) };
       }
       case IntegrationType.Analytics: {
         const settings = this
@@ -150,12 +150,17 @@ class Integration<T = unknown> extends ParanoidModel<
   /**
    * Picks the settings keys that plugins registered for this service.
    *
+   * @param viewer the user the settings are presented to, if any.
    * @returns the registered settings, keyed by name.
    */
-  private presentPluginSettings() {
+  private presentPluginSettings(viewer?: User) {
     const settings = this.settings as Record<string, unknown> | null;
     const keys = PluginManager.getHooks(Hook.IntegrationSettings)
-      .filter((hook) => hook.value.service === this.service)
+      .filter(
+        (hook) =>
+          hook.value.service === this.service &&
+          (!viewer?.isGuest || hook.value.visibleToGuests)
+      )
       .flatMap((hook) => hook.value.keys);
     return Object.fromEntries(keys.map((key) => [key, settings?.[key]]));
   }

@@ -84,6 +84,8 @@ type PluginValueMap = {
       | keyof EmbedIntegrationSettings
       | keyof LinkedAccountIntegrationSettings
     )[];
+    /** Whether guests can see the keys, which only render and edit embeds. */
+    visibleToGuests?: boolean;
     /** A schema to validate settings given through the integrations API. */
     schema?: z.ZodType<EmbedIntegrationSettings>;
   };

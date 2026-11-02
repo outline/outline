@@ -1,6 +1,5 @@
 import type { Location } from "history";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
@@ -24,6 +23,7 @@ import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { preloadEditor } from "~/routes/scenes";
 import { documentEditPath } from "~/utils/routeHelpers";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 import {
   useDragDocument,
   useDropToReorderDocument,
@@ -172,6 +172,7 @@ const DocumentLink = observer(function DocumentLink({
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
   const initial = document?.initial || node.title.charAt(0).toUpperCase();
+  const isEmpty = document?.isEmpty;
 
   // Rows at the top level of a section show the default icon, so that they
   // align with the other rows in the sidebar.
@@ -180,9 +181,9 @@ const DocumentLink = observer(function DocumentLink({
       icon ? (
         <Icon value={icon} color={color} initial={initial} />
       ) : depth === 0 ? (
-        <DocumentIcon outline={isDraft} />
+        <DocumentIcon empty={isEmpty} />
       ) : undefined,
-    [icon, color, initial, depth, isDraft]
+    [icon, color, initial, depth, isEmpty]
   );
 
   const [{ isDragging }, drag] = useDragDocument(

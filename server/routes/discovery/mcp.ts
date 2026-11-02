@@ -24,7 +24,8 @@ router.get("/.well-known/oauth-authorization-server", async (ctx) => {
       mcpEnabled && {
         registration_endpoint: `${origin}/oauth/register`,
       }),
-    client_id_metadata_document_supported: mcpEnabled,
+    client_id_metadata_document_supported:
+      mcpEnabled && !env.OAUTH_DISABLE_CIMD,
     response_types_supported: OAuthHelper.responseTypes,
     response_modes_supported: ["query"],
     grant_types_supported: OAuthHelper.grantTypes,

@@ -1,10 +1,12 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { CommentingAccess, TeamPreference } from "@shared/types";
+import { createContext } from "@server/context";
 import {
   buildDocument,
   buildSearchQuery,
   buildTeam,
+  buildUser,
 } from "@server/test/factories";
 import SearchQuery from "../SearchQuery";
 import User from "../User";
@@ -54,6 +56,39 @@ describe("Model", () => {
         document.collaboratorIds
       );
       expect(document.changeset.previous.collaboratorIds).toEqual(prev);
+    });
+  });
+
+  describe("fill", () => {
+    it("should skip undefined values", async () => {
+      const team = await buildTeam({ name: "Test Team", guestSignin: true });
+      team.fill({ name: undefined, guestSignin: false });
+
+      expect(team.name).toEqual("Test Team");
+      expect(team.guestSignin).toEqual(false);
+      expect(team.changed()).toEqual(["guestSignin"]);
+    });
+
+    it("should set null values", async () => {
+      const team = await buildTeam({ avatarUrl: "https://example.com/a.png" });
+      team.fill({ avatarUrl: null });
+
+      expect(team.avatarUrl).toBeNull();
+    });
+  });
+
+  describe("updateWithCtx", () => {
+    it("should not clear attributes with undefined values", async () => {
+      const team = await buildTeam({ name: "Test Team" });
+      const user = await buildUser({ teamId: team.id });
+      await team.updateWithCtx(createContext({ user }), {
+        name: undefined,
+        guestSignin: false,
+      });
+      await team.reload();
+
+      expect(team.name).toEqual("Test Team");
+      expect(team.guestSignin).toEqual(false);
     });
   });
 

@@ -52,7 +52,8 @@ export const attachmentPublicRegex =
 
 export class ProsemirrorHelper {
   /**
-   * Remove specific mark types from all nodes in the document.
+   * Remove specific mark types from all nodes in the document. Mark lists left
+   * empty are omitted, matching the schema default.
    *
    * @param doc the prosemirror document or JSON data.
    * @param marks the mark type names to remove.
@@ -65,14 +66,20 @@ export class ProsemirrorHelper {
     function removeMarksInner(node: ProsemirrorData) {
       // Node.toJSON shares attrs with the node, so replace them rather than mutate.
       if (node.marks) {
-        node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
+        const remaining = node.marks.filter((mark) => !markSet.has(mark.type));
+        if (remaining.length) {
+          node.marks = remaining;
+        } else {
+          delete node.marks;
+        }
       }
       if (node.attrs?.marks) {
+        const remaining = (node.attrs.marks as { type: string }[]).filter(
+          (mark) => !markSet.has(mark.type)
+        );
         node.attrs = {
           ...node.attrs,
-          marks: (node.attrs.marks as { type: string }[])?.filter(
-            (mark) => !markSet.has(mark.type)
-          ),
+          marks: remaining.length ? remaining : undefined,
         };
       }
       if (node.content) {

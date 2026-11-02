@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -27,6 +28,64 @@ export function getTestServer() {
   afterAll(() => server.close());
 
   return server;
+}
+
+/**
+ * Start a local HTTP proxy for the current test file that records the
+ * requests it receives. CONNECT requests are refused with a 403 response.
+ *
+ * @param handler optional handler for proxied HTTP requests, by default the
+ * proxy responds with "proxied".
+ * @returns the proxy URL, and the requests and connections since the last test.
+ */
+export function getTestProxy(
+  handler: http.RequestListener = (_req, res) => res.end("proxied")
+) {
+  const proxy: TestProxy = { url: "", requests: [], connections: 0 };
+  const record = (req: http.IncomingMessage) =>
+    proxy.requests.push({
+      method: req.method,
+      url: req.url,
+      auth: req.headers["proxy-authorization"],
+    });
+
+  const server = http.createServer((req, res) => {
+    record(req);
+    handler(req, res);
+  });
+  server.on("connection", () => {
+    proxy.connections++;
+  });
+  server.on("connect", (req, socket) => {
+    record(req);
+    socket.end("HTTP/1.1 403 Forbidden\r\n\r\n");
+  });
+
+  beforeAll(async () => {
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve)
+    );
+    const address = server.address();
+    const port = address && typeof address === "object" ? address.port : 0;
+    proxy.url = `http://127.0.0.1:${port}`;
+  });
+
+  beforeEach(() => {
+    proxy.requests = [];
+    proxy.connections = 0;
+  });
+
+  afterAll(async () => {
+    await new Promise((resolve) => server.close(resolve));
+  });
+
+  return proxy;
+}
+
+interface TestProxy {
+  url: string;
+  requests: { method?: string; url?: string; auth?: string }[];
+  connections: number;
 }
 
 /**

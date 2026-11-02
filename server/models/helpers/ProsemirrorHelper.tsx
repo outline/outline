@@ -1,7 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import emojiRegex from "emoji-regex";
 import type { JSDOM } from "jsdom";
-import { chunk, isMatch } from "es-toolkit/compat";
+import { chunk } from "es-toolkit/compat";
 import ukkonen from "ukkonen";
 import { EditorState, type Plugin } from "prosemirror-state";
 import {
@@ -9,7 +10,7 @@ import {
   EditorView,
   type DecorationSource,
 } from "prosemirror-view";
-import { Node, Fragment } from "prosemirror-model";
+import { DOMSerializer, Node, Fragment } from "prosemirror-model";
 import { Transform } from "prosemirror-transform";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
@@ -141,12 +142,6 @@ function isDecorationSource(value: unknown): value is DecorationSource {
 @trace()
 export class ProsemirrorHelper extends SharedProsemirrorHelper {
   /**
-   * Maximum amount of visible text, in characters, to grow a mention email
-   * snippet outward when climbing toward surrounding context.
-   */
-  static readonly mentionEmailMaxChars = 1000;
-
-  /**
    * Returns the input text as a Y.Doc.
    *
    * @param markdown The text to parse
@@ -186,6 +181,23 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return parser.parse(data);
     }
     return Node.fromJSON(schema, data);
+  }
+
+  /**
+   * Assigns a new id to every node that has an empty id attribute, such as
+   * checkbox lists and toggle blocks parsed from Markdown.
+   *
+   * @param doc the document.
+   * @returns the document with missing ids assigned.
+   */
+  static assignMissingIds(doc: Node) {
+    const tr = new Transform(doc);
+    doc.descendants((node, pos) => {
+      if (node.type.spec.attrs?.id && !node.attrs.id) {
+        tr.setNodeAttribute(pos, "id", randomUUID());
+      }
+    });
+    return tr.doc;
   }
 
   /**
@@ -310,100 +322,6 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     });
 
     return identifiers;
-  }
-
-  /**
-   * Build an email snippet around a mention. A surrounding list is trimmed to
-   * the mentioned item plus one sibling on either side, a table to the
-   * mentioned row; otherwise the largest complete block that still fits the
-   * size budget is kept.
-   *
-   * @param doc The top-level doc node of a document / revision.
-   * @param mention The mention to build the snippet around.
-   * @returns A new top-level doc node with the chosen block as its only child,
-   * or undefined if the mention could not be found.
-   */
-  static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
-    // A mention is an inline node, so it always lives inside a textblock
-    // (paragraph or heading). Locate it once and resolve its position.
-    let mentionPos: number | undefined;
-    doc.descendants((node: Node, pos: number) => {
-      if (mentionPos !== undefined) {
-        return false;
-      }
-      if (node.type.name === "mention" && isMatch(node.attrs, mention)) {
-        mentionPos = pos;
-        return false;
-      }
-      return true;
-    });
-
-    if (mentionPos === undefined) {
-      return undefined;
-    }
-
-    const $pos = doc.resolve(mentionPos);
-
-    // Lists and tables can be long, so rather than show the whole container,
-    // trim a list to the mentioned item plus one sibling on either side, and a
-    // table to the mentioned row. Use the nearest such ancestor so nested
-    // structures show the content closest to the mention.
-    const listTypes = ["bullet_list", "ordered_list", "checkbox_list"];
-    for (let d = $pos.depth - 1; d >= 1; d--) {
-      const container = $pos.node(d);
-      const name = container.type.name;
-
-      if (listTypes.includes(name)) {
-        const index = $pos.index(d);
-        const start = Math.max(0, index - 1);
-        const end = Math.min(container.childCount, index + 2);
-        const items: Node[] = [];
-        for (let i = start; i < end; i++) {
-          items.push(container.child(i));
-        }
-        // Keep an ordered list's numbering aligned with the original document
-        // by advancing its start to match the first item shown.
-        const attrs =
-          name === "ordered_list" && start > 0
-            ? {
-                ...container.attrs,
-                order: (container.attrs.order ?? 1) + start,
-              }
-            : container.attrs;
-        const trimmed = container.type.create(
-          attrs,
-          Fragment.fromArray(items),
-          container.marks
-        );
-        return doc.copy(Fragment.fromArray([trimmed]));
-      }
-
-      if (name === "table") {
-        const row = container.child($pos.index(d));
-        return doc.copy(
-          Fragment.fromArray([container.copy(Fragment.fromArray([row]))])
-        );
-      }
-    }
-
-    // Always include at least the textblock the mention sits in, then climb the
-    // ancestor chain outward keeping the largest complete block that still fits
-    // the size budget. Each ancestor strictly contains the previous, so sizes
-    // grow monotonically and we can stop at the first that overflows.
-    let node = $pos.node($pos.depth);
-    for (let d = $pos.depth - 1; d >= 1; d--) {
-      const ancestor = $pos.node(d);
-      // textBetween rather than textContent so leaf text (mentions, etc.) is
-      // counted towards the budget.
-      const length = textBetween(ancestor, 0, ancestor.content.size).length;
-      if (length > ProsemirrorHelper.mentionEmailMaxChars) {
-        break;
-      }
-      node = ancestor;
-    }
-
-    // Return a new top-level "doc" node to maintain structure during serialization.
-    return doc.copy(Fragment.fromArray([node]));
   }
 
   /**
@@ -968,8 +886,65 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     });
   }
 
+  /**
+   * Converts a ProseMirror node to static HTML from the `toDOM` specs of the
+   * schema. Unlike toHTML it does not mount an editor or node components, so
+   * it is cheaper and can run concurrently, but the output has no styles.
+   *
+   * @param node The node to convert to HTML.
+   * @param options Options for the HTML output.
+   * @returns The content as a HTML string.
+   */
+  public static async toStaticHTML(
+    node: Node,
+    options?: Pick<HTMLOptions, "title" | "headingPrefix">
+  ): Promise<string> {
+    const doc = await ProsemirrorHelper.getStaticDocument();
+    const rtl = isRTL(node.textBetween(0, Math.min(node.content.size, 100)));
+    const article = doc.createElement("article");
+
+    if (options?.title) {
+      const title = doc.createElement("h1");
+      title.setAttribute("dir", rtl ? "rtl" : "ltr");
+      title.textContent = options.title;
+      article.appendChild(title);
+    }
+
+    const content = doc.createElement("div");
+    content.id = "content";
+    content.className = "ProseMirror exported";
+    content.appendChild(
+      DOMSerializer.fromSchema(schema).serializeFragment(node.content, {
+        document: doc,
+      })
+    );
+    article.appendChild(content);
+
+    if (options?.headingPrefix) {
+      HeadingPrefixHelper.applyToDOM(content, node, options.headingPrefix);
+    }
+
+    return article.outerHTML;
+  }
+
   /** Promise chain serializing HTML exports within the process. */
   private static htmlRenderQueue: Promise<void> = Promise.resolve();
+
+  /** Detached document that static HTML is built in, created on first use. */
+  private static staticDocument?: Promise<Document>;
+
+  /**
+   * Returns the shared detached document for static HTML. Loads jsdom lazily
+   * to keep it off the startup path.
+   *
+   * @returns A promise that resolves to the document.
+   */
+  private static getStaticDocument(): Promise<Document> {
+    ProsemirrorHelper.staticDocument ??= import("jsdom").then(
+      ({ JSDOM }) => new JSDOM().window.document
+    );
+    return ProsemirrorHelper.staticDocument;
+  }
 
   /**
    * Flushes React passive effects and the follow-on renders they trigger by

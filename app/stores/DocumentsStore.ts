@@ -125,15 +125,15 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   /**
-   * Documents created by the given user, most recently updated first.
+   * Documents created or edited by the given user, most recently updated first.
    *
    * @param userId the ID of the user.
    * @returns the matching documents.
    */
-  createdByUser = computedFn(
+  editedByUser = computedFn(
     (userId: string): Document[] =>
       orderBy(
-        this.all.filter((d) => d.createdBy?.id === userId),
+        this.all.filter((d) => d.collaboratorIds?.includes(userId)),
         "updatedAt",
         "desc"
       ),

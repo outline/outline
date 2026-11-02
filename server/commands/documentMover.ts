@@ -105,6 +105,19 @@ async function documentMover(
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+
+    // A personal collection has no drafts, so a draft moved into it is published.
+    if (newCollection?.isPersonal) {
+      const siblings = parentDocumentId
+        ? newCollection.getDocumentTree(parentDocumentId)?.children
+        : newCollection.documentStructure;
+
+      // Without an index the document is appended, as for a published move.
+      await document.publish(ctx, {
+        collectionId,
+        index: index ?? siblings?.length,
+      });
+    }
   }
 
   if (collection && document.publishedAt) {

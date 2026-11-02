@@ -27,6 +27,26 @@ describe("isStaleChunkError", () => {
     ).toBe(true);
   });
 
+  it("matches a chunk with a missing export in Safari", () => {
+    expect(
+      isStaleChunkError(
+        new SyntaxError(
+          "The requested module 'https://example.com/dist.Vjae9qf2.js' doesn't provide an export named: 'r'"
+        )
+      )
+    ).toBe(true);
+  });
+
+  it("matches a stylesheet that could not be preloaded", () => {
+    expect(
+      isStaleChunkError(
+        new Error(
+          "Unable to preload CSS for https://example.com/vendor-katex.g4cOh1UA.css"
+        )
+      )
+    ).toBe(true);
+  });
+
   it("matches a non-error value", () => {
     expect(isStaleChunkError("Importing a module script failed.")).toBe(true);
   });

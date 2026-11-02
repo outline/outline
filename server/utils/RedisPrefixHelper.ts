@@ -37,6 +37,18 @@ export class RedisPrefixHelper {
   }
 
   /**
+   * Gets key for caching the rendered HTML of a shared document or collection.
+   * The key changes when the model is updated.
+   *
+   * @param id The document or collection ID.
+   * @param updatedAt The time the model was last updated.
+   * @returns the cache key string.
+   */
+  public static getShareContentKey(id: string, updatedAt: Date) {
+    return `share:html:${id}:${updatedAt.getTime()}`;
+  }
+
+  /**
    * Gets key for caching embed check results. This is a global cache key
    * (not team-specific) since embed headers are the same for all users.
    *

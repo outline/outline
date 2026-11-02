@@ -369,6 +369,7 @@ export default abstract class BaseEmail<
 
     let content = await ProsemirrorHelper.toHTML(processedNode, {
       centered: false,
+      baseUrl: team.url,
     });
 
     content = await TextHelper.attachmentsToSignedUrls(

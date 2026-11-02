@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import type { ProsemirrorData } from "@shared/types";
 import { createContext } from "@server/context";
 import { Document, Event, Revision } from "@server/models";
 import Redis from "@server/storage/redis";
@@ -7,6 +9,14 @@ import DocumentUpdateTextTask from "../tasks/DocumentUpdateTextTask";
 import RevisionsProcessor from "./RevisionsProcessor";
 
 const ip = "127.0.0.1";
+
+const paragraph = (
+  text: string,
+  marks?: ProsemirrorData["marks"]
+): ProsemirrorData => ({
+  type: "doc",
+  content: [{ type: "paragraph", content: [{ type: "text", text, marks }] }],
+});
 
 describe("documents.update.debounced", () => {
   it("should create a revision", async () => {
@@ -76,6 +86,66 @@ describe("documents.update.debounced", () => {
     expect(await Redis.defaultClient.zrange(key, 0, -1)).toEqual([
       collaborator.id,
     ]);
+  });
+
+  it("should not create a revision if only comment marks changed", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      content: paragraph("Hello world"),
+    });
+    await Revision.createFromDocument(createContext({ user }), document);
+
+    document.content = paragraph("Hello world", [
+      { type: "comment", attrs: { id: randomUUID(), userId: user.id } },
+    ]);
+    await document.save();
+
+    const processor = new RevisionsProcessor();
+    await processor.perform({
+      name: "documents.update.debounced",
+      documentId: document.id,
+      collectionId: document.collectionId!,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { done: true },
+      ip,
+    });
+    expect(await Revision.count({ where: { documentId: document.id } })).toBe(
+      1
+    );
+  });
+
+  it("should create a revision if text changed alongside comment marks", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      content: paragraph("Hello world"),
+    });
+    await Revision.createFromDocument(createContext({ user }), document);
+
+    document.content = paragraph("Hello there world", [
+      { type: "comment", attrs: { id: randomUUID(), userId: user.id } },
+    ]);
+    await document.save();
+
+    const processor = new RevisionsProcessor();
+    await processor.perform({
+      name: "documents.update.debounced",
+      documentId: document.id,
+      collectionId: document.collectionId!,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { done: true },
+      ip,
+    });
+    expect(await Revision.count({ where: { documentId: document.id } })).toBe(
+      2
+    );
   });
 
   it("should consume attribution up to the cutoff when identical to previous", async () => {

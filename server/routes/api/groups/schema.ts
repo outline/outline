@@ -135,10 +135,7 @@ export const GroupsAddUserSchema = z.object({
     /** User Id */
     userId: z.uuid(),
     /** The permission of the user in the group */
-    permission: z
-      .enum(GroupPermission)
-      .optional()
-      .prefault(GroupPermission.Member),
+    permission: z.enum(GroupPermission).optional(),
   }),
 });
 

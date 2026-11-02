@@ -239,6 +239,7 @@ function ReferenceListItem({
   const isEmoji = determineIconType(icon) === IconType.Emoji;
   const title =
     document instanceof Document ? document.displayTitle : document.title;
+  const path = document instanceof Document ? document.path : document.url;
   const initial = title.charAt(0).toUpperCase();
   const showContextMenu = document instanceof Document && !!user;
 
@@ -280,9 +281,7 @@ function ReferenceListItem({
       $menuOpen={menuOpen}
       $selectable={selectable}
       to={{
-        pathname: shareId
-          ? sharedModelPath(shareId, document.url)
-          : document.url,
+        pathname: shareId ? sharedModelPath(shareId, path) : path,
         hash: anchor ? `d-${anchor}` : undefined,
         state: {
           title: document.title,

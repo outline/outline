@@ -1462,6 +1462,13 @@ describe("#shares.sitemap", () => {
 });
 
 describe("#shares.subscribe", () => {
+  beforeEach(async () => {
+    // Requests share a loopback IP, so earlier runs would reach the per-IP limit.
+    await ShareSubscription.destroy({
+      where: { ipAddress: ["127.0.0.1", "::1", "::ffff:127.0.0.1"] },
+    });
+  });
+
   it("should fail with status 400 bad request when shareId is invalid", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {

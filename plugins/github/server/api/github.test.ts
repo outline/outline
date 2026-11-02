@@ -2,6 +2,7 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import {
   buildAdmin,
+  buildGuestUser,
   buildIntegration,
   buildTeam,
   buildUser,
@@ -170,5 +171,32 @@ describe("#integrations.list", () => {
       url: "https://example.com",
       github: { installation },
     });
+  });
+
+  it("should not expose github settings to guests", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const guest = await buildGuestUser({ teamId: team.id });
+    await buildIntegration({
+      userId: admin.id,
+      teamId: team.id,
+      service: IntegrationService.GitHub,
+      type: IntegrationType.Embed,
+      settings: {
+        url: "https://example.com",
+        github: {
+          installation: {
+            id: 123,
+            account: { id: 456, name: "acme", avatarUrl: "" },
+          },
+        },
+      },
+    });
+
+    const res = await server.post("/api/integrations.list", guest);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[0].settings).toEqual({ url: "https://example.com" });
   });
 });

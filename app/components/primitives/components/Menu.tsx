@@ -169,6 +169,14 @@ export const SelectedIconWrapper = styled.span`
   justify-content: center;
 `;
 
+export const MenuBadge = styled.span`
+  font-size: 13px;
+  color: currentColor;
+  opacity: 0.5;
+  margin-inline-start: 16px;
+  flex-shrink: 0;
+`;
+
 export const MenuShortcut = styled.span`
   display: flex;
   align-items: center;

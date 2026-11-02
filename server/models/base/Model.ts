@@ -1,4 +1,5 @@
 import isEqual from "fast-deep-equal";
+import { isUndefined, omitBy } from "es-toolkit";
 import { isArray, isObject, pick } from "es-toolkit/compat";
 import type {
   Attributes,
@@ -83,7 +84,7 @@ class Model<
   }
 
   /**
-   * This is the same as calling `set` and then calling `save`.
+   * This is the same as calling `fill` and then calling `save`.
    */
   public updateWithCtx(
     ctx: APIContext,
@@ -97,8 +98,19 @@ class Model<
         publish: true,
       },
     };
-    this.set(keys);
+    this.fill(keys);
     return this.save(hookContext);
+  }
+
+  /**
+   * Sets the given attributes on the instance, skipping any with an undefined
+   * value. Use `null` to clear an attribute.
+   *
+   * @param keys the attributes to set.
+   * @returns the instance.
+   */
+  public fill(keys: Partial<TModelAttributes>) {
+    return this.set(omitBy(keys, isUndefined));
   }
 
   /**

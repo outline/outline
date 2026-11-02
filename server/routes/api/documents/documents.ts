@@ -13,13 +13,14 @@ import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  DocumentPermission,
   ExportContentType,
   FileOperationFormat,
   StatusFilter,
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { Day } from "@shared/utils/time";
 import documentCreator, {
   authorizeDocumentCreate,
@@ -610,49 +611,30 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const userId = user.id;
-    const [collectionIds, membershipDocumentIds] = await Promise.all([
-      user.collectionIds(),
-      Document.membershipDocumentIds(userId),
-    ]);
-    const views = await View.findAll({
-      where: {
-        userId,
-      },
-      order: [[sort, direction]],
-      include: [
-        {
-          model: Document.scope([
-            "withDrafts",
-            "withoutStateOrText",
-            { method: ["withMembership", userId] },
-          ]),
-          required: true,
-          where: {
-            teamId: user.teamId,
-            [Op.and]: [
-              {
-                [Op.or]: [
-                  { collectionId: collectionIds },
-                  { id: membershipDocumentIds },
-                  { createdById: userId, collectionId: { [Op.is]: null } },
-                ],
-              },
-              {
-                [Op.or]: [
-                  { publishedAt: { [Op.ne]: null } },
-                  { createdById: userId },
-                  { id: membershipDocumentIds },
-                ],
-              },
-            ],
-          },
-        },
-      ],
+    const viewIds = await View.findAccessibleIds(user, {
+      sort,
+      direction,
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
-      subQuery: false,
     });
+    const views = viewIds.length
+      ? await View.findAll({
+          where: {
+            id: viewIds,
+          },
+          order: [[sort, direction]],
+          include: [
+            {
+              model: Document.scope([
+                "withDrafts",
+                "withoutStateOrText",
+                { method: ["withMembership", user.id] },
+              ]),
+              required: true,
+            },
+          ],
+        })
+      : [];
     const documents = views.map((view) => {
       const document = view.document;
       document.views = [view];
@@ -755,25 +737,27 @@ router.post(
         throw NotFoundError("Document could not be found for shareId");
       }
 
-      // reload with membership scope if user is authenticated
-      if (user) {
-        document = await Document.findByPk(document.id, {
-          userId: user.id,
-          rejectOnEmpty: true,
-        });
-      }
+      const { sharedTree } = result;
+      const [scopedDocument, backlinkIds] = await Promise.all([
+        // reload with membership scope if user is authenticated
+        user
+          ? Document.findByPk(document.id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+            })
+          : document,
+
+        // Get backlinks that are within the shared tree
+        sharedTree
+          ? Relationship.findSourceDocumentIdsInSharedTree(
+              document.id,
+              getAllIdsInSharedTree(sharedTree)
+            )
+          : undefined,
+      ]);
+      document = scopedDocument;
 
       isPublic = cannot(user, "read", document);
-
-      // Get backlinks that are within the shared tree
-      let backlinkIds: string[] | undefined;
-      if (result.sharedTree) {
-        const allowedDocumentIds = getAllIdsInSharedTree(result.sharedTree);
-        backlinkIds = await Relationship.findSourceDocumentIdsInSharedTree(
-          document.id,
-          allowedDocumentIds
-        );
-      }
 
       serializedDocument = await presentDocument(ctx, document, {
         isPublic,
@@ -1286,28 +1270,14 @@ router.post(
       });
 
       share = result.share;
-      let { collection, document } = result; // One of collection or document should be available
-
-      // reload with membership scope if user is authenticated
-      if (user) {
-        collection = collection
-          ? await Collection.findByPk(collection.id, { userId: user.id })
-          : null;
-        document = document
-          ? await Document.findByPk(document.id, { userId: user.id })
-          : null;
-      }
-
-      isPublic = collection
-        ? cannot(user, "read", collection)
-        : cannot(user, "read", document);
+      const { collection, document } = result; // One of collection or document should be available
 
       if (share.documentId && !share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
       }
 
       teamId = share.teamId;
-      const team = await share.$get("team");
+      const team = share.team;
       invariant(team, "Share must belong to a team");
 
       const shareScopeId = collection?.id || document?.collectionId;
@@ -1323,9 +1293,23 @@ router.post(
             ]
           : []),
       ]);
-      const resolvedShareFilter = shareFilter
-        ? await expandDocumentIdLeaves(shareFilter, { teamId: share.teamId })
-        : undefined;
+      const [resolvedShareFilter, scopedCollection, scopedDocument] =
+        await Promise.all([
+          shareFilter
+            ? expandDocumentIdLeaves(shareFilter, { teamId: share.teamId })
+            : undefined,
+          // reload with membership scope if user is authenticated
+          user && collection
+            ? Collection.findByPk(collection.id, { userId: user.id })
+            : collection,
+          user && document
+            ? Document.findByPk(document.id, { userId: user.id })
+            : document,
+        ]);
+
+      isPublic = scopedCollection
+        ? cannot(user, "read", scopedCollection)
+        : cannot(user, "read", scopedDocument);
 
       response = await SearchProviderManager.getProvider().searchForTeam(team, {
         query,
@@ -1369,33 +1353,34 @@ router.post(
     const { results, total } = response;
     const documents = results.map((result) => result.document);
 
-    const data = await Promise.all(
-      results.map(async (result) => {
-        const document = await presentDocument(ctx, result.document, {
-          isPublic,
-          shareId,
-        });
-        return { ...result, document };
-      })
-    );
+    const [data] = await Promise.all([
+      Promise.all(
+        results.map(async (result) => {
+          const document = await presentDocument(ctx, result.document, {
+            isPublic,
+            shareId,
+          });
+          return { ...result, document };
+        })
+      ),
 
-    // When requesting subsequent pages of search results we don't want to record
-    // duplicate search query records
-    if (query && offset === 0) {
-      const duration = Date.now() - searchStartedAt;
-      await SearchQuery.record({
-        userId: user?.id,
-        teamId,
-        shareId: share?.id,
-        // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
-        source:
-          (ctx.state.auth.type as unknown as SearchQuerySource) ||
-          SearchQuerySource.App,
-        query,
-        results: total,
-        duration,
-      });
-    }
+      // When requesting subsequent pages of search results we don't want to record
+      // duplicate search query records
+      query && offset === 0
+        ? SearchQuery.record({
+            userId: user?.id,
+            teamId,
+            shareId: share?.id,
+            // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
+            source:
+              (ctx.state.auth.type as unknown as SearchQuerySource) ||
+              SearchQuerySource.App,
+            query,
+            results: total,
+            duration: Date.now() - searchStartedAt,
+          })
+        : undefined,
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -2101,7 +2086,7 @@ router.post(
         {
           documentId: id,
           groupId,
-          permission: permission || user.defaultDocumentPermission,
+          permission: permission ?? DocumentPermission.ReadWrite,
           createdById: user.id,
         },
         ctx.context

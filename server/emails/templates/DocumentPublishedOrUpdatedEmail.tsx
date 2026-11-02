@@ -2,13 +2,15 @@ import * as React from "react";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import type { Collection } from "@server/models";
-import { Document, Revision } from "@server/models";
+import { Document, Revision, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import { diffSnippet, leadingSnippet } from "@server/emails/snippets";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { can } from "@server/policies";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { canUserAccessDocument } from "@server/utils/permissions";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
@@ -59,10 +61,18 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
   protected async beforeSend(props: InputProps) {
     const { documentId, revisionId } = props;
-    const document = await Document.unscoped().findByPk(documentId, {
-      includeState: true,
-    });
-    if (!document) {
+    const [document, recipient] = await Promise.all([
+      Document.unscoped().findByPk(documentId, {
+        includeState: true,
+      }),
+      User.findByPk(props.userId),
+    ]);
+    if (!document || !recipient) {
+      return false;
+    }
+
+    // Access may have been revoked since the notification was created.
+    if (!(await canUserAccessDocument(recipient, document.id))) {
       return false;
     }
 
@@ -79,7 +89,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
         async () => {
           // generate the diff html for the email
           const before = await revision.before();
-          const content = await DocumentHelper.toEmailDiff(before, revision, {
+          const content = await diffSnippet(before, revision, {
             includeTitle: false,
             centered: false,
             signedUrls: 4 * Day.seconds,
@@ -88,6 +98,20 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
           // inline all css so that it works in as many email providers as possible.
           return content ? await HTMLHelper.inlineCSS(content) : undefined;
+        },
+        30,
+        10000
+      );
+    } else if (
+      team &&
+      props.eventType === NotificationEventType.PublishDocument &&
+      team.getPreference(TeamPreference.PreviewsInEmails)
+    ) {
+      body = await CacheHelper.getDataOrSet<string>(
+        `preview:${document.id}:${document.updatedAt.getTime()}`,
+        async () => {
+          const node = leadingSnippet(DocumentHelper.toProsemirror(document));
+          return node ? await this.htmlForData(team, node) : undefined;
         },
         30,
         10000

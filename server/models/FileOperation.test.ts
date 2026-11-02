@@ -76,6 +76,19 @@ describe("FileOperation", () => {
       expect(ValidateKey.isValid(key)).toBe(true);
     });
 
+    it("should truncate a long name", () => {
+      const key = FileOperation.getExportKey({
+        name: "a".repeat(255),
+        teamId: randomUUID(),
+        format: FileOperationFormat.MarkdownZip,
+      });
+
+      expect(key.length).toBeLessThanOrEqual(255);
+      expect(key.endsWith(`/${"a".repeat(100)}-export.markdown.zip`)).toBe(
+        true
+      );
+    });
+
     it("should not allow the name to traverse to another bucket", () => {
       const key = FileOperation.getExportKey({
         name: `../../../public/${randomUUID()}/${randomUUID()}/x`,

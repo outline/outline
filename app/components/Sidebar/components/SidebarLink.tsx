@@ -205,7 +205,7 @@ function SidebarLink({
       ) : (
         content
       )}
-      {isInteractive && menu && (
+      {(isInteractive || $showActions) && menu && (
         <SidebarActions $showActions={$showActions}>{menu}</SidebarActions>
       )}
     </>

@@ -1,5 +1,4 @@
 import Router from "@koa/router";
-import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { randomString } from "@shared/random";
@@ -56,12 +55,12 @@ router.post(
   async (ctx: APIContext<T.SharesInfoReq>) => {
     const { id, collectionId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const teamFromCtx = await getTeamFromContext(ctx, {
-      includeOAuthState: false,
-    });
 
     // only public link loads will send "id".
     if (id) {
+      const teamFromCtx = await getTeamFromContext(ctx, {
+        includeOAuthState: false,
+      });
       let { share, sharedTree, collection, document } = await loadPublicShare({
         id,
         collectionId,
@@ -71,12 +70,12 @@ router.post(
 
       // reload with membership scope if user is authenticated
       if (user) {
-        collection = collection
-          ? await Collection.findByPk(collection.id, { userId: user.id })
-          : null;
-        document = document
-          ? await Document.findByPk(document.id, { userId: user.id })
-          : null;
+        [collection, document] = await Promise.all([
+          collection
+            ? Collection.findByPk(collection.id, { userId: user.id })
+            : null,
+          document ? Document.findByPk(document.id, { userId: user.id }) : null,
+        ]);
       }
 
       const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;
@@ -376,41 +375,22 @@ router.post(
 
     authorize(user, "update", share);
 
-    if (published !== undefined) {
-      share.published = published;
-      if (published) {
-        share.includeChildDocuments = true;
-      }
+    // Publishing a share includes child documents unless specified otherwise.
+    if (published) {
+      share.includeChildDocuments = true;
     }
 
-    if (includeChildDocuments !== undefined) {
-      share.includeChildDocuments = includeChildDocuments;
-    }
-
-    if (!isUndefined(urlId)) {
-      share.urlId = urlId;
-    }
-
-    if (allowIndexing !== undefined) {
-      share.allowIndexing = allowIndexing;
-    }
-    if (allowSubscriptions !== undefined) {
-      share.allowSubscriptions = allowSubscriptions;
-    }
-    if (showLastUpdated !== undefined) {
-      share.showLastUpdated = showLastUpdated;
-    }
-    if (showTOC !== undefined) {
-      share.showTOC = showTOC;
-    }
-
-    if (!isUndefined(title)) {
-      share.title = title || null;
-    }
-
-    if (!isUndefined(iconUrl)) {
-      share.iconUrl = iconUrl || null;
-    }
+    share.fill({
+      published,
+      includeChildDocuments,
+      urlId,
+      allowIndexing,
+      allowSubscriptions,
+      showLastUpdated,
+      showTOC,
+      title: title === "" ? null : title,
+      iconUrl: iconUrl === "" ? null : iconUrl,
+    });
 
     await share.saveWithCtx(ctx);
 

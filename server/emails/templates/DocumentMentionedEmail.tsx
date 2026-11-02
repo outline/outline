@@ -4,7 +4,7 @@ import { MentionType, NotificationEventType } from "@shared/types";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { mentionSnippet } from "@server/emails/snippets";
 import { can } from "@server/policies";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
@@ -82,7 +82,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
     let body: string | undefined;
 
     if (firstNewMention) {
-      const node = ProsemirrorHelper.getNodeForMentionEmail(
+      const node = mentionSnippet(
         DocumentHelper.toProsemirror(currDoc),
         firstNewMention
       );

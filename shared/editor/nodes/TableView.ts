@@ -148,6 +148,10 @@ export class TableView extends ProsemirrorTableView {
 
   private scrollHandler: (() => void) | null = null;
 
+  private resizeObserver: ResizeObserver | null = null;
+
+  private supportsViewTimeline = false;
+
   /**
    * Sets up the scroll listener for sticky header behavior. Nested tables
    * (tables within another table) are excluded from sticky header behavior.
@@ -162,6 +166,18 @@ export class TableView extends ProsemirrorTableView {
       // Skip sticky header for nested tables
       if (this.dom.closest(`table .${EditorStyleHelper.table}`)) {
         return;
+      }
+
+      this.supportsViewTimeline =
+        typeof CSS !== "undefined" &&
+        CSS.supports("animation-timeline", "view()");
+
+      // The animation in CSS needs the range in which the header row moves.
+      if (this.supportsViewTimeline) {
+        this.resizeObserver = new ResizeObserver(() => {
+          this.updateStickyHeaderRange();
+        });
+        this.resizeObserver.observe(this.table);
       }
 
       this.scrollHandler = () => {
@@ -194,13 +210,37 @@ export class TableView extends ProsemirrorTableView {
       this.scrollHandler = null;
     }
 
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+
     // Reset sticky header state
     this.dom.classList.remove(EditorStyleHelper.tableStickyHeader);
     this.dom.style.removeProperty("--sticky-scroll-offset");
+    this.dom.style.removeProperty("--sticky-header-start");
+    this.dom.style.removeProperty("--sticky-header-travel");
   }
 
   /**
-   * Updates the header row transform to create a sticky effect.
+   * Stores where the sticky animation starts, which is the top of the table in
+   * the wrapper, and how far the header row can move down before it reaches
+   * the bottom of the table.
+   */
+  private updateStickyHeaderRange() {
+    const headerRow = this.table.querySelector("tr");
+    const start =
+      this.table.getBoundingClientRect().top -
+      this.dom.getBoundingClientRect().top;
+    const travel = headerRow
+      ? this.table.offsetHeight - headerRow.offsetHeight
+      : 0;
+
+    this.dom.style.setProperty("--sticky-header-start", `${start}px`);
+    this.dom.style.setProperty("--sticky-header-travel", `${travel}px`);
+  }
+
+  /**
+   * Updates the sticky header state. When the browser supports scroll-driven
+   * animations CSS moves the header row, otherwise the transform is set here.
    */
   private updateStickyHeader() {
     if (!isBrowser) {
@@ -213,8 +253,19 @@ export class TableView extends ProsemirrorTableView {
     }
 
     const tableRect = this.table.getBoundingClientRect();
-    const headerRowHeight = headerRow.getBoundingClientRect().height;
     const headerOffset = this.getHeaderOffset();
+
+    // The animated header row stays at the bottom of the table when the table
+    // leaves the view, so it keeps the sticky styles until then.
+    if (this.supportsViewTimeline) {
+      this.dom.classList.toggle(
+        EditorStyleHelper.tableStickyHeader,
+        tableRect.top < headerOffset && tableRect.bottom > headerOffset
+      );
+      return;
+    }
+
+    const headerRowHeight = headerRow.getBoundingClientRect().height;
 
     // Check if the table top is above the header area but the table extends below it
     const shouldStick =

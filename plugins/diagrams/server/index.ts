@@ -7,6 +7,7 @@ PluginManager.add({
   value: {
     service: IntegrationService.Diagrams,
     keys: ["diagrams"],
+    visibleToGuests: true,
     schema: z.object({
       diagrams: z.object({ url: z.url() }),
     }),

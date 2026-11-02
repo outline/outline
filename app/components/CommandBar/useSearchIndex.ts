@@ -64,7 +64,7 @@ export function toSearchRecord(
   return {
     id: doc.id,
     title: doc.displayTitle,
-    url: doc.url,
+    url: doc.path,
     text: content ? content.text : stripHighlightTags(context),
     headings: content?.headings,
     icon: doc.icon,

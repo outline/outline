@@ -5,7 +5,7 @@ import { UnfurlResourceType } from "@shared/types";
 import { Hour } from "@shared/utils/time";
 import type { User } from "@server/models";
 import Redis from "@server/storage/redis";
-import { buildUser } from "@server/test/factories";
+import { buildGuestUser, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Iframely from "./iframely";
@@ -130,5 +130,21 @@ describe("#urls.unfurl", () => {
     );
     expect(ttl).toBeGreaterThan(0);
     expect(ttl).toBeLessThanOrEqual(60);
+  });
+
+  it("should not unfurl external urls for guests", async () => {
+    const guest = await buildGuestUser({ teamId: user.teamId });
+    const callCount = (Iframely.requestResource as Mock).mock.calls.length;
+
+    const res = await server.post("/api/urls.unfurl", guest, {
+      body: {
+        url: "https://github.com/acme/private/issues/1",
+      },
+    });
+
+    expect(res.status).toEqual(204);
+    expect((Iframely.requestResource as Mock).mock.calls.length).toEqual(
+      callCount
+    );
   });
 });

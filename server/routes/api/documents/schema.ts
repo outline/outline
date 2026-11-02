@@ -689,9 +689,7 @@ export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
 export const DocumentsAddGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     groupId: z.uuid(),
-    permission: z
-      .enum(DocumentPermission)
-      .prefault(DocumentPermission.ReadWrite),
+    permission: z.enum(DocumentPermission).optional(),
   }),
 });
 

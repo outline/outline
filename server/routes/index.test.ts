@@ -1,11 +1,15 @@
 import { randomUUID } from "node:crypto";
+import { addMonths, subDays } from "date-fns";
 import {
   IntegrationService,
   IntegrationType,
   TeamPreference,
 } from "@shared/types";
+import { parseSessionsCookie } from "@shared/utils/sessions";
+import { parser } from "@server/editor";
 import env from "@server/env";
 import {
+  buildAttachment,
   buildShare,
   buildDocument,
   buildIntegration,
@@ -14,6 +18,11 @@ import {
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
+
+const botHeaders = {
+  "User-Agent":
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+};
 
 describe("/s/:id", () => {
   it("should return standard title in html when loading unpublished share", async () => {
@@ -105,6 +114,60 @@ describe("/s/:id", () => {
     const body = await res.text();
     expect(res.status).toEqual(200);
     expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
+  it("should render document content with signed attachment urls", async () => {
+    const team = await buildTeam();
+    const attachment = await buildAttachment({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      text: `Shared content\n\n![image](${attachment.redirectUrl})`,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`, { headers: botHeaders });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain("Shared content");
+    expect(body).toContain("<img");
+    expect(body).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should not render document content for browsers", async () => {
+    const document = await buildDocument({ text: "Shared content" });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      },
+    });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<title>${document.title}</title>`);
+    expect(body).not.toContain('<div id="content"');
+  });
+
+  it("should render updated content after the document changes", async () => {
+    const document = await buildDocument({ text: "First version" });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const first = await server.get(`/s/${share.id}`, { headers: botHeaders });
+    expect(await first.text()).toContain("First version");
+
+    document.content = parser.parse("Second version")?.toJSON();
+    await document.save();
+    const second = await server.get(`/s/${share.id}`, {
+      headers: botHeaders,
+    });
+    expect(await second.text()).toContain("Second version");
   });
 
   it("should return markdown when Accept header prefers text/markdown", async () => {
@@ -629,6 +692,111 @@ describe("root domain session redirects", () => {
       expect(res.status).toEqual(200);
     }
   });
+
+  it("should clean and refresh the cookie before rendering the workspace chooser", async () => {
+    const team = await buildTeam({
+      name: "Updated workspace",
+      subdomain: `updated-${randomUUID()}`,
+      domain: `docs-${randomUUID()}.example.com`,
+    });
+    const suspended = await buildTeam({ suspendedAt: new Date() });
+    const loggedOut = await buildTeam();
+    const forgotten = await buildTeam();
+    const expiredAt = subDays(new Date(), 1).toISOString();
+    const lastUsedAt = subDays(new Date(), 2).toISOString();
+    const expiresAt = addMonths(new Date(), 1).toISOString();
+    const stale = {
+      name: "Old workspace",
+      logoUrl: null,
+      url: "https://old.outline.dev",
+      lastUsedAt,
+    };
+    const res = await server.get("/oauth/authorize?client_id=x", {
+      headers: {
+        Host: host,
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team.id]: { ...stale, expiresAt },
+            [suspended.id]: stale,
+            [randomUUID()]: stale,
+            [loggedOut.id]: {
+              ...stale,
+              expiresAt: expiredAt,
+            },
+            [forgotten.id]: {
+              ...stale,
+              lastUsedAt: addMonths(new Date(), -4).toISOString(),
+            },
+            invalid: stale,
+          })
+        )}`,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(200);
+    const cookies = res.headers.raw()["set-cookie"];
+    const cookie = cookies.find((value) => value.startsWith("sessions="));
+    const value = cookie?.split(";")[0].slice("sessions=".length);
+    expect(parseSessionsCookie(decodeURIComponent(value || "{}"))).toEqual({
+      [team.id]: {
+        name: team.name,
+        logoUrl: team.avatarUrl,
+        url: team.url,
+        expiresAt,
+        lastUsedAt,
+      },
+      [loggedOut.id]: {
+        name: loggedOut.name,
+        logoUrl: loggedOut.avatarUrl,
+        url: loggedOut.url,
+        expiresAt: expiredAt,
+        lastUsedAt,
+      },
+    });
+  });
+
+  it.each([false, true])(
+    "should retain an expired workspace without redirecting to it (active workspace: %s)",
+    async (includeActive) => {
+      const expired = await buildTeam({ subdomain: `expired-${randomUUID()}` });
+      const active = await buildTeam({ subdomain: `active-${randomUUID()}` });
+      const expiresAt = subDays(new Date(), 1).toISOString();
+      const sessions = {
+        [expired.id]: {
+          name: expired.name,
+          logoUrl: expired.avatarUrl,
+          url: expired.url,
+          expiresAt,
+          lastUsedAt: subDays(new Date(), 1).toISOString(),
+        },
+        ...(includeActive
+          ? {
+              [active.id]: {
+                name: active.name,
+                logoUrl: active.avatarUrl,
+                url: active.url,
+                expiresAt: addMonths(new Date(), 1).toISOString(),
+                lastUsedAt: subDays(new Date(), 1).toISOString(),
+              },
+            }
+          : {}),
+      };
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
+        },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(includeActive ? 302 : 200);
+      expect(res.headers.get("location")).toEqual(
+        includeActive ? `${active.url}/settings/billing` : null
+      );
+      const cookies = res.headers.raw()["set-cookie"];
+      const cookie = cookies?.find((value) => value.startsWith("sessions="));
+      expect(cookie).toBeUndefined();
+    }
+  );
 
   it("should not redirect without a sessions cookie", async () => {
     const res = await server.get("/settings/billing", {

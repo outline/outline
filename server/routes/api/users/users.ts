@@ -287,27 +287,23 @@ router.post(
     authorize(actor, "update", user);
     const includeDetails = !!can(actor, "readDetails", user);
 
-    if (name) {
-      user.name = name;
-    }
-    if (avatarUrl !== undefined) {
-      user.avatarUrl = avatarUrl;
+    user.fill({
+      name: name || undefined,
+      avatarUrl,
+      language: language || undefined,
+      timezone: timezone || undefined,
+    });
 
-      // Mark that the user has manually changed their avatar
-      // This prevents automatic syncing from identity providers
+    // Mark that the user has manually changed their avatar
+    // This prevents automatic syncing from identity providers
+    if (avatarUrl !== undefined) {
       user.setFlag(UserFlag.AvatarUpdated, avatarUrl ? true : false);
-    }
-    if (language) {
-      user.language = language;
     }
     if (preferences) {
       user.preferences = {
         ...user.preferences,
         ...preferences,
       };
-    }
-    if (timezone) {
-      user.timezone = timezone;
     }
 
     await user.saveWithCtx(ctx);
