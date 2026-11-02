@@ -322,21 +322,20 @@ export const renderShare = async (ctx: Context, next: Next) => {
       return;
     }
 
-    analytics = await Integration.findAnalyticsIntegrationsForTeam(
-      share.teamId
-    );
-
-    if (share && !isBot) {
-      await share.update(
-        {
-          lastAccessedAt: new Date(),
-          views: Sequelize.literal("views + 1"),
-        },
-        {
-          hooks: false,
-        }
-      );
-    }
+    [analytics] = await Promise.all([
+      Integration.findAnalyticsIntegrationsForTeam(share.teamId),
+      share && !isBot
+        ? share.update(
+            {
+              lastAccessedAt: new Date(),
+              views: Sequelize.literal("views + 1"),
+            },
+            {
+              hooks: false,
+            }
+          )
+        : undefined,
+    ]);
   } catch (_err) {
     // If the share or document does not exist, return a 404.
     ctx.status = 404;

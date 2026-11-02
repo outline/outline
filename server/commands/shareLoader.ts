@@ -189,24 +189,25 @@ export async function loadShareWithParent({
       throw NotFoundError("Collection not found for the shared document");
     }
 
-    const docCollection = await Collection.findByPk(docCollectionId, {
-      userId: user.id,
-      includeDocumentStructure: true,
-      rejectOnEmpty: true,
-    });
-
-    const collectionShare = await Share.scope({
-      method: ["withCollectionPermissions", user.id],
-    }).findOne({
-      where: {
-        revokedAt: {
-          [Op.is]: null,
+    const [docCollection, collectionShare] = await Promise.all([
+      Collection.findByPk(docCollectionId, {
+        userId: user.id,
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      }),
+      Share.scope({
+        method: ["withCollectionPermissions", user.id],
+      }).findOne({
+        where: {
+          revokedAt: {
+            [Op.is]: null,
+          },
+          published: true,
+          teamId: user.teamId,
+          collectionId: docCollectionId,
         },
-        published: true,
-        teamId: user.teamId,
-        collectionId: docCollectionId,
-      },
-    });
+      }),
+    ]);
 
     // prefer collection share if it exists and user has read access.
     if (
