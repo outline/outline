@@ -144,7 +144,7 @@
     "fs-extra": "^11.3.6",
     "fuse.js": "^7.5.0",
     "fuzzy-search": "^3.2.1",
-    "glob": "^11.1.0",
+    "glob": "^14.0.2",
     "helmet": "^8.3.0",
     "hot-shots": "^12.1.0",
     "http-errors": "2.0.1",
