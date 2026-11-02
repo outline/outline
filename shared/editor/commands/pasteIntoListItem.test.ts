@@ -37,13 +37,18 @@ function copy(node: Node, fromText: string, toText: string) {
 }
 
 /**
- * Pastes the slice at the given position and returns the resulting state, or
+ * Pastes the slice over the given range and returns the resulting state, or
  * undefined if the paste was not handled.
  */
-function paste(node: Node, pos: number, slice: ReturnType<typeof copy>) {
+function paste(
+  node: Node,
+  pos: number,
+  slice: ReturnType<typeof copy>,
+  to = pos
+) {
   const state = EditorState.create({
     doc: node,
-    selection: TextSelection.create(node, pos),
+    selection: TextSelection.create(node, pos, to),
   });
   let result: EditorState | undefined;
   pasteIntoListItem(slice)(state, (tr) => {
@@ -120,6 +125,37 @@ describe("pasteIntoListItem", () => {
 
     expect(after?.doc.toJSON()).toEqual(
       doc(bulletList(["one", "tthreewo", "three"])).toJSON()
+    );
+  });
+
+  it("replaces a selection that spans list items", () => {
+    const before = doc(bulletList(["one", "two", "three"]));
+    const from = posOfText(before, "two") + 1;
+    const after = paste(
+      before,
+      from,
+      copy(before, "one", "one"),
+      posOfText(before, "three") + 2
+    );
+
+    expect(after?.doc.toJSON()).toEqual(
+      doc(bulletList(["one", "toneree"])).toJSON()
+    );
+    expect(after?.selection.empty).toBe(true);
+    expect(after?.selection.from).toEqual(from + "one".length);
+  });
+
+  it("replaces a selection with several copied items", () => {
+    const before = doc(bulletList(["one", "two", "three"]));
+    const after = paste(
+      before,
+      posOfText(before, "two"),
+      copy(before, "one", "two"),
+      posOfText(before, "two") + "two".length
+    );
+
+    expect(after?.doc.toJSON()).toEqual(
+      doc(bulletList(["one", "one", "two", "three"])).toJSON()
     );
   });
 
