@@ -232,6 +232,7 @@ function CommentThreadItem({
         <Body ref={formRef} onSubmit={handleSubmit}>
           <React.Suspense fallback={null}>
             <StyledCommentEditor
+              id={comment.documentId}
               key={String(isEditing)}
               readOnly={!isEditing}
               value={comment.data}
