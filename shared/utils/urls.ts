@@ -1,4 +1,5 @@
 import { escapeRegExp } from "es-toolkit/compat";
+import isUUID from "validator/lib/isUUID";
 import env from "../env";
 import { isBrowser } from "./browser";
 import { parseDomain } from "./domains";
@@ -88,6 +89,41 @@ export function isCollectionUrl(url: string) {
     return isInternalUrl(url) && parsed.pathname.startsWith("/collection/");
   } catch (_err) {
     return false;
+  }
+}
+
+/**
+ * Converts a signed attachment url from this instance, which expires, to the
+ * stable attachment redirect url. The signature is not verified.
+ *
+ * @param url The url to convert.
+ * @returns The attachment redirect url, or undefined if the url is not a signed
+ * attachment url.
+ */
+export function signedUrlToAttachmentUrl(url: string): string | undefined {
+  if (!isInternalUrl(url)) {
+    return;
+  }
+
+  try {
+    const parsed = new URL(url, env.URL);
+    const sig = parsed.searchParams.get("sig");
+    if (parsed.pathname !== "/api/files.get" || !sig) {
+      return;
+    }
+
+    const payload = JSON.parse(
+      atob(sig.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+    );
+    if (payload?.type !== "attachment" || typeof payload.key !== "string") {
+      return;
+    }
+
+    // Attachment keys are in the format bucket/userId/id/name.
+    const id = payload.key.split("/")[2];
+    return isUUID(id) ? `/api/attachments.redirect?id=${id}` : undefined;
+  } catch (_err) {
+    return;
   }
 }
 

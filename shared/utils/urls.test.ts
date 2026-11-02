@@ -1,4 +1,5 @@
 import env from "../env";
+import { isBrowser } from "./browser";
 import * as urlsUtils from "./urls";
 import { urlRegex } from "./urls";
 
@@ -157,6 +158,65 @@ describe("isInternalUrl", () => {
 
   it("should return true if starting with relative path", () => {
     expect(urlsUtils.isInternalUrl("/drafts")).toEqual(true);
+  });
+});
+
+describe("signedUrlToAttachmentUrl", () => {
+  const id = "4d3e6f2a-8b1c-4e5d-9f0a-1b2c3d4e5f60";
+
+  const sign = (payload: object) =>
+    [
+      btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })),
+      btoa(JSON.stringify(payload))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, ""),
+      "signature",
+    ].join(".");
+
+  it("should return the redirect url for a signed attachment url", () => {
+    const origin = isBrowser ? window.location.origin : env.URL;
+    const sig = sign({
+      key: `uploads/${id}/${id}/image ünïcode.png`,
+      type: "attachment",
+    });
+
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(`${origin}/api/files.get?sig=${sig}`)
+    ).toEqual(`/api/attachments.redirect?id=${id}`);
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(`/api/files.get?sig=${sig}`)
+    ).toEqual(`/api/attachments.redirect?id=${id}`);
+  });
+
+  it("should return undefined for an external url", () => {
+    const sig = sign({
+      key: `uploads/${id}/${id}/image.png`,
+      type: "attachment",
+    });
+
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(
+        `https://other.example.com/api/files.get?sig=${sig}`
+      )
+    ).toBeUndefined();
+  });
+
+  it("should return undefined for other urls", () => {
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(`/api/attachments.redirect?id=${id}`)
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl("/api/files.get?key=public/a/b/c.png")
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl("/api/files.get?sig=invalid")
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(
+        `/api/files.get?sig=${sign({ key: "uploads/a/b/c.png", type: "attachment" })}`
+      )
+    ).toBeUndefined();
   });
 });
 

@@ -2,7 +2,7 @@ import { action, observable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import { toggleMark } from "prosemirror-commands";
 import type { Node } from "prosemirror-model";
-import { Slice } from "prosemirror-model";
+import { Fragment, Slice } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -20,7 +20,12 @@ import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
+import {
+  isCollectionUrl,
+  isDocumentUrl,
+  isUrl,
+  signedUrlToAttachmentUrl,
+} from "@shared/utils/urls";
 import stores from "~/stores";
 import { PasteMenu } from "../components/PasteMenu";
 
@@ -53,6 +58,7 @@ export default class PasteHandler extends Extension {
             }
             return html;
           },
+          transformPasted: (slice) => this.replaceSignedUrls(slice),
           handleDOMEvents: {
             keydown: (_, event) => {
               this.shiftKey = event.shiftKey;
@@ -288,7 +294,7 @@ export default class PasteHandler extends Extension {
                 return false;
               }
 
-              const slice = paste.slice(0);
+              const slice = this.replaceSignedUrls(paste.slice(0));
               const tr = view.state.tr;
 
               // If the pasted content is a single paragraph then we slice
@@ -475,6 +481,51 @@ export default class PasteHandler extends Extension {
       );
     }
   };
+
+  /**
+   * Replaces signed attachment urls in the slice with stable attachment urls,
+   * as signed urls expire and must not be stored in the document.
+   *
+   * @param slice The pasted slice.
+   * @returns The slice with signed urls replaced.
+   */
+  private replaceSignedUrls(slice: Slice): Slice {
+    const replaceUrl = (value: unknown) =>
+      typeof value === "string" ? signedUrlToAttachmentUrl(value) : undefined;
+
+    const mapFragment = (fragment: Fragment): Fragment => {
+      const nodes: Node[] = [];
+
+      fragment.forEach((node) => {
+        const marks = node.marks.map((mark) => {
+          const href = replaceUrl(mark.attrs.href);
+          return href ? mark.type.create({ ...mark.attrs, href }) : mark;
+        });
+
+        if (node.isText) {
+          nodes.push(node.mark(marks));
+          return;
+        }
+
+        const attrs = { ...node.attrs };
+        for (const name of ["src", "href"]) {
+          const url = replaceUrl(attrs[name]);
+          if (url) {
+            attrs[name] = url;
+          }
+        }
+        nodes.push(node.type.create(attrs, mapFragment(node.content), marks));
+      });
+
+      return Fragment.from(nodes);
+    };
+
+    return new Slice(
+      mapFragment(slice.content),
+      slice.openStart,
+      slice.openEnd
+    );
+  }
 
   private handleList(listNode: Node) {
     const { view, schema } = this.editor;
