@@ -200,6 +200,11 @@ describe("signedUrlToAttachmentUrl", () => {
         `https://other.example.com/api/files.get?sig=${sig}`
       )
     ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(
+        `//other.example.com/api/files.get?sig=${sig}`
+      )
+    ).toBeUndefined();
   });
 
   it("should return undefined for other urls", () => {

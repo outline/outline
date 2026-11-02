@@ -122,10 +122,13 @@ export default class PasteHandler extends Extension {
               // detection and skip the paste menu.
               const trimmedText = text.trim();
               if (isUrl(trimmedText)) {
+                const href =
+                  signedUrlToAttachmentUrl(trimmedText) ?? trimmedText;
+
                 // If there is selected text then we want to wrap it in a link to the url
                 if (!state.selection.empty) {
                   toggleMark(this.editor.schema.marks.link, {
-                    href: trimmedText,
+                    href,
                   })(state, dispatch);
                   return true;
                 }
@@ -230,7 +233,7 @@ export default class PasteHandler extends Extension {
                       });
                   }
                 } else {
-                  this.insertLink(trimmedText);
+                  this.insertLink(href);
                 }
 
                 return true;

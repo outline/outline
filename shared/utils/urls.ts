@@ -101,14 +101,14 @@ export function isCollectionUrl(url: string) {
  * attachment url.
  */
 export function signedUrlToAttachmentUrl(url: string): string | undefined {
-  if (!isInternalUrl(url)) {
-    return;
-  }
-
   try {
-    const parsed = new URL(url, env.URL);
+    const parsed = new URL(url, isBrowser ? window.location.href : env.URL);
     const sig = parsed.searchParams.get("sig");
-    if (parsed.pathname !== "/api/files.get" || !sig) {
+    if (
+      !isInternalUrl(parsed.href) ||
+      parsed.pathname !== "/api/files.get" ||
+      !sig
+    ) {
       return;
     }
 
