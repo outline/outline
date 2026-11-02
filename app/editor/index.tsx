@@ -718,11 +718,32 @@ export class Editor extends React.PureComponent<
   }
 
   /**
-   * Add the extensions, keymaps, input rules and commands that were skipped in
-   * read-only mode. The document, schema and node views are kept, so the editor
-   * DOM is not redrawn.
+   * Make the editor editable. The document, schema and node views are kept, so
+   * the editor DOM is not redrawn.
    */
   private setEditable() {
+    this.view.setProps({
+      attributes: { translate: "no" },
+      editable: () => !this.props.readOnly,
+    });
+
+    // Changing the plugins recreates every plugin view, so only do it once.
+    if (this.extensions.readOnly) {
+      this.addEditingExtensions();
+    }
+
+    this.syncObservableState();
+    Array.from(this.nodeRenderers).forEach((view) =>
+      view.setProp("isEditable", true)
+    );
+    this.forceUpdate();
+  }
+
+  /**
+   * Add the extensions, keymaps, input rules and commands that were skipped in
+   * read-only mode.
+   */
+  private addEditingExtensions() {
     this.extensions.setEditable(this.props.extensions, this);
     this.plugins = this.createPlugins();
     this.rulePlugins = this.createRulePlugins();
@@ -733,21 +754,11 @@ export class Editor extends React.PureComponent<
     this.keymaps = this.createKeymaps();
     this.inputRules = this.createInputRules();
 
-    this.view.setProps({
-      attributes: { translate: "no" },
-      editable: () => !this.props.readOnly,
-      state: this.view.state.reconfigure({
-        plugins: this.createStatePlugins(),
-      }),
-    });
-    this.syncObservableState();
+    this.view.updateState(
+      this.view.state.reconfigure({ plugins: this.createStatePlugins() })
+    );
     this.commands = this.createCommands();
     this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
-
-    Array.from(this.nodeRenderers).forEach((view) =>
-      view.setProp("isEditable", true)
-    );
-    this.forceUpdate();
   }
 
   private calculateDir = () => {
