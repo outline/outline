@@ -8,6 +8,7 @@ import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
+import { pasteIntoListItem } from "@shared/editor/commands/pasteIntoListItem";
 import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
@@ -63,7 +64,7 @@ export default class PasteHandler extends Extension {
               return false;
             },
           },
-          handlePaste: (view, event: ClipboardEvent) => {
+          handlePaste: (view, event: ClipboardEvent, slice: Slice) => {
             // Do nothing if the document isn't currently editable or there is no clipboard data
             if (!view.editable || !event.clipboardData) {
               return false;
@@ -101,7 +102,7 @@ export default class PasteHandler extends Extension {
               // compatibility is to just use the HTML parser, regardless of
               // whether it "looks" like Markdown, see: outline/outline#2416
               if (html?.includes("data-pm-slice")) {
-                return false;
+                return pasteIntoListItem(slice)(state, dispatch);
               }
 
               // If the HTML on the clipboard is from Claude then the best
