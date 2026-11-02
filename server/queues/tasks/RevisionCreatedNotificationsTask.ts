@@ -34,9 +34,10 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
       return;
     }
 
-    await createSubscriptionsForDocument(document, event);
-
-    const before = await revision.before();
+    const [, before] = await Promise.all([
+      createSubscriptionsForDocument(document, event),
+      revision.before(),
+    ]);
 
     // Send notifications to mentioned users first – these must be processed
     // regardless of the change threshold as even a small edit can add a mention.

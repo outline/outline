@@ -51,41 +51,43 @@ export default async function init() {
         // event (applicableEvents), and if so add a new queued job specifically
         // for that processor.
         for (const name in processors) {
-          const ProcessorClass = processors[name];
-
-          if (!ProcessorClass) {
+          if (!processors[name]) {
             throw new Error(
               `Received event "${event.name}" for processor (${name}) that isn't registered. Check the file name matches the class name.`
             );
           }
-
-          try {
-            if (name === "WebsocketsProcessor") {
-              // websockets are a special case on their own queue because they must
-              // only be consumed by the websockets service rather than workers.
-              await websocketQueue().add(job.data);
-            } else if (
-              ProcessorClass.applicableEvents.includes(event.name) ||
-              ProcessorClass.applicableEvents.includes("*")
-            ) {
-              // A processor may optionally opt out of an event before a job is
-              // created, avoiding the cost of an empty job.
-              if (
-                !ProcessorClass.shouldQueue ||
-                (await ProcessorClass.shouldQueue(event))
-              ) {
-                await processorEventQueue().add({ event, name });
-              }
-            }
-          } catch (error) {
-            Logger.error(
-              `Error adding ${event.name} to ${name} queue`,
-              toError(error),
-              event
-            );
-            err = error;
-          }
         }
+
+        await Promise.all(
+          Object.entries(processors).map(async ([name, ProcessorClass]) => {
+            try {
+              if (name === "WebsocketsProcessor") {
+                // websockets are a special case on their own queue because they must
+                // only be consumed by the websockets service rather than workers.
+                await websocketQueue().add(job.data);
+              } else if (
+                ProcessorClass.applicableEvents.includes(event.name) ||
+                ProcessorClass.applicableEvents.includes("*")
+              ) {
+                // A processor may optionally opt out of an event before a job is
+                // created, avoiding the cost of an empty job.
+                if (
+                  !ProcessorClass.shouldQueue ||
+                  (await ProcessorClass.shouldQueue(event))
+                ) {
+                  await processorEventQueue().add({ event, name });
+                }
+              }
+            } catch (error) {
+              Logger.error(
+                `Error adding ${event.name} to ${name} queue`,
+                toError(error),
+                event
+              );
+              err = error;
+            }
+          })
+        );
 
         if (err) {
           throw err;
