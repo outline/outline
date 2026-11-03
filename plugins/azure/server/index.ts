@@ -1,5 +1,6 @@
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import config from "../plugin.json";
+import AzureClient from "./azure";
 import router from "./auth/azure";
 import env from "./env";
 
@@ -9,6 +10,11 @@ if (enabled) {
   PluginManager.add({
     ...config,
     type: Hook.AuthProvider,
-    value: { router, id: config.id, allowEmailMatch: true },
+    value: {
+      router,
+      id: config.id,
+      allowEmailMatch: true,
+      oauthClient: () => new AzureClient(),
+    },
   });
 }

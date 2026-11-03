@@ -8,10 +8,7 @@ import { toError } from "@shared/utils/error";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import {
-  GmailAccountCreationError,
-  TeamDomainRequiredError,
-} from "@server/errors";
+import { TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { AuthenticationProvider, User } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
@@ -26,6 +23,7 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { createContext } from "@server/context";
+import { GmailAccountCreationError } from "../errors";
 
 const router = new Router();
 

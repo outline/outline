@@ -1,11 +1,21 @@
 import { z } from "zod";
+import type { EmbedIntegrationSettings } from "@shared/types";
 import {
   IntegrationService,
   IntegrationType,
   UserCreatableIntegrationService,
 } from "@shared/types";
 import { Integration } from "@server/models";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { BaseSchema } from "../schema";
+
+// Resolved on first parse, after plugins have registered their schemas.
+const pluginSettings = z.lazy((): z.ZodType<EmbedIntegrationSettings> => {
+  const schemas = PluginManager.getHooks(Hook.IntegrationSettings).flatMap(
+    (hook) => (hook.value.schema ? [hook.value.schema] : [])
+  );
+  return schemas.length ? z.union(schemas) : z.never();
+});
 
 export const IntegrationsListSchema = BaseSchema.extend({
   body: z.object({
@@ -58,29 +68,8 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
           scriptName: z.string().optional(),
         })
       )
-      .or(
-        z.object({
-          diagrams: z.object({ url: z.url() }),
-        })
-      )
-      .or(
-        z.object({
-          gitlab: z.object({
-            url: z.url().optional(),
-            installation: z
-              .object({
-                id: z.number(),
-                account: z.object({
-                  id: z.number(),
-                  name: z.string(),
-                  avatarUrl: z.string(),
-                }),
-              })
-              .optional(),
-          }),
-        })
-      )
       .or(z.object({ serviceTeamId: z.string() }))
+      .or(pluginSettings)
       .optional(),
   }),
 });
@@ -109,29 +98,8 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
           scriptName: z.string().optional(),
         })
       )
-      .or(
-        z.object({
-          diagrams: z.object({ url: z.url() }),
-        })
-      )
-      .or(
-        z.object({
-          gitlab: z.object({
-            url: z.url().optional(),
-            installation: z
-              .object({
-                id: z.number(),
-                account: z.object({
-                  id: z.number(),
-                  name: z.string(),
-                  avatarUrl: z.string(),
-                }),
-              })
-              .optional(),
-          }),
-        })
-      )
       .or(z.object({ serviceTeamId: z.string() }))
+      .or(pluginSettings)
       .optional(),
 
     /** Integration events */

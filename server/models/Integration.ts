@@ -18,6 +18,7 @@ import IntegrationAuthentication from "@server/models/IntegrationAuthentication"
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 @Scopes(() => ({
   withAuthentication: {
@@ -118,19 +119,7 @@ class Integration<T = unknown> extends ParanoidModel<
       case IntegrationType.Embed: {
         const settings = this
           .settings as IntegrationSettings<IntegrationType.Embed>;
-
-        // Guests only need the URLs used to render and edit embeds.
-        if (viewer?.isGuest) {
-          return { url: settings?.url, diagrams: settings?.diagrams };
-        }
-        return {
-          url: settings?.url,
-          github: settings?.github,
-          gitlab: settings?.gitlab,
-          gitea: settings?.gitea,
-          linear: settings?.linear,
-          diagrams: settings?.diagrams,
-        };
+        return { url: settings?.url, ...this.presentPluginSettings(viewer) };
       }
       case IntegrationType.Analytics: {
         const settings = this
@@ -151,13 +140,29 @@ class Integration<T = unknown> extends ParanoidModel<
         if (!viewer || viewer.id !== this.userId) {
           return undefined;
         }
-        const settings = this
-          .settings as IntegrationSettings<IntegrationType.LinkedAccount>;
-        return { figma: settings?.figma };
+        return this.presentPluginSettings();
       }
       default:
         return undefined;
     }
+  }
+
+  /**
+   * Picks the settings keys that plugins registered for this service.
+   *
+   * @param viewer the user the settings are presented to, if any.
+   * @returns the registered settings, keyed by name.
+   */
+  private presentPluginSettings(viewer?: User) {
+    const settings = this.settings as Record<string, unknown> | null;
+    const keys = PluginManager.getHooks(Hook.IntegrationSettings)
+      .filter(
+        (hook) =>
+          hook.value.service === this.service &&
+          (!viewer?.isGuest || hook.value.visibleToGuests)
+      )
+      .flatMap((hook) => hook.value.keys);
+    return Object.fromEntries(keys.map((key) => [key, settings?.[key]]));
   }
 
   // hooks

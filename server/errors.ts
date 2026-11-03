@@ -195,38 +195,11 @@ export function EmailAuthenticationRequiredError(
   });
 }
 
-export function MicrosoftGraphError(
-  message = "Microsoft Graph API did not return required fields"
-) {
-  return httpErrors(400, message, {
-    id: "graph_error",
-    isReportable: false,
-  });
-}
-
 export function TeamDomainRequiredError(
   message = "Unable to determine workspace from current domain or subdomain"
 ) {
   return httpErrors(400, message, {
     id: "domain_required",
-    isReportable: false,
-  });
-}
-
-export function GmailAccountCreationError(
-  message = "Cannot create account using personal Gmail address"
-) {
-  return httpErrors(400, message, {
-    id: "gmail_account_creation",
-    isReportable: false,
-  });
-}
-
-export function OIDCMalformedUserInfoError(
-  message = "User profile information malformed"
-) {
-  return httpErrors(400, message, {
-    id: "malformed_user_info",
     isReportable: false,
   });
 }

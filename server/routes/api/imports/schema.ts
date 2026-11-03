@@ -1,11 +1,39 @@
 import { z } from "zod";
-import { NotionImportInputItemSchema } from "@shared/schema";
+import { BaseImportInputItemSchema } from "@shared/schema";
 import {
   CollectionPermission,
   ImportableIntegrationService,
   IntegrationService,
 } from "@shared/types";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { BaseSchema } from "../schema";
+
+/** The body to import an uploaded file. */
+export const AttachmentImportBodySchema = z.object({
+  service: z.enum(ImportableIntegrationService),
+  attachmentId: z.uuid(),
+  permission: z.enum(CollectionPermission).optional(),
+});
+
+/** The body to import from a connected integration. */
+export const IntegrationImportBodySchema = z.object({
+  service: z.enum(ImportableIntegrationService),
+  integrationId: z.uuid(),
+  input: z.array(BaseImportInputItemSchema),
+});
+
+/** A body that an import plugin accepts in imports.create. */
+export type ImportsCreateBody =
+  | z.infer<typeof AttachmentImportBodySchema>
+  | z.infer<typeof IntegrationImportBodySchema>;
+
+// Resolved on first parse, after plugins have registered their schemas.
+const pluginBodies = z.lazy((): z.ZodType<ImportsCreateBody> => {
+  const schemas = PluginManager.getHooks(Hook.ImportSchema).map(
+    (hook) => hook.value
+  );
+  return schemas.length ? z.union(schemas) : z.never();
+});
 
 const BaseIdSchema = z.object({
   /** Id of the import */
@@ -28,36 +56,16 @@ const ImportsSortParamsSchema = z.object({
     .transform((val) => (val !== "ASC" ? "DESC" : val)),
 });
 
-const BaseBodySchema = z.object({
-  integrationId: z.uuid(),
-});
-
 export const ImportsCreateSchema = BaseSchema.extend({
-  body: z.discriminatedUnion("service", [
-    BaseBodySchema.extend({
-      service: z.literal(IntegrationService.Notion),
-      input: z.array(NotionImportInputItemSchema),
+  body: z.union([
+    AttachmentImportBodySchema.extend({
+      service: z.enum([
+        IntegrationService.Markdown,
+        IntegrationService.OKF,
+        IntegrationService.JSON,
+      ]),
     }),
-    z.object({
-      service: z.literal(IntegrationService.Markdown),
-      attachmentId: z.uuid(),
-      permission: z.enum(CollectionPermission).optional(),
-    }),
-    z.object({
-      service: z.literal(IntegrationService.Slab),
-      attachmentId: z.uuid(),
-      permission: z.enum(CollectionPermission).optional(),
-    }),
-    z.object({
-      service: z.literal(IntegrationService.OKF),
-      attachmentId: z.uuid(),
-      permission: z.enum(CollectionPermission).optional(),
-    }),
-    z.object({
-      service: z.literal(IntegrationService.JSON),
-      attachmentId: z.uuid(),
-      permission: z.enum(CollectionPermission).optional(),
-    }),
+    pluginBodies,
   ]),
 });
 
