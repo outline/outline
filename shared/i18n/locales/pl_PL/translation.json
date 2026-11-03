@@ -1149,7 +1149,7 @@
   "Enter the address of an Outline workspace to connect": "Enter the address of an Outline workspace to connect",
   "This doesn’t appear to be a valid installation": "This doesn’t appear to be a valid installation",
   "Choose a workspace": "Wybierz obszar roboczy",
-  "Choose an {{ appName }} workspace or log in to continue": "Choose an {{ appName }} workspace or log in to continue",
+  "Choose an {{ appName }} workspace or log in to continue": "Wybierz obszar roboczy {{ appName }} lub zaloguj się, aby kontynuować",
   "Create workspace": "Stwórz obszar roboczy",
   "Set up your workspace by providing a name and details for admin login. You can change these later.": "Skonfiguruj obszar roboczy, podając nazwę i dane logowania administratora. Możesz je później zmienić.",
   "Workspace name": "Nazwa obszaru roboczego",
