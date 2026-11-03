@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { EmptyResultError, Op, QueryTypes } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {

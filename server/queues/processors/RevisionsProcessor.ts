@@ -28,11 +28,13 @@ export default class RevisionsProcessor extends BaseProcessor {
           return;
         }
 
-        const document = await Document.findByPk(event.documentId, {
-          paranoid: false,
-          rejectOnEmpty: true,
-        });
-        const previous = await Revision.findLatest(document.id);
+        const [document, previous] = await Promise.all([
+          Document.findByPk(event.documentId, {
+            paranoid: false,
+            rejectOnEmpty: true,
+          }),
+          Revision.findLatest(event.documentId),
+        ]);
 
         // Only read attribution included in a persisted snapshot. Revisions
         // created from the API and legacy events have no cutoff and must not
@@ -60,17 +62,16 @@ export default class RevisionsProcessor extends BaseProcessor {
           return;
         }
 
-        const collaboratorIds =
+        const [collaboratorIds, , user] = await Promise.all([
           sequence === undefined
             ? []
-            : await Redis.defaultClient.zrangebyscore(key, "-inf", sequence);
-
-        await new DocumentUpdateTextTask().schedule(event);
-
-        const user = await User.findByPk(event.actorId, {
-          paranoid: false,
-          rejectOnEmpty: true,
-        });
+            : Redis.defaultClient.zrangebyscore(key, "-inf", sequence),
+          new DocumentUpdateTextTask().schedule(event),
+          User.findByPk(event.actorId, {
+            paranoid: false,
+            rejectOnEmpty: true,
+          }),
+        ]);
 
         await sequelize.transaction((transaction) =>
           Revision.createFromDocument(

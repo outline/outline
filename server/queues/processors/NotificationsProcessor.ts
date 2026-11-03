@@ -102,8 +102,10 @@ export default class NotificationsProcessor extends BaseProcessor {
   }
 
   async revisionCreated(event: RevisionEvent) {
-    await new RevisionCreatedNotificationsTask().schedule(event);
-    await new ShareSubscriptionNotificationsTask().schedule(event);
+    await Promise.all([
+      new RevisionCreatedNotificationsTask().schedule(event),
+      new ShareSubscriptionNotificationsTask().schedule(event),
+    ]);
   }
 
   async collectionCreated(event: CollectionEvent) {

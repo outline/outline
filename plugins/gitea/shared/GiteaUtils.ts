@@ -149,6 +149,35 @@ export class GiteaUtils {
   }
 
   /**
+   * Returns the path segments of a URL relative to a Gitea instance.
+   *
+   * @param url - the URL to split.
+   * @param baseUrl - the URL of the Gitea instance, which may include a path.
+   * @returns the path segments, or undefined if the URL is not on the instance.
+   */
+  public static pathParts(url: URL, baseUrl: string): string[] | undefined {
+    let base: URL;
+
+    try {
+      base = new URL(baseUrl);
+    } catch {
+      return;
+    }
+
+    if (url.host !== base.host) {
+      return;
+    }
+
+    // Instances can be served from a sub-path, e.g. https://example.com/gitea
+    const basePath = base.pathname.replace(/\/+$/, "");
+    if (basePath && !url.pathname.startsWith(`${basePath}/`)) {
+      return;
+    }
+
+    return url.pathname.slice(basePath.length).split("/").filter(Boolean);
+  }
+
+  /**
    * Parses a Gitea URL and extracts resource identifiers.
    *
    * @param url - the Gitea URL to parse.
@@ -160,30 +189,15 @@ export class GiteaUtils {
     baseUrl: string
   ): GiteaResource | undefined {
     let parsed: URL;
-    let base: URL;
 
     try {
       parsed = new URL(url);
-      base = new URL(baseUrl);
     } catch {
       return;
     }
 
-    if (parsed.host !== base.host) {
-      return;
-    }
-
-    // Instances can be served from a sub-path, e.g. https://example.com/gitea
-    const basePath = base.pathname.replace(/\/+$/, "");
-    if (basePath && !parsed.pathname.startsWith(`${basePath}/`)) {
-      return;
-    }
-
-    const parts = parsed.pathname
-      .slice(basePath.length)
-      .split("/")
-      .filter(Boolean);
-    if (parts.length < 2 || this.systemPaths.has(parts[0])) {
+    const parts = this.pathParts(parsed, baseUrl);
+    if (!parts || parts.length < 2 || this.systemPaths.has(parts[0])) {
       return;
     }
 

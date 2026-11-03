@@ -12,7 +12,13 @@ enum StateType {
   Canceled = "canceled",
 }
 
-export function LinearIssueStatusIcon(props: BaseIconProps) {
+/**
+ * A status icon for issues in a workflow, which shows the state type and progress.
+ *
+ * @param props the issue state and display options.
+ * @returns the icon.
+ */
+export function WorkflowStatusIcon(props: BaseIconProps) {
   const theme = useTheme();
   const { state, size = 16 } = props;
   const percentage =

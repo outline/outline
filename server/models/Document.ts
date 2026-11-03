@@ -54,7 +54,7 @@ import type {
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import { afterCommit } from "@server/storage/transaction";

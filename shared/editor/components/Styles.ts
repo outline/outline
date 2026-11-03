@@ -31,6 +31,12 @@ const uploadScaleIn = keyframes`
   to { transform: scale(1); }
 `;
 
+/** The header row of a table moves down with the scroll position of the page. */
+const stickyTableHeader = keyframes`
+  from { transform: translateY(0); }
+  to { transform: translateY(var(--sticky-header-travel)); }
+`;
+
 /** The frame of a file in the editor, which holds the progress bar of an upload. */
 const uploadFrame = `.${EditorStyleHelper.imageWrapper}, .${EditorStyleHelper.videoWrapper}, .widget, .${EditorStyleHelper.pdfWrapper}`;
 
@@ -2650,6 +2656,25 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+
+  // The browser moves the header row in the same frame as the scroll, a scroll
+  // listener is always one frame behind.
+  @supports (animation-timeline: view()) {
+    view-timeline: --sticky-table-header block;
+    view-timeline-inset: var(--header-offset, ${HEADER_HEIGHT}px) 0px;
+
+    > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+      animation: ${stickyTableHeader} linear both;
+      animation-timeline: --sticky-table-header;
+      animation-range:
+        exit-crossing var(--sticky-header-start, 0px)
+        exit-crossing calc(var(--sticky-header-start, 0px) + var(--sticky-header-travel, 0px));
+    }
+  }
+}
+
+table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
+  animation: none;
 }
 
 .${EditorStyleHelper.tableStickyHeader} {
@@ -2664,7 +2689,9 @@ table {
   }
 
   > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
-    transform: translateY(calc(var(--header-offset, ${HEADER_HEIGHT}px) + var(--sticky-scroll-offset, 0px)));
+    @supports not (animation-timeline: view()) {
+      transform: translateY(calc(var(--header-offset, ${HEADER_HEIGHT}px) + var(--sticky-scroll-offset, 0px)));
+    }
 
     // Mask content scrolling past the top of the header (first shadow) and draw
     // the divider below it (second shadow). Using box-shadow rather than a real

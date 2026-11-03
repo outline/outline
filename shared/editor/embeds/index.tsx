@@ -90,6 +90,8 @@ export class EmbedDescriptor {
   component?: React.FunctionComponent<EmbedProps>;
   /** The integration settings, if any */
   settings?: IntegrationSettings<IntegrationType.Embed>;
+  /** The URL of the instance that the integration is configured with, if any */
+  instanceUrl?: string;
   /** Whether this embed has been disabled by the team admin */
   disabled?: boolean;
 

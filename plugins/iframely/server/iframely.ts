@@ -1,4 +1,4 @@
-import { toError, errToString } from "@shared/utils/error";
+import { errToString } from "@shared/utils/error";
 import type { JSONObject } from "@shared/types";
 import { UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -31,10 +31,11 @@ class Iframely {
       );
       return await res.json();
     } catch (err) {
-      Logger.error(
-        `Error fetching data from Iframely for url: ${url}`,
-        toError(err)
-      );
+      // Failures of the external Iframely service are logged, not reported.
+      Logger.warn("Error fetching data from Iframely", {
+        url,
+        error: errToString(err),
+      });
       return {
         error: errToString(err) || "Unknown error",
       };

@@ -11,6 +11,7 @@ import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import type { AppState, AppContext, APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import { clearCSRFCookie } from "@server/utils/csrf";
 import { getJWTPayload } from "@server/utils/jwt";
 
 const app = new Koa<AppState, AppContext>();
@@ -56,6 +57,7 @@ router.get(
       sameSite: "lax",
       expires,
     });
+    clearCSRFCookie(ctx);
     const [team, collection, view] = await Promise.all([
       Team.findByPk(user.teamId),
       Collection.findFirstCollectionForUser(user),

@@ -26,7 +26,7 @@ export const getCurrentContext = createAction({
         ? {
             id: document.id,
             title: document.displayTitle,
-            path: document.url,
+            path: document.path,
           }
         : undefined,
       collection: collection
@@ -70,7 +70,7 @@ export const searchWorkspace = createAction({
       results.map((result) => ({
         id: result.document.id,
         title: result.document.displayTitle,
-        path: result.document.url,
+        path: result.document.path,
         context: result.context,
       }))
     );

@@ -6,6 +6,7 @@ function presentTemplate(template: Template) {
   return {
     id: template.id,
     url: template.path,
+    path: template.path,
     urlId: template.urlId,
     title: template.title,
     data: template.content ?? ProsemirrorDataHelper.getEmpty(),

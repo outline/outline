@@ -16,12 +16,20 @@ import { CSRFError } from "@server/errors";
 import { parseAuthentication } from "./authentication";
 
 /**
- * Middleware that generates and attaches CSRF tokens for safe methods
+ * Middleware that generates and attaches CSRF tokens for safe methods. An
+ * existing valid token is kept, so that concurrent requests do not replace the
+ * cookie while a mutating request is in flight.
  */
 export function attachCSRFToken() {
   return async function attachCSRFTokenMiddleware(ctx: AppContext, next: Next) {
     // Only attach tokens for safe methods that don't mutate state
     if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
+      const existing = getTokenFromCookie(ctx);
+      if (existing && unbundleToken(existing, env.SECRET_KEY).valid) {
+        await next();
+        return;
+      }
+
       const raw = generateRawToken(16);
       const bundled = bundleToken(raw, env.SECRET_KEY);
 

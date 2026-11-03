@@ -9,6 +9,7 @@ import {
 } from "@shared/editor/lib/ChangesetHelper";
 import { HeadingSlugger } from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
+import { withTrailingNode } from "@shared/editor/lib/trailingNode";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { DocumentPreference, IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -436,6 +437,23 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns the document or collection as static HTML with its title. The
+   * output is rendered from the schema without node components or styles.
+   *
+   * @param model The document or collection to convert.
+   * @returns The title and content as a HTML string.
+   */
+  static async toStaticHTML(model: Document | Collection) {
+    return ProsemirrorHelper.toStaticHTML(DocumentHelper.toProsemirror(model), {
+      title: model instanceof Collection ? model.name : model.title,
+      headingPrefix:
+        model instanceof Document
+          ? model.getPreference(DocumentPreference.HeadingPrefix)
+          : undefined,
+    });
+  }
+
+  /**
    * Parse a list of mentions contained in a document or revision
    *
    * @param document Document or Revision
@@ -672,9 +690,13 @@ export class DocumentHelper {
     if (actorId) {
       doc = ProsemirrorHelper.assignMentionActors(doc, actorId, previousDoc);
     }
-
-    document.content = doc.toJSON();
+    doc = ProsemirrorHelper.assignMissingIds(doc);
     document.text = serializer.serialize(doc);
+
+    // Match the editor's normalized form, so open editors do not write their
+    // own repairs back in response to this change.
+    doc = withTrailingNode(doc);
+    document.content = doc.toJSON();
 
     if (document.state) {
       const ydoc = new Y.Doc();

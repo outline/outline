@@ -1,6 +1,7 @@
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Refractor } from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
@@ -107,9 +108,6 @@ function lineNumberWidget(pos: number) {
     side: -1,
     marks: [],
     key: "line-number",
-    // Keep the widget editable, Chrome otherwise deletes it on Backspace at
-    // the start of a line instead of the line break.
-    raw: true,
   });
 }
 
@@ -222,6 +220,36 @@ function findMovedBlocks(tr: Transaction, previous: CodeBlock[]) {
     }
   }
   return moved;
+}
+
+/**
+ * Set the DOM selection again at the cursor in a code block. When new
+ * decorations move the text node that holds the cursor, Chrome can report the
+ * cursor in the right place but insert typed text somewhere else.
+ *
+ * @param view - the editor view.
+ * @param name - the code block node name.
+ */
+function syncCursor(view: EditorView, name: string) {
+  const { selection } = view.state;
+  if (
+    !selection.empty ||
+    selection.$head.parent.type.name !== name ||
+    view.composing ||
+    !view.hasFocus()
+  ) {
+    return;
+  }
+
+  const domSelection = window.getSelection();
+  const { node, offset } = view.domAtPos(selection.head, -1);
+  if (
+    !domSelection?.isCollapsed ||
+    (domSelection.anchorNode === node && domSelection.anchorOffset === offset)
+  ) {
+    return;
+  }
+  domSelection.collapse(node, offset);
 }
 
 /**
@@ -427,6 +455,13 @@ export function CodeHighlighting({
 
       return {
         update: (_view, prevState) => {
+          if (
+            key.getState(view.state)?.decorations !==
+            key.getState(prevState)?.decorations
+          ) {
+            syncCursor(view, name);
+          }
+
           // Only edits postpone the refresh, so moving the cursor cannot delay it.
           if (
             key.getState(view.state)?.stale &&

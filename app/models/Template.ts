@@ -4,10 +4,8 @@ import { computed, observable, override } from "mobx";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { isRTL } from "@shared/utils/rtl";
-import slugify from "@shared/utils/slugify";
 import type TemplatesStore from "~/stores/TemplatesStore";
 import User from "~/models/User";
-import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
@@ -89,6 +87,10 @@ export default class Template extends ParanoidModel implements Searchable {
   @Relation(() => User)
   updatedBy: User | undefined;
 
+  /** The path to the template. The server makes the slug from the title. */
+  @observable
+  path: string;
+
   @observable
   urlId: string;
 
@@ -130,16 +132,6 @@ export default class Template extends ParanoidModel implements Searchable {
   @computed
   get rtl() {
     return isRTL(this.title);
-  }
-
-  @computed
-  get path(): string {
-    if (!this.title) {
-      return `${settingsPath("templates")}/untitled-${this.urlId}`;
-    }
-
-    const slugifiedTitle = slugify(this.title);
-    return `${settingsPath("templates")}/${slugifiedTitle}-${this.urlId}`;
   }
 
   @override

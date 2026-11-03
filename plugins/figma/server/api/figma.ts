@@ -99,6 +99,7 @@ router.get(
         new UploadIntegrationLogoTask().schedule({
           integrationId: integration.id,
           logoUrl: figmaAccount.img_url,
+          settingsPath: ["figma", "account", "avatarUrl"],
         })
       );
 

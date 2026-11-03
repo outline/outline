@@ -1,7 +1,7 @@
 import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";
-import { QueryNotices } from "@shared/types";
+import { QueryNotices, SubscriptionType } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
@@ -179,64 +179,55 @@ router.get(
       return;
     }
 
-    // Queries within a transaction share a single connection, so they are run
-    // sequentially rather than with Promise.all.
-    const documentSubscription = await Subscription.findOne({
-      where: {
-        userId,
-        documentId,
-      },
-      lock: Transaction.LOCK.UPDATE,
-      transaction,
-    });
-    const document = await Document.unscoped().findOne({
-      attributes: ["collectionId"],
-      where: {
-        id: documentId,
-      },
-      paranoid: false,
-      transaction,
-    });
     const user = await User.scope("withTeam").findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
     });
 
-    const context = createContext({
-      user,
-      ip: ctx.request.ip,
+    // Always record a fresh opt-out, also when no active subscription exists.
+    const documentSubscription = await Subscription.findOne({
+      where: {
+        userId,
+        documentId,
+        event: SubscriptionType.Document,
+      },
+      paranoid: false,
+      lock: Transaction.LOCK.UPDATE,
       transaction,
     });
 
-    const collectionSubscription = document?.collectionId
-      ? await Subscription.findOne({
-          where: {
-            userId,
-            collectionId: document.collectionId,
-          },
-          lock: Transaction.LOCK.UPDATE,
+    if (!documentSubscription) {
+      await Subscription.create(
+        {
+          userId,
+          documentId,
+          event: SubscriptionType.Document,
+          deletedAt: new Date(),
+        },
+        { transaction }
+      );
+    } else if (documentSubscription.deletedAt) {
+      await Subscription.update(
+        { deletedAt: new Date() },
+        {
+          where: { id: documentSubscription.id },
+          paranoid: false,
+          transaction,
+        }
+      );
+    } else {
+      authorize(user, "delete", documentSubscription);
+      await documentSubscription.destroyWithCtx(
+        createContext({
+          user,
+          ip: ctx.request.ip,
           transaction,
         })
-      : undefined;
-
-    if (collectionSubscription) {
-      authorize(user, "delete", collectionSubscription);
-      await collectionSubscription.destroyWithCtx(context);
-    }
-
-    if (documentSubscription) {
-      authorize(user, "delete", documentSubscription);
-      await documentSubscription.destroyWithCtx(context);
+      );
     }
 
     ctx.redirect(
-      `${user.team.url}/home?notice=${
-        collectionSubscription
-          ? QueryNotices.UnsubscribeCollection
-          : documentSubscription
-            ? QueryNotices.UnsubscribeDocument
-            : ""
-      }`
+      `${user.team.url}/home?notice=${QueryNotices.UnsubscribeDocument}`
     );
   }
 );

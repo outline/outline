@@ -2,6 +2,7 @@ import { baseKeymap, chainCommands } from "prosemirror-commands";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { createEditorState, codeBlock, doc, p } from "@shared/test/editor";
 import {
+  arrowLeftInCode,
   backspaceInCode,
   deleteInCode,
   enterInCode,
@@ -31,6 +32,29 @@ function runInCodeBlock(
   });
 
   return result.doc.firstChild?.textContent;
+}
+
+/**
+ * Helper that runs a command against a code block document with a cursor at
+ * the given position and returns the resulting cursor position.
+ */
+function selectionAfter(
+  code: string,
+  pos: number,
+  command: typeof outdentInCode
+) {
+  const testDoc = doc([codeBlock(code)]);
+  let state = createEditorState(testDoc);
+  state = state.apply(
+    state.tr.setSelection(TextSelection.create(state.doc, pos))
+  );
+
+  let result = state;
+  const handled = command(state, (tr) => {
+    result = state.apply(tr);
+  });
+
+  return { handled, from: result.selection.from };
 }
 
 /**
@@ -213,5 +237,31 @@ describe("deleteInCode", () => {
       state.tr.setSelection(TextSelection.create(state.doc, 1))
     );
     expect(deleteInCode(state)).toBe(false);
+  });
+});
+
+describe("arrowLeftInCode", () => {
+  it("moves to the end of the line above", () => {
+    expect(selectionAfter("hello\nworld", 7, arrowLeftInCode)).toEqual({
+      handled: true,
+      from: 6,
+    });
+  });
+
+  it("moves out of an empty line", () => {
+    expect(selectionAfter("hello\n\nworld", 8, arrowLeftInCode)).toEqual({
+      handled: true,
+      from: 7,
+    });
+  });
+
+  it("does not handle a character that is not a line break", () => {
+    expect(selectionAfter("hello\nworld", 8, arrowLeftInCode).handled).toBe(
+      false
+    );
+  });
+
+  it("does not handle the start of the block", () => {
+    expect(selectionAfter("hello", 1, arrowLeftInCode).handled).toBe(false);
   });
 });

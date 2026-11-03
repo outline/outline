@@ -63,4 +63,19 @@ export function rejectUpgrade(socket: Duplex) {
  * Socket errors that are the result of a client, or an intermediary such as a
  * reverse proxy, going away. They are expected and not worth reporting.
  */
-const expectedErrorCodes = ["ECONNRESET", "ECONNABORTED", "EPIPE", "ETIMEDOUT"];
+const expectedErrorCodes = [
+  // The client closed the connection abruptly.
+  "ECONNRESET",
+
+  // The connection was aborted before it was established.
+  "ECONNABORTED",
+
+  // A write was attempted after the client closed the connection.
+  "EPIPE",
+
+  // The client stopped responding.
+  "ETIMEDOUT",
+
+  // A message was broadcast to a websocket that was already closing.
+  "ERR_STREAM_WRITE_AFTER_END",
+];

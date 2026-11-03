@@ -27,7 +27,6 @@ import useShare from "../../hooks/useShare";
 import env from "../../env";
 import theme from "../../styles/theme";
 import {
-  IntegrationService,
   UnfurlResourceType,
   type JSONValue,
   type UnfurlResponse,
@@ -362,19 +361,6 @@ export const MentionIssue = observer((props: IssuePrProps) => {
 
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
-  let service = IntegrationService.GitLab;
-  try {
-    const parsedUrl = new URL(issue.url);
-    service =
-      parsedUrl.hostname === "github.com"
-        ? IntegrationService.GitHub
-        : parsedUrl.hostname === "linear.app"
-          ? IntegrationService.Linear
-          : IntegrationService.GitLab;
-  } catch {
-    // Invalid URL in unfurl data, default to GitLab
-  }
-
   return (
     <a
       {...attrs}
@@ -386,7 +372,7 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <IssueStatusIcon size={14} service={service} state={issue.state} />
+        <IssueStatusIcon size={14} state={issue.state} />
         <Flex align="center" gap={4}>
           <Text>
             <Backticks content={issue.title} />

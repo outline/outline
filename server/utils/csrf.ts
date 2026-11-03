@@ -26,6 +26,22 @@ export const getTokenFromCookie = (
 ): string | undefined => ctx.cookies.get(getCookieName(ctx));
 
 /**
+ * Expires the CSRF cookie so that the next safe request mints a fresh token.
+ * Call this when the session changes hands, such as on sign in and sign out.
+ *
+ * @param ctx the request context.
+ */
+export const clearCSRFCookie = (
+  ctx: Pick<Context, "cookies" | "request">
+): void => {
+  ctx.cookies.set(getCookieName(ctx), null, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: ctx.request.secure,
+  });
+};
+
+/**
  * Generates cryptographically secure random bytes
  *
  * @param size The number of bytes to generate

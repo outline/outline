@@ -90,22 +90,23 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channels = await this.getDocumentEventChannels(event, document);
+        const [channels, collection] = await Promise.all([
+          this.getDocumentEventChannels(event, document),
+          document.collectionId
+            ? Collection.findByPk(document.collectionId, {
+                attributes: ["id", "updatedAt"],
+              })
+            : null,
+        ]);
 
-        let collectionIds: { id: string; updatedAt?: Date }[] = [];
-        if (document.collectionId) {
-          const collection = await Collection.findByPk(document.collectionId, {
-            attributes: ["id", "updatedAt"],
-          });
-          if (collection) {
-            collectionIds = [
+        const collectionIds: { id: string; updatedAt?: Date }[] = collection
+          ? [
               {
                 id: collection.id,
                 updatedAt: collection.updatedAt,
               },
-            ];
-          }
-        }
+            ]
+          : [];
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
@@ -130,9 +131,10 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const documentToPresent = await presentDocument(undefined, document);
-
-        const channels = await this.getDocumentEventChannels(event, document);
+        const [documentToPresent, channels] = await Promise.all([
+          presentDocument(undefined, document),
+          this.getDocumentEventChannels(event, document),
+        ]);
         channels.push(`user-${document.createdById}`);
 
         // In case draft is detached from a collection, fallback to previous attribute to get the right one.
@@ -167,22 +169,20 @@ export default class WebsocketsProcessor {
         if (!document || !srcCollection) {
           return;
         }
-        const documentChannels = await this.getDocumentEventChannels(
-          event,
-          document
-        );
+        const [documentChannels, destCollection] = await Promise.all([
+          this.getDocumentEventChannels(event, document),
+          document.collectionId
+            ? Collection.findByPk(document.collectionId, {
+                attributes: ["id", "updatedAt"],
+              })
+            : null,
+        ]);
         const collectionChannels = this.getCollectionEventChannels(
           event,
           srcCollection
         );
 
         const channels = uniq(concat(documentChannels, collectionChannels));
-
-        const destCollection = document.collectionId
-          ? await Collection.findByPk(document.collectionId, {
-              attributes: ["id", "updatedAt"],
-            })
-          : null;
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
@@ -229,8 +229,10 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        const data = await presentDocument(undefined, document);
-        const channels = await this.getDocumentEventChannels(event, document);
+        const [data, channels] = await Promise.all([
+          presentDocument(undefined, document),
+          this.getDocumentEventChannels(event, document),
+        ]);
         return socketio.to(channels).emit(event.name, data);
       }
 
@@ -705,15 +707,14 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const user = await User.findByPk(event.actorId);
+        const [user, channels] = await Promise.all([
+          User.findByPk(event.actorId),
+          this.getDocumentEventChannels(event, comment.document),
+        ]);
         if (!user) {
           return;
         }
 
-        const channels = await this.getDocumentEventChannels(
-          event,
-          comment.document
-        );
         return socketio.to(channels).emit(event.name, {
           emoji: event.data.emoji,
           commentId: event.modelId,

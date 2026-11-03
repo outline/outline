@@ -1,14 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
-import type {
-  IssueTrackerIntegrationService,
-  UnfurlResourceType,
-  UnfurlResponse,
-} from "../../types";
-import { IntegrationService } from "../../types";
-import { GitHubIssueStatusIcon } from "./GitHubIssueStatusIcon";
-import { LinearIssueStatusIcon } from "./LinearIssueStatusIcon";
-import { GitLabIssueStatusIcon } from "./GitLabIssueStatusIcon";
+import type { UnfurlResourceType, UnfurlResponse } from "../../types";
+import { DefaultIssueStatusIcon } from "./DefaultIssueStatusIcon";
+import { WorkflowStatusIcon } from "./WorkflowStatusIcon";
 
 export type BaseIconProps = {
   state: UnfurlResponse[UnfurlResourceType.Issue]["state"];
@@ -16,28 +10,23 @@ export type BaseIconProps = {
   size?: number;
 };
 
-type Props = BaseIconProps & {
-  service: IssueTrackerIntegrationService;
-};
-
-export function IssueStatusIcon(props: Props) {
+/**
+ * Renders the status icon of an issue. Issues with a workflow state type show
+ * its progress, others show whether they are open or closed.
+ *
+ * @param props the issue state and display options.
+ * @returns the icon.
+ */
+export function IssueStatusIcon(props: BaseIconProps) {
   return (
     <Icon size={props.size} className={props.className}>
-      {getIcon(props)}
+      {props.state.type ? (
+        <WorkflowStatusIcon {...props} />
+      ) : (
+        <DefaultIssueStatusIcon {...props} />
+      )}
     </Icon>
   );
-}
-
-function getIcon(props: Props) {
-  switch (props.service) {
-    case IntegrationService.GitHub:
-    case IntegrationService.Gitea:
-      return <GitHubIssueStatusIcon {...props} />;
-    case IntegrationService.Linear:
-      return <LinearIssueStatusIcon {...props} />;
-    case IntegrationService.GitLab:
-      return <GitLabIssueStatusIcon {...props} />;
-  }
 }
 
 const Icon = styled.span<{ size?: number }>`

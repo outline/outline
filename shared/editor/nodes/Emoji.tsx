@@ -155,6 +155,13 @@ export default class Emoji extends Extension {
       };
   }
 
+  keys(): Record<string, Command> {
+    return {
+      Backspace: this.deleteAdjacentEmoji(-1),
+      Delete: this.deleteAdjacentEmoji(1),
+    };
+  }
+
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];
     if (name) {
@@ -166,6 +173,32 @@ export default class Emoji extends Extension {
     return {
       node: "emoji",
       getAttrs: (tok: Token) => ({ "data-name": tok.markup.trim() }),
+    };
+  }
+
+  /**
+   * Deletes the whole emoji node next to the cursor. The node is uneditable, so
+   * some browsers, such as Chrome on Android, do not delete it natively.
+   *
+   * @param dir -1 to delete the emoji before the cursor, 1 for after.
+   * @returns a command.
+   */
+  private deleteAdjacentEmoji(dir: -1 | 1): Command {
+    return (state, dispatch) => {
+      const { selection } = state;
+      if (!(selection instanceof TextSelection) || !selection.$cursor) {
+        return false;
+      }
+
+      const { $cursor } = selection;
+      const node = dir === -1 ? $cursor.nodeBefore : $cursor.nodeAfter;
+      if (node?.type.name !== this.name) {
+        return false;
+      }
+
+      const from = dir === -1 ? $cursor.pos - node.nodeSize : $cursor.pos;
+      dispatch?.(state.tr.delete(from, from + node.nodeSize).scrollIntoView());
+      return true;
     };
   }
 }

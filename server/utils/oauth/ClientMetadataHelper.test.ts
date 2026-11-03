@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { http, HttpResponse } from "msw";
 import { Minute, Day } from "@shared/utils/time";
 import { TeamPreference } from "@shared/types";
+import env from "@server/env";
 import type { Team } from "@server/models";
 import { OAuthClient } from "@server/models";
 import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
@@ -324,6 +325,21 @@ describe("ClientMetadataHelper", () => {
         ClientMetadataHelper.findOrFetchByClientId(clientId, disabled)
       ).rejects.toThrow();
       expect(mock.requests()).toEqual(0);
+    });
+
+    it("should not fetch when metadata documents are disabled", async () => {
+      const clientId = buildClientId();
+      const mock = mockDocument(clientId, buildDocument(clientId));
+      env.OAUTH_DISABLE_CIMD = true;
+
+      try {
+        expect(
+          await ClientMetadataHelper.findOrFetchByClientId(clientId, team)
+        ).toBeNull();
+        expect(mock.requests()).toEqual(0);
+      } finally {
+        env.OAUTH_DISABLE_CIMD = false;
+      }
     });
 
     it("should find a generated client without fetching", async () => {

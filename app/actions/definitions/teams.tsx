@@ -15,11 +15,18 @@ import Desktop from "~/utils/Desktop";
 import { dialogActionFactory } from "./common";
 import { TeamSection } from "../sections";
 
+/**
+ * Builds workspace links, indicating which workspaces require login.
+ *
+ * @param context the stores containing available workspaces.
+ * @returns the workspace switching actions.
+ */
 export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
   stores.auth.availableTeams?.map<ExternalLinkAction>((session) =>
     createExternalLinkAction({
       id: `switch-${session.id}`,
       name: session.name,
+      badge: ({ t }) => (session.isSignedIn ? undefined : t("Logged out")),
       analyticsName: "Switch workspace",
       section: TeamSection,
       keywords: "change switch workspace organization team",

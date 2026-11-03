@@ -211,7 +211,7 @@ function DataLoader({ match, children }: Props) {
         }
       );
 
-      return newDocument.url;
+      return newDocument.path;
     },
     [document, documents]
   );
@@ -230,7 +230,7 @@ function DataLoader({ match, children }: Props) {
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
       if (!missingPolicy && !can.update && isEditRoute) {
-        history.push(document.url);
+        history.push(document.path);
         return;
       }
 

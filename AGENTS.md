@@ -153,6 +153,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Handle connection state changes gracefully.
 - For bulk deletions that drive authorization or WebSocket processing, load affected models in the transaction and delete each with request context so downstream processors receive the expected per-item events.
 - Do not persist viewer-specific unfurls in shared document mentions; only store unfurls that map to a stable mention type.
+- Editor plugins that repair the document (assigning missing IDs, fixing invalid structure) must use `RepairPlugin` from `shared/editor/plugins/RepairPlugin.ts`. Other plugins that change the document in `appendTransaction` must only respond to local changes, guard with `isLocalDocChange` from `shared/editor/lib/multiplayer.ts`. Otherwise every connected client writes the change in response to remote edits and is attributed as an editor.
 
 ## Documentation
 
