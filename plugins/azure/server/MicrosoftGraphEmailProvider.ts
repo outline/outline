@@ -73,6 +73,7 @@ export class MicrosoftGraphEmailProvider extends BaseEmailProvider {
           "Content-Type": "text/plain",
         },
         body: mime.toString("base64"),
+        timeout: this.requestTimeout,
       }
     );
 

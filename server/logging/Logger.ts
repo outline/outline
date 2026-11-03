@@ -209,6 +209,9 @@ class Logger {
       "token",
       "password",
       "content",
+      "authorization",
+      "Authorization",
+      "body",
     ];
 
     if (level > 3) {

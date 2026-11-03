@@ -1,3 +1,4 @@
+import { Second } from "@shared/utils/time";
 import { InternalError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 
@@ -31,6 +32,7 @@ export async function fetchAccessToken(
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(params),
+    timeout: 10 * Second.ms,
   });
 
   if (!response.ok) {
@@ -83,9 +85,11 @@ export class AccessTokenCache {
       const pending = this.tokens.get(key);
 
       if (pending) {
-        // A rejected request reads as absent, and is replaced below.
-        const token = await pending.catch(() => undefined);
-        if (token && token.expiresAt > Date.now()) {
+        // A rejected request is shared with every waiter rather than retried
+        // here, so an outage costs one request and retries are left to the
+        // caller. The caller that made the request removes the entry.
+        const token = await pending;
+        if (token.expiresAt > Date.now()) {
           return token.value;
         }
 

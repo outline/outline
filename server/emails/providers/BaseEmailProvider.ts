@@ -2,6 +2,7 @@ import type { SentMessageInfo, Transport } from "nodemailer";
 import type { MailMessage } from "nodemailer/lib/mailer";
 import type MimeNode from "nodemailer/lib/mime-node";
 import { toError } from "@shared/utils/error";
+import { Second } from "@shared/utils/time";
 import { InternalError } from "@server/errors";
 
 /** Tags used for reporting, where supported by the email provider. */
@@ -112,6 +113,12 @@ export abstract class BaseEmailProvider implements Transport {
    * Bcc list.
    */
   protected keepBcc = false;
+
+  /**
+   * Time limit in milliseconds for a submission request made over HTTP, so a
+   * stalled endpoint fails the send and the email queue can retry it.
+   */
+  protected requestTimeout = 30 * Second.ms;
 
   /**
    * Deliver an assembled message. Implementations throw on failure, and the

@@ -116,4 +116,22 @@ describe("AccessTokenCache", () => {
     expect(await cache.get("key")).toBe("token");
     expect(request).toHaveBeenCalledTimes(2);
   });
+
+  it("should share a failed request with concurrent callers", async () => {
+    const request = vi.fn().mockRejectedValue(new Error("nope"));
+
+    const cache = new AccessTokenCache(request);
+    const results = await Promise.allSettled([
+      cache.get("key"),
+      cache.get("key"),
+      cache.get("key"),
+    ]);
+
+    expect(results.map((result) => result.status)).toEqual([
+      "rejected",
+      "rejected",
+      "rejected",
+    ]);
+    expect(request).toHaveBeenCalledTimes(1);
+  });
 });

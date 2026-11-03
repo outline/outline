@@ -84,6 +84,7 @@ export class GmailEmailProvider extends BaseEmailProvider {
       // Gmail expects the message web-safe encoded rather than as standard
       // base64, so that it survives being carried in a JSON string.
       body: JSON.stringify({ raw: mime.toString("base64url") }),
+      timeout: this.requestTimeout,
     });
 
     await this.assertOk(response, "Gmail could not send the message");
