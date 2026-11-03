@@ -6,6 +6,7 @@ import Text from "@shared/components/Text";
 import { s } from "@shared/styles";
 import type { Sessions } from "@shared/utils/sessions";
 import { isSessionActive } from "@shared/utils/sessions";
+import { sanitizeUrl } from "@shared/utils/urls";
 import { AvatarSize } from "~/components/Avatar";
 import Avatar, { AvatarVariant } from "~/components/Avatar/Avatar";
 import ChangeLanguage from "~/components/ChangeLanguage";
@@ -18,20 +19,23 @@ import { Background } from "./Background";
 import { Centered } from "./Centered";
 
 interface Props {
+  /** The remembered workspaces, including logged-out ones. */
   sessions: Sessions;
+  /** Text shown below the heading, defaults to a generic prompt. */
+  description?: string;
 }
 
 /**
- * Shows remembered workspaces with a login path for logged-out sessions.
+ * Shows remembered workspaces so the user can choose which one to continue to
+ * with the current path, with a login path for logged-out sessions.
  *
- * @param props the remembered workspace sessions.
+ * @param props the remembered workspace sessions and optional description.
  * @returns the workspace selector.
  */
-export function TeamSwitcher({ sessions }: Props) {
+export function TeamSwitcher({ sessions, description }: Props) {
   const { t } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
   const url = new URL(window.location.href);
-  const appName = env.APP_NAME;
 
   if (showLogin) {
     return <Login onBack={() => setShowLogin(false)} />;
@@ -45,17 +49,17 @@ export function TeamSwitcher({ sessions }: Props) {
 
         <StyledHeading>{t("Choose a workspace")}</StyledHeading>
         <Text type="tertiary" as="p">
-          {t(
-            "Choose an {{ appName }} workspace or log in to continue connecting this app",
-            { appName }
-          )}
+          {description ??
+            t("Choose an {{ appName }} workspace or log in to continue", {
+              appName: env.APP_NAME,
+            })}
           .
         </Text>
-        {Object.keys(sessions)?.map((teamId) => {
+        {Object.keys(sessions).map((teamId) => {
           const session = sessions[teamId];
-          const location = session.url + url.pathname + url.search;
+          const location = sanitizeUrl(session.url + url.pathname + url.search);
           return (
-            <TeamLink href={location} key={session.url}>
+            <TeamLink href={location} key={teamId}>
               <Avatar
                 variant={AvatarVariant.Square}
                 model={{

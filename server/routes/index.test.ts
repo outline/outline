@@ -666,7 +666,7 @@ describe("root domain session redirects", () => {
     expect(res.headers.get("location")).toEqual(`${team.url}/settings/billing`);
   });
 
-  it("should redirect to the first workspace when signed in to several", async () => {
+  it("should not redirect when signed in to several workspaces", async () => {
     const first = await buildTeam({ subdomain: `first-${randomUUID()}` });
     const second = await buildTeam({ subdomain: `second-${randomUUID()}` });
 
@@ -675,10 +675,7 @@ describe("root domain session redirects", () => {
       redirect: "manual",
     });
 
-    expect(res.status).toEqual(302);
-    expect(res.headers.get("location")).toEqual(
-      `${first.url}/settings/billing`
-    );
+    expect(res.status).toEqual(200);
   });
 
   it("should not redirect public paths", async () => {

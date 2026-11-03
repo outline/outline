@@ -16,9 +16,10 @@ import { SessionsCookieHelper } from "./SessionsCookieHelper";
 import { clearCSRFCookie } from "./csrf";
 
 /**
- * Finds the workspace to send a request for the app root domain to, using the
- * first usable workspace in the "sessions" cookie. Entries that are malformed,
- * expired, deleted, suspended, or already the current host are ignored.
+ * Finds the workspace to send a request for the app root domain to, when the
+ * "sessions" cookie has exactly one usable workspace. Entries that are
+ * malformed, expired, deleted, suspended, or already the current host are
+ * ignored.
  *
  * @param ctx the Koa context.
  * @param teams the reconciled workspaces in cookie order.
@@ -29,14 +30,16 @@ export function getSessionRedirectUrl(
   teams: Team[]
 ): string | undefined {
   const activeSessions = getActiveSessions(SessionsCookieHelper.read(ctx));
-  const team = teams.find(
+  const candidates = teams.filter(
     (team) => activeSessions[team.id] && !team.isTeamUrl(ctx.href)
   );
-  if (!team) {
+
+  // With several usable workspaces the client shows a workspace chooser.
+  if (candidates.length !== 1) {
     return;
   }
 
-  const url = new URL(team.url);
+  const url = new URL(candidates[0].url);
   url.pathname = ctx.path;
   url.search = ctx.search;
   return url.toString();
