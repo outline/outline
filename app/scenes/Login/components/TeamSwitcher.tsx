@@ -35,7 +35,7 @@ interface Props {
 export function TeamSwitcher({ sessions, description }: Props) {
   const { t } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
-  const url = new URL(window.location.href);
+  const { pathname, search } = window.location;
 
   if (showLogin) {
     return <Login onBack={() => setShowLogin(false)} />;
@@ -57,7 +57,7 @@ export function TeamSwitcher({ sessions, description }: Props) {
         </Text>
         {Object.keys(sessions).map((teamId) => {
           const session = sessions[teamId];
-          const location = sanitizeUrl(session.url + url.pathname + url.search);
+          const location = sanitizeUrl(session.url + pathname + search);
           return (
             <TeamLink href={location} key={teamId}>
               <Avatar

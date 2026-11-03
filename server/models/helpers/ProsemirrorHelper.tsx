@@ -1291,9 +1291,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           const src = source.href;
 
           // Skip invalid URLs
-          try {
-            new URL(src);
-          } catch {
+          if (!URL.canParse(src)) {
             return;
           }
 

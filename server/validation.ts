@@ -103,23 +103,15 @@ export class ValidateURL {
     if (!isUrl(url)) {
       return false;
     }
-    try {
-      const urlObj = new URL(url);
-      if (urlObj.protocol !== "mention:") {
-        return false;
-      }
 
-      const { id, mentionType, modelId } = parseMentionUrl(url);
-      return (
-        (!id || isUUID(id)) &&
-        !!mentionType &&
-        Object.values(MentionType).includes(mentionType as MentionType) &&
-        !!modelId &&
-        isUUID(modelId)
-      );
-    } catch (_err) {
-      return false;
-    }
+    const { id, mentionType, modelId } = parseMentionUrl(url);
+    return (
+      (!id || isUUID(id)) &&
+      !!mentionType &&
+      Object.values(MentionType).includes(mentionType as MentionType) &&
+      !!modelId &&
+      isUUID(modelId)
+    );
   };
 
   public static message = "Must be a valid url";
