@@ -1149,7 +1149,7 @@
   "Enter the address of an Outline workspace to connect": "Введіть адресу робочого простору Outline для підключення",
   "This doesn’t appear to be a valid installation": "Схоже, це недійсна інсталяція",
   "Choose a workspace": "Оберіть робочий простір",
-  "Choose an {{ appName }} workspace or log in to continue": "Choose an {{ appName }} workspace or log in to continue",
+  "Choose an {{ appName }} workspace or log in to continue": "Виберіть робочий простір {{ appName }} або увійдіть у систему, щоб продовжити",
   "Create workspace": "Створити робочий простір",
   "Set up your workspace by providing a name and details for admin login. You can change these later.": "Налаштуйте свій робочий простір, указавши назву та дані для входу адміністратора. Ви зможете змінити їх пізніше.",
   "Workspace name": "Назва робочого простору",
