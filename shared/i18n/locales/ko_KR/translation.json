@@ -1149,7 +1149,7 @@
   "Enter the address of an Outline workspace to connect": "연결할 Outline 워크스페이스의 주소를 입력하세요",
   "This doesn’t appear to be a valid installation": "유효한 설치로 보이지 않습니다",
   "Choose a workspace": "작업 공간 선택",
-  "Choose an {{ appName }} workspace or log in to continue": "Choose an {{ appName }} workspace or log in to continue",
+  "Choose an {{ appName }} workspace or log in to continue": "{{ appName }} 작업 공간을 선택하거나 로그인하여 계속하세요",
   "Create workspace": "워크스페이스 생성",
   "Set up your workspace by providing a name and details for admin login. You can change these later.": "이름과 관리자 로그인 정보를 입력하여 워크스페이스를 설정하세요. 나중에 변경할 수 있습니다.",
   "Workspace name": "워크스페이스명",
