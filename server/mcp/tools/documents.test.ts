@@ -178,6 +178,32 @@ describe("list_documents", () => {
     expect(data[0].document.id).toEqual(document.id);
   });
 
+  it("returns an exact match owned through its collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      ownerIds: [owner.id],
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents", {
+      query: document.id,
+      ownerId: owner.id,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+    expect(data[0].document.id).toEqual(document.id);
+  });
+
   it("returns documents shared directly with the user", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const author = await buildUser({ teamId: user.teamId });

@@ -105,8 +105,7 @@ export async function updateCollectionOwners(
 
 /**
  * Gives users the manage permission on a collection when they are made
- * owners. The acting user is skipped, as they can already manage the
- * collection.
+ * owners.
  *
  * @param ctx the API context containing the acting user.
  * @param collection the collection that the users own.
@@ -122,10 +121,6 @@ export async function grantCollectionOwnerAccess(
   const { transaction } = ctx.state;
 
   for (const userId of userIds) {
-    if (userId === user.id) {
-      continue;
-    }
-
     const membership = await UserMembership.findOneForUpdate(
       { userId, collectionId: collection.id },
       { transaction }

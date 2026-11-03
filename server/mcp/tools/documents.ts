@@ -187,7 +187,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 exactMatchCandidate &&
                 can(user, "read", exactMatchCandidate) &&
                 (!collectionId ||
-                  exactMatchCandidate.collectionId === collectionId)
+                  exactMatchCandidate.collectionId === collectionId) &&
+                (!input.ownerId ||
+                  exactMatchCandidate.ownerIds?.includes(input.ownerId) ||
+                  exactMatchCandidate.collection?.ownerIds?.includes(
+                    input.ownerId
+                  ))
                   ? exactMatchCandidate
                   : null;
 
