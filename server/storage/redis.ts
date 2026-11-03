@@ -234,9 +234,9 @@ export default class RedisAdapter extends Redis {
   }
 
   /**
-   * A Redis adapter for caching and rate limiting. Commands fail at once when
-   * there is no connection, and after a short timeout when Redis does not
-   * reply, so that callers can continue without Redis.
+   * A Redis adapter for caching, locks and rate limiting. Commands fail at
+   * once when there is no connection, and after a short timeout when Redis
+   * does not reply, so that callers can continue without Redis.
    */
   public static get cacheClient(): RedisAdapter {
     return (

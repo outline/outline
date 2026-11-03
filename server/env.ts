@@ -234,8 +234,7 @@ export class Environment {
 
   /**
    * The timeout in milliseconds for a command on the redis connection used for
-   * caching and rate limiting, after which the command fails and the caller
-   * continues without redis.
+   * caching, locks and rate limiting, after which the command fails.
    */
   @IsNumber()
   @Min(100)
