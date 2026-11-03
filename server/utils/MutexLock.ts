@@ -297,7 +297,7 @@ export class MutexLock {
       value,
       expiration: Date.now() + timeout,
     };
-    const result = await Redis.defaultClient.set(
+    const result = await Redis.ephemeralClient.set(
       resource,
       value,
       "PX",
@@ -348,7 +348,7 @@ export class MutexLock {
    */
   private static async pexpire(lock: Lock, timeout: number): Promise<boolean> {
     const expiration = Date.now() + timeout;
-    const result = await Redis.defaultClient.eval(
+    const result = await Redis.ephemeralClient.eval(
       this.extendScript,
       1,
       lock.resource,
@@ -369,7 +369,7 @@ export class MutexLock {
    * @returns true if the lock was deleted.
    */
   private static async del(lock: Lock): Promise<boolean> {
-    const result = await Redis.defaultClient.eval(
+    const result = await Redis.ephemeralClient.eval(
       this.releaseScript,
       1,
       lock.resource,
