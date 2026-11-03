@@ -233,6 +233,18 @@ export class Environment {
   );
 
   /**
+   * The timeout in milliseconds for a command on the redis connection used for
+   * caching and rate limiting, after which the command fails and the caller
+   * continues without redis.
+   */
+  @IsNumber()
+  @Min(100)
+  public REDIS_CACHE_COMMAND_TIMEOUT = parseInt(
+    environment.REDIS_CACHE_COMMAND_TIMEOUT || "500",
+    10
+  );
+
+  /**
    * The fully qualified, external facing domain name of the server.
    * If not set, will be derived from HEROKU_APP_NAME for Heroku deployments.
    */

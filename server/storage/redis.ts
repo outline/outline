@@ -210,6 +210,7 @@ export default class RedisAdapter extends Redis {
 
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
+  private static cache: RedisAdapter;
   private static collabClient: RedisAdapter;
   private static collabSubscriber: RedisAdapter;
 
@@ -228,6 +229,22 @@ export default class RedisAdapter extends Redis {
       (this.subscriber = new this(env.REDIS_URL, {
         maxRetriesPerRequest: null,
         connectionNameSuffix: "subscriber",
+      }))
+    );
+  }
+
+  /**
+   * A Redis adapter for caching and rate limiting. Commands fail at once when
+   * there is no connection, and after a short timeout when Redis does not
+   * reply, so that callers can continue without Redis.
+   */
+  public static get cacheClient(): RedisAdapter {
+    return (
+      this.cache ||
+      (this.cache = new this(env.REDIS_URL, {
+        commandTimeout: env.REDIS_CACHE_COMMAND_TIMEOUT,
+        enableOfflineQueue: false,
+        connectionNameSuffix: "cache",
       }))
     );
   }

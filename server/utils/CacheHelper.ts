@@ -91,12 +91,15 @@ export class CacheHelper {
     let lock;
     const lockKey = `lock:${key}`;
     try {
-      try {
-        lock = await MutexLock.acquire(lockKey, lockTimeout, {
-          retry: MutexLock.cacheRetrySettings,
-        });
-      } catch (err) {
-        Logger.error(`Could not acquire lock for ${key}`, toError(err));
+      // Skip the lock when Redis is unavailable, as it would only add latency.
+      if (Redis.cacheClient.status === "ready") {
+        try {
+          lock = await MutexLock.acquire(lockKey, lockTimeout, {
+            retry: MutexLock.cacheRetrySettings,
+          });
+        } catch (err) {
+          Logger.error(`Could not acquire lock for ${key}`, toError(err));
+        }
       }
       cache = await this.getData<T>(key);
       if (cache !== undefined) {
@@ -139,7 +142,7 @@ export class CacheHelper {
    */
   public static async getData<T>(key: string): Promise<T | undefined> {
     try {
-      const data = await Redis.defaultClient.get(key);
+      const data = await Redis.cacheClient.get(key);
       if (data !== null) {
         return JSON.parse(data);
       }
@@ -162,7 +165,7 @@ export class CacheHelper {
    */
   public static async setData<T>(key: string, data: T, expiry?: number) {
     try {
-      await Redis.defaultClient.set(
+      await Redis.cacheClient.set(
         key,
         JSON.stringify(data),
         "EX",
@@ -181,7 +184,7 @@ export class CacheHelper {
    */
   public static async removeData(key: string) {
     try {
-      await Redis.defaultClient.del(key);
+      await Redis.cacheClient.del(key);
     } catch (err) {
       Logger.error(
         `Could not remove cached entry against ${key}`,
@@ -194,7 +197,8 @@ export class CacheHelper {
    * Clears all cache data with the given prefix. Keys are discovered with an
    * incremental SCAN rather than KEYS and each batch is removed with UNLINK
    * as the scan progresses, so neither discovery nor deletion blocks the
-   * Redis event loop and matched keys are never buffered in full.
+   * Redis event loop and matched keys are never buffered in full. This uses
+   * the default client, which waits for Redis, as it runs in the background.
    *
    * @param prefix Prefix to clear cache data
    */
