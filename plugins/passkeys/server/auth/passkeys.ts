@@ -6,7 +6,7 @@ import {
 } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { randomBytes } from "node:crypto";
 import { toError } from "@shared/utils/error";
 import { User, UserPasskey, Team } from "@server/models";
@@ -19,7 +19,7 @@ import { AuthenticationType } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 import { signIn } from "@server/utils/authentication";
-import { generatePasskeyName } from "@shared/utils/passkeys";
+import { generatePasskeyName, PasskeyBrand } from "@shared/utils/passkeys";
 import * as T from "./schema";
 import { Client } from "@shared/types";
 import { Minute } from "@shared/utils/time";
@@ -89,6 +89,19 @@ const getRegistrationChallengeKey = (userId: string): string =>
  */
 const getAuthenticationChallengeKey = (challengeId: string): string =>
   `passkey:auth-challenge:${challengeId}`;
+
+/**
+ * Returns true if a user may only register one passkey from the authenticator
+ * with the given AAGUID. The Chromium Touch ID authenticator, which is also used
+ * by the desktop app, reports the same AAGUID on every device, so it is excluded.
+ *
+ * @param aaguid - the authenticator AAGUID from the registration response.
+ * @returns true if a second passkey from the authenticator should be rejected.
+ */
+export const isUniqueAuthenticator = (aaguid: string | undefined): boolean =>
+  !!aaguid &&
+  aaguid !== "00000000-0000-0000-0000-000000000000" &&
+  aaguid !== PasskeyBrand.ChromiumBrowser;
 
 router.post(
   "passkeys.generateRegistrationOptions",
@@ -167,7 +180,6 @@ router.post(
     }
 
     const { verified, registrationInfo } = verification;
-    const ZERO_AAGUID = "00000000-0000-0000-0000-000000000000";
 
     if (verified && registrationInfo) {
       const { credential, aaguid } = registrationInfo;
@@ -198,7 +210,7 @@ router.post(
         });
       } else {
         // Check if user already has a passkey from the same authenticator
-        if (aaguid && aaguid !== ZERO_AAGUID) {
+        if (isUniqueAuthenticator(aaguid)) {
           const duplicateDevice = await UserPasskey.findOne({
             where: { userId: user.id, aaguid },
           });
@@ -349,7 +361,6 @@ router.post(
     const { verified, authenticationInfo } = verification;
 
     if (verified && authenticationInfo) {
-      // Update counter
       passkey.counter = authenticationInfo.newCounter;
       passkey.lastActiveAt = new Date();
       await passkey.save({ silent: true });

@@ -6,6 +6,7 @@ import type {
   NonNullFindOptions,
   WhereOptions,
 } from "sequelize";
+import { truncate } from "es-toolkit/compat";
 import { EmptyResultError, Op } from "sequelize";
 import {
   ForeignKey,
@@ -38,6 +39,8 @@ export type FileOperationOptions = {
   includeAttachments?: boolean;
   includePrivate?: boolean;
   permission?: CollectionPermission | null;
+  /** The owner of the personal collection that was exported, if any. */
+  personalOwnerId?: string;
 };
 
 type AdditionalFindOptions = {
@@ -78,9 +81,18 @@ type CreateExportOptions =
     {
       model: Document.unscoped(),
       as: "document",
-      attributes: ["id", "title"],
+      attributes: ["id", "title", "collectionId"],
       required: false,
       paranoid: false,
+      include: [
+        {
+          model: Collection.unscoped(),
+          as: "collection",
+          attributes: ["id", "ownerId"],
+          required: false,
+          paranoid: false,
+        },
+      ],
     },
   ],
 }))
@@ -148,12 +160,29 @@ class FileOperation extends ParanoidModel<
   ): Promise<FileOperation> {
     const { user } = ctx.state.auth;
     const format = options.format ?? FileOperationFormat.MarkdownZip;
+
+    // The owner is stored on the export, as a document can move out of the
+    // personal collection after it was exported.
+    const sourceCollectionId =
+      "document" in options
+        ? options.document.collectionId
+        : options.collection?.id;
+    const sourceCollection = sourceCollectionId
+      ? await Collection.unscoped().findOne({
+          attributes: ["ownerId"],
+          where: { id: sourceCollectionId },
+          transaction: ctx.state.transaction,
+        })
+      : null;
+    const personalOwnerId = sourceCollection?.ownerId ?? undefined;
+
     const source =
       "document" in options
         ? {
-            name: options.document.titleWithDefault,
+            name: options.document.displayTitle,
             documentId: options.document.id,
             teamId: options.document.teamId,
+            options: personalOwnerId ? { personalOwnerId } : null,
           }
         : {
             name: options.collection?.name || options.team.name,
@@ -162,6 +191,7 @@ class FileOperation extends ParanoidModel<
             options: {
               includeAttachments: options.includeAttachments ?? true,
               includePrivate: options.includePrivate ?? true,
+              ...(personalOwnerId ? { personalOwnerId } : {}),
             },
           };
     const { name, ...attributes } = source;
@@ -381,8 +411,9 @@ class FileOperation extends ParanoidModel<
     teamId: string;
     format: FileOperationFormat;
   }) {
+    const prefix = truncate(name, { length: 100, omission: "" });
     const fileName = ValidateKey.sanitizeSegment(
-      `${name}-export.${format.replace(/outline-/, "")}.zip`
+      `${prefix}-export.${format.replace(/outline-/, "")}.zip`
     );
 
     return `${Buckets.uploads}/${teamId}/${uuidv4()}/${fileName}`;

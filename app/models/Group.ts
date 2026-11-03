@@ -37,6 +37,16 @@ class Group extends Model implements Searchable {
   @observable
   description: string;
 
+  /** An icon (or) emoji to use as the group icon. */
+  @Field
+  @observable
+  icon: string | null;
+
+  /** The color of the group icon. */
+  @Field
+  @observable
+  color: string | null;
+
   @observable
   externalId: string | undefined = undefined;
 
@@ -49,6 +59,14 @@ class Group extends Model implements Searchable {
 
   @observable
   externalGroup: ExternalGroupInfo | undefined = undefined;
+
+  /**
+   * The initial letter of the group name.
+   */
+  @computed
+  get initial(): string {
+    return (this.name ?? "").charAt(0).toUpperCase();
+  }
 
   /**
    * Whether this group's membership is managed by an external authentication provider.

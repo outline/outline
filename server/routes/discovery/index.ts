@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Day } from "@shared/utils/time";
 import { opensearchResponse } from "./opensearch";
 import { robotsResponse } from "./robots";

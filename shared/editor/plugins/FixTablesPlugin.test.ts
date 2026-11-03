@@ -2,11 +2,18 @@ import {
   createEditorState,
   createEditorStateWithSelection,
   doc,
+  p,
   table,
   td,
   th,
   tr,
 } from "@shared/test/editor";
+import { Plugin } from "prosemirror-state";
+import { TableMap } from "prosemirror-tables";
+import {
+  multiplayerPluginKey,
+  type MultiplayerOperations,
+} from "../lib/multiplayer";
 import { FixTablesPlugin } from "./FixTablesPlugin";
 
 describe("FixTablesPlugin", () => {
@@ -245,6 +252,43 @@ describe("FixTablesPlugin", () => {
     });
   });
 
+  describe("cell span fixing", () => {
+    it("should reset invalid spans so every cell is in the table map", () => {
+      const testDoc = doc([
+        table([tr([td("A", { rowspan: 0 }), td("B", { colspan: 0 })])]),
+        table([tr([td("C"), td("D")])]),
+      ]);
+      const state = createEditorState(testDoc, [new FixTablesPlugin()]);
+
+      // Edit both tables so the clean table is checked after the broken one.
+      const { state: newState } = state.applyTransaction(
+        state.tr.insertText("y", 18).insertText("x", 4)
+      );
+
+      const newTable = newState.doc.firstChild!;
+      const map = TableMap.get(newTable);
+      newTable.firstChild!.forEach((cell, offset) => {
+        expect(cell.attrs.colspan).toBe(1);
+        expect(cell.attrs.rowspan).toBe(1);
+        expect(() => map.findCell(1 + offset)).not.toThrow();
+      });
+    });
+
+    it("should repair tables loaded in a bad state on the first edit", () => {
+      const testDoc = doc([table([tr([td("A", { rowspan: 0 })])]), p("Text")]);
+      const state = createEditorState(testDoc, [new FixTablesPlugin()]);
+
+      // Edit outside of the table
+      const newState = state.apply(
+        state.tr.insertText("x", state.doc.firstChild!.nodeSize + 1)
+      );
+
+      expect(
+        newState.doc.firstChild!.firstChild!.firstChild!.attrs.rowspan
+      ).toBe(1);
+    });
+  });
+
   describe("edge cases", () => {
     it("should handle empty tables gracefully", () => {
       // Create minimal valid table
@@ -259,7 +303,7 @@ describe("FixTablesPlugin", () => {
       }).not.toThrow();
     });
 
-    it("should only fix tables that have changed (optimization)", () => {
+    it("should fix unchanged tables on the first edit", () => {
       // Create two tables, each with th in wrong positions
       const table1 = table([
         tr([th("H1"), th("H2")]),
@@ -268,7 +312,7 @@ describe("FixTablesPlugin", () => {
 
       const table2 = table([
         tr([th("H1"), th("H2"), th("H3")]),
-        tr([th("R1"), th("Wrong"), th("Wrong")]), // Would be td if changed
+        tr([th("R1"), th("Wrong"), th("Wrong")]), // Should be td
       ]);
 
       const testDoc = doc([table1, table2]);
@@ -277,22 +321,17 @@ describe("FixTablesPlugin", () => {
       // Insert text only in the first table - second table is unchanged
       const newState = state.apply(state.tr.insertText("x", 5));
 
-      // Check first table - fixed because it was modified
       const newTable1 = newState.doc.child(0);
-      expect(newTable1.child(0).child(0).type.name).toBe("th");
       expect(newTable1.child(0).child(1).type.name).toBe("th");
       expect(newTable1.child(1).child(0).type.name).toBe("th");
       expect(newTable1.child(1).child(1).type.name).toBe("td");
 
-      // Check second table - NOT fixed because it wasn't changed
-      // This is intentional optimization via changedDescendants
+      // Tables loaded in a bad state are fixed even when they did not change
       const newTable2 = newState.doc.child(1);
-      expect(newTable2.child(0).child(0).type.name).toBe("th");
-      expect(newTable2.child(0).child(1).type.name).toBe("th");
       expect(newTable2.child(0).child(2).type.name).toBe("th");
       expect(newTable2.child(1).child(0).type.name).toBe("th");
-      expect(newTable2.child(1).child(1).type.name).toBe("th"); // Still th - not changed
-      expect(newTable2.child(1).child(2).type.name).toBe("th"); // Still th - not changed
+      expect(newTable2.child(1).child(1).type.name).toBe("td");
+      expect(newTable2.child(1).child(2).type.name).toBe("td");
     });
 
     it("should not modify document when no fixes needed", () => {
@@ -314,6 +353,60 @@ describe("FixTablesPlugin", () => {
       expect(newTable.child(0).child(1).type.name).toBe("th");
       expect(newTable.child(1).child(0).type.name).toBe("th");
       expect(newTable.child(1).child(1).type.name).toBe("td");
+    });
+  });
+
+  describe("collaboration", () => {
+    const multiplayer: MultiplayerOperations = {
+      isRemoteTransaction: (transaction) => !!transaction.getMeta("remote"),
+      stopCapturing: () => {},
+    };
+    const facade = new Plugin({ key: multiplayerPluginKey, multiplayer });
+    const brokenTable = () =>
+      doc(table([tr([th("H1"), th("H2")]), tr([th("R1"), th("Wrong")])]));
+
+    it("should not repair tables in response to remote changes", () => {
+      const state = createEditorState(brokenTable(), [
+        facade,
+        new FixTablesPlugin(),
+      ]);
+
+      const newState = state.apply(
+        state.tr.insertText("x", 5).setMeta("remote", true)
+      );
+
+      expect(newState.doc.firstChild!.child(1).child(1).type.name).toBe("th");
+    });
+
+    it("should repair tables on the first local change after a remote change", () => {
+      const state = createEditorState(brokenTable(), [
+        facade,
+        new FixTablesPlugin(),
+      ]);
+
+      const remoteState = state.apply(
+        state.tr.insertText("x", 5).setMeta("remote", true)
+      );
+      const newState = remoteState.apply(remoteState.tr.insertText("y", 5));
+
+      expect(newState.doc.firstChild!.child(1).child(1).type.name).toBe("td");
+    });
+
+    it("should repair tables received after an earlier local change", () => {
+      const state = createEditorState(doc(p("Intro")), [
+        facade,
+        new FixTablesPlugin(),
+      ]);
+
+      const localState = state.apply(state.tr.insertText("x", 1));
+      const remoteState = localState.apply(
+        localState.tr
+          .insert(localState.doc.content.size, brokenTable().content)
+          .setMeta("remote", true)
+      );
+      const newState = remoteState.apply(remoteState.tr.insertText("y", 1));
+
+      expect(newState.doc.child(1).child(1).child(1).type.name).toBe("td");
     });
   });
 });

@@ -6,7 +6,10 @@ import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import type { NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import { flattenExpandedTree } from "@shared/utils/tree";
+import {
+  flattenExpandedTree,
+  type FlattenedTreeNode,
+} from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
@@ -17,8 +20,9 @@ import useStores from "~/hooks/useStores";
 import { useScrollMargin } from "../hooks/useScrollMargin";
 import DocumentLink from "./DocumentLink";
 import { useDraggedItemId, useSidebarScrollElement } from "./DragActiveContext";
-import { useSidebarContext } from "./SidebarContext";
+import { isActiveSidebarContext, useSidebarContext } from "./SidebarContext";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 
 // Approximate rendered row height, rows are measured once mounted.
 const ROW_HEIGHT = 30;
@@ -67,32 +71,42 @@ export const DocumentTree = observer(function DocumentTree({
   const scrollMargin = useScrollMargin(containerRef, scrollElement);
   const activeDocument = documents.active;
 
+  // Read on its own so that the rows are not rebuilt when the active document
+  // changes, unless an open draft is involved.
+  const activeDraft = useComputed(() => {
+    const active = documents.active;
+    return collection && active?.isDraft && active.isActive
+      ? active
+      : undefined;
+  }, [collection, documents]);
+
   const rows = useComputed(
     () =>
-      flattenExpandedTree({
-        nodes,
-        depth,
-        parentId,
-        isExpanded: (nodeId) => expansion.isExpanded(nodeId),
-        getChildren: (node) => {
-          // Show an unpublished draft below its parent while it is open.
-          const active = documents.active;
-          if (
-            collection &&
-            active?.isDraft &&
-            active.isActive &&
-            active.parentDocumentId === node.id
-          ) {
-            return sortNavigationNodes(
-              [active.asNavigationNode, ...node.children],
-              collection.sort,
-              false
-            );
-          }
-          return node.children;
-        },
-      }),
-    [nodes, depth, parentId, collection, expansion, documents]
+      withChildDepth(
+        flattenExpandedTree({
+          nodes,
+          depth,
+          parentId,
+          isExpanded: (nodeId) => expansion.isExpanded(nodeId),
+          getChildren: (node) => {
+            // Show an unpublished draft below its parent while it is open.
+            if (
+              collection &&
+              activeDraft &&
+              activeDraft.parentDocumentId === node.id
+            ) {
+              return sortNavigationNodes(
+                [activeDraft.asNavigationNode, ...node.children],
+                collection.sort,
+                false
+              );
+            }
+            return node.children;
+          },
+        }),
+        depth
+      ),
+    [nodes, depth, parentId, collection, expansion, activeDraft]
   );
 
   const activeIndex = React.useMemo(
@@ -105,7 +119,7 @@ export const DocumentTree = observer(function DocumentTree({
   );
 
   // Keep the active row mounted so that it can scroll into view, and the
-  // dragged row so that the drag does not end when it scrolls away.
+  // dragged row so that it keeps its dragging state when it scrolls away.
   const rangeExtractor = React.useCallback(
     (range: Range) => {
       const indexes = new Set(defaultRangeExtractor(range));
@@ -167,9 +181,10 @@ export const DocumentTree = observer(function DocumentTree({
   // rendered in multiple contexts (collections/starred/shared) doesn't jump to
   // an unexpected section; when no context is set, fall back to the collections
   // tree alone.
-  const isScrollContext =
-    activeSidebarContext === sidebarContext ||
-    (!activeSidebarContext && sidebarContext === "collections");
+  const isScrollContext = isActiveSidebarContext(
+    sidebarContext,
+    activeSidebarContext
+  );
 
   React.useLayoutEffect(() => {
     const element = containerRef.current?.querySelector(
@@ -183,7 +198,7 @@ export const DocumentTree = observer(function DocumentTree({
       });
     }
     // Scroll when the active row appears, not when rows above it change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [activeNodeId, isActiveRowRendered, isScrollContext]);
 
   React.useEffect(() => {
@@ -194,6 +209,21 @@ export const DocumentTree = observer(function DocumentTree({
       void documents.fetchChildDocuments(activeNodeId);
     }
   }, [documents, activeNodeId, activeHasChildren, sidebarContext]);
+
+  const getNavigationItems = React.useCallback(
+    () =>
+      rows.map((row) => ({
+        id: row.node.id,
+        url: row.node.url,
+        title: row.node.title,
+        sidebarContext,
+        collapsedChildren: expansion.isExpanded(row.node.id)
+          ? undefined
+          : row.node.children,
+      })),
+    [rows, expansion, sidebarContext]
+  );
+  useSidebarNavigation(containerRef, getNavigationItems);
 
   // Collapse documents that no longer have children, so that they do not show
   // as expanded when a child is added again.
@@ -249,3 +279,28 @@ export const DocumentTree = observer(function DocumentTree({
     </div>
   );
 });
+
+/**
+ * Moves the descendants of root rows at depth 0 one level deeper, so that the
+ * rows match childDepthFor.
+ *
+ * @param rows The flattened rows of the tree.
+ * @param depth The depth of the root rows.
+ * @returns the rows with adjusted depths.
+ */
+function withChildDepth(
+  rows: FlattenedTreeNode[],
+  depth: number
+): FlattenedTreeNode[] {
+  if (depth !== 0) {
+    return rows;
+  }
+
+  const adjust = (row: FlattenedTreeNode): FlattenedTreeNode =>
+    row.depth === 0 ? row : { ...row, depth: row.depth + 1 };
+
+  return rows.map((row) => ({
+    ...adjust(row),
+    trailingAncestors: row.trailingAncestors.map(adjust),
+  }));
+}

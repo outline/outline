@@ -474,6 +474,36 @@ describe("#comments.create", () => {
     expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 
+  it("should not allow replying to a reply", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const thread = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const reply = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      parentCommentId: thread.id,
+    });
+
+    const res = await server.post("/api/comments.create", user, {
+      body: {
+        documentId: document.id,
+        parentCommentId: reply.id,
+        data: thread.data,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Cannot reply to a reply");
+  });
+
   it("should create a comment from markdown text", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

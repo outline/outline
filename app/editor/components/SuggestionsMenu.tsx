@@ -42,7 +42,6 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when the menu is closed */
   onClose: (insertNewLine?: boolean) => void;
   /** Optional callback when a suggestion is selected */
@@ -281,7 +280,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     } else {
       selectionRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isActive, props.search]);
 
   React.useEffect(() => {
@@ -525,12 +524,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   ) => {
     restoreSelection();
 
-    const {
-      uploadFile,
-      onFileUploadStart,
-      onFileUploadStop,
-      onFileUploadProgress,
-    } = props;
+    const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
     const attrs = event.currentTarget.dataset.attrs
@@ -548,7 +542,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
-        onFileUploadProgress,
         onNotice: toastNotice,
         isAttachment: inputRef.current?.accept === "*",
         attrs,
@@ -562,7 +555,14 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     props.onClose();
   };
 
+  const lastFilteredRef = React.useRef<(EmbedDescriptor | MenuItem)[]>([]);
   const filtered = React.useMemo(() => {
+    // The list is not visible while the menu is closed, keep the last result
+    // for any closing animation rather than building it again.
+    if (!props.isActive) {
+      return lastFilteredRef.current;
+    }
+
     const { embeds = [], search = "", uploadFile, filterable = true } = props;
     let items: (EmbedDescriptor | MenuItem)[] = [...props.items];
     const embedItems: EmbedDescriptor[] = [];
@@ -676,6 +676,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       ).map(({ item }) => item)
     );
   }, [commands, props]);
+  lastFilteredRef.current = filtered;
 
   const openSubmenu = React.useCallback(
     (index: number) => {
@@ -917,6 +918,18 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       submenu,
     });
 
+  // Keep the items rendered on mobile until the drawer has animated closed.
+  const [isDrawerVisible, setDrawerVisible] = React.useState(false);
+  if (isActive && !isDrawerVisible) {
+    setDrawerVisible(true);
+  }
+
+  const handleDrawerAnimationEnd = React.useCallback((open: boolean) => {
+    if (!open) {
+      setDrawerVisible(false);
+    }
+  }, []);
+
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
       if (!open) {
@@ -1084,7 +1097,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   if (isMobile) {
     return (
       <>
-        <Drawer open={isActive} onOpenChange={handleOpenChange}>
+        <Drawer
+          open={isActive}
+          onOpenChange={handleOpenChange}
+          onAnimationEnd={handleDrawerAnimationEnd}
+        >
           <DrawerContent aria-describedby={undefined}>
             <DrawerTitle hidden>
               {Array.isArray(props.trigger) ? props.trigger[0] : props.trigger}
@@ -1114,7 +1131,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   id={listboxId}
                   aria-label={t("Suggestions")}
                 >
-                  {renderItems()}
+                  {isDrawerVisible && renderItems()}
                 </List>
               )}
             </MobileScrollable>
@@ -1168,7 +1185,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             </LinkInputWrapper>
           ) : (
             <List role="listbox" id={listboxId} aria-label={t("Suggestions")}>
-              {renderItems()}
+              {isActive && renderItems()}
             </List>
           )}
         </BouncyPopoverContent>

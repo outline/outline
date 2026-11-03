@@ -4,7 +4,7 @@ export const Translations = () => (
   <>
     <Trans defaults={`New attribute`} />
     <Trans defaults={`Paper size`} />
-    <Trans defaults={`Ask AI "{{question}}"`} />
+    <Trans defaults="Ask AI “{{ question }}”" />
     <Trans defaults={`Are you sure you want to delete?`} />
     <Trans
       defaults={`Deleting this version of the document will permanently and irrevocably remove it from the history.`}
@@ -43,7 +43,7 @@ export const Translations = () => (
       defaults={`In a Confluence space, navigate to <em>Space Settings -> Manage space -> Export space</em> and choose to export as HTML with the "Normal Export" option.`}
     />
     <Trans
-      defaults={`Drag and drop the zip file from Confluence's HTML export option, or click to upload`}
+      defaults={`Drag and drop the zip file from Confluence’s HTML export option, or click to upload`}
     />
     <Trans defaults={`Guests`} />
     <Trans defaults={`New Attribute`} />
@@ -107,6 +107,6 @@ export const Translations = () => (
       defaults={`Sorry, an answer could not be found in the workspace, try widening your search.`}
     />
     <Trans defaults={`Looking for answers`} />
-    <Trans defaults={`Answer to "{{ query }}"`} />
+    <Trans defaults="Answer to “{{ query }}”" />
   </>
 );

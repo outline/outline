@@ -77,12 +77,46 @@ export default class RedisAdapter extends Redis {
     this.setMaxListeners(100);
 
     this.on("error", (err) => {
-      if (err.name === "MaxRetriesPerRequestError") {
-        Logger.fatal("Redis maximum retries exceeded", err);
-      } else {
-        Logger.error("Redis error", err);
-      }
+      Logger.error("Redis error", err);
     });
+
+    // Exit when the connection stays unavailable, as a restart can recover a
+    // process that is unable to reconnect by itself.
+    let unavailableTimeout: NodeJS.Timeout | undefined;
+
+    const startUnavailableTimeout = () => {
+      if (unavailableTimeout) {
+        return;
+      }
+
+      unavailableTimeout = setTimeout(() => {
+        unavailableTimeout = undefined;
+        if (this.status === "ready" || this.status === "end") {
+          return;
+        }
+
+        Logger.fatal(
+          "Redis connection unavailable",
+          new Error(
+            `Redis connection not ready after ${env.REDIS_UNAVAILABLE_TIMEOUT}ms`
+          ),
+          { connectionName, status: this.status }
+        );
+      }, env.REDIS_UNAVAILABLE_TIMEOUT);
+
+      // Don't keep the Node event loop alive solely for the timeout.
+      unavailableTimeout.unref();
+    };
+
+    const clearUnavailableTimeout = () => {
+      clearTimeout(unavailableTimeout);
+      unavailableTimeout = undefined;
+    };
+
+    this.on("connecting", startUnavailableTimeout);
+    this.on("reconnecting", startUnavailableTimeout);
+    this.on("ready", clearUnavailableTimeout);
+    this.on("end", clearUnavailableTimeout);
 
     // Skip the healthcheck on connections reserved for blocking or pub/sub
     // operations (signalled via maxRetriesPerRequest: null). A PING issued on

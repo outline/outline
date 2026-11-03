@@ -1,7 +1,6 @@
 import type * as React from "react";
 import { useState, useCallback } from "react";
 import type Collection from "~/models/Collection";
-import useStores from "~/hooks/useStores";
 import CollectionLink from "./CollectionLink";
 
 type Props = {
@@ -12,7 +11,6 @@ type Props = {
 };
 
 export function ArchivedCollectionLink({ collection, depth = 0 }: Props) {
-  const { documents } = useStores();
   const [expanded, setExpanded] = useState(false);
 
   const handleDisclosureClick = useCallback(
@@ -33,7 +31,6 @@ export function ArchivedCollectionLink({ collection, depth = 0 }: Props) {
       depth={depth}
       collection={collection}
       expanded={expanded}
-      activeDocument={documents.active}
       onDisclosureClick={handleDisclosureClick}
       onClick={handleClick}
     />

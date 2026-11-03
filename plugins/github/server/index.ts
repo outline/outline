@@ -1,3 +1,4 @@
+import { IntegrationService } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
@@ -8,6 +9,11 @@ import env from "./env";
 import { GitHub } from "./github";
 import GitHubWebhookTask from "./tasks/GitHubWebhookTask";
 import { uninstall } from "./uninstall";
+
+PluginManager.add({
+  type: Hook.IntegrationSettings,
+  value: { service: IntegrationService.GitHub, keys: ["github"] },
+});
 
 const enabled =
   !!env.GITHUB_CLIENT_ID &&
@@ -33,6 +39,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
+      name: "GitHub",
       value: { unfurl: GitHub.unfurl, cacheExpiry: Minute.seconds },
     },
     {

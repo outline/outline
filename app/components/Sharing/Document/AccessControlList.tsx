@@ -61,12 +61,20 @@ export const AccessControlList = observer(
     const collection = document.collection;
     const usersInCollection = useUsersInCollection(collection);
     const user = useCurrentUser();
-    const { groupMemberships } = useStores();
+    const { groupMemberships, users } = useStores();
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
     const can = usePolicy(document);
     const canCollection = usePolicy(collection);
     const documentId = document.id;
+    const ownerId = document.ownerId;
+    const owner = ownerId ? users.get(ownerId) : undefined;
+
+    React.useEffect(() => {
+      if (ownerId && !owner) {
+        void users.fetch(ownerId);
+      }
+    }, [ownerId, owner, users]);
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const publicAccessRef = React.useRef<HTMLDivElement | null>(null);
@@ -137,7 +145,7 @@ export const AccessControlList = observer(
               ) : usersInCollection ? (
                 <ListItem
                   image={<CollectionSquircle collection={collection} />}
-                  title={collection.name}
+                  title={collection.displayName}
                   subtitle={t("Everyone in the collection")}
                   actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
                 />
@@ -146,7 +154,11 @@ export const AccessControlList = observer(
                   image={<Avatar model={user} />}
                   title={user.name}
                   subtitle={t("You have full access")}
-                  actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
+                  actions={
+                    collection.isPersonal ? undefined : (
+                      <AccessTooltip>{t("Can edit")}</AccessTooltip>
+                    )
+                  }
                 />
               )}
               {showLoading ? (
@@ -160,6 +172,20 @@ export const AccessControlList = observer(
             </>
           ) : (
             <>
+              {owner && (
+                <ListItem
+                  image={<Avatar model={owner} />}
+                  title={owner.name}
+                  subtitle={t("Owner")}
+                  actions={
+                    <AccessTooltip
+                      content={t("This document is in their personal space")}
+                    >
+                      {t("Can edit")}
+                    </AccessTooltip>
+                  }
+                />
+              )}
               {showLoading ? (
                 <Placeholder />
               ) : (
@@ -168,22 +194,24 @@ export const AccessControlList = observer(
                   invitedInSession={invitedInSession}
                 />
               )}
-              <ListItem
-                image={
-                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                    <MoreIcon color={theme.accentText} size={16} />
-                  </Squircle>
-                }
-                title={t("Other people")}
-                subtitle={t("Other workspace members may have access")}
-                actions={
-                  <AccessTooltip
-                    content={t(
-                      "This document may be shared with more workspace members through a parent document or collection you do not have access to"
-                    )}
-                  />
-                }
-              />
+              {!ownerId && (
+                <ListItem
+                  image={
+                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                      <MoreIcon color={theme.accentText} size={16} />
+                    </Squircle>
+                  }
+                  title={t("Other people")}
+                  subtitle={t("Other workspace members may have access")}
+                  actions={
+                    <AccessTooltip
+                      content={t(
+                        "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                      )}
+                    />
+                  }
+                />
+              )}
             </>
           )}
         </ScrollableContainer>

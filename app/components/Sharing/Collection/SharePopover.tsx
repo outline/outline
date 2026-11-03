@@ -364,7 +364,7 @@ function SharePopover({
 
   return (
     <Wrapper ref={wrapperRef} tabIndex={-1}>
-      {can.update && (
+      {can.manageUsers && (
         <SearchInput
           ref={searchInputRef}
           onChange={handleQuery}

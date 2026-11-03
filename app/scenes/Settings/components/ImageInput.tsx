@@ -36,7 +36,7 @@ export default function ImageInput({
       <ImageBox>
         <ImageUpload
           onSuccess={onSuccess}
-          submitText={t("Crop Image")}
+          submitText={t("Crop image")}
           {...rest}
         >
           <Avatar

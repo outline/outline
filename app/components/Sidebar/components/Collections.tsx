@@ -10,7 +10,8 @@ import PaginatedList from "~/components/PaginatedList";
 import { createCollection } from "~/actions/definitions/collections";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
-import { type DragObject, useDropRef } from "../hooks/useDragAndDrop";
+import { useDropRef } from "~/components/DragAndDrop";
+import type { DragObject } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
@@ -25,7 +26,7 @@ import usePolicy from "~/hooks/usePolicy";
 const headerActions = [createCollection];
 
 function Collections() {
-  const { documents, auth, collections, policies, ui } = useStores();
+  const { auth, collections, policies, ui } = useStores();
   const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
@@ -106,7 +107,6 @@ function Collections() {
                 <DraggableCollectionLink
                   key={item.id}
                   collection={item}
-                  activeDocument={documents.active}
                   belowCollection={orderedCollections[index + 1]}
                 />
               )}

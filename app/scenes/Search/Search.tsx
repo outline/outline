@@ -3,10 +3,9 @@ import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
-import { Waypoint } from "react-waypoint";
+import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
@@ -27,7 +26,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import env from "~/env";
+import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -53,7 +52,6 @@ function Search() {
 
   // routing
   const params = useQuery();
-  const location = useLocation();
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
   const handleGoBack = React.useCallback(() => history.goBack(), [history]);
@@ -220,12 +218,14 @@ function Search() {
 
   const updateLocation = (query: string) => {
     // If query came from route params, navigate to base search path
-    const pathname = routeMatch.params.query ? searchPath() : location.pathname;
+    const pathname = routeMatch.params.query
+      ? searchPath()
+      : history.location.pathname;
 
     history.replace({
       pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), q: query },
+        { ...queryString.parse(history.location.search), q: query },
         {
           skipEmptyString: true,
         }
@@ -251,9 +251,9 @@ function Search() {
     }
 
     history.replace({
-      pathname: location.pathname,
+      pathname: history.location.pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), ...search },
+        { ...queryString.parse(history.location.search), ...search },
         {
           skipEmptyString: true,
         }
@@ -447,7 +447,6 @@ function Search() {
                 <Waypoint
                   key={data?.length}
                   onEnter={end || loading ? undefined : next}
-                  debug={env.ENVIRONMENT === "development"}
                 />
               </ResultList>
             </ModelSelectionProvider>

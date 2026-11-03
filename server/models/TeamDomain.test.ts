@@ -33,13 +33,11 @@ describe("TeamDomain", () => {
     });
 
     it("should not allow creation of domains within restricted list", async () => {
-      const TeamDomain = await import("./TeamDomain");
       const team = await buildTeam();
       const user = await buildAdmin({ teamId: team.id });
 
       let error;
       try {
-        // @ts-expect-error TeamDomain type
         await TeamDomain.create({
           teamId: team.id,
           name: "gmail.com",
@@ -52,13 +50,11 @@ describe("TeamDomain", () => {
     });
 
     it("should ignore casing and spaces when creating domains", async () => {
-      const TeamDomain = await import("./TeamDomain");
       const team = await buildTeam();
       const user = await buildAdmin({ teamId: team.id });
 
       let error;
       try {
-        // @ts-expect-error TeamDomain type
         await TeamDomain.create({
           teamId: team.id,
           name: "   GMail.com   ",

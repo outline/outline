@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
+import { contentWidth } from "@shared/editor/lib/contentWidth";
 import { resolvePDFDimensions } from "@shared/editor/lib/pdf";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
@@ -17,7 +17,6 @@ type Dimension = {
 };
 
 export function MediaDimension() {
-  const ref = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const boundsRef = useRef<
     | {
@@ -51,11 +50,8 @@ export function MediaDimension() {
     height: false,
   });
 
-  if (!boundsRef.current && ref.current) {
-    const docWidth = parseInt(
-      getComputedStyle(ref.current).getPropertyValue("--document-width")
-    );
-    const maxWidth = docWidth - EditorStyleHelper.padding * 2;
+  if (!boundsRef.current) {
+    const maxWidth = contentWidth(view.dom);
     const constrainedWidth = Math.min(width, maxWidth); // Ensure media width does not exceed the max width of the editor.
     const aspectRatio = height / constrainedWidth;
 
@@ -174,6 +170,11 @@ export function MediaDimension() {
         width: finalWidth,
         height: finalHeight,
       });
+    } else if (nodeType === "video") {
+      commands["resizeVideo"]({
+        width: finalWidth,
+        height: finalHeight,
+      });
     }
   }, [
     commands,
@@ -248,7 +249,7 @@ export function MediaDimension() {
     };
   }, [nodeType]);
 
-  // hacky debounce for checking error.
+  // Debounce validation so errors are not shown while typing.
   useEffect(() => {
     const timeout = setTimeout(() => {
       const isWidthError = localDimension.width
@@ -272,7 +273,7 @@ export function MediaDimension() {
   }, [width, height, localDimension, isOutsideBounds]);
 
   return (
-    <StyledFlex ref={ref} align="center">
+    <StyledFlex align="center">
       <StyledInput
         label={t("Image width")}
         labelHidden

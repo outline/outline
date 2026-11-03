@@ -42,7 +42,9 @@ const relations = new Map<string, Map<string, RelationProperties>>(new Map());
  * @param targetClass The model class to get inverse relations for.
  * @returns A map of inverse relation properties keyed by the property name.
  */
-export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
+export const getInverseRelationsForModelClass = (
+  targetClass: Pick<typeof Model, "modelName">
+) => {
   const inverseRelations = new Map<string, InverseRelationProperties>();
 
   relations.forEach((relation, modelName) => {
@@ -91,24 +93,17 @@ export default function Relation<T extends typeof Model>(
       ? `${String(singular(propertyKey))}Ids`
       : `${String(propertyKey)}Id`;
 
-    // If the relation has options provided then register them in a map for later lookup. We can use
-    // this to determine how to update relations when a model is deleted.
-    //
-    // TODO: requestAnimationFrame is a temporary solution to a bug in rolldown compiled code that
-    // will place static methods _after_ decorators. Temporary fix is to delay the registration until
-    // the next frame.
-    const modelName = (target.constructor as typeof Model).modelName;
-    requestAnimationFrame(() => {
-      if (options) {
-        const configForClass = relations.get(modelName) ?? new Map();
-        configForClass.set(propertyKey, {
-          options,
-          relationClassResolver: classResolver,
-          idKey,
-        });
-        relations.set(modelName, configForClass);
-      }
-    });
+    // Register relation options to determine how to update relations when a model is deleted.
+    if (options) {
+      const modelName = (target.constructor as typeof Model).modelName;
+      const configForClass = relations.get(modelName) ?? new Map();
+      configForClass.set(propertyKey, {
+        options,
+        relationClassResolver: classResolver,
+        idKey,
+      });
+      relations.set(modelName, configForClass);
+    }
 
     Object.defineProperty(target, propertyKey, {
       get() {

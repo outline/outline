@@ -440,7 +440,7 @@ describe("#files.get", () => {
     );
   });
 
-  it("should succeed with status 200 ok when avatar is requested using key", async () => {
+  it("should succeed with status 200 ok when avatar is requested using key and the attachment is deleted", async () => {
     const user = await buildUser();
     const key = path.join("avatars", user.id, crypto.randomUUID());
     const attachment = await buildAttachment({

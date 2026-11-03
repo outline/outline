@@ -88,7 +88,7 @@ function Umami() {
 
       <Text as="p" type="secondary">
         <Trans>
-          Configure a Umami installation to send views and analytics from the
+          Configure an Umami installation to send views and analytics from the
           workspace to your own Umami instance.
         </Trans>
       </Text>

@@ -13,7 +13,7 @@ function ImportJSONDialog() {
     <>
       <Text as="p">
         <Trans
-          defaults="You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>."
+          defaults="You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>."
           values={{ appName }}
           components={{
             em: <strong />,

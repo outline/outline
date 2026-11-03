@@ -33,7 +33,7 @@ function References({ document }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("children");
   const isJustCreated = useMemo(
     () => document.isJustCreated,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [document.id]
   );
 
@@ -196,11 +196,11 @@ function useChildren(
 function useBacklinks(
   document: Document,
   sharedTree: NavigationNode | undefined
-): Document[] {
+): (Document | NavigationNode)[] {
   if (sharedTree) {
     return flattenTree(sharedTree).filter((node) =>
       document.backlinkIds?.includes(node.id)
-    ) as Document[];
+    );
   }
   return document.backlinks;
 }

@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
+import { isTouchDevice } from "@shared/utils/browser";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
@@ -17,8 +18,10 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
+import { StaticLink } from "./StaticLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
+import { useSidebarNavigation } from "./SidebarNavigation";
 import type { ActionWithChildren } from "~/types";
 
 export type CollectionRowProps = {
@@ -74,8 +77,8 @@ export type CollectionRowProps = {
   /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
   newChildDepth?: number;
 
-  /** Ref forwarded to the outer Relative; for drag hover timers. */
-  parentRef?: React.Ref<HTMLDivElement>;
+  /** Ref forwarded to the outer Relative; for drag hover timers and keyboard navigation. */
+  parentRef: React.RefObject<HTMLDivElement | null>;
   /** Drop target connector for "change collection" / reorder. */
   dropRef?: React.Ref<HTMLDivElement>;
   /** Whether the row is an active drop target (visual highlight). */
@@ -164,7 +167,7 @@ function CollectionRow({
 
   const labelElement = canEdit ? (
     <EditableTitle
-      title={labelText ?? collection.name}
+      title={labelText ?? collection.displayName}
       onSubmit={onTitleChange ?? (async () => undefined)}
       isEditing={isEditing}
       onEditing={setIsEditing}
@@ -173,19 +176,25 @@ function CollectionRow({
       ref={editableTitleRef}
     />
   ) : (
-    collection.name
+    collection.displayName
   );
 
   const iconElement = icon ?? (
     <CollectionIcon collection={collection} expanded={expanded} />
   );
 
-  const hasMenuContent = Boolean(menu) || canCreateChild;
+  // Touch devices cannot hover to reveal the actions, so the new doc button
+  // stays on screen in place of the other actions.
+  const isTouch = isTouchDevice();
+  const showCreateChild = isTouch && !!canCreateChild && !isEditing;
+  const rowMenu = isTouch ? undefined : menu;
+
+  const hasMenuContent = Boolean(rowMenu) || canCreateChild;
   const menuVisible = hasMenuContent && !isEditing;
   const menuElement = menuVisible ? (
     <Fade>
       {canCreateChild && (
-        <Tooltip content={t("New doc")} delay={500}>
+        <Tooltip content={t("New doc")}>
           <NudeButton
             aria-label={t("New nested document")}
             onClick={handleAddChild}
@@ -194,7 +203,7 @@ function CollectionRow({
           </NudeButton>
         </Tooltip>
       )}
-      {menu}
+      {rowMenu}
     </Fade>
   ) : undefined;
 
@@ -206,10 +215,23 @@ function CollectionRow({
     [parentRef, dropRef]
   );
 
+  const getNavigationItems = React.useCallback(
+    () => [
+      {
+        id: collection.id,
+        url: collection.path,
+        title: collection.displayName,
+        sidebarContext,
+        collapsedChildren: expanded ? undefined : collection.sortedDocuments,
+      },
+    ],
+    [collection, sidebarContext, expanded]
+  );
+  useSidebarNavigation(parentRef, getNavigationItems);
+
   const sidebarLinkElement = (
     <SidebarLink
-      // @ts-expect-error react-router type is wrong, string component is fine.
-      component={isEditing ? "div" : undefined}
+      component={isEditing ? StaticLink : undefined}
       depth={depth}
       to={to}
       onClick={onClick}
@@ -223,7 +245,7 @@ function CollectionRow({
       label={labelElement}
       ellipsis={!isEditing}
       exact={false}
-      $showActions={menuOpen}
+      $showActions={menuOpen || showCreateChild}
       menu={menuElement}
     />
   );

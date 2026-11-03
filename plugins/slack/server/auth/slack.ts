@@ -1,6 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { toError } from "@shared/utils/error";
@@ -72,7 +72,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       clientSecret: env.SLACK_CLIENT_SECRET,
       callbackURL: SlackUtils.callbackUrl(),
       passReqToCallback: true,
-      // @ts-expect-error StateStore
+      // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
       store: new StateStore(),
       scope: scopes,
     },

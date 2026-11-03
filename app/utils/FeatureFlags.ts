@@ -26,7 +26,7 @@ export class FeatureFlags {
    */
   public static isEnabled(flag: Feature) {
     // init on first read
-    if (this.initalized === false) {
+    if (this.initialized === false) {
       runInAction(() => {
         this.cache = new Set();
         for (const key of Object.values(Feature)) {
@@ -35,7 +35,7 @@ export class FeatureFlags {
             this.cache.add(key);
           }
         }
-        this.initalized = true;
+        this.initialized = true;
       });
     }
 
@@ -69,7 +69,7 @@ export class FeatureFlags {
   @observable
   private static cache: Set<Feature> = new Set();
 
-  private static initalized = false;
+  private static initialized = false;
 }
 
 makeObservable(FeatureFlags);

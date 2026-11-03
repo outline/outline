@@ -5,7 +5,7 @@ describe("User model", () => {
   const users = stores.users;
 
   describe("initial", () => {
-    test("should return first character of name uppercased", () => {
+    it("should return first character of name uppercased", () => {
       const user = new User(
         {
           id: "123",
@@ -16,7 +16,7 @@ describe("User model", () => {
       expect(user.initial).toBe("A");
     });
 
-    test("should return first character when name is already uppercase", () => {
+    it("should return first character when name is already uppercase", () => {
       const user = new User(
         {
           id: "124",
@@ -27,7 +27,7 @@ describe("User model", () => {
       expect(user.initial).toBe("B");
     });
 
-    test("should return ? when name is empty", () => {
+    it("should return ? when name is empty", () => {
       const user = new User(
         {
           id: "125",
@@ -38,7 +38,7 @@ describe("User model", () => {
       expect(user.initial).toBe("?");
     });
 
-    test("should return ? when name is null", () => {
+    it("should return ? when name is null", () => {
       const user = new User(
         {
           id: "126",
@@ -49,7 +49,7 @@ describe("User model", () => {
       expect(user.initial).toBe("?");
     });
 
-    test("should return ? when name is undefined", () => {
+    it("should return ? when name is undefined", () => {
       const user = new User(
         {
           id: "127",
@@ -62,7 +62,7 @@ describe("User model", () => {
   });
 
   describe("initials", () => {
-    test("should return empty string when name is empty", () => {
+    it("should return empty string when name is empty", () => {
       const user = new User(
         {
           id: "201",
@@ -73,7 +73,7 @@ describe("User model", () => {
       expect(user.initials).toBe("");
     });
 
-    test("should return empty string when name is null", () => {
+    it("should return empty string when name is null", () => {
       const user = new User(
         {
           id: "202",
@@ -84,7 +84,7 @@ describe("User model", () => {
       expect(user.initials).toBe("");
     });
 
-    test("should return single character uppercased for single word name", () => {
+    it("should return single character uppercased for single word name", () => {
       const user = new User(
         {
           id: "203",
@@ -95,7 +95,7 @@ describe("User model", () => {
       expect(user.initials).toBe("A");
     });
 
-    test("should return single character uppercased for single word name already uppercase", () => {
+    it("should return single character uppercased for single word name already uppercase", () => {
       const user = new User(
         {
           id: "204",
@@ -106,7 +106,7 @@ describe("User model", () => {
       expect(user.initials).toBe("B");
     });
 
-    test("should return first and last initials for two word name", () => {
+    it("should return first and last initials for two word name", () => {
       const user = new User(
         {
           id: "205",
@@ -117,7 +117,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should return first and last initials for three word name", () => {
+    it("should return first and last initials for three word name", () => {
       const user = new User(
         {
           id: "206",
@@ -128,7 +128,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should return first and last initials for many word name", () => {
+    it("should return first and last initials for many word name", () => {
       const user = new User(
         {
           id: "207",
@@ -139,7 +139,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should handle names with extra spaces", () => {
+    it("should handle names with extra spaces", () => {
       const user = new User(
         {
           id: "208",
@@ -150,7 +150,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should handle names with mixed case", () => {
+    it("should handle names with mixed case", () => {
       const user = new User(
         {
           id: "209",
@@ -161,7 +161,7 @@ describe("User model", () => {
       expect(user.initials).toBe("AS");
     });
 
-    test("should handle names with special characters", () => {
+    it("should handle names with special characters", () => {
       const user = new User(
         {
           id: "210",
@@ -172,7 +172,7 @@ describe("User model", () => {
       expect(user.initials).toBe("JO");
     });
 
-    test("should handle single letter names", () => {
+    it("should handle single letter names", () => {
       const user = new User(
         {
           id: "211",
@@ -183,7 +183,7 @@ describe("User model", () => {
       expect(user.initials).toBe("X");
     });
 
-    test("should handle names with unicode characters", () => {
+    it("should handle names with unicode characters", () => {
       const user = new User(
         {
           id: "212",

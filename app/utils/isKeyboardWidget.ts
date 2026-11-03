@@ -31,9 +31,20 @@ const widgetSelector = widgetRoles.map((role) => `[role="${role}"]`).join(",");
  * @returns true if the target handles its own keyboard input.
  */
 export function isKeyboardWidget(target: EventTarget | null): boolean {
-  if (!(target instanceof Element)) {
-    return false;
-  }
+  return (
+    target instanceof Element &&
+    (isTextInput(target) || isWithinKeyboardWidget(target))
+  );
+}
 
-  return isTextInput(target) || !!target.closest(widgetSelector);
+/**
+ * Checks whether the given event target is, or is contained by, a widget that
+ * handles its own keyboard interaction, such as a menu, listbox, or dialog.
+ * Unlike isKeyboardWidget, plain text inputs outside of a widget are ignored.
+ *
+ * @param target the event target to check.
+ * @returns true if the target is within a keyboard widget.
+ */
+export function isWithinKeyboardWidget(target: EventTarget | null): boolean {
+  return target instanceof Element && !!target.closest(widgetSelector);
 }

@@ -84,7 +84,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             </Text>
             <Text type="tertiary" size="xsmall">
               <Time dateTime={notification.createdAt} addSuffix />{" "}
-              {collection && <>&middot; {collection.name}</>}
+              {collection && <>&middot; {collection.displayName}</>}
             </Text>
             {commentData && (
               <StyledCommentEditor value={commentData} readOnly />

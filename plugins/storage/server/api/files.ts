@@ -1,5 +1,5 @@
 import JWT from "jsonwebtoken";
-import Router from "koa-router";
+import Router from "@koa/router";
 import mime from "mime-types";
 import contentDisposition from "content-disposition";
 import { bytesToHumanReadable } from "@shared/utils/files";

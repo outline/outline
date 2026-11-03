@@ -28,7 +28,7 @@ const useTemplatesAction = () => {
     () =>
       templates.alphabetical.map((template) =>
         createInternalLinkAction({
-          name: template.titleWithDefault,
+          name: template.displayTitle,
           analyticsName: "New document",
           section: template.isWorkspaceTemplate
             ? TeamSection

@@ -89,8 +89,8 @@ export default function PdfViewer(props: Props) {
       ref={mergedRef}
       className={
         isSelected || dragging
-          ? "pdf-wrapper ProseMirror-selectednode"
-          : "pdf-wrapper"
+          ? `${EditorStyleHelper.pdfWrapper} ProseMirror-selectednode`
+          : EditorStyleHelper.pdfWrapper
       }
       style={{ width: width ?? "100%" }}
       $dragging={!!dragging}

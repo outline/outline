@@ -27,6 +27,7 @@ import { WebhookSubscriptionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import type { Event } from "@server/types";
 import { LockHelper } from "@server/storage/LockHelper";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Team from "./Team";
@@ -186,21 +187,14 @@ class WebhookSubscription extends ParanoidModel<
     model: WebhookSubscription,
     options: { transaction?: Transaction | null }
   ) {
-    const invalidate = () =>
-      CacheHelper.removeData(
-        RedisPrefixHelper.getWebhookSubscriptionsKey(model.teamId)
-      );
-
     // Defer invalidation until after the transaction commits so that a rollback
     // does not leave the cache out of sync, and so a stale pre-commit read is
-    // not re-cached by a concurrent reader. Walk to the parent transaction when
-    // nested so the callback isn't lost when a savepoint releases.
-    if (options.transaction) {
-      const transaction = options.transaction.parent || options.transaction;
-      transaction.afterCommit(invalidate);
-    } else {
-      await invalidate();
-    }
+    // not re-cached by a concurrent reader.
+    await afterCommit(options.transaction, () =>
+      CacheHelper.removeData(
+        RedisPrefixHelper.getWebhookSubscriptionsKey(model.teamId)
+      )
+    );
   }
 
   // instance methods

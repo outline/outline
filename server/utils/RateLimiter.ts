@@ -179,7 +179,7 @@ export default class RateLimiter {
 }
 
 /**
- * Re-useable configuration for rate limiter middleware.
+ * Reusable configuration for rate limiter middleware.
  */
 export const RateLimiterStrategy = {
   /** Allows five requests per minute, per IP address */

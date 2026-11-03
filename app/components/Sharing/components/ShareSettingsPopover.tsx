@@ -218,7 +218,7 @@ function ShareSettingsPopover({ share, children }: Props) {
 
   return (
     <Popover modal onOpenChange={handleOpenChange}>
-      <Tooltip content={t("Display settings")} placement="top">
+      <Tooltip content={t("Display settings")}>
         <PopoverTrigger>
           {children ?? (
             <SettingsTrigger type="button">

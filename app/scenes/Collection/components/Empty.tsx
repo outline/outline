@@ -12,15 +12,14 @@ type Props = {
 };
 
 function EmptyCollection({ collection }: Props) {
-  const collectionName = collection ? collection.name : "";
+  const collectionName = collection ? collection.displayName : "";
 
   return (
     <Fade>
       <Centered column>
         <Text as="p" type="secondary">
           <Trans
-            defaults="<em>{{ collectionName }}</em> doesn’t contain any
-                    documents yet."
+            defaults="<em>{{ collectionName }}</em> doesn’t contain any documents yet."
             values={{
               collectionName,
             }}

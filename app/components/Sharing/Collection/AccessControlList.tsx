@@ -124,7 +124,7 @@ export const AccessControlList = observer(
                         permission: value === EmptySelectValue ? null : value,
                       });
                     }}
-                    disabled={!can.update}
+                    disabled={!can.manageUsers}
                     value={collection?.permission}
                     labelHidden
                     nude
@@ -192,7 +192,7 @@ export const AccessControlList = observer(
                               }
                               return true;
                             }}
-                            disabled={!can.update}
+                            disabled={!can.manageUsers}
                             value={membership.permission}
                           />
                         </div>
@@ -246,7 +246,7 @@ export const AccessControlList = observer(
                               }
                               return true;
                             }}
-                            disabled={!can.update}
+                            disabled={!can.manageUsers}
                             value={membership.permission}
                           />
                         </div>

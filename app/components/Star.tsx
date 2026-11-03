@@ -60,7 +60,6 @@ function Star({
                 content: target.isStarred
                   ? t("Unstar document")
                   : t("Star document"),
-                delay: 500,
               }
         }
         action={

@@ -1,4 +1,3 @@
-/* oxlint-disable */
 import "fake-indexeddb/auto";
 // The stores singleton must be imported before RootStore so that the module
 // cycle through AuthStore -> developer.ts -> ~/stores resolves in the same

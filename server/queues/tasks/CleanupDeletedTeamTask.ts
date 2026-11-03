@@ -3,7 +3,7 @@ import { Team } from "@server/models";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
-  /** The team ID to permanantly destroy */
+  /** The team ID to permanently destroy */
   teamId: string;
 };
 

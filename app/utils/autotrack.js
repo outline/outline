@@ -13,7 +13,7 @@
  * The original libraries are no longer maintained.
  */
 
-/* eslint-disable */
+/* oxlint-disable */
 
 // ---------------------------------------------------------------------------
 // dom-utils: matches

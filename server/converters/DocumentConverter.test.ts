@@ -169,6 +169,21 @@ John,25`;
       });
     });
 
+    describe("docx", () => {
+      it("should reject a file that is not a Word document as an import error", async () => {
+        await expect(
+          DocumentConverter.convert(
+            Buffer.from("not a word document"),
+            "test.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          )
+        ).rejects.toMatchObject({
+          id: "import_error",
+          message: "The Word document could not be read",
+        });
+      });
+    });
+
     describe("html", () => {
       it("should extract title from H1", async () => {
         const html = "<h1>My Title</h1><p>Content here</p>";
@@ -238,6 +253,20 @@ John,25`;
 
         expect(result.title).toEqual("My Title");
         expect(result.text).toContain("Content here");
+      });
+
+      it("should convert elements without a style property", async () => {
+        const html =
+          "<p>Before <math><mi>x</mi></math> <u>after</u></p><p><span style='text-decoration: underline'>styled</span></p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.text).toContain("Before");
+        expect(result.text).toContain("__after__");
+        expect(result.text).toContain("__styled__");
       });
     });
 

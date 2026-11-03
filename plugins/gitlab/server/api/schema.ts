@@ -39,3 +39,19 @@ export const GitLabConnectSchema = BaseSchema.extend({
 });
 
 export type GitLabConnectReq = z.infer<typeof GitLabConnectSchema>;
+
+export const GitLabSettingsSchema = z.object({
+  gitlab: z.object({
+    url: z.url().optional(),
+    installation: z
+      .object({
+        id: z.number(),
+        account: z.object({
+          id: z.number(),
+          name: z.string(),
+          avatarUrl: z.string(),
+        }),
+      })
+      .optional(),
+  }),
+});

@@ -190,10 +190,14 @@ export default abstract class ExportTask extends BaseTask<Props> {
 
     if (fileOperation.collectionId) {
       where.id = fileOperation.collectionId;
+      // Only the owner can export a personal collection.
+      where.ownerId = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: user.id }] };
     } else {
       where.archivedAt = {
         [Op.eq]: null,
       };
+      // A workspace export never includes personal collections.
+      where.ownerId = { [Op.is]: null };
     }
 
     const collections = await sequelizeReadOnly.transaction((transaction) =>

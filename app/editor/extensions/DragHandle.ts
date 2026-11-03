@@ -184,24 +184,42 @@ export default class DragHandle extends Extension {
             const offsetX = GUTTER_OFFSET[next.kind];
 
             // Center the icon on the first line of text when the block has
-            // one, otherwise align it with the top of the block.
+            // one, or on blocks shorter than the handle, otherwise align it
+            // with the top of the block.
             const lineMiddle =
-              next.element === view.nodeDOM(next.pos)
+              (next.element === view.nodeDOM(next.pos)
                 ? getFirstLineMiddle(view, next.pos, rect)
-                : null;
+                : null) ??
+              (rect.height < HANDLE_SIZE ? rect.top + rect.height / 2 : null);
 
             // RTL blocks lay out their gutter on the right, so mirror the
             // handle to the opposite edge to match the rest of the editor's
             // :dir(rtl) handling.
             const isRTL =
               window.getComputedStyle(next.element).direction === "rtl";
-            handle.style.top =
+            const top =
               lineMiddle === null
-                ? `${rect.top - ICON_OFFSET_Y}px`
-                : `${lineMiddle - ICON_CENTER_Y}px`;
-            handle.style.left = isRTL
-              ? `${rect.right + offsetX - HANDLE_SIZE}px`
-              : `${rect.left - offsetX}px`;
+                ? rect.top - ICON_OFFSET_Y
+                : lineMiddle - ICON_CENTER_Y;
+            const left = isRTL
+              ? rect.right + offsetX - HANDLE_SIZE
+              : rect.left - offsetX;
+
+            // Hide the handle past the viewport edge, such as when an inner
+            // scroll container clips its block, so it does not grow the page.
+            const { clientWidth, clientHeight } = document.documentElement;
+            if (
+              top + HANDLE_SIZE > clientHeight ||
+              left + HANDLE_SIZE > clientWidth
+            ) {
+              handle.classList.remove("visible", "dragging");
+              return;
+            }
+
+            // Position in document coordinates so that the browser scrolls
+            // the handle with the page, rather than after the scroll event.
+            handle.style.top = `${top + window.scrollY}px`;
+            handle.style.left = `${left + window.scrollX}px`;
             handle.classList.remove("dragging");
             handle.classList.add("visible");
           };

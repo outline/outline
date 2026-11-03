@@ -40,7 +40,7 @@ export default class Notice extends Node {
         },
       },
       content:
-        "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
+        "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment | table)+",
       group: "block",
       defining: true,
       draggable: false,

@@ -63,13 +63,13 @@ describe("HeadingPrefixHelper.labels", () => {
   it("labels each level in sequence", () => {
     expect(
       HeadingPrefixHelper.labels([1, 2, 2, 3, 2, 1], HeadingPrefixStyle.Numeric)
-    ).toEqual(["1", "1.1", "1.2", "1.2.1", "1.3", "2"]);
+    ).toEqual(["1.", "1.1", "1.2", "1.2.1", "1.3", "2."]);
   });
 
   it("starts at the first level in use", () => {
     expect(
       HeadingPrefixHelper.labels([3, 4, 2, 3], HeadingPrefixStyle.Alphanumeric)
-    ).toEqual(["1", "1.a", "2", "2.a"]);
+    ).toEqual(["1.", "1.a", "2.", "2.a"]);
   });
 
   it("returns an empty list for no headings", () => {
@@ -83,7 +83,7 @@ describe("HeadingPrefixHelper.labels", () => {
       HeadingPrefixHelper.labels([1, 2, 3, 2, 1], HeadingPrefixStyle.Outline, {
         indented: true,
       })
-    ).toEqual(["I", "A", "1", "B", "II"]);
+    ).toEqual(["I.", "A.", "1.", "B.", "II."]);
   });
 
   it("keeps concatenated labels for other styles in indented displays", () => {
@@ -91,7 +91,7 @@ describe("HeadingPrefixHelper.labels", () => {
       HeadingPrefixHelper.labels([1, 2, 3], HeadingPrefixStyle.Numeric, {
         indented: true,
       })
-    ).toEqual(["1", "1.1", "1.1.1"]);
+    ).toEqual(["1.", "1.1", "1.1.1"]);
   });
 });
 
@@ -111,7 +111,7 @@ describe("HeadingPrefixHelper.labelsInRange", () => {
         0,
         doc.content.size
       )
-    ).toEqual(["1", "1.1", "1.2"]);
+    ).toEqual(["1.", "1.1", "1.2"]);
   });
 
   it("returns only labels of headings that intersect the range", () => {
@@ -132,7 +132,7 @@ describe("HeadingPrefixHelper.labelsInRange", () => {
     // From inside the first heading to inside the paragraph.
     expect(
       HeadingPrefixHelper.labelsInRange(doc, HeadingPrefixStyle.Numeric, 2, 7)
-    ).toEqual(["1"]);
+    ).toEqual(["1."]);
   });
 
   it("ignores headings inside tables", () => {
@@ -148,7 +148,7 @@ describe("HeadingPrefixHelper.labelsInRange", () => {
         0,
         withTable.content.size
       )
-    ).toEqual(["1", "1.1"]);
+    ).toEqual(["1.", "1.1"]);
   });
 });
 
@@ -163,11 +163,11 @@ describe("HeadingPrefixHelper.injectIntoSlice", () => {
 
     const injected = HeadingPrefixHelper.injectIntoSlice(
       slice,
-      ["1", "1.1"],
+      ["1.", "1.1"],
       schema
     );
 
-    expect(injected.content.child(0).textContent).toBe("1 One");
+    expect(injected.content.child(0).textContent).toBe("1. One");
     expect(injected.content.child(1).textContent).toBe("Body");
     expect(injected.content.child(2).textContent).toBe("1.1 Two");
     // The original slice is not modified.
@@ -184,11 +184,11 @@ describe("HeadingPrefixHelper.injectIntoSlice", () => {
 
     const injected = HeadingPrefixHelper.injectIntoSlice(
       slice,
-      ["1", "1.1"],
+      ["1.", "1.1"],
       schema
     );
 
-    expect(injected.content.child(0).textContent).toBe("1 One");
+    expect(injected.content.child(0).textContent).toBe("1. One");
     expect(injected.content.child(1).textContent).toBe("Cell");
     expect(injected.content.child(2).textContent).toBe("1.1 Two");
   });
@@ -197,12 +197,12 @@ describe("HeadingPrefixHelper.injectIntoSlice", () => {
 describe("HeadingPrefix", () => {
   it("numbers headings by their nesting", () => {
     const state = stateFor(HeadingPrefixStyle.Numeric, [1, 2, 2, 3, 2, 1]);
-    expect(labelsIn(state)).toEqual(["1", "1.1", "1.2", "1.2.1", "1.3", "2"]);
+    expect(labelsIn(state)).toEqual(["1.", "1.1", "1.2", "1.2.1", "1.3", "2."]);
   });
 
   it("starts numbering at the first level in use", () => {
     const state = stateFor(HeadingPrefixStyle.Numeric, [2, 3, 2]);
-    expect(labelsIn(state)).toEqual(["1", "1.1", "2"]);
+    expect(labelsIn(state)).toEqual(["1.", "1.1", "2."]);
   });
 
   it("creates no decorations when the style is none", () => {
@@ -215,7 +215,7 @@ describe("HeadingPrefix", () => {
     const next = state.apply(
       state.tr.setMeta(headingPrefixPluginKey, HeadingPrefixStyle.Alphanumeric)
     );
-    expect(labelsIn(next)).toEqual(["1", "1.a"]);
+    expect(labelsIn(next)).toEqual(["1.", "1.a"]);
 
     const cleared = next.apply(
       next.tr.setMeta(headingPrefixPluginKey, HeadingPrefixStyle.None)
@@ -231,7 +231,7 @@ describe("HeadingPrefix", () => {
         schema.nodes.heading.create({ level: 1 }, schema.text("First"))
       )
     );
-    expect(labelsIn(next)).toEqual(["1", "2", "2.1"]);
+    expect(labelsIn(next)).toEqual(["1.", "2.", "2.1"]);
   });
 
   it("does not number headings inside tables", () => {
@@ -244,14 +244,14 @@ describe("HeadingPrefix", () => {
       plugins: new HeadingPrefix({ headingPrefix: HeadingPrefixStyle.Numeric })
         .plugins,
     });
-    expect(labelsIn(state)).toEqual(["1", "1.1"]);
+    expect(labelsIn(state)).toEqual(["1.", "1.1"]);
   });
 });
 
 describe("HeadingPrefixHelper.format", () => {
   it("formats numeric prefixes", () => {
     expect(HeadingPrefixHelper.format([1], HeadingPrefixStyle.Numeric)).toBe(
-      "1"
+      "1."
     );
     expect(HeadingPrefixHelper.format([1, 2], HeadingPrefixStyle.Numeric)).toBe(
       "1.2"
@@ -264,7 +264,7 @@ describe("HeadingPrefixHelper.format", () => {
   it("formats alphanumeric prefixes", () => {
     expect(
       HeadingPrefixHelper.format([1], HeadingPrefixStyle.Alphanumeric)
-    ).toBe("1");
+    ).toBe("1.");
     expect(
       HeadingPrefixHelper.format([1, 2], HeadingPrefixStyle.Alphanumeric)
     ).toBe("1.b");
@@ -278,7 +278,7 @@ describe("HeadingPrefixHelper.format", () => {
 
   it("formats outline prefixes", () => {
     expect(HeadingPrefixHelper.format([4], HeadingPrefixStyle.Outline)).toBe(
-      "IV"
+      "IV."
     );
     expect(HeadingPrefixHelper.format([4, 2], HeadingPrefixStyle.Outline)).toBe(
       "IV.B"
@@ -299,7 +299,7 @@ describe("HeadingPrefixHelper.format", () => {
       HeadingPrefixHelper.format([1, 1, 14], HeadingPrefixStyle.Alphanumeric)
     ).toBe("1.a.xiv");
     expect(HeadingPrefixHelper.format([1949], HeadingPrefixStyle.Outline)).toBe(
-      "MCMXLIX"
+      "MCMXLIX."
     );
   });
 });

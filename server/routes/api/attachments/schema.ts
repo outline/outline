@@ -29,7 +29,7 @@ export const AttachmentsCreateSchema = BaseSchema.extend({
     size: z.number().int().nonnegative(),
 
     /** Content-Type of the Attachment */
-    contentType: z.string().optional().prefault("application/octet-stream"),
+    contentType: z.string().prefault("application/octet-stream"),
 
     /** Attachment type */
     preset: z

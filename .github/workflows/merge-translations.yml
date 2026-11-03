@@ -1,0 +1,44 @@
+name: Merge Translations
+
+on:
+  schedule:
+    # 09:00 UTC every Monday
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  merge-translations:
+    if: github.repository == 'outline/outline'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Squash merge the Crowdin PR when required checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          pr=$(gh pr list \
+            --head translations-main \
+            --author outline-translations \
+            --state open \
+            --json number,headRefOid \
+            --jq '.[0] // empty')
+
+          if [ -z "$pr" ]; then
+            echo "No open translations PR."
+            exit 0
+          fi
+
+          number=$(jq -r '.number' <<< "$pr")
+          sha=$(jq -r '.headRefOid' <<< "$pr")
+
+          if ! gh pr checks "$number" --required; then
+            echo "::error::Required checks are not passing on #$number."
+            exit 1
+          fi
+
+          # Only merge the commit that the checks ran against.
+          gh pr merge "$number" --squash --match-head-commit "$sha"

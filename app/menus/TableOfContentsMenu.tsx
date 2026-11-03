@@ -98,7 +98,11 @@ function TableOfContentsMenu() {
   const rootAction = useMenuAction(actions);
 
   return (
-    <DropdownMenu action={rootAction} ariaLabel={t("Table of contents")}>
+    <DropdownMenu
+      action={rootAction}
+      align="end"
+      ariaLabel={t("Table of contents")}
+    >
       <Button
         icon={<TableOfContentsIcon />}
         aria-label={t("Table of contents")}

@@ -95,7 +95,7 @@ export default class CommentMentionedEmail extends BaseEmail<
 
   protected subject({ document }: Props) {
     return this.t("Mentioned you in “{{ documentTitle }}”", {
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
     });
   }
 
@@ -116,7 +116,7 @@ export default class CommentMentionedEmail extends BaseEmail<
   }: Props): string {
     const action = this.t(
       "{{ actorName }} mentioned you in a comment on “{{ documentTitle }}”",
-      { actorName, documentTitle: document.titleWithDefault }
+      { actorName, documentTitle: document.displayTitle }
     );
     const inCollection = collection.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
@@ -149,12 +149,12 @@ ${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {this.t("{{ actorName }} mentioned you in a comment on", {
               actorName,
             })}{" "}
-            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
+            <a href={threadLink}>{document.displayTitle}</a>{" "}
             {collection.name
               ? this.t("in the {{ collectionName }} collection", {
                   collectionName: collection.name,

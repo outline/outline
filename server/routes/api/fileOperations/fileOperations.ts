@@ -1,5 +1,5 @@
-import Router from "koa-router";
-import type { WhereOptions } from "sequelize";
+import Router from "@koa/router";
+import { Op, type WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -48,6 +48,27 @@ router.post(
     const where: WhereOptions<FileOperation> = {
       teamId: user.teamId,
       type,
+      // Exclude operations on the personal collections of other users.
+      [Op.and]: [
+        {
+          [Op.or]: [
+            { "$collection.ownerId$": null },
+            { "$collection.ownerId$": user.id },
+          ],
+        },
+        {
+          [Op.or]: [
+            { "$document.collection.ownerId$": null },
+            { "$document.collection.ownerId$": user.id },
+          ],
+        },
+        {
+          [Op.or]: [
+            { "options.personalOwnerId": null },
+            { "options.personalOwnerId": user.id },
+          ],
+        },
+      ],
     };
     const team = await Team.findByPk(user.teamId);
     authorize(user, "update", team);

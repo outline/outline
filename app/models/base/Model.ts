@@ -232,15 +232,13 @@ export default abstract class Model {
         if (key === "initialized") {
           continue;
         }
-        // @ts-expect-error TODO
-        if (isEqual(toJS(this[key]), data[key])) {
+        if (isEqual(toJS(Reflect.get(this, key)), data[key])) {
           continue;
         }
         // A field declared without a default does not exist until it is first
         // assigned, so MobX could not annotate it when the model was created.
         addedKeys ||= !(key in this);
-        // @ts-expect-error TODO
-        this[key] = data[key];
+        Reflect.set(this, key, data[key]);
       } catch (error) {
         Logger.warn(`Error setting ${key} on model`, { error });
       }

@@ -32,10 +32,12 @@ import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
+import { PersonalDocs } from "./components/PersonalDocs";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
+import { SidebarNavigationProvider } from "./components/SidebarNavigation";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
@@ -78,6 +80,7 @@ function AppSidebar() {
     [SidebarSection.Starred]: <Starred />,
     [SidebarSection.SharedWithMe]: <SharedWithMe />,
     [SidebarSection.Collections]: <Collections />,
+    [SidebarSection.Personal]: <PersonalDocs />,
   };
 
   return (
@@ -135,16 +138,18 @@ function AppSidebar() {
         </Overflow>
         <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
-            {sectionOrder.map((section) => (
-              <DraggableSection key={section} section={section}>
-                {sectionContent[section]}
-              </DraggableSection>
-            ))}
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
-              </Section>
-            )}
+            <SidebarNavigationProvider>
+              {sectionOrder.map((section) => (
+                <DraggableSection key={section} section={section}>
+                  {sectionContent[section]}
+                </DraggableSection>
+              ))}
+              {can.createDocument && (
+                <Section auto>
+                  <ArchiveLink />
+                </Section>
+              )}
+            </SidebarNavigationProvider>
             <Section>
               {can.createDocument && <TrashLink />}
               <DismissableSidebarAction

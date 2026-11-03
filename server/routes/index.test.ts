@@ -1,7 +1,15 @@
 import { randomUUID } from "node:crypto";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { addMonths, subDays } from "date-fns";
+import {
+  IntegrationService,
+  IntegrationType,
+  TeamPreference,
+} from "@shared/types";
+import { parseSessionsCookie } from "@shared/utils/sessions";
+import { parser } from "@server/editor";
 import env from "@server/env";
 import {
+  buildAttachment,
   buildShare,
   buildDocument,
   buildIntegration,
@@ -10,6 +18,11 @@ import {
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
+
+const botHeaders = {
+  "User-Agent":
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+};
 
 describe("/s/:id", () => {
   it("should return standard title in html when loading unpublished share", async () => {
@@ -54,6 +67,43 @@ describe("/s/:id", () => {
     expect(body).toContain(`<title>${document.title}</title>`);
   });
 
+  it("should allow indexing of a published share that opts in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: true,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<meta name="robots" content="index, follow" />`);
+  });
+
+  it("should prevent indexing of a share that does not opt in", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      allowIndexing: false,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
+  it("should prevent indexing when share does not exist", async () => {
+    const res = await server.get(`/s/junk`);
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`
+    );
+  });
+
   it("should return document title in html when loading published share with nested doc route", async () => {
     const document = await buildDocument();
     const share = await buildShare({
@@ -64,6 +114,60 @@ describe("/s/:id", () => {
     const body = await res.text();
     expect(res.status).toEqual(200);
     expect(body).toContain(`<title>${document.title}</title>`);
+  });
+
+  it("should render document content with signed attachment urls", async () => {
+    const team = await buildTeam();
+    const attachment = await buildAttachment({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      text: `Shared content\n\n![image](${attachment.redirectUrl})`,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`, { headers: botHeaders });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain("Shared content");
+    expect(body).toContain("<img");
+    expect(body).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should not render document content for browsers", async () => {
+    const document = await buildDocument({ text: "Shared content" });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      },
+    });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<title>${document.title}</title>`);
+    expect(body).not.toContain('<div id="content"');
+  });
+
+  it("should render updated content after the document changes", async () => {
+    const document = await buildDocument({ text: "First version" });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const first = await server.get(`/s/${share.id}`, { headers: botHeaders });
+    expect(await first.text()).toContain("First version");
+
+    document.content = parser.parse("Second version")?.toJSON();
+    await document.save();
+    const second = await server.get(`/s/${share.id}`, {
+      headers: botHeaders,
+    });
+    expect(await second.text()).toContain("Second version");
   });
 
   it("should return markdown when Accept header prefers text/markdown", async () => {
@@ -223,6 +327,23 @@ describe("/s/:id", () => {
     expect(body).not.toContain("**Documents**");
     expect(body).not.toContain("[Child Document]");
   });
+
+  it("should return 404 when the share belongs to another team", async () => {
+    const team = await buildTeam({ subdomain: `host-${randomUUID()}` });
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.get(`/s/${share.id}.md`, {
+      headers: { Host: `${team.subdomain}.outline.dev` },
+    });
+    const body = await res.text();
+
+    expect(res.status).toEqual(404);
+    expect(body).not.toContain(document.title);
+  });
 });
 
 describe("content security policy", () => {
@@ -257,6 +378,42 @@ describe("content security policy", () => {
     expect(res.status).toEqual(404);
     expect(csp).toContain("script-src");
     expect(csp).toContain("nonce-");
+  });
+
+  it("should only allow framing of app pages on the same origin", async () => {
+    const res = await server.get("/oauth/authorize?client_id=x");
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
+  it("should allow framing of shares on any origin", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).not.toContain("frame-ancestors");
+  });
+
+  it("should not allow framing of shares when embedding is prevented", async () => {
+    const domain = `embed-${randomUUID()}.example.com`;
+    env.URL = `https://${domain}`;
+    const team = await buildTeam({ domain });
+    team.setPreference(TeamPreference.PreventDocumentEmbedding, true);
+    await team.save();
+    const document = await buildDocument({ teamId: team.id });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: team.id,
+    });
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("frame-ancestors 'self'");
   });
 
   it("should allow the Google Tag Manager script source when integration is enabled", async () => {
@@ -316,6 +473,47 @@ describe("content security policy", () => {
   });
 });
 
+describe("/locales/:lng.json", () => {
+  it("should serve the translation file with cache headers", async () => {
+    const res = await server.get("/locales/en_US.json");
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(res.headers.get("cache-control")).toEqual("public, max-age=604800");
+    expect(res.headers.get("etag")).toBeTruthy();
+    expect(res.headers.get("last-modified")).toBeTruthy();
+    expect(res.headers.get("access-control-allow-origin")).toEqual("*");
+    const body = await res.json();
+    expect(typeof body).toEqual("object");
+  });
+
+  it("should return 404 for an unknown language", async () => {
+    const res = await server.get("/locales/xx_XX.json");
+    expect(res.status).toEqual(404);
+  });
+});
+
+describe("public assets", () => {
+  it.each([
+    "/images/..%2F..%2Fpackage.json",
+    "/fonts/..%2F..%2F..%2Fpackage.json",
+    "/email/%2e%2e%2f%2e%2e%2fpackage.json",
+    "/images/..%5C..%5Cpackage.json",
+  ])(
+    "should not serve files outside the public directory for %s",
+    async (path) => {
+      const res = await server.get(path);
+      expect(res.status).toEqual(403);
+      const body = await res.text();
+      expect(body).not.toContain("dependencies");
+    }
+  );
+
+  it("should reject paths with null bytes", async () => {
+    const res = await server.get("/images/logo.png%00.txt");
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("scanner path 404s", () => {
   it.each([
     "/.well-known/gpc.json",
@@ -335,6 +533,18 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(404);
     expect(body).not.toContain("<title>");
   });
+
+  it.each(["/", "/login", "/some-app-route"])(
+    "prevents indexing of the app shell at %s",
+    async (path) => {
+      const res = await server.get(path);
+      const body = await res.text();
+      expect(res.status).toEqual(200);
+      expect(body).toContain(
+        `<meta name="robots" content="noindex, nofollow" />`
+      );
+    }
+  );
 
   it("still serves the app shell for legitimate unknown paths", async () => {
     const res = await server.get("/some-app-route");
@@ -479,6 +689,111 @@ describe("root domain session redirects", () => {
       expect(res.status).toEqual(200);
     }
   });
+
+  it("should clean and refresh the cookie before rendering the workspace chooser", async () => {
+    const team = await buildTeam({
+      name: "Updated workspace",
+      subdomain: `updated-${randomUUID()}`,
+      domain: `docs-${randomUUID()}.example.com`,
+    });
+    const suspended = await buildTeam({ suspendedAt: new Date() });
+    const loggedOut = await buildTeam();
+    const forgotten = await buildTeam();
+    const expiredAt = subDays(new Date(), 1).toISOString();
+    const lastUsedAt = subDays(new Date(), 2).toISOString();
+    const expiresAt = addMonths(new Date(), 1).toISOString();
+    const stale = {
+      name: "Old workspace",
+      logoUrl: null,
+      url: "https://old.outline.dev",
+      lastUsedAt,
+    };
+    const res = await server.get("/oauth/authorize?client_id=x", {
+      headers: {
+        Host: host,
+        Cookie: `sessions=${encodeURIComponent(
+          JSON.stringify({
+            [team.id]: { ...stale, expiresAt },
+            [suspended.id]: stale,
+            [randomUUID()]: stale,
+            [loggedOut.id]: {
+              ...stale,
+              expiresAt: expiredAt,
+            },
+            [forgotten.id]: {
+              ...stale,
+              lastUsedAt: addMonths(new Date(), -4).toISOString(),
+            },
+            invalid: stale,
+          })
+        )}`,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(200);
+    const cookies = res.headers.raw()["set-cookie"];
+    const cookie = cookies.find((value) => value.startsWith("sessions="));
+    const value = cookie?.split(";")[0].slice("sessions=".length);
+    expect(parseSessionsCookie(decodeURIComponent(value || "{}"))).toEqual({
+      [team.id]: {
+        name: team.name,
+        logoUrl: team.avatarUrl,
+        url: team.url,
+        expiresAt,
+        lastUsedAt,
+      },
+      [loggedOut.id]: {
+        name: loggedOut.name,
+        logoUrl: loggedOut.avatarUrl,
+        url: loggedOut.url,
+        expiresAt: expiredAt,
+        lastUsedAt,
+      },
+    });
+  });
+
+  it.each([false, true])(
+    "should retain an expired workspace without redirecting to it (active workspace: %s)",
+    async (includeActive) => {
+      const expired = await buildTeam({ subdomain: `expired-${randomUUID()}` });
+      const active = await buildTeam({ subdomain: `active-${randomUUID()}` });
+      const expiresAt = subDays(new Date(), 1).toISOString();
+      const sessions = {
+        [expired.id]: {
+          name: expired.name,
+          logoUrl: expired.avatarUrl,
+          url: expired.url,
+          expiresAt,
+          lastUsedAt: subDays(new Date(), 1).toISOString(),
+        },
+        ...(includeActive
+          ? {
+              [active.id]: {
+                name: active.name,
+                logoUrl: active.avatarUrl,
+                url: active.url,
+                expiresAt: addMonths(new Date(), 1).toISOString(),
+                lastUsedAt: subDays(new Date(), 1).toISOString(),
+              },
+            }
+          : {}),
+      };
+      const res = await server.get("/settings/billing", {
+        headers: {
+          Host: host,
+          Cookie: `sessions=${encodeURIComponent(JSON.stringify(sessions))}`,
+        },
+        redirect: "manual",
+      });
+      expect(res.status).toEqual(includeActive ? 302 : 200);
+      expect(res.headers.get("location")).toEqual(
+        includeActive ? `${active.url}/settings/billing` : null
+      );
+      const cookies = res.headers.raw()["set-cookie"];
+      const cookie = cookies?.find((value) => value.startsWith("sessions="));
+      expect(cookie).toBeUndefined();
+    }
+  );
 
   it("should not redirect without a sessions cookie", async () => {
     const res = await server.get("/settings/billing", {

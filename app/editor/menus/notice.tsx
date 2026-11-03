@@ -1,14 +1,9 @@
 import { t } from "i18next";
-import {
-  DoneIcon,
-  ExpandedIcon,
-  InfoIcon,
-  StarredIcon,
-  WarningIcon,
-} from "outline-icons";
+import { ExpandedIcon } from "outline-icons";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
+import { NoticeIcon } from "~/editor/components/NoticeIcon";
 
 /**
  * Returns menu items for the notice/callout selection toolbar.
@@ -39,25 +34,25 @@ export default function noticeMenuItems(ctx: SelectionContext): MenuItem[] {
       children: [
         {
           name: NoticeTypes.Info,
-          icon: <InfoIcon />,
+          icon: <NoticeIcon type={NoticeTypes.Info} />,
           label: t("Info notice"),
           active: () => currentStyle === NoticeTypes.Info,
         },
         {
           name: NoticeTypes.Success,
-          icon: <DoneIcon />,
+          icon: <NoticeIcon type={NoticeTypes.Success} />,
           label: t("Success notice"),
           active: () => currentStyle === NoticeTypes.Success,
         },
         {
           name: NoticeTypes.Warning,
-          icon: <WarningIcon />,
+          icon: <NoticeIcon type={NoticeTypes.Warning} />,
           label: t("Warning notice"),
           active: () => currentStyle === NoticeTypes.Warning,
         },
         {
           name: NoticeTypes.Tip,
-          icon: <StarredIcon />,
+          icon: <NoticeIcon type={NoticeTypes.Tip} />,
           label: t("Tip notice"),
           active: () => currentStyle === NoticeTypes.Tip,
         },

@@ -49,6 +49,27 @@ import Length from "./validators/Length";
   ],
 }))
 @Scopes(() => ({
+  withDrafts: {
+    include: [
+      {
+        association: "user",
+        paranoid: false,
+      },
+      {
+        association: "collection",
+        required: false,
+      },
+      {
+        model: Document.scope("withDrafts"),
+        as: "document",
+        required: false,
+      },
+      {
+        association: "team",
+        required: true,
+      },
+    ],
+  },
   withCollectionPermissions: (userId: string) => ({
     include: [
       {
@@ -56,6 +77,7 @@ import Length from "./validators/Length";
           "id",
           "name",
           "permission",
+          "ownerId",
           "sharing",
           "urlId",
           "teamId",
@@ -81,6 +103,7 @@ import Length from "./validators/Length";
               "id",
               "name",
               "permission",
+              "ownerId",
               "urlId",
               "sharing",
               "teamId",

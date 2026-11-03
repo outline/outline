@@ -220,7 +220,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           autoFocus={!webhookSubscription}
           flex
           label={t("Name")}
-          placeholder={t("A memorable identifer")}
+          placeholder={t("A memorable identifier")}
           {...register("name", {
             required: true,
           })}

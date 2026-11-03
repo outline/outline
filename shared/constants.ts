@@ -19,6 +19,9 @@ export const MAX_AVATAR_DISPLAY = 6;
 /** Height of the app's fixed header in pixels. */
 export const HEADER_HEIGHT = 56;
 
+/** Minimum size of touch targets on mobile in pixels, from Apple's guidelines. */
+export const MOBILE_TOUCH_TARGET = 44;
+
 /** Preset colors offered when choosing an icon color. */
 export const colorPalette = [
   "#4E5C6E",
@@ -51,6 +54,12 @@ export const CSRF = {
   /** Hidden field that carries the token for native form submissions. */
   fieldName: "_csrf",
 };
+
+/**
+ * A collectionId that refers to the personal collection of the current user,
+ * which is created when it does not exist yet.
+ */
+export const PersonalCollectionId = "personal";
 
 /** The maximum number of sub-requests permitted in a single `/batch` request. */
 export const BatchMaxRequests = 25;
@@ -97,6 +106,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
+  [TeamPreference.PersonalDocs]: true,
 };
 
 export const DocumentPreferenceDefaults: DocumentPreferences = {

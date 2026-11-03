@@ -116,7 +116,7 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
   }, [t]);
 
   const copyButton = (
-    <Tooltip content={t("Copy public link")} placement="top">
+    <Tooltip content={t("Copy public link")}>
       <CopyToClipboard text={share?.url ?? ""} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
           <CopyIcon color={theme.placeholder} size={18} />

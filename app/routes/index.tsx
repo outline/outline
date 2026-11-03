@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Switch, Redirect } from "react-router-dom";
+import AsyncEditor from "~/components/AsyncEditor";
 import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
@@ -8,7 +9,7 @@ import env from "~/env";
 import lazy from "@shared/utils/lazyWithRetry";
 import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
-import { useLoggedInSessions } from "~/hooks/useLoggedInSessions";
+import { useWorkspaceSessions } from "~/hooks/useWorkspaceSessions";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { isAppRootDomain } from "~/utils/urls";
 
@@ -24,9 +25,19 @@ const TeamSwitcher = lazy(() =>
   }))
 );
 
+/**
+ * Loads the chunks that a share page renders, so that the first render of the
+ * page does not suspend.
+ *
+ * @returns A promise that resolves when the chunks have loaded.
+ */
+export function preloadShared() {
+  return Promise.all([Shared.preload(), AsyncEditor.preload()]);
+}
+
 export default function Routes() {
   useAutoRefresh();
-  const sessions = useLoggedInSessions();
+  const sessions = useWorkspaceSessions();
 
   // The root domain of a cloud hosted install has no workspace session, so
   // app paths list the signed-in workspaces to continue to.

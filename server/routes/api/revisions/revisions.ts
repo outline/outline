@@ -1,11 +1,11 @@
 import path from "node:path";
-import Router from "koa-router";
+import Router from "@koa/router";
 import contentDisposition from "content-disposition";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
 import { ExportContentType, UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { ValidationError, IncorrectEditionError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";

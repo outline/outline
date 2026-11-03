@@ -1,5 +1,5 @@
 import { IconTitleWrapper } from "@shared/components/Icon";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { first } from "es-toolkit/compat";
 import { Suspense, useCallback } from "react";
 import styled from "styled-components";
@@ -49,7 +49,7 @@ export const Header = observer(function Header_({
     <CollectionIcon collection={collection} size={40} expanded />
   ) : null;
 
-  const dir = isRTL(collection.name) ? "rtl" : "ltr";
+  const dir = isRTL(collection.displayName) ? "rtl" : "ltr";
 
   return (
     <StyledHeading dir={dir}>
@@ -80,7 +80,7 @@ export const Header = observer(function Header_({
           dir="auto"
         />
       ) : (
-        collection.name
+        collection.displayName
       )}
     </StyledHeading>
   );

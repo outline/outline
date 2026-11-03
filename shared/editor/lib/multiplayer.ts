@@ -56,6 +56,19 @@ export function isRemoteTransaction(
 }
 
 /**
+ * Checks if a transaction changed the document locally. Plugins that repair
+ * the document must only respond to local changes, otherwise every connected
+ * client writes the repair and is attributed as an editor.
+ *
+ * @param tr The Prosemirror transaction
+ * @param state The editor state
+ * @returns true if the transaction changed the document and is not remote
+ */
+export function isLocalDocChange(tr: Transaction, state: EditorState): boolean {
+  return tr.docChanged && !isRemoteTransaction(tr, state);
+}
+
+/**
  * Stops the collaborative undo manager from capturing further changes, if
  * the multiplayer extension is mounted in the editor.
  *

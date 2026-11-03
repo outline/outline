@@ -53,7 +53,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
 
   return (
     <>
-      {(!isEditing || !user?.separateEditMode) && (
+      {(!isEditing || !user?.separateEditMode) && !collection.isPersonal && (
         <Action>
           <ShareButton collection={collection} />
         </Action>
@@ -61,11 +61,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       {!isEditing && user?.separateEditMode && (
         <Action>
           <RegisterKeyDown trigger="e" handler={goToEdit} />
-          <Tooltip
-            content={t("Edit collection")}
-            shortcut="e"
-            placement="bottom"
-          >
+          <Tooltip content={t("Edit collection")} shortcut="e" side="bottom">
             <Button icon={<EditIcon />} onClick={goToEdit} neutral>
               {t("Edit")}
             </Button>
@@ -80,7 +76,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       )}
       {can.createDocument && (
         <Action>
-          <Tooltip content={t("New document")} shortcut="n" placement="bottom">
+          <Tooltip content={t("New document")} shortcut="n" side="bottom">
             <Button
               as={Link}
               to={collection ? newDocumentPath(collection.id) : ""}

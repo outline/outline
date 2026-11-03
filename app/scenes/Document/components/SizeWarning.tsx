@@ -1,7 +1,7 @@
 import { WarningIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { DocumentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import Fade from "~/components/Fade";
@@ -27,7 +27,7 @@ export const SizeWarning = ({ document }: Props) => {
         <Centered>
           <strong>{t("Warning")}</strong>
           <br />
-          {t("This document is large which may affect performance")}
+          {t("This document is large, which may affect performance")}
         </Centered>
       }
     >

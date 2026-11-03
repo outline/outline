@@ -80,7 +80,22 @@ export class ConnectionLimitExtension implements Extension {
    * @param data The onConnect payload
    * @returns Promise
    */
-  connected({ documentName, socketId }: withContext<connectedPayload>) {
+  connected({
+    documentName,
+    socketId,
+    instance,
+  }: withContext<connectedPayload>) {
+    // The socket can close while the document loads, in which case
+    // onDisconnect has already run and the socket must not be counted.
+    const isConnected = instance.documents
+      .get(documentName)
+      ?.getConnections()
+      .some((connection) => connection.socketId === socketId);
+
+    if (!isConnected) {
+      return Promise.resolve();
+    }
+
     const connections =
       this.connectionsByDocument.get(documentName) || new Set();
 

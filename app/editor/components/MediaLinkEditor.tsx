@@ -34,10 +34,10 @@ export function MediaLinkEditor({
   const [localUrl, setLocalUrl] = useState(url);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // If we're attempting to edit an image, autofocus the input
-  // Not doing for embed type because it made the editor scroll to top
-  // unexpectedly–leaving that out for now
-  const isEditingImgUrl = node?.type.name === "image";
+  // Image and video nodes store their URL in `src` and autofocus the input.
+  // Embeds use `href` and do not autofocus, as it made the editor scroll to
+  // top unexpectedly–leaving that out for now
+  const isSrcNode = node?.type.name === "image" || node?.type.name === "video";
 
   const moveSelectionToEnd = useCallback(() => {
     const { state, dispatch } = view;
@@ -64,7 +64,7 @@ export function MediaLinkEditor({
 
   const update = useCallback(() => {
     const { state } = view;
-    const hrefType = node?.type.name === "image" ? "src" : "href";
+    const hrefType = isSrcNode ? "src" : "href";
     const tr = state.tr.setNodeMarkup(state.selection.from, undefined, {
       ...node?.attrs,
       [hrefType]: localUrl,
@@ -73,7 +73,7 @@ export function MediaLinkEditor({
     view.dispatch(tr);
     moveSelectionToEnd();
     onLinkUpdate();
-  }, [localUrl, node, view, moveSelectionToEnd, onLinkUpdate]);
+  }, [localUrl, node, isSrcNode, view, moveSelectionToEnd, onLinkUpdate]);
 
   useOnClickOutside(wrapperRef, onClickOutside);
 
@@ -108,7 +108,7 @@ export function MediaLinkEditor({
   return (
     <Wrapper ref={wrapperRef}>
       <Input
-        autoFocus={isEditingImgUrl}
+        autoFocus={isSrcNode}
         value={localUrl}
         placeholder={`${t("Paste a link")}…`}
         onChange={(e) => setLocalUrl(e.target.value)}
@@ -123,7 +123,11 @@ export function MediaLinkEditor({
       {view.editable && (
         <Tooltip
           content={
-            node.type.name === "embed" ? t("Delete embed") : t("Delete image")
+            node.type.name === "embed"
+              ? t("Delete embed")
+              : node.type.name === "video"
+                ? t("Delete video")
+                : t("Delete image")
           }
         >
           <ToolbarButton onClick={remove}>

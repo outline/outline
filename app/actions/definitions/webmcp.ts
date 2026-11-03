@@ -25,12 +25,16 @@ export const getCurrentContext = createAction({
       document: document
         ? {
             id: document.id,
-            title: document.titleWithDefault,
-            path: document.url,
+            title: document.displayTitle,
+            path: document.path,
           }
         : undefined,
       collection: collection
-        ? { id: collection.id, name: collection.name, path: collection.path }
+        ? {
+            id: collection.id,
+            name: collection.displayName,
+            path: collection.path,
+          }
         : undefined,
     });
   },
@@ -65,8 +69,8 @@ export const searchWorkspace = createAction({
     return JSON.stringify(
       results.map((result) => ({
         id: result.document.id,
-        title: result.document.titleWithDefault,
-        path: result.document.url,
+        title: result.document.displayTitle,
+        path: result.document.path,
         context: result.context,
       }))
     );

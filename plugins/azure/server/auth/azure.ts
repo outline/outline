@@ -2,13 +2,12 @@ import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
 import jwt from "jsonwebtoken";
 import type { Request } from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Profile } from "passport";
 import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
@@ -30,6 +29,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { AttachmentPreset } from "@shared/types";
 import { UserFlag } from "@server/models/User";
 import { getEmailVerified } from "./getEmailVerified";
+import { MicrosoftGraphError } from "../errors";
 
 const router = new Router();
 const scopes: string[] = [];
@@ -83,7 +83,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       tenant: env.AZURE_TENANT_ID ? env.AZURE_TENANT_ID : undefined,
       passReqToCallback: true,
       resource: env.AZURE_RESOURCE_APP_ID,
-      // @ts-expect-error StateStore
+      // @ts-expect-error Strategy typings target Express and do not match koa-passport usage
       store: new StateStore(),
       scope: scopes,
     },

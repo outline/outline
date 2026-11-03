@@ -1,5 +1,4 @@
 import { transparentize } from "polished";
-import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
@@ -16,9 +15,8 @@ const StyledText = styled(Text)`
   margin-bottom: 0;
 `;
 
-export const Preview = styled(Link)`
-  cursor: ${(props: { as?: string }) =>
-    props.as === "div" ? "default" : "var(--pointer)"};
+export const Preview = styled.a`
+  cursor: ${(props) => (props.as === "div" ? "default" : "var(--pointer)")};
   border-radius: 4px;
   box-shadow:
     0 30px 90px -20px rgba(0, 0, 0, 0.3),
@@ -144,7 +142,7 @@ export const BreadcrumbContainer = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  
+
   /* Adds a subtle separator between path items */
   span:not(:last-child)::after {
     content: "/";

@@ -1,8 +1,12 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { FindOptions } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import { Team, User } from "@server/models";
+import Redis from "@server/storage/redis";
 import { AuthenticationError, UserSuspendedError } from "../errors";
+import { hash } from "./crypto";
+import { RedisPrefixHelper } from "./RedisPrefixHelper";
 import type { Context } from "koa";
 
 /**
@@ -106,12 +110,13 @@ export async function getUserForJWT(
 
 /**
  * Retrieves the user associated with an email sign-in token, validating the
- * token's type, expiration, and originating IP address.
+ * token's type, expiration, and originating IP address. A valid token is
+ * marked as used, so each token can only be redeemed once.
  *
  * @param ctx the Koa context of the current request.
  * @param token the email sign-in token to validate.
  * @returns the user associated with the token.
- * @throws AuthenticationError if the token is invalid, expired, or from a different IP.
+ * @throws AuthenticationError if the token is invalid, expired, from a different IP, or already used.
  */
 export async function getUserForEmailSigninToken(
   ctx: Context,
@@ -142,6 +147,18 @@ export async function getUserForEmailSigninToken(
     JWT.verify(token, user.jwtSecret);
   } catch (_err) {
     throw AuthenticationError("Invalid token");
+  }
+
+  // Atomically claim the token so concurrent requests cannot both redeem it.
+  const claimed = await Redis.defaultClient.set(
+    RedisPrefixHelper.getEmailSigninTokenKey(hash(token)),
+    "1",
+    "PX",
+    Minute.ms * 10,
+    "NX"
+  );
+  if (!claimed) {
+    throw AuthenticationError("Token has already been used");
   }
 
   return user;

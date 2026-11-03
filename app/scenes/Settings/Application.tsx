@@ -292,7 +292,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
               value={oauthClient.clientSecret}
               readOnly
             >
-              <Tooltip content={t("Rotate secret")} placement="top">
+              <Tooltip content={t("Rotate secret")}>
                 <NudeButton type="button" onClick={handleRotateSecret}>
                   <ReplaceIcon size={20} />
                 </NudeButton>

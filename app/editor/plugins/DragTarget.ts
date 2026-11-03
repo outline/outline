@@ -200,18 +200,28 @@ export class DragTarget {
 
   /**
    * Whether the editor shows its own controls for this block, which would
-   * overlap the drag handle, e.g. a table that holds the selection.
+   * overlap the drag handle, e.g. a table that holds the selection or an
+   * empty paragraph that shows the block menu trigger.
    *
    * @param state - the editor state.
    * @returns true if the drag handle should be hidden for this block.
    */
   public hasOwnControls(state: EditorState): boolean {
     const node = state.doc.nodeAt(this.pos);
-    if (node?.type.name !== "table") {
-      return false;
+    const { $from, from, to } = state.selection;
+
+    switch (node?.type.name) {
+      case "table":
+        return from > this.pos && to < this.pos + node.nodeSize;
+      case "paragraph":
+        return (
+          node.content.size === 0 &&
+          $from.depth === 1 &&
+          $from.before() === this.pos
+        );
+      default:
+        return false;
     }
-    const { from, to } = state.selection;
-    return from > this.pos && to < this.pos + node.nodeSize;
   }
 
   /**

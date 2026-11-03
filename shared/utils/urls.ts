@@ -1,4 +1,5 @@
 import { escapeRegExp } from "es-toolkit/compat";
+import isUUID from "validator/lib/isUUID";
 import env from "../env";
 import { isBrowser } from "./browser";
 import { parseDomain } from "./domains";
@@ -88,6 +89,41 @@ export function isCollectionUrl(url: string) {
     return isInternalUrl(url) && parsed.pathname.startsWith("/collection/");
   } catch (_err) {
     return false;
+  }
+}
+
+/**
+ * Converts a signed attachment url from this instance, which expires, to the
+ * stable attachment redirect url. The signature is not verified.
+ *
+ * @param url The url to convert.
+ * @returns The attachment redirect url, or undefined if the url is not a signed
+ * attachment url.
+ */
+export function signedUrlToAttachmentUrl(url: string): string | undefined {
+  try {
+    const parsed = new URL(url, isBrowser ? window.location.href : env.URL);
+    const sig = parsed.searchParams.get("sig");
+    if (
+      !isInternalUrl(parsed.href) ||
+      parsed.pathname !== "/api/files.get" ||
+      !sig
+    ) {
+      return;
+    }
+
+    const payload = JSON.parse(
+      atob(sig.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+    );
+    if (payload?.type !== "attachment" || typeof payload.key !== "string") {
+      return;
+    }
+
+    // Attachment keys are in the format bucket/userId/id/name.
+    const id = payload.key.split("/")[2];
+    return isUUID(id) ? `/api/attachments.redirect?id=${id}` : undefined;
+  } catch (_err) {
+    return;
   }
 }
 
@@ -193,6 +229,46 @@ export function isPrivateUseSchemeUrl(text: string) {
 
   // Require a destination after the scheme, e.g. reject a bare "myapp:".
   return !!url.host || (url.pathname !== "" && url.pathname !== "/");
+}
+
+/**
+ * Check if a URI is a loopback address (localhost, 127.0.0.1, or [::1]).
+ *
+ * @param uri - the redirect URI to check.
+ * @returns true if the URI targets a loopback address.
+ */
+export function isLoopbackUri(uri: string | undefined): boolean {
+  if (!uri) {
+    return false;
+  }
+  try {
+    const url = new URL(uri);
+    return (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "[::1]"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns the hostname of a URL. Internationalized hostnames are returned in
+ * their punycode form.
+ *
+ * @param url the URL to parse.
+ * @returns the hostname, or undefined if the URL cannot be parsed.
+ */
+export function getHostname(url: string | undefined): string | undefined {
+  if (!url) {
+    return undefined;
+  }
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
 }
 
 /**

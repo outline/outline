@@ -199,6 +199,32 @@ describe("AuthenticationExtension", () => {
     expect(connection.close).not.toHaveBeenCalled();
   });
 
+  it("should refuse document names that are not canonical", async () => {
+    const { document, user } = await buildPrivateCollection();
+    const authenticate = (documentName: string) =>
+      extension.onAuthenticate({
+        token: user.getCollaborationToken(),
+        documentName,
+        connection: { readOnly: false },
+      } as onAuthenticatePayload);
+
+    await expect(
+      authenticate(`document.${document.id.toUpperCase()}`)
+    ).rejects.toThrow("Invalid document name");
+    await expect(authenticate(`document.${document.urlId}`)).rejects.toThrow(
+      "Invalid document name"
+    );
+    await expect(authenticate(`document.${document.id}.copy`)).rejects.toThrow(
+      "Invalid document name"
+    );
+    await expect(authenticate(`other.${document.id}`)).rejects.toThrow(
+      "Invalid document name"
+    );
+    await expect(
+      authenticate(`document.${document.id}`)
+    ).resolves.toBeDefined();
+  });
+
   it("should keep the token expiry in the connection context", async () => {
     const { document, user } = await buildPrivateCollection();
 

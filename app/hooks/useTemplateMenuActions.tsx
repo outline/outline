@@ -47,10 +47,7 @@ export function useTemplateMenuActions({
   const templateToAction = useCallback(
     (template: Template): Action =>
       createAction({
-        name: TextHelper.replaceTemplateVariables(
-          template.titleWithDefault,
-          user
-        ),
+        name: TextHelper.replaceTemplateVariables(template.displayTitle, user),
         section: DocumentsSection,
         icon: template.icon ? (
           <Icon

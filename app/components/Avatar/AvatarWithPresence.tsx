@@ -82,7 +82,7 @@ function AvatarWithPresence({
   // real user, there's no profile to show for it.
   if (!(user instanceof User)) {
     return (
-      <Tooltip content={<Centered>{name}</Centered>} placement="bottom">
+      <Tooltip content={<Centered>{name}</Centered>} side="bottom">
         {avatar}
       </Tooltip>
     );

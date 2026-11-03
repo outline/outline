@@ -4,11 +4,8 @@ import type { FunctionComponent } from "react";
 import { flushSync } from "react-dom";
 import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
-import {
-  type ServerStyleSheet,
-  StyleSheetManager,
-  ThemeProvider,
-} from "styled-components";
+import { type ServerStyleSheet, ThemeProvider } from "styled-components";
+import { StyleSheetProvider } from "@shared/components/StyleSheetProvider";
 import type { ComponentProps } from "@shared/editor/types";
 import light from "@shared/styles/theme";
 
@@ -79,11 +76,11 @@ export class ComponentView implements NodeView {
     // immediately after.
     flushSync(() => {
       this.root.render(
-        <StyleSheetManager sheet={sheet.instance}>
+        <StyleSheetProvider sheet={sheet.instance}>
           <ThemeProvider theme={light}>
             <Component {...props} />
           </ThemeProvider>
-        </StyleSheetManager>
+        </StyleSheetProvider>
       );
     });
   }

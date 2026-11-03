@@ -99,6 +99,10 @@ export interface FlattenedTreeNode {
   trailingAncestors: FlattenedTreeNode[];
 }
 
+// Shared so that rows without trailing ancestors keep equal props between
+// flattens.
+const noAncestors: FlattenedTreeNode[] = [];
+
 /**
  * Flattens the expanded part of a navigation tree into a list of nodes in
  * display order. The children of a node are included only when it is expanded.
@@ -142,7 +146,7 @@ export const flattenExpandedTree = ({
         trailingAncestors:
           parent && index === siblings.length - 1
             ? [parent, ...parent.trailingAncestors]
-            : [],
+            : noAncestors,
       };
       flattened.push(item);
 

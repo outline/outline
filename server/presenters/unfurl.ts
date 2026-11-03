@@ -8,7 +8,7 @@ import { View } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { opts } from "@server/utils/i18n";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
 type UnfurlData = Record<string, any>;
 
 interface UnfurlOptions {
@@ -114,7 +114,7 @@ const presentDocument = (
     url: url ?? `${document.url}${anchor ?? ""}`,
     type: UnfurlResourceType.Document,
     id: document.id,
-    title: document.titleWithDefault,
+    title: document.displayTitle,
     summary: sectionSummary || document.getSummary(),
     lastActivityByViewer: viewer
       ? presentLastActivityInfoFor(document, viewer)

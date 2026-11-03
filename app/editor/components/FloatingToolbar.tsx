@@ -56,7 +56,7 @@ function usePosition({
 
   // Measure the menu width after DOM updates to ensure accurate positioning.
   // Runs after every render by design, the width comparison prevents a loop.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     if (menuRef.current) {
       const width = menuRef.current.offsetWidth;
@@ -65,6 +65,11 @@ function usePosition({
       }
     }
   });
+
+  // Measuring the selection forces a layout, so skip it while hidden.
+  if (!active || !menuRef.current) {
+    return defaultPosition;
+  }
 
   // based on the start and end of the selection calculate the position at
   // the center top
@@ -122,10 +127,6 @@ function usePosition({
       selectionBounds.left = bounds.right;
       selectionBounds.right = bounds.right;
     }
-  }
-
-  if (!active || !menuRef.current || !menuHeight) {
-    return defaultPosition;
   }
 
   // tables are an oddity, and need their own positioning logic

@@ -1,9 +1,11 @@
+import Router from "@koa/router";
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
 import { Event, TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import SyncUserGroupsTask from "@server/queues/tasks/SyncUserGroupsTask";
 import {
   buildUser,
@@ -12,6 +14,7 @@ import {
   buildSubdomain,
 } from "@server/test/factories";
 import { mockTaskSchedule, setSelfHosted } from "@server/test/support";
+import { Hook } from "@server/utils/PluginManager";
 import accountProvisioner from "./accountProvisioner";
 import { createContext } from "@server/context";
 
@@ -299,6 +302,107 @@ describe("accountProvisioner", () => {
       expect(
         error instanceof Error && "id" in error ? error.id : undefined
       ).toEqual("invalid_authentication");
+    });
+
+    it("should allow authentication by email matching from another tenant when the provider allows it", async () => {
+      const spy = vi
+        .spyOn(AuthenticationHelper, "providers", "get")
+        .mockReturnValue([
+          {
+            type: Hook.AuthProvider,
+            value: {
+              router: new Router(),
+              id: "google",
+              allowEmailMatch: true,
+            },
+          },
+        ]);
+      const subdomain = buildSubdomain();
+      const existingTeam = await buildTeam({
+        subdomain,
+        authenticationProviders: [
+          {
+            name: "google",
+            providerId: faker.internet.domainName(),
+          },
+        ],
+      });
+      const email = faker.internet.email();
+      const existingUser = await buildUser({
+        email,
+        teamId: existingTeam.id,
+      });
+
+      try {
+        const { user } = await accountProvisioner(ctx, {
+          user: {
+            name: existingUser.name,
+            email,
+            emailVerified: true,
+          },
+          team: {
+            teamId: existingTeam.id,
+            subdomain,
+          },
+          authenticationProvider: {
+            name: "google",
+            providerId: faker.internet.domainName(),
+          },
+          authentication: {
+            providerId: randomUUID(),
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        });
+        expect(user.id).toEqual(existingUser.id);
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it("should not allow authentication by email matching from another tenant when the provider does not allow it", async () => {
+      const subdomain = buildSubdomain();
+      const existingTeam = await buildTeam({
+        subdomain,
+      });
+      const email = faker.internet.email();
+      const existingUser = await buildUser({
+        email,
+        teamId: existingTeam.id,
+      });
+
+      let error;
+      try {
+        await accountProvisioner(ctx, {
+          user: {
+            name: existingUser.name,
+            email,
+            emailVerified: true,
+          },
+          team: {
+            teamId: existingTeam.id,
+            subdomain,
+          },
+          authenticationProvider: {
+            name: "slack",
+            providerId: randomUUID(),
+          },
+          authentication: {
+            providerId: randomUUID(),
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(
+        error instanceof Error && "id" in error ? error.id : undefined
+      ).toEqual("invalid_authentication");
+      expect(
+        await UserAuthentication.count({ where: { userId: existingUser.id } })
+      ).toEqual(1);
     });
 
     it("should throw an error when authentication provider is disabled", async () => {

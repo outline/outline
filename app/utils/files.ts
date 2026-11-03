@@ -1,8 +1,10 @@
 import invariant from "invariant";
+import type { Accept } from "react-dropzone";
 import { AttachmentPreset } from "@shared/types";
 import { dataUrlToBlob } from "@shared/utils/files";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
+import { NetworkError } from "./errors";
 
 type UploadOptions = {
   /** The user generated ID of the file */
@@ -73,22 +75,20 @@ export const uploadFile = async (
       }
     });
     xhr.addEventListener("error", () => {
-      const extra = {
-        status: xhr.status,
-        statusText: xhr.statusText,
-        contentType: file.type,
-        size: file.size,
-      };
-
+      // The request received no response, which is thrown as a network error.
       if (xhr.status === 0) {
-        Logger.warn("File upload failed before response", extra);
         return;
       }
 
       Logger.error(
         "File upload failed",
         new Error(`${xhr.status} ${xhr.statusText}`),
-        extra
+        {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          contentType: file.type,
+          size: file.size,
+        }
       );
     });
     xhr.addEventListener("loadend", () => {
@@ -107,20 +107,13 @@ export const uploadFile = async (
           xhr.setRequestHeader(key, value);
         }
       }
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo...
-      xhr.send(file.blob ? file.file : file);
+      xhr.send(file);
     } else {
       const formData = new FormData();
       for (const key in data.form) {
         formData.append(key, data.form[key]);
       }
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo...
-      if (file.blob) {
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo...
-        formData.append("file", file.file);
-      } else {
-        formData.append("file", file);
-      }
+      formData.append("file", file);
 
       // Do not send credentials if uploading to a different origin, as the
       // combination of CORS and cookies will cause preflight request failure.
@@ -140,13 +133,35 @@ export const uploadFile = async (
   });
 
   if (!success) {
-    throw new Error("Upload failed");
+    throw xhr.status === 0
+      ? new NetworkError("Upload failed")
+      : new Error("Upload failed");
   }
 
   return attachment;
 };
 
 export { dataUrlToBlob };
+
+/**
+ * Converts a list of mime types and file extensions to the accept map used by
+ * react-dropzone. The map is flattened into a single accept attribute, so the
+ * extensions are grouped under the first mime type.
+ *
+ * @param types the mime types and file extensions, such as "image/png" or ".png".
+ * @returns the accept map.
+ */
+export const toDropzoneAccept = (types: readonly string[]): Accept => {
+  const mimeTypes = types.filter((type) => !type.startsWith("."));
+  const extensions = types.filter((type) => type.startsWith("."));
+
+  return Object.fromEntries(
+    mimeTypes.map((mimeType, index) => [
+      mimeType,
+      index === 0 ? extensions : [],
+    ])
+  );
+};
 
 /**
  * Header names the browser controls itself - it silently ignores an attempt to

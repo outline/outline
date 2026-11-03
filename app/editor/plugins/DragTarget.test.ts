@@ -90,4 +90,18 @@ describe("DragTarget#hasOwnControls", () => {
     const paragraph = new DragTarget(0, document.createElement("div"), "block");
     expect(paragraph.hasOwnControls(state)).toBe(false);
   });
+
+  it("returns true for an empty paragraph that holds the selection", () => {
+    const emptyDoc = doc([p("one"), p("")]);
+    const state = createEditorStateWithSelection(emptyDoc, 6);
+    const paragraph = new DragTarget(5, document.createElement("div"), "block");
+    expect(paragraph.hasOwnControls(state)).toBe(true);
+  });
+
+  it("returns false for an empty paragraph without the selection", () => {
+    const emptyDoc = doc([p("one"), p("")]);
+    const state = createEditorStateWithSelection(emptyDoc, 2);
+    const paragraph = new DragTarget(5, document.createElement("div"), "block");
+    expect(paragraph.hasOwnControls(state)).toBe(false);
+  });
 });

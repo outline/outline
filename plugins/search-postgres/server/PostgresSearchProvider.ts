@@ -8,7 +8,7 @@ import type {
   Order,
   WhereOptions,
 } from "sequelize";
-import { Op, Sequelize } from "sequelize";
+import { Op, QueryTypes, Sequelize } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import type { SearchableModel } from "@shared/types";
 import { DirectionFilter, SortFilter } from "@shared/types";
@@ -40,6 +40,28 @@ type RankedDocument = Document & {
   };
 };
 
+type SearchWhere = WhereOptions<Document> & {
+  [Op.or]: WhereOptions<Document>[];
+  [Op.and]: WhereOptions<Document>[];
+};
+
+interface RankedSearchOptions {
+  where: SearchWhere;
+  query?: string;
+  sort?: SortFilter;
+  direction?: DirectionFilter;
+  usePopularityBoost?: boolean;
+  limit: number;
+  offset: number;
+}
+
+interface RankedSearch {
+  query?: string;
+  results: RankedDocument[];
+  where: SearchWhere;
+  replacements?: BindOrReplacements;
+}
+
 /**
  * Search provider that uses PostgreSQL full-text search via tsvector.
  * Indexing is handled by database triggers, so index/remove/updateMetadata
@@ -62,6 +84,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
    * Cached regex pattern for quoted queries.
    */
   private static readonly QUOTED_QUERY_REGEX = /"([^"]*)"/g;
+
+  /**
+   * Cached regex pattern for identifier-like terms, words joined by "." or "_".
+   */
+  private static readonly IDENTIFIER_REGEX =
+    /^[\p{L}\p{N}]+(?:[._][\p{L}\p{N}]+)+$/u;
 
   /**
    * Cached regex pattern for break characters.
@@ -229,17 +257,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       });
     }
 
-    const findOptions = PostgresSearchProvider.buildFindOptions({
-      query,
-      sort: options.sort,
-      direction: options.direction,
-      usePopularityBoost: options.usePopularityBoost,
-    });
-
     try {
-      const results = await PostgresSearchProvider.findRankedResults({
-        findOptions,
+      const search = await PostgresSearchProvider.rankedSearch({
         where,
+        query,
+        sort: options.sort,
+        direction: options.direction,
+        usePopularityBoost: options.usePopularityBoost,
         limit,
         offset,
       });
@@ -248,7 +272,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       const [documents, count] = await Promise.all([
         Document.findAll({
           where: {
-            id: map(results, "id"),
+            id: map(search.results, "id"),
             teamId: team.id,
           },
           include: [
@@ -259,17 +283,17 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
           ],
         }),
         PostgresSearchProvider.countResults({
-          results,
+          results: search.results,
           limit,
           offset,
-          replacements: findOptions.replacements,
-          where,
+          replacements: search.replacements,
+          where: search.where,
         }),
       ]);
 
       return PostgresSearchProvider.buildResponse({
-        query,
-        results,
+        query: search.query,
+        results: search.results,
         documents,
         count,
       });
@@ -349,16 +373,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     const where = await PostgresSearchProvider.buildWhere(user, options);
 
-    const findOptions = PostgresSearchProvider.buildFindOptions({
-      query,
-      sort: options.sort,
-      direction: options.direction,
-    });
-
     try {
-      const results = await PostgresSearchProvider.findRankedResults({
-        findOptions,
+      const search = await PostgresSearchProvider.rankedSearch({
         where,
+        query,
+        sort: options.sort,
+        direction: options.direction,
         limit,
         offset,
       });
@@ -368,21 +388,21 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         Document.withMembershipScope(user.id, { includeDrafts: true }).findAll({
           where: {
             teamId: user.teamId,
-            id: map(results, "id"),
+            id: map(search.results, "id"),
           },
         }),
         PostgresSearchProvider.countResults({
-          results,
+          results: search.results,
           limit,
           offset,
-          replacements: findOptions.replacements,
-          where,
+          replacements: search.replacements,
+          where: search.where,
         }),
       ]);
 
       return PostgresSearchProvider.buildResponse({
-        query,
-        results,
+        query: search.query,
+        results: search.results,
         documents,
         count,
       });
@@ -441,6 +461,114 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }
 
   /**
+   * Runs the ranked search. When an unquoted query matches no documents, the
+   * search runs again with the query quoted, which is slower but also matches
+   * text that the full-text index does not. Queries shorter than two
+   * characters or made only of stop words are not retried.
+   */
+  private static async rankedSearch(
+    options: RankedSearchOptions
+  ): Promise<RankedSearch> {
+    const search = await PostgresSearchProvider.runRankedSearch(options);
+    const { query } = options;
+
+    if (search.results.length || !query || query.includes('"')) {
+      return search;
+    }
+
+    // URLs already match as literal text, so only the remaining text is quoted.
+    const urls = getUrls(query);
+    const text = urls
+      .reduce((q, url) => q.replace(url, " "), query)
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, PostgresSearchProvider.maxQueryLength - 2)
+      .trim();
+
+    if (
+      text.length < 2 ||
+      (await PostgresSearchProvider.isOnlyStopWords(text))
+    ) {
+      return search;
+    }
+
+    // An empty page past the first can still follow earlier matches.
+    if (options.offset) {
+      const count = await PostgresSearchProvider.countResults({
+        results: search.results,
+        limit: options.limit,
+        offset: options.offset,
+        replacements: search.replacements,
+        where: search.where,
+      });
+      if (count) {
+        return search;
+      }
+    }
+
+    return PostgresSearchProvider.runRankedSearch({
+      ...options,
+      query: [`"${text}"`, ...urls].join(" "),
+    });
+  }
+
+  /**
+   * Returns true when the full-text parser keeps no terms from the query, as
+   * Postgres drops stop words.
+   */
+  private static async isOnlyStopWords(query: string): Promise<boolean> {
+    const [row] = await sequelizeReadOnly.query<{ nodes: number }>(
+      `SELECT numnode(to_tsquery('english', :query)) AS nodes`,
+      {
+        replacements: {
+          query: PostgresSearchProvider.webSearchQuery(query),
+        },
+        type: QueryTypes.SELECT,
+      }
+    );
+    return row?.nodes === 0;
+  }
+
+  private static async runRankedSearch({
+    where,
+    query,
+    sort,
+    direction,
+    usePopularityBoost,
+    limit,
+    offset,
+  }: RankedSearchOptions): Promise<RankedSearch> {
+    const findOptions = PostgresSearchProvider.buildFindOptions({
+      query,
+      sort,
+      direction,
+      usePopularityBoost,
+    });
+    const queryWhere: SearchWhere = query
+      ? {
+          ...where,
+          [Op.and]: [
+            ...where[Op.and],
+            ...PostgresSearchProvider.buildQueryWhere(query),
+          ],
+        }
+      : where;
+    const results = await PostgresSearchProvider.findRankedResults({
+      findOptions,
+      where: queryWhere,
+      limit,
+      offset,
+    });
+
+    return {
+      query,
+      results,
+      where: queryWhere,
+      replacements: findOptions.replacements,
+    };
+  }
+
+  /**
    * Executes the ranked search query inside a transaction opened on the
    * read-replica connection, offloading the most expensive query from the
    * primary. The transaction also ensures the statement timeout for
@@ -495,7 +623,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     return sequelizeReadOnly.transaction(
       (transaction) =>
         Document.unscoped().count({
-          // @ts-expect-error Types are incorrect for count
           replacements,
           where,
           transaction,
@@ -626,10 +753,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
   private static async buildWhere(model: User | Team, options: SearchOptions) {
     const teamId = model instanceof Team ? model.id : model.teamId;
-    const where: WhereOptions<Document> & {
-      [Op.or]: WhereOptions<Document>[];
-      [Op.and]: WhereOptions<Document>[];
-    } = {
+    const where: SearchWhere = {
       teamId,
       [Op.or]: [],
       [Op.and]: [
@@ -707,65 +831,114 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       where[Op.and].push(buildSearchWhere<Document>(filter));
     }
 
-    if (options.query) {
-      // find words that look like urls, these should be treated separately as the postgres full-text
-      // index will generally not match them.
-      let likelyUrls = getUrls(options.query);
+    return where;
+  }
 
-      // remove likely urls, and escape the rest of the query.
-      let limitedQuery = PostgresSearchProvider.escapeQuery(
-        likelyUrls
-          .reduce((q, url) => q.replace(url, ""), options.query)
-          .slice(0, PostgresSearchProvider.maxQueryLength)
-          .trim()
-      );
+  /**
+   * Builds the conditions that match documents to a search query.
+   *
+   * @param query the user search query.
+   * @returns the where conditions.
+   */
+  private static buildQueryWhere(query: string): WhereOptions<Document>[] {
+    const conditions: WhereOptions<Document>[] = [];
 
-      // Escape the URLs
-      likelyUrls = likelyUrls.map((url) =>
-        PostgresSearchProvider.escapeQuery(url)
-      );
+    // find words that look like urls, these should be treated separately as the postgres full-text
+    // index will generally not match them.
+    const likelyUrls = getUrls(query);
 
-      // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
-      const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
-        (match) => match[1]
-      );
+    // remove likely urls from the query.
+    let limitedQuery = likelyUrls
+      .reduce((q, url) => q.replace(url, ""), query)
+      .slice(0, PostgresSearchProvider.maxQueryLength)
+      .trim();
 
-      // remove quoted queries from the limited query
-      limitedQuery = limitedQuery.replace(/"([^"]*)"/g, "");
+    // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
+    const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
+      (match) => match[1]
+    );
 
-      const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
+    // remove quoted queries from the limited query
+    limitedQuery = limitedQuery.replace(/"([^"]*)"/g, "");
 
-      for (const match of iLikeQueries) {
-        // only escape % and _ as backslashes were already escaped above.
-        const pattern = `%${match.replace(/[%_]/g, "\\$&")}%`;
-        where[Op.and].push({
-          [Op.or]: [
-            {
-              title: {
-                [Op.iLike]: pattern,
-              },
-            },
-            {
-              text: {
-                [Op.iLike]: pattern,
-              },
-            },
-          ],
-        });
-      }
+    const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
 
-      if (limitedQuery || iLikeQueries.length === 0) {
-        where[Op.and].push(
-          Sequelize.fn(
-            `"searchVector" @@ to_tsquery`,
-            "english",
-            Sequelize.literal(":query")
-          )
-        );
-      }
+    for (const match of iLikeQueries) {
+      conditions.push(PostgresSearchProvider.buildContainsMatch(match));
     }
 
-    return where;
+    if (limitedQuery || iLikeQueries.length === 0) {
+      conditions.push(PostgresSearchProvider.buildTextMatch(limitedQuery));
+    }
+
+    return conditions;
+  }
+
+  /**
+   * Builds the full-text condition for the unquoted part of a query. Terms
+   * that look like identifiers, such as "config.ws_value", also match as
+   * literal text, as the postgres parser does not always split them into the
+   * same lexemes in a document as in a query.
+   *
+   * @param query the unquoted part of the user search query.
+   * @returns the where condition.
+   */
+  private static buildTextMatch(query: string): WhereOptions<Document> {
+    const fullTextMatch = Sequelize.fn(
+      `"searchVector" @@ to_tsquery`,
+      "english",
+      Sequelize.literal(":query")
+    );
+    const terms = query.split(/\s+/).filter(Boolean);
+    const identifiers = terms
+      .filter((term) => PostgresSearchProvider.IDENTIFIER_REGEX.test(term))
+      .slice(0, 3);
+
+    if (!identifiers.length) {
+      return fullTextMatch;
+    }
+
+    const conditions: WhereOptions<Document>[] = identifiers.map((term) =>
+      PostgresSearchProvider.buildContainsMatch(term)
+    );
+    const remainder = terms
+      .filter((term) => !identifiers.includes(term))
+      .join(" ");
+
+    if (remainder) {
+      const remainderQuery = Sequelize.fn(
+        "to_tsquery",
+        "english",
+        PostgresSearchProvider.webSearchQuery(remainder)
+      );
+
+      // a remainder of only stop words gives an empty tsquery, which matches nothing.
+      conditions.push({
+        [Op.or]: [
+          Sequelize.fn(`"searchVector" @@`, remainderQuery),
+          Sequelize.where(Sequelize.fn("numnode", remainderQuery), 0),
+        ],
+      });
+    }
+
+    return { [Op.or]: [fullTextMatch, { [Op.and]: conditions }] };
+  }
+
+  /**
+   * Builds a condition that matches documents whose title or text contains
+   * the term as literal, case-insensitive text.
+   *
+   * @param term the term to match.
+   * @returns the where condition.
+   */
+  private static buildContainsMatch(term: string): WhereOptions<Document> {
+    const pattern = QueryHelper.likeContains(term);
+    return {
+      [Op.or]: [
+        { title: { [Op.iLike]: pattern } },
+        { text: { [Op.iLike]: pattern } },
+      ],
+    };
   }
 
   private static buildResponse({
@@ -852,13 +1025,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         // combination, so we never hand to_tsquery an operator with no
         // operand (e.g. a tail of "&\" would leave a dangling "&").
         .replace(/[&\\]+$/, "")
+        // A leading single quote can also leave a join with no operand.
+        .replace(/^&+/, "")
     );
-  }
-
-  private static escapeQuery(query: string): string {
-    // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-    // see: https://github.com/sequelize/sequelize/issues/2950
-    return query.replace(/\\/g, "\\\\");
   }
 
   /**

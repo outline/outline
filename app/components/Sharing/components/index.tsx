@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export { GroupMembersPopover } from "./GroupMembersPopover";
 
-// TODO: Temp until Button/NudeButton styles are normalized
+// Highlights nude buttons within sharing popovers on hover or while expanded.
 export const Wrapper = styled.div`
   ${NudeButton}:${hover},
   ${NudeButton}[aria-expanded="true"] {

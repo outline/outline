@@ -1,5 +1,7 @@
 import type { Context } from "koa";
+import isURL from "validator/lib/isURL";
 import type { OAuthClientValidation } from "@shared/validations";
+import { isLoopbackUri, isPrivateUseSchemeUrl } from "@shared/utils/urls";
 import env from "@server/env";
 
 type ClientType = (typeof OAuthClientValidation.clientTypes)[number];
@@ -53,6 +55,80 @@ export class OAuthHelper {
     clientType: ClientType
   ): (typeof OAuthHelper.tokenEndpointAuthMethods)[number] {
     return clientType === "confidential" ? "client_secret_post" : "none";
+  }
+
+  /**
+   * Whether a URI is acceptable as an OAuth redirect URI. HTTPS is required,
+   * except for loopback addresses (RFC 8252 §7.3) and private-use schemes
+   * (RFC 8252 §7.1) used by native apps. Fragments and wildcards are rejected.
+   *
+   * @param uri - the redirect URI to validate.
+   * @returns true if the URI is valid.
+   */
+  public static isValidRedirectUri(uri: string): boolean {
+    if (/[\s#*]/.test(uri)) {
+      return false;
+    }
+
+    // The recommended private-use form, e.g. com.example.app:/oauth2redirect,
+    // has no host so it is checked separately.
+    if (isPrivateUseSchemeUrl(uri)) {
+      return true;
+    }
+
+    // Matches the syntax check of the IsUrlList model validator, and requires
+    // the "//" authority delimiter that new URL() would otherwise repair.
+    if (
+      !/^https?:\/\//i.test(uri) ||
+      !isURL(uri, {
+        protocols: ["http", "https"],
+        require_tld: false,
+        require_protocol: true,
+        allow_underscores: true,
+      })
+    ) {
+      return false;
+    }
+
+    // Loopback addresses may use http:// since TLS certificates cannot be
+    // obtained for them.
+    return /^https:/i.test(uri) || isLoopbackUri(uri);
+  }
+
+  /**
+   * Whether a requested redirect URI matches one of the registered redirect
+   * URIs. Loopback URIs match on any port, because native apps choose a free
+   * port at run time (RFC 8252 §7.3). All other URIs must match exactly.
+   *
+   * @param redirectUris - the registered redirect URIs.
+   * @param uri - the requested redirect URI.
+   * @returns true if the URI matches a registered redirect URI.
+   */
+  public static isRegisteredRedirectUri(
+    redirectUris: string[],
+    uri: string
+  ): boolean {
+    if (redirectUris.includes(uri)) {
+      return true;
+    }
+    if (!isLoopbackUri(uri)) {
+      return false;
+    }
+
+    const withoutPort = (value: string) => {
+      try {
+        const url = new URL(value);
+        url.port = "";
+        return url.toString();
+      } catch {
+        return undefined;
+      }
+    };
+    const requested = withoutPort(uri);
+    return redirectUris.some(
+      (registered) =>
+        isLoopbackUri(registered) && withoutPort(registered) === requested
+    );
   }
 
   /**

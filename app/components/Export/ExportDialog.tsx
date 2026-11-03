@@ -104,7 +104,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
         <Text as="p">
           {t("Exporting the collection may take some time.")}{" "}
           {user.subscribedToEventType(NotificationEventType.ExportCompleted) &&
-            t("You will receive an email when it's complete.")}
+            t("You will receive an email when it’s complete.")}
         </Text>
       )}
       <FileFormatSelector

@@ -78,7 +78,7 @@ export class Pointer {
       if (key === "__proto__" || key === "constructor" || key === "prototype") {
         continue;
       }
-      // not sure if this the best way to handle non-existant paths...
+      // not sure if this is the best way to handle non-existent paths...
       value = ((parent || {}) as Record<string, unknown>)[key];
     }
     return { parent, key, value };
@@ -92,7 +92,7 @@ export class Pointer {
     let cursor = object as Record<string, unknown> | undefined;
     for (let i = 1, l = this.tokens.length - 1; i < l; i++) {
       const token = this.tokens[i];
-      // not sure if this the best way to handle non-existant paths...
+      // not sure if this is the best way to handle non-existent paths...
       cursor = ((cursor || {}) as Record<string, unknown>)[
         token
       ] as typeof cursor;

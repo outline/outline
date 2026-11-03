@@ -1,5 +1,8 @@
 import type { Transaction } from "sequelize";
-import type { NotionImportInput, NotionImportTaskInput } from "@shared/schema";
+import type {
+  NotionImportInput,
+  NotionImportTaskInput,
+} from "../../shared/schema";
 import { IntegrationService } from "@shared/types";
 import type { Import, ImportTask } from "@server/models";
 import { Integration } from "@server/models";
@@ -45,8 +48,6 @@ export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.
 
     // App will send the default permission in an array with single item.
     const defaultPermission = importModel.input[0].permission;
-
-    // TODO: This update can be deleted when we receive the page info + permission from app.
     const importInput: NotionImportInput = rootPages.map((page) => ({
       type: page.type,
       externalId: page.id,

@@ -128,14 +128,15 @@ export default abstract class NavigableModel extends Model {
 
   /**
    * Adds the document identified by the given id to the model in
-   * memory. Does not add the document to the database or store.
+   * memory, if it is not already present. Does not add the document to the
+   * database or store.
    *
    * @param document The document to add.
    * @param parentDocumentId The id of the document to add the new document to.
    */
   @action
   addDocument(document: Document, parentDocumentId: string) {
-    if (!this.documents || !document || !parentDocumentId?.trim()) {
+    if (!this.documents || this.childrenByDocumentId.has(document.id)) {
       return;
     }
 

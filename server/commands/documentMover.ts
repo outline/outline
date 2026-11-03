@@ -105,6 +105,19 @@ async function documentMover(
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+
+    // A personal collection has no drafts, so a draft moved into it is published.
+    if (newCollection?.isPersonal) {
+      const siblings = parentDocumentId
+        ? newCollection.getDocumentTree(parentDocumentId)?.children
+        : newCollection.documentStructure;
+
+      // Without an index the document is appended, as for a published move.
+      await document.publish(ctx, {
+        collectionId,
+        index: index ?? siblings?.length,
+      });
+    }
   }
 
   if (collection && document.publishedAt) {
@@ -190,6 +203,21 @@ async function documentMover(
     });
 
     await pin?.destroyWithCtx(ctx);
+
+    // Pins are not shown for documents in a personal collection, so any pin of
+    // the moved documents, including pins to home, is removed.
+    if (newCollection?.isPersonal) {
+      const pins = await Pin.findAll({
+        where: {
+          documentId: [document.id, ...childDocumentIds],
+        },
+        transaction,
+        lock: Transaction.LOCK.UPDATE,
+      });
+      for (const personalPin of pins) {
+        await personalPin.destroyWithCtx(ctx);
+      }
+    }
   }
 
   result.documents.push(document);

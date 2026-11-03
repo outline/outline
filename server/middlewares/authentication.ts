@@ -22,6 +22,8 @@ type BaseAuthenticationOptions = {
   role?: UserRole;
   /** Type of authentication required to access the route. */
   type?: AuthenticationType | AuthenticationType[];
+  /** Transports the token may be received from, defaults to all. */
+  transports?: AuthTransport[];
 };
 
 type AuthenticationOptions =
@@ -101,10 +103,18 @@ export default function auth(options: AuthenticationOptions = {}) {
  * Parses the authentication token from the request context.
  *
  * @param ctx The application context containing the request information.
+ * @param transports The transports to read the token from, defaults to all.
  * @returns An object containing the token and its transport method.
  */
-export function parseAuthentication(ctx: AppContext): AuthInput {
-  const authorizationHeader = ctx.request.get("authorization");
+export function parseAuthentication(
+  ctx: AppContext,
+  transports?: AuthTransport[]
+): AuthInput {
+  const isAllowed = (transport: AuthTransport) =>
+    !transports || transports.includes(transport);
+  const authorizationHeader = isAllowed("header")
+    ? ctx.request.get("authorization")
+    : undefined;
 
   if (authorizationHeader) {
     const parts = authorizationHeader.split(" ");
@@ -125,6 +135,7 @@ export function parseAuthentication(ctx: AppContext): AuthInput {
       );
     }
   } else if (
+    isAllowed("body") &&
     ctx.request.body &&
     typeof ctx.request.body === "object" &&
     "token" in ctx.request.body
@@ -133,12 +144,12 @@ export function parseAuthentication(ctx: AppContext): AuthInput {
       token: String(ctx.request.body.token),
       transport: "body",
     };
-  } else if (ctx.request.query?.token) {
+  } else if (isAllowed("query") && ctx.request.query?.token) {
     return {
       token: String(ctx.request.query.token),
       transport: "query",
     };
-  } else {
+  } else if (isAllowed("cookie")) {
     const accessToken = ctx.cookies.get("accessToken");
     if (accessToken) {
       return {
@@ -164,7 +175,7 @@ async function validateAuthentication(
   service?: string;
   scope?: string[];
 }> {
-  const { token, transport } = parseAuthentication(ctx);
+  const { token, transport } = parseAuthentication(ctx, options.transports);
 
   if (!token) {
     throw AuthenticationError("Authentication required");

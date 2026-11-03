@@ -1,4 +1,3 @@
-/* oxlint-disable import/no-duplicates */
 import type { Locale } from "date-fns";
 import {
   addSeconds,

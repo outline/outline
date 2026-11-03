@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { difference } from "es-toolkit/compat";
 import { v4 as uuidv4 } from "uuid";
 import { MentionType, IconType } from "@shared/types";
@@ -176,6 +176,7 @@ router.post(
       includeAnchorText,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listComments", user.team);
 
     let document: Document | null = null;
     if (documentId) {

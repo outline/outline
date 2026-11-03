@@ -56,6 +56,16 @@ describe("deserializeFilename", () => {
   });
 });
 
+describe("serializeFilename and deserializeFilename", () => {
+  it("should round trip names that contain percent-encoded sequences", () => {
+    const names = ["Use %20 for spaces", "50%2F50 split", "100%", "%252F"];
+
+    for (const name of names) {
+      expect(deserializeFilename(serializeFilename(name))).toBe(name);
+    }
+  });
+});
+
 describe("stringByteLength", () => {
   it("should return byte length of string", () => {
     expect(stringByteLength("")).toBe(0);

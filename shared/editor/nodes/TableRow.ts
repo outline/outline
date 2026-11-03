@@ -4,13 +4,14 @@ import { isInTable, moveTableRow, selectedRect } from "prosemirror-tables";
 import Node from "./Node";
 import { cn } from "../styles/utils";
 import {
+  cellWidget,
   getCellSpan,
   setSpanPosition,
   trackSpanPosition,
   untrackSpanPosition,
 } from "../lib/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { Decoration, DecorationSet } from "prosemirror-view";
+import { type Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
 import { Plugin } from "prosemirror-state";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
@@ -163,8 +164,8 @@ function buildRowDragIndicator(pos: number, isMovingDown: boolean): Decoration {
     ? EditorStyleHelper.tableDragIndicatorBottom
     : EditorStyleHelper.tableDragIndicatorTop;
 
-  return Decoration.widget(
-    pos + 1,
+  return cellWidget(
+    pos,
     () => {
       const indicator = document.createElement("div");
       indicator.className = className;
@@ -243,8 +244,8 @@ export default class TableRow extends Node {
         first: index === 0,
       });
 
-      return Decoration.widget(
-        pos + 1,
+      return cellWidget(
+        pos,
         (view, getPos) => {
           const plus = document.createElement("a");
           plus.role = "button";
@@ -302,8 +303,8 @@ export default class TableRow extends Node {
                   });
 
                   decorations.push(
-                    Decoration.widget(
-                      pos + 1,
+                    cellWidget(
+                      pos,
                       () => {
                         const grip = document.createElement("a");
                         grip.role = "button";
@@ -325,8 +326,8 @@ export default class TableRow extends Node {
                 });
 
                 decorations.push(
-                  Decoration.widget(
-                    pos + 1,
+                  cellWidget(
+                    pos,
                     (view, getPos) => {
                       const grip = document.createElement("a");
                       grip.role = "button";

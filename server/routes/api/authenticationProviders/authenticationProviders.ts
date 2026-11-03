@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { UserRole } from "@shared/types";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";

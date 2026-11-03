@@ -1,4 +1,3 @@
-/* oxlint-disable */
 import { autorun, isAction, isObservableProp } from "mobx";
 import stores from "~/stores";
 

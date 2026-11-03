@@ -118,24 +118,3 @@ export function canUseElementFullscreen(): boolean {
 
   return !!fullscreenAPI && !isIOS;
 }
-
-let supportsPassive = false;
-
-try {
-  const opts = Object.defineProperty({}, "passive", {
-    get() {
-      supportsPassive = true;
-    },
-  });
-  // @ts-expect-error ts-migrate(2769) testPassive is not a real event
-  window.addEventListener("testPassive", null, opts);
-  // @ts-expect-error ts-migrate(2769) testPassive is not a real event
-  window.removeEventListener("testPassive", null, opts);
-} catch (_err) {
-  // Ignore
-}
-
-/**
- * Returns true if the client supports passive event listeners
- */
-export const supportsPassiveListener = supportsPassive;

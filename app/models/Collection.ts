@@ -1,3 +1,4 @@
+import i18n from "i18next";
 import invariant from "invariant";
 import {
   action,
@@ -60,6 +61,10 @@ export default class Collection extends ParanoidModel {
   @Field
   @observable
   permission?: CollectionPermission = undefined;
+
+  /** The user that owns this collection, if it is a personal collection. */
+  @observable
+  ownerId: string | null;
   /**
    * Whether public sharing is enabled for the collection. Note this can also be disabled at the
    * workspace level.
@@ -116,7 +121,18 @@ export default class Collection extends ParanoidModel {
   archivedBy?: User = undefined;
   @computed
   get searchContent(): string {
-    return this.name;
+    return this.displayName;
+  }
+
+  /**
+   * The name to show for the collection. A personal collection is always shown
+   * with a translated name, whatever name is stored.
+   *
+   * @returns the name to display.
+   */
+  @computed
+  get displayName(): string {
+    return this.isPersonal ? i18n.t("Personal") : this.name;
   }
 
   /** Returns whether the collection is empty, or undefined if not loaded. */
@@ -141,6 +157,15 @@ export default class Collection extends ParanoidModel {
    */
   get isPrivate(): boolean {
     return this.permission === null;
+  }
+
+  /**
+   * Whether this collection is the personal collection of a user.
+   *
+   * @returns boolean
+   */
+  get isPersonal(): boolean {
+    return !!this.ownerId;
   }
 
   @computed
@@ -199,7 +224,7 @@ export default class Collection extends ParanoidModel {
   /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
-    return (this.name?.charAt(0) ?? "?").toUpperCase();
+    return (this.displayName?.charAt(0) ?? "?").toUpperCase();
   }
 
   @computed
@@ -271,7 +296,7 @@ export default class Collection extends ParanoidModel {
    */
   @action
   updateDocument(
-    document: Pick<Document, "id" | "title" | "url" | "color" | "icon">
+    document: Pick<Document, "id" | "title" | "path" | "color" | "icon">
   ) {
     if (!this.documents) {
       return;
@@ -283,7 +308,7 @@ export default class Collection extends ParanoidModel {
           node.color = document.color ?? undefined;
           node.icon = document.icon ?? undefined;
           node.title = document.title;
-          node.url = document.url;
+          node.url = document.path;
         } else {
           travelNodes(node.children);
         }
@@ -319,14 +344,15 @@ export default class Collection extends ParanoidModel {
 
   /**
    * Adds the document identified by the given id to the collection in
-   * memory. Does not add the document to the database or store.
+   * memory, if it is not already present. Does not add the document to the
+   * database or store.
    *
    * @param document The document to add.
    * @param parentDocumentId The id of the document to add the new document to.
    */
   @action
   addDocument(document: Document, parentDocumentId?: string) {
-    if (!this.documents) {
+    if (!this.documents || this.childrenByDocumentId.has(document.id)) {
       return;
     }
 

@@ -53,13 +53,13 @@ const linkRegex = /(!?\[[^\]]*\]\()([^)]*)(\))/g;
  * and preserves any link title.
  *
  * @param text The markdown text to rewrite.
- * @param replace Called with each destination; return the replacement, or
- *   undefined to leave the link as it was written.
+ * @param replace Called with each destination and the link label; return the
+ *   replacement, or undefined to leave the link as it was written.
  * @returns The markdown with replaced destinations.
  */
 export function replaceMarkdownLinks(
   text: string,
-  replace: (href: string) => string | undefined
+  replace: (href: string, label: string) => string | undefined
 ): string {
   return text.replace(
     linkRegex,
@@ -85,7 +85,8 @@ export function replaceMarkdownLinks(
         title = target.slice(leading + href.length);
       }
 
-      const replacement = replace(href);
+      const label = prefix.replace(/^!?\[/, "").slice(0, -2);
+      const replacement = replace(href, label);
       return replacement === undefined
         ? match
         : `${prefix}${replacement}${title}${suffix}`;

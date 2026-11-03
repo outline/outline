@@ -13,6 +13,7 @@ import {
   buildDraftDocument,
   buildCollection,
   buildAdmin,
+  buildPersonalCollection,
 } from "@server/test/factories";
 import { serialize } from "./index";
 
@@ -497,6 +498,45 @@ describe("archived document", () => {
     expect(abilities.move).toEqual(false);
     expect(abilities.comment).toEqual(false);
   });
+
+  for (const role of [UserRole.Viewer, UserRole.Guest]) {
+    it(`should not allow ${role} with read_write membership to restore`, async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id, role });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const archived = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        archivedAt: new Date(),
+      });
+      const deleted = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      for (const doc of [archived, deleted]) {
+        await UserMembership.create({
+          userId: user.id,
+          documentId: doc.id,
+          permission: DocumentPermission.ReadWrite,
+          createdById: user.id,
+        });
+      }
+      await deleted.destroy();
+
+      const archivedDocument = await Document.findByPk(archived.id, {
+        userId: user.id,
+      });
+      const deletedDocument = await Document.findByPk(deleted.id, {
+        userId: user.id,
+        paranoid: false,
+      });
+      expect(serialize(user, archivedDocument).unarchive).toEqual(false);
+      expect(serialize(user, deletedDocument).restore).toEqual(false);
+    });
+  }
 });
 
 describe("read document", () => {
@@ -781,4 +821,116 @@ describe("manage document", () => {
       expect(abilities.share).toEqual(false);
     });
   }
+});
+
+describe("personal collection", () => {
+  const buildPersonal = async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PersonalDocs, true);
+    await team.save();
+    const owner = await buildUser({ teamId: team.id });
+    owner.team = team;
+    const collection = await buildPersonalCollection(owner);
+    const doc = await buildDocument({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: collection.id,
+    });
+    return { team, owner, collection, doc };
+  };
+
+  it("should allow the owner full access", async () => {
+    const { owner, doc } = await buildPersonal();
+    const document = await Document.findByPk(doc.id, { userId: owner.id });
+    const abilities = serialize(owner, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.move).toBeTruthy();
+    expect(abilities.archive).toBeTruthy();
+    expect(abilities.delete).toBeTruthy();
+    expect(abilities.share).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.unpublish).toEqual(false);
+    expect(abilities.updateInsights).toEqual(false);
+    expect(abilities.pin).toEqual(false);
+    expect(abilities.unpin).toEqual(false);
+    expect(abilities.pinToHome).toEqual(false);
+  });
+
+  it("should allow nothing for a workspace admin", async () => {
+    const { team, doc } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    const abilities = serialize(admin, document);
+    for (const [ability, value] of Object.entries(abilities)) {
+      expect({ ability, value }).toEqual({ ability, value: false });
+    }
+  });
+
+  it("should not allow a workspace admin to permanently delete", async () => {
+    const { team, owner, doc } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    await doc.destroy({ hooks: false });
+    const ownerDocument = await Document.findByPk(doc.id, {
+      userId: owner.id,
+      paranoid: false,
+    });
+    const adminDocument = await Document.findByPk(doc.id, {
+      userId: admin.id,
+      paranoid: false,
+    });
+    expect(serialize(admin, adminDocument).permanentDelete).toEqual(false);
+    expect(serialize(owner, ownerDocument).restore).toBeTruthy();
+  });
+
+  it("should allow a collaborator through a document membership", async () => {
+    const { team, owner, doc } = await buildPersonal();
+    const collaborator = await buildUser({ teamId: team.id });
+    collaborator.team = team;
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: collaborator.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: owner.id,
+    });
+    const document = await Document.findByPk(doc.id, {
+      userId: collaborator.id,
+    });
+    const abilities = serialize(collaborator, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.manageUsers).toEqual(false);
+  });
+
+  it("should be read-only when personal documents are turned off", async () => {
+    const { team, owner, doc } = await buildPersonal();
+    const collaborator = await buildUser({ teamId: team.id });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: collaborator.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: owner.id,
+    });
+    team.setPreference(TeamPreference.PersonalDocs, false);
+    await team.save();
+    owner.team = team;
+    collaborator.team = team;
+
+    const document = await Document.findByPk(doc.id, { userId: owner.id });
+    const abilities = serialize(owner, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.move).toBeTruthy();
+    expect(abilities.archive).toBeTruthy();
+    expect(abilities.delete).toBeTruthy();
+
+    const collaboratorDocument = await Document.findByPk(doc.id, {
+      userId: collaborator.id,
+    });
+    const collaboratorAbilities = serialize(collaborator, collaboratorDocument);
+    expect(collaboratorAbilities.read).toBeTruthy();
+    expect(collaboratorAbilities.update).toEqual(false);
+    expect(collaboratorAbilities.move).toEqual(false);
+  });
 });

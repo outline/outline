@@ -1,5 +1,4 @@
-import { compact, uniqBy } from "es-toolkit";
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
@@ -160,24 +159,27 @@ router.post(
       }),
     ]);
 
+    const [presentedGroups, groupUsers] = await Promise.all([
+      Promise.all(groups.map(presentGroup)),
+      Promise.all(
+        groups.map((group) =>
+          GroupUser.scope("withUser").findAll({
+            where: {
+              groupId: group.id,
+            },
+            order: [["permission", "ASC"]],
+            limit: MAX_AVATAR_DISPLAY,
+          })
+        )
+      ),
+    ]);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        groups: await Promise.all(groups.map(presentGroup)),
+        groups: presentedGroups,
         // TODO: Deprecated, will remove in the future as language conflicts with GroupMembership
-        groupMemberships: (
-          await Promise.all(
-            groups.map((group) =>
-              GroupUser.scope("withUser").findAll({
-                where: {
-                  groupId: group.id,
-                },
-                order: [["permission", "ASC"]],
-                limit: MAX_AVATAR_DISPLAY,
-              })
-            )
-          )
-        )
+        groupMemberships: groupUsers
           .flat()
           .filter((groupUser) => groupUser.user)
           .map((groupUser) =>
@@ -234,13 +236,16 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, description, externalId, disableMentions } = ctx.input.body;
+    const { name, description, icon, color, externalId, disableMentions } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
       description,
+      icon,
+      color,
       externalId,
       disableMentions,
       teamId: user.teamId,
@@ -448,20 +453,13 @@ router.post(
       }),
     ]);
 
-    const users = uniqBy(
-      compact(
-        groupUsers.flatMap((groupUser) => [groupUser.user, groupUser.createdBy])
-      ),
-      (u) => u.id
-    );
-
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
         groupMemberships: groupUsers.map((groupUser) =>
           presentGroupUser(groupUser, { includeUser: true })
         ),
-        users: users.map((u) => presentUser(u)),
+        users: groupUsers.map((groupUser) => presentUser(groupUser.user)),
       },
     };
   }
@@ -503,8 +501,6 @@ router.post(
       );
     }
 
-    const userPermission = permission;
-
     const [groupUser, created] = await GroupUser.findOrCreateWithCtx(
       ctx,
       {
@@ -514,18 +510,15 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
-          permission: userPermission || GroupPermission.Member,
+          permission: permission ?? GroupPermission.Member,
         },
       },
       { name: "add_user" }
     );
 
     // If the user already exists in the group, update the permission if provided
-    if (
-      userPermission !== undefined &&
-      groupUser.permission !== userPermission
-    ) {
-      await groupUser.updateWithCtx(ctx, { permission: userPermission });
+    if (permission !== undefined && groupUser.permission !== permission) {
+      await groupUser.updateWithCtx(ctx, { permission });
     }
 
     if (created) {

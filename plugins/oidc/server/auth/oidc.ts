@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import env from "../env";

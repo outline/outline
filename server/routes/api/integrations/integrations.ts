@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { IntegrationType, UserRole } from "@shared/types";
@@ -35,15 +35,16 @@ router.post(
       where = { ...where, service };
     }
 
-    // Linked account is special as these are user-specific, other integrations are workspace-wide.
+    // Linked account is special as these are user-specific, other integrations
+    // are workspace-wide. Guests only receive embeds, which the editor needs.
     where = {
       ...where,
       [Op.or]: [
         { userId: user.id, type: IntegrationType.LinkedAccount },
         {
-          type: {
-            [Op.not]: IntegrationType.LinkedAccount,
-          },
+          type: user.isGuest
+            ? IntegrationType.Embed
+            : { [Op.not]: IntegrationType.LinkedAccount },
         },
       ],
     };
@@ -62,7 +63,9 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: integrations.map(presentIntegration),
+      data: integrations.map((integration) =>
+        presentIntegration(ctx, integration)
+      ),
       policies: presentPolicies(user, integrations),
     };
   }
@@ -89,7 +92,7 @@ router.post(
     });
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(ctx, integration),
       policies: presentPolicies(user, [integration]),
     };
   }
@@ -109,7 +112,7 @@ router.post(
     authorize(user, "read", integration);
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(ctx, integration),
       policies: presentPolicies(user, [integration]),
     };
   }
@@ -131,18 +134,20 @@ router.post(
     });
     authorize(user, "update", integration);
 
-    if (integration.type === IntegrationType.Post) {
+    if (events !== undefined && integration.type === IntegrationType.Post) {
       integration.events = events.filter((event: string) =>
         ["documents.update", "documents.publish"].includes(event)
       );
     }
 
-    integration.settings = settings;
+    if (settings !== undefined) {
+      integration.settings = settings;
+    }
 
     await integration.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(ctx, integration),
       policies: presentPolicies(user, [integration]),
     };
   }

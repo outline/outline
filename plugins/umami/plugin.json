@@ -2,6 +2,6 @@
   "id": "umami",
   "name": "Umami",
   "priority": 50,
-  "description": "Adds support for reporting analytics to a Umami server.",
+  "description": "Adds support for reporting analytics to an Umami server.",
   "deployments": ["community", "enterprise"]
 }

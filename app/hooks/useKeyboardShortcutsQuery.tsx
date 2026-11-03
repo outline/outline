@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import KeyboardShortcuts from "~/components/KeyboardShortcuts";
 import useQuery from "./useQuery";
 import useStores from "./useStores";
 
@@ -26,6 +26,6 @@ export default function useKeyboardShortcutsQuery() {
     });
     // Only the query param should open the guide, re-running when the other
     // dependencies change would reopen an already dismissed dialog.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [shortcutsQuery]);
 }

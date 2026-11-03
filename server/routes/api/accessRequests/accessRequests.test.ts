@@ -465,6 +465,35 @@ describe("#accessRequests.approve", () => {
 
     expect(res.status).toEqual(400);
   });
+
+  it("should not reveal status of responded requests to non-managers", async () => {
+    const team = await buildTeam();
+    const requester = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const nonManager = await buildUser();
+    const document = await buildDocument({
+      createdById: admin.id,
+      teamId: team.id,
+    });
+
+    const accessRequest = await AccessRequest.create({
+      documentId: document.id,
+      userId: requester.id,
+      teamId: team.id,
+      status: AccessRequestStatus.Approved,
+      responderId: admin.id,
+      respondedAt: new Date(),
+    });
+
+    const res = await server.post("/api/accessRequests.approve", nonManager, {
+      body: {
+        id: accessRequest.id,
+        permission: DocumentPermission.ReadWrite,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe("#accessRequests.dismiss", () => {

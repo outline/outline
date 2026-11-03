@@ -1,4 +1,3 @@
-/* oxlint-disable react/no-unescaped-entities */
 import { WarningIcon } from "outline-icons";
 import { Trans } from "react-i18next";
 import Notice from "~/components/Notice";
@@ -20,8 +19,8 @@ function Message({ notice }: { notice: string }) {
     case "domain-required":
       return (
         <Trans>
-          Unable to sign-in. Please navigate to your workspace's custom URL,
-          then try to sign-in again.
+          Unable to sign in. Please navigate to your workspace’s custom URL,
+          then try to sign in again.
           <hr />
           If you were invited to a workspace, you will find a link to it in the
           invite email.
@@ -32,7 +31,7 @@ function Message({ notice }: { notice: string }) {
         <Trans>
           Sorry, a new account cannot be created with a personal Gmail address.
           <hr />
-          Please use a Google Workspaces account instead.
+          Please use a Google Workspace account instead.
         </Trans>
       );
     case "pending-deletion":
@@ -58,7 +57,7 @@ function Message({ notice }: { notice: string }) {
     case "email-auth-required":
       return (
         <Trans>
-          Your account uses email sign-in, please sign-in with email to
+          Your account uses email sign-in, please sign in with email to
           continue.
         </Trans>
       );

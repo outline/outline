@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { compact, isEmpty } from "es-toolkit/compat";
 import { Op, Sequelize, type WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
@@ -65,7 +65,6 @@ router.post(
       () =>
         WebhookSubscription.count({
           where,
-          // @ts-expect-error Types are incorrect for count
           replacements,
         }) as unknown as Promise<number>
     );
@@ -162,7 +161,7 @@ router.post(
       url,
       events: compact(events),
       enabled: true,
-      secret: isEmpty(secret) ? undefined : secret,
+      secret: secret === "" ? null : secret,
     });
 
     ctx.body = {

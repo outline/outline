@@ -56,7 +56,7 @@ export default class InviteAcceptedEmail extends BaseEmail<
   }
 
   protected preview({ invitedName }: Props) {
-    return this.t("Great news, {{ invitedName }}, accepted your invitation", {
+    return this.t("Great news, {{ invitedName }} accepted your invitation", {
       invitedName,
     });
   }

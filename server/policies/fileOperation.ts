@@ -1,7 +1,14 @@
 import { FileOperationState, FileOperationType } from "@shared/types";
 import { User, Team, FileOperation } from "@server/models";
 import { allow, can } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
+import {
+  and,
+  isCollectionOwner,
+  isTeamAdmin,
+  isTeamModel,
+  isTeamMutable,
+  or,
+} from "./utils";
 
 const TerminalStates = [
   FileOperationState.Complete,
@@ -28,6 +35,22 @@ function canAccessSource(actor: User, fileOperation: FileOperation) {
   return can(actor, "createExport", actor.team);
 }
 
+/**
+ * Admins have no access to exports of the personal collections of other users,
+ * or of the documents in them.
+ */
+function isOwnerIfPersonalSource(actor: User, fileOperation: FileOperation) {
+  // The owner at the time of the export applies, also after the source moved.
+  const personalOwnerId = fileOperation.options?.personalOwnerId;
+  if (personalOwnerId && personalOwnerId !== actor.id) {
+    return false;
+  }
+
+  const collection =
+    fileOperation.collection ?? fileOperation.document?.collection;
+  return !collection?.isPersonal || isCollectionOwner(actor, collection);
+}
+
 allow(
   User,
   ["createFileOperation", "createExport"],
@@ -40,7 +63,10 @@ allow(User, "read", FileOperation, (actor, fileOperation) =>
   and(
     isTeamModel(actor, fileOperation),
     or(
-      isTeamAdmin(actor, fileOperation),
+      and(
+        isTeamAdmin(actor, fileOperation),
+        !!fileOperation && isOwnerIfPersonalSource(actor, fileOperation)
+      ),
       and(
         fileOperation?.userId === actor.id,
         !!fileOperation && canAccessSource(actor, fileOperation)

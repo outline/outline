@@ -1,4 +1,5 @@
 import env from "../env";
+import { isBrowser } from "./browser";
 import * as urlsUtils from "./urls";
 import { urlRegex } from "./urls";
 
@@ -160,6 +161,70 @@ describe("isInternalUrl", () => {
   });
 });
 
+describe("signedUrlToAttachmentUrl", () => {
+  const id = "4d3e6f2a-8b1c-4e5d-9f0a-1b2c3d4e5f60";
+
+  const sign = (payload: object) =>
+    [
+      btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })),
+      btoa(JSON.stringify(payload))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, ""),
+      "signature",
+    ].join(".");
+
+  it("should return the redirect url for a signed attachment url", () => {
+    const origin = isBrowser ? window.location.origin : env.URL;
+    const sig = sign({
+      key: `uploads/${id}/${id}/image ünïcode.png`,
+      type: "attachment",
+    });
+
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(`${origin}/api/files.get?sig=${sig}`)
+    ).toEqual(`/api/attachments.redirect?id=${id}`);
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(`/api/files.get?sig=${sig}`)
+    ).toEqual(`/api/attachments.redirect?id=${id}`);
+  });
+
+  it("should return undefined for an external url", () => {
+    const sig = sign({
+      key: `uploads/${id}/${id}/image.png`,
+      type: "attachment",
+    });
+
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(
+        `https://other.example.com/api/files.get?sig=${sig}`
+      )
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(
+        `//other.example.com/api/files.get?sig=${sig}`
+      )
+    ).toBeUndefined();
+  });
+
+  it("should return undefined for other urls", () => {
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(`/api/attachments.redirect?id=${id}`)
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl("/api/files.get?key=public/a/b/c.png")
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl("/api/files.get?sig=invalid")
+    ).toBeUndefined();
+    expect(
+      urlsUtils.signedUrlToAttachmentUrl(
+        `/api/files.get?sig=${sign({ key: "uploads/a/b/c.png", type: "attachment" })}`
+      )
+    ).toBeUndefined();
+  });
+});
+
 describe("addMissingUrlPort", () => {
   const url = env.URL;
 
@@ -254,11 +319,6 @@ describe("sanitizeUrl", () => {
     });
     it("should return the url as it's if starting with #", () => {
       expect(urlsUtils.sanitizeUrl("#home")).toEqual("#home");
-    });
-    it("should return the url as it's if it's mailto:", () => {
-      expect(urlsUtils.sanitizeUrl("mailto:outline@getoutline.com")).toEqual(
-        "mailto:outline@getoutline.com"
-      );
     });
     it("should return the url as it's if it's mailto:", () => {
       expect(urlsUtils.sanitizeUrl("mailto:outline@getoutline.com")).toEqual(
@@ -438,6 +498,30 @@ describe("#urlRegex", () => {
     expect(regex?.test("javascript:alert(1)//https://docs.google.com")).toBe(
       false
     );
+  });
+});
+
+describe("#getHostname", () => {
+  it("should return the hostname", () => {
+    expect(urlsUtils.getHostname("https://Example.com:8080/a?b=c")).toBe(
+      "example.com"
+    );
+  });
+
+  it("should return internationalized hostnames as punycode", () => {
+    expect(urlsUtils.getHostname("https://аpple.com/client.json")).toBe(
+      "xn--pple-43d.com"
+    );
+  });
+
+  it("should keep brackets on IPv6 hostnames", () => {
+    expect(urlsUtils.getHostname("http://[::1]:3000/callback")).toBe("[::1]");
+  });
+
+  it("should return undefined for unparseable input", () => {
+    expect(urlsUtils.getHostname("not a url")).toBeUndefined();
+    expect(urlsUtils.getHostname("")).toBeUndefined();
+    expect(urlsUtils.getHostname(undefined)).toBeUndefined();
   });
 });
 

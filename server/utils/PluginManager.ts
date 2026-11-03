@@ -1,8 +1,16 @@
 import path from "node:path";
 import { glob } from "glob";
-import type Router from "koa-router";
+import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
+import type { z } from "zod";
+import type {
+  Concrete,
+  EmbedIntegrationSettings,
+  IntegrationService,
+  LinkedAccountIntegrationSettings,
+} from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
+import type { ImportsCreateBody } from "@server/routes/api/imports/schema";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
@@ -12,6 +20,7 @@ import type {
   UnfurlSignature,
   UninstallSignature,
 } from "@server/types";
+import type OAuthClient from "./oauth";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
 import type { GroupSyncProvider } from "./GroupSyncProvider";
 import type { BaseSearchProvider } from "./BaseSearchProvider";
@@ -35,6 +44,8 @@ export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
+  ImportSchema = "importSchema",
+  IntegrationSettings = "integrationSettings",
   IssueProvider = "issueProvider",
   Processor = "processor",
   SearchProvider = "searchProvider",
@@ -51,14 +62,38 @@ export enum Hook {
  */
 type PluginValueMap = {
   [Hook.API]: Router;
-  [Hook.AuthProvider]: { router: Router | Promise<Router>; id: string };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
-  [Hook.EmailTemplate]: typeof BaseEmail<any>;
+  [Hook.AuthProvider]: {
+    router: Router | Promise<Router>;
+    id: string;
+    /**
+     * Whether a verified email from another tenant of the provider, eg a
+     * different Google Workspace domain, can sign in to a matching account.
+     */
+    allowEmailMatch?: boolean;
+    /** Creates a client to validate and refresh the provider's access tokens. */
+    oauthClient?: () => OAuthClient;
+  };
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
+  [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;
+  [Hook.ImportSchema]: z.ZodType<ImportsCreateBody>;
+  [Hook.IntegrationSettings]: {
+    /** The integration service that the settings belong to. */
+    service: IntegrationService;
+    /** The settings keys that are presented to clients. */
+    keys: (
+      | keyof EmbedIntegrationSettings
+      | keyof LinkedAccountIntegrationSettings
+    )[];
+    /** Whether guests can see the keys, which only render and edit embeds. */
+    visibleToGuests?: boolean;
+    /** A schema to validate settings given through the integrations API. */
+    schema?: z.ZodType<EmbedIntegrationSettings>;
+  };
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.MentionProvider]: MentionSignature;
-  [Hook.Processor]: typeof BaseProcessor;
+  [Hook.Processor]: Concrete<typeof BaseProcessor>;
   [Hook.SearchProvider]: BaseSearchProvider;
-  [Hook.Task]: typeof BaseTask<object>;
+  [Hook.Task]: Concrete<typeof BaseTask<object>>;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
   [Hook.GroupSyncProvider]: { id: string; provider: GroupSyncProvider };
@@ -111,7 +146,9 @@ export class PluginManager {
       Logger.debug(
         "plugins",
         `Plugin(type=${plugin.type}) registered ${
-          "name" in plugin.value ? plugin.value.name : ""
+          "name" in plugin.value && typeof plugin.value.name === "string"
+            ? plugin.value.name
+            : ""
         } ${plugin.description ? `(${plugin.description})` : ""}`
       );
     }

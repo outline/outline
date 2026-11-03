@@ -32,7 +32,8 @@ function SettingsRoutes() {
         from={settingsPath("members")}
         to={settingsPath("users")}
       />
-      {/* TODO: Refactor these exceptions into config? */}
+      {/* Features was renamed to AI, redirect for backwards compatibility */}
+      <Redirect exact from={settingsPath("features")} to={settingsPath("ai")} />
       <Route
         exact
         path={settingsPath("groups", ":id", "members")}

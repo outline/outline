@@ -74,7 +74,9 @@ const IconPicker = ({
   const iconType = determineIconType(icon);
   const defaultTab = React.useMemo(
     () =>
-      iconType === IconType.Emoji ? TAB_NAMES["Emoji"] : TAB_NAMES["Icon"],
+      iconType === IconType.Emoji || iconType === IconType.Custom
+        ? TAB_NAMES["Emoji"]
+        : TAB_NAMES["Icon"],
     [iconType]
   );
 
@@ -153,6 +155,7 @@ const IconPicker = ({
     <Content
       open={open}
       activeTab={activeTab}
+      icon={icon}
       iconColor={chosenColor}
       iconInitial={initial ?? ""}
       query={query}
@@ -208,6 +211,7 @@ const IconPicker = ({
 type ContentProps = {
   open: boolean;
   activeTab: TabName;
+  icon: string | null;
   query: string;
   iconColor: string;
   iconInitial: string;
@@ -223,6 +227,7 @@ type ContentProps = {
 const Content = ({
   open,
   activeTab,
+  icon,
   iconColor,
   iconInitial,
   query,
@@ -267,6 +272,7 @@ const Content = ({
         <IconPanel
           panelWidth={panelWidth}
           initial={iconInitial}
+          icon={icon}
           color={iconColor}
           query={query}
           panelActive={open && activeTab === TAB_NAMES["Icon"]}
@@ -278,6 +284,7 @@ const Content = ({
       <StyledTabContent value={TAB_NAMES["Emoji"]}>
         <EmojiPanel
           panelWidth={panelWidth}
+          icon={icon}
           query={query}
           panelActive={open && activeTab === TAB_NAMES["Emoji"]}
           onEmojiChange={onIconChange}

@@ -8,7 +8,10 @@ import styled from "styled-components";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type Template from "~/models/Template";
-import { openDocumentInsights } from "~/actions/definitions/documents";
+import {
+  Insights,
+  openDocumentInsights,
+} from "~/actions/definitions/documents";
 import DocumentMeta from "~/components/DocumentMeta";
 import {
   MetaButton,
@@ -17,11 +20,13 @@ import {
 } from "~/components/HeaderMeta";
 import Fade from "~/components/Fade";
 import { useSplitView } from "~/components/SplitView/context";
+import useClickIntent from "~/hooks/useClickIntent";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
+import { DocumentComments, DocumentHistory } from "../hooks/useDocumentSidebar";
 
 type Props = {
   /* The document to display meta data for */
@@ -50,6 +55,19 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const commentingEnabled = team.commentingEnabled;
   const commentsOpen = ui.getRightSidebar(pane) === "comments";
 
+  const {
+    ref: commentsRef,
+    handleMouseEnter: handleCommentsMouseEnter,
+    handleMouseLeave: handleCommentsMouseLeave,
+  } = useClickIntent(DocumentComments.preload, {
+    predict: true,
+  });
+  const {
+    ref: insightsRef,
+    handleMouseEnter: handleInsightsMouseEnter,
+    handleMouseLeave: handleInsightsMouseLeave,
+  } = useClickIntent(Insights.preload, { predict: true });
+
   const handleClickMeta = useCallback(() => {
     if (to) {
       history.replace(to);
@@ -69,13 +87,20 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
       document={document as Document}
       revision={revision}
       onClick={to ? handleClickMeta : undefined}
+      onClickIntent={to ? DocumentHistory.preload : undefined}
       $rtl={rtl}
       {...rest}
     >
       {commentingEnabled && can.comment && (
         <>
           <Separator />
-          <MetaButton onClick={handleClickComment} aria-expanded={commentsOpen}>
+          <MetaButton
+            ref={commentsRef}
+            onClick={handleClickComment}
+            onMouseEnter={handleCommentsMouseEnter}
+            onMouseLeave={handleCommentsMouseLeave}
+            aria-expanded={commentsOpen}
+          >
             <CommentIcon size={18} />
             {commentsCount
               ? t("{{ count }} comment", { count: commentsCount })
@@ -86,7 +111,12 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
       {totalViewers && can.listViews && !(document as Document).isDraft ? (
         <Wrapper>
           <Separator />
-          <MetaButton action={openDocumentInsights}>
+          <MetaButton
+            ref={insightsRef}
+            action={openDocumentInsights}
+            onMouseEnter={handleInsightsMouseEnter}
+            onMouseLeave={handleInsightsMouseLeave}
+          >
             {t("Viewed by")}{" "}
             {onlyYou
               ? t("only you")

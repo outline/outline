@@ -10,7 +10,7 @@ import { ThemeProvider } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
-import { TOCPosition, TeamPreference } from "@shared/types";
+import { TOCPosition, TeamPreference, UserPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
@@ -18,13 +18,13 @@ import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import InputColor from "~/components/InputColor";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -32,11 +32,13 @@ import TeamDelete from "../TeamDelete";
 import { ActionRow } from "./components/ActionRow";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+import { ThemeColorInputs } from "./components/ThemeColorInputs";
 
 function Details() {
   const { dialogs, ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const can = usePolicy(team);
 
   const form = useRef<HTMLFormElement>(null);
@@ -56,12 +58,16 @@ function Details() {
     team.defaultCollectionId
   );
 
-  const customTheme: Partial<CustomTheme> = pickBy(
-    {
-      accent,
-      accentText,
-    },
-    isHexColor
+  const customTheme: Partial<CustomTheme> = React.useMemo(
+    () =>
+      pickBy(
+        {
+          accent,
+          accentText,
+        },
+        isHexColor
+      ),
+    [accent, accentText]
   );
 
   const [tocPosition, setTocPosition] = useState(
@@ -168,9 +174,15 @@ function Details() {
     async (checked: boolean) => {
       team.setPreference(TeamPreference.SeamlessEdit, !checked);
       await team.save();
+
+      // Enabling separate editing also applies it to the current user.
+      if (checked) {
+        user.setPreference(UserPreference.SeamlessEdit, false);
+        await user.save();
+      }
       toast.success(t("Settings saved"));
     },
-    [team, t]
+    [team, user, t]
   );
 
   const isValid = form.current?.checkValidity();
@@ -185,8 +197,8 @@ function Details() {
 
   return (
     <ThemeProvider theme={newTheme}>
-      <Scene title={t("Details")} icon={<TeamIcon />}>
-        <Heading>{t("Details")}</Heading>
+      <Scene title={t("General")} icon={<TeamIcon />}>
+        <Heading>{t("General")}</Heading>
         <Text as="p" type="secondary">
           <Trans>
             These settings affect the way that your workspace appears to
@@ -195,7 +207,7 @@ function Details() {
         </Text>
 
         <form onSubmit={handleSubmit} ref={form}>
-          <Heading as="h2">{t("Display")}</Heading>
+          <Heading as="h2">{t("Appearance")}</Heading>
           <SettingRow
             label={t("Logo")}
             name="avatarUrl"
@@ -264,19 +276,11 @@ function Details() {
               </>
             }
           >
-            <InputColor
-              id="accent"
-              value={accent ?? newTheme.accent}
-              label={t("Accent color")}
-              onChange={setAccent}
-              flex
-            />
-            <InputColor
-              id="accentText"
-              value={accentText ?? newTheme.accentText}
-              label={t("Accent text color")}
-              onChange={setAccentText}
-              flex
+            <ThemeColorInputs
+              accent={accent}
+              accentText={accentText}
+              onAccentChange={setAccent}
+              onAccentTextChange={setAccentText}
             />
           </SettingRow>
           {(team.avatarUrl || team.description) && (
@@ -363,7 +367,7 @@ function Details() {
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
-              "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
+              "When enabled, documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
             )}
           >
             <Switch

@@ -41,6 +41,46 @@ describe("generatePasskeyName", () => {
       expect(name).not.toContain("Chrome");
     });
 
+    it("detects the macOS app", () => {
+      const aaguid = "b5397666-4885-aa6b-cebf-e52262a439a2";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Outline/1.9.0 Chrome/146.0.0.0 Electron/44.9.1 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["internal"]);
+      expect(name).toBe("macOS App");
+    });
+
+    it("detects the Windows app", () => {
+      const aaguid = "08987058-cadc-4b81-b6e1-30de50dcbe96";
+      const ua =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Outline/1.9.0 Chrome/146.0.0.0 Electron/44.9.1 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["internal"]);
+      expect(name).toBe("Windows App");
+    });
+
+    it("keeps the password manager name inside the desktop app", () => {
+      const aaguid = "bada5566-a7aa-401f-bd96-45619a55120d";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Outline/1.9.0 Chrome/146.0.0.0 Electron/44.9.1 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["internal"]);
+      expect(name).toBe("1Password");
+    });
+
+    it("keeps the security key name inside the desktop app", () => {
+      const aaguid = "00000000-0000-0000-0000-000000000000";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Outline/1.9.0 Chrome/146.0.0.0 Electron/44.9.1 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["usb"]);
+      expect(name).toBe("Chrome on macOS (Security Key)");
+    });
+
+    it("detects Chromium Browser outside of the desktop app", () => {
+      const aaguid = "b5397666-4885-aa6b-cebf-e52262a439a2";
+      const ua =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+      const name = generatePasskeyName(aaguid, ua, ["internal"]);
+      expect(name).toBe("Chromium Browser");
+    });
+
     it("falls back to user agent when AAGUID is unknown", () => {
       const aaguid = "00000000-0000-0000-0000-000000000000";
       const ua =

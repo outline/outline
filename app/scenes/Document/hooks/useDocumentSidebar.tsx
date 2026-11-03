@@ -18,10 +18,13 @@ import {
 } from "~/utils/routeHelpers";
 import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
 
-const DocumentComments = lazyWithRetry(
+/** Lazy comments sidebar, exported so that triggers can preload it. */
+export const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/Comments")
 );
-const DocumentHistory = lazyWithRetry(
+
+/** Lazy history sidebar, exported so that triggers can preload it. */
+export const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History/History")
 );
 

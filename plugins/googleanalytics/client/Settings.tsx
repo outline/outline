@@ -11,7 +11,7 @@ import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene"
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import GoogleIcon from "~/components/Icons/GoogleIcon";
+import GoogleIcon from "./GoogleIcon";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
@@ -85,7 +85,7 @@ function GoogleAnalytics() {
           label={t("Measurement ID")}
           name="measurementId"
           description={t(
-            'Create a "Web" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.'
+            "Create a “Web” stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install."
           )}
           border={false}
         >

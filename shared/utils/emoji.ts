@@ -28,7 +28,6 @@ const isFlagEmojiSupported = (): boolean => {
     const CANVAS_WIDTH = 20;
     const textSize = Math.floor(CANVAS_HEIGHT / 2);
 
-    // Initialize canvas context
     ctx.font = textSize + "px Arial, Sans-Serif";
     ctx.textBaseline = "top";
     ctx.canvas.width = CANVAS_WIDTH * 2;

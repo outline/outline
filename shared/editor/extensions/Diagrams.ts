@@ -177,7 +177,7 @@ export default class Diagrams extends Extension {
       // can locate the node by its new uploaded URL.
       session.nodeSrc = uploadedUrl;
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.error("Failed to export diagram:", error);
     }
   }
@@ -272,9 +272,8 @@ export default class Diagrams extends Extension {
     );
     const uiTheme = this.editor.props.theme.isDark ? "dark" : "atlas";
     return (
-      sanitizeUrl(
-        integration?.settings?.diagrams?.url ?? "https://embed.diagrams.net/"
-      ) + `?embed=1&ui=${uiTheme}&spin=1&modified=unsavedChanges&proto=json`
+      sanitizeUrl(integration?.instanceUrl ?? "https://embed.diagrams.net/") +
+      `?embed=1&ui=${uiTheme}&spin=1&modified=unsavedChanges&proto=json`
     );
   }
 

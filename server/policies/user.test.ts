@@ -212,4 +212,60 @@ describe("policies/user", () => {
       expect(abilities.readEmail).toBeFalsy();
     });
   });
+
+  describe("readEmail on team", () => {
+    it("should allow members when emailDisplay is 'members'", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+
+      const abilities = serialize(user, team);
+      expect(abilities.readEmail).toBeTruthy();
+    });
+
+    it("should NOT allow viewers when emailDisplay is 'members'", async () => {
+      const team = await buildTeam();
+      const viewer = await buildViewer({ teamId: team.id });
+
+      const abilities = serialize(viewer, team);
+      expect(abilities.readEmail).toBeFalsy();
+    });
+
+    it("should NOT allow members when emailDisplay is 'none'", async () => {
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+      await team.save();
+      const user = await buildUser({ teamId: team.id });
+
+      const abilities = serialize(user, team);
+      expect(abilities.readEmail).toBeFalsy();
+    });
+
+    it("should allow admins when emailDisplay is 'none'", async () => {
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+      await team.save();
+      const admin = await buildAdmin({ teamId: team.id });
+
+      const abilities = serialize(admin, team);
+      expect(abilities.readEmail).toBeTruthy();
+    });
+
+    it("should allow viewers when emailDisplay is 'everyone'", async () => {
+      const team = await buildTeam();
+      team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.Everyone);
+      await team.save();
+      const viewer = await buildViewer({ teamId: team.id });
+
+      const abilities = serialize(viewer, team);
+      expect(abilities.readEmail).toBeTruthy();
+    });
+
+    it("should NOT allow users from a different team", async () => {
+      const team = await buildTeam();
+      const user = await buildUser();
+
+      const abilities = serialize(user, team);
+      expect(abilities.readEmail).toBeFalsy();
+    });
+  });
 });

@@ -1,7 +1,12 @@
 import { buildApiKey, buildTeam, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import type { APIContext } from "@server/types";
-import { getExpectedOrigin, getPasskeyLoginRedirect } from "./passkeys";
+import { PasskeyBrand } from "@shared/utils/passkeys";
+import {
+  getExpectedOrigin,
+  getPasskeyLoginRedirect,
+  isUniqueAuthenticator,
+} from "./passkeys";
 
 const server = getTestServer();
 
@@ -114,6 +119,23 @@ describe("getPasskeyLoginRedirect", () => {
   it("should default to the web client when client is an array", () => {
     expect(getPasskeyLoginRedirect(["desktop", "web"])).toBe(
       "/?method=passkey&client=web"
+    );
+  });
+});
+
+describe("isUniqueAuthenticator", () => {
+  it("should be true for a known authenticator", () => {
+    expect(isUniqueAuthenticator(PasskeyBrand.OnePassword)).toBe(true);
+  });
+
+  it("should be false for the Chromium authenticator", () => {
+    expect(isUniqueAuthenticator(PasskeyBrand.ChromiumBrowser)).toBe(false);
+  });
+
+  it("should be false for a missing or zero AAGUID", () => {
+    expect(isUniqueAuthenticator(undefined)).toBe(false);
+    expect(isUniqueAuthenticator("00000000-0000-0000-0000-000000000000")).toBe(
+      false
     );
   });
 });

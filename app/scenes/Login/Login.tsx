@@ -362,7 +362,7 @@ function Login({ children, onBack }: Props) {
         ) : (
           <>
             <StyledHeading as="h2" centered>
-              {t("Login to {{ authProviderName }}", {
+              {t("Log in to {{ authProviderName }}", {
                 authProviderName: config.name || env.APP_NAME,
               })}
             </StyledHeading>
@@ -445,10 +445,9 @@ const Content = styled(Text)`
   margin-top: -8px;
 `;
 
-const Note = styled(Text)`
+const Note = styled(Text).attrs({ size: "small" })`
   color: ${s("textTertiary")};
   text-align: center;
-  font-size: 14px;
   margin-top: 8px;
 
   em {

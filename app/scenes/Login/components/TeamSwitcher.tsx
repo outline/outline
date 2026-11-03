@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { s } from "@shared/styles";
+import type { Sessions } from "@shared/utils/sessions";
+import { isSessionActive } from "@shared/utils/sessions";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { AvatarSize } from "~/components/Avatar";
 import Avatar, { AvatarVariant } from "~/components/Avatar/Avatar";
@@ -11,22 +13,24 @@ import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
 import OutlineIcon from "~/components/Icons/OutlineIcon";
 import env from "~/env";
-import type { Sessions } from "~/hooks/useLoggedInSessions";
 import { detectLanguage } from "~/utils/language";
 import Login from "../Login";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
 
 interface Props {
-  /** The workspaces that the browser is signed in to. */
+  /** The remembered workspaces, including logged-out ones. */
   sessions: Sessions;
   /** Text shown below the heading, defaults to a generic prompt. */
   description?: string;
 }
 
 /**
- * Lists the workspaces that the browser is signed in to, so the user can
- * choose which one to continue to with the current path, or login to another.
+ * Shows remembered workspaces so the user can choose which one to continue to
+ * with the current path, with a login path for logged-out sessions.
+ *
+ * @param props the remembered workspace sessions and optional description.
+ * @returns the workspace selector.
  */
 export function TeamSwitcher({ sessions, description }: Props) {
   const { t } = useTranslation();
@@ -46,7 +50,7 @@ export function TeamSwitcher({ sessions, description }: Props) {
         <StyledHeading>{t("Choose a workspace")}</StyledHeading>
         <Text type="tertiary" as="p">
           {description ??
-            t("Choose an {{ appName }} workspace or login to continue", {
+            t("Choose an {{ appName }} workspace or log in to continue", {
               appName: env.APP_NAME,
             })}
           .
@@ -65,14 +69,21 @@ export function TeamSwitcher({ sessions, description }: Props) {
                 size={AvatarSize.Large}
                 alt={session.name}
               />
-              {session.name}
+              <WorkspaceName>
+                {session.name}
+                {!isSessionActive(session) && (
+                  <Text type="tertiary" size="xsmall" weight="normal">
+                    {t("Logged out")}
+                  </Text>
+                )}
+              </WorkspaceName>
               <StyledArrowIcon />
             </TeamLink>
           );
         })}
         <TeamLink onClick={() => setShowLogin(true)}>
           <ArrowIcon size={AvatarSize.Large} />
-          {t("Login to workspace")}
+          {t("Log in to workspace")}
         </TeamLink>
       </Centered>
     </Background>
@@ -84,6 +95,11 @@ const StyledArrowIcon = styled(ArrowIcon)`
   transition: all 0.2s ease-in-out;
   opacity: 0;
   right: 12px;
+`;
+
+const WorkspaceName = styled.span`
+  display: flex;
+  flex-direction: column;
 `;
 
 const TeamLink = styled.a`

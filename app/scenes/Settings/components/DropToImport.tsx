@@ -101,7 +101,7 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
       {isImporting && <LoadingIndicator />}
       <Text as="p" type="secondary">
         <Dropzone
-          accept="application/zip, application/x-zip-compressed"
+          accept={zipAccept}
           onDropAccepted={handleFiles}
           onDropRejected={handleRejection}
           disabled={isImporting}
@@ -150,6 +150,11 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
     </Flex>
   );
 }
+
+const zipAccept = {
+  "application/zip": [],
+  "application/x-zip-compressed": [],
+};
 
 const Icon = styled(NewDocumentIcon)`
   ${dropzoneIcon}

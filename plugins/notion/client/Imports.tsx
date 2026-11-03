@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import env from "@shared/env";
 import { IntegrationService } from "@shared/types";
@@ -19,7 +19,6 @@ export const Notion = observer(() => {
   const { dialogs } = useStores();
   const team = useCurrentTeam();
   const history = useHistory();
-  const location = useLocation();
   const queryParams = useQuery();
 
   const appName = env.APP_NAME;
@@ -31,10 +30,10 @@ export const Notion = observer(() => {
 
   const clearQueryParams = React.useCallback(() => {
     history.replace({
-      pathname: location.pathname,
+      pathname: history.location.pathname,
       search: "",
     });
-  }, [history, location]);
+  }, [history]);
 
   const handleSubmit = React.useCallback(() => {
     dialogs.closeAllModals();

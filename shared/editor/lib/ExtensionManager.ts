@@ -4,7 +4,6 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import type { MarkSpec, NodeSpec, Schema } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
-import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
 import type Node from "../nodes/Node";
@@ -256,7 +255,7 @@ export default class ExtensionManager {
       .filter((extension) => extension.commands)
       .reduce((allCommands, extension) => {
         const { name } = extension;
-        const commands: Record<string, CommandFactory> = {};
+        const commands: Record<string, (attrs?: unknown) => void> = {};
 
         let value: ReturnType<Extension["commands"]>;
         if (extension.type === "node") {
@@ -269,10 +268,7 @@ export default class ExtensionManager {
           value = (extension as Extension).commands({ schema });
         }
 
-        const apply = (
-          callback: CommandFactory,
-          attrs: Record<string, Primitive>
-        ) => {
+        const apply = (callback: CommandFactory, attrs: unknown) => {
           if (!view.editable && !extension.allowInReadOnly) {
             return;
           }
@@ -300,8 +296,7 @@ export default class ExtensionManager {
             ? _value
             : [_value];
 
-          // @ts-expect-error FIXME
-          commands[_name] = (attrs: Record<string, Primitive>) =>
+          commands[_name] = (attrs?: unknown) =>
             values.forEach((callback) => apply(callback, attrs));
         };
 

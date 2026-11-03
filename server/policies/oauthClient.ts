@@ -13,10 +13,13 @@ allow(User, "listOAuthClients", Team, (actor, team) =>
 
 allow(User, "read", OAuthClient, (actor, oauthClient) =>
   and(
-    or(isTeamModel(actor, oauthClient), !!oauthClient?.published),
-    // Dynamically registered clients exist only to serve MCP, so they become
-    // unreachable when the team turns the preference off.
-    !oauthClient?.isDCR || !!actor.team?.getPreference(TeamPreference.MCP)
+    or(
+      isTeamModel(actor, oauthClient),
+      !!oauthClient?.published,
+      !!oauthClient?.isCIMD
+    ),
+    // MCP clients become unreachable when the team turns MCP off.
+    !oauthClient?.isMCPClient || !!actor.team?.getPreference(TeamPreference.MCP)
   )
 );
 
@@ -24,6 +27,6 @@ allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>
   and(
     isTeamAdmin(actor, oauthClient),
     isTeamMutable(actor),
-    !oauthClient?.isDCR
+    !oauthClient?.isMCPClient
   )
 );

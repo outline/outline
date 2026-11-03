@@ -9,7 +9,7 @@ export default function presentFileOperation(data: FileOperation) {
     format: data.format,
     name:
       data.collection?.name ||
-      data.document?.titleWithDefault ||
+      data.document?.displayTitle ||
       path.basename(data.key || ""),
     state: data.state,
     error: data.error,

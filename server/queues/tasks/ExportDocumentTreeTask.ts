@@ -289,7 +289,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
   }) {
     const pathMap = new Map<string, string>();
 
-    const rootFolderName = serializeFilename(document.titleWithDefault);
+    const rootFolderName = serializeFilename(document.displayTitle);
     const rootPath = `${rootFolderName}.${ExportDocumentTreeTask.extensionForFormat(format)}`;
 
     // entry for root document
@@ -317,7 +317,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
           Buffer.from(
             OKFHelper.rootIndex("Documents", [
               {
-                title: document.titleWithDefault,
+                title: document.displayTitle,
                 path: rootPath,
                 description: document.getSummary(),
               },

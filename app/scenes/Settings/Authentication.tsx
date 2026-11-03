@@ -188,12 +188,12 @@ function Authentication() {
       <Heading>{t("Authentication")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
-          Manage how members sign-in to your workspace and which authentication
+          Manage how members sign in to your workspace and which authentication
           providers are enabled.
         </Trans>
       </Text>
 
-      <Heading as="h2">{t("Sign In")}</Heading>
+      <Heading as="h2">{t("Sign in")}</Heading>
 
       {authenticationProviders.orderedData.map((provider) => {
         // Group sync can still be disabled after losing the entitlement.
@@ -213,11 +213,11 @@ function Authentication() {
               name={provider.name}
               description={
                 provider.isConnected
-                  ? t("Allow members to sign-in with {{ authProvider }}", {
+                  ? t("Allow members to sign in with {{ authProvider }}", {
                       authProvider: provider.displayName,
                     })
                   : t(
-                      "Connect {{ authProvider }} to allow members to sign-in",
+                      "Connect {{ authProvider }} to allow members to sign in",
                       {
                         authProvider: provider.displayName,
                       }
@@ -337,7 +337,7 @@ function Authentication() {
         name="guestSignin"
         description={
           env.EMAIL_ENABLED
-            ? t("Allow members to sign-in using their email address")
+            ? t("Allow members to sign in using their email address")
             : t("The server must have SMTP configured to enable this setting")
         }
         border={false}
@@ -357,7 +357,7 @@ function Authentication() {
           </Flex>
         }
         name="passkeysEnabled"
-        description={t("Allow members to sign-in with a WebAuthn passkey")}
+        description={t("Allow members to sign in with a WebAuthn passkey")}
       >
         <Switch
           id="passkeysEnabled"

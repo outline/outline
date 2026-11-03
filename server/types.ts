@@ -1,5 +1,5 @@
 import type { ParameterizedContext, DefaultContext } from "koa";
-import type { IRouterParamContext } from "koa-router";
+import type { RouterContext } from "@koa/router";
 import type { InferAttributes, Model, Transaction } from "sequelize";
 import type { z } from "zod";
 import type {
@@ -92,11 +92,12 @@ export type BaseRes = unknown;
 export interface APIContext<
   ReqT = Partial<BaseReq>,
   ResT = BaseRes,
-> extends ParameterizedContext<
-  AppState,
-  DefaultContext & IRouterParamContext<AppState>,
-  ResT
-> {
+> extends RouterContext<AppState, DefaultContext, ResT> {
+  // Router internals are left untyped so that handlers with a narrower context
+  // remain assignable to route middleware.
+  router: never;
+  matched?: never;
+
   /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
@@ -629,7 +630,11 @@ export type Unfurl =
       [x: string]: JSONValue;
     };
 
-export type UnfurlError = { error: string };
+export type UnfurlError = {
+  error: string;
+  /** How long to cache the error for in seconds, defaults to one minute. */
+  cacheExpiry?: number;
+};
 
 export type UnfurlSignature = (
   url: string,

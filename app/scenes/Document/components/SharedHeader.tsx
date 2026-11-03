@@ -92,7 +92,7 @@ function SharedDocumentHeader({ document }: Props) {
             : `${t("Show contents")} (${t("available when headings are added")})`
       }
       shortcut={`Ctrl+${altDisplay}+h`}
-      placement="bottom"
+      side="bottom"
     >
       <TocButton
         aria-label={t("Show contents")}
@@ -126,11 +126,7 @@ function SharedDocumentHeader({ document }: Props) {
       }
       hasSidebar={hasSidebar}
       left={
-        isMobile ? (
-          hasHeadings ? (
-            <TableOfContentsMenu />
-          ) : null
-        ) : hasSidebar ? (
+        isMobile ? null : hasSidebar ? (
           <PublicBreadcrumb
             documentId={document.id}
             shareId={shareId}
@@ -145,6 +141,11 @@ function SharedDocumentHeader({ document }: Props) {
       actions={
         <>
           <SearchHighlightChip />
+          {hasHeadings && isMobile && (
+            <Action>
+              <TableOfContentsMenu />
+            </Action>
+          )}
           {hasHeadings && !isMobile && !tocInLeft && <Action>{toc}</Action>}
           {allowSubscriptions !== false && env.EMAIL_ENABLED && (
             <SubscribeAction shareId={shareId} documentId={document.id} />

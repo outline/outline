@@ -3,7 +3,7 @@ import { CheckmarkIcon, DocumentIcon, PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover, ellipsis } from "@shared/styles";
@@ -238,7 +238,8 @@ function ReferenceListItem({
   const { icon, color } = document;
   const isEmoji = determineIconType(icon) === IconType.Emoji;
   const title =
-    document instanceof Document ? document.titleWithDefault : document.title;
+    document instanceof Document ? document.displayTitle : document.title;
+  const path = document instanceof Document ? document.path : document.url;
   const initial = title.charAt(0).toUpperCase();
   const showContextMenu = document instanceof Document && !!user;
 
@@ -280,9 +281,7 @@ function ReferenceListItem({
       $menuOpen={menuOpen}
       $selectable={selectable}
       to={{
-        pathname: shareId
-          ? sharedModelPath(shareId, document.url)
-          : document.url,
+        pathname: shareId ? sharedModelPath(shareId, path) : path,
         hash: anchor ? `d-${anchor}` : undefined,
         state: {
           title: document.title,
