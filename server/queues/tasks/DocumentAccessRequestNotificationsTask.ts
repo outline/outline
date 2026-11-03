@@ -145,19 +145,29 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
   }
 
   /**
-   * Find the owners of the document that are able to approve access requests.
+   * Find the owners of the document, and of its collection, that are able to
+   * approve access requests.
    *
    * @param document the document to find owners for.
    * @returns the owners that can manage access to the document.
    */
   private async findDocumentOwners(document: Document): Promise<User[]> {
-    if (!document.ownerIds?.length) {
+    const collection = document.collectionId
+      ? await Collection.unscoped().findByPk(document.collectionId, {
+          attributes: ["id", "ownerIds"],
+        })
+      : null;
+    const ownerIds = uniq([
+      ...(collection?.ownerIds ?? []),
+      ...(document.ownerIds ?? []),
+    ]);
+    if (!ownerIds.length) {
       return [];
     }
 
     const owners = await User.scope("withTeam").findAll({
       where: {
-        id: { [Op.in]: document.ownerIds },
+        id: { [Op.in]: ownerIds },
         teamId: document.teamId,
         suspendedAt: null,
       },

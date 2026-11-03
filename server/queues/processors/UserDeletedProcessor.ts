@@ -92,6 +92,24 @@ export default class UserDeletedProcessor extends BaseProcessor {
           transaction,
         }
       );
+      await Collection.unscoped().update(
+        {
+          ownerIds: sequelize.fn(
+            "array_remove",
+            sequelize.col("ownerIds"),
+            event.userId
+          ),
+        },
+        {
+          where: {
+            teamId: event.teamId,
+            ownerIds: { [Op.contains]: [event.userId] },
+          },
+          paranoid: false,
+          silent: true,
+          transaction,
+        }
+      );
       await WebhookSubscription.update(
         { enabled: false },
         {

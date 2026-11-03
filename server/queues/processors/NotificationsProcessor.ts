@@ -6,12 +6,14 @@ import type {
   DocumentEvent,
   CommentEvent,
   CollectionUserEvent,
+  CollectionOwnerEvent,
   DocumentUserEvent,
   DocumentOwnerEvent,
   DocumentGroupEvent,
   CommentReactionEvent,
   GroupUserEvent,
 } from "@server/types";
+import CollectionAddOwnerNotificationsTask from "../tasks/CollectionAddOwnerNotificationsTask";
 import CollectionAddUserNotificationsTask from "../tasks/CollectionAddUserNotificationsTask";
 import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
 import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
@@ -38,6 +40,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     "revisions.create",
     "collections.create",
     "collections.add_user",
+    "collections.add_owner",
     "groups.add_user",
     "groups.remove_user",
     "comments.create",
@@ -64,6 +67,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.collectionCreated(event);
       case "collections.add_user":
         return this.collectionAddUser(event);
+      case "collections.add_owner":
+        return this.collectionAddOwner(event);
       case "groups.add_user":
       case "groups.remove_user":
         return this.groupUserChanged(event);
@@ -138,6 +143,14 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     await new CollectionAddUserNotificationsTask().schedule(event);
+  }
+
+  async collectionAddOwner(event: CollectionOwnerEvent) {
+    if (event.userId === event.actorId) {
+      return;
+    }
+
+    await new CollectionAddOwnerNotificationsTask().schedule(event);
   }
 
   async groupUserChanged(event: GroupUserEvent) {

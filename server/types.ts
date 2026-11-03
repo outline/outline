@@ -334,6 +334,13 @@ export type DocumentOwnerEvent = BaseEvent<Document> & {
   documentId: string;
 };
 
+export type CollectionOwnerEvent = BaseEvent<Collection> & {
+  name: "collections.add_owner" | "collections.remove_owner";
+  userId: string;
+  modelId: string;
+  collectionId: string;
+};
+
 export type AccessRequestEvent = BaseEvent<AccessRequest> & {
   name: "access_requests.create";
   modelId: string;
@@ -527,6 +534,7 @@ export type Event =
   | StarEvent
   | CollectionEvent
   | CollectionUserEvent
+  | CollectionOwnerEvent
   | CollectionGroupEvent
   | FileOperationEvent
   | IntegrationEvent

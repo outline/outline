@@ -1,21 +1,21 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useDocumentOwners from "~/hooks/useDocumentOwners";
-import type Document from "~/models/Document";
+import useOwners from "~/hooks/useOwners";
 
 type Props = {
-  /** The document to describe the owners of. */
-  document: Document;
+  /** The ids of the owners to describe. */
+  ownerIds: string[];
 };
 
 /**
- * Describes who owns a document, renders nothing when it has no owners.
+ * Describes who owns a document or collection, renders nothing when there are
+ * no owners.
  */
-function DocumentOwnersLabel({ document }: Props) {
+function OwnersLabel({ ownerIds }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const owners = useDocumentOwners(document);
+  const owners = useOwners(ownerIds);
 
   if (owners.length === 0) {
     return null;
@@ -50,4 +50,4 @@ function DocumentOwnersLabel({ document }: Props) {
   return <span>{label}</span>;
 }
 
-export default observer(DocumentOwnersLabel);
+export default observer(OwnersLabel);

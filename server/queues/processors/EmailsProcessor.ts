@@ -7,6 +7,7 @@ import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmai
 import CommentResolvedEmail from "@server/emails/templates/CommentResolvedEmail";
 import DocumentAccessRequestEmail from "@server/emails/templates/DocumentAccessRequestEmail";
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
+import CollectionOwnerAddedEmail from "@server/emails/templates/CollectionOwnerAddedEmail";
 import DocumentOwnerAddedEmail from "@server/emails/templates/DocumentOwnerAddedEmail";
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
@@ -81,6 +82,23 @@ export default class EmailsProcessor extends BaseProcessor {
             language: notification.user.language,
             userId: notification.userId,
             documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule({
+          delay: Minute.ms,
+        });
+        return;
+      }
+
+      case NotificationEventType.AddOwnerToCollection: {
+        await new CollectionOwnerAddedEmail(
+          {
+            to: notification.user.email,
+            language: notification.user.language,
+            userId: notification.userId,
+            collectionId: notification.collectionId,
             teamUrl: notification.team.url,
             actorName: notification.actor.name,
           },

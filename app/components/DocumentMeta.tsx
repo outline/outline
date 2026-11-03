@@ -9,7 +9,7 @@ import { ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
-import DocumentOwnersLabel from "~/components/DocumentOwnersLabel";
+import OwnersLabel from "~/components/OwnersLabel";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
 import { MetaButton, Separator, metaStyles } from "~/components/HeaderMeta";
@@ -236,10 +236,10 @@ const DocumentMeta: React.FC<Props> = ({
           </Strong>
         </span>
       )}
-      {showOwners && !revision && document.ownerIds?.length > 0 && (
+      {showOwners && !revision && document.allOwnerIds.length > 0 && (
         <Owners>
           <Separator />
-          <DocumentOwnersLabel document={document} />
+          <OwnersLabel ownerIds={document.allOwnerIds} />
         </Owners>
       )}
       {showParentDocuments && nestedDocumentsCount > 0 && (

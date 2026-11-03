@@ -1,59 +1,31 @@
-import { difference, uniq } from "es-toolkit";
-import { Op, Sequelize } from "sequelize";
-import { DocumentPermission, UserRole } from "@shared/types";
+import { difference } from "es-toolkit";
+import { Sequelize } from "sequelize";
+import { DocumentPermission } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
-import { ValidationError } from "@server/errors";
-import { Document, Event, User, UserMembership } from "@server/models";
+import { Document, Event, UserMembership } from "@server/models";
 import type { APIContext } from "@server/types";
+import { validateOwnerIds } from "./owners";
 
 /**
- * Validates the requested owners of a document, added owners must be active
- * members or admins of the acting user's workspace. Existing owners are kept
- * without validation so that the list can still be changed.
+ * Validates the requested owners of a document.
  *
  * @param ctx the API context containing the acting user.
  * @param ownerIds the requested owner IDs.
  * @param previousOwnerIds the owner IDs before the change.
  * @returns the de-duplicated owner IDs.
- * @throws ValidationError when any of the added users cannot be an owner.
+ * @throws ValidationError when any of the owners are not valid.
  */
-export async function validateDocumentOwnerIds(
+export function validateDocumentOwnerIds(
   ctx: APIContext,
   ownerIds: string[],
   previousOwnerIds: string[] = []
 ): Promise<string[]> {
-  const { user } = ctx.state.auth;
-  const { transaction } = ctx.state;
-  const ids = uniq(ownerIds);
-  const addedIds = difference(ids, previousOwnerIds);
-
-  if (ids.length > DocumentValidation.maxOwners) {
-    throw ValidationError(
-      `A document can have at most ${DocumentValidation.maxOwners} owners`
-    );
-  }
-
-  if (addedIds.length === 0) {
-    return ids;
-  }
-
-  const count = await User.count({
-    where: {
-      id: addedIds,
-      teamId: user.teamId,
-      role: { [Op.in]: [UserRole.Admin, UserRole.Member] },
-      suspendedAt: { [Op.is]: null },
-    },
-    transaction,
-  });
-
-  if (count !== addedIds.length) {
-    throw ValidationError(
-      "Document owners must be active members or admins of the workspace"
-    );
-  }
-
-  return ids;
+  return validateOwnerIds(
+    ctx,
+    ownerIds,
+    previousOwnerIds,
+    DocumentValidation.maxOwners
+  );
 }
 
 /**

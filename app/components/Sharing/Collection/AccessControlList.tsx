@@ -19,7 +19,7 @@ import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
-import { EmptySelectValue } from "~/types";
+import { EmptySelectValue, OwnerSelectValue } from "~/types";
 import { Separator, GroupMembersPopover } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
@@ -95,6 +95,26 @@ export const AccessControlList = observer(
         ] as Permission[],
       [t]
     );
+
+    // Owners are individual users, so the role is not offered for groups.
+    const userPermissions = React.useMemo(
+      () =>
+        [
+          ...permissions.slice(0, -1),
+          {
+            label: t("Owner"),
+            value: OwnerSelectValue,
+          },
+          ...permissions.slice(-1),
+        ] as Permission[],
+      [t, permissions]
+    );
+
+    // Order owners first, then users added during the current session.
+    const sortKey = (userId: string, name: string) =>
+      (collection.ownerIds.includes(userId) ? "0" : "1") +
+      (invitedInSession.includes(userId) ? "_" : "") +
+      name;
 
     return (
       <Wrapper>
@@ -202,57 +222,83 @@ export const AccessControlList = observer(
                 {membershipsInCollection
                   .filter((membership) => membership.user)
                   .sort((a, b) =>
-                    (
-                      (invitedInSession.includes(a.user.id) ? "_" : "") +
-                      a.user.name
-                    ).localeCompare(b.user.name)
+                    sortKey(a.user.id, a.user.name).localeCompare(
+                      sortKey(b.user.id, b.user.name)
+                    )
                   )
-                  .map((membership) => (
-                    <ListItem
-                      key={membership.id}
-                      image={
-                        <Avatar
-                          model={membership.user}
-                          size={AvatarSize.Medium}
-                        />
-                      }
-                      title={membership.user.name}
-                      subtitle={membership.user.email}
-                      actions={
-                        <div style={{ marginRight: -8 }}>
-                          <InputMemberPermissionSelect
-                            permissions={permissions}
-                            onChange={async (
-                              permission:
-                                | CollectionPermission
-                                | typeof EmptySelectValue
-                            ) => {
-                              try {
-                                if (permission === EmptySelectValue) {
-                                  await memberships.delete({
-                                    collectionId: collection.id,
-                                    userId: membership.userId,
-                                  });
-                                } else {
-                                  await memberships.create({
-                                    collectionId: collection.id,
-                                    userId: membership.userId,
-                                    permission,
-                                  });
-                                }
-                              } catch (err) {
-                                toast.error(errToString(err));
-                                return false;
-                              }
-                              return true;
-                            }}
-                            disabled={!can.manageUsers}
-                            value={membership.permission}
+                  .map((membership) => {
+                    const isOwner = collection.ownerIds.includes(
+                      membership.userId
+                    );
+                    const canBeOwner =
+                      !!can.manageOwners &&
+                      (membership.user.isAdmin || membership.user.isMember) &&
+                      !membership.user.isSuspended;
+
+                    return (
+                      <ListItem
+                        key={membership.id}
+                        image={
+                          <Avatar
+                            model={membership.user}
+                            size={AvatarSize.Medium}
                           />
-                        </div>
-                      }
-                    />
-                  ))}
+                        }
+                        title={membership.user.name}
+                        subtitle={membership.user.email}
+                        actions={
+                          <div style={{ marginRight: -8 }}>
+                            <InputMemberPermissionSelect
+                              permissions={
+                                isOwner || canBeOwner
+                                  ? userPermissions
+                                  : permissions
+                              }
+                              onChange={async (
+                                permission:
+                                  | CollectionPermission
+                                  | typeof EmptySelectValue
+                                  | typeof OwnerSelectValue
+                              ) => {
+                                try {
+                                  if (permission === EmptySelectValue) {
+                                    await memberships.delete({
+                                      collectionId: collection.id,
+                                      userId: membership.userId,
+                                    });
+                                  } else if (permission === OwnerSelectValue) {
+                                    await memberships.create({
+                                      collectionId: collection.id,
+                                      userId: membership.userId,
+                                      permission: CollectionPermission.Admin,
+                                      owner: true,
+                                    });
+                                  } else {
+                                    await memberships.create({
+                                      collectionId: collection.id,
+                                      userId: membership.userId,
+                                      permission,
+                                      owner: false,
+                                    });
+                                  }
+                                } catch (err) {
+                                  toast.error(errToString(err));
+                                  return false;
+                                }
+                                return true;
+                              }}
+                              disabled={!can.manageUsers}
+                              value={
+                                isOwner
+                                  ? OwnerSelectValue
+                                  : membership.permission
+                              }
+                            />
+                          </div>
+                        }
+                      />
+                    );
+                  })}
               </>
             )}
           </>

@@ -2,6 +2,7 @@ import UserAuthentication from "@server/models/UserAuthentication";
 import { Collection, Document } from "@server/models";
 import {
   buildAdmin,
+  buildCollection,
   buildDocument,
   buildPersonalCollection,
   buildUser,
@@ -118,5 +119,26 @@ describe("UserDeletedProcessor", () => {
       rejectOnEmpty: true,
     });
     expect(reloaded.ownerIds).toEqual([]);
+  });
+
+  it("should remove the user from collection owners", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      ownerIds: [user.id, other.id],
+    });
+
+    const processor = new UserDeletedProcessor();
+    await processor.perform({
+      name: "users.delete",
+      userId: user.id,
+      actorId: user.id,
+      teamId: user.teamId,
+      ip,
+    });
+
+    await collection.reload();
+    expect(collection.ownerIds).toEqual([other.id]);
   });
 });

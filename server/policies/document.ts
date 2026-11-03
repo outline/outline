@@ -9,7 +9,7 @@ import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
 import {
   and,
-  isCollectionOwner,
+  isPersonalCollectionOwner,
   isCollectionWritable,
   isCommentingEnabled,
   isTeamAdmin,
@@ -245,7 +245,7 @@ allow(User, "permanentDelete", Document, (actor, document) =>
     isTeamAdmin(actor, document),
     or(
       !document?.collection?.isPersonal,
-      isCollectionOwner(actor, document?.collection)
+      isPersonalCollectionOwner(actor, document?.collection)
     )
   )
 );
@@ -355,7 +355,7 @@ function isDocumentOwner(actor: User, document: Document | null) {
 function isPersonalOwner(actor: User, document: Document | null) {
   return !!and(
     isTeamMutable(actor),
-    isCollectionOwner(actor, document?.collection)
+    isPersonalCollectionOwner(actor, document?.collection)
   );
 }
 

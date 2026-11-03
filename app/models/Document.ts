@@ -1,5 +1,6 @@
 import { addDays, differenceInDays, differenceInSeconds } from "date-fns";
 import i18n, { t } from "i18next";
+import { uniq } from "es-toolkit";
 import { capitalize, floor } from "es-toolkit/compat";
 import {
   action,
@@ -340,14 +341,12 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
-   * The users that are responsible for this document, excluding any that are
-   * not loaded.
+   * The ids of users that are responsible for this document, the owners of its
+   * collection first and then its own owners.
    */
   @computed
-  get owners(): User[] {
-    return this.ownerIds
-      .map((id) => this.store.rootStore.users.get(id))
-      .filter(Boolean) as User[];
+  get allOwnerIds(): string[] {
+    return uniq([...(this.collection?.ownerIds ?? []), ...this.ownerIds]);
   }
 
   /**

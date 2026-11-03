@@ -61,6 +61,9 @@ export const CollectionValidation = {
 
   /** The maximum length of the collection name */
   maxNameLength: 100,
+
+  /** The maximum number of owners of a collection */
+  maxOwners: 25,
 };
 
 export const CommentValidation = {

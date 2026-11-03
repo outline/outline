@@ -52,6 +52,13 @@ import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import {
+  applyCollectionOwnerChanges,
+  grantCollectionOwnerAccess,
+  removeCollectionOwner,
+  resolveCollectionOwnerIds,
+  updateCollectionOwners,
+} from "@server/commands/collectionOwners";
 import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
@@ -76,6 +83,7 @@ router.post(
       index,
       commenting,
       templateManagement,
+      ownerIds,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -105,6 +113,11 @@ router.post(
       transaction,
       rejectOnEmpty: true,
     });
+
+    // Owners are assigned after authorizing, as ownership grants permissions.
+    if (ownerIds?.length) {
+      await updateCollectionOwners(ctx, reloaded, ownerIds);
+    }
 
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
@@ -396,7 +409,7 @@ router.post(
   async (ctx: APIContext<T.CollectionsAddUserReq>) => {
     const { transaction } = ctx.state;
     const { user: actor } = ctx.state.auth;
-    const { id, userId, permission } = ctx.input.body;
+    const { id, userId, permission, owner } = ctx.input.body;
 
     const [collection, user] = await Promise.all([
       Collection.findByPk(id, { userId: actor.id, transaction }),
@@ -404,6 +417,43 @@ router.post(
     ]);
     authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
+
+    const previousOwnerIds = collection.ownerIds ?? [];
+
+    if (owner) {
+      // Lock the collection so that concurrent invitations do not overwrite
+      // the owners added by each other.
+      const locked = await Collection.unscoped().findOne({
+        attributes: ["id", "ownerIds"],
+        where: { id: collection.id },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        paranoid: false,
+        rejectOnEmpty: true,
+      });
+      collection.ownerIds = locked.ownerIds ?? [];
+
+      await updateCollectionOwners(ctx, collection, [
+        ...collection.ownerIds,
+        userId,
+      ]);
+      await grantCollectionOwnerAccess(ctx, collection, [userId]);
+
+      const ownerMembership = await UserMembership.findOne({
+        where: { collectionId: id, userId },
+        transaction,
+        rejectOnEmpty: true,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: [presentMembership(ownerMembership)],
+          collections: [await presentCollection(ctx, collection)],
+        },
+      };
+      return;
+    }
 
     let membership = await UserMembership.findOneForUpdate(
       { collectionId: id, userId },
@@ -427,10 +477,23 @@ router.post(
       );
     }
 
+    // Owners must be able to manage the collection, so other access removes
+    // the ownership.
+    if (
+      owner === false ||
+      membership.permission !== CollectionPermission.Admin
+    ) {
+      await removeCollectionOwner(ctx, collection, userId);
+    }
+
     ctx.body = {
       data: {
         users: [presentUser(user)],
         memberships: [presentMembership(membership)],
+        collections:
+          collection.ownerIds !== previousOwnerIds
+            ? [await presentCollection(ctx, collection)]
+            : [],
       },
     };
   }
@@ -462,6 +525,7 @@ router.post(
     }
 
     await membership.destroy(ctx.context);
+    await removeCollectionOwner(ctx, collection, userId);
 
     ctx.body = {
       success: true,
@@ -613,6 +677,7 @@ router.post(
       commenting,
       templateManagement,
       deprecatedReason,
+      ownerIds,
     } = ctx.input.body;
 
     const updatingDeprecatedReason =
@@ -671,6 +736,15 @@ router.post(
       }
     }
 
+    const previousOwnerIds = collection.ownerIds ?? [];
+    if (ownerIds) {
+      collection.ownerIds = await resolveCollectionOwnerIds(
+        ctx,
+        collection,
+        ownerIds
+      );
+    }
+
     collection.fill({
       name: name?.trim(),
       description,
@@ -688,6 +762,10 @@ router.post(
     const sharingChanged = collection.changed("sharing");
 
     await collection.saveWithCtx(ctx);
+
+    if (collection.ownerIds !== previousOwnerIds) {
+      await applyCollectionOwnerChanges(ctx, collection, previousOwnerIds);
+    }
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.
