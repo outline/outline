@@ -29,8 +29,8 @@ type Props = {
   showLastViewed?: boolean;
   /** Show the number of documents nested under this one. */
   showParentDocuments?: boolean;
-  /** Show who owns the document, when it has owners. */
-  showOwners?: boolean;
+  /** The ids of the owners to show, nothing is shown when empty. */
+  ownerIds?: string[];
   /** The document to display meta information for. */
   document: Document;
   /** A revision of the document, when displaying meta for a point in history. */
@@ -50,7 +50,7 @@ const DocumentMeta: React.FC<Props> = ({
   showCollection,
   showLastViewed,
   showParentDocuments,
-  showOwners,
+  ownerIds,
   document,
   revision,
   children,
@@ -236,10 +236,10 @@ const DocumentMeta: React.FC<Props> = ({
           </Strong>
         </span>
       )}
-      {showOwners && !revision && document.allOwnerIds.length > 0 && (
+      {ownerIds && ownerIds.length > 0 && !revision && (
         <Owners>
           <Separator />
-          <OwnersLabel ownerIds={document.allOwnerIds} />
+          <OwnersLabel ownerIds={ownerIds} />
         </Owners>
       )}
       {showParentDocuments && nestedDocumentsCount > 0 && (

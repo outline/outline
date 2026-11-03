@@ -251,7 +251,8 @@ function DocumentListItem(props: Props) {
             showPublished={showPublished}
             showParentDocuments={showParentDocuments}
             showLastViewed
-            showOwners
+            // Inside a collection its owners are shown in the header instead.
+            ownerIds={showCollection ? document.allOwnerIds : document.ownerIds}
           />
         </Content>
       </Flex>
