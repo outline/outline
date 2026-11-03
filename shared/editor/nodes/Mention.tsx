@@ -205,7 +205,6 @@ export default class Mention extends Node {
         return (
           <MentionIssue
             {...props}
-            getIssueStatusIcon={this.editor.props.getIssueStatusIcon}
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
         );

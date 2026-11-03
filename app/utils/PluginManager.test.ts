@@ -1,6 +1,5 @@
 import { createLazyComponent } from "~/components/LazyLoad";
-import { IntegrationService } from "@shared/types";
-import { Hook, PluginManager, getIssueStatusIcon } from "./PluginManager";
+import { Hook, PluginManager } from "./PluginManager";
 
 const SettingsComponent = () => null;
 const Icon = () => null;
@@ -43,38 +42,5 @@ describe("PluginManager", () => {
       "test-settings-plugin-high",
       "test-settings-plugin-low",
     ]);
-  });
-
-  it("resolves issue status icons by service or legacy url", () => {
-    const StatusIcon = () => null;
-    PluginManager.add({
-      id: "test-issue-status-icon",
-      name: "Test issue status icon",
-      type: Hook.IssueStatusIcon,
-      value: {
-        service: IntegrationService.Linear,
-        component: StatusIcon,
-        matchesUrl: (url) => url.hostname === "issues.example.com",
-      },
-    });
-
-    expect(
-      getIssueStatusIcon({
-        service: IntegrationService.Linear,
-        url: "https://other.example.com/1",
-      })
-    ).toBe(StatusIcon);
-    expect(
-      getIssueStatusIcon({ url: "https://issues.example.com/issue/1" })
-    ).toBe(StatusIcon);
-    expect(
-      getIssueStatusIcon({ url: "https://other.example.com/1" })
-    ).toBeUndefined();
-    expect(
-      getIssueStatusIcon({
-        service: IntegrationService.GitHub,
-        url: "https://issues.example.com/issue/1",
-      })
-    ).toBeUndefined();
   });
 });

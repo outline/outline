@@ -201,7 +201,6 @@ export class Linear {
 
     return {
       type: UnfurlResourceType.Issue,
-      service: IntegrationService.Linear,
       url: issue.url,
       id: issue.identifier,
       title: issue.title,

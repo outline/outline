@@ -8,7 +8,6 @@ import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
-import { getIssueStatusIcon } from "~/utils/PluginManager";
 import Text from "../Text";
 import Time from "../Time";
 import {
@@ -26,7 +25,6 @@ type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type"> & {
 };
 
 function HoverPreviewIssue({
-  service,
   url,
   id,
   title,
@@ -46,11 +44,7 @@ function HoverPreviewIssue({
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <StyledIssueStatusIcon
-                  icon={getIssueStatusIcon({ service, url })}
-                  state={state}
-                  size={18}
-                />
+                <StyledIssueStatusIcon state={state} size={18} />
                 <span>
                   <Backticks content={title} />
                   &nbsp;<Text type="tertiary">{id}</Text>

@@ -5,7 +5,6 @@ import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
 import { LinearUtils } from "../shared/LinearUtils";
 import Icon from "./Icon";
-import { LinearIssueStatusIcon } from "./IssueStatusIcon";
 
 PluginManager.add([
   {
@@ -35,15 +34,6 @@ PluginManager.add([
         );
       },
       mentionType: (url) => LinearUtils.mentionType(url),
-    },
-  },
-  {
-    ...config,
-    type: Hook.IssueStatusIcon,
-    value: {
-      service: IntegrationService.Linear,
-      component: LinearIssueStatusIcon,
-      matchesUrl: (url) => url.hostname === "linear.app",
     },
   },
 ]);

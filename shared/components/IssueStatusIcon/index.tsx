@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import type { UnfurlResourceType, UnfurlResponse } from "../../types";
 import { DefaultIssueStatusIcon } from "./DefaultIssueStatusIcon";
+import { WorkflowStatusIcon } from "./WorkflowStatusIcon";
 
 export type BaseIconProps = {
   state: UnfurlResponse[UnfurlResourceType.Issue]["state"];
@@ -9,27 +10,21 @@ export type BaseIconProps = {
   size?: number;
 };
 
-/** Returns the status icon registered for an issue, if any. */
-export type IssueStatusIconResolver = (issue: {
-  service?: string;
-  url: string;
-}) => React.ComponentType<BaseIconProps> | undefined;
-
-type Props = BaseIconProps & {
-  /** The icon to render, the default icon is used when not given. */
-  icon?: React.ComponentType<BaseIconProps>;
-};
-
 /**
- * Renders the status icon of an issue.
+ * Renders the status icon of an issue. Issues with a workflow state type show
+ * its progress, others show whether they are open or closed.
  *
- * @param props the issue state, icon and display options.
+ * @param props the issue state and display options.
  * @returns the icon.
  */
-export function IssueStatusIcon({ icon, ...props }: Props) {
+export function IssueStatusIcon(props: BaseIconProps) {
   return (
     <Icon size={props.size} className={props.className}>
-      {React.createElement(icon ?? DefaultIssueStatusIcon, props)}
+      {props.state.type ? (
+        <WorkflowStatusIcon {...props} />
+      ) : (
+        <DefaultIssueStatusIcon {...props} />
+      )}
     </Icon>
   );
 }

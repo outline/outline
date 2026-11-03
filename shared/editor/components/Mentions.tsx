@@ -18,10 +18,7 @@ import {
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
-import {
-  IssueStatusIcon,
-  type IssueStatusIconResolver,
-} from "../../components/IssueStatusIcon";
+import { IssueStatusIcon } from "../../components/IssueStatusIcon";
 import { PullRequestIcon } from "../../components/PullRequestIcon";
 import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
@@ -311,12 +308,7 @@ export const MentionURL = (props: IssueUrlProps) => {
   );
 };
 
-type IssueProps = IssuePrProps & {
-  /** Returns the status icon registered for an issue tracker service. */
-  getIssueStatusIcon?: IssueStatusIconResolver;
-};
-
-export const MentionIssue = observer((props: IssueProps) => {
+export const MentionIssue = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
@@ -380,11 +372,7 @@ export const MentionIssue = observer((props: IssueProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <IssueStatusIcon
-          size={14}
-          icon={props.getIssueStatusIcon?.(issue)}
-          state={issue.state}
-        />
+        <IssueStatusIcon size={14} state={issue.state} />
         <Flex align="center" gap={4}>
           <Text>
             <Backticks content={issue.title} />

@@ -19,7 +19,7 @@ import {
   Info,
 } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type" | "service"> & {
+type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type"> & {
   ref?: React.Ref<HTMLDivElement>;
 };
 

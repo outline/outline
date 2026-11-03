@@ -89,7 +89,6 @@ describe("Gitea.unfurl", () => {
     });
     expect(result).toMatchObject({
       type: UnfurlResourceType.Issue,
-      service: IntegrationService.Gitea,
       id: "#12",
       title: "Fix it",
       labels: [{ name: "bug", color: "#e11d21" }],
@@ -123,7 +122,6 @@ describe("Gitea.unfurl", () => {
 
     expect(result).toMatchObject({
       type: UnfurlResourceType.PR,
-      service: IntegrationService.Gitea,
       id: "#3",
       state: { name: "merged", draft: false },
     });

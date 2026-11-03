@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTheme } from "styled-components";
-import type { BaseIconProps } from "@shared/components/IssueStatusIcon";
-import { isSafari } from "@shared/utils/browser";
+import { isSafari } from "../../utils/browser";
+import type { BaseIconProps } from ".";
 
 enum StateType {
   Triage = "triage",
@@ -13,12 +13,12 @@ enum StateType {
 }
 
 /**
- * A status icon that shows the workflow state of a Linear issue.
+ * A status icon for issues in a workflow, which shows the state type and progress.
  *
  * @param props the issue state and display options.
  * @returns the icon.
  */
-export function LinearIssueStatusIcon(props: BaseIconProps) {
+export function WorkflowStatusIcon(props: BaseIconProps) {
   const theme = useTheme();
   const { state, size = 16 } = props;
   const percentage =
