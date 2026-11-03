@@ -8,6 +8,7 @@ import type {
 import type { ModelClassGetter } from "sequelize-typescript";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
+import { afterCommit } from "@server/storage/transaction";
 import type Model from "../base/Model";
 
 type RelationOptions = {
@@ -54,22 +55,13 @@ export function CounterCache<
       const cacheKey = buildCacheKey(
         model[options.foreignKey as keyof typeof model]
       );
-      const remove = async () => {
-        await CacheHelper.removeData(cacheKey);
-      };
 
       // Defer invalidation until after the transaction commits so that a
       // rollback does not leave the cache out of sync, and so that a stale
-      // pre-commit count is not re-cached by a concurrent reader. Walk to
-      // the parent transaction when nested so the callback isn't lost when
-      // the savepoint releases without committing the outer transaction.
-      if (hookOptions?.transaction) {
-        const transaction =
-          hookOptions.transaction.parent || hookOptions.transaction;
-        transaction.afterCommit(remove);
-      } else {
-        await remove();
-      }
+      // pre-commit count is not re-cached by a concurrent reader.
+      await afterCommit(hookOptions?.transaction, () =>
+        CacheHelper.removeData(cacheKey)
+      );
     };
 
     // The model class is not added to a Sequelize instance until the database

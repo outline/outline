@@ -11,6 +11,7 @@ import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 import { transaction } from "@server/middlewares/transaction";
+import pagination from "../middlewares/pagination";
 
 const router = new Router();
 
@@ -18,6 +19,7 @@ router.post(
   "views.list",
   auth(),
   validate(T.ViewsListSchema),
+  pagination({ defaultLimit: 100 }),
   async (ctx: APIContext<T.ViewsListReq>) => {
     const { documentId, includeSuspended } = ctx.input.body;
     const { user } = ctx.state.auth;
@@ -32,9 +34,14 @@ router.post(
       throw ValidationError("Insights are not enabled for this document");
     }
 
-    const views = await View.findByDocument(documentId, { includeSuspended });
+    const views = await View.findByDocument(documentId, {
+      includeSuspended,
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
+      pagination: ctx.state.pagination,
       data: views.map(presentView),
     };
   }

@@ -38,6 +38,10 @@
               {
                 "group": ["mime-types"],
                 "message": "Do not use the mime-types package in the browser."
+              },
+              {
+                "group": ["lodash", "lodash/*", "lodash.*", "lodash-es"],
+                "message": "Use es-toolkit instead."
               }
             ]
           }

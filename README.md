@@ -104,10 +104,6 @@ Or, to run migrations on test database:
 yarn db:migrate --env test
 ```
 
-# Activity
-
-![Alt](https://repobeats.axiom.co/api/embed/ff2e4e6918afff1acf9deb72d1ba6b071d586178.svg "Repobeats analytics image")
-
 # License
 
 Outline is [BSL 1.1 licensed](LICENSE).

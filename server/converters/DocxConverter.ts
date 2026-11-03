@@ -12,16 +12,24 @@ export class DocxConverter extends BaseConverter {
    *
    * @param content The docx file content as a Buffer.
    * @returns The HTML representation of the document.
+   * @throws {FileImportError} if the file is not a readable Word document.
    */
   public static async toHtml(content: Buffer | string): Promise<string> {
-    if (content instanceof Buffer) {
-      const { value } = await traceFunction({ spanName: "convertToHtml" })(
-        mammoth.convertToHtml
-      )({
-        buffer: content,
-      });
-      return value;
+    if (!(content instanceof Buffer)) {
+      throw FileImportError("Unsupported Word file");
     }
-    throw FileImportError("Unsupported Word file");
+
+    return traceFunction({ spanName: "convertToHtml" })(this.convertToHtml)(
+      content
+    );
+  }
+
+  private static async convertToHtml(buffer: Buffer): Promise<string> {
+    try {
+      const { value } = await mammoth.convertToHtml({ buffer });
+      return value;
+    } catch {
+      throw FileImportError("The Word document could not be read");
+    }
   }
 }

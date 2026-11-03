@@ -98,7 +98,7 @@ const ImportDropzone = observer(function ImportDropzone({
 let hasDraggedFiles = false;
 const fileDragListeners = new Set<() => void>();
 
-// Only prepare dropzones for OS file drags, internal react-dnd drags fire
+// Only prepare dropzones for OS file drags, text and editor content drags fire
 // native dragenter too.
 const handleDragEnter = (event: DragEvent) => {
   if (!Array.from(event.dataTransfer?.types ?? []).includes("Files")) {

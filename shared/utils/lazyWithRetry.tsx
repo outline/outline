@@ -6,12 +6,12 @@ type ComponentPromise<T extends React.ComponentType<any>> = Promise<{
 }>;
 
 /**
- * Matches errors thrown when a JavaScript chunk is missing, or when chunks from
- * different builds are mixed together – both usually the result of a deploy
- * happening while the tab was open.
+ * Matches errors thrown when a JavaScript or CSS chunk is missing, or when
+ * chunks from different builds are mixed together – both usually the result of
+ * a deploy happening while the tab was open.
  */
 export const staleChunkErrorPattern =
-  /dynamically imported module|module script failed|does not provide an export named/i;
+  /dynamically imported module|module script failed|does(n't| not) provide an export named|Unable to preload CSS/i;
 
 /**
  * Whether an error was caused by loading a stale or missing JavaScript chunk.

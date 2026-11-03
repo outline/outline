@@ -1,5 +1,6 @@
 import { RateLimiterRes } from "rate-limiter-flexible";
 import env from "@server/env";
+import { Collection } from "@server/models";
 import type { Document, User } from "@server/models";
 import {
   buildAdmin,
@@ -195,6 +196,44 @@ describe("#batch", () => {
     expect(res.status).toEqual(200);
     expect(body.data[0].ok).toBe(true);
     expect(body.data[0].data.documentId).toEqual(doc.id);
+  });
+
+  it("should apply document moves in request order", async () => {
+    const [source, destination] = await Promise.all([
+      buildCollection({ userId: user.id, teamId: user.teamId }),
+      buildCollection({ userId: user.id, teamId: user.teamId }),
+    ]);
+    const documents = [];
+    for (let i = 0; i < 6; i++) {
+      documents.push(
+        await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          collectionId: source.id,
+        })
+      );
+    }
+    const ordered = documents.reverse();
+
+    const res = await server.post("/api/batch", user, {
+      body: {
+        requests: ordered.map((document) => ({
+          method: "documents.move",
+          body: { id: document.id, collectionId: destination.id },
+        })),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.every((result: { ok: boolean }) => result.ok)).toBe(true);
+
+    const reloaded = await Collection.findByPk(destination.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure?.map((node) => node.id)).toEqual(
+      ordered.map((document) => document.id)
+    );
   });
 
   it("should reject a known endpoint that is not allowlisted", async () => {

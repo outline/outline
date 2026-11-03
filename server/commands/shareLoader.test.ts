@@ -477,5 +477,14 @@ describe("shareLoader", () => {
 
       await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
+
+    it("should throw error when share belongs to another team", async () => {
+      const team = await buildTeam();
+      const share = await buildShare();
+
+      await expect(
+        loadPublicShare({ id: share.id, teamId: team.id })
+      ).rejects.toThrow("Resource not found");
+    });
   });
 });

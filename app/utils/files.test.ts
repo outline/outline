@@ -1,7 +1,7 @@
 import { extname, toDropzoneAccept } from "./files";
 
 describe("#extname", () => {
-  test("should extract file extension from string", () => {
+  it("should extract file extension from string", () => {
     expect(extname("one.doc")).toBe(".doc");
     expect(extname("one.test.ts")).toBe(".ts");
     expect(extname(".DS_Store")).toBe("");

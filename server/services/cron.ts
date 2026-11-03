@@ -17,14 +17,25 @@ export default function init() {
       }
 
       const taskInstance = new TaskClass() as CronTask;
+      const { interval, limit, partitionWindow } = taskInstance.cron;
 
-      if (taskInstance.cron.interval === schedule) {
-        await taskInstance.schedule({
-          limit: 10000,
+      if (interval !== schedule) {
+        continue;
+      }
+
+      // Stagger the start of tasks that define a window within that window.
+      const delay = partitionWindow
+        ? CronTask.getStaggerDelay(name, interval, partitionWindow)
+        : 0;
+
+      await taskInstance.schedule(
+        {
+          limit: limit ?? 10000,
           partition,
           scheduledAt,
-        });
-      }
+        },
+        { delay }
+      );
     }
   }
 

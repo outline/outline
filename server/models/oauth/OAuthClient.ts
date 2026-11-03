@@ -35,6 +35,7 @@ import Length from "@server/models/validators/Length";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
+import { afterCommit } from "@server/storage/transaction";
 import type { FindOptions } from "sequelize";
 
 @Table({
@@ -266,11 +267,7 @@ class OAuthClient extends ParanoidModel<
       }
     };
 
-    if (transaction) {
-      (transaction.parent || transaction).afterCommit(deleteFile);
-    } else {
-      await deleteFile();
-    }
+    await afterCommit(transaction, deleteFile);
   }
 
   // hooks

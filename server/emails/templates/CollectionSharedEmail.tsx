@@ -1,11 +1,13 @@
 import * as React from "react";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, NotificationEventType } from "@shared/types";
 import { Collection, UserMembership } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -51,6 +53,13 @@ export default class CollectionSharedEmail extends BaseEmail<
     }
 
     return { collection, membership };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.AddUserToCollection
+    );
   }
 
   protected subject({ actorName, collection }: Props) {
@@ -111,6 +120,11 @@ ${this.t("View Collection")}: ${teamUrl}${collection.path}
             <Button href={collectionUrl}>{this.t("View Collection")}</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

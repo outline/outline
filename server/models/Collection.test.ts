@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { createContext } from "@server/context";
 import {
   buildUser,
@@ -83,7 +83,7 @@ describe("getDocumentParents", () => {
     expect(result ? result[0] : undefined).toBe(parent.id);
   });
 
-  it("should return array of parent document ids", async () => {
+  it("should return empty array for a root document", async () => {
     const parent = await buildDocument();
     const document = await buildDocument();
     const collection = await buildCollection({

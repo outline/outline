@@ -21,6 +21,8 @@ export default class ErrorTimedOutImportsTask extends CronTask {
       // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       await ImportTask.findAllInBatches<ImportTask<any>>(
         {
+          // The JSON columns can be very large, so load only what is updated.
+          attributes: ["id", "state", "error", "importId"],
           where: {
             state: [ImportTaskState.Created, ImportTaskState.InProgress],
             createdAt: {
@@ -31,6 +33,7 @@ export default class ErrorTimedOutImportsTask extends CronTask {
             {
               model: Import.unscoped(),
               as: "import",
+              attributes: ["id", "state", "error"],
               required: true,
             },
           ],

@@ -14,7 +14,14 @@ allow(User, "createIntegration", Team, (actor, team) =>
   and(isTeamAdmin(actor, team), isTeamMutable(actor))
 );
 
-allow(User, "read", Integration, isTeamModel);
+allow(User, "read", Integration, (actor, integration) =>
+  and(
+    isTeamModel(actor, integration),
+    integration?.type === IntegrationType.LinkedAccount
+      ? isOwner(actor, integration)
+      : !actor.isGuest || integration?.type === IntegrationType.Embed
+  )
+);
 
 allow(User, ["update", "delete"], Integration, (actor, integration) =>
   and(

@@ -3,8 +3,8 @@ import { diffWordsWithSpace, diffChars } from "diff";
 import type { Node, Schema } from "prosemirror-model";
 import { Transform } from "prosemirror-transform";
 import type { Operation, ReplaceOperation } from "@shared/utils/rfc6902";
-import { applyPatch, createPatch } from "@shared/utils/rfc6902";
-import { copy } from "./copy";
+import { createPatch } from "@shared/utils/rfc6902";
+import { applyOperation } from "./applyOperation";
 import { getFromPath } from "./getFromPath";
 import { getReplaceStep } from "./getReplaceStep";
 import { removeMarks } from "./removeMarks";
@@ -110,14 +110,14 @@ export class RecreateTransform {
       ops.push(op);
 
       let toDoc;
-      const afterStepJSON = copy(this.currentJSON); // working document receiving patches
+      let afterStepJSON = this.currentJSON; // working document receiving patches
       const pathParts = op.path.split("/");
 
       // collect operations until we receive a valid document:
       // apply ops-patches until a valid prosemirror document is retrieved,
       // then try to create a transformation step or retry with next operation
       while (!toDoc) {
-        applyPatch(afterStepJSON, [op]);
+        afterStepJSON = applyOperation(afterStepJSON, op);
 
         try {
           toDoc = this.schema.nodeFromJSON(afterStepJSON);
@@ -247,10 +247,8 @@ export class RecreateTransform {
     // We find the position number of the first character in the string
     const op1 = { ...op, value: "xx" };
     const op2 = { ...op, value: "yy" };
-    const afterOP1JSON = copy(this.currentJSON);
-    const afterOP2JSON = copy(this.currentJSON);
-    applyPatch(afterOP1JSON, [op1]);
-    applyPatch(afterOP2JSON, [op2]);
+    const afterOP1JSON = applyOperation(this.currentJSON, op1);
+    const afterOP2JSON = applyOperation(this.currentJSON, op2);
     const op1Doc = this.schema.nodeFromJSON(afterOP1JSON);
     const op2Doc = this.schema.nodeFromJSON(afterOP2JSON);
 

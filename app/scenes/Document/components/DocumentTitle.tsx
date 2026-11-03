@@ -5,7 +5,7 @@ import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Icon, { IconTitleWrapper } from "@shared/components/Icon";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
@@ -292,7 +292,10 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: var(--document-title-margin-top, 8vh);
+  margin-top: ${(props) =>
+    props.$containsIcon || !props.readOnly
+      ? "calc(var(--document-title-margin-top, 16px) + 44px)"
+      : "var(--document-title-margin-top, 16px)"};
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;

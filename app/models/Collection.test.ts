@@ -1,7 +1,7 @@
 import stores from "~/stores";
 
 describe("Collection model", () => {
-  test("should initialize with data", () => {
+  it("should initialize with data", () => {
     const collection = stores.collections.add({
       id: "123",
       name: "Engineering",
@@ -31,7 +31,7 @@ describe("Collection model", () => {
     const document = stores.documents.add({
       id: "doc-1",
       title: "Doc",
-      url: "/doc/doc-1",
+      path: "/doc/doc-1",
       collectionId: collection.id,
     });
 

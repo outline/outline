@@ -21,6 +21,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import Notice from "~/components/Notice";
 import DelayedMount from "~/components/DelayedMount";
+import Desktop from "~/utils/Desktop";
 
 type Passkey = {
   id: string;
@@ -38,6 +39,9 @@ function PasskeysSettings() {
   const [passkeys, setPasskeys] = React.useState<Passkey[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRegistering, setIsRegistering] = React.useState(false);
+  const [isSupported, setIsSupported] = React.useState<boolean | undefined>(
+    () => (Desktop.isElectron() ? undefined : true)
+  );
 
   const team = useCurrentTeam();
   const can = usePolicy(team);
@@ -56,6 +60,12 @@ function PasskeysSettings() {
   React.useEffect(() => {
     void loadPasskeys();
   }, [loadPasskeys]);
+
+  React.useEffect(() => {
+    if (Desktop.isElectron()) {
+      void Desktop.isPasskeySupported().then(setIsSupported);
+    }
+  }, []);
 
   const handleRegister = async () => {
     setIsRegistering(true);
@@ -139,7 +149,7 @@ function PasskeysSettings() {
         <Action>
           <Button
             onClick={handleRegister}
-            disabled={isRegistering || !can.createUserPasskey}
+            disabled={isRegistering || !isSupported || !can.createUserPasskey}
             icon={<PlusIcon />}
           >
             {isRegistering ? `${t("Registering")}…` : `${t("Add passkey")}…`}
@@ -162,6 +172,14 @@ function PasskeysSettings() {
           {can.update
             ? t("Enable for all users in Settings → Authentication.")
             : t("Contact a workspace admin to enable it.")}
+        </Notice>
+      )}
+
+      {isSupported === false && (
+        <Notice>
+          {t(
+            "Passkeys cannot be added in the desktop app on this device. Use a web browser to add a passkey."
+          )}
         </Notice>
       )}
 

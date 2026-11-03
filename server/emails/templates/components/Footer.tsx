@@ -3,6 +3,7 @@ import * as React from "react";
 import theme from "@shared/styles/theme";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import env from "@server/env";
+import { DirectionContext } from "./Direction";
 
 type Props = {
   unsubscribeUrl?: string;
@@ -17,11 +18,12 @@ export const Link = ({
   href: string;
   children: React.ReactNode;
 }) => {
+  const dir = React.useContext(DirectionContext);
   const linkStyle = {
     color: theme.slate,
     fontWeight: 500,
     textDecoration: "none",
-    marginRight: "10px",
+    [dir === "rtl" ? "marginLeft" : "marginRight"]: "10px",
   };
 
   return (
@@ -60,6 +62,11 @@ export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
             </a>
           </TD>
         </TR>
+        {children && (
+          <TR>
+            <TD style={footerLinkStyle}>{children}</TD>
+          </TR>
+        )}
         {unsubscribeUrl && (
           <TR>
             <TD style={footerLinkStyle}>
@@ -67,11 +74,6 @@ export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
                 {unsubscribeText ?? "Unsubscribe from these emails"}
               </Link>
             </TD>
-          </TR>
-        )}
-        {children && (
-          <TR>
-            <TD style={footerLinkStyle}>{children}</TD>
           </TR>
         )}
       </TBody>

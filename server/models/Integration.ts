@@ -18,6 +18,7 @@ import IntegrationAuthentication from "@server/models/IntegrationAuthentication"
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 @Scopes(() => ({
   withAuthentication: {
@@ -110,20 +111,15 @@ class Integration<T = unknown> extends ParanoidModel<
    * type opts-in to the specific fields its client consumes, so sensitive values
    * such as webhook URLs are never serialized by default.
    *
+   * @param viewer the user the settings are presented to, if any.
    * @returns the client-safe settings, or undefined when none are exposed.
    */
-  public presentSettings() {
+  public presentSettings(viewer?: User) {
     switch (this.type) {
       case IntegrationType.Embed: {
         const settings = this
           .settings as IntegrationSettings<IntegrationType.Embed>;
-        return {
-          url: settings?.url,
-          github: settings?.github,
-          gitlab: settings?.gitlab,
-          linear: settings?.linear,
-          diagrams: settings?.diagrams,
-        };
+        return { url: settings?.url, ...this.presentPluginSettings(viewer) };
       }
       case IntegrationType.Analytics: {
         const settings = this
@@ -140,13 +136,33 @@ class Integration<T = unknown> extends ParanoidModel<
         return { channel: settings?.channel };
       }
       case IntegrationType.LinkedAccount: {
-        const settings = this
-          .settings as IntegrationSettings<IntegrationType.LinkedAccount>;
-        return { figma: settings?.figma };
+        // Linked accounts hold personal details, only the owner may see them.
+        if (!viewer || viewer.id !== this.userId) {
+          return undefined;
+        }
+        return this.presentPluginSettings();
       }
       default:
         return undefined;
     }
+  }
+
+  /**
+   * Picks the settings keys that plugins registered for this service.
+   *
+   * @param viewer the user the settings are presented to, if any.
+   * @returns the registered settings, keyed by name.
+   */
+  private presentPluginSettings(viewer?: User) {
+    const settings = this.settings as Record<string, unknown> | null;
+    const keys = PluginManager.getHooks(Hook.IntegrationSettings)
+      .filter(
+        (hook) =>
+          hook.value.service === this.service &&
+          (!viewer?.isGuest || hook.value.visibleToGuests)
+      )
+      .flatMap((hook) => hook.value.keys);
+    return Object.fromEntries(keys.map((key) => [key, settings?.[key]]));
   }
 
   // hooks

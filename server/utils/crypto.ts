@@ -11,11 +11,14 @@ export function safeEqual(a?: string | null, b?: string | null) {
   if (!a || !b) {
     return false;
   }
-  if (a.length !== b.length) {
+
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) {
     return false;
   }
 
-  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  return crypto.timingSafeEqual(bufA, bufB);
 }
 
 /**

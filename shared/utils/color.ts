@@ -1,6 +1,12 @@
 import { md5 } from "@noble/hashes/legacy.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
-import { darken, getLuminance, parseToHsl, parseToRgb } from "polished";
+import {
+  darken,
+  getContrast,
+  getLuminance,
+  parseToHsl,
+  parseToRgb,
+} from "polished";
 import theme from "../styles/theme";
 import type { RgbaColor } from "polished/lib/types/color";
 
@@ -54,6 +60,28 @@ export const ensureContrast = (
   const luminance = getLuminance(color);
   const isVisible = isDark ? luminance > 0.09 : luminance < 0.9;
   return isVisible ? color : fallback;
+};
+
+/**
+ * Whether two colors meet a minimum WCAG contrast ratio. The default ratio of
+ * 4.5 is the AA level for normal text, 3 is the AA level for large text and
+ * user interface components.
+ *
+ * @param color - the foreground color.
+ * @param background - the background color.
+ * @param minimum - the minimum contrast ratio.
+ * @returns true if the contrast is sufficient, or if a color cannot be parsed.
+ */
+export const hasSufficientContrast = (
+  color: string,
+  background: string,
+  minimum = 4.5
+): boolean => {
+  try {
+    return getContrast(color, background) >= minimum;
+  } catch {
+    return true;
+  }
 };
 
 const round = (
@@ -195,4 +223,35 @@ export const hexToRgba = (hex: string): RgbaColor => {
     alpha:
       hex.length === 8 ? round(parseInt(hex.substring(6, 8), 16) / 255, 2) : 1,
   };
+};
+
+/**
+ * Blends a color onto an opaque backdrop with a multiply or screen blend mode.
+ * Multiply darkens the backdrop, screen lightens it. The alpha of the color
+ * controls how much of the blend is applied.
+ *
+ * @param color the color to blend.
+ * @param backdrop the color below.
+ * @param mode the blend mode to use.
+ * @returns the blended color as a hex string.
+ */
+export const blendColors = (
+  color: string,
+  backdrop: string,
+  mode: "multiply" | "screen"
+): string => {
+  const source = parseToRgb(color);
+  const base = parseToRgb(backdrop);
+  const alpha = "alpha" in source ? source.alpha : 1;
+  const blend = (a: number, b: number) => {
+    const blended = mode === "multiply" ? (a * b) / 255 : a + b - (a * b) / 255;
+    return Math.round(alpha * blended + (1 - alpha) * b);
+  };
+
+  return rgbaToHex({
+    red: blend(source.red, base.red),
+    green: blend(source.green, base.green),
+    blue: blend(source.blue, base.blue),
+    alpha: 1,
+  });
 };

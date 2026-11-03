@@ -32,6 +32,20 @@ export default abstract class BaseStorage {
   public static maxSigningWindow = 15 * Minute.seconds;
 
   /**
+   * Returns the number of seconds that a signed URL is always valid for, after
+   * signing time alignment. Use this as the upper limit when a response that
+   * points to a signed URL is cached.
+   *
+   * @param expiresIn The number of seconds until the signed URL expires.
+   * @returns The minimum number of seconds the signed URL is valid for.
+   */
+  public static getSignedUrlMinimumLifetime(
+    expiresIn = BaseStorage.defaultSignedUrlExpires
+  ): number {
+    return expiresIn - BaseStorage.getSigningWindow(expiresIn);
+  }
+
+  /**
    * Rounds the current time down to a fixed window so that repeated signatures
    * of the same file produce an identical URL. Without this every signature is
    * unique and caches can never be reused, which means the same file is
@@ -46,10 +60,7 @@ export default abstract class BaseStorage {
    * @returns The timestamp to sign with.
    */
   protected static getSigningDate(expiresIn: number): Date {
-    const window = Math.min(
-      BaseStorage.maxSigningWindow,
-      Math.floor(expiresIn / 2)
-    );
+    const window = BaseStorage.getSigningWindow(expiresIn);
 
     if (window < 1) {
       return new Date();
@@ -387,4 +398,15 @@ export default abstract class BaseStorage {
     "image/gif",
     "image/webp",
   ];
+
+  /**
+   * Returns the number of seconds that the signing timestamp is held constant
+   * for a signed URL with the given lifetime.
+   *
+   * @param expiresIn The number of seconds until the signed URL expires.
+   * @returns The window in seconds, or 0 if the lifetime is too short to align.
+   */
+  private static getSigningWindow(expiresIn: number): number {
+    return Math.min(BaseStorage.maxSigningWindow, Math.floor(expiresIn / 2));
+  }
 }

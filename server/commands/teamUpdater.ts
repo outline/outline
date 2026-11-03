@@ -14,7 +14,7 @@ type Props = {
 
 const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
-  team.setAttributes(attributes);
+  team.fill(attributes);
 
   if (attributes.defaultCollectionId) {
     const collection = await Collection.findOne({

@@ -2,7 +2,7 @@ import { MoreIcon } from "outline-icons";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { extraArea, hover, s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";

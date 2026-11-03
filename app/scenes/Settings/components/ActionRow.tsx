@@ -1,6 +1,6 @@
 import { transparentize } from "polished";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import { HStack } from "~/components/primitives/HStack";
 

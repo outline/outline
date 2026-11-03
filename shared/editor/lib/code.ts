@@ -1,4 +1,4 @@
-import type { RefractorSyntax } from "refractor";
+import type { Syntax } from "refractor";
 import { FrequencyTracker } from "../../utils/FrequencyTracker";
 
 /**
@@ -10,7 +10,7 @@ type CodeLanguage = {
   /** The human-readable label shown in the language selector. */
   label: string;
   /** Lazily loads the Refractor syntax definition for the language. */
-  loader?: () => Promise<RefractorSyntax>;
+  loader?: () => Promise<Syntax>;
   /**
    * Whether this entry is a backwards-compatible alias for another language.
    * Aliases remain resolvable for existing documents but are hidden from the
@@ -31,318 +31,318 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   abap: {
     lang: "abap",
     label: "ABAP",
-    loader: () => import("refractor/lang/abap").then((m) => m.default),
+    loader: () => import("refractor/abap").then((m) => m.default),
   },
   bash: {
     lang: "bash",
     label: "Bash",
-    loader: () => import("refractor/lang/bash").then((m) => m.default),
+    loader: () => import("refractor/bash").then((m) => m.default),
   },
   clike: {
     lang: "clike",
     label: "C",
-    loader: () => import("refractor/lang/clike").then((m) => m.default),
+    loader: () => import("refractor/clike").then((m) => m.default),
   },
   cpp: {
     lang: "cpp",
     label: "C++",
-    loader: () => import("refractor/lang/cpp").then((m) => m.default),
+    loader: () => import("refractor/cpp").then((m) => m.default),
   },
   csharp: {
     lang: "csharp",
     label: "C#",
-    loader: () => import("refractor/lang/csharp").then((m) => m.default),
+    loader: () => import("refractor/csharp").then((m) => m.default),
   },
   css: {
     lang: "css",
     label: "CSS",
-    loader: () => import("refractor/lang/css").then((m) => m.default),
+    loader: () => import("refractor/css").then((m) => m.default),
   },
   csv: {
     lang: "csv",
     label: "CSV",
-    loader: () => import("refractor/lang/csv").then((m) => m.default),
+    loader: () => import("refractor/csv").then((m) => m.default),
   },
   dart: {
     lang: "dart",
     label: "Dart",
-    loader: () => import("refractor/lang/dart").then((m) => m.default),
+    loader: () => import("refractor/dart").then((m) => m.default),
   },
   diff: {
     lang: "diff",
     label: "Diff",
-    loader: () => import("refractor/lang/diff").then((m) => m.default),
+    loader: () => import("refractor/diff").then((m) => m.default),
   },
   docker: {
     lang: "docker",
     label: "Docker",
-    loader: () => import("refractor/lang/docker").then((m) => m.default),
+    loader: () => import("refractor/docker").then((m) => m.default),
   },
   elixir: {
     lang: "elixir",
     label: "Elixir",
-    loader: () => import("refractor/lang/elixir").then((m) => m.default),
+    loader: () => import("refractor/elixir").then((m) => m.default),
   },
   erb: {
     lang: "erb",
     label: "ERB",
-    loader: () => import("refractor/lang/erb").then((m) => m.default),
+    loader: () => import("refractor/erb").then((m) => m.default),
   },
   erlang: {
     lang: "erlang",
     label: "Erlang",
-    loader: () => import("refractor/lang/erlang").then((m) => m.default),
+    loader: () => import("refractor/erlang").then((m) => m.default),
   },
   fortran: {
     lang: "fortran",
     label: "Fortran",
-    loader: () => import("refractor/lang/fortran").then((m) => m.default),
+    loader: () => import("refractor/fortran").then((m) => m.default),
   },
   go: {
     lang: "go",
     label: "Go",
-    loader: () => import("refractor/lang/go").then((m) => m.default),
+    loader: () => import("refractor/go").then((m) => m.default),
   },
   graphql: {
     lang: "graphql",
     label: "GraphQL",
-    loader: () => import("refractor/lang/graphql").then((m) => m.default),
+    loader: () => import("refractor/graphql").then((m) => m.default),
   },
   groovy: {
     lang: "groovy",
     label: "Groovy",
-    loader: () => import("refractor/lang/groovy").then((m) => m.default),
+    loader: () => import("refractor/groovy").then((m) => m.default),
   },
   haskell: {
     lang: "haskell",
     label: "Haskell",
-    loader: () => import("refractor/lang/haskell").then((m) => m.default),
+    loader: () => import("refractor/haskell").then((m) => m.default),
   },
   hcl: {
     lang: "hcl",
     label: "HCL",
-    loader: () => import("refractor/lang/hcl").then((m) => m.default),
+    loader: () => import("refractor/hcl").then((m) => m.default),
   },
   markup: {
     lang: "markup",
     label: "HTML",
-    loader: () => import("refractor/lang/markup").then((m) => m.default),
+    loader: () => import("refractor/markup").then((m) => m.default),
   },
   ini: {
     lang: "ini",
     label: "INI",
-    loader: () => import("refractor/lang/ini").then((m) => m.default),
+    loader: () => import("refractor/ini").then((m) => m.default),
   },
   java: {
     lang: "java",
     label: "Java",
-    loader: () => import("refractor/lang/java").then((m) => m.default),
+    loader: () => import("refractor/java").then((m) => m.default),
   },
   javascript: {
     lang: "javascript",
     label: "JavaScript",
-    loader: () => import("refractor/lang/javascript").then((m) => m.default),
+    loader: () => import("refractor/javascript").then((m) => m.default),
   },
   json: {
     lang: "json",
     label: "JSON",
-    loader: () => import("refractor/lang/json").then((m) => m.default),
+    loader: () => import("refractor/json").then((m) => m.default),
   },
   jsx: {
     lang: "jsx",
     label: "JSX",
-    loader: () => import("refractor/lang/jsx").then((m) => m.default),
+    loader: () => import("refractor/jsx").then((m) => m.default),
   },
   kotlin: {
     lang: "kotlin",
     label: "Kotlin",
-    loader: () => import("refractor/lang/kotlin").then((m) => m.default),
+    loader: () => import("refractor/kotlin").then((m) => m.default),
   },
   kusto: {
     lang: "kusto",
     label: "Kusto",
-    loader: () => import("refractor/lang/kusto").then((m) => m.default),
+    loader: () => import("refractor/kusto").then((m) => m.default),
   },
   lisp: {
     lang: "lisp",
     label: "Lisp",
-    loader: () => import("refractor/lang/lisp").then((m) => m.default),
+    loader: () => import("refractor/lisp").then((m) => m.default),
   },
   lua: {
     lang: "lua",
     label: "Lua",
-    loader: () => import("refractor/lang/lua").then((m) => m.default),
+    loader: () => import("refractor/lua").then((m) => m.default),
   },
   makefile: {
     lang: "makefile",
     label: "Makefile",
-    loader: () => import("refractor/lang/makefile").then((m) => m.default),
+    loader: () => import("refractor/makefile").then((m) => m.default),
   },
   markdown: {
     lang: "markdown",
     label: "Markdown",
-    loader: () => import("refractor/lang/markdown").then((m) => m.default),
+    loader: () => import("refractor/markdown").then((m) => m.default),
   },
   mermaid: {
     lang: "mermaid",
     label: "Mermaid",
-    loader: () => import("refractor/lang/mermaid").then((m) => m.default),
+    loader: () => import("refractor/mermaid").then((m) => m.default),
   },
   mermaidjs: {
     lang: "mermaid",
     label: "Mermaid",
     alias: true,
-    loader: () => import("refractor/lang/mermaid").then((m) => m.default),
+    loader: () => import("refractor/mermaid").then((m) => m.default),
   },
   nginx: {
     lang: "nginx",
     label: "Nginx",
-    loader: () => import("refractor/lang/nginx").then((m) => m.default),
+    loader: () => import("refractor/nginx").then((m) => m.default),
   },
   nix: {
     lang: "nix",
     label: "Nix",
-    loader: () => import("refractor/lang/nix").then((m) => m.default),
+    loader: () => import("refractor/nix").then((m) => m.default),
   },
   objectivec: {
     lang: "objectivec",
     label: "Objective-C",
-    loader: () => import("refractor/lang/objectivec").then((m) => m.default),
+    loader: () => import("refractor/objectivec").then((m) => m.default),
   },
   ocaml: {
     lang: "ocaml",
     label: "OCaml",
-    loader: () => import("refractor/lang/ocaml").then((m) => m.default),
+    loader: () => import("refractor/ocaml").then((m) => m.default),
   },
   perl: {
     lang: "perl",
     label: "Perl",
-    loader: () => import("refractor/lang/perl").then((m) => m.default),
+    loader: () => import("refractor/perl").then((m) => m.default),
   },
   php: {
     lang: "php",
     label: "PHP",
-    loader: () => import("refractor/lang/php").then((m) => m.default),
+    loader: () => import("refractor/php").then((m) => m.default),
   },
   powershell: {
     lang: "powershell",
     label: "PowerShell",
-    loader: () => import("refractor/lang/powershell").then((m) => m.default),
+    loader: () => import("refractor/powershell").then((m) => m.default),
   },
   promql: {
     lang: "promql",
     label: "PromQL",
-    loader: () => import("refractor/lang/promql").then((m) => m.default),
+    loader: () => import("refractor/promql").then((m) => m.default),
   },
   protobuf: {
     lang: "protobuf",
     label: "Protobuf",
-    loader: () => import("refractor/lang/protobuf").then((m) => m.default),
+    loader: () => import("refractor/protobuf").then((m) => m.default),
   },
   python: {
     lang: "python",
     label: "Python",
-    loader: () => import("refractor/lang/python").then((m) => m.default),
+    loader: () => import("refractor/python").then((m) => m.default),
   },
   r: {
     lang: "r",
     label: "R",
-    loader: () => import("refractor/lang/r").then((m) => m.default),
+    loader: () => import("refractor/r").then((m) => m.default),
   },
   regex: {
     lang: "regex",
     label: "Regex",
-    loader: () => import("refractor/lang/regex").then((m) => m.default),
+    loader: () => import("refractor/regex").then((m) => m.default),
   },
   ruby: {
     lang: "ruby",
     label: "Ruby",
-    loader: () => import("refractor/lang/ruby").then((m) => m.default),
+    loader: () => import("refractor/ruby").then((m) => m.default),
   },
   rust: {
     lang: "rust",
     label: "Rust",
-    loader: () => import("refractor/lang/rust").then((m) => m.default),
+    loader: () => import("refractor/rust").then((m) => m.default),
   },
   scala: {
     lang: "scala",
     label: "Scala",
-    loader: () => import("refractor/lang/scala").then((m) => m.default),
+    loader: () => import("refractor/scala").then((m) => m.default),
   },
   sass: {
     lang: "sass",
     label: "Sass",
-    loader: () => import("refractor/lang/sass").then((m) => m.default),
+    loader: () => import("refractor/sass").then((m) => m.default),
   },
   scss: {
     lang: "scss",
     label: "SCSS",
-    loader: () => import("refractor/lang/scss").then((m) => m.default),
+    loader: () => import("refractor/scss").then((m) => m.default),
   },
   "splunk-spl": {
     lang: "splunk-spl",
     label: "Splunk SPL",
-    loader: () => import("refractor/lang/splunk-spl").then((m) => m.default),
+    loader: () => import("refractor/splunk-spl").then((m) => m.default),
   },
   sql: {
     lang: "sql",
     label: "SQL",
-    loader: () => import("refractor/lang/sql").then((m) => m.default),
+    loader: () => import("refractor/sql").then((m) => m.default),
   },
   solidity: {
     lang: "solidity",
     label: "Solidity",
-    loader: () => import("refractor/lang/solidity").then((m) => m.default),
+    loader: () => import("refractor/solidity").then((m) => m.default),
   },
   swift: {
     lang: "swift",
     label: "Swift",
-    loader: () => import("refractor/lang/swift").then((m) => m.default),
+    loader: () => import("refractor/swift").then((m) => m.default),
   },
   toml: {
     lang: "toml",
     label: "TOML",
-    loader: () => import("refractor/lang/toml").then((m) => m.default),
+    loader: () => import("refractor/toml").then((m) => m.default),
   },
   tsx: {
     lang: "tsx",
     label: "TSX",
-    loader: () => import("refractor/lang/tsx").then((m) => m.default),
+    loader: () => import("refractor/tsx").then((m) => m.default),
   },
   typescript: {
     lang: "typescript",
     label: "TypeScript",
-    loader: () => import("refractor/lang/typescript").then((m) => m.default),
+    loader: () => import("refractor/typescript").then((m) => m.default),
   },
   vb: {
     lang: "vbnet",
     label: "Visual Basic",
-    loader: () => import("refractor/lang/vbnet").then((m) => m.default),
+    loader: () => import("refractor/vbnet").then((m) => m.default),
   },
   verilog: {
     lang: "verilog",
     label: "Verilog",
-    loader: () => import("refractor/lang/verilog").then((m) => m.default),
+    loader: () => import("refractor/verilog").then((m) => m.default),
   },
   vhdl: {
     lang: "vhdl",
     label: "VHDL",
-    loader: () => import("refractor/lang/vhdl").then((m) => m.default),
+    loader: () => import("refractor/vhdl").then((m) => m.default),
   },
   yaml: {
     lang: "yaml",
     label: "YAML",
-    loader: () => import("refractor/lang/yaml").then((m) => m.default),
+    loader: () => import("refractor/yaml").then((m) => m.default),
   },
   xml: {
     lang: "markup",
     label: "XML",
-    loader: () => import("refractor/lang/markup").then((m) => m.default),
+    loader: () => import("refractor/markup").then((m) => m.default),
   },
   zig: {
     lang: "zig",
     label: "Zig",
-    loader: () => import("refractor/lang/zig").then((m) => m.default),
+    loader: () => import("refractor/zig").then((m) => m.default),
   },
 };
 

@@ -1,4 +1,5 @@
 import { SearchableModel } from "@shared/types";
+import env from "@server/env";
 import { Document, Collection, Comment } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type {
@@ -34,16 +35,20 @@ export default class SearchIndexProcessor extends BaseProcessor {
     "comments.delete",
   ];
 
+  /**
+   * Only queue events when an external search provider is in use. The built-in
+   * Postgres provider is indexed by tsvector triggers, so its jobs would be empty.
+   *
+   * @returns true if the active search provider is not Postgres.
+   */
+  static async shouldQueue(): Promise<boolean> {
+    return env.SEARCH_PROVIDER !== "postgres";
+  }
+
   async perform(
     event: DocumentEvent | DocumentMovedEvent | CollectionEvent | CommentEvent
   ): Promise<void> {
     const provider = SearchProviderManager.getProvider();
-
-    // When using the built-in Postgres search provider, tsvector triggers
-    // handle indexing directly and the provider methods are effectively no-ops for now.
-    if (process.env.SEARCH_PROVIDER === "postgres") {
-      return;
-    }
 
     switch (event.name) {
       case "documents.publish":

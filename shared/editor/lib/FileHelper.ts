@@ -346,7 +346,7 @@ export default class FileHelper {
               if (compressionMethod === 0) {
                 // 0 = deflate compression
                 const compressed = data.slice(nullIndex + 2);
-                textContent = inflate(compressed, { to: "string" });
+                textContent = inflate(compressed, { toText: true });
               } else {
                 continue; // Unsupported compression method
               }
@@ -382,7 +382,7 @@ export default class FileHelper {
                 }
                 pos++; // Skip null after translated keyword
                 const compressed = data.slice(pos);
-                textContent = inflate(compressed, { to: "string" });
+                textContent = inflate(compressed, { toText: true });
               } else {
                 continue; // Invalid compression flag
               }

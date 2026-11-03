@@ -249,24 +249,22 @@ router.post(
     authorize(user, "manageUsers", collection);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
-      where: {
-        collectionId: id,
-        groupId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await GroupMembership.findOneForUpdate(
+      { collectionId: id, groupId },
+      { transaction }
+    );
 
     if (membership) {
-      membership.permission = permission;
-      await membership.save(ctx.context);
+      if (permission !== undefined) {
+        membership.permission = permission;
+        await membership.save(ctx.context);
+      }
     } else {
       membership = await GroupMembership.create(
         {
           collectionId: id,
           groupId,
-          permission,
+          permission: permission ?? CollectionPermission.ReadWrite,
           createdById: user.id,
         },
         ctx.context
@@ -407,18 +405,16 @@ router.post(
     authorize(actor, "manageUsers", collection);
     authorize(actor, "read", user);
 
-    let membership = await UserMembership.findOne({
-      where: {
-        collectionId: id,
-        userId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await UserMembership.findOneForUpdate(
+      { collectionId: id, userId },
+      { transaction }
+    );
 
     if (membership) {
-      membership.permission = permission || user.defaultCollectionPermission;
-      await membership.save(ctx.context);
+      if (permission !== undefined) {
+        membership.permission = permission;
+        await membership.save(ctx.context);
+      }
     } else {
       membership = await UserMembership.create(
         {
@@ -650,16 +646,14 @@ router.post(
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.
     if (
+      permission !== undefined &&
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      let membership = await UserMembership.findOne({
-        where: {
-          collectionId: collection.id,
-          userId: user.id,
-        },
-        transaction,
-      });
+      const membership = await UserMembership.findOneForUpdate(
+        { collectionId: collection.id, userId: user.id },
+        { transaction }
+      );
 
       if (!membership) {
         await UserMembership.create(
@@ -677,50 +671,21 @@ router.post(
       }
     }
 
-    let privacyChanged = false;
-    let sharingChanged = false;
+    collection.fill({
+      name: name?.trim(),
+      description,
+      content: data,
+      icon,
+      color,
+      permission,
+      sharing,
+      sort,
+      commenting,
+      templateManagement,
+    });
 
-    if (name !== undefined) {
-      collection.name = name.trim();
-    }
-
-    if (description !== undefined) {
-      collection.description = description;
-    }
-
-    if (data !== undefined) {
-      collection.content = data;
-    }
-
-    if (icon !== undefined) {
-      collection.icon = icon;
-    }
-
-    if (color !== undefined) {
-      collection.color = color;
-    }
-
-    if (permission !== undefined) {
-      privacyChanged = permission !== collection.permission;
-      collection.permission = permission ? permission : null;
-    }
-
-    if (sharing !== undefined) {
-      sharingChanged = sharing !== collection.sharing;
-      collection.sharing = sharing;
-    }
-
-    if (sort !== undefined) {
-      collection.sort = sort;
-    }
-
-    if (commenting !== undefined) {
-      collection.commenting = commenting;
-    }
-
-    if (templateManagement !== undefined) {
-      collection.templateManagement = templateManagement;
-    }
+    const privacyChanged = collection.changed("permission");
+    const sharingChanged = collection.changed("sharing");
 
     await collection.saveWithCtx(ctx);
 

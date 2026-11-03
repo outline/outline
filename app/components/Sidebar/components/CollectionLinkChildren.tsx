@@ -1,6 +1,6 @@
 import { noop } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { useRef, useCallback } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
@@ -114,20 +114,13 @@ function CollectionLinkChildren({
 
 const DynamicDropCursor = observer(
   ({ collection }: { collection: Collection }) => {
-    const dummyRef = useRef<HTMLDivElement>(null);
-    const [{ isOver, canDrop }] = useDropToChangeCollection(
-      collection,
-      noop,
-      dummyRef
-    );
+    const [{ isOver, canDrop }] = useDropToChangeCollection(collection, noop);
 
     if (!canDrop || !collection.isManualSort) {
       return null;
     }
 
-    return (
-      <DropCursor isActiveDrop={isOver} innerRef={dummyRef} position="top" />
-    );
+    return <DropCursor isActiveDrop={isOver} position="top" />;
   }
 );
 

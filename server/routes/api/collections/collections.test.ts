@@ -209,7 +209,7 @@ describe("#collections.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
-  it("should not include archived collections", async () => {
+  it("should not include a collection after it is archived", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -871,6 +871,30 @@ describe("#collections.export_all", () => {
 });
 
 describe("#collections.add_user", () => {
+  it("should preserve existing permission when permission is omitted", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const anotherUser = await buildUser({ teamId: admin.teamId });
+    const membership = await UserMembership.create({
+      createdById: admin.id,
+      collectionId: collection.id,
+      userId: anotherUser.id,
+      permission: CollectionPermission.Admin,
+    });
+
+    const res = await server.post("/api/collections.add_user", admin, {
+      body: { id: collection.id, userId: anotherUser.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await membership.reload();
+    expect(membership.permission).toEqual(CollectionPermission.Admin);
+  });
+
   it("should add user to collection with manage permission", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -976,6 +1000,30 @@ describe("#collections.add_user", () => {
 });
 
 describe("#collections.add_group", () => {
+  it("should preserve existing permission when permission is omitted", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const group = await buildGroup({ teamId: admin.teamId });
+    const membership = await GroupMembership.create({
+      createdById: admin.id,
+      collectionId: collection.id,
+      groupId: group.id,
+      permission: CollectionPermission.Admin,
+    });
+
+    const res = await server.post("/api/collections.add_group", admin, {
+      body: { id: collection.id, groupId: group.id },
+    });
+
+    expect(res.status).toEqual(200);
+    await membership.reload();
+    expect(membership.permission).toEqual(CollectionPermission.Admin);
+  });
+
   it("should add group to collection", async () => {
     const user = await buildAdmin();
     const collection = await buildCollection({
@@ -1916,6 +1964,24 @@ describe("#collections.duplicate", () => {
 });
 
 describe("#collections.update", () => {
+  it("should not add a membership when permission is omitted", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: { id: collection.id, name: "Renamed" },
+    });
+
+    expect(res.status).toEqual(200);
+    const membership = await UserMembership.findOne({
+      where: { collectionId: collection.id, userId: admin.id },
+    });
+    expect(membership).toBeNull();
+  });
+
   describe("deprecatedReason", () => {
     it.each(["admin", "manager"])(
       "should let a collection %s save a reason without changing archive attribution",

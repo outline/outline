@@ -33,7 +33,7 @@ import { HStack } from "~/components/primitives/HStack";
 import Tooltip from "~/components/Tooltip";
 import { settingsPath } from "~/utils/routeHelpers";
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
@@ -97,27 +97,34 @@ export function GroupsTable(props: Props) {
               <Image>
                 <ResolvedGroupIcon group={group} size={24} />
               </Image>
-              <NameColumn column>
-                <Title onClick={() => handleViewMembers(group)}>
-                  {group.name}
-                  {group.disableMentions && (
-                    <>
-                      {" "}
-                      <Tooltip content={t("This group is hidden")}>
-                        <HiddenIcon size={16} color={theme.textSecondary} />
-                      </Tooltip>
-                    </>
-                  )}
-                </Title>
-                {group.description && (
-                  <Text type="tertiary" size="small" weight="normal" ellipsis>
-                    {group.description}
-                  </Text>
+              <Title onClick={() => handleViewMembers(group)}>
+                {group.name}
+                {group.disableMentions && (
+                  <>
+                    {" "}
+                    <Tooltip content={t("This group is hidden")}>
+                      <HiddenIcon size={16} color={theme.textSecondary} />
+                    </Tooltip>
+                  </>
                 )}
-              </NameColumn>
+              </Title>
             </HStack>
           ),
           width: "2fr",
+        },
+        {
+          type: "data",
+          id: "description",
+          header: t("Description"),
+          accessor: (group) => group.description,
+          component: (group) =>
+            group.description ? (
+              <Text type="secondary" weight="normal" ellipsis>
+                {group.description}
+              </Text>
+            ) : null,
+          width: "2fr",
+          sortable: false,
         },
         {
           type: "data",
@@ -219,10 +226,6 @@ const Image = styled(Flex)`
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-`;
-
-const NameColumn = styled(Flex)`
-  min-width: 0;
 `;
 
 const Title = styled.span`

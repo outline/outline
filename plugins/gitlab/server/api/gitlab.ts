@@ -166,6 +166,7 @@ router.get(
     }
 
     verifyOAuthStateNonce(ctx, GitLabOAuthNonceCookie, parsedState.nonce);
+    authorize(user, "createIntegration", user.team);
 
     try {
       // Check for a pending IntegrationAuthentication with custom credentials

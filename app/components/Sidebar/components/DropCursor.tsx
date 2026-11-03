@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 type Props = {
   isActiveDrop: boolean;
-  innerRef: React.Ref<HTMLDivElement>;
+  innerRef?: React.Ref<HTMLDivElement>;
   position?: "top";
   /** Inline-start offset of the visible line in pixels, to match a tree depth. */
   indent?: number;

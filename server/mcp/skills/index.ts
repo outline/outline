@@ -4,8 +4,11 @@ import path from "node:path";
 import yaml from "js-yaml";
 import mime from "mime-types";
 import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import {
+  type McpServer,
+  ProtocolError,
+  ProtocolErrorCode,
+} from "@modelcontextprotocol/server";
 
 /** The identifier of the MCP skills extension (SEP-2640). */
 export const skillsExtensionId = "io.modelcontextprotocol/skills";
@@ -51,29 +54,37 @@ export function skillResources(server: McpServer) {
     }
   }
 
-  server.server.setRequestHandler(ListSkillsRequestSchema, () => ({
-    resultType: "complete",
-    skills: skills.map(presentSkill),
-    ttlMs: cacheTtlMs,
-    cacheScope: "public",
-  }));
-
-  server.server.setRequestHandler(GetSkillRequestSchema, (request) => {
-    const skill = skills.find((s) => s.uri === request.params.uri);
-    if (!skill) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        `No skill is served at ${request.params.uri}`
-      );
-    }
-
-    return {
+  server.server.setRequestHandler(
+    "skills/list",
+    { params: ListSkillsParamsSchema },
+    () => ({
       resultType: "complete",
-      skill: presentSkill(skill),
+      skills: skills.map(presentSkill),
       ttlMs: cacheTtlMs,
       cacheScope: "public",
-    };
-  });
+    })
+  );
+
+  server.server.setRequestHandler(
+    "skills/get",
+    { params: GetSkillParamsSchema },
+    ({ uri }) => {
+      const skill = skills.find((s) => s.uri === uri);
+      if (!skill) {
+        throw new ProtocolError(
+          ProtocolErrorCode.InvalidParams,
+          `No skill is served at ${uri}`
+        );
+      }
+
+      return {
+        resultType: "complete",
+        skill: presentSkill(skill),
+        ttlMs: cacheTtlMs,
+        cacheScope: "public",
+      };
+    }
+  );
 }
 
 interface SkillFile {
@@ -102,15 +113,9 @@ const FrontmatterSchema = z.looseObject({
 
 type SkillFrontmatter = z.infer<typeof FrontmatterSchema>;
 
-const ListSkillsRequestSchema = z.object({
-  method: z.literal("skills/list"),
-  params: z.object({ cursor: z.string().optional() }).optional(),
-});
+const ListSkillsParamsSchema = z.object({ cursor: z.string().optional() });
 
-const GetSkillRequestSchema = z.object({
-  method: z.literal("skills/get"),
-  params: z.object({ uri: z.string() }),
-});
+const GetSkillParamsSchema = z.object({ uri: z.string() });
 
 let cachedSkills: Skill[] | undefined;
 

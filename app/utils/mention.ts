@@ -1,19 +1,17 @@
-import type { IntegrationSettings, IntegrationType } from "@shared/types";
-import { IntegrationService, MentionType } from "@shared/types";
+import type { MentionType } from "@shared/types";
 import type Integration from "~/models/Integration";
+import { Hook, PluginManager } from "~/utils/PluginManager";
 
-const gitlabSystemPaths = new Set([
-  "explore",
-  "help",
-  "admin",
-  "dashboard",
-  "users",
-  "groups",
-  "projects",
-  "snippets",
-  "search",
-  "-",
-]);
+/**
+ * Returns the mention provider registered for the service of an integration.
+ *
+ * @param integration the integration to find a provider for.
+ * @returns the provider, or undefined if no plugin handles the service.
+ */
+const getMentionProvider = (integration: Integration) =>
+  PluginManager.getHooks(Hook.MentionProvider).find(
+    (hook) => hook.value.service === integration.service
+  )?.value;
 
 /**
  * Checks whether a URL can be converted to a mention for the given
@@ -28,45 +26,8 @@ export const isURLMentionable = ({
 }: {
   url: URL;
   integration: Integration;
-}): boolean => {
-  const { hostname, pathname } = url;
-
-  switch (integration.service) {
-    case IntegrationService.GitHub: {
-      return hostname === "github.com";
-    }
-
-    case IntegrationService.Linear: {
-      const pathParts = pathname.split("/");
-      const settings =
-        integration.settings as IntegrationSettings<IntegrationType.Embed>;
-
-      return (
-        hostname === "linear.app" &&
-        settings.linear?.workspace.key === pathParts[1] // ensure installed workspace key matches with the provided url.
-      );
-    }
-
-    case IntegrationService.GitLab: {
-      const settings =
-        integration.settings as IntegrationSettings<IntegrationType.Embed>;
-      let gitlabHostname: string | undefined;
-      try {
-        gitlabHostname = settings.gitlab?.url
-          ? new URL(settings.gitlab.url).hostname
-          : undefined;
-      } catch {
-        // Invalid URL stored in settings
-        return false;
-      }
-
-      return hostname === "gitlab.com" || hostname === gitlabHostname;
-    }
-
-    default:
-      return false;
-  }
-};
+}): boolean =>
+  getMentionProvider(integration)?.isMentionable(url, integration) ?? false;
 
 /**
  * Determines the type of mention a URL represents for the given integration,
@@ -81,56 +42,5 @@ export const determineMentionType = ({
 }: {
   url: URL;
   integration: Integration;
-}): MentionType | undefined => {
-  const { pathname } = url;
-  const pathParts = pathname.split("/");
-
-  switch (integration.service) {
-    case IntegrationService.GitHub: {
-      const type = pathParts[3];
-      return type === "pull"
-        ? MentionType.PullRequest
-        : type === "issues"
-          ? MentionType.Issue
-          : type === "projects"
-            ? MentionType.Project
-            : undefined;
-    }
-
-    case IntegrationService.Linear: {
-      const type = pathParts[2];
-      return type === "issue"
-        ? MentionType.Issue
-        : type === "project"
-          ? MentionType.Project
-          : undefined;
-    }
-
-    case IntegrationService.GitLab: {
-      const hasShowParam = url.searchParams.has("show");
-
-      if (
-        /\/-\/merge_requests\/\d+/.test(pathname) ||
-        (/\/-\/merge_requests\/?$/.test(pathname) && hasShowParam)
-      ) {
-        return MentionType.PullRequest;
-      }
-      if (
-        /\/-\/(issues|work_items)\/\d+/.test(pathname) ||
-        (/\/-\/(issues|work_items)\/?$/.test(pathname) && hasShowParam)
-      ) {
-        return MentionType.Issue;
-      }
-      if (!pathname.includes("/-/")) {
-        const parts = pathname.split("/").filter(Boolean);
-        if (parts.length >= 2 && !gitlabSystemPaths.has(parts[0])) {
-          return MentionType.Project;
-        }
-      }
-      return undefined;
-    }
-
-    default:
-      return;
-  }
-};
+}): MentionType | undefined =>
+  getMentionProvider(integration)?.mentionType(url, integration);

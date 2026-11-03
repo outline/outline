@@ -4,6 +4,7 @@ import type { Collection } from "@server/models";
 import { Comment, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { can } from "@server/policies";
 import type { EmailProps } from "./BaseEmail";
@@ -13,7 +14,7 @@ import Button from "./components/Button";
 import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
-import Footer from "./components/Footer";
+import Footer, { Link } from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -208,7 +209,16 @@ ${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
         <Footer
           unsubscribeUrl={unsubscribeUrl}
           unsubscribeText={this.t("Unsubscribe from these emails")}
-        />
+        >
+          <Link
+            href={SubscriptionHelper.unsubscribeUrl(
+              props.userId,
+              props.documentId
+            )}
+          >
+            {this.t("Unsubscribe from this doc")}
+          </Link>
+        </Footer>
       </EmailTemplate>
     );
   }

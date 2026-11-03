@@ -8,10 +8,7 @@ import { toError } from "@shared/utils/error";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import {
-  GmailAccountCreationError,
-  TeamDomainRequiredError,
-} from "@server/errors";
+import { TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { AuthenticationProvider, User } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
@@ -26,6 +23,7 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { createContext } from "@server/context";
+import { GmailAccountCreationError } from "../errors";
 
 const router = new Router();
 
@@ -37,6 +35,7 @@ const scopes = [
 type GoogleProfile = Profile & {
   email: string;
   picture: string;
+  email_verified?: boolean;
   _json: {
     hd?: string;
     locale?: string;
@@ -140,8 +139,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           },
           user: {
             email: profile.email,
-            // Google only returns confirmed workspace email addresses.
-            emailVerified: true,
+            emailVerified: profile.email_verified === true,
             name: profile.displayName,
             language,
             avatarUrl,

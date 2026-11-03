@@ -40,16 +40,7 @@ describe("errors", () => {
         name: "EmailAuthenticationRequiredError",
         fn: errors.EmailAuthenticationRequiredError,
       },
-      { name: "MicrosoftGraphError", fn: errors.MicrosoftGraphError },
       { name: "TeamDomainRequiredError", fn: errors.TeamDomainRequiredError },
-      {
-        name: "GmailAccountCreationError",
-        fn: errors.GmailAccountCreationError,
-      },
-      {
-        name: "OIDCMalformedUserInfoError",
-        fn: errors.OIDCMalformedUserInfoError,
-      },
       {
         name: "AuthenticationProviderDisabledError",
         fn: errors.AuthenticationProviderDisabledError,

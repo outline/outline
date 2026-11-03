@@ -161,7 +161,7 @@ router.post(
       url,
       events: compact(events),
       enabled: true,
-      secret: isEmpty(secret) ? undefined : secret,
+      secret: secret === "" ? null : secret,
     });
 
     ctx.body = {

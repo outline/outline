@@ -94,8 +94,14 @@ export default class AuthenticationExtension implements Extension {
       userId: user.id,
     });
 
-    if (!can(user, "read", document)) {
+    if (!document || !can(user, "read", document)) {
       throw AuthenticationError("Authorization required");
+    }
+
+    // Other spellings of the id would load a second copy of the document that
+    // access changes, which match on the canonical name, cannot reach.
+    if (documentName !== `document.${document.id}`) {
+      throw AuthenticationError("Invalid document name");
     }
 
     // set document to read only for the current user, thus changes will not be

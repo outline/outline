@@ -96,7 +96,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - run: yarn npm audit --severity high --recursive --environment production
+      # Pass when the audit service is unreachable, but still fail on vulnerabilities.
+      - run: |
+          set +e
+          yarn npm audit --severity high --recursive --environment production 2>&1 | tee audit.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ] && grep -qE "RequestError|ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|Response Code: 5[0-9]{2}" audit.log; then
+            echo "::warning::yarn npm audit could not reach the audit service, skipping."
+            exit 0
+          fi
+          exit "$status"
 
   test:
     needs: changes
@@ -143,8 +152,10 @@ jobs:
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
       - run: yarn vite:build
+      # RelativeCI is an external service, an outage should not block merging.
       - name: Send bundle stats to RelativeCI
         if: ${{ env.RELATIVE_CI_KEY != '' }}
+        continue-on-error: true
         env:
           RELATIVE_CI_KEY: ${{ secrets.RELATIVE_CI_KEY }}
         uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03 # v2

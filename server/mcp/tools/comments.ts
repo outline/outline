@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/storage/database";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { CommentStatusFilter } from "@shared/types";
 import { commentParser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -55,10 +55,12 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Lists comments the user has access to. Requires at least one of documentId or collectionId. Optionally filter by parent comment or resolution status.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
-        inputSchema: {
+        inputSchema: z.object({
           documentId: optionalString().describe(
             "The document ID to list comments for."
           ),
@@ -89,7 +91,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
-        },
+        }),
       },
       withTracing(
         "list_comments",
@@ -106,8 +108,13 @@ export function commentTools(server: McpServer, scopes: string[]) {
         ) => {
           try {
             const user = getActorFromContext(extra);
+            authorize(user, "listComments", user.team);
 
             let document: Document | null = null;
+
+            // The input may be a urlId, so the id of the loaded model is used.
+            let resolvedCollectionId: string | undefined;
+
             if (documentId) {
               document = await Document.findByPk(documentId, {
                 userId: user.id,
@@ -118,11 +125,12 @@ export function commentTools(server: McpServer, scopes: string[]) {
                 userId: user.id,
               });
               authorize(user, "read", collection);
+              resolvedCollectionId = collection.id;
             }
 
             const { comments } = await Comment.findAllForUser(user, {
               document,
-              collectionId,
+              collectionId: resolvedCollectionId,
               parentCommentId,
               statusFilter,
               includeDocuments: true,
@@ -149,16 +157,18 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Creates a new comment on a document. Provide the comment content as markdown text. Optionally nest it as a reply under an existing comment.",
         annotations: {
+          destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           documentId: z.string().describe("The document ID to comment on."),
           text: z
             .string()
             .describe("The markdown text content of the comment."),
           parentCommentId: optionalString().describe(
-            "The parent comment ID to reply to. Omit for a top-level comment."
+            "The ID of a top-level comment to reply to, replies cannot be nested. Omit for a top-level comment."
           ),
           anchorText: optionalString().describe(
             "A plain text substring of the document to anchor this comment to as an inline comment. The first occurrence is used unless anchorPrefix or anchorSuffix is provided, omit for a general document comment."
@@ -169,7 +179,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           anchorSuffix: optionalString().describe(
             "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately follows anchorText."
           ),
-        },
+        }),
       },
       withTracing(
         "create_comment",
@@ -195,27 +205,31 @@ export function commentTools(server: McpServer, scopes: string[]) {
               ctx.state.transaction = transaction;
               ctx.context.transaction = transaction;
 
-              if (anchorText) {
-                // Acquire the row lock on the document directly when
-                // anchoring so a concurrent comment-mark application can't
-                // overwrite our state update.
-                await Document.unscoped().findOne({
-                  where: { id: documentId },
-                  attributes: ["id"],
-                  transaction,
-                  lock: Transaction.LOCK.UPDATE,
-                });
-              }
-
-              const document = await Document.findByPk(documentId, {
+              let document = await Document.findByPk(documentId, {
                 userId: user.id,
-                // We only need to load the state binary if applying a comment mark
-                includeState: !!anchorText,
                 transaction,
               });
               authorize(user, "comment", document);
 
               if (anchorText) {
+                // Acquire the row lock on the document directly when
+                // anchoring so a concurrent comment-mark application can't
+                // overwrite our state update.
+                await Document.unscoped().findOne({
+                  where: { id: document.id },
+                  attributes: ["id"],
+                  transaction,
+                  lock: Transaction.LOCK.UPDATE,
+                });
+
+                // Reload under the lock, with the state needed for the mark.
+                document = await Document.findByPk(document.id, {
+                  userId: user.id,
+                  includeState: true,
+                  transaction,
+                  rejectOnEmpty: true,
+                });
+
                 const updated = ProsemirrorHelper.applyCommentMarkByText({
                   docState: DocumentHelper.toState(document),
                   anchorText,
@@ -241,7 +255,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
                 id: commentId,
                 data,
                 createdById: user.id,
-                documentId,
+                documentId: document.id,
                 parentCommentId,
               });
             });
@@ -267,10 +281,12 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Updates an existing comment by its ID. Can update the text content, resolve or unresolve the comment thread, or both. Only top-level comments (not replies) can be resolved or unresolved.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the comment to update."),
@@ -284,7 +300,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to 'resolved' to resolve or 'unresolved' to unresolve a top-level comment thread."
             ),
-        },
+        }),
       },
       withTracing("update_comment", async ({ id, text, status }, context) => {
         try {
@@ -351,14 +367,16 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Deletes a comment by its ID. The user must be the comment author or a team admin.",
         annotations: {
+          destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
-        inputSchema: {
+        inputSchema: z.object({
           id: z
             .string()
             .describe("The unique identifier of the comment to delete."),
-        },
+        }),
       },
       withTracing("delete_comment", async ({ id }, context) => {
         try {

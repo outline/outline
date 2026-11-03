@@ -135,7 +135,10 @@ async function accountProvisioner(
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
-    if (errToId(err) === "invalid_authentication") {
+    if (
+      errToId(err) === "invalid_authentication" &&
+      AuthenticationHelper.allowsEmailMatch(authenticationProviderParams.name)
+    ) {
       const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,

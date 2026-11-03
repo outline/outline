@@ -54,9 +54,10 @@ import type {
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
@@ -542,7 +543,13 @@ class Document extends ArchivableModel<
     }
 
     await collection.updateDocument(model, { transaction });
-    model.collection = collection;
+
+    // Keep a loaded collection so that its membership data stays available.
+    if (model.collection?.id === collection.id) {
+      model.collection.documentStructure = collection.documentStructure;
+    } else {
+      model.collection = collection;
+    }
   }
 
   @AfterCreate
@@ -661,12 +668,7 @@ class Document extends ArchivableModel<
         await APIUpdateExtension.notifyUpdate(model.id, actorId);
       };
 
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+      void afterCommit(ctx.transaction, notify);
     }
   }
 
@@ -780,6 +782,7 @@ class Document extends ArchivableModel<
   ) {
     const document = await this.scope("withAllMemberships").findOne({
       where: { id: documentId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
@@ -986,6 +989,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           id,
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -994,6 +998,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           urlId: match[1],
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -1315,6 +1320,17 @@ class Document extends ArchivableModel<
       this.collectionId = collectionId;
     }
 
+    // A parent outside the destination collection is stale, so publish at the root.
+    if (this.parentDocumentId && this.collectionId) {
+      const parentDocument = await Document.unscoped().findByPk(
+        this.parentDocumentId,
+        { attributes: ["collectionId"], transaction }
+      );
+      if (parentDocument?.collectionId !== this.collectionId) {
+        this.parentDocumentId = null;
+      }
+    }
+
     if (this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         includeDocumentStructure: true,
@@ -1425,6 +1441,7 @@ class Document extends ArchivableModel<
 
     if (options.detach) {
       this.collectionId = null;
+      this.parentDocumentId = null;
     }
 
     // Withdrawing the document also disables its public share links.

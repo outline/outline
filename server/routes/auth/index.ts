@@ -13,6 +13,7 @@ import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import type { AppState, AppContext, APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import { clearCSRFCookie } from "@server/utils/csrf";
 import { getJWTPayload } from "@server/utils/jwt";
 
 const app = new Koa<AppState, AppContext>();
@@ -28,7 +29,8 @@ void (async () => {
     )
   );
 
-  router.use(authMiddleware({ optional: true }));
+  // The OAuth actor must come from the browser session, not a link.
+  router.use(authMiddleware({ optional: true, transports: ["cookie"] }));
   for (const resolvedRouter of resolvedRouters) {
     if (resolvedRouter) {
       router.use("/", resolvedRouter.routes());
@@ -60,6 +62,7 @@ router.get(
       sameSite: "lax",
       expires,
     });
+    clearCSRFCookie(ctx);
     const [team, collection, view] = await Promise.all([
       Team.findByPk(user.teamId),
       Collection.findFirstCollectionForUser(user),

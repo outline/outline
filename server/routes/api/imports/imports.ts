@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
-import { ImportState, IntegrationService, UserRole } from "@shared/types";
+import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -32,12 +32,7 @@ router.post(
 
     authorize(user, "createImport", user.team);
 
-    if (
-      body.service === IntegrationService.Markdown ||
-      body.service === IntegrationService.Slab ||
-      body.service === IntegrationService.OKF ||
-      body.service === IntegrationService.JSON
-    ) {
+    if ("attachmentId" in body) {
       const attachment = await Attachment.findByPk(body.attachmentId, {
         rejectOnEmpty: true,
       });

@@ -12,9 +12,7 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
       return;
     }
 
-    document.text = serializer.serialize(
-      DocumentHelper.toProsemirror(document)
-    );
+    const text = serializer.serialize(DocumentHelper.toProsemirror(document));
 
     // Loaded lazily to keep the language-detection corpus off the startup path —
     // only this worker task needs it.
@@ -23,8 +21,12 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
     const language = franc(DocumentHelper.toPlainText(document), {
       minLength: 50,
     });
-    document.language = iso6393To1(language) ?? null;
 
-    await document.save({ silent: true });
+    // Write only the derived columns so that concurrent collaborative saves are
+    // not overwritten, the update hooks would also increment revisionCount.
+    await Document.update(
+      { text, language: iso6393To1(language) ?? null },
+      { where: { id: document.id }, hooks: false, silent: true }
+    );
   }
 }

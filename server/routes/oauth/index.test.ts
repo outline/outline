@@ -194,7 +194,7 @@ describe("#oauth.token", () => {
 
       expect(res.status).toEqual(400);
       const body = await res.json();
-      expect(body.error).toBeDefined();
+      expect(body.error).toEqual("invalid_client");
       expect(body.error_description).toContain("Invalid client_id");
     });
 
@@ -227,10 +227,34 @@ describe("#oauth.token", () => {
 
       expect(res.status).toEqual(400);
       const body = await res.json();
-      expect(body.error).toBeDefined();
+      expect(body.error).toEqual("invalid_client");
       expect(body.error_description).toContain(
         "Missing client_secret for confidential client"
       );
+    });
+
+    it("should return invalid_grant for an unknown refresh token", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({
+        teamId: user.teamId,
+        clientType: "public",
+      });
+
+      const res = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: "invalid-refresh-token",
+          client_id: client.clientId,
+        }),
+      });
+
+      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(body.error).toEqual("invalid_grant");
+      expect(body.error_description).toContain("refresh token is invalid");
     });
 
     it("should revoke all tokens in a grant when a refresh token is reused", async () => {
@@ -544,6 +568,7 @@ describe("#oauth.token", () => {
       );
       expect(res.status).toEqual(400);
       const body = await res.json();
+      expect(body.error).toEqual("invalid_client");
       expect(body.error_description).toContain(
         "Unsupported client authentication method"
       );

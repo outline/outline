@@ -127,7 +127,7 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
 
   const shareUrl =
     sharedParent?.url && !document.isDraft
-      ? `${sharedParent.url}${document.url}`
+      ? `${sharedParent.url}${document.path}`
       : (share?.url ?? "");
 
   const copyButton = (

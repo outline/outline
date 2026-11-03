@@ -30,6 +30,19 @@ export default class AuthenticationHelper {
   }
 
   /**
+   * Returns whether an authentication provider allows sign-in to an existing
+   * account by email from a tenant that the team is not connected to.
+   *
+   * @param id The authentication provider id, eg "google".
+   * @returns True if the provider allows matching by email.
+   */
+  public static allowsEmailMatch(id: string): boolean {
+    return AuthenticationHelper.providers.some(
+      (hook) => hook.value.id === id && hook.value.allowEmailMatch === true
+    );
+  }
+
+  /**
    * Returns the enabled authentication provider configurations for a team,
    * if given otherwise all enabled providers are returned.
    *

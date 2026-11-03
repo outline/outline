@@ -39,6 +39,7 @@ import ImportTask from "@server/models/ImportTask";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
+import { afterCommit } from "@server/storage/transaction";
 import type { Event, ImportEvent } from "@server/types";
 import { generateUrlId } from "@server/utils/url";
 import BaseProcessor from "./BaseProcessor";
@@ -178,7 +179,7 @@ export default abstract class ImportsProcessor<
     await importModel.save({ transaction });
 
     if (importTasks.length > 0) {
-      transaction.afterCommit(() => this.scheduleTask(importTasks[0]));
+      await afterCommit(transaction, () => this.scheduleTask(importTasks[0]));
     }
   }
 

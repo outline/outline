@@ -24,6 +24,7 @@ import { NotificationEventType } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
+import { afterCommit } from "@server/storage/transaction";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
@@ -231,7 +232,7 @@ class Notification extends Model<
     };
 
     if (options.transaction) {
-      options.transaction.afterCommit(() => void Event.schedule(params));
+      await afterCommit(options.transaction, () => void Event.schedule(params));
       return;
     }
     await Event.schedule(params);

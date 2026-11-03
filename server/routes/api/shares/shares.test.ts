@@ -804,7 +804,7 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toBe(share.id);
     expect(body.data.shares[0].published).toBe(true);
   });
-  it("should allow reading share by documentId", async () => {
+  it("should return no content when the document has no share", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -1462,6 +1462,13 @@ describe("#shares.sitemap", () => {
 });
 
 describe("#shares.subscribe", () => {
+  beforeEach(async () => {
+    // Requests share a loopback IP, so earlier runs would reach the per-IP limit.
+    await ShareSubscription.destroy({
+      where: { ipAddress: ["127.0.0.1", "::1", "::ffff:127.0.0.1"] },
+    });
+  });
+
   it("should fail with status 400 bad request when shareId is invalid", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {
@@ -1811,6 +1818,61 @@ describe("#shares.unsubscribe", () => {
     );
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).toContain("notice=invalid-auth");
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).toBeNull();
+  });
+
+  it("should allow one-click unsubscribe with a form POST", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const token = ShareSubscription.generateUnsubscribeToken(subscription);
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token,
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(200);
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).not.toBeNull();
+  });
+
+  it("should reject one-click unsubscribe with an invalid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const res = await server.post(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token: "invalid-token",
+      })}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      }
+    );
+    expect(res.status).toEqual(401);
 
     await subscription.reload();
     expect(subscription.unsubscribedAt).toBeNull();

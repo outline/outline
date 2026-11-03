@@ -2,7 +2,8 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
@@ -75,6 +76,7 @@ export const NativeInput = styled.input<{
 
   ${breakpoint("mobile", "tablet")`
     font-size: 16px;
+    height: ${MOBILE_TOUCH_TARGET - 2}px;
   `};
 `;
 
@@ -121,6 +123,11 @@ export const Outline = styled(Flex)<{
         : props.theme.inputBorder};
   border-radius: ${(props) => (props.$round ? "16px" : "4px")};
   font-weight: normal;
+
+  ${breakpoint("mobile", "tablet")`
+    ${(props: { $round?: boolean }) =>
+      props.$round && `border-radius: ${MOBILE_TOUCH_TARGET / 2}px;`}
+  `};
   align-items: center;
   overflow: hidden;
   background: ${s("background")};

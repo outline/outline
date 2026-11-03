@@ -226,7 +226,7 @@ function MobileDropdown({
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
       >
-        <DrawerTitle>{ariaLabel}</DrawerTitle>
+        <DrawerTitle hidden>{ariaLabel}</DrawerTitle>
         <StyledScrollable hiddenScrollbars>
           {content}
           {!submenuName ? append : null}

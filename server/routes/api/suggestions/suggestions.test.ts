@@ -1,7 +1,9 @@
+import { EmailDisplay, TeamPreference } from "@shared/types";
 import {
   buildGroup,
   buildGroupUser,
   buildGuestUser,
+  buildTeam,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -87,6 +89,26 @@ describe("#suggestions.mention", () => {
 
     const res = await server.post("/api/suggestions.mention", guest, {
       body: { query: other.email },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users).toEqual([]);
+  });
+
+  it("should not match the query against emails when emailDisplay is none", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    await buildUser({
+      teamId: team.id,
+      name: "Jane Doe",
+      email: "secret.jane@example.com",
+    });
+
+    const res = await server.post("/api/suggestions.mention", user, {
+      body: { query: "secret.jane" },
     });
     const body = await res.json();
 

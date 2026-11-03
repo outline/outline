@@ -15,6 +15,8 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   action?: Exclude<ActionVariant, ActionWithChildren>;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
+  /** The button type, defaults to "button" */
+  type?: "button" | "submit" | "reset";
 };
 
 /**
@@ -25,6 +27,7 @@ function ActionButton({
   tooltip,
   hideOnActionDisabled,
   ref,
+  type = "button",
   ...rest
 }: Props & { ref?: React.Ref<HTMLButtonElement> }) {
   const actionContext = useActionContext({
@@ -33,7 +36,8 @@ function ActionButton({
   const [executing, setExecuting] = React.useState(false);
 
   if (!actionContext || !action) {
-    return <button {...rest} ref={ref} />;
+    // oxlint-disable-next-line react/button-has-type -- type defaults to "button"
+    return <button {...rest} type={type} ref={ref} />;
   }
 
   const actionIsDisabled =
@@ -54,6 +58,8 @@ function ActionButton({
   const button = (
     <button
       {...rest}
+      // oxlint-disable-next-line react/button-has-type -- type defaults to "button"
+      type={type}
       aria-label={typeof label === "string" ? label : undefined}
       disabled={disabled || executing}
       ref={ref}

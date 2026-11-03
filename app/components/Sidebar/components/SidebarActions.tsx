@@ -25,7 +25,7 @@ export const SidebarActions = styled(EventBoundary)<{
   margin-block: auto;
   height: 24px;
   color: ${s("textTertiary")};
-  background: var(--background);
+  background: var(--background, ${s("sidebarBackground")});
   transition: opacity 50ms;
 
   [data-drag-active] & {

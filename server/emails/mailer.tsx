@@ -1,4 +1,4 @@
-import type { EmailAddress } from "addressparser";
+import type { MailboxAddress } from "nodemailer/lib/addressparser";
 import type { Transporter } from "nodemailer";
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
@@ -16,7 +16,7 @@ type SendMailOptions = {
   /** The email address being sent to. */
   to: string;
   /** The address the email is sent from. */
-  from: EmailAddress;
+  from: MailboxAddress;
   /** An address to set as the reply-to for the email. */
   replyTo?: string;
   /** A unique identifier for the message, used for threading. */
@@ -29,6 +29,10 @@ type SendMailOptions = {
   previewText?: string;
   /** The plain-text version of the email body. */
   text: string;
+  /** The language of the email in BCP47 format, e.g. "en-US". */
+  lang?: string;
+  /** The text direction of the email. */
+  dir?: "ltr" | "rtl";
   /** The React element rendered to produce the HTML body. */
   component: React.JSX.Element;
   /** Additional CSS to inject into the head of the email. */
@@ -172,6 +176,8 @@ export class Mailer {
       data.component,
       {
         title: data.subject,
+        lang: data.lang,
+        dir: data.dir ?? "ltr",
         headCSS: [baseStyles, data.headCSS].join(" "),
       } as Oy.RenderOptions,
       this.template
@@ -188,16 +194,14 @@ export class Mailer {
         references: data.references,
         inReplyTo: data.references?.at(-1),
         subject: data.subject,
-        headers: this.tagHeaders(data.tags),
+        headers: {
+          ...this.tagHeaders(data.tags),
+          ...this.unsubscribeHeaders(data.unsubscribeUrl),
+        },
         html,
         text: data.text,
         list: data.unsubscribeUrl
-          ? {
-              unsubscribe: {
-                url: data.unsubscribeUrl,
-                comment: "Unsubscribe from these emails",
-              },
-            }
+          ? { unsubscribe: data.unsubscribeUrl }
           : undefined,
         attachments: env.isCloudHosted
           ? undefined
@@ -261,6 +265,24 @@ export class Mailer {
     }
 
     return undefined;
+  }
+
+  /**
+   * Builds the headers that allow mail clients to unsubscribe with one click,
+   * as described in RFC 8058. The List-Unsubscribe header itself is set by the
+   * `list` option.
+   *
+   * @param unsubscribeUrl The URL that accepts a POST to unsubscribe.
+   * @returns A map of headers to set on the message, or undefined.
+   */
+  private unsubscribeHeaders(
+    unsubscribeUrl?: string
+  ): Record<string, string> | undefined {
+    if (!unsubscribeUrl) {
+      return undefined;
+    }
+
+    return { "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" };
   }
 
   /** The configured SMTP host and service name, for provider detection. */

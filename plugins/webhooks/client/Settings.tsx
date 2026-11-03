@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon, WebhooksIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -30,7 +30,6 @@ function Webhooks() {
   const appName = env.APP_NAME;
   const params = useQuery();
   const history = useHistory();
-  const location = useLocation();
   const [query, setQuery] = useState(params.get("query") || "");
 
   const reqParams = useMemo(
@@ -77,11 +76,11 @@ function Webhooks() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleSearch = useCallback(

@@ -1,5 +1,4 @@
 import { IntegrationService, IntegrationType } from "@shared/types";
-import * as timers from "@shared/utils/timers";
 import type { BaseChatProvider } from "@server/chat/BaseChatProvider";
 import { ChatService } from "@server/chat/ChatService";
 import { Integration } from "@server/models";
@@ -49,10 +48,6 @@ const publish = (
     ip,
   });
 
-beforeEach(() => {
-  vi.spyOn(timers, "sleep").mockResolvedValue(undefined);
-});
-
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -77,6 +72,7 @@ describe("ChatNotificationsProcessor", () => {
 
     await publish(user, document.id, collection.id);
 
+    expect(schedule.mock.calls[0][1]).toEqual({ delay: 5000 });
     expect(schedule.mock.calls.map(([props]) => props)).toEqual(
       expect.arrayContaining(
         integrations.map((integration) => ({

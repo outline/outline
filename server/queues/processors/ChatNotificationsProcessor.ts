@@ -1,8 +1,7 @@
 import { differenceInMilliseconds } from "date-fns";
 import { Op } from "sequelize";
 import { IntegrationType } from "@shared/types";
-import { Minute } from "@shared/utils/time";
-import { sleep } from "@shared/utils/timers";
+import { Minute, Second } from "@shared/utils/time";
 import { ChatMessageHelper } from "@server/chat/ChatMessageHelper";
 import { ChatService } from "@server/chat/ChatService";
 import env from "@server/env";
@@ -38,8 +37,6 @@ export default class ChatNotificationsProcessor extends BaseProcessor {
     switch (event.name) {
       case "documents.publish":
       case "revisions.create":
-        // wait a few seconds to give the document summary chance to be generated
-        await sleep(5000);
         return this.documentUpdated(event, services);
 
       case "integrations.create":
@@ -140,11 +137,15 @@ export default class ChatNotificationsProcessor extends BaseProcessor {
 
     await Promise.all(
       integrations.map((integration) =>
-        new ChatPostDocumentTask().schedule({
-          integrationId: integration.id,
-          documentId: document.id,
-          eventName,
-        })
+        new ChatPostDocumentTask().schedule(
+          {
+            integrationId: integration.id,
+            documentId: document.id,
+            eventName,
+          },
+          // Gives the document summary a chance to be generated.
+          { delay: 5 * Second.ms }
+        )
       )
     );
   }

@@ -1,5 +1,6 @@
 import { chunk, compact } from "es-toolkit/compat";
 import * as React from "react";
+import type { ListImperativeAPI } from "react-window";
 import styled from "styled-components";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
@@ -60,8 +61,8 @@ type Props = {
   onIconActive?: (icon: IconNode) => void;
   /** Callback when whether the grid has content below the fold changes */
   onOverflowChange?: (hasMoreBelow: boolean) => void;
-  /** Ref to the scrolling container */
-  ref?: React.Ref<HTMLDivElement>;
+  /** Ref to the virtualized list */
+  ref?: React.Ref<ListImperativeAPI>;
 };
 
 function GridTemplate({

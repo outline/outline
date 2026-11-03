@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { TeamValidation } from "@shared/validations";
 import { Team } from "@server/models";
 import {
   buildTeam,
@@ -75,6 +76,30 @@ describe("Team", () => {
       const slug = buildSubdomain();
       await buildTeam({ subdomain: slug });
       expect(await Team.findAvailableSubdomain(slug)).toEqual(`${slug}1`);
+    });
+
+    it("should truncate to the maximum length", async () => {
+      const max = TeamValidation.maxSubdomainSelfHostedLength;
+      const slug = buildSubdomain();
+      const requested = slug.padEnd(max + 20, "a");
+      expect(await Team.findAvailableSubdomain(requested)).toEqual(
+        requested.slice(0, max)
+      );
+    });
+
+    it("should remove trailing hyphens after truncating", async () => {
+      const max = TeamValidation.maxSubdomainSelfHostedLength;
+      const slug = buildSubdomain().padEnd(max - 1, "a");
+      expect(await Team.findAvailableSubdomain(`${slug} more`)).toEqual(slug);
+    });
+
+    it("should keep the numeric suffix within the maximum length", async () => {
+      const max = TeamValidation.maxSubdomainSelfHostedLength;
+      const slug = buildSubdomain().padEnd(max, "a");
+      await buildTeam({ subdomain: slug });
+      expect(await Team.findAvailableSubdomain(slug)).toEqual(
+        `${slug.slice(0, max - 1)}1`
+      );
     });
   });
 

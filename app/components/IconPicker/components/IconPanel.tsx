@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { ListImperativeAPI } from "react-window";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { IconType } from "@shared/types";
@@ -47,7 +48,7 @@ const IconPanel = ({
   const { t } = useTranslation();
 
   const searchRef = React.useRef<HTMLInputElement | null>(null);
-  const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollableRef = React.useRef<ListImperativeAPI>(null);
 
   const { incrementIconCount, frequentIcons } = useIconState(IconType.SVG);
 
@@ -131,7 +132,7 @@ const IconPanel = ({
     if (!panelActive) {
       return;
     }
-    scrollableRef.current?.scroll({ top: 0 });
+    scrollableRef.current?.element?.scroll({ top: 0 });
     requestAnimationFrame(() => searchRef.current?.focus());
   }, [panelActive]);
 

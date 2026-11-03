@@ -1,9 +1,13 @@
-import OAuth2Server from "@node-oauth/oauth2-server";
+import OAuth2Server, { InvalidClientError } from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "@koa/router";
 import env from "@server/env";
-import { ValidationError, NotFoundError } from "@server/errors";
+import {
+  InvalidRedirectUriError,
+  ValidationError,
+  NotFoundError,
+} from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -15,6 +19,7 @@ import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import UploadOAuthClientLogoTask from "@server/queues/tasks/UploadOAuthClientLogoTask";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
+import { afterCommit } from "@server/storage/transaction";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -124,7 +129,7 @@ router.post(
     // Only client_secret_post is advertised, but the library also reads HTTP
     // Basic credentials, so reject them to keep the checks below complete.
     if (/^\s*basic\b/i.test(ctx.request.get("authorization"))) {
-      throw ValidationError(
+      throw new InvalidClientError(
         "Unsupported client authentication method, send credentials in the request body"
       );
     }
@@ -142,10 +147,12 @@ router.post(
       }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
-        throw ValidationError("Invalid client_id");
+        throw new InvalidClientError("Invalid client_id");
       }
       if (client.clientType === "confidential") {
-        throw ValidationError("Missing client_secret for confidential client");
+        throw new InvalidClientError(
+          "Missing client_secret for confidential client"
+        );
       }
     }
 
@@ -226,6 +233,8 @@ router.post(
       contacts,
     } = ctx.input.body;
 
+    assertValidRedirectUris(redirect_uris);
+
     const team = await getTeamFromContext(ctx, {
       includeOAuthState: false,
     });
@@ -255,12 +264,12 @@ router.post(
     // The logo is copied to file storage in the background, so the consent
     // screen never loads it from a host that the client controls.
     if (logo_uri) {
-      ctx.state.transaction.afterCommit(async () => {
-        await new UploadOAuthClientLogoTask().scheduleOptional({
+      await afterCommit(ctx.state.transaction, () =>
+        new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
-        });
-      });
+        })
+      );
     }
 
     Logger.info("authentication", "OAuth client registered", {
@@ -299,6 +308,7 @@ router.put(
   async (ctx: APIContext<T.RegisterUpdateReq>) => {
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
+    assertValidRedirectUris(redirect_uris);
 
     const team = await client.$get("team", {
       transaction: ctx.state.transaction,
@@ -320,12 +330,12 @@ router.put(
 
     // The stored logo is kept until the background task replaces it.
     if (logo_uri) {
-      ctx.state.transaction.afterCommit(async () => {
-        await new UploadOAuthClientLogoTask().scheduleOptional({
+      await afterCommit(ctx.state.transaction, () =>
+        new UploadOAuthClientLogoTask().scheduleOptional({
           oauthClientId: client.id,
           logoUrl: logo_uri,
-        });
-      });
+        })
+      );
     }
 
     ctx.body = presentDCRClient(team.url, client, {
@@ -347,6 +357,21 @@ router.delete(
     ctx.body = "";
   }
 );
+
+/**
+ * Ensures that every redirect URI in a client registration request is valid.
+ *
+ * @param redirectUris - the redirect URIs to validate.
+ * @throws InvalidRedirectUriError if a redirect URI is not valid.
+ */
+function assertValidRedirectUris(redirectUris: string[]) {
+  const invalid = redirectUris.find(
+    (uri) => !OAuthHelper.isValidRedirectUri(uri)
+  );
+  if (invalid !== undefined) {
+    throw InvalidRedirectUriError(`Invalid redirect URI: ${invalid}`);
+  }
+}
 
 app.use(requestTracer());
 app.use(oauthErrorHandler());

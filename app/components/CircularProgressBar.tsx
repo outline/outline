@@ -17,12 +17,12 @@ const Circle = ({
 }) => {
   const radius = offset * 0.7;
   const circumference = 2 * Math.PI * radius;
-  let strokePercentage;
+  let strokeDashoffset = 0;
 
-  if (percentage) {
+  if (percentage !== undefined) {
     // because the circle is so small, anything greater than 85% appears like 100%
-    percentage = percentage > 85 && percentage < 100 ? 85 : percentage;
-    strokePercentage = ((100 - percentage) * circumference) / 100;
+    const visible = percentage > 85 && percentage < 100 ? 85 : percentage;
+    strokeDashoffset = ((100 - visible) * circumference) / 100;
   }
 
   return (
@@ -31,13 +31,14 @@ const Circle = ({
       cx={offset}
       cy={offset}
       fill="none"
-      stroke={strokePercentage !== circumference ? color : ""}
+      stroke={color}
       strokeWidth={2.5}
       strokeDasharray={circumference}
-      strokeDashoffset={percentage ? strokePercentage : 0}
       strokeLinecap="round"
       style={{
-        transition: "stroke-dashoffset 0.6s ease 0s",
+        strokeDashoffset: `${strokeDashoffset}px`,
+        opacity: percentage === 0 ? 0 : 1,
+        transition: "stroke-dashoffset 0.6s ease, opacity 0.6s ease",
       }}
     />
   );
@@ -76,13 +77,7 @@ const CircularProgressBar = ({
     >
       <g transform={`rotate(-90 ${offset} ${offset})`}>
         <Circle color={theme.progressBarBackground} offset={offset} />
-        {percentage > 0 && (
-          <Circle
-            color={theme.accent}
-            percentage={percentage}
-            offset={offset}
-          />
-        )}
+        <Circle color={theme.accent} percentage={percentage} offset={offset} />
       </g>
     </SVG>
   );

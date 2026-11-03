@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { AuthenticationType, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
 import {
@@ -164,7 +165,7 @@ export class ChatAccountHelper {
           model: User,
           as: "user",
           required: true,
-          where: { teamId: team.id },
+          where: { teamId: team.id, suspendedAt: { [Op.is]: null } },
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -193,7 +194,7 @@ export class ChatAccountHelper {
             model: User,
             as: "user",
             required: true,
-            where: { teamId: team.id },
+            where: { teamId: team.id, suspendedAt: { [Op.is]: null } },
           },
         ],
       });

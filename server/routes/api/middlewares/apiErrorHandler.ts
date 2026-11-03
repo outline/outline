@@ -1,3 +1,4 @@
+import httpErrors from "http-errors";
 import type { Context, Next } from "koa";
 import {
   ValidationError as SequelizeValidationError,
@@ -67,6 +68,22 @@ export default function apiErrorHandler() {
         (err instanceof Error && /Not found/i.test(err.message))
       ) {
         transformedErr = NotFoundError();
+      }
+
+      // RFC 6750 §3: a 401 must carry a challenge for the Bearer scheme.
+      if (
+        httpErrors.isHttpError(transformedErr) &&
+        transformedErr.status === 401
+      ) {
+        const headers = transformedErr.headers ?? {};
+        const hasChallenge =
+          !!ctx.response.get("WWW-Authenticate") ||
+          Object.keys(headers).some(
+            (key) => key.toLowerCase() === "www-authenticate"
+          );
+        if (!hasChallenge) {
+          transformedErr.headers = { ...headers, "WWW-Authenticate": "Bearer" };
+        }
       }
 
       throw transformedErr;

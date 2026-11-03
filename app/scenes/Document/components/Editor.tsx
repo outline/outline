@@ -20,6 +20,7 @@ import Editor from "~/components/Editor";
 import { useSplitView } from "~/components/SplitView/context";
 import type { Editor as SharedEditor } from "~/editor";
 import Flex from "~/components/Flex";
+import { headerMetaStyles } from "~/components/HeaderMeta";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Time from "~/components/Time";
 import { withUIExtensions } from "~/editor/extensions";
@@ -304,8 +305,7 @@ function DocumentEditor(props: Props) {
 }
 
 const SharedMeta = styled(Text)`
-  margin: -12px 0 2em 0;
-  font-size: 14px;
+  ${headerMetaStyles}
 `;
 
 export default observer(DocumentEditor);

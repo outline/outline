@@ -1,4 +1,4 @@
-import { UserRole } from "@shared/types";
+import { IntegrationService, UserRole } from "@shared/types";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
@@ -15,6 +15,14 @@ PluginManager.add([
         "Configure a custom Diagrams.net installation URL to use your own hosted instance for embedding diagrams in your documents.",
       component: createLazyComponent(() => import("./Settings")),
       enabled: (_, user) => user.role === UserRole.Admin,
+    },
+  },
+  {
+    ...config,
+    type: Hook.InstanceUrl,
+    value: {
+      service: IntegrationService.Diagrams,
+      url: (settings) => settings.diagrams?.url,
     },
   },
 ]);

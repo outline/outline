@@ -1,12 +1,11 @@
 import {
-  createOAuthUserAuth,
   createAppAuth,
-  type OAuthWebFlowAuthOptions,
+  type GitHubAppUserAuthentication,
   type InstallationAuthOptions,
 } from "@octokit/auth-app";
 import { Sequelize } from "sequelize";
 import type { Endpoints, OctokitResponse } from "@octokit/types";
-import { Octokit } from "octokit";
+import { Octokit, RequestError } from "octokit";
 import pluralize from "pluralize";
 import { toError, errToString } from "@shared/utils/error";
 import type { IntegrationType } from "@shared/types";
@@ -22,12 +21,21 @@ import type {
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
+/** The access a user has to a GitHub app installation. */
+export enum InstallationAccess {
+  Allowed = "allowed",
+  Denied = "denied",
+  MissingPermission = "missing_permission",
+}
+
 type PR =
   Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}"]["response"]["data"];
 type Issue =
   Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}"]["response"]["data"];
 type Installation =
   Endpoints["GET /app/installations/{installation_id}"]["response"]["data"];
+type UserInstallation =
+  Endpoints["GET /user/installations"]["response"]["data"]["installations"][number];
 
 type ParsedIssueOrPR = {
   owner: string;
@@ -146,6 +154,34 @@ const requestPlugin = (octokit: Octokit) => ({
   },
 
   /**
+   * Fetches the authenticated user.
+   *
+   * @returns the user's GitHub profile.
+   */
+  requestAuthenticatedUser: async () =>
+    octokit.rest.users.getAuthenticated({
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  /**
+   * Fetches the authenticated user's membership in an organization.
+   *
+   * @param org login of the organization.
+   * @returns the membership, including role and state.
+   */
+  requestOrgMembership: async (org: string) =>
+    octokit.rest.orgs.getMembershipForAuthenticatedUser({
+      org,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  /**
    * Fetches app installations accessible to the user
    *
    * @returns {Array} Containing details of all app installations done by user
@@ -201,6 +237,8 @@ const requestPlugin = (octokit: Octokit) => ({
 });
 
 const CustomOctokit = Octokit.plugin(requestPlugin);
+
+type GitHubClient = InstanceType<typeof CustomOctokit>;
 
 export class GitHub {
   private static appId = env.GITHUB_APP_ID;
@@ -305,17 +343,15 @@ export class GitHub {
   public static authenticateAsUser = async (
     code: string,
     state?: string | null
-  ) =>
-    GitHub.authenticateAsApp().auth({
+  ): Promise<GitHubClient> => {
+    // Exchange the code once, the oauth-user strategy repeats it per request.
+    const { token } = (await GitHub.authenticateAsApp().auth({
       type: "oauth-user",
       code,
       state,
-      factory: (options: OAuthWebFlowAuthOptions) =>
-        new CustomOctokit({
-          authStrategy: createOAuthUserAuth,
-          auth: options,
-        }),
-    }) as Promise<InstanceType<typeof CustomOctokit>>;
+    })) as GitHubAppUserAuthentication;
+    return new CustomOctokit({ auth: token });
+  };
 
   /**
    * [Authenticates as a GitHub app installation](https://github.com/octokit/auth-app.js/?tab=readme-ov-file#authenticate-as-installation)
@@ -332,7 +368,57 @@ export class GitHub {
           authStrategy: createAppAuth,
           auth: options,
         }),
-    }) as Promise<InstanceType<typeof CustomOctokit>>;
+    }) as Promise<GitHubClient>;
+
+  /**
+   * Checks whether the user can manage an installation. The user must be the
+   * owner of a personal account, or an active admin of an organization.
+   *
+   * @param client user-authenticated octokit instance.
+   * @param installation installation from the user's installation list.
+   * @returns the access the user has to the installation.
+   */
+  public static async canManageInstallation(
+    client: GitHubClient,
+    installation: UserInstallation
+  ): Promise<InstallationAccess> {
+    const { account } = installation;
+    if (!account || !("login" in account)) {
+      return InstallationAccess.Denied;
+    }
+
+    if (installation.target_type === "User") {
+      const { data: user } = await client.requestAuthenticatedUser();
+      return user.id === account.id
+        ? InstallationAccess.Allowed
+        : InstallationAccess.Denied;
+    }
+
+    if (installation.target_type !== "Organization") {
+      return InstallationAccess.Denied;
+    }
+
+    if (!installation.permissions.members) {
+      return InstallationAccess.MissingPermission;
+    }
+
+    try {
+      const { data: membership } = await client.requestOrgMembership(
+        account.login
+      );
+      return membership.state === "active" && membership.role === "admin"
+        ? InstallationAccess.Allowed
+        : InstallationAccess.Denied;
+    } catch (err) {
+      if (
+        err instanceof RequestError &&
+        (err.status === 403 || err.status === 404)
+      ) {
+        return InstallationAccess.Denied;
+      }
+      throw err;
+    }
+  }
 
   /**
    *
@@ -394,7 +480,7 @@ export class GitHub {
   };
 
   private static async unfurlProject(
-    client: InstanceType<typeof CustomOctokit>,
+    client: GitHubClient,
     resource: ParsedProject
   ) {
     let project: GitHubProject | undefined;

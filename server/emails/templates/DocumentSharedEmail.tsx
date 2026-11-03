@@ -1,11 +1,13 @@
 import * as React from "react";
-import { DocumentPermission } from "@shared/types";
+import { DocumentPermission, NotificationEventType } from "@shared/types";
 import { Document, GroupMembership, UserMembership } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -54,6 +56,13 @@ export default class DocumentSharedEmail extends BaseEmail<
     }
 
     return { document, membership };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.AddUserToDocument
+    );
   }
 
   protected subject({ actorName, document }: Props) {
@@ -109,6 +118,11 @@ ${this.t("View Document")}: ${teamUrl}${document.path}
             <Button href={documentUrl}>{this.t("View Document")}</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

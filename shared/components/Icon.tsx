@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "../styles/breakpoint";
 import useContrastColor from "../hooks/useContrastColor";
 import { IconType } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";

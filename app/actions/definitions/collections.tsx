@@ -100,7 +100,8 @@ export const editCollection = createAction({
   analyticsName: "Edit collection",
   section: ActiveCollectionSection,
   icon: <EditIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActiveModel, getActivePolicies }) =>
+    !getActiveModel(Collection)?.isPersonal &&
     getActivePolicies(Collection).some((policy) => policy.abilities.update),
   perform: ({ t, getActiveModel, stores }) => {
     const collection = getActiveModel(Collection);
@@ -389,6 +390,7 @@ export const subscribeCollection = createAction({
 
     return (
       !!collection.isActive &&
+      !collection.isPersonal &&
       !collection.isSubscribed &&
       stores.policies.abilities(collection.id).subscribe
     );

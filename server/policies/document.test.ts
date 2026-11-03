@@ -498,6 +498,45 @@ describe("archived document", () => {
     expect(abilities.move).toEqual(false);
     expect(abilities.comment).toEqual(false);
   });
+
+  for (const role of [UserRole.Viewer, UserRole.Guest]) {
+    it(`should not allow ${role} with read_write membership to restore`, async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id, role });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const archived = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        archivedAt: new Date(),
+      });
+      const deleted = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      for (const doc of [archived, deleted]) {
+        await UserMembership.create({
+          userId: user.id,
+          documentId: doc.id,
+          permission: DocumentPermission.ReadWrite,
+          createdById: user.id,
+        });
+      }
+      await deleted.destroy();
+
+      const archivedDocument = await Document.findByPk(archived.id, {
+        userId: user.id,
+      });
+      const deletedDocument = await Document.findByPk(deleted.id, {
+        userId: user.id,
+        paranoid: false,
+      });
+      expect(serialize(user, archivedDocument).unarchive).toEqual(false);
+      expect(serialize(user, deletedDocument).restore).toEqual(false);
+    });
+  }
 });
 
 describe("read document", () => {

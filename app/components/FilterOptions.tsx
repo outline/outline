@@ -3,6 +3,8 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s } from "@shared/styles";
 import type { FetchPageParams } from "~/stores/base/Store";
 import Button, { Inner } from "~/components/Button";
@@ -359,6 +361,16 @@ export const StyledButton = styled(Button)`
     line-height: 28px;
     min-height: auto;
   }
+
+  ${breakpoint("mobile", "tablet")`
+    && {
+      height: ${MOBILE_TOUCH_TARGET}px;
+    }
+
+    && ${Inner} {
+      min-height: ${MOBILE_TOUCH_TARGET}px;
+    }
+  `};
 `;
 
 export default FilterOptions;

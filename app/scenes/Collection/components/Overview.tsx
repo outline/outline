@@ -79,7 +79,7 @@ function Overview({ collection, readOnly }: Props) {
         }
       );
 
-      return newDocument.url;
+      return newDocument.path;
     },
     [collection, documents]
   );

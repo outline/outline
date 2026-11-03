@@ -19,49 +19,64 @@ import { OAuthHelper } from "./OAuthHelper";
 /** JWK members that hold private or symmetric key material (RFC 7518 §6). */
 const privateKeyMembers = ["d", "p", "q", "dp", "dq", "qi", "oth", "k"];
 
-const MetadataDocumentSchema = z.object({
-  client_id: z.string(),
-  client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
-  redirect_uris: z
-    .array(
-      z
-        .string()
-        .max(OAuthClientValidation.maxRedirectUriLength)
-        .refine(
-          (uri) => OAuthHelper.isValidRedirectUri(uri),
-          "Invalid redirect URI"
-        )
-    )
-    .min(1)
-    .max(OAuthClientValidation.maxRedirectUris),
-  client_uri: z
-    .url({ protocol: /^https$/ })
-    .max(OAuthClientValidation.maxDeveloperUrlLength)
-    .optional(),
-  logo_uri: z
-    .url({ protocol: /^https$/ })
-    .max(OAuthClientValidation.maxAvatarUrlLength)
-    .optional(),
-  // Only public clients are supported, so shared secrets and private key JWT
-  // authentication are rejected.
-  token_endpoint_auth_method: z.literal("none").optional(),
-  client_secret: z.never().optional(),
-  // Public keys are ignored, but a document with private key material is
-  // invalid and must not be cached (draft section 4.1).
-  jwks: z
-    .object({
-      keys: z.array(
+const MetadataDocumentSchema = z
+  .object({
+    client_id: z.string(),
+    client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
+    redirect_uris: z
+      .array(
         z
-          .record(z.string(), z.unknown())
+          .string()
+          .max(OAuthClientValidation.maxRedirectUriLength)
           .refine(
-            (key) => !privateKeyMembers.some((member) => member in key),
-            "jwks must not contain private key material"
+            (uri) => OAuthHelper.isValidRedirectUri(uri),
+            "Invalid redirect URI"
           )
-      ),
-    })
-    .optional(),
-  client_secret_expires_at: z.never().optional(),
-});
+      )
+      .min(1)
+      .max(OAuthClientValidation.maxRedirectUris),
+    client_uri: z
+      .url({ protocol: /^https$/ })
+      .max(OAuthClientValidation.maxDeveloperUrlLength)
+      .optional(),
+    logo_uri: z
+      .url({ protocol: /^https$/ })
+      .max(OAuthClientValidation.maxAvatarUrlLength)
+      .optional(),
+    // Clients can list several methods, with the singular field as their
+    // preference. Only public clients are supported, so "none" must be one of
+    // them.
+    token_endpoint_auth_method: z.string().optional(),
+    token_endpoint_auth_methods_supported: z.array(z.string()).optional(),
+    client_secret: z.never().optional(),
+    // Public keys are ignored, but a document with private key material is
+    // invalid and must not be cached (draft section 4.1).
+    jwks: z
+      .object({
+        keys: z.array(
+          z
+            .record(z.string(), z.unknown())
+            .refine(
+              (key) => !privateKeyMembers.some((member) => member in key),
+              "jwks must not contain private key material"
+            )
+        ),
+      })
+      .optional(),
+    client_secret_expires_at: z.never().optional(),
+  })
+  .refine(
+    (document) =>
+      (
+        document.token_endpoint_auth_methods_supported ?? [
+          document.token_endpoint_auth_method ?? "none",
+        ]
+      ).includes("none"),
+    {
+      message: "must allow the none method",
+      path: ["token_endpoint_auth_method"],
+    }
+  );
 
 type MetadataDocument = z.infer<typeof MetadataDocumentSchema>;
 
@@ -92,8 +107,8 @@ export class ClientMetadataHelper {
    *
    * @param clientId The public client identifier.
    * @param team The team of the user that requests the client.
-   * @returns The OAuth client, or null if it is not found or the client_id is
-   *   not a valid metadata document URL.
+   * @returns The OAuth client, or null if it is not found, the client_id is
+   *   not a valid metadata document URL, or metadata documents are disabled.
    * @throws AuthorizationError if the client is a metadata document and the
    *   team has turned MCP off.
    * @throws InvalidClientMetadataError if the metadata document cannot be
@@ -105,6 +120,9 @@ export class ClientMetadataHelper {
   ): Promise<OAuthClient | null> {
     if (!OAuthClient.isMetadataDocumentClientId(clientId)) {
       return OAuthClient.findByClientId(clientId);
+    }
+    if (env.OAUTH_DISABLE_CIMD) {
+      return null;
     }
 
     // Metadata documents only serve MCP, so do not fetch one for a team that
