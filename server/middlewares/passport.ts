@@ -24,11 +24,11 @@ import { parseState } from "@server/utils/passport";
  * @returns the host if trusted, otherwise falls back to the base domain from env.URL.
  */
 async function getValidatedHost(host: string): Promise<string> {
-  const fallback = new URL(env.URL).host;
-
   if (!env.isCloudHosted) {
     return host;
   }
+
+  const fallback = new URL(env.URL).host;
 
   if (!host) {
     return fallback;

@@ -86,9 +86,7 @@ export class TextHelper {
       await Promise.all(
         chunk.map(async (image) => {
           // Skip attempting to fetch images that are not valid urls
-          try {
-            new URL(image.src);
-          } catch (_e) {
+          if (!URL.canParse(image.src)) {
             return;
           }
 
