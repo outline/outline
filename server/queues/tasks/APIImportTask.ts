@@ -40,6 +40,13 @@ export type ProcessOutput<T extends ImportableIntegrationService> = {
   childTasksInput: ImportTaskInput<T>;
 };
 
+const FinishedImportStates = [
+  ImportState.Processed,
+  ImportState.Completed,
+  ImportState.Errored,
+  ImportState.Canceled,
+];
+
 type Props = {
   /** id of the import_task */
   importTaskId: string;
@@ -71,10 +78,13 @@ export default abstract class APIImportTask<
       return;
     }
 
-    // Don't process any further when the associated import is canceled by the user.
-    if (importTask.import.state === ImportState.Canceled) {
-      importTask.state = ImportTaskState.Canceled;
-      await importTask.save();
+    // Don't process any further when the associated import is canceled by the
+    // user or has already finished.
+    if (FinishedImportStates.includes(importTask.import.state)) {
+      if (importTask.state !== ImportTaskState.Completed) {
+        importTask.state = ImportTaskState.Canceled;
+        await importTask.save();
+      }
       return;
     }
 

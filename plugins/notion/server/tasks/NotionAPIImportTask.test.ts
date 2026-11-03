@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { ImportTaskPhase, ImportTaskState } from "@shared/types";
+import { ImportState, ImportTaskPhase, ImportTaskState } from "@shared/types";
 import { ImportTask } from "@server/models";
 import { buildImport } from "@server/test/factories";
 import { mockTaskSchedule } from "@server/test/support";
@@ -86,5 +86,20 @@ describe("NotionAPIImportTask", () => {
         ancestorExternalIds: [rootId, pageId],
       }),
     ]);
+  });
+
+  it("should stop when the import has already finished", async () => {
+    const importModel = await buildImport({ state: ImportState.Completed });
+    const importTask = await buildImportTask(importModel.id, {
+      externalId: randomUUID(),
+    });
+    const fetchPage = mockFetchPage([childPage(randomUUID())]);
+
+    await new NotionAPIImportTask().perform({ importTaskId: importTask.id });
+
+    await importTask.reload();
+    expect(importTask.state).toEqual(ImportTaskState.Canceled);
+    expect(fetchPage).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 });
