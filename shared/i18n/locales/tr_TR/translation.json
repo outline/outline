@@ -1149,7 +1149,7 @@
   "Enter the address of an Outline workspace to connect": "Bağlanmak için bir Outline çalışma alanının adresini girin",
   "This doesn’t appear to be a valid installation": "Bu geçerli bir kurulum gibi görünmüyor",
   "Choose a workspace": "Bir çalışma alanı seçin",
-  "Choose an {{ appName }} workspace or log in to continue": "Choose an {{ appName }} workspace or log in to continue",
+  "Choose an {{ appName }} workspace or log in to continue": "Bir {{ appName }} çalışma alanı seçin veya devam etmek için giriş yapın",
   "Create workspace": "Çalışma alanı oluştur",
   "Set up your workspace by providing a name and details for admin login. You can change these later.": "Yönetici girişi için bir ad ve ayrıntılar sağlayarak çalışma alanınızı kurun. Bunları daha sonra değiştirebilirsiniz.",
   "Workspace name": "Çalışma alanı adı",
