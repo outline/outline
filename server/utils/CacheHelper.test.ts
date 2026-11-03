@@ -114,19 +114,19 @@ describe("CacheHelper", () => {
   });
 
   describe("getDataOrSet when Redis is unavailable", () => {
-    const { status } = Redis.cacheClient;
+    const { status } = Redis.ephemeralClient;
 
     afterEach(() => {
-      Redis.cacheClient.status = status;
+      Redis.ephemeralClient.status = status;
       vi.restoreAllMocks();
     });
 
     it("should return the callback result without taking a lock", async () => {
-      Redis.cacheClient.status = "reconnecting";
-      vi.spyOn(Redis.cacheClient, "get").mockRejectedValue(
+      Redis.ephemeralClient.status = "reconnecting";
+      vi.spyOn(Redis.ephemeralClient, "get").mockRejectedValue(
         new Error("Stream isn't writeable")
       );
-      vi.spyOn(Redis.cacheClient, "set").mockRejectedValue(
+      vi.spyOn(Redis.ephemeralClient, "set").mockRejectedValue(
         new Error("Stream isn't writeable")
       );
       const acquire = vi.spyOn(MutexLock, "acquire");

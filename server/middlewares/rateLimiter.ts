@@ -174,7 +174,7 @@ export function rateLimiter(config: RateLimiterConfig) {
             duration: 60,
             points: env.RATE_LIMITER_REQUESTS,
             keyPrefix: RateLimiter.RATE_LIMITER_REDIS_KEY_PREFIX,
-            storeClient: Redis.cacheClient,
+            storeClient: Redis.ephemeralClient,
           }
         )
       );

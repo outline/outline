@@ -92,7 +92,7 @@ export class CacheHelper {
     const lockKey = `lock:${key}`;
     try {
       // Skip the lock when Redis is unavailable, as it would only add latency.
-      if (Redis.cacheClient.status === "ready") {
+      if (Redis.ephemeralClient.status === "ready") {
         try {
           lock = await MutexLock.acquire(lockKey, lockTimeout, {
             retry: MutexLock.cacheRetrySettings,
@@ -142,7 +142,7 @@ export class CacheHelper {
    */
   public static async getData<T>(key: string): Promise<T | undefined> {
     try {
-      const data = await Redis.cacheClient.get(key);
+      const data = await Redis.ephemeralClient.get(key);
       if (data !== null) {
         return JSON.parse(data);
       }
@@ -165,7 +165,7 @@ export class CacheHelper {
    */
   public static async setData<T>(key: string, data: T, expiry?: number) {
     try {
-      await Redis.cacheClient.set(
+      await Redis.ephemeralClient.set(
         key,
         JSON.stringify(data),
         "EX",
@@ -184,7 +184,7 @@ export class CacheHelper {
    */
   public static async removeData(key: string) {
     try {
-      await Redis.cacheClient.del(key);
+      await Redis.ephemeralClient.del(key);
     } catch (err) {
       Logger.error(
         `Could not remove cached entry against ${key}`,

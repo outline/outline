@@ -236,12 +236,13 @@ export class Environment {
 
   /**
    * The timeout in milliseconds for a command on the redis connection used for
-   * caching, locks and rate limiting, after which the command fails.
+   * ephemeral data such as caches, locks and rate limits, after which the
+   * command fails.
    */
   @IsNumber()
   @Min(100)
-  public REDIS_CACHE_COMMAND_TIMEOUT = parseInt(
-    environment.REDIS_CACHE_COMMAND_TIMEOUT || "500",
+  public REDIS_EPHEMERAL_COMMAND_TIMEOUT = parseInt(
+    environment.REDIS_EPHEMERAL_COMMAND_TIMEOUT || "500",
     10
   );
 
