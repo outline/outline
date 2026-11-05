@@ -3,8 +3,8 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
-import { parseDomain } from "@shared/utils/domains";
 import { getHostname, isLoopbackUri } from "@shared/utils/urls";
+import { isAppRootDomain } from "~/utils/urls";
 import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import ButtonLarge from "~/components/ButtonLarge";
@@ -36,6 +36,7 @@ import { TeamSwitcher } from "./components/TeamSwitcher";
 import { Form } from "~/components/primitives/Form";
 
 export default function OAuthAuthorize() {
+  const { t } = useTranslation();
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const sessions = useWorkspaceSessions();
 
@@ -45,11 +46,17 @@ export default function OAuthAuthorize() {
   }
 
   // Cloud hosted and on root domain – show the workspace switcher.
-  const isAppRoot =
-    parseDomain(window.location.hostname).host === parseDomain(env.URL).host;
   const hasRememberedWorkspaces = Object.keys(sessions).length > 0;
-  if (isCloudHosted && hasRememberedWorkspaces && isAppRoot) {
-    return <TeamSwitcher sessions={sessions} />;
+  if (isCloudHosted && hasRememberedWorkspaces && isAppRootDomain()) {
+    return (
+      <TeamSwitcher
+        sessions={sessions}
+        description={t(
+          "Choose an {{ appName }} workspace or log in to continue connecting this app",
+          { appName: env.APP_NAME }
+        )}
+      />
+    );
   }
 
   return <Login />;
