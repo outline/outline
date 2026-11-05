@@ -153,6 +153,11 @@ describe("GitLabUtils.sanitizeGitLabMarkdown", () => {
       ].join("\n")
     );
   });
+
+  it("should truncate long descriptions", () => {
+    const result = GitLabUtils.sanitizeGitLabMarkdown("a".repeat(50_000));
+    expect(result).toBe("a".repeat(10_000));
+  });
 });
 
 describe("GitLabUtils.parseUrl", () => {

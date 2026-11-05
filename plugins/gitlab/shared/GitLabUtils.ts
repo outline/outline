@@ -21,6 +21,9 @@ export class GitLabUtils {
   /** The separator GitLab puts between a namespace and the resource path. */
   private static separator = "/-/";
 
+  /** Maximum description length to sanitize, previews show only a few lines. */
+  private static maxDescriptionLength = 10_000;
+
   /** Maps the resource segment of a URL to a resource type, per scope. */
   private static resourceTypes: Record<
     string,
@@ -353,7 +356,7 @@ export class GitLabUtils {
 
     // Strip HTML comments repeatedly in case of overlapping patterns like
     // `<!<!-- x -->-- -->` that would leave `<!--` after a single pass.
-    let result = text;
+    let result = text.slice(0, GitLabUtils.maxDescriptionLength);
     let prev: string;
     do {
       prev = result;
