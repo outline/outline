@@ -7728,13 +7728,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bluebird@npm:~3.4.0":
-  version: 3.4.7
-  resolution: "bluebird@npm:3.4.7"
-  checksum: 10c0/ac7e3df09a433b985a0ba61a0be4fc23e3874bf62440ffbca2f275a8498b00c11336f1f633631f38419b2c842515473985f9c4aaa9e4c9b36105535026d94144
-  languageName: node
-  linkType: hard
-
 "blueimp-canvas-to-blob@npm:^3.29.0":
   version: 3.29.0
   resolution: "blueimp-canvas-to-blob@npm:3.29.0"
@@ -12988,23 +12981,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mammoth@npm:^1.11.0":
-  version: 1.11.0
-  resolution: "mammoth@npm:1.11.0"
+"mammoth@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "mammoth@npm:1.13.0"
   dependencies:
     "@xmldom/xmldom": "npm:^0.8.6"
     argparse: "npm:~1.0.3"
     base64-js: "npm:^1.5.1"
-    bluebird: "npm:~3.4.0"
     dingbat-to-unicode: "npm:^1.0.1"
     jszip: "npm:^3.7.1"
     lop: "npm:^0.4.2"
-    path-is-absolute: "npm:^1.0.0"
     underscore: "npm:^1.13.1"
     xmlbuilder: "npm:^10.0.0"
   bin:
     mammoth: bin/mammoth
-  checksum: 10c0/20fa5b902a9ec3ed4b86d247f45cf08e9dedb22ad175a156839e921280211b40fbd9db4cabdeb25368fe1fc038dd385deaddfa997e1779e45d663790f80fdff7
+  checksum: 10c0/7c54774c04a49af5cf54141c1dfeb0f2472b0473e953dcc5b20e1d58d2caf1a3985e36a0436cbb427f0b975cec13af204730316a08bef6926d12b4cd0858866a
   languageName: node
   linkType: hard
 
@@ -14154,7 +14145,7 @@ __metadata:
     lib0: "npm:^0.2.119"
     lint-staged: "npm:^16.4.0"
     mailparser: "npm:^3.9.47"
-    mammoth: "npm:^1.11.0"
+    mammoth: "npm:^1.13.0"
     markdown-it: "npm:^14.3.3"
     markdown-it-container: "npm:^3.0.0"
     markdown-it-emoji: "npm:^3.0.0"
