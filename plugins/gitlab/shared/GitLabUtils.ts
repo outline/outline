@@ -354,9 +354,24 @@ export class GitLabUtils {
       return null;
     }
 
+    let result = text.slice(0, GitLabUtils.maxDescriptionLength);
+
+    // Drop a comment or front matter block left open by the truncation.
+    if (result.length < text.length) {
+      const open = result.lastIndexOf("<!--");
+      if (open > result.lastIndexOf("-->")) {
+        result = result.slice(0, open);
+      }
+      if (
+        /^---\r?\n/.test(result) &&
+        !/^---\r?\n[\s\S]*?\r?\n---/.test(result)
+      ) {
+        return null;
+      }
+    }
+
     // Strip HTML comments repeatedly in case of overlapping patterns like
     // `<!<!-- x -->-- -->` that would leave `<!--` after a single pass.
-    let result = text.slice(0, GitLabUtils.maxDescriptionLength);
     let prev: string;
     do {
       prev = result;

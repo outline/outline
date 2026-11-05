@@ -158,6 +158,16 @@ describe("GitLabUtils.sanitizeGitLabMarkdown", () => {
     const result = GitLabUtils.sanitizeGitLabMarkdown("a".repeat(50_000));
     expect(result).toBe("a".repeat(10_000));
   });
+
+  it("should strip a comment left open by truncation", () => {
+    const md = "Before <!-- " + "a".repeat(20_000) + " -->";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Before");
+  });
+
+  it("should return null for front matter left open by truncation", () => {
+    const md = "---\ntitle: " + "a".repeat(20_000) + "\n---\n# Content";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBeNull();
+  });
 });
 
 describe("GitLabUtils.parseUrl", () => {
