@@ -14235,7 +14235,7 @@ __metadata:
     typescript: "npm:^7.0.2"
     ukkonen: "npm:^2.2.0"
     umzug: "npm:^3.8.3"
-    unplugin-swc: "npm:^1.5.11"
+    unplugin-swc: "npm:^1.6.0"
     utility-types: "npm:^3.11.0"
     uuid: "npm:^11.1.1"
     validator: "npm:13.15.35"
@@ -18493,16 +18493,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unplugin-swc@npm:^1.5.11":
-  version: 1.5.11
-  resolution: "unplugin-swc@npm:1.5.11"
+"unplugin-swc@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "unplugin-swc@npm:1.6.0"
   dependencies:
     "@rollup/pluginutils": "npm:^5.4.0"
     load-tsconfig: "npm:^0.2.5"
     unplugin: "npm:^3.3.0"
   peerDependencies:
     "@swc/core": ^1.2.108
-  checksum: 10c0/caaa027f8044a060dd05a06490c7a7201fe7612e089ae162f7c55e02f0760a2843b0afaa7b58b012506b06e5f398bec27ebac8b30ca8613f68b6eb822f8013e3
+  checksum: 10c0/950da1ccbca474651803af69f3077491d0b359634f8175c4ff996d9d73c14fdf9e9aff7fc4622f82ff164346fe7e8f35beb853f98b549837692c66e158182861
   languageName: node
   linkType: hard
 
