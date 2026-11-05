@@ -8,6 +8,7 @@ import {
   enterInCode,
   indentInCode,
   outdentInCode,
+  splitCodeBlockOnTripleBackticks,
 } from "./codeFence";
 
 /**
@@ -263,5 +264,59 @@ describe("arrowLeftInCode", () => {
 
   it("does not handle the start of the block", () => {
     expect(selectionAfter("hello", 1, arrowLeftInCode).handled).toBe(false);
+  });
+});
+
+describe("splitCodeBlockOnTripleBackticks", () => {
+  /**
+   * Runs the command with the cursor at the end of the given code and returns
+   * the text of each resulting block.
+   */
+  function splitAtEnd(code: string) {
+    const testDoc = doc([codeBlock(code, "javascript")]);
+    let state = createEditorState(testDoc);
+    state = state.apply(
+      state.tr.setSelection(TextSelection.create(state.doc, code.length + 1))
+    );
+
+    let result = state;
+    const handled = splitCodeBlockOnTripleBackticks(state, (tr) => {
+      result = state.apply(tr);
+    });
+
+    const blocks: { type: string; text: string; language: string }[] = [];
+    result.doc.forEach((node) => {
+      blocks.push({
+        type: node.type.name,
+        text: node.textContent,
+        language: node.attrs.language,
+      });
+    });
+
+    return { handled, blocks };
+  }
+
+  it("removes only the typed backticks when splitting", () => {
+    expect(splitAtEnd("hello``")).toEqual({
+      handled: true,
+      blocks: [
+        { type: "code_block", text: "hello", language: "javascript" },
+        { type: "code_block", text: "", language: "javascript" },
+      ],
+    });
+  });
+
+  it("keeps a single character before the backticks", () => {
+    const { handled, blocks } = splitAtEnd("a``");
+    expect(handled).toBe(true);
+    expect(blocks.map((block) => block.text)).toEqual(["a", ""]);
+  });
+
+  it("does not split when the backticks are at the start of the block", () => {
+    expect(splitAtEnd("``").handled).toBe(false);
+  });
+
+  it("does not split without two preceding backticks", () => {
+    expect(splitAtEnd("hello`").handled).toBe(false);
   });
 });
