@@ -1,5 +1,5 @@
 import type { InferCreationAttributes } from "sequelize";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import type { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
@@ -174,9 +174,12 @@ export default async function userProvisioner(
   const existingUser = await User.scope(["withTeam"]).findOne({
     where: {
       // Email from auth providers may be capitalized
-      email: {
-        [Op.iLike]: email,
-      },
+      [Op.and]: [
+        Sequelize.where(
+          Sequelize.fn("lower", Sequelize.col("email")),
+          email.toLowerCase()
+        ),
+      ],
       teamId,
     },
   });
