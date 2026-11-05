@@ -273,7 +273,7 @@
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",
     "@relative-ci/agent": "^4.3.1",
-    "@swc/cli": "^0.8.1",
+    "@swc/cli": "^0.8.2",
     "@swc/core": "^1.15.32",
     "@types/cookie": "0.6.0",
     "@types/diff": "^5.0.9",
