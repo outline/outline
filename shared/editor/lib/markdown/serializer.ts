@@ -322,7 +322,10 @@ export class MarkdownSerializerState {
           return info && info.expelEnclosingWhitespace;
         })
       ) {
-        const [, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(node.text);
+        const afterLead = node.text.trimStart();
+        const lead = node.text.slice(0, node.text.length - afterLead.length);
+        const inner = afterLead.trimEnd();
+        const trail = afterLead.slice(inner.length);
         leading += lead;
         trailing = trail;
         if (lead || trail) {
@@ -563,7 +566,16 @@ export class MarkdownSerializerState {
     str = str.replace(/[`*\\~]/g, "\\$&");
     // Only escape an opening square bracket when the same line later contains a
     // `](`, meaning it could otherwise be parsed as an inline link or image
-    str = str.replace(/\[(?=[^\n]*\]\()/g, "\\$&");
+    str = str
+      .split("\n")
+      .map((line) => {
+        const last = line.lastIndexOf("](");
+        if (last === -1) {
+          return line;
+        }
+        return line.slice(0, last).replace(/\[/g, "\\$&") + line.slice(last);
+      })
+      .join("\n");
     if (startOfLine) {
       str = str
         .replace(/^[:#\-*+]/, "\\$&")
@@ -600,16 +612,5 @@ export class MarkdownSerializerState {
     const info = this.marks[mark.type.name]();
     const value = open ? info.open : info.close;
     return typeof value === "string" ? value : value(this, mark, parent, index);
-  }
-
-  // :: (string) → { leading: ?string, trailing: ?string }
-  // Get leading and trailing whitespace from a string. Values of
-  // leading or trailing property of the return object will be undefined
-  // if there is no match.
-  getEnclosingWhitespace(text) {
-    return {
-      leading: (text.match(/^(\s+)/) || [])[0],
-      trailing: (text.match(/(\s+)$/) || [])[0],
-    };
   }
 }

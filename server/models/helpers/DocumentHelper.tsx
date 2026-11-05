@@ -665,7 +665,7 @@ export class DocumentHelper {
       const firstChild = existingDoc.firstChild;
 
       if (
-        !text.match(/\n\s*$/) &&
+        !text.slice(text.trimEnd().length).includes("\n") &&
         lastChild &&
         firstChild &&
         lastChild.type.name === "paragraph" &&
