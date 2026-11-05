@@ -283,6 +283,7 @@ describe("splitCodeBlockOnTripleBackticks", () => {
     const handled = splitCodeBlockOnTripleBackticks(state, (tr) => {
       result = state.apply(tr);
     });
+    expect(splitCodeBlockOnTripleBackticks(state)).toBe(handled);
 
     const blocks: { type: string; text: string; language: string }[] = [];
     result.doc.forEach((node) => {
