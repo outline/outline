@@ -115,7 +115,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.23",
     "@types/mailparser": "^3.9.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "async-sema": "^3.1.1",
     "bull": "^4.16.5",
     "chrono-node": "^2.10.3",
