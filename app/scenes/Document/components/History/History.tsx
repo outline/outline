@@ -17,7 +17,11 @@ import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
+import {
+  documentHistoryPath,
+  documentPath,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 import { isTruthyQueryValue } from "~/utils/urls";
 import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
@@ -65,20 +69,9 @@ function History() {
 
   const updateLocation = React.useCallback(
     (changes: Record<string, string | null>) => {
-      const params = new URLSearchParams(history.location.search);
-
-      Object.entries(changes).forEach(([key, value]) => {
-        if (value === null) {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
-      });
-
-      const search = params.toString();
       history.replace({
         pathname: history.location.pathname,
-        search: search ? `?${search}` : "",
+        search: applySearchParams(history.location.search, changes),
         state: history.location.state,
       });
     },
@@ -112,16 +105,6 @@ function History() {
       updateLocation({ compareTo: null });
     }
   }, [selectedRevisionId, updateLocation]);
-
-  const handleCompareToChange = React.useCallback(
-    (value: string) => {
-      setCompareTo(value);
-      updateLocation({
-        compareTo: value === COMPARE_TO_PREVIOUS ? null : value,
-      });
-    },
-    [updateLocation]
-  );
 
   // Ensure that the URL parameter is in sync with the persisted state on mount
   React.useEffect(() => {
@@ -203,6 +186,40 @@ function History() {
     (latestRevision.title !== document.title ||
       (!!latestRevision.data && !isEqual(latestRevision.data, document.data)));
 
+  // The list entry that holds the content of the current document.
+  const currentRevisionId =
+    isDocUpdated || latestRevision?.deletedAt ? "latest" : latestRevision?.id;
+
+  const handleCompareToChange = React.useCallback(
+    (value: string) => {
+      const changes = {
+        compareTo: value === COMPARE_TO_PREVIOUS ? null : value,
+      };
+      setCompareTo(value);
+
+      if (selectedRevisionId || !document || !currentRevisionId) {
+        updateLocation(changes);
+        return;
+      }
+
+      // With no revision selected, compare against the current version.
+      prevSelectedRef.current = currentRevisionId;
+      history.push({
+        pathname: documentHistoryPath(document, currentRevisionId),
+        search: applySearchParams(history.location.search, changes),
+        state: { sidebarContext, retainScrollPosition: true },
+      });
+    },
+    [
+      currentRevisionId,
+      document,
+      history,
+      selectedRevisionId,
+      sidebarContext,
+      updateLocation,
+    ]
+  );
+
   const nonRevisionEvents = React.useMemo(
     () =>
       document
@@ -261,7 +278,7 @@ function History() {
         onShowChangesToggle={handleShowChangesToggle}
         items={items}
         document={document}
-        selectedRevisionId={selectedRevisionId}
+        selectedRevisionId={selectedRevisionId ?? currentRevisionId}
         compareTo={compareTo}
         onCompareToChange={handleCompareToChange}
       />
@@ -296,3 +313,21 @@ function History() {
 }
 
 export default observer(History);
+
+function applySearchParams(
+  search: string,
+  changes: Record<string, string | null>
+) {
+  const params = new URLSearchParams(search);
+
+  Object.entries(changes).forEach(([key, value]) => {
+    if (value === null) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+  });
+
+  const result = params.toString();
+  return result ? `?${result}` : "";
+}
