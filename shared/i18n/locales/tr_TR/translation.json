@@ -1393,7 +1393,7 @@
   "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload": "{{appName}} uygulamasındaki Markdown dışa aktarma seçeneğinden zip dosyasını sürükleyip bırakın veya yüklemek için tıklayın",
   "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.": "Open Knowledge Format (OKF) paketinin bir ZIP dosyasını içe aktarabilirsiniz – klasörler koleksiyonlara ve belgelere dönüştürülür, belge başlıkları ise YAML ön bilgisinden okunur.",
   "Drag and drop a zip file of the OKF bundle, or click to upload": "OKF paketinin ZIP dosyasını sürükleyip bırakın veya yüklemek için tıklayın",
-  "Choose an existing location to import into, or new collections will be created.": "Choose an existing location to import into, or new collections will be created.",
+  "Choose an existing location to import into, or new collections will be created.": "İçe aktarmak için mevcut bir konum seçin; aksi takdirde yeni koleksiyonlar oluşturulacaktır.",
   "Set the default permission level for collections created from the import": "İçe aktarımdan oluşturulan koleksiyonlar için varsayılan izin düzeyini belirleyin",
   "Configure": "Yapılandır",
   "Never used": "Hiç kullanılmadı",
