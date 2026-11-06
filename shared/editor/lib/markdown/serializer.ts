@@ -2,6 +2,14 @@
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
 
+import {
+  isMdAsciiPunct,
+  isPunctCharCode,
+  isWhiteSpace,
+} from "markdown-it/lib/common/utils.mjs";
+import { isUUID } from "validator";
+import { nameToEmoji } from "../emoji";
+
 /** Options that control how a ProseMirror document is serialized to Markdown. */
 type Options = {
   /** Whether list items are rendered without blank lines between them. */
@@ -82,6 +90,9 @@ export class MarkdownSerializer {
   }
 }
 
+// Delimiters that CommonMark only treats as markup when they are flanking.
+const flankingDelimiters = "*_~=";
+
 // Tracks whether we have already warned about direct assignment to `out`,
 // so a hot loop cannot flood the console.
 let warnedDirectOutAssignment = false;
@@ -110,6 +121,12 @@ export class MarkdownSerializerState {
   lastChar = "";
   options: Options;
   blockMap = null;
+  // A delimiter run whose next character is not yet written, see writeDelimiters.
+  pendingDelimiter = null;
+  // The end of the most recent escaped text in the output.
+  textEnd = -1;
+  // Whether the text being rendered is inside an automatic link.
+  inAutolink = false;
 
   // The serialized output so far. Use `append` to add to it — direct
   // assignment still works but reads the last character back out of the
@@ -128,7 +145,8 @@ export class MarkdownSerializerState {
       );
     }
     this._out = value;
-    this.lastChar = value === "" ? "" : value.charAt(value.length - 1);
+    this.lastChar = lastCharacter(value);
+    this.pendingDelimiter = null;
   }
 
   constructor(nodes, marks, options) {
@@ -157,8 +175,11 @@ export class MarkdownSerializerState {
   // internal rope, which is quadratic on large documents.
   append(content) {
     if (content) {
+      if (this.pendingDelimiter) {
+        this.resolveDelimiter(content);
+      }
       this._out += content;
-      this.lastChar = content.charAt(content.length - 1);
+      this.lastChar = lastCharacter(content);
     }
   }
 
@@ -242,9 +263,12 @@ export class MarkdownSerializerState {
         this.closed ||
         (this.inTable && this.out.endsWith("<br>"));
       this.write();
-      this.append(
-        escape !== false ? this.esc(lines[i], startOfLine) : lines[i]
-      );
+      if (escape !== false) {
+        this.append(this.encodeAfterDelimiter(this.esc(lines[i], startOfLine)));
+        this.textEnd = this._out.length;
+      } else {
+        this.append(lines[i]);
+      }
       if (i !== lines.length - 1) {
         this.append("\n");
       }
@@ -333,6 +357,17 @@ export class MarkdownSerializerState {
         }
       }
 
+      // Marks that disable escaping, such as code, must be the innermost mark.
+      const rawIndex = marks.findIndex(
+        (mark) => this.marks[mark.type.name]().escape === false
+      );
+      if (rawIndex !== -1 && rawIndex !== marks.length - 1) {
+        marks = marks
+          .slice(0, rawIndex)
+          .concat(marks.slice(rawIndex + 1))
+          .concat(marks[rawIndex]);
+      }
+
       const inner = marks.length && marks[marks.length - 1],
         noEsc = inner && this.marks[inner.type.name]().escape === false;
       const len = marks.length - (noEsc ? 1 : 0);
@@ -380,9 +415,11 @@ export class MarkdownSerializerState {
       }
 
       // Close the marks that need to be closed
+      let closing = "";
       while (keep < active.length) {
-        this.text(this.markString(active.pop(), false, parent, index), false);
+        closing += this.markString(active.pop(), false, parent, index);
       }
+      this.writeDelimiters(closing, false);
 
       // Output any previously expelled trailing whitespace outside the marks
       if (leading) {
@@ -391,11 +428,13 @@ export class MarkdownSerializerState {
 
       // Open the marks that need to be opened
       if (node) {
+        let opening = "";
         while (active.length < len) {
           const add = marks[active.length];
           active.push(add);
-          this.text(this.markString(add, true, parent, index), false);
+          opening += this.markString(add, true, parent, index);
         }
+        this.writeDelimiters(opening, true);
 
         // Render the node. Special case code marks, since their content is not
         // escaped, apart from pipes in tables.
@@ -555,12 +594,101 @@ export class MarkdownSerializerState {
     this.inTable = prevTable;
   }
 
+  // :: (string, bool)
+  // Write a sequence of mark delimiters. CommonMark only treats emphasis-like
+  // delimiter runs as markup when they are flanking, so the character outside
+  // the run is written as a character reference when it would prevent that.
+  writeDelimiters(str, open) {
+    if (!str) {
+      return;
+    }
+    this.write();
+    const index = this._out.length;
+    const prev = this.lastChar || "\n";
+    this.append(str);
+
+    if (open) {
+      const char = str[0];
+      if (!flankingDelimiters.includes(char) || !isWord(prev)) {
+        return;
+      }
+      let end = 0;
+      while (str[end] === char) {
+        end++;
+      }
+      if (char === "_" || (end < str.length && isPunct(str[end]))) {
+        this.encodeBefore(index, prev);
+      } else if (end === str.length) {
+        this.pendingDelimiter = { open: true, index, prev };
+      }
+      return;
+    }
+
+    const char = str[str.length - 1];
+    if (!flankingDelimiters.includes(char)) {
+      return;
+    }
+    let start = str.length;
+    while (start > 0 && str[start - 1] === char) {
+      start--;
+    }
+    if (char === "_" || isPunct(start > 0 ? str[start - 1] : prev)) {
+      this.pendingDelimiter = { open: false };
+    }
+  }
+
+  // Resolve a pending opening delimiter now that the following content is known.
+  resolveDelimiter(content) {
+    const pending = this.pendingDelimiter;
+    this.pendingDelimiter = null;
+    if (pending.open && isPunct(String.fromCodePoint(content.codePointAt(0)))) {
+      this.encodeBefore(pending.index, pending.prev);
+    }
+  }
+
+  // Encode the first character of escaped text that follows a closing delimiter
+  // when it would prevent the delimiter from closing.
+  encodeAfterDelimiter(str) {
+    if (!str || !this.pendingDelimiter || this.pendingDelimiter.open) {
+      return str;
+    }
+    const char = String.fromCodePoint(str.codePointAt(0));
+    return isWord(char) ? charRef(char) + str.slice(char.length) : str;
+  }
+
+  // Encode `char`, which ends at `index`, when it is the end of escaped text.
+  encodeBefore(index, char) {
+    if (index !== this.textEnd) {
+      return;
+    }
+    const start = index - char.length;
+    this._out =
+      this._out.slice(0, start) + charRef(char) + this._out.slice(index);
+    this.textEnd = -1;
+  }
+
   // :: (string, ?bool) → string
   // Escape the given string so that it can safely appear in Markdown
   // content. If `startOfLine` is true, also escape characters that
   // has special meaning only at the start of the line.
   esc(str = "", startOfLine) {
-    str = str.replace(/[`*\\~]/g, "\\$&");
+    // Backslash escapes and character references are literal in automatic links.
+    if (this.inAutolink) {
+      return this.inTable ? str.replace(/\|/g, "\\$&") : str;
+    }
+
+    str = str.replace(/[`*\\~_:&]/g, (char, i) => {
+      if (char === "_" && isIntraword(str, i)) {
+        return char;
+      }
+      if (char === ":" && !startsEmoji(str, i)) {
+        return char;
+      }
+      if (char === "&" && !startsCharRef(str, i)) {
+        return char;
+      }
+      return "\\" + char;
+    });
     // Only escape an opening square bracket when the same line later contains a
     // `](`, meaning it could otherwise be parsed as an inline link or image
     str = str.replace(/\[(?=[^\n]*\]\()/g, "\\$&");
@@ -612,4 +740,51 @@ export class MarkdownSerializerState {
       trailing: (text.match(/(\s+)$/) || [])[0],
     };
   }
+}
+
+// Get the last character of a string, keeping surrogate pairs together.
+function lastCharacter(str) {
+  const code = str.charCodeAt(str.length - 1);
+  return str.length > 1 && code >= 0xdc00 && code <= 0xdfff
+    ? str.slice(-2)
+    : str.charAt(str.length - 1);
+}
+
+function isWord(char) {
+  const code = char.codePointAt(0);
+  return !isWhiteSpace(code) && !isPunct(char);
+}
+
+function isPunct(char) {
+  const code = char.codePointAt(0);
+  return isMdAsciiPunct(code) || isPunctCharCode(code);
+}
+
+function charRef(char) {
+  return `&#${char.codePointAt(0)};`;
+}
+
+// An underscore between two alphanumerics can never open or close emphasis.
+function isIntraword(str, i) {
+  return (
+    /[\p{L}\p{N}]/u.test(str.charAt(i - 1)) &&
+    /[\p{L}\p{N}]/u.test(str.charAt(i + 1))
+  );
+}
+
+// Whether the colon at `i` opens an emoji shortcode, such as :smile:.
+function startsEmoji(str, i) {
+  const end = str.indexOf(":", i + 1);
+  if (end === -1) {
+    return false;
+  }
+  const name = str.slice(i + 1, end);
+  return Object.hasOwn(nameToEmoji, name) || isUUID(name);
+}
+
+// Whether the ampersand at `i` starts an HTML entity or numeric reference.
+function startsCharRef(str, i) {
+  return /^&(?:#x[0-9a-f]{1,6}|#[0-9]{1,7}|[a-z][a-z0-9]{1,31});/i.test(
+    str.slice(i, i + 40)
+  );
 }
