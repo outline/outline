@@ -1393,7 +1393,7 @@
   "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload": "{{appName}} 의 Json 내보내기 옵션에서 zip 파일을 드래그 앤 드롭하거나 클릭하여 업로드",
   "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.": "Open Knowledge Format(OKF) 번들의 zip 파일을 가져올 수 있습니다. 폴더는 컬렉션과 문서가 되며, 문서 제목은 YAML 프런트매터에서 읽어옵니다.",
   "Drag and drop a zip file of the OKF bundle, or click to upload": "OKF 번들의 zip 파일을 드래그 앤 드롭하거나 클릭하여 업로드하세요",
-  "Choose an existing location to import into, or new collections will be created.": "Choose an existing location to import into, or new collections will be created.",
+  "Choose an existing location to import into, or new collections will be created.": "가져올 기존 위치를 선택하세요. 그렇지 않으면 새 컬렉션이 생성됩니다.",
   "Set the default permission level for collections created from the import": "가져오기로 생성된 컬렉션에 대한 기본 권한 수준 설정",
   "Configure": "구성",
   "Never used": "사용한 적 없음",
