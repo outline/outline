@@ -382,9 +382,9 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             const from = type === "inline" ? pos + start : pos;
             const to = type === "inline" ? pos + end : pos + node.nodeSize;
 
-            // A match against the deburred text can cover only part of a
-            // decomposed sequence (e.g. a single jamo of a Hangul syllable),
-            // which maps back to a zero-length range in the original text.
+            // A match against the deburred text can cover only part of an
+            // expanded letter (e.g. a single "s" of "ß"), which maps back to a
+            // zero-length range in the original text.
             // Skip these so replace operations don't degenerate into inserts.
             if (to <= from) {
               continue;
@@ -411,9 +411,9 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
       // Also search the diacritics-stripped text so that, for example, "cafe"
       // matches "café". Because deburring can change the string length (e.g. it
-      // decomposes CJK/Hangul characters), match indices are translated back to
-      // the original text rather than assumed equal. Skip it when deburring was
-      // a no-op, since it would only re-find the matches already collected.
+      // expands "ß" to "ss"), match indices are translated back to the original
+      // text rather than assumed equal. Skip it when deburring was a no-op, since
+      // it would only re-find the matches already collected.
       const { deburred, toOriginalIndex } = deburrWithMap(text);
       if (deburred !== text) {
         collect(deburred, toOriginalIndex);

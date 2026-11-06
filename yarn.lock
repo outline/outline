@@ -9636,9 +9636,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-toolkit@npm:^1.47.1":
-  version: 1.47.1
-  resolution: "es-toolkit@npm:1.47.1"
+"es-toolkit@npm:^1.53.0":
+  version: 1.53.0
+  resolution: "es-toolkit@npm:1.53.0"
   dependenciesMeta:
     "@trivago/prettier-plugin-sort-imports@4.3.0":
       unplugged: true
@@ -9646,7 +9646,7 @@ __metadata:
       unplugged: true
     vitepress-plugin-sandpack@1.1.4:
       unplugged: true
-  checksum: 10c0/d6dff140a71e15d22209f8482f1ce34bab433f449e569c28b9c535963b18b2c3b89b00d7cf7156b5c74cace4c5f96283f0a5fee3be8802dd2cf7481da90cfe0a
+  checksum: 10c0/52e9497412326c85f89eefa2dcc3caf77bf217ca849b6cb047f147885c9c5173795ae3cbb6ba0ba6c558aaaf626da9d2dbf0f8fb589b2488e647790f943adf00
   languageName: node
   linkType: hard
 
@@ -14102,7 +14102,7 @@ __metadata:
     email-providers: "npm:^1.14.0"
     emoji-mart: "npm:^5.6.0"
     emoji-regex: "npm:^10.6.0"
-    es-toolkit: "npm:^1.47.1"
+    es-toolkit: "npm:^1.53.0"
     fake-indexeddb: "npm:^6.2.6"
     fast-deep-equal: "npm:^3.1.3"
     fast-myers-diff: "npm:^3.2.0"
