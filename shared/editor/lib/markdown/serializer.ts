@@ -123,8 +123,10 @@ export class MarkdownSerializerState {
   blockMap = null;
   // A delimiter run whose next character is not yet written, see writeDelimiters.
   pendingDelimiter = null;
-  // The end of the most recent escaped text in the output.
-  textEnd = -1;
+  // The end of the output, kept apart so it can change without copying `_out`.
+  held = "";
+  // The character of escaped text at the start of `held`, if any.
+  heldChar = "";
   // Whether the text being rendered is inside an automatic link.
   inAutolink = false;
 
@@ -133,7 +135,7 @@ export class MarkdownSerializerState {
   // string, which forces V8 to flatten the internal rope and is slow when
   // done repeatedly on large documents.
   get out() {
-    return this._out;
+    return this._out + this.held;
   }
 
   set out(value) {
@@ -147,6 +149,8 @@ export class MarkdownSerializerState {
     this._out = value;
     this.lastChar = lastCharacter(value);
     this.pendingDelimiter = null;
+    this.held = "";
+    this.heldChar = "";
   }
 
   constructor(nodes, marks, options) {
@@ -175,9 +179,7 @@ export class MarkdownSerializerState {
   // internal rope, which is quadratic on large documents.
   append(content) {
     if (content) {
-      if (this.pendingDelimiter) {
-        this.resolveDelimiter(content);
-      }
+      this.flushHeld(content);
       this._out += content;
       this.lastChar = lastCharacter(content);
     }
@@ -264,8 +266,9 @@ export class MarkdownSerializerState {
         (this.inTable && this.out.endsWith("<br>"));
       this.write();
       if (escape !== false) {
-        this.append(this.encodeAfterDelimiter(this.esc(lines[i], startOfLine)));
-        this.textEnd = this._out.length;
+        this.appendText(
+          this.encodeAfterDelimiter(this.esc(lines[i], startOfLine))
+        );
       } else {
         this.append(lines[i]);
       }
@@ -344,7 +347,8 @@ export class MarkdownSerializerState {
         marks.some((mark) => {
           const info = this.marks[mark.type.name]();
           return info && info.expelEnclosingWhitespace;
-        })
+        }) &&
+        !marks.some((mark) => this.marks[mark.type.name]().escape === false)
       ) {
         const afterLead = node.text.trimStart();
         const lead = node.text.slice(0, node.text.length - afterLead.length);
@@ -606,68 +610,123 @@ export class MarkdownSerializerState {
       return;
     }
     this.write();
-    const index = this._out.length;
-    const prev = this.lastChar || "\n";
-    this.append(str);
-
     if (open) {
-      const char = str[0];
-      if (!flankingDelimiters.includes(char) || !isWord(prev)) {
-        return;
-      }
-      let end = 0;
-      while (str[end] === char) {
-        end++;
-      }
-      if (char === "_" || (end < str.length && isPunct(str[end]))) {
-        this.encodeBefore(index, prev);
-      } else if (end === str.length) {
-        this.pendingDelimiter = { open: true, index, prev };
-      }
+      this.writeOpening(str);
+    } else {
+      this.writeClosing(str);
+    }
+  }
+
+  writeOpening(str) {
+    const char = str[0];
+    const closed = this.pendingDelimiter;
+
+    // An adjacent closing run of the same character forms a single run with
+    // this one, which then has to be able to both close and open.
+    const merged = closed && !closed.open && closed.char === char;
+    const prev = merged ? closed.prev : this.lastChar || "\n";
+
+    if (!flankingDelimiters.includes(char)) {
+      this.append(str);
       return;
     }
 
+    let end = 0;
+    while (str[end] === char) {
+      end++;
+    }
+
+    if (end < str.length || char === "_") {
+      if (isWord(prev) && (char === "_" || isPunct(str[end]))) {
+        this.encodeHeld();
+      }
+      this.append(str);
+    } else if (isWord(prev) && this.heldChar) {
+      this.hold(str);
+      this.pendingDelimiter = { open: true };
+    } else {
+      this.append(str);
+      if (merged && isPunct(prev)) {
+        this.pendingDelimiter = { char, prev, encodeNext: true };
+      }
+    }
+  }
+
+  writeClosing(str) {
     const char = str[str.length - 1];
     if (!flankingDelimiters.includes(char)) {
+      this.append(str);
       return;
     }
+
     let start = str.length;
     while (start > 0 && str[start - 1] === char) {
       start--;
     }
-    if (char === "_" || isPunct(start > 0 ? str[start - 1] : prev)) {
-      this.pendingDelimiter = { open: false };
+
+    const prev = start > 0 ? str[start - 1] : this.lastChar;
+    if (start === 0) {
+      this.hold(str);
+    } else {
+      this.append(str);
+    }
+    this.pendingDelimiter = {
+      char,
+      prev,
+      encodeNext: char === "_" || isPunct(prev),
+    };
+  }
+
+  // Add the given escaped text, holding back the last character as it may need
+  // to be encoded once the delimiter that follows it is known.
+  appendText(content) {
+    if (content) {
+      this.flushHeld(content);
+      const char = lastCharacter(content);
+      this._out += content.slice(0, content.length - char.length);
+      this.held = this.heldChar = this.lastChar = char;
     }
   }
 
-  // Resolve a pending opening delimiter now that the following content is known.
-  resolveDelimiter(content) {
+  // Add to the held output, keeping any held character open to encoding.
+  hold(str) {
+    this.held += str;
+    this.lastChar = lastCharacter(str);
+  }
+
+  // Move held output into `_out` now that the content after it is known.
+  flushHeld(content) {
     const pending = this.pendingDelimiter;
     this.pendingDelimiter = null;
-    if (pending.open && isPunct(String.fromCodePoint(content.codePointAt(0)))) {
-      this.encodeBefore(pending.index, pending.prev);
+    if (
+      pending?.open &&
+      isPunct(String.fromCodePoint(content.codePointAt(0)))
+    ) {
+      this.encodeHeld();
+    }
+    if (this.held) {
+      this._out += this.held;
+      this.held = this.heldChar = "";
+    }
+  }
+
+  // Encode the held character of escaped text, if there is one.
+  encodeHeld() {
+    if (this.heldChar) {
+      this.held =
+        charRef(this.heldChar) + this.held.slice(this.heldChar.length);
+      this.heldChar = "";
     }
   }
 
   // Encode the first character of escaped text that follows a closing delimiter
   // when it would prevent the delimiter from closing.
   encodeAfterDelimiter(str) {
-    if (!str || !this.pendingDelimiter || this.pendingDelimiter.open) {
+    if (!str || !this.pendingDelimiter?.encodeNext) {
       return str;
     }
     const char = String.fromCodePoint(str.codePointAt(0));
     return isWord(char) ? charRef(char) + str.slice(char.length) : str;
-  }
-
-  // Encode `char`, which ends at `index`, when it is the end of escaped text.
-  encodeBefore(index, char) {
-    if (index !== this.textEnd) {
-      return;
-    }
-    const start = index - char.length;
-    this._out =
-      this._out.slice(0, start) + charRef(char) + this._out.slice(index);
-    this.textEnd = -1;
   }
 
   // :: (string, ?bool) → string
@@ -676,10 +735,18 @@ export class MarkdownSerializerState {
   // has special meaning only at the start of the line.
   esc(str = "", startOfLine) {
     // Backslash escapes and character references are literal in automatic links.
-    if (this.inAutolink) {
-      return this.inTable ? str.replace(/\|/g, "\\$&") : str;
+    if (!this.inAutolink) {
+      str = this.escText(str, startOfLine);
     }
 
+    if (this.inTable) {
+      str = str.replace(/\|/gi, "\\$&");
+    }
+
+    return str;
+  }
+
+  escText(str, startOfLine) {
     str = str.replace(/[`*\\~_:&]/g, (char, i) => {
       if (char === "_" && isIntraword(str, i)) {
         return char;
@@ -709,10 +776,6 @@ export class MarkdownSerializerState {
         .replace(/^[:#\-*+]/, "\\$&")
         .replace(/^(\d+)\.(?=\s|$)/, "$1\\.")
         .replace(/^([a-z])\.(?=\s)/i, "$1\\.");
-    }
-
-    if (this.inTable) {
-      str = str.replace(/\|/gi, "\\$&");
     }
 
     return str;

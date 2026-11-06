@@ -303,6 +303,42 @@ describe("escaping", () => {
     );
   });
 
+  it.each(["strong", "em"])(
+    "keeps the spaces in inline code with %s",
+    (mark) => {
+      expect(
+        expectRoundTrip(paragraph(text(" padded ", [mark, "code_inline"])))
+      ).toContain("  padded  ");
+    }
+  );
+
+  it.each([
+    ["strong", "em", "done:", "next"],
+    ["em", "strong", "done:", "next"],
+    ["strong", "em", "done", "next"],
+    ["em", "strong", "done", "next"],
+    ["strong", "em", "done", ":next"],
+    ["em", "strong", "done", ":next"],
+    ["strong", "em", "done:", ":next"],
+    ["strikethrough", "underline", "done:", "next"],
+  ])("handles adjacent %s and %s around %s%s", (first, second, a, b) => {
+    expectRoundTrip(paragraph(text(a, [first]), text(b, [second])));
+  });
+
+  it("encodes each character that prevents a delimiter from flanking", () => {
+    expect(
+      expectRoundTrip(
+        paragraph(
+          text("a"),
+          text("b", ["underline"]),
+          text("c"),
+          text("d", ["underline"]),
+          text("e")
+        )
+      )
+    ).toBe("&#97;__b__&#99;__d__&#101;");
+  });
+
   it("encodes a whole astral character before a delimiter", () => {
     expect(
       expectRoundTrip(paragraph(text("\u{1D41A}"), text(":b", ["strong"])))
