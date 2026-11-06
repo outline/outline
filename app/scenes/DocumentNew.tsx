@@ -76,7 +76,7 @@ function DocumentNew() {
           location.state
         );
       } catch (_err) {
-        toast.error(t("Couldn’t create the document, try again?"));
+        toast.error(t("Couldn’t create the document. Try again?"));
         history.goBack();
       }
     }

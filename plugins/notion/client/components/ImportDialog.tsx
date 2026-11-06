@@ -35,7 +35,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
         );
 
         toast.success(
-          t("Your import is being processed, you can safely leave this page")
+          t("Your import is being processed – you can safely leave this page")
         );
 
         onSubmit();

@@ -72,7 +72,7 @@ function TeamDelete({ onSubmit }: Props) {
         <>
           <Text as="p" type="secondary">
             <Trans>
-              A confirmation code has been sent to your email address, please
+              A confirmation code has been sent to your email address. Please
               enter the code below to permanently destroy this workspace.
             </Trans>
           </Text>

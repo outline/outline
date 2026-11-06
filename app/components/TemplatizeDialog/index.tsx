@@ -35,7 +35,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
 
     if (template) {
       history.push(template.path);
-      toast.success(t("Template created, go ahead and customize it"));
+      toast.success(t("Template created – go ahead and customize it"));
     }
   }, [t, templates, documentId, history, collectionId, publish]);
 
