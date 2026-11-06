@@ -488,7 +488,7 @@ describe("#urlRegex", () => {
   it("should return corresponding regex otherwise", () => {
     const regex = urlRegex("https://docs.google.com");
     expect(regex?.source).toBe(
-      /^https:\/\/docs\.google\.com(?=[/?#]|$)/.source
+      /^https:\/\/docs\.google\.com(?::443)?(?=[/?#]|$)/.source
     );
     expect(regex?.test("https://docs.google.com")).toBe(true);
     expect(regex?.test("https://docs.google.com/")).toBe(true);
@@ -510,6 +510,31 @@ describe("#urlRegex", () => {
     expect(regex?.test("https://docs.google.com@evil.net/x")).toBe(false);
     expect(regex?.test("https://docs.google.com\\@evil.net/x")).toBe(false);
     expect(regex?.test("https://docs.google.com:8080/x")).toBe(false);
+  });
+
+  it("should match a url that states the default port", () => {
+    for (const base of [
+      "https://docs.google.com",
+      "https://docs.google.com:443",
+    ]) {
+      const regex = urlRegex(base);
+      expect(regex?.test("https://docs.google.com/x")).toBe(true);
+      expect(regex?.test("https://docs.google.com:443")).toBe(true);
+      expect(regex?.test("https://docs.google.com:443/x")).toBe(true);
+      expect(regex?.test("https://docs.google.com:4430/x")).toBe(false);
+      expect(regex?.test("https://docs.google.com:80/x")).toBe(false);
+    }
+
+    const http = urlRegex("http://docs.google.com");
+    expect(http?.test("http://docs.google.com:80/x")).toBe(true);
+    expect(http?.test("http://docs.google.com:443/x")).toBe(false);
+  });
+
+  it("should only match a non-default port exactly", () => {
+    const regex = urlRegex("https://docs.google.com:8443");
+    expect(regex?.test("https://docs.google.com:8443/x")).toBe(true);
+    expect(regex?.test("https://docs.google.com/x")).toBe(false);
+    expect(regex?.test("https://docs.google.com:443/x")).toBe(false);
   });
 });
 
