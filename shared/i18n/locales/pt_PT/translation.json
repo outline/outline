@@ -1393,7 +1393,7 @@
   "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload": "Arraste e solte o arquivo ZIP da opção de exportação Markdown em {{appName}}, ou clique para carregar",
   "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.": "Pode importar um ficheiro ZIP de um pacote Open Knowledge Format (OKF) — as pastas tornam-se coleções e documentos, e os títulos dos documentos são lidos a partir do frontmatter YAML.",
   "Drag and drop a zip file of the OKF bundle, or click to upload": "Arraste e solte um ficheiro ZIP do pacote OKF ou clique para carregar",
-  "Choose an existing location to import into, or new collections will be created.": "Choose an existing location to import into, or new collections will be created.",
+  "Choose an existing location to import into, or new collections will be created.": "Escolha um local existente para importar ou novas coleções serão criadas.",
   "Set the default permission level for collections created from the import": "Definir o nível de permissão padrão para coleções criadas a partir da importação",
   "Configure": "Configure",
   "Never used": "Never used",
