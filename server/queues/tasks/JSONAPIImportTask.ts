@@ -18,6 +18,7 @@ import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import env from "@server/env";
+import { FileImportError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
@@ -243,7 +244,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       );
 
       if (tree.children.length === 0) {
-        throw new Error("Could not find valid content in zip file");
+        throw FileImportError("Could not find valid content in zip file");
       }
 
       const metadata = jsonByPath.get("metadata.json") as

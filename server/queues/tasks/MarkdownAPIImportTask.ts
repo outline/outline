@@ -17,6 +17,7 @@ import { AttachmentPreset } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
+import { FileImportError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
@@ -290,7 +291,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       const rootNodes = this.resolveCollectionRootNodes(tree.children);
 
       if (rootNodes.length === 0) {
-        throw new Error("Could not find valid content in zip file");
+        throw FileImportError("Could not find valid content in zip file");
       }
 
       const collections: DiscoveredCollection[] = [];
