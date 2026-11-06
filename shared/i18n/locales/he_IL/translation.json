@@ -1393,7 +1393,7 @@
   "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload": "גרור ושחרר את קובץ ה-zip מאפשרות הייצוא Markdown ב-{{appName}}, או לחץ כדי להעלות",
   "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.": "ניתן לייבא קובץ zip של חבילת Open Knowledge Format‏ (OKF) – תיקיות הופכות לאוספים ולמסמכים, וכותרות המסמכים נקראות מה-frontmatter של YAML.",
   "Drag and drop a zip file of the OKF bundle, or click to upload": "גרור ושחרר קובץ zip של חבילת OKF, או לחץ כדי להעלות",
-  "Choose an existing location to import into, or new collections will be created.": "Choose an existing location to import into, or new collections will be created.",
+  "Choose an existing location to import into, or new collections will be created.": "בחרו מיקום קיים לייבוא אליו, או שייווצרו אוספים חדשים.",
   "Set the default permission level for collections created from the import": "הגדר את רמת ההרשאה המוגדרת כברירת מחדל עבור אוספים שנוצרו מהייבוא",
   "Configure": "הגדר",
   "Never used": "מעולם לא היה בשימוש",
