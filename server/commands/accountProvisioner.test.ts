@@ -65,6 +65,44 @@ describe("accountProvisioner", () => {
       expect(event?.actorId).toEqual(invite.id);
       expect(event?.ip).toEqual(ip);
     });
+
+    it("should not attribute invite_accepted to the user of an existing session", async () => {
+      const team = await buildTeam();
+      const invite = await buildInvite({ teamId: team.id });
+      const providers = await team.$get("authenticationProviders");
+      const sessionUser = await buildUser();
+
+      await accountProvisioner(createContext({ ip, user: sessionUser }), {
+        user: {
+          name: invite.name,
+          email: invite.email!,
+          avatarUrl: invite.avatarUrl,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: providers[0].name,
+          providerId: providers[0].providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+    });
   });
 
   it("should not record invite_accepted for a user that was not invited", async () => {

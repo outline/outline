@@ -274,9 +274,10 @@ describe("email", () => {
      *
      * @param user the user signing in.
      * @param subdomain the subdomain of the user's team.
+     * @param cookie an optional cookie header to send with the request.
      * @returns the response of the callback.
      */
-    async function signIn(user: User, subdomain: string) {
+    async function signIn(user: User, subdomain: string, cookie?: string) {
       const code = await user.getEmailVerificationCode();
       const params = new URLSearchParams({
         code,
@@ -285,7 +286,10 @@ describe("email", () => {
       });
       return server.get(`/auth/email.callback?${params}`, {
         redirect: "manual",
-        headers: { host: `${subdomain}.outline.dev` },
+        headers: {
+          host: `${subdomain}.outline.dev`,
+          ...(cookie ? { cookie } : {}),
+        },
       });
     }
 
@@ -307,6 +311,46 @@ describe("email", () => {
       // Sent by UserCreatedProcessor in response to the event.
       expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();
+    });
+
+    it("should not attribute invite_accepted to the user of an existing session", async () => {
+      const subdomain = buildSubdomain();
+      const team = await buildTeam({ subdomain });
+      const invite = await buildInvite({ teamId: team.id });
+      const sessionUser = await buildUser();
+
+      await signIn(
+        invite,
+        subdomain,
+        `accessToken=${sessionUser.getSessionToken()}`
+      );
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+    });
+
+    it("should not accept an invite when the team is suspended", async () => {
+      const subdomain = buildSubdomain();
+      const team = await buildTeam({ subdomain, suspendedAt: new Date() });
+      const invite = await buildInvite({ teamId: team.id });
+
+      const res = await signIn(invite, subdomain);
+
+      expect(res.status).toEqual(302);
+      expect(res.headers.get("location")).toContain("notice=user-suspended");
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event).toBeNull();
+
+      await invite.reload();
+      expect(invite.isInvited).toEqual(true);
     });
 
     it("should not record invite_accepted for an active user", async () => {

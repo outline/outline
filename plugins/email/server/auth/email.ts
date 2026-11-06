@@ -184,18 +184,15 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   }
 
   if (user.isInvited) {
-    // The welcome email is sent in response to this event.
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.invite_accepted",
-        userId: user.id,
-      },
-      {
-        actorId: user.id,
-        teamId: user.teamId,
-      }
-    );
+    // The welcome email is sent in response to this event. The browser may have
+    // a session for another user, which must not be used.
+    await Event.create({
+      name: "users.invite_accepted",
+      userId: user.id,
+      actorId: user.id,
+      teamId: user.teamId,
+      ip: ctx.request.ip,
+    });
 
     const inviter = await user.$get("invitedBy");
     if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {

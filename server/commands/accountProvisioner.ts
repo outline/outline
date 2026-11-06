@@ -204,19 +204,16 @@ async function accountProvisioner(
   const { isNewUser, isInvite, user } = result;
 
   if (isInvite) {
-    // The request has no authenticated user during sign-in, so the actor and
-    // team must be provided for the event to reach its team's audit log.
-    await Event.createFromContext(
-      ctx,
+    // The browser may have a session for another user, which must not be used.
+    await Event.create(
       {
         name: "users.invite_accepted",
         userId: user.id,
-      },
-      {
         actorId: user.id,
         teamId: user.teamId,
         ip: ctx.context.ip,
-      }
+      },
+      { transaction: ctx.state.transaction }
     );
   }
 
