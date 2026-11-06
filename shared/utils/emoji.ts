@@ -14,7 +14,7 @@ import { EmojiCategory, EmojiSkinTone } from "../types";
 export function getEmojiSearchString(emoji: RawEmoji): string {
   const terms = [
     emoji.id,
-    ...emoji.name.split(/[-|_|\s]+/),
+    ...emoji.name.split(/[-|_\s]+/),
     ...emoji.keywords,
     ...(emoji.emoticons ?? []),
   ]
@@ -137,12 +137,9 @@ const Categories = TypedData.categories
 const searchableEmojiIds = new Set(Categories.flatMap(({ emojis }) => emojis));
 
 const searcher = new FuzzySearch(
-  Object.values(Emojis).map((emoji) => ({
-    ...emoji,
-    search: searchableEmojiIds.has(emoji.id)
-      ? getEmojiSearchString(emoji)
-      : undefined,
-  })),
+  Object.values(Emojis)
+    .filter(({ id }) => searchableEmojiIds.has(id))
+    .map((emoji) => ({ ...emoji, search: getEmojiSearchString(emoji) })),
   ["search"],
   { caseSensitive: false, sort: true }
 );
