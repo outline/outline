@@ -127,7 +127,9 @@ router.post(
 
     authorize(user, "delete", webhookSubscription);
 
-    await webhookSubscription.destroyWithCtx(ctx);
+    await webhookSubscription.destroyWithCtx(ctx, {
+      data: { name: webhookSubscription.name },
+    });
 
     ctx.body = {
       success: true,
@@ -156,13 +158,17 @@ router.post(
 
     authorize(user, "update", webhookSubscription);
 
-    await webhookSubscription.updateWithCtx(ctx, {
-      name,
-      url,
-      events: compact(events),
-      enabled: true,
-      secret: secret === "" ? null : secret,
-    });
+    await webhookSubscription.updateWithCtx(
+      ctx,
+      {
+        name,
+        url,
+        events: compact(events),
+        enabled: true,
+        secret: secret === "" ? null : secret,
+      },
+      { data: { name } }
+    );
 
     ctx.body = {
       data: presentWebhookSubscription(webhookSubscription),

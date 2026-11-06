@@ -10,7 +10,9 @@ import Router from "@koa/router";
 import { randomBytes } from "node:crypto";
 import { toError } from "@shared/utils/error";
 import { User, UserPasskey, Team } from "@server/models";
+import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import env from "@server/env";
 import { AuthorizationError, ValidationError } from "@server/errors";
@@ -146,6 +148,10 @@ router.post(
   "passkeys.verifyRegistration",
   auth({ type: AuthenticationType.APP }),
   validate(T.PasskeysVerifyRegistrationSchema),
+  // Auth routes have no API context by default, without it the resulting event
+  // has no actor or team and cannot appear in the audit log.
+  apiContext(),
+  transaction(),
   async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
     const { user } = ctx.state.auth;
     const body = ctx.input.body;
