@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
+import fs from "fs-extra";
+import JSZip from "jszip";
+import tmp from "tmp";
 import type { ProsemirrorDoc } from "@shared/types";
 import { Collection, Document, ImportTask } from "@server/models";
+import FileStorage from "@server/storage/files";
 import {
   ImportState,
   ImportTaskPhase,
@@ -10,10 +14,11 @@ import {
 import {
   buildAdmin,
   buildCollection,
+  buildDocument,
   buildImport,
 } from "@server/test/factories";
 import MarkdownImportsProcessor from "../processors/MarkdownImportsProcessor";
-import {
+import MarkdownAPIImportTask, {
   rewriteAttachmentPaths,
   rewriteInternalLinks,
 } from "./MarkdownAPIImportTask";
@@ -233,5 +238,190 @@ describe("MarkdownImportsProcessor destination", () => {
       "Loose A",
       "Loose B",
     ]);
+  });
+});
+
+describe("MarkdownAPIImportTask document export archives", () => {
+  /** An archive with the layout of a document export. */
+  const documentExport = {
+    "Parent.md":
+      "# Parent\n\nParent body\n\n![pic](Parent/attachments/pic.png)\n",
+    "Parent/Child.md": "# Child\n\n[up](../Parent.md)",
+    "Parent/attachments/pic.png": "pixels",
+  };
+
+  /**
+   * Imports an archive with the given files.
+   *
+   * @param admin The user that creates the import.
+   * @param files The contents of the archive, keyed by path.
+   * @param destination The destination of the import, if any.
+   * @returns The documents and collections created by the import.
+   */
+  async function importArchive(
+    admin: Awaited<ReturnType<typeof buildAdmin>>,
+    files: Record<string, string>,
+    destination: { collectionId?: string; documentId?: string } = {}
+  ) {
+    const zip = new JSZip();
+    for (const [name, content] of Object.entries(files)) {
+      zip.file(name, content);
+    }
+    const filePath: string = await new Promise((resolve, reject) => {
+      tmp.file({ postfix: ".zip" }, (err, p) =>
+        err ? reject(err) : resolve(p)
+      );
+    });
+    await fs.writeFile(
+      filePath,
+      await zip.generateAsync({ type: "nodebuffer" })
+    );
+
+    vi.spyOn(FileStorage, "getFileHandle").mockResolvedValue({
+      path: filePath,
+      cleanup: async () => {},
+    });
+    vi.spyOn(MarkdownAPIImportTask.prototype, "schedule").mockResolvedValue(
+      undefined as never
+    );
+
+    const externalId = randomUUID();
+    const importModel = await buildImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      service: IntegrationService.Markdown,
+      integrationId: null,
+      ...destination,
+      input: [{ externalId }],
+      scratch: { storageKey: "fixture-key" },
+    });
+    const bootstrapTask = await ImportTask.create<
+      ImportTask<IntegrationService.Markdown>
+    >({
+      state: ImportTaskState.Created,
+      phase: ImportTaskPhase.Bootstrap,
+      input: [{ externalId }],
+      importId: importModel.id,
+    } as Parameters<typeof ImportTask.create>[0]);
+
+    await new MarkdownAPIImportTask().perform({
+      importTaskId: bootstrapTask.id,
+    });
+    const findNext = () =>
+      ImportTask.findOne<ImportTask<IntegrationService.Markdown>>({
+        where: { state: ImportTaskState.Created, importId: importModel.id },
+        order: [["createdAt", "ASC"]],
+      });
+    for (let task = await findNext(); task; task = await findNext()) {
+      await new MarkdownAPIImportTask().perform({ importTaskId: task.id });
+    }
+    await new MarkdownAPIImportTask().perform({
+      importTaskId: bootstrapTask.id,
+    });
+
+    await new MarkdownImportsProcessor().perform({
+      name: "imports.processed",
+      modelId: importModel.id,
+      teamId: admin.teamId,
+      actorId: admin.id,
+      ip: "127.0.0.1",
+      changes: { attributes: {}, previous: {} },
+    });
+    await fs.rm(filePath, { force: true });
+
+    return {
+      documents: await Document.findAll({
+        where: { apiImportId: importModel.id },
+      }),
+      collections: await Collection.findAll({
+        where: { apiImportId: importModel.id },
+      }),
+    };
+  }
+
+  it("merges a document with its folder when importing into a collection", async () => {
+    const admin = await buildAdmin();
+    const destination = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const { documents, collections } = await importArchive(
+      admin,
+      documentExport,
+      { collectionId: destination.id }
+    );
+
+    expect(collections).toHaveLength(0);
+    expect(documents.map((d) => d.title).sort()).toEqual(["Child", "Parent"]);
+
+    const parent = documents.find((d) => d.title === "Parent");
+    const child = documents.find((d) => d.title === "Child");
+    expect(parent?.parentDocumentId).toBeNull();
+    expect(parent?.text).toContain("Parent body");
+    expect(child?.parentDocumentId).toBe(parent?.id);
+    expect(child?.text).toContain(`/doc/${parent?.id}`);
+  });
+
+  it("merges a document with its folder when importing under a document", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const destination = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+      collectionId: collection.id,
+    });
+
+    const { documents } = await importArchive(admin, documentExport, {
+      documentId: destination.id,
+    });
+
+    expect(documents.map((d) => d.title).sort()).toEqual(["Child", "Parent"]);
+    const parent = documents.find((d) => d.title === "Parent");
+    const child = documents.find((d) => d.title === "Child");
+    expect(parent?.parentDocumentId).toBe(destination.id);
+    expect(child?.parentDocumentId).toBe(parent?.id);
+  });
+
+  it("uses the file as the collection overview when creating new collections", async () => {
+    const admin = await buildAdmin();
+
+    const { documents, collections } = await importArchive(
+      admin,
+      documentExport
+    );
+
+    expect(collections.map((c) => c.name)).toEqual(["Parent"]);
+    const [collection] = collections;
+    expect(collection.description).toContain("Parent body");
+    expect(collection.description).not.toContain("# Parent");
+    expect(collection.description).toContain("/api/attachments.redirect");
+
+    expect(documents.map((d) => d.title)).toEqual(["Child"]);
+    const [child] = documents;
+    expect(child.collectionId).toBe(collection.id);
+    expect(child.parentDocumentId).toBeNull();
+    expect(child.text).toContain(collection.id);
+  });
+
+  it("keeps a file without a matching folder in the fallback collection", async () => {
+    const admin = await buildAdmin();
+
+    const { documents, collections } = await importArchive(admin, {
+      "Loose.md": "# Loose\n\nLoose body",
+      "Parent/Child.md": "# Child\n\nChild body",
+    });
+
+    expect(collections.map((c) => c.name).sort()).toEqual([
+      "Documents",
+      "Parent",
+    ]);
+    expect(documents.map((d) => d.title).sort()).toEqual(["Child", "Loose"]);
+    expect(
+      collections.find((c) => c.name === "Parent")?.description
+    ).toBeFalsy();
   });
 });

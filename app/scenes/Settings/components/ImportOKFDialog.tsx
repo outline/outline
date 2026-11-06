@@ -8,23 +8,23 @@ function ImportOKFDialog() {
   const { dialogs } = useStores();
 
   return (
-    <>
-      <Text as="p">
-        <Trans>
-          You can import a zip file of an Open Knowledge Format (OKF) bundle –
-          folders become collections and documents, and document titles are read
-          from YAML frontmatter.
-        </Trans>
-      </Text>
-      <DropToImport
-        onSubmit={dialogs.closeAllModals}
-        service={IntegrationService.OKF}
-      >
-        <Trans>
-          Drag and drop a zip file of the OKF bundle, or click to upload
-        </Trans>
-      </DropToImport>
-    </>
+    <DropToImport
+      description={
+        <Text as="p">
+          <Trans>
+            You can import a zip file of an Open Knowledge Format (OKF) bundle –
+            folders become collections and documents, and document titles are
+            read from YAML frontmatter.
+          </Trans>
+        </Text>
+      }
+      onSubmit={dialogs.closeAllModals}
+      service={IntegrationService.OKF}
+    >
+      <Trans>
+        Drag and drop a zip file of the OKF bundle, or click to upload
+      </Trans>
+    </DropToImport>
   );
 }
 

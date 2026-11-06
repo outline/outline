@@ -8,23 +8,23 @@ export function ImportSlabDialog() {
   const { dialogs } = useStores();
 
   return (
-    <>
-      <Text as="p">
-        <Trans>
-          Import a zip file of Markdown documents exported from Slab –
-          collections, posts, images, and attachments will be imported. In Slab,
-          open the admin settings and use the <em>Export</em> option to download
-          an archive of your content.
-        </Trans>
-      </Text>
-      <DropToImport
-        onSubmit={dialogs.closeAllModals}
-        service={IntegrationService.Slab}
-      >
-        <Trans>
-          Drag and drop the zip file exported from Slab, or click to upload
-        </Trans>
-      </DropToImport>
-    </>
+    <DropToImport
+      description={
+        <Text as="p">
+          <Trans>
+            Import a zip file of Markdown documents exported from Slab –
+            collections, posts, images, and attachments will be imported. In
+            Slab, open the admin settings and use the <em>Export</em> option to
+            download an archive of your content.
+          </Trans>
+        </Text>
+      }
+      onSubmit={dialogs.closeAllModals}
+      service={IntegrationService.Slab}
+    >
+      <Trans>
+        Drag and drop the zip file exported from Slab, or click to upload
+      </Trans>
+    </DropToImport>
   );
 }

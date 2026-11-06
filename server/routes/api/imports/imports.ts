@@ -5,7 +5,6 @@ import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
 import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -24,12 +23,10 @@ const router = new Router();
 /**
  * Resolves and authorizes the optional import destination. When a collection
  * is chosen the user must be able to create documents in it; when a document
- * is chosen it must be a publishable, non-template, non-archived document in
- * the user's team that the user can add children to.
+ * is chosen the user must be able to add children to it.
  *
  * @param ctx The API context for the create request.
  * @returns The resolved destination ids (both null when no destination set).
- * @throws ValidationError when the chosen document is not a valid destination.
  */
 async function resolveImportDestination(
   ctx: APIContext<T.ImportsCreateReq>
@@ -55,19 +52,6 @@ async function resolveImportDestination(
       rejectOnEmpty: true,
     });
     authorize(user, "createChildDocument", document);
-
-    if (document.template) {
-      throw ValidationError("Cannot import into a template");
-    }
-    if (document.archivedAt) {
-      throw ValidationError("Cannot import into an archived document");
-    }
-    if (!document.publishedAt) {
-      throw ValidationError("Cannot import into an unpublished document");
-    }
-    if (document.teamId !== user.teamId) {
-      throw ValidationError("Document does not belong to your team");
-    }
 
     return { collectionId: null, documentId };
   }

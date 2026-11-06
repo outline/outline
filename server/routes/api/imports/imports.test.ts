@@ -206,6 +206,71 @@ describe("#imports.create", () => {
       expect(res.status).toEqual(403);
     });
 
+    it("rejects an archived document destination", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const document = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        archivedAt: new Date(),
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.Markdown,
+          attachmentId: attachment.id,
+          documentId: document.id,
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+
+    it("rejects a template document destination", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const document = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        template: true,
+      });
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.Markdown,
+          attachmentId: attachment.id,
+          documentId: document.id,
+        },
+      });
+
+      expect(res.status).toEqual(404);
+    });
+
+    it("rejects a document destination in another team", async () => {
+      const admin = await buildAdmin();
+      const attachment = await buildAttachment({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const document = await buildDocument();
+
+      const res = await server.post("/api/imports.create", admin, {
+        body: {
+          service: IntegrationService.Markdown,
+          attachmentId: attachment.id,
+          documentId: document.id,
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+
     it("rejects a draft document destination", async () => {
       const admin = await buildAdmin();
       const attachment = await buildAttachment({
