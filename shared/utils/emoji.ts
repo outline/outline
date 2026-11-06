@@ -114,7 +114,7 @@ const EMOJI_VERSIONS = [
   { version: 5, emoji: "\uD83E\uDD29" },
   { version: 4, emoji: "\uD83D\uDC71\u200D\u2640\uFE0F" },
   { version: 3, emoji: "\uD83E\uDD23" },
-  { version: 2, emoji: "\uD83D\uDC4B\uD83C\uDFFB" },
+  { version: 2, emoji: "\uD83D\uDC41\uFE0F\u200D\uD83D\uDDE8\uFE0F" },
   { version: 1, emoji: "\uD83D\uDE43" },
 ];
 
