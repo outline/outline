@@ -190,7 +190,12 @@ router.post(
       return;
     }
 
-    // External resources
+    // External resources are unfurled with workspace credentials
+    if (actor.isGuest) {
+      ctx.response.status = 204;
+      return;
+    }
+
     // Use getDataOrSet which handles distributed locking to prevent thundering herd
     // when multiple clients request the same URL simultaneously
     const cacheKey = RedisPrefixHelper.getUnfurlKey(

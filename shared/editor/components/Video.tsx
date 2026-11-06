@@ -1,3 +1,4 @@
+import { NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { sanitizeUrl } from "../../utils/urls";
@@ -14,11 +15,32 @@ type Props = ComponentProps & {
 };
 
 export default function Video(props: Props) {
-  const { isSelected, node, isEditable, children, onChangeSize } = props;
+  const { isSelected, node, isEditable, children, onChangeSize, view, getPos } =
+    props;
   const [naturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight] = React.useState(node.attrs.height);
   const ref = React.useRef<HTMLDivElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const isResizable = !!onChangeSize;
+
+  // ProseMirror makes a selected node draggable on mousedown, which stops
+  // Safari from releasing the native video controls on mouseup.
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    const handleMouseDown = (event: MouseEvent) => {
+      const { selection } = view.state;
+      if (selection instanceof NodeSelection && selection.from === getPos()) {
+        event.stopPropagation();
+      }
+    };
+
+    video.addEventListener("mousedown", handleMouseDown);
+    return () => video.removeEventListener("mousedown", handleMouseDown);
+  }, [view, getPos]);
 
   const { width, height, handlePointerDown, handleDoubleClick, dragging } =
     useDragResize({
@@ -48,6 +70,7 @@ export default function Video(props: Props) {
         style={style}
       >
         <StyledVideo
+          ref={videoRef}
           src={sanitizeUrl(getDisplayUrl(props.view.state, node.attrs.src))}
           title={node.attrs.title}
           // Reserves the aspect ratio of the video before its metadata loads.

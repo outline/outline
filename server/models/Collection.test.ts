@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { EmptyResultError } from "sequelize";
 import { randomString } from "@shared/random";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { createContext } from "@server/context";
 import {
   buildUser,

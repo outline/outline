@@ -159,24 +159,27 @@ router.post(
       }),
     ]);
 
+    const [presentedGroups, groupUsers] = await Promise.all([
+      Promise.all(groups.map(presentGroup)),
+      Promise.all(
+        groups.map((group) =>
+          GroupUser.scope("withUser").findAll({
+            where: {
+              groupId: group.id,
+            },
+            order: [["permission", "ASC"]],
+            limit: MAX_AVATAR_DISPLAY,
+          })
+        )
+      ),
+    ]);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        groups: await Promise.all(groups.map(presentGroup)),
+        groups: presentedGroups,
         // TODO: Deprecated, will remove in the future as language conflicts with GroupMembership
-        groupMemberships: (
-          await Promise.all(
-            groups.map((group) =>
-              GroupUser.scope("withUser").findAll({
-                where: {
-                  groupId: group.id,
-                },
-                order: [["permission", "ASC"]],
-                limit: MAX_AVATAR_DISPLAY,
-              })
-            )
-          )
-        )
+        groupMemberships: groupUsers
           .flat()
           .filter((groupUser) => groupUser.user)
           .map((groupUser) =>

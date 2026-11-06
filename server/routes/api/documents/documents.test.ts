@@ -5042,6 +5042,48 @@ describe("#documents.viewed", () => {
     expect(body.policies[0].abilities.update).toBeTruthy();
   });
 
+  it("should paginate in view order and skip deleted documents", async () => {
+    const user = await buildUser();
+    const documents = await Promise.all(
+      [0, 1, 2, 3].map(() =>
+        buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+        })
+      )
+    );
+    for (const [index, document] of documents.entries()) {
+      await View.create(
+        {
+          documentId: document.id,
+          userId: user.id,
+          updatedAt: new Date(Date.now() - index * 1000),
+        },
+        { silent: true }
+      );
+    }
+    await documents[1].destroy();
+
+    const res = await server.post("/api/documents.viewed", user, {
+      body: { limit: 2 },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((doc: { id: string }) => doc.id)).toEqual([
+      documents[0].id,
+      documents[2].id,
+    ]);
+
+    const nextRes = await server.post("/api/documents.viewed", user, {
+      body: { limit: 2, offset: 2 },
+    });
+    const nextBody = await nextRes.json();
+    expect(nextRes.status).toEqual(200);
+    expect(nextBody.data.map((doc: { id: string }) => doc.id)).toEqual([
+      documents[3].id,
+    ]);
+  });
+
   it("should not return recently viewed but deleted documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({

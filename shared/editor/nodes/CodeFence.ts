@@ -377,38 +377,45 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         }
         return true;
       },
-      copyToClipboard: (): Command => (state, dispatch) => {
-        const codeBlock = findParentNode(isCode)(state.selection);
+      copyToClipboard:
+        (attrs?: { pos?: number }): Command =>
+        (state, dispatch) => {
+          const node =
+            attrs?.pos !== undefined ? state.doc.nodeAt(attrs.pos) : null;
+          const codeBlock =
+            node && isCode(node)
+              ? node
+              : findParentNode(isCode)(state.selection)?.node;
 
-        if (codeBlock) {
-          copy(codeBlock.node.textContent);
-          this.editor.props.onNotice?.(t("Copied to clipboard"));
-          return true;
-        }
+          if (codeBlock) {
+            copy(codeBlock.textContent);
+            this.editor.props.onNotice?.(t("Copied to clipboard"));
+            return true;
+          }
 
-        const { doc, tr } = state;
-        const range =
-          getMarkRange(
-            doc.resolve(state.selection.from),
-            this.editor.schema.marks.code_inline
-          ) ||
-          getMarkRange(
-            doc.resolve(state.selection.to),
-            this.editor.schema.marks.code_inline
-          );
+          const { doc, tr } = state;
+          const range =
+            getMarkRange(
+              doc.resolve(state.selection.from),
+              this.editor.schema.marks.code_inline
+            ) ||
+            getMarkRange(
+              doc.resolve(state.selection.to),
+              this.editor.schema.marks.code_inline
+            );
 
-        if (range) {
-          const $end = doc.resolve(range.to);
-          tr.setSelection(new TextSelection($end, $end));
-          dispatch?.(tr);
+          if (range) {
+            const $end = doc.resolve(range.to);
+            tr.setSelection(new TextSelection($end, $end));
+            dispatch?.(tr);
 
-          copy(tr.doc.textBetween(state.selection.from, state.selection.to));
-          this.editor.props.onNotice?.(t("Copied to clipboard"));
-          return true;
-        }
+            copy(tr.doc.textBetween(state.selection.from, state.selection.to));
+            this.editor.props.onNotice?.(t("Copied to clipboard"));
+            return true;
+          }
 
-        return false;
-      },
+          return false;
+        },
     };
   }
 

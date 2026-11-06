@@ -232,6 +232,8 @@ type BaseItemProps = {
   icon?: React.ReactElement;
   disabled?: boolean;
   shortcut?: string[];
+  /** Additional content displayed at the end of the item. */
+  badge?: React.ReactNode;
 };
 
 /**
@@ -290,6 +292,7 @@ function MenuButton(props: MenuButtonProps) {
     selected,
     dangerous,
     shortcut,
+    badge,
     onClick,
     ...rest
   } = props;
@@ -308,6 +311,7 @@ function MenuButton(props: MenuButtonProps) {
       >
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        {badge && <Components.MenuBadge>{badge}</Components.MenuBadge>}
         {selected !== undefined && (
           <Components.SelectedIconWrapper aria-hidden>
             {selected ? <CheckmarkIcon size={18} /> : null}
@@ -343,7 +347,7 @@ type MenuInternalLinkProps = BaseItemProps & {
 
 function MenuInternalLink(props: MenuInternalLinkProps) {
   const { variant } = useMenuContext();
-  const { ref, label, icon, disabled, shortcut, to, ...rest } = props;
+  const { ref, label, icon, disabled, shortcut, badge, to, ...rest } = props;
 
   const Item =
     variant === "dropdown"
@@ -355,6 +359,7 @@ function MenuInternalLink(props: MenuInternalLinkProps) {
       <Components.MenuInternalLink to={to} disabled={disabled}>
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        {badge && <Components.MenuBadge>{badge}</Components.MenuBadge>}
         <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuInternalLink>
     </Item>
@@ -378,7 +383,8 @@ type MenuExternalLinkProps = BaseItemProps & {
 
 function MenuExternalLink(props: MenuExternalLinkProps) {
   const { variant } = useMenuContext();
-  const { ref, label, icon, disabled, shortcut, href, target, ...rest } = props;
+  const { ref, label, icon, disabled, shortcut, badge, href, target, ...rest } =
+    props;
 
   const Item =
     variant === "dropdown"
@@ -394,6 +400,7 @@ function MenuExternalLink(props: MenuExternalLinkProps) {
       >
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        {badge && <Components.MenuBadge>{badge}</Components.MenuBadge>}
         <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuExternalLink>
     </Item>

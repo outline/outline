@@ -6,6 +6,7 @@ import {
   buildAdmin,
   buildTeam,
   buildUser,
+  buildGuestUser,
   buildIntegration,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -274,30 +275,55 @@ describe("#integrations.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].settings.url).toEqual("https://example.com");
   });
+
+  it("should only expose embed urls to guests", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const guest = await buildGuestUser({ teamId: team.id });
+    await buildIntegration({
+      userId: admin.id,
+      teamId: team.id,
+      service: IntegrationService.Diagrams,
+      type: IntegrationType.Embed,
+      settings: {
+        url: "https://example.com",
+      },
+    });
+    await buildIntegration({
+      userId: admin.id,
+      teamId: team.id,
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+      settings: {
+        url: "https://hooks.slack.com/services/secret",
+        channel: "#general",
+        channelId: "C123",
+      } as IntegrationSettings<IntegrationType.Post>,
+    });
+
+    const res = await server.post("/api/integrations.list", guest);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].type).toEqual(IntegrationType.Embed);
+    expect(body.data[0].settings.url).toEqual("https://example.com");
+  });
 });
 
 describe("#integrations.info", () => {
-  const buildFigmaAccount = (owner: User) =>
+  const buildLinkedAccount = (owner: User) =>
     Integration.create<Integration<IntegrationType.LinkedAccount>>({
       userId: owner.id,
       teamId: owner.teamId,
       service: IntegrationService.Figma,
       type: IntegrationType.LinkedAccount,
-      settings: {
-        figma: {
-          account: {
-            id: "123",
-            name: "owner",
-            email: "owner@example.com",
-            avatarUrl: "https://example.com/avatar.png",
-          },
-        },
-      },
+      settings: {},
     });
 
   it("should expose linked account settings to the owner", async () => {
     const owner = await buildUser();
-    const integration = await buildFigmaAccount(owner);
+    const integration = await buildLinkedAccount(owner);
 
     const res = await server.post("/api/integrations.info", owner, {
       body: { id: integration.id },
@@ -305,20 +331,40 @@ describe("#integrations.info", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.settings.figma.account.email).toEqual("owner@example.com");
+    expect(body.data.settings).toEqual({});
   });
 
-  it("should not expose linked account settings to other users", async () => {
+  it("should not allow other users to read a linked account", async () => {
     const owner = await buildUser();
     const admin = await buildAdmin({ teamId: owner.teamId });
-    const integration = await buildFigmaAccount(owner);
+    const integration = await buildLinkedAccount(owner);
 
     const res = await server.post("/api/integrations.info", admin, {
       body: { id: integration.id },
     });
-    const body = await res.json();
 
-    expect(res.status).toEqual(200);
-    expect(body.data.settings).toBeUndefined();
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow guests to read workspace integrations", async () => {
+    const admin = await buildAdmin();
+    const guest = await buildGuestUser({ teamId: admin.teamId });
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+      settings: {
+        url: "https://hooks.slack.com/services/secret",
+        channel: "#general",
+        channelId: "C123",
+      } as IntegrationSettings<IntegrationType.Post>,
+    });
+
+    const res = await server.post("/api/integrations.info", guest, {
+      body: { id: integration.id },
+    });
+
+    expect(res.status).toEqual(403);
   });
 });

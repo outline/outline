@@ -31,6 +31,18 @@ export function getRedirectUrl(authUrl: string) {
 }
 
 /**
+ * Checks whether the app is loaded on the root application domain, rather
+ * than on a workspace subdomain or custom domain.
+ *
+ * @returns true if the current host is the host of env.URL.
+ */
+export function isAppRootDomain() {
+  return (
+    parseDomain(window.location.hostname).host === parseDomain(env.URL).host
+  );
+}
+
+/**
  * Checks whether a link is a hash link to an anchor on the current page.
  *
  * @param href the link to check.
@@ -42,12 +54,11 @@ export function isHash(href: string) {
   }
 
   try {
-    const outline = new URL(window.location.href);
     const parsed = new URL(href);
 
     if (
-      outline.hostname === parsed.hostname &&
-      outline.pathname === parsed.pathname &&
+      window.location.hostname === parsed.hostname &&
+      window.location.pathname === parsed.pathname &&
       !!parsed.hash
     ) {
       return true;

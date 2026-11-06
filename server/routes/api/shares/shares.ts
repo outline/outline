@@ -55,12 +55,12 @@ router.post(
   async (ctx: APIContext<T.SharesInfoReq>) => {
     const { id, collectionId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const teamFromCtx = await getTeamFromContext(ctx, {
-      includeOAuthState: false,
-    });
 
     // only public link loads will send "id".
     if (id) {
+      const teamFromCtx = await getTeamFromContext(ctx, {
+        includeOAuthState: false,
+      });
       let { share, sharedTree, collection, document } = await loadPublicShare({
         id,
         collectionId,
@@ -70,12 +70,12 @@ router.post(
 
       // reload with membership scope if user is authenticated
       if (user) {
-        collection = collection
-          ? await Collection.findByPk(collection.id, { userId: user.id })
-          : null;
-        document = document
-          ? await Document.findByPk(document.id, { userId: user.id })
-          : null;
+        [collection, document] = await Promise.all([
+          collection
+            ? Collection.findByPk(collection.id, { userId: user.id })
+            : null,
+          document ? Document.findByPk(document.id, { userId: user.id }) : null,
+        ]);
       }
 
       const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;

@@ -1,5 +1,6 @@
 import { Node } from "prosemirror-model";
 import { parser, schema, serializer } from "../../../test/editor";
+import { MarkdownSerializerState } from "./serializer";
 
 describe("tables", () => {
   it("preserves line breaks and empty paragraphs in table cells", () => {
@@ -361,5 +362,73 @@ describe("escaping", () => {
         paragraph(text("a "), text("bold", ["strong"]), text("ly done"))
       )
     ).toBe("a **bold**ly done");
+  });
+});
+
+describe("esc", () => {
+  const esc = (text: string) =>
+    new MarkdownSerializerState({}, {}, {}).esc(text, false);
+
+  it("escapes an opening bracket before a link target", () => {
+    expect(esc("[a](b)")).toBe("\\[a](b)");
+  });
+
+  it("does not escape brackets without a link target", () => {
+    expect(esc("[a]")).toBe("[a]");
+  });
+
+  it("escapes every opening bracket before a link target", () => {
+    expect(esc("[ [ x](y)")).toBe("\\[ \\[ x](y)");
+  });
+
+  it("does not escape when the link target is on a different line", () => {
+    expect(esc("[a\n](b)")).toBe("[a\n](b)");
+  });
+
+  it("does not escape an opening bracket after the last link target", () => {
+    expect(esc("x](y) [")).toBe("x](y) [");
+  });
+});
+
+describe("expelEnclosingWhitespace", () => {
+  const strong = (text: string) =>
+    serializer.serialize(
+      Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "x" },
+              { type: "text", text, marks: [{ type: "strong" }] },
+              { type: "text", text: "y" },
+            ],
+          },
+        ],
+      })
+    );
+
+  it("moves whitespace on both sides outside of the mark", () => {
+    expect(strong(" a ")).toBe("x **a** y");
+  });
+
+  it("moves trailing whitespace outside of the mark", () => {
+    expect(strong("a  ")).toBe("x**a**  y");
+  });
+
+  it("moves leading whitespace outside of the mark", () => {
+    expect(strong("  a")).toBe("x  **a**y");
+  });
+
+  it("drops the mark when the text is only whitespace", () => {
+    expect(strong("   ")).toBe("x   y");
+  });
+
+  it("keeps the mark when there is no whitespace", () => {
+    expect(strong("a")).toBe("x**a**y");
+  });
+
+  it("keeps text after a newline", () => {
+    expect(strong("a \nb")).toBe("x**a \nb**y");
   });
 });

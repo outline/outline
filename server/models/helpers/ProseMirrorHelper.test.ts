@@ -5,7 +5,7 @@ import type { DeepPartial } from "utility-types";
 import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
-import { MentionType } from "@shared/types";
+import { HeadingPrefixStyle, MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { parser, schema, serializer } from "@server/editor";
@@ -96,6 +96,57 @@ describe("ProsemirrorHelper", () => {
         .pop();
       expect(iframeClass).toBeTruthy();
       expect(html).toContain(`.${iframeClass}`);
+    });
+  });
+
+  describe("toStaticHTML", () => {
+    it("should render the title and content", async () => {
+      const doc = parser.parse("Hello **world**")!;
+      const html = await ProsemirrorHelper.toStaticHTML(doc, {
+        title: "<b>Title</b>",
+      });
+      expect(html).toContain('<h1 dir="ltr">&lt;b&gt;Title&lt;/b&gt;</h1>');
+      expect(html).toContain('<div id="content" class="ProseMirror exported">');
+      expect(html).toContain("<strong>world</strong>");
+    });
+
+    it("should apply the heading prefix", async () => {
+      const doc = parser.parse("# One\n\n## Two")!;
+      const html = await ProsemirrorHelper.toStaticHTML(doc, {
+        headingPrefix: HeadingPrefixStyle.Numeric,
+      });
+      expect(html).toContain('data-heading-prefix="1."');
+      expect(html).toContain('data-heading-prefix="1.1"');
+    });
+
+    it("should render every node and mark without a global document", async () => {
+      expect(globalThis.document).toBeUndefined();
+
+      const requiredAttrs: Record<string, Record<string, string>> = {
+        attachment: { title: "file.pdf" },
+        comment: { id: "comment-id", userId: "user-id" },
+        embed: { href: "https://example.com" },
+        mention: { label: "Label", modelId: "model-id" },
+      };
+      const nodes = Object.values(schema.nodes)
+        .filter((type) => type !== schema.topNodeType)
+        .map((type) =>
+          type.isText
+            ? schema.text("text")
+            : type.createAndFill(requiredAttrs[type.name])
+        )
+        .filter((node) => node !== null);
+      const marked = Object.values(schema.marks).map((type) =>
+        schema.text("marked", [type.create(requiredAttrs[type.name])])
+      );
+      const doc = schema.topNodeType.create(null, [
+        ...nodes,
+        schema.nodes.paragraph.create(null, marked),
+      ]);
+
+      await expect(ProsemirrorHelper.toStaticHTML(doc)).resolves.toContain(
+        "marked"
+      );
     });
   });
 

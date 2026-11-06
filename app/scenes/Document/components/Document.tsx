@@ -137,7 +137,7 @@ function DocumentScene({
       return;
     }
 
-    history.replace(document.url, {
+    history.replace(document.path, {
       ...history.location.state,
       restore: undefined,
       revisionId: undefined,
@@ -158,7 +158,7 @@ function DocumentScene({
       );
       toast.success(t("Document restored"));
     }
-  }, [replaceSelection, t, history, document.url]);
+  }, [replaceSelection, t, history, document.path]);
 
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
@@ -301,7 +301,7 @@ function DocumentScene({
   const goBack = useCallback(() => {
     if (!readOnly) {
       history.push({
-        pathname: document.url,
+        pathname: document.path,
         state: { sidebarContext },
       });
     }

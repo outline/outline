@@ -531,6 +531,38 @@ describe("DocumentHelper", () => {
     });
   });
 
+  describe("applyMarkdownToDocument", () => {
+    it("should merge prepended text into the first paragraph", async () => {
+      const document = await buildDocument({ text: "Existing" });
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "x",
+        TextEditMode.Prepend
+      );
+      expect(result.text).toBe("xExisting");
+    });
+
+    it("should merge prepended text that ends with spaces", async () => {
+      const document = await buildDocument({ text: "Existing" });
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "x  ",
+        TextEditMode.Prepend
+      );
+      expect(result.text).toBe("xExisting");
+    });
+
+    it("should not merge prepended text when trailing whitespace has a newline", async () => {
+      const document = await buildDocument({ text: "Existing" });
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "x \n ",
+        TextEditMode.Prepend
+      );
+      expect(result.text).toBe("x\n\nExisting");
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({

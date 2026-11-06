@@ -1,8 +1,8 @@
 import "./bootstrap";
 import { styleText } from "node:util";
+import type { Transaction } from "sequelize";
 import { isEmpty } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
-import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
@@ -12,8 +12,8 @@ import {
   migrations,
   sequelize,
 } from "@server/storage/database";
+import { LockHelper } from "@server/storage/LockHelper";
 import { getArg } from "@server/utils/args";
-import { MutexLock } from "@server/utils/MutexLock";
 import { ShutdownHelper } from "@server/utils/ShutdownHelper";
 
 /**
@@ -21,11 +21,12 @@ import { ShutdownHelper } from "@server/utils/ShutdownHelper";
  * --no-migrate flag was passed in which case the process exits with an error.
  */
 async function checkPendingMigrations() {
-  let lock;
+  let lock: Transaction | undefined;
   try {
-    lock = await MutexLock.acquire("migrations", 10 * Minute.ms, {
-      releaseOnShutdown: true,
-    });
+    // The advisory lock is held by this transaction until it ends, while the
+    // migrations themselves run on other connections.
+    lock = await sequelize.transaction();
+    await LockHelper.acquire(sequelize, "migrations", lock);
 
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
@@ -58,9 +59,9 @@ async function checkPendingMigrations() {
       Logger.fatal(styleText("red", message), error);
     }
   } finally {
-    if (lock) {
-      await MutexLock.release(lock);
-    }
+    await lock?.rollback().catch((err) => {
+      Logger.warn("Failed to release migrations lock", toError(err));
+    });
   }
 }
 

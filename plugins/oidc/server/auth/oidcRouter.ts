@@ -9,10 +9,7 @@ import { parseEmail } from "@shared/utils/email";
 import { getSupportedLanguage } from "@shared/utils/language";
 import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import {
-  OIDCMalformedUserInfoError,
-  AuthenticationError,
-} from "@server/errors";
+import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
@@ -32,6 +29,7 @@ import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { resolveProviderId } from "./resolveProviderId";
 import { createContext } from "@server/context";
+import { OIDCMalformedUserInfoError } from "../errors";
 
 export interface OIDCEndpoints {
   authorizationURL: string;

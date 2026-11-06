@@ -106,6 +106,18 @@
       }
     },
     {
+      "files": ["plugins/*/server/**/*.{js,ts}"],
+      "rules": {
+        "no-restricted-properties": [
+          "error",
+          {
+            "property": "isBot",
+            "message": "Use `isbot` from the `isbot` package instead"
+          }
+        ]
+      }
+    },
+    {
       "files": ["**/*.{ts,tsx}"],
       "rules": {
         "no-redeclare": "off"

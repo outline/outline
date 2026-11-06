@@ -2,7 +2,7 @@ import path from "node:path";
 import type { Node } from "prosemirror-model";
 import { Fragment } from "prosemirror-model";
 import type { IntegrationService } from "@shared/types";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import type { ImportTask } from "@server/models";
 import MarkdownAPIImportTask from "@server/queues/tasks/MarkdownAPIImportTask";
 import { deserializeFilename } from "@server/utils/fs";

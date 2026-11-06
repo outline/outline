@@ -26,15 +26,12 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
       return;
     }
 
-    // Get the user who reacted (the actor)
-    const actor = await User.findByPk(event.actorId);
-    if (!actor) {
-      return;
-    }
-
-    // Get the comment author (the recipient of the notification)
-    const recipient = await User.findByPk(comment.createdById);
-    if (!recipient) {
+    // Get the user who reacted (the actor) and the comment author (the recipient)
+    const [actor, recipient] = await Promise.all([
+      User.findByPk(event.actorId),
+      User.findByPk(comment.createdById),
+    ]);
+    if (!actor || !recipient) {
       return;
     }
 

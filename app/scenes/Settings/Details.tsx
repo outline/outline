@@ -10,7 +10,7 @@ import { ThemeProvider } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
-import { TOCPosition, TeamPreference } from "@shared/types";
+import { TOCPosition, TeamPreference, UserPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
@@ -24,6 +24,7 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -37,6 +38,7 @@ function Details() {
   const { dialogs, ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const can = usePolicy(team);
 
   const form = useRef<HTMLFormElement>(null);
@@ -172,9 +174,15 @@ function Details() {
     async (checked: boolean) => {
       team.setPreference(TeamPreference.SeamlessEdit, !checked);
       await team.save();
+
+      // Enabling separate editing also applies it to the current user.
+      if (checked) {
+        user.setPreference(UserPreference.SeamlessEdit, false);
+        await user.save();
+      }
       toast.success(t("Settings saved"));
     },
-    [team, t]
+    [team, user, t]
   );
 
   const isValid = form.current?.checkValidity();

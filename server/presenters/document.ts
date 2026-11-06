@@ -58,6 +58,7 @@ async function presentDocument(
   const res: Record<string, unknown> = {
     id: document.id,
     url: document.path,
+    path: document.path,
     urlId: document.urlId,
     title: document.title,
     data:

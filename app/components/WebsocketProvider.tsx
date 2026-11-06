@@ -294,7 +294,7 @@ function useDocumentHandlers() {
 
     socket.on(
       "documents.update",
-      action((event: PartialExcept<Document, "id" | "title" | "url">) => {
+      action((event: PartialExcept<Document, "id" | "title" | "path">) => {
         documents.add(event);
 
         if (event.collectionId) {

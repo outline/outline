@@ -4,6 +4,7 @@ import { AttachmentPreset } from "@shared/types";
 import { dataUrlToBlob } from "@shared/utils/files";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
+import { NetworkError } from "./errors";
 
 type UploadOptions = {
   /** The user generated ID of the file */
@@ -74,22 +75,20 @@ export const uploadFile = async (
       }
     });
     xhr.addEventListener("error", () => {
-      const extra = {
-        status: xhr.status,
-        statusText: xhr.statusText,
-        contentType: file.type,
-        size: file.size,
-      };
-
+      // The request received no response, which is thrown as a network error.
       if (xhr.status === 0) {
-        Logger.warn("File upload failed before response", extra);
         return;
       }
 
       Logger.error(
         "File upload failed",
         new Error(`${xhr.status} ${xhr.statusText}`),
-        extra
+        {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          contentType: file.type,
+          size: file.size,
+        }
       );
     });
     xhr.addEventListener("loadend", () => {
@@ -134,7 +133,9 @@ export const uploadFile = async (
   });
 
   if (!success) {
-    throw new Error("Upload failed");
+    throw xhr.status === 0
+      ? new NetworkError("Upload failed")
+      : new Error("Upload failed");
   }
 
   return attachment;

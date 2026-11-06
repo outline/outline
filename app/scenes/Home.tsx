@@ -24,7 +24,7 @@ enum HomeTab {
   Viewed = "",
   Popular = "popular",
   Updated = "recent",
-  Created = "created",
+  Edited = "edited",
 }
 
 function Home() {
@@ -104,8 +104,8 @@ function Home() {
             >
               {t("Recently updated")}
             </Tab>
-            <Tab to="/home/created" onClick={() => setHomeTab(HomeTab.Created)}>
-              {t("Created by me")}
+            <Tab to="/home/edited" onClick={() => setHomeTab(HomeTab.Edited)}>
+              {t("Edited by me")}
             </Tab>
           </Tabs>
         )}
@@ -134,19 +134,16 @@ function Home() {
               showCollection
             />
           </Route>
-          <Route path="/home/created">
+          <Redirect from="/home/created" to="/home/edited" />
+          <Route path="/home/edited">
             <PaginatedDocumentList
-              key="created"
-              documents={documents.createdByUser(userId)}
+              key="edited"
+              documents={documents.editedByUser(userId)}
               fetch={documents.fetchOwned}
               options={{
-                filters: [
-                  { field: "createdById", operator: "eq", value: userId },
-                ],
+                filters: [{ field: "userId", operator: "eq", value: userId }],
               }}
-              empty={
-                <Empty>{t("You haven’t created any documents yet")}</Empty>
-              }
+              empty={<Empty>{t("You haven’t edited any documents yet")}</Empty>}
               showCollection
             />
           </Route>

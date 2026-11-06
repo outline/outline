@@ -210,6 +210,7 @@ export default class RedisAdapter extends Redis {
 
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
+  private static ephemeral: RedisAdapter;
   private static collabClient: RedisAdapter;
   private static collabSubscriber: RedisAdapter;
 
@@ -228,6 +229,23 @@ export default class RedisAdapter extends Redis {
       (this.subscriber = new this(env.REDIS_URL, {
         maxRetriesPerRequest: null,
         connectionNameSuffix: "subscriber",
+      }))
+    );
+  }
+
+  /**
+   * A Redis adapter for ephemeral data that can be lost, such as caches, locks
+   * and rate limits. Commands fail at once when there is no connection, and
+   * after a short timeout when Redis does not reply, so that callers can
+   * continue without Redis.
+   */
+  public static get ephemeralClient(): RedisAdapter {
+    return (
+      this.ephemeral ||
+      (this.ephemeral = new this(env.REDIS_URL, {
+        commandTimeout: env.REDIS_EPHEMERAL_COMMAND_TIMEOUT,
+        enableOfflineQueue: false,
+        connectionNameSuffix: "ephemeral",
       }))
     );
   }

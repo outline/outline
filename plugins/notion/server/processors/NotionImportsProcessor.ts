@@ -1,5 +1,8 @@
 import type { Transaction } from "sequelize";
-import type { NotionImportInput, NotionImportTaskInput } from "@shared/schema";
+import type {
+  NotionImportInput,
+  NotionImportTaskInput,
+} from "../../shared/schema";
 import { IntegrationService } from "@shared/types";
 import type { Import, ImportTask } from "@server/models";
 import { Integration } from "@server/models";
