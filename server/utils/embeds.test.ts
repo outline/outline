@@ -108,6 +108,18 @@ describe("checkEmbeddability", () => {
       });
     });
 
+    it("should only honor the first frame-ancestors directive in a CSP policy", async () => {
+      mockEmbedResponse(embedUrl, {
+        headers: {
+          "Content-Security-Policy":
+            "frame-ancestors *; frame-ancestors 'none'",
+        },
+      });
+
+      const result = await checkEmbeddability(embedUrl);
+      expect(result).toEqual({ embeddable: true });
+    });
+
     it("should return embeddable: false when CSP frame-ancestors is 'none'", async () => {
       mockEmbedResponse(embedUrl, {
         headers: {

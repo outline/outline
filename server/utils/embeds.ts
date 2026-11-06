@@ -59,40 +59,40 @@ function isBlockedByCSP(value: string | null): boolean {
   }
 
   // Repeated headers are joined with commas, and each policy is enforced.
-  const directives = value.split(/[;,]/).map((d) => d.trim());
-
-  for (const directive of directives) {
-    const parts = directive.split(/\s+/);
-    if (parts[0]?.toLowerCase() === "frame-ancestors") {
-      const sources = parts.slice(1);
-
-      // 'none' - Cannot be embedded anywhere
-      if (sources.length === 1 && sources[0] === "'none'") {
-        return true;
-      }
-
-      // 'self' only - Same origin only (blocks us)
-      if (sources.length === 1 && sources[0] === "'self'") {
-        return true;
-      }
-
-      // If there are specific origins listed (not * or 'self'), we're probably not in the list
-      // Allow if * is present anywhere in the list
-      if (sources.includes("*")) {
-        continue;
-      }
-
-      // If specific origins are listed without *, treat as blocked (we're probably not in the list)
-      if (
-        sources.length > 0 &&
-        !sources.every((s) => s === "'self'" || s === "'none'")
-      ) {
-        return true;
-      }
+  return value.split(",").some((policy) => {
+    // Only the first frame-ancestors directive in a policy is honored.
+    const directive = policy
+      .split(";")
+      .map((d) => d.trim().split(/\s+/))
+      .find((parts) => parts[0]?.toLowerCase() === "frame-ancestors");
+    if (!directive) {
+      return false;
     }
-  }
 
-  return false;
+    const sources = directive.slice(1);
+
+    // 'none' - Cannot be embedded anywhere
+    if (sources.length === 1 && sources[0] === "'none'") {
+      return true;
+    }
+
+    // 'self' only - Same origin only (blocks us)
+    if (sources.length === 1 && sources[0] === "'self'") {
+      return true;
+    }
+
+    // If there are specific origins listed (not * or 'self'), we're probably not in the list
+    // Allow if * is present anywhere in the list
+    if (sources.includes("*")) {
+      return false;
+    }
+
+    // If specific origins are listed without *, treat as blocked (we're probably not in the list)
+    return (
+      sources.length > 0 &&
+      !sources.every((s) => s === "'self'" || s === "'none'")
+    );
+  });
 }
 
 /**
