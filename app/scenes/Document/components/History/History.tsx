@@ -198,9 +198,11 @@ function History() {
     (latestRevision.title !== document.title ||
       (!!latestRevision.data && !isEqual(latestRevision.data, document.data)));
 
-  // The list entry that holds the content of the current document.
+  // The entry for the current content, the top revision only once it is known to match.
   const currentRevisionId =
-    isDocUpdated || latestRevision?.deletedAt ? "latest" : latestRevision?.id;
+    isDocUpdated || !latestRevision?.data || latestRevision.deletedAt
+      ? "latest"
+      : latestRevision.id;
 
   const handleCompareToChange = React.useCallback(
     (value: string) => {
@@ -209,7 +211,7 @@ function History() {
       };
       setCompareTo(value);
 
-      if (selectedRevisionId || !document || !currentRevisionId) {
+      if (selectedRevisionId || !document || document.isDeleted) {
         updateLocation(changes);
         return;
       }
