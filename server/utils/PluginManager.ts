@@ -9,6 +9,8 @@ import type {
   IntegrationService,
   LinkedAccountIntegrationSettings,
 } from "@shared/types";
+import type { BaseChatProvider } from "@server/chat/BaseChatProvider";
+import type { ChatAnswerProvider } from "@server/chat/ChatAnswerProvider";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import type { ImportsCreateBody } from "@server/routes/api/imports/schema";
 import env from "@server/env";
@@ -43,6 +45,8 @@ export enum PluginPriority {
 export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
+  ChatAnswerProvider = "chatAnswerProvider",
+  ChatProvider = "chatProvider",
   EmailTemplate = "emailTemplate",
   ImportSchema = "importSchema",
   IntegrationSettings = "integrationSettings",
@@ -73,6 +77,8 @@ type PluginValueMap = {
     /** Creates a client to validate and refresh the provider's access tokens. */
     oauthClient?: () => OAuthClient;
   };
+  [Hook.ChatAnswerProvider]: ChatAnswerProvider;
+  [Hook.ChatProvider]: BaseChatProvider;
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;
   [Hook.ImportSchema]: z.ZodType<ImportsCreateBody>;

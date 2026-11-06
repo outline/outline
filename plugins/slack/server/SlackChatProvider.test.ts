@@ -1,3 +1,4 @@
+import { http, HttpResponse } from "msw";
 import { randomString } from "@shared/random";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import type { Document, User } from "@server/models";
@@ -6,6 +7,7 @@ import {
   IntegrationAuthentication,
   SearchQuery,
 } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import {
   buildCollection,
   buildDocument,
@@ -13,9 +15,10 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
+import { server as mswServer } from "@server/test/msw";
 import { getTestServer } from "@server/test/support";
-import env from "../env";
-import * as Slack from "../slack";
+import env from "./env";
+import * as Slack from "./slack";
 
 const server = getTestServer();
 
@@ -47,6 +50,10 @@ describe("#hooks.unfurl", () => {
       type,
       authenticationId: authentication.id,
       createdAt,
+      // A real install stores the Slack workspace that it was installed in.
+      settings: {
+        serviceTeamId: user.team.authenticationProviders[0].providerId,
+      },
     });
     return { integration, authentication };
   };
@@ -609,5 +616,49 @@ describe("#hooks.interactive", () => {
       },
     });
     expect(res.status).toEqual(401);
+  });
+});
+
+describe("#hooks.interactive block actions", () => {
+  it("should post the answer through the response URL", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const searchQuery = await SearchQuery.create({
+      userId: user.id,
+      teamId: team.id,
+      source: SearchQuerySource.Slack,
+      query: "what is this?",
+      answer: "It is **this**",
+      results: 1,
+    });
+    const responseUrl = "https://hooks.slack.com/actions/test";
+    const bodies: Record<string, unknown>[] = [];
+    mswServer.use(
+      http.post(responseUrl, async ({ request }) => {
+        bodies.push((await request.json()) as Record<string, unknown>);
+        return HttpResponse.text("ok");
+      })
+    );
+
+    const payload = JSON.stringify({
+      type: "block_actions",
+      token: env.SLACK_VERIFICATION_TOKEN,
+      user: { id: user.authentications[0].providerId },
+      team: { id: team.authenticationProviders[0].providerId },
+      actions: [{ action_id: "post_answer_to_channel", value: searchQuery.id }],
+      response_url: responseUrl,
+    });
+    const res = await server.post("/api/hooks.interactive", {
+      body: { payload },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(bodies).toHaveLength(2);
+    expect(bodies[0]).toMatchObject({
+      response_type: "in_channel",
+      replace_original: false,
+      text: "It is *this*",
+    });
+    expect(bodies[1]).toEqual({ delete_original: true });
   });
 });

@@ -76,6 +76,8 @@ export type AppState = {
   pagination: Pagination;
   /** The teams authorized to receive an inbound webhook. */
   webhookTeamIds?: string[];
+  /** The integration that the request was received through, if any. */
+  integration?: Integration;
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;

@@ -17,6 +17,7 @@ export enum Scope {
 export enum AuthenticationType {
   API = "api",
   APP = "app",
+  CHAT = "chat",
   MCP = "mcp",
   OAUTH = "oauth",
 }
