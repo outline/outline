@@ -18,17 +18,17 @@ export function slugifyDomain(domain: string) {
   return domain.split(".").slice(0, -1).join("-");
 }
 
-// strips protocol, userinfo, port, path, query, and whitespace from input
+// strips protocol, userinfo, port, path, query, fragment, and whitespace from input
 // to extract a clean hostname
 function normalizeUrl(url: string) {
   const stripped = trim(url.replace(/(https?:)?\/\//i, ""));
-  // Extract authority (everything before the first slash)
-  const authority = stripped.split("/")[0];
+  // Extract authority, which ends at the same delimiters as in a browser
+  const authority = stripped.split(/[/\\?#]/)[0];
   // Strip userinfo if present (e.g. "user:pass@host" → "host")
   const atIndex = authority.lastIndexOf("@");
   const hostWithPort =
     atIndex !== -1 ? authority.substring(atIndex + 1) : authority;
-  const host = hostWithPort.split(/[:?]/)[0];
+  const host = hostWithPort.split(":")[0];
   // Hostnames are case-insensitive and may carry a trailing root label
   return host.toLowerCase().replace(/\.$/, "");
 }

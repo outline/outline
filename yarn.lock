@@ -2123,15 +2123,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/react-fontawesome@npm:^0.2.6":
-  version: 0.2.6
-  resolution: "@fortawesome/react-fontawesome@npm:0.2.6"
-  dependencies:
-    prop-types: "npm:^15.8.1"
+"@fortawesome/react-fontawesome@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "@fortawesome/react-fontawesome@npm:3.5.0"
   peerDependencies:
-    "@fortawesome/fontawesome-svg-core": ~1 || ~6 || ~7
-    react: ^16.3 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/d4b733ad211a6cf4354564124fd1119890d5497762d6eff39e4716e6ded709a3b8ec6064cc6ab423e12f0307ad159130e3341e5e46132ad1124a16b416b4a6c7
+    "@fortawesome/fontawesome-svg-core": ~6 || ~7
+    react: ^18.0.0 || ^19.0.0
+  checksum: 10c0/b1b854095f9cbd52fe18f02461e594452fc70e3977ceab5fd1c9206ac98f89e40500e7fb5625426fa0cc2dc7e65d3d86bd07b70171d58dc5d54b0c74878d3b44
   languageName: node
   linkType: hard
 
@@ -9279,10 +9277,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"email-providers@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "email-providers@npm:1.14.0"
-  checksum: 10c0/aa43ec6e7ba831da9740c965936d1eeb69ace652cc7d6bd60c76168d35075dc311ca4b63af982c2b5f7aa4b6527e34d1e69756334087421cb42d7afb3bd1d9e2
+"email-providers@npm:^2.27.0":
+  version: 2.27.0
+  resolution: "email-providers@npm:2.27.0"
+  checksum: 10c0/e21550bea705dd8f3584992df5b0eddb8efa77b7c58f2e20dabc79682b8e146bd799cb3205328102d5eec2e925cf2d8991f39f72e1a04910edf3c3955516f08a
   languageName: node
   linkType: hard
 
@@ -12367,15 +12365,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"koa-useragent@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "koa-useragent@npm:4.1.0"
-  dependencies:
-    express-useragent: "npm:^1.0.15"
-  checksum: 10c0/fe34ca88fc3d9eaa36a6d83478b238874093f21004d39e5135fe73b6b06959e1d6dfbdd0e61b7ba92c5e80ece54ab4243480f676bee1c5d15612897dacbf7b8e
-  languageName: node
-  linkType: hard
-
 "koa@npm:^3.0.3, koa@npm:^3.2.0":
   version: 3.2.0
   resolution: "koa@npm:3.2.0"
@@ -13954,7 +13943,7 @@ __metadata:
     "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
     "@fortawesome/free-brands-svg-icons": "npm:^7.3.1"
     "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"
-    "@fortawesome/react-fontawesome": "npm:^0.2.6"
+    "@fortawesome/react-fontawesome": "npm:^3.5.0"
     "@getoutline/react-roving-tabindex": "npm:^3.2.4"
     "@gitbeaker/rest": "npm:^43.8.0"
     "@hocuspocus/extension-redis": "npm:1.1.3"
@@ -14060,9 +14049,10 @@ __metadata:
     dd-trace: "npm:^5.131.1"
     diff: "npm:^5.2.2"
     discord-api-types: "npm:^0.38.48"
-    email-providers: "npm:^1.14.0"
+    email-providers: "npm:^2.27.0"
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.53.0"
+    express-useragent: "npm:^1.0.15"
     fake-indexeddb: "npm:^6.2.6"
     fast-deep-equal: "npm:^3.1.3"
     fast-myers-diff: "npm:^3.2.0"
@@ -14105,7 +14095,6 @@ __metadata:
     koa-logger: "npm:^3.2.1"
     koa-mount: "npm:^4.2.0"
     koa-sslify: "npm:5.0.1"
-    koa-useragent: "npm:^4.1.0"
     lib0: "npm:^0.2.119"
     lint-staged: "npm:^16.4.0"
     mailparser: "npm:^3.9.47"
@@ -15248,7 +15237,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.6.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.6.2":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
