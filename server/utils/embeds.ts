@@ -32,16 +32,19 @@ function isBlockedByXFrameOptions(value: string | null): boolean {
     return false;
   }
 
-  const normalized = value.toUpperCase().trim();
+  // Repeated headers are joined with commas.
+  return value.split(",").some((option) => {
+    const normalized = option.toUpperCase().trim();
 
-  // DENY - Cannot be embedded anywhere
-  // SAMEORIGIN - Can only be embedded on same origin (blocks us)
-  // ALLOW-FROM - Deprecated but treat as blocked
-  return (
-    normalized === "DENY" ||
-    normalized === "SAMEORIGIN" ||
-    normalized.startsWith("ALLOW-FROM")
-  );
+    // DENY - Cannot be embedded anywhere
+    // SAMEORIGIN - Can only be embedded on same origin (blocks us)
+    // ALLOW-FROM - Deprecated but treat as blocked
+    return (
+      normalized === "DENY" ||
+      normalized === "SAMEORIGIN" ||
+      normalized.startsWith("ALLOW-FROM")
+    );
+  });
 }
 
 /**
@@ -55,8 +58,8 @@ function isBlockedByCSP(value: string | null): boolean {
     return false;
   }
 
-  // Parse the CSP header to find frame-ancestors directive
-  const directives = value.split(";").map((d) => d.trim());
+  // Repeated headers are joined with commas, and each policy is enforced.
+  const directives = value.split(/[;,]/).map((d) => d.trim());
 
   for (const directive of directives) {
     const parts = directive.split(/\s+/);
@@ -76,7 +79,7 @@ function isBlockedByCSP(value: string | null): boolean {
       // If there are specific origins listed (not * or 'self'), we're probably not in the list
       // Allow if * is present anywhere in the list
       if (sources.includes("*")) {
-        return false;
+        continue;
       }
 
       // If specific origins are listed without *, treat as blocked (we're probably not in the list)

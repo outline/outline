@@ -69,6 +69,45 @@ describe("checkEmbeddability", () => {
       expect(result).toEqual({ embeddable: false, reason: "x-frame-options" });
     });
 
+    it("should return embeddable: false when X-Frame-Options is repeated", async () => {
+      mockEmbedResponse(embedUrl, {
+        headers: { "X-Frame-Options": "SAMEORIGIN, SAMEORIGIN" },
+      });
+
+      const result = await checkEmbeddability(embedUrl);
+      expect(result).toEqual({ embeddable: false, reason: "x-frame-options" });
+    });
+
+    it("should return embeddable: false when a later CSP header blocks framing", async () => {
+      mockEmbedResponse(embedUrl, {
+        headers: {
+          "Content-Security-Policy":
+            "default-src 'self', frame-ancestors 'none'",
+        },
+      });
+
+      const result = await checkEmbeddability(embedUrl);
+      expect(result).toEqual({
+        embeddable: false,
+        reason: "csp-frame-ancestors",
+      });
+    });
+
+    it("should return embeddable: false when any CSP header blocks framing", async () => {
+      mockEmbedResponse(embedUrl, {
+        headers: {
+          "Content-Security-Policy":
+            "frame-ancestors *, frame-ancestors 'self'",
+        },
+      });
+
+      const result = await checkEmbeddability(embedUrl);
+      expect(result).toEqual({
+        embeddable: false,
+        reason: "csp-frame-ancestors",
+      });
+    });
+
     it("should return embeddable: false when CSP frame-ancestors is 'none'", async () => {
       mockEmbedResponse(embedUrl, {
         headers: {
