@@ -1393,7 +1393,7 @@
   "Drag and drop the zip file from the Markdown export option in {{appName}}, or click to upload": "Kéo và thả tệp zip từ tùy chọn xuất Markdown trong {{appName}} hoặc nhấp để tải lên",
   "You can import a zip file of an Open Knowledge Format (OKF) bundle – folders become collections and documents, and document titles are read from YAML frontmatter.": "Bạn có thể nhập tệp zip của một gói Định dạng Tri thức Mở (OKF) – các thư mục sẽ trở thành bộ sưu tập và tài liệu, còn tiêu đề tài liệu được đọc từ phần đầu YAML.",
   "Drag and drop a zip file of the OKF bundle, or click to upload": "Kéo và thả tệp zip của gói OKF hoặc nhấp để tải lên",
-  "Choose an existing location to import into, or new collections will be created.": "Choose an existing location to import into, or new collections will be created.",
+  "Choose an existing location to import into, or new collections will be created.": "Chọn một vị trí hiện có để nhập vào, nếu không các bộ sưu tập mới sẽ được tạo.",
   "Set the default permission level for collections created from the import": "Set the default permission level for collections created from the import",
   "Configure": "Configure",
   "Never used": "Never used",
