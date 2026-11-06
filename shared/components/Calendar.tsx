@@ -164,4 +164,12 @@ const Wrapper = styled.div`
     font-weight: 500;
     opacity: 1;
   }
+
+  /* The days between the start and end of a range are softly highlighted. */
+  .rdp-day_range_middle.rdp-day_selected,
+  .rdp-day_range_middle.rdp-day_selected:hover {
+    background: ${s("listItemHoverBackground")};
+    color: ${s("text")};
+    font-weight: 400;
+  }
 `;
