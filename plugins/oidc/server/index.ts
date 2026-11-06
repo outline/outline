@@ -3,6 +3,12 @@ import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import OIDCClient from "./oidc";
 import router from "./auth/oidc";
+import customRouter from "./auth/customOIDC";
+import {
+  CUSTOM_OIDC_ID,
+  configureCustomOIDC,
+  customOIDCCallbackUrl,
+} from "./customOIDC";
 import env from "./env";
 
 // Check if OIDC is enabled with either manual configuration or issuer URL
@@ -38,3 +44,21 @@ if (enabled) {
   ]);
   Logger.info("plugins", "OIDC plugin registered");
 }
+
+PluginManager.add([
+  {
+    type: Hook.AuthProvider,
+    name: "OpenID Connect",
+    description:
+      "Adds OpenID compatible authentication providers configured by admins.",
+    priority: 150,
+    value: {
+      router: customRouter,
+      id: CUSTOM_OIDC_ID,
+      oauthClient: (authenticationProvider) =>
+        new OIDCClient(authenticationProvider.config),
+      configure: configureCustomOIDC,
+      callbackUrl: customOIDCCallbackUrl,
+    },
+  },
+]);

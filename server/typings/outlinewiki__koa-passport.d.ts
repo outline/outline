@@ -62,11 +62,11 @@ declare module "@outlinewiki/koa-passport" {
         callback?: (...args: any[]) => any
       ): AuthenticateRet;
       authorize(
-        strategy: string | string[],
+        strategy: string | string[] | Strategy,
         callback?: (...args: any[]) => any
       ): AuthorizeRet;
       authorize(
-        strategy: string | string[],
+        strategy: string | string[] | Strategy,
         options: AuthorizeOptions,
         callback?: (...args: any[]) => any
       ): AuthorizeRet;

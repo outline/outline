@@ -363,9 +363,307 @@ describe("#authenticationProviders.list", () => {
     expect(body.data[2].isConnected).toBe(false);
   });
 
+  it("should return every connected provider of the same type", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: "one.example.com",
+    });
+    await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: "two.example.com",
+    });
+
+    const res = await server.post("/api/authenticationProviders.list", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const google = body.data.filter(
+      (provider: { name: string }) => provider.name === "google"
+    );
+    expect(google.map((p: { providerId: string }) => p.providerId)).toEqual([
+      "one.example.com",
+      "two.example.com",
+    ]);
+    expect(google.every((p: { isConnected: boolean }) => p.isConnected)).toBe(
+      true
+    );
+  });
+
+  it("should not return unconnected providers on cloud hosted", async () => {
+    setCloudHosted();
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/authenticationProviders.list", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].name).toBe("slack");
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/authenticationProviders.list");
     expect(res.status).toEqual(401);
+  });
+});
+
+describe("#authenticationProviders.available", () => {
+  let planSpy: MockInstance<() => Plan>;
+
+  beforeEach(() => {
+    planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    planSpy.mockRestore();
+  });
+
+  it("should return the provider types that can be added", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post(
+      "/api/authenticationProviders.available",
+      user
+    );
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const ids = body.data.map((provider: { id: string }) => provider.id);
+    expect(ids).toContain("google");
+    expect(ids).not.toContain("email");
+    expect(ids).not.toContain("passkeys");
+
+    const custom = body.data.find(
+      (provider: { id: string }) => provider.id === "oidc-custom"
+    );
+    expect(custom.isConfigurable).toBe(true);
+    expect(custom.callbackUrl).toEqual(`${env.URL}/auth/oidc-custom.callback`);
+  });
+
+  it("should exclude configurable providers without the entitlement", async () => {
+    planSpy.mockReturnValue(Plan.Community);
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post(
+      "/api/authenticationProviders.available",
+      user
+    );
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(
+      body.data.some(
+        (provider: { id: string }) => provider.id === "oidc-custom"
+      )
+    ).toBe(false);
+  });
+
+  it("should require authorization", async () => {
+    const user = await buildUser();
+    const res = await server.post(
+      "/api/authenticationProviders.available",
+      user
+    );
+    expect(res.status).toEqual(403);
+  });
+});
+
+const customConfig = {
+  displayName: "Okta",
+  authorizationUrl: "https://auth.example.com/authorize",
+  tokenUrl: "https://auth.example.com/token",
+  userInfoUrl: "https://auth.example.com/userinfo",
+  clientId: "client-id",
+  clientSecret: "client-secret",
+};
+
+describe("#authenticationProviders.create", () => {
+  let planSpy: MockInstance<() => Plan>;
+
+  beforeEach(() => {
+    planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    planSpy.mockRestore();
+  });
+
+  it("should create a disabled provider from the configuration", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: { name: "oidc-custom", config: customConfig },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("oidc-custom");
+    expect(body.data.displayName).toEqual("Okta");
+    expect(body.data.isEnabled).toBe(false);
+    expect(body.data.providerId).toEqual(customConfig.authorizationUrl);
+    expect(body.data.config.clientId).toEqual("client-id");
+    expect(body.data.config.scopes).toEqual("openid profile email");
+    expect(body.data.config.clientSecret).toBeUndefined();
+
+    const provider = await AuthenticationProvider.findByPk(body.data.id);
+    expect(provider?.teamId).toEqual(team.id);
+    expect(provider?.config?.clientSecret).toEqual("client-secret");
+  });
+
+  it("should allow multiple providers of the same type", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const first = await server.post(
+      "/api/authenticationProviders.create",
+      user,
+      { body: { name: "oidc-custom", config: customConfig } }
+    );
+    const second = await server.post(
+      "/api/authenticationProviders.create",
+      user,
+      {
+        body: {
+          name: "oidc-custom",
+          config: {
+            ...customConfig,
+            authorizationUrl: "https://other.example.com/authorize",
+          },
+        },
+      }
+    );
+    expect(first.status).toEqual(200);
+    expect(second.status).toEqual(200);
+  });
+
+  it("should not allow a provider with the same issuer twice", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    await server.post("/api/authenticationProviders.create", user, {
+      body: { name: "oidc-custom", config: customConfig },
+    });
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: { name: "oidc-custom", config: customConfig },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require endpoints without an issuer", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: {
+        name: "oidc-custom",
+        config: { ...customConfig, tokenUrl: undefined },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow private endpoints on cloud hosted", async () => {
+    setCloudHosted();
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: {
+        name: "oidc-custom",
+        config: { ...customConfig, tokenUrl: "http://127.0.0.1/token" },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow providers that cannot be configured", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: { name: "google", config: customConfig },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require the entitlement", async () => {
+    planSpy.mockReturnValue(Plan.Community);
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: { name: "oidc-custom", config: customConfig },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authorization", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/authenticationProviders.create", user, {
+      body: { name: "oidc-custom", config: customConfig },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#authenticationProviders.update config", () => {
+  let planSpy: MockInstance<() => Plan>;
+
+  beforeEach(() => {
+    planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+  });
+
+  afterEach(() => {
+    planSpy.mockRestore();
+  });
+
+  it("should update the configuration and keep the secret", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const created = await server.post(
+      "/api/authenticationProviders.create",
+      user,
+      { body: { name: "oidc-custom", config: customConfig } }
+    );
+    const { data } = await created.json();
+
+    const res = await server.post("/api/authenticationProviders.update", user, {
+      body: {
+        id: data.id,
+        config: {
+          ...customConfig,
+          displayName: "Corporate SSO",
+          clientSecret: undefined,
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.displayName).toEqual("Corporate SSO");
+
+    const provider = await AuthenticationProvider.findByPk(data.id);
+    expect(provider?.config?.displayName).toEqual("Corporate SSO");
+    expect(provider?.config?.clientSecret).toEqual("client-secret");
+  });
+
+  it("should not configure providers that are not configurable", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const [provider] = await team.$get("authenticationProviders");
+
+    const res = await server.post("/api/authenticationProviders.update", user, {
+      body: { id: provider.id, config: customConfig },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 
@@ -411,6 +709,27 @@ describe("#authenticationProviders.delete", () => {
       },
     });
     expect(count).toBe(0);
+  });
+
+  it("should destroy configured providers on self-hosted", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const created = await server.post(
+      "/api/authenticationProviders.create",
+      user,
+      { body: { name: "oidc-custom", config: customConfig } }
+    );
+    const { data } = await created.json();
+
+    const res = await server.post("/api/authenticationProviders.delete", user, {
+      body: { id: data.id },
+    });
+    expect(res.status).toEqual(200);
+    expect(await AuthenticationProvider.findByPk(data.id)).toBeNull();
+    planSpy.mockRestore();
   });
 
   it("should require authorization", async () => {

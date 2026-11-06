@@ -116,6 +116,9 @@ async function accountProvisioner(
         "authenticationProvider",
         authenticationProviderParams
       );
+    } else if (!authenticationProvider.enabled) {
+      // Signing in again explicitly reconnects a disabled provider.
+      await authenticationProvider.update({ enabled: true });
     }
 
     return {

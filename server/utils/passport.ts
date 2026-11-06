@@ -241,17 +241,19 @@ export class StateStore {
  * @param method The HTTP method to use.
  * @param endpoint The endpoint to request.
  * @param accessToken The access token to authenticate with.
+ * @param options.allowPrivateIPAddress Whether the endpoint may resolve to a private IP address.
  * @returns The parsed response body.
  * @throws {InternalError} When the response body cannot be parsed.
  */
 export async function request<T = JwtPayload>(
   method: "GET" | "POST",
   endpoint: string,
-  accessToken: string
+  accessToken: string,
+  { allowPrivateIPAddress = true }: { allowPrivateIPAddress?: boolean } = {}
 ): Promise<T> {
   const response = await fetch(endpoint, {
     method,
-    allowPrivateIPAddress: true,
+    allowPrivateIPAddress,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

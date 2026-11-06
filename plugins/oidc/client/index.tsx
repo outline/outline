@@ -8,4 +8,10 @@ PluginManager.add([
     type: Hook.Icon,
     value: Icon,
   },
+  {
+    ...config,
+    id: "oidc-custom",
+    type: Hook.Icon,
+    value: Icon,
+  },
 ]);

@@ -19,10 +19,12 @@ export interface OIDCConfiguration {
 /**
  * Fetches OIDC configuration from the well-known endpoint
  * @param issuerUrl The OIDC issuer URL
+ * @param options.allowPrivateIPAddress Whether the issuer may resolve to a private IP address.
  * @returns Promise resolving to the OIDC configuration
  */
 export async function fetchOIDCConfiguration(
-  issuerUrl: string
+  issuerUrl: string,
+  { allowPrivateIPAddress = true }: { allowPrivateIPAddress?: boolean } = {}
 ): Promise<OIDCConfiguration> {
   try {
     const wellKnownPath = "/.well-known/openid-configuration";
@@ -53,7 +55,7 @@ export async function fetchOIDCConfiguration(
         Accept: "application/json",
       },
       timeout: 10000, // 10 second timeout
-      allowPrivateIPAddress: true,
+      allowPrivateIPAddress,
     });
 
     if (!response.ok) {

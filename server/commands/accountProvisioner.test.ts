@@ -2,6 +2,7 @@ import Router from "@koa/router";
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
+import type { AuthenticationProvider } from "@server/models";
 import { Event, TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
@@ -714,6 +715,40 @@ describe("accountProvisioner", () => {
 
       const providers = await team.$get("authenticationProviders");
       expect(providers.find((p) => p.name === "google")).toBeTruthy();
+    });
+
+    it("should enable a disabled authentication provider when an admin connects it", async () => {
+      const admin = await buildAdmin();
+      const team = admin.team;
+      const ctxWithAdmin = createContext({ ip, user: admin });
+      const providerId = faker.internet.domainName();
+      const provider = await team.$create<AuthenticationProvider>(
+        "authenticationProvider",
+        { name: "google", providerId, enabled: false }
+      );
+
+      await accountProvisioner(ctxWithAdmin, {
+        user: {
+          name: admin.name,
+          email: admin.email!,
+        },
+        team: {
+          teamId: team.id,
+          subdomain: team.subdomain!,
+        },
+        authenticationProvider: {
+          name: "google",
+          providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "456",
+          scopes: ["read"],
+        },
+      });
+
+      await provider.reload();
+      expect(provider.enabled).toEqual(true);
     });
   });
 

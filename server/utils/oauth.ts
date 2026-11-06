@@ -123,6 +123,9 @@ export default abstract class OAuthClient {
     userinfo: "",
   };
 
+  /** Whether the endpoints may resolve to private IP addresses. */
+  protected allowPrivateIPAddress = true;
+
   constructor(clientId: string, clientSecret: string) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -135,7 +138,7 @@ export default abstract class OAuthClient {
     try {
       response = await fetch(this.endpoints.userinfo, {
         method: "GET",
-        allowPrivateIPAddress: true,
+        allowPrivateIPAddress: this.allowPrivateIPAddress,
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -176,7 +179,7 @@ export default abstract class OAuthClient {
 
       response = await fetch(endpoint, {
         method: "POST",
-        allowPrivateIPAddress: true,
+        allowPrivateIPAddress: this.allowPrivateIPAddress,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },

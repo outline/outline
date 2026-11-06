@@ -18,10 +18,14 @@ import {
   PrimaryKey,
   Scopes,
 } from "sequelize-typescript";
-import type { AuthenticationProviderSettings } from "@shared/types";
+import type {
+  AuthenticationProviderConfig,
+  AuthenticationProviderSettings,
+} from "@shared/types";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import Model from "@server/models/base/Model";
 import { ValidationError } from "../errors";
+import Encrypted from "./decorators/Encrypted";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import Length from "./validators/Length";
@@ -80,6 +84,11 @@ class AuthenticationProvider extends Model<
   @Column(DataType.JSONB)
   settings: AuthenticationProviderSettings | null;
 
+  /** Configuration for providers that are set up by an admin, encrypted at rest. */
+  @Column(DataType.BLOB)
+  @Encrypted
+  config: AuthenticationProviderConfig | null;
+
   @CreatedAt
   createdAt: Date;
 
@@ -103,8 +112,10 @@ class AuthenticationProvider extends Model<
    */
   get displayName(): string {
     return (
+      this.config?.displayName ||
       AuthenticationHelper.providers.find((p) => p.value.id === this.name)
-        ?.name ?? this.name
+        ?.name ||
+      this.name
     );
   }
 
@@ -116,7 +127,7 @@ class AuthenticationProvider extends Model<
   get oauthClient() {
     return AuthenticationHelper.providers
       .find((p) => p.value.id === this.name)
-      ?.value.oauthClient?.();
+      ?.value.oauthClient?.(this);
   }
 
   /**

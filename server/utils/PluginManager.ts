@@ -4,6 +4,7 @@ import type Router from "@koa/router";
 import { isArray, sortBy } from "es-toolkit/compat";
 import type { z } from "zod";
 import type {
+  AuthenticationProviderConfig,
   Concrete,
   EmbedIntegrationSettings,
   IntegrationService,
@@ -11,6 +12,8 @@ import type {
 } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import type { ImportsCreateBody } from "@server/routes/api/imports/schema";
+import type { AuthenticationProviderConfigInput } from "@server/routes/api/authenticationProviders/schema";
+import type { AuthenticationProvider } from "@server/models";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
@@ -71,7 +74,19 @@ type PluginValueMap = {
      */
     allowEmailMatch?: boolean;
     /** Creates a client to validate and refresh the provider's access tokens. */
-    oauthClient?: () => OAuthClient;
+    oauthClient?: (
+      authenticationProvider: AuthenticationProvider
+    ) => OAuthClient;
+    /**
+     * Allows admins to add instances of this provider from settings, resolving
+     * the given input into the stored configuration and external identifier.
+     */
+    configure?: (
+      input: AuthenticationProviderConfigInput,
+      existing?: AuthenticationProviderConfig | null
+    ) => Promise<{ providerId: string; config: AuthenticationProviderConfig }>;
+    /** Returns the URL that identity providers redirect back to, for configured providers. */
+    callbackUrl?: () => string;
   };
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- typeof BaseEmail<EmailProps> isn't assignable from BaseEmail<Subtype>; plugins register heterogeneous template Props.
   [Hook.EmailTemplate]: Concrete<typeof BaseEmail<any>>;

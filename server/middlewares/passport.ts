@@ -1,4 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
+import type { Strategy } from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
 import {
   AuthorizationError,
@@ -51,10 +52,20 @@ async function getValidatedHost(host: string): Promise<string> {
   return fallback;
 }
 
-export default function createMiddleware(providerName: string) {
+/**
+ * Creates middleware that completes an authentication flow and signs the user in.
+ *
+ * @param providerName the name of the authentication provider.
+ * @param strategy a strategy instance to use instead of a registered strategy.
+ * @returns the middleware.
+ */
+export default function createMiddleware(
+  providerName: string,
+  strategy?: Strategy
+) {
   return function passportMiddleware(ctx: Context) {
     return passport.authorize(
-      providerName,
+      strategy ?? providerName,
       {
         session: false,
       },

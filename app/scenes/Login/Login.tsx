@@ -371,7 +371,7 @@ function Login({ children, onBack }: Props) {
         )}
         <Notices />
         {defaultProvider && (
-          <React.Fragment key={defaultProvider.id}>
+          <React.Fragment key={defaultProvider.authUrl}>
             <AuthenticationProvider
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
@@ -391,13 +391,13 @@ function Login({ children, onBack }: Props) {
           </React.Fragment>
         )}
         {config.providers.map((provider) => {
-          if (defaultProvider && provider.id === defaultProvider.id) {
+          if (defaultProvider && provider.authUrl === defaultProvider.authUrl) {
             return null;
           }
 
           return (
             <AuthenticationProvider
-              key={provider.id}
+              key={provider.authUrl}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
               preferOTP={preferOTP}

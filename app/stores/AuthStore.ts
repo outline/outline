@@ -407,6 +407,8 @@ export default class AuthStore extends Store<Team> {
       // Route through the server so it can build a spec-compliant RP-initiated
       // logout URL (including the id_token_hint) for the OIDC provider.
       this.logoutRedirectUri = "/auth/oidc.logout";
+    } else if (userInitiated && this.lastSignedIn === "oidc-custom") {
+      this.logoutRedirectUri = "/auth/oidc-custom.logout";
     }
 
     if (clearCache) {

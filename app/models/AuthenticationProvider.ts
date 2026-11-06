@@ -1,9 +1,10 @@
 import { computed, observable } from "mobx";
-import type { AuthenticationProviderSettings } from "@shared/types";
+import type {
+  AuthenticationProviderSettings,
+  PublicAuthenticationProviderConfig,
+} from "@shared/types";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
-import { AfterDelete } from "./decorators/Lifecycle";
-import type AuthenticationProvidersStore from "~/stores/AuthenticationProvidersStore";
 
 class AuthenticationProvider extends Model {
   static modelName = "AuthenticationProvider";
@@ -13,10 +14,12 @@ class AuthenticationProvider extends Model {
     this.initialize(fields);
   }
 
+  @observable
   displayName: string;
 
   name: string;
 
+  @observable
   providerId: string;
 
   groupSyncSupported: boolean;
@@ -36,20 +39,19 @@ class AuthenticationProvider extends Model {
   @observable
   settings: AuthenticationProviderSettings | undefined = undefined;
 
+  /** Configuration of a provider that was set up by an admin. */
+  @observable
+  config: PublicAuthenticationProviderConfig | undefined = undefined;
+
   @computed
   get isActive() {
     return this.isEnabled && this.isConnected;
   }
 
-  @AfterDelete
-  static afterDelete(model: AuthenticationProvider) {
-    // Restore a placeholder record to allow re-connection
-    return (model.store as AuthenticationProvidersStore).add(
-      Object.assign({}, model, {
-        isEnabled: false,
-        isConnected: false,
-      })
-    );
+  /** Whether this provider was set up by an admin rather than the server. */
+  @computed
+  get isConfigured() {
+    return !!this.config;
   }
 }
 

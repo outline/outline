@@ -9,6 +9,7 @@ import {
   buildUserPasskey,
   buildSubdomain,
 } from "@server/test/factories";
+import type { AuthenticationProvider } from "@server/models";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
@@ -138,6 +139,58 @@ describe("#auth.config", () => {
     expect(body.data.providers[0].name).toBe("Slack");
     expect(body.data.providers[1].name).toBe("OpenID Connect");
     expect(body.data.providers[2].name).toBe("Google");
+  });
+
+  it("should return enabled configured providers for team subdomain", async () => {
+    const subdomain = buildSubdomain();
+    const team = await buildTeam({
+      guestSignin: false,
+      subdomain,
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: randomUUID(),
+        },
+      ],
+    });
+    const config = {
+      displayName: "Okta",
+      authorizationUrl: "https://auth.example.com/authorize",
+      tokenUrl: "https://auth.example.com/token",
+      userInfoUrl: "https://auth.example.com/userinfo",
+      clientId: "client-id",
+      clientSecret: "client-secret",
+      scopes: "openid profile email",
+      usernameClaim: "preferred_username",
+    };
+    const enabled = await team.$create<AuthenticationProvider>(
+      "authenticationProvider",
+      { name: "oidc-custom", providerId: randomUUID(), config }
+    );
+    await team.$create("authenticationProvider", {
+      name: "oidc-custom",
+      providerId: randomUUID(),
+      enabled: false,
+      config: { ...config, displayName: "Disabled" },
+    });
+
+    const res = await server.post("/api/auth.config", {
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.providers.length).toBe(2);
+    expect(
+      body.data.providers.find(
+        (provider: { id: string }) => provider.id === "oidc-custom"
+      )
+    ).toEqual({
+      id: "oidc-custom",
+      name: "Okta",
+      authUrl: `/auth/oidc-custom/${enabled.id}`,
+    });
   });
 
   it("should return available providers for team subdomain", async () => {

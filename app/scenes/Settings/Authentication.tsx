@@ -30,6 +30,9 @@ import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import { client } from "~/utils/ApiClient";
 import { useTheme } from "styled-components";
 import { VStack } from "~/components/primitives/VStack";
+import type { AvailableAuthenticationProvider } from "~/stores/AuthenticationProvidersStore";
+import AddAuthenticationProviderMenu from "./components/AddAuthenticationProviderMenu";
+import { OIDCProviderForm } from "./components/OIDCProviderForm";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
@@ -49,6 +52,10 @@ function Authentication() {
       void request();
     }
   }, [loading, providers, request]);
+
+  React.useEffect(() => {
+    void authenticationProviders.fetchAvailable();
+  }, [authenticationProviders]);
 
   const groupSyncResult = useConsumeQueryParam("groupSync");
 
@@ -96,6 +103,7 @@ function Authentication() {
           <ConfirmationDialog
             onSubmit={async () => {
               await provider.delete();
+              await request();
               toast.success(t("Settings saved"));
             }}
             savingText={`${t("Removing")}…`}
@@ -111,15 +119,74 @@ function Authentication() {
         ),
       });
     },
-    [dialogs, t]
+    [dialogs, request, t]
   );
 
-  const handleConnectProvider = React.useCallback((name: string) => {
+  const handleConnectProvider = React.useCallback((path: string) => {
     setPostLoginPath(settingsPath("authentication"));
     // Start the flow on the current workspace origin so the signed-in actor is
     // captured from the host-scoped session before bouncing to the apex.
-    window.location.href = toRelative(getRedirectUrl(`/auth/${name}`));
+    window.location.href = toRelative(getRedirectUrl(`/auth/${path}`));
   }, []);
+
+  const handleAddProvider = React.useCallback(
+    (available: AvailableAuthenticationProvider) => {
+      if (!available.isConfigurable) {
+        handleConnectProvider(available.id);
+        return;
+      }
+
+      dialogs.openModal({
+        title: t("Add {{ authProvider }} provider", {
+          authProvider: available.name,
+        }),
+        content: (
+          <OIDCProviderForm
+            callbackUrl={available.callbackUrl}
+            onSubmit={async (config) => {
+              const provider = await authenticationProviders.createConfigured(
+                available.id,
+                config
+              );
+              dialogs.closeAllModals();
+              handleConnectProvider(`${provider.name}/${provider.id}`);
+            }}
+          />
+        ),
+      });
+    },
+    [authenticationProviders, dialogs, handleConnectProvider, t]
+  );
+
+  const handleEditProvider = React.useCallback(
+    (provider: AuthenticationProvider) => {
+      const available = authenticationProviders.available.find(
+        (item) => item.id === provider.name
+      );
+
+      dialogs.openModal({
+        title: t("Edit {{ authProvider }}", {
+          authProvider: provider.displayName,
+        }),
+        content: (
+          <OIDCProviderForm
+            provider={provider}
+            callbackUrl={available?.callbackUrl}
+            onSubmit={async (config) => {
+              await authenticationProviders.updateConfig(provider, config);
+              dialogs.closeAllModals();
+              toast.success(t("Settings saved"));
+            }}
+            onRemove={() => {
+              dialogs.closeAllModals();
+              void handleRemoveProvider(provider);
+            }}
+          />
+        ),
+      });
+    },
+    [authenticationProviders, dialogs, handleRemoveProvider, t]
+  );
 
   const handleToggleGroupSync = React.useCallback(
     (provider: AuthenticationProvider, checked: boolean) => {
@@ -193,7 +260,15 @@ function Authentication() {
         </Trans>
       </Text>
 
-      <Heading as="h2">{t("Sign in")}</Heading>
+      <Flex justify="space-between" align="center">
+        <Heading as="h2">{t("Sign in")}</Heading>
+        {can.createAuthenticationProvider && (
+          <AddAuthenticationProviderMenu
+            providers={authenticationProviders.available}
+            onSelect={handleAddProvider}
+          />
+        )}
+      </Flex>
 
       {authenticationProviders.orderedData.map((provider) => {
         // Group sync can still be disabled after losing the entitlement.
@@ -203,30 +278,49 @@ function Authentication() {
           (!!can.externalGroupSync || !!provider.settings?.groupSyncEnabled);
 
         return (
-          <React.Fragment key={provider.name}>
+          <React.Fragment key={provider.id}>
             <SettingRow
               label={
                 <Flex gap={8} align="center">
                   <PluginIcon id={provider.name} /> {provider.displayName}
                 </Flex>
               }
-              name={provider.name}
+              name={provider.id}
               description={
-                provider.isConnected
-                  ? t("Allow members to sign in with {{ authProvider }}", {
-                      authProvider: provider.displayName,
-                    })
-                  : t(
-                      "Connect {{ authProvider }} to allow members to sign in",
-                      {
-                        authProvider: provider.displayName,
-                      }
+                provider.isConfigured && !provider.isEnabled
+                  ? t(
+                      "Sign in with {{ authProvider }} to verify the configuration and enable it",
+                      { authProvider: provider.displayName }
                     )
+                  : provider.isConnected
+                    ? t("Allow members to sign in with {{ authProvider }}", {
+                        authProvider: provider.displayName,
+                      })
+                    : t(
+                        "Connect {{ authProvider }} to allow members to sign in",
+                        {
+                          authProvider: provider.displayName,
+                        }
+                      )
               }
               border={!showGroupSync}
             >
               <Flex align="center" gap={12}>
-                {provider.isConnected ? (
+                {provider.isConfigured && (
+                  <Button onClick={() => handleEditProvider(provider)} neutral>
+                    {t("Edit")}
+                  </Button>
+                )}
+                {provider.isConfigured && !provider.isEnabled ? (
+                  <Button
+                    onClick={() =>
+                      handleConnectProvider(`${provider.name}/${provider.id}`)
+                    }
+                    neutral
+                  >
+                    {t("Connect")}
+                  </Button>
+                ) : provider.isConnected ? (
                   <VStack align="start">
                     <Button
                       icon={
@@ -262,7 +356,7 @@ function Authentication() {
             {showGroupSync && (
               <SettingRow
                 label={t("Group sync")}
-                name={`groupSync-${provider.name}`}
+                name={`groupSync-${provider.id}`}
                 description={
                   provider.groupSyncRequiresSetup &&
                   !provider.settings?.groupSyncEnabled
@@ -292,7 +386,7 @@ function Authentication() {
                   </Button>
                 ) : (
                   <Switch
-                    id={`groupSync-${provider.name}`}
+                    id={`groupSync-${provider.id}`}
                     checked={provider.settings?.groupSyncEnabled ?? false}
                     onChange={(checked) =>
                       handleToggleGroupSync(provider, checked)
@@ -306,14 +400,14 @@ function Authentication() {
               provider.settings?.groupSyncEnabled && (
                 <SettingRow
                   label={t("Group claim")}
-                  name={`groupClaim-${provider.name}`}
+                  name={`groupClaim-${provider.id}`}
                   description={t(
                     "The claim in the provider response that contains group names (e.g. groups, roles)"
                   )}
                   border={false}
                 >
                   <Input
-                    id={`groupClaim-${provider.name}`}
+                    id={`groupClaim-${provider.id}`}
                     defaultValue={provider.settings?.groupClaim ?? "groups"}
                     placeholder="groups"
                     onBlur={(ev: React.FocusEvent<HTMLInputElement>) => {

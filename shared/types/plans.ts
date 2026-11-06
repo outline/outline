@@ -30,4 +30,6 @@ export enum PlanFeature {
   CustomDomain = "customDomain",
   /** SAML authentication provider */
   SAML = "saml",
+  /** OpenID Connect authentication providers configured by admins */
+  OIDC = "oidc",
 }
