@@ -487,7 +487,9 @@ describe("#urlRegex", () => {
 
   it("should return corresponding regex otherwise", () => {
     const regex = urlRegex("https://docs.google.com");
-    expect(regex?.source).toBe(/^https:\/\/docs\.google\.com/.source);
+    expect(regex?.source).toBe(
+      /^https:\/\/docs\.google\.com(?=[/?#]|$)/.source
+    );
     expect(regex?.test("https://docs.google.com")).toBe(true);
     expect(regex?.test("https://docs.google.com/")).toBe(true);
     expect(regex?.test("https://docs.google.com/d/123")).toBe(true);
@@ -498,6 +500,16 @@ describe("#urlRegex", () => {
     expect(regex?.test("javascript:alert(1)//https://docs.google.com")).toBe(
       false
     );
+  });
+
+  it("should only match the exact origin", () => {
+    const regex = urlRegex("https://docs.google.com");
+    expect(regex?.test("https://docs.google.com?a=1")).toBe(true);
+    expect(regex?.test("https://docs.google.com#a")).toBe(true);
+    expect(regex?.test("https://docs.google.com.evil.net/x")).toBe(false);
+    expect(regex?.test("https://docs.google.com@evil.net/x")).toBe(false);
+    expect(regex?.test("https://docs.google.com\\@evil.net/x")).toBe(false);
+    expect(regex?.test("https://docs.google.com:8080/x")).toBe(false);
   });
 });
 
