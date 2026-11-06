@@ -28,10 +28,10 @@ export const Translations = () => (
     />
     <Trans defaults={`Can view only what is explicitly shared`} />
     <Trans
-      defaults={`SAML assertion was invalid or missing fields, please check your configuration`}
+      defaults={`SAML assertion was invalid or missing fields – please check your configuration`}
     />
     <Trans
-      defaults={`AI generated answer based on related documents in your workspace`}
+      defaults={`AI-generated answer based on related documents in your workspace`}
     />
     <Trans defaults={`References`} />
     <Trans
@@ -74,7 +74,7 @@ export const Translations = () => (
     <Trans defaults={`Could not load events`} />
     <Trans defaults={`Audit Log`} />
     <Trans
-      defaults={`The audit log details the history of security related and other events across your knowledge base.`}
+      defaults={`The audit log details the history of security-related and other events across your knowledge base.`}
     />
     <Trans defaults={`IP address`} />
     <Trans defaults={`Actor`} />
@@ -89,22 +89,22 @@ export const Translations = () => (
     <Trans defaults={`Date archived`} />
     <Trans defaults={`Could not load collections`} />
     <Trans
-      defaults={`Manage the permissions and settings of all collections in the knowledge base. As a workspace admin you can also administer private collections.`}
+      defaults={`Manage the permissions and settings of all collections in the knowledge base. As a workspace admin, you can also administer private collections.`}
     />
     <Trans
-      defaults={`Automatically index and search document content from {{appName}} inside <4>Glean</4> in realtime.`}
+      defaults={`Automatically index and search document content from {{appName}} inside <4>Glean</4> in real time.`}
     />
     <Trans defaults={`API Endpoint`} />
     <Trans defaults={`API Secret`} />
     <Trans defaults={`Datasource`} />
     <Trans
-      defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach or increase licensed seats please contact your account manager or email <4>priority@getoutline.com</4>.`}
+      defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach, or to increase licensed seats, please contact your account manager or email <4>priority@getoutline.com</4>.`}
     />
     <Trans
-      defaults={`Sorry, an answer could not be found in the collection, try widening your search.`}
+      defaults={`Sorry, an answer could not be found in the collection. Try widening your search.`}
     />
     <Trans
-      defaults={`Sorry, an answer could not be found in the workspace, try widening your search.`}
+      defaults={`Sorry, an answer could not be found in the workspace. Try widening your search.`}
     />
     <Trans defaults={`Looking for answers`} />
     <Trans defaults="Answer to “{{ query }}”" />

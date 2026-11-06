@@ -135,7 +135,7 @@ function DocumentMove({ documents }: Props) {
           document.move(options)
         );
         if (!succeeded) {
-          toast.error(t("Couldn’t move the document, try again?"));
+          toast.error(t("Couldn’t move the document. Try again?"));
           return;
         }
         toast.success(t("{{ count }} document moved", { count: succeeded }));
@@ -143,7 +143,7 @@ function DocumentMove({ documents }: Props) {
 
       dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn’t move the document, try again?"));
+      toast.error(t("Couldn’t move the document. Try again?"));
     } finally {
       setMoving(false);
     }

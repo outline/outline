@@ -85,7 +85,7 @@ function DropToImport({
       onSubmit();
       toast.message(file.name, {
         description: t(
-          "Your import is being processed, you can safely leave this page"
+          "Your import is being processed – you can safely leave this page"
         ),
       });
     } catch (err) {

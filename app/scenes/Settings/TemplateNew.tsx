@@ -26,7 +26,7 @@ function TemplateNewScene() {
         );
         history.replace(template.path);
       } catch (_err) {
-        toast.error(t("Couldn’t create the template, try again?"));
+        toast.error(t("Couldn’t create the template. Try again?"));
         history.replace(settingsPath("templates"));
       }
     }
