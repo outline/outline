@@ -130,7 +130,6 @@
     "dd-trace": "^5.131.1",
     "diff": "^5.2.2",
     "email-providers": "^1.14.0",
-    "emoji-mart": "^5.6.0",
     "emoji-regex": "^10.6.0",
     "es-toolkit": "^1.53.0",
     "fast-deep-equal": "^3.1.3",

@@ -5648,17 +5648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0":
-  version: 3.37.0
-  resolution: "@smithy/core@npm:3.37.0"
-  dependencies:
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/9aae76ef4d5597154c589ffd35a84ab51e38114d1ff6068d0cf0c9383e675f04203f8a02adb422b80337e2d336aeda7b55b2b5b61bfe73682d0d5fa03c3251b1
-  languageName: node
-  linkType: hard
-
-"@smithy/core@npm:^3.37.0, @smithy/core@npm:^3.38.0, @smithy/core@npm:^3.38.1":
+"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.37.0, @smithy/core@npm:^3.38.0, @smithy/core@npm:^3.38.1":
   version: 3.38.1
   resolution: "@smithy/core@npm:3.38.1"
   dependencies:
@@ -5701,18 +5691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/signature-v4@npm:^5.7.4":
-  version: 5.7.4
-  resolution: "@smithy/signature-v4@npm:5.7.4"
-  dependencies:
-    "@smithy/core": "npm:^3.35.0"
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/4b8b00ea25122f4fe2233160f8b9e98841fbd1d91004d78e4dba58e34a31d741de0915e3108ef40f2130677fedb7b3a947a8a6d701b06c5117a6f8d05006de58
-  languageName: node
-  linkType: hard
-
-"@smithy/signature-v4@npm:^5.7.5":
+"@smithy/signature-v4@npm:^5.7.4, @smithy/signature-v4@npm:^5.7.5":
   version: 5.7.5
   resolution: "@smithy/signature-v4@npm:5.7.5"
   dependencies:
@@ -9314,13 +9293,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"emoji-mart@npm:^5.6.0":
-  version: 5.6.0
-  resolution: "emoji-mart@npm:5.6.0"
-  checksum: 10c0/23e68ab10984f101b696d8f8e103e553ffa8e4d644e9a315190a9657903f71b833db09aac51b05de20f33bb9eef5bc1425eecdb2437042b25aff2dad0231f029
-  languageName: node
-  linkType: hard
-
 "emoji-regex@npm:^10.3.0, emoji-regex@npm:^10.6.0":
   version: 10.6.0
   resolution: "emoji-regex@npm:10.6.0"
@@ -10301,18 +10273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^11.2.0":
-  version: 11.3.6
-  resolution: "fs-extra@npm:11.3.6"
-  dependencies:
-    graceful-fs: "npm:^4.2.0"
-    jsonfile: "npm:^6.0.1"
-    universalify: "npm:^2.0.0"
-  checksum: 10c0/191c96bf71519fe08595f7920b6e568f6e44b48ed968624f35cb3bb7f4f9b05718b99cd6bf81938c0f7b1daa6d151383c33e0cbfdfe4d95419d7ea121de8e91a
-  languageName: node
-  linkType: hard
-
-"fs-extra@npm:^11.4.1":
+"fs-extra@npm:^11.2.0, fs-extra@npm:^11.4.1":
   version: 11.4.1
   resolution: "fs-extra@npm:11.4.1"
   dependencies:
@@ -14100,7 +14061,6 @@ __metadata:
     diff: "npm:^5.2.2"
     discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^1.14.0"
-    emoji-mart: "npm:^5.6.0"
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.53.0"
     fake-indexeddb: "npm:^6.2.6"
