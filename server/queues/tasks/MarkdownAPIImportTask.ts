@@ -39,15 +39,18 @@ interface DiscoveredDocument {
   id: string;
   title: string;
   pathInZip: string;
-  collectionId: string;
+  rootId: string;
   parentDocumentId?: string;
   markdownText: string;
   children: DiscoveredDocument[];
 }
 
-interface DiscoveredCollection {
+interface DiscoveredRootNode {
   id: string;
   title: string;
+  synthetic?: boolean;
+  /** The markdown file that holds the content of this root node, if any. */
+  contentFile?: ZipTreeNode;
   children: DiscoveredDocument[];
 }
 
@@ -288,22 +291,30 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         }
       );
 
-      const rootNodes = this.resolveCollectionRootNodes(tree.children);
+      const topLevelNodes = this.resolveCollectionRootNodes(tree.children);
 
-      if (rootNodes.length === 0) {
+      if (topLevelNodes.length === 0) {
         throw FileImportError("Could not find valid content in zip file");
       }
 
-      const collections: DiscoveredCollection[] = [];
+      const rootNodes: DiscoveredRootNode[] = [];
       const manifest: MarkdownAttachmentManifestItem[] = [];
       // Loose markdown files that sit at the archive root rather than inside a
-      // collection folder are gathered into a fallback collection below.
+      // root folder are gathered into a synthetic fallback root node below.
       const looseDocuments: ZipTreeNode[] = [];
+      // Folders that hold the children of a loose markdown file of the same name.
+      const looseDocumentFolders: ZipTreeNode[] = [];
+      const hasDestination =
+        !!importTask.import.collectionId || !!importTask.import.documentId;
+      const looseFilesByTitle = new Map(
+        topLevelNodes
+          .filter((node) => this.isMarkdownFile(node))
+          .map((node) => [node.title, node])
+      );
 
-      for (const node of rootNodes) {
+      for (const node of topLevelNodes) {
         if (node.children.length === 0) {
-          const ext = path.extname(node.name).toLowerCase();
-          if (ext === ".md" || ext === ".markdown") {
+          if (this.isMarkdownFile(node)) {
             looseDocuments.push(node);
           } else {
             manifest.push({
@@ -321,34 +332,51 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           continue;
         }
 
-        const collection: DiscoveredCollection = {
+        // A document export writes "name.md" beside "name/". In a destination
+        // they form one document, otherwise the file is the collection overview.
+        const contentFile = looseFilesByTitle.get(node.title);
+        if (contentFile && hasDestination) {
+          looseDocumentFolders.push(node);
+          continue;
+        }
+
+        const rootNode: DiscoveredRootNode = {
           id: randomUUID(),
           title: node.title,
+          contentFile,
           children: [],
         };
-        collections.push(collection);
+        rootNodes.push(rootNode);
 
         this.collectDocumentsAndAttachments({
           children: node.children,
-          collectionId: collection.id,
-          out: collection.children,
+          rootId: rootNode.id,
+          out: rootNode.children,
           manifest,
           markdownByNode,
         });
       }
 
-      if (looseDocuments.length > 0) {
-        const collection: DiscoveredCollection = {
+      const contentFiles = new Set(rootNodes.map((c) => c.contentFile));
+      // Folders follow the files so that merged documents keep the file's path.
+      const syntheticChildren = [
+        ...looseDocuments.filter((node) => !contentFiles.has(node)),
+        ...looseDocumentFolders,
+      ];
+
+      if (syntheticChildren.length > 0) {
+        const rootNode: DiscoveredRootNode = {
           id: randomUUID(),
-          title: this.fallbackCollectionTitle(),
+          title: this.fallbackRootNodeTitle(),
+          synthetic: true,
           children: [],
         };
-        collections.push(collection);
+        rootNodes.push(rootNode);
 
         this.collectDocumentsAndAttachments({
-          children: looseDocuments,
-          collectionId: collection.id,
-          out: collection.children,
+          children: syntheticChildren,
+          rootId: rootNode.id,
+          out: rootNode.children,
           manifest,
           markdownByNode,
         });
@@ -364,61 +392,69 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           collectDocMap(d.children);
         }
       };
-      for (const c of collections) {
+      for (const c of rootNodes) {
+        if (c.contentFile) {
+          docMap[c.contentFile.pathInZip] = c.id;
+        }
         collectDocMap(c.children);
       }
 
       // Replace (not append) anything past the create-time placeholder with
-      // the freshly discovered collections so a retried bootstrap doesn't
+      // the freshly discovered root nodes so a retried bootstrap doesn't
       // accumulate duplicate entries with fresh UUIDs from a previous
-      // partial run. ImportsProcessor's persistence pass treats these as
-      // collections.
+      // partial run. ImportsProcessor's persistence pass materializes these
+      // as collections (default) or root documents (destination mode).
       const associatedImport = importTask.import;
       const placeholder = associatedImport.input[0];
       associatedImport.input = [
         placeholder,
-        ...collections.map((c) => ({
+        ...rootNodes.map((c) => ({
           externalId: c.id,
           permission: placeholder.permission,
+          synthetic: c.synthetic,
         })),
       ];
 
       associatedImport.scratch = { storageKey, manifest, docMap };
       await associatedImport.save();
 
-      // Append collection placeholder items so ImportsProcessor iterates
+      // Append root-node placeholder items so ImportsProcessor iterates
       // them during the bootstrap row (the earliest createdAt) — that
-      // guarantees collections land in the DB before any per-page document
+      // guarantees root nodes land in the DB before any per-page document
       // references them.
-      const collectionInputItems: MarkdownPageImportTaskInputItem[] =
-        collections.map((c) => ({
-          externalId: c.id,
-          title: c.title,
-          path: c.title,
-          markdownText: "",
-          attachmentMap: [],
-        }));
+      const rootInputItems: MarkdownPageImportTaskInputItem[] = rootNodes.map(
+        (c) => {
+          const markdownText = c.contentFile
+            ? (markdownByNode.get(c.contentFile) ?? "")
+            : "";
+          return {
+            externalId: c.id,
+            title: c.title,
+            path: c.contentFile?.pathInZip ?? c.title,
+            markdownText,
+            attachmentMap: this.attachmentsReferencedBy(markdownText, manifest),
+          };
+        }
+      );
 
-      importTask.input = [importTask.input[0], ...collectionInputItems];
+      importTask.input = [importTask.input[0], ...rootInputItems];
 
-      const collectionOutputs: ImportTaskOutput = collections.map((c) => ({
-        externalId: c.id,
-        title: truncate(c.title, {
-          length: CollectionValidation.maxNameLength,
-        }),
-        content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
-      }));
+      const rootOutputs: ImportTaskOutput = await Promise.all(
+        rootInputItems.map((item) =>
+          this.convertPage(item, docMap, CollectionValidation.maxNameLength)
+        )
+      );
 
-      // First wave of document tasks: only top-level docs in each collection.
+      // First wave of document tasks: only top-level docs in each root node.
       // Each carries its descendants in `children` and the per-page handler
       // re-emits them as the next wave of childTasksInput, producing a strict
       // depth-ordered cascade of ImportTask rows so parent FKs are always
       // satisfied at child-doc creation time.
-      const childTasksInput: ImportTaskInput<Markdown> = collections.flatMap(
+      const childTasksInput: ImportTaskInput<Markdown> = rootNodes.flatMap(
         (c) => c.children.map((d) => this.toPageInput(d, manifest))
       );
 
-      return { taskOutput: collectionOutputs, childTasksInput };
+      return { taskOutput: rootOutputs, childTasksInput };
     } finally {
       await handle.cleanup().catch(() => {});
     }
@@ -440,7 +476,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     return {
       externalId: doc.id,
       parentExternalId: doc.parentDocumentId,
-      collectionExternalId: doc.collectionId,
+      rootExternalId: doc.rootId,
       title: doc.title,
       path: doc.pathInZip,
       markdownText: doc.markdownText,
@@ -463,39 +499,9 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
 
     const items = importTask.input as MarkdownPageImportTaskInputItem[];
     for (const item of items) {
-      // Empty markdown short-circuits — used by collection placeholders so
-      // ImportsProcessor sees their externalId paired with empty content and
-      // builds a Collection rather than a Document. (Currently collections
-      // are persisted via the bootstrap task itself, so this branch is only
-      // a defensive fallback.)
-      if (!item.markdownText) {
-        taskOutput.push({
-          externalId: item.externalId,
-          title: truncate(item.title, {
-            length: DocumentValidation.maxTitleLength,
-          }),
-          content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
-        });
-      } else {
-        const transformedMarkdown = this.rewriteMarkdown(item, docMap);
-        const converted = await DocumentConverter.convert(
-          transformedMarkdown,
-          path.basename(item.path),
-          "text/markdown",
-          { extractTitle: this.shouldExtractTitleFromHeading() }
-        );
-        const { title, icon } = converted;
-        const doc = this.transformDocument(converted.doc);
-
-        taskOutput.push({
-          externalId: item.externalId,
-          title: truncate(title || item.title, {
-            length: DocumentValidation.maxTitleLength,
-          }),
-          icon,
-          content: doc.toJSON() as ProsemirrorDoc,
-        });
-      }
+      taskOutput.push(
+        await this.convertPage(item, docMap, DocumentValidation.maxTitleLength)
+      );
 
       // Cascade this doc's direct descendants as the next task wave. Their
       // ImportTask rows will be created after the current one returns, so
@@ -507,6 +513,46 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     }
 
     return { taskOutput, childTasksInput };
+  }
+
+  /**
+   * Converts a page's markdown text into task output.
+   *
+   * @param item The per-page task input.
+   * @param docMap Path → externalId map for internal link rewriting.
+   * @param maxTitleLength The maximum length of the title in the output.
+   * @returns The task output for the page.
+   */
+  private async convertPage(
+    item: MarkdownPageImportTaskInputItem,
+    docMap: Record<string, string>,
+    maxTitleLength: number
+  ): Promise<ImportTaskOutput[number]> {
+    // Empty markdown short-circuits, as a root node without a content file has
+    // no text to convert.
+    if (!item.markdownText) {
+      return {
+        externalId: item.externalId,
+        title: truncate(item.title, { length: maxTitleLength }),
+        content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
+      };
+    }
+
+    const converted = await DocumentConverter.convert(
+      this.rewriteMarkdown(item, docMap),
+      path.basename(item.path),
+      "text/markdown",
+      { extractTitle: this.shouldExtractTitleFromHeading() }
+    );
+
+    return {
+      externalId: item.externalId,
+      title: truncate(converted.title || item.title, {
+        length: maxTitleLength,
+      }),
+      icon: converted.icon,
+      content: this.transformDocument(converted.doc).toJSON() as ProsemirrorDoc,
+    };
   }
 
   /**
@@ -623,14 +669,25 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   }
 
   /**
-   * Title for the fallback collection that holds markdown files found loose at
-   * the archive root (outside any collection folder). Subclasses can override
-   * to give the collection a source-appropriate name.
+   * Title for the fallback root node that holds markdown files found loose at
+   * the archive root (outside any folder). Subclasses can override to give it
+   * a source-appropriate name.
    *
-   * @returns The fallback collection title.
+   * @returns The fallback root node title.
    */
-  protected fallbackCollectionTitle(): string {
+  protected fallbackRootNodeTitle(): string {
     return "Documents";
+  }
+
+  /**
+   * Detects files in the archive that hold a markdown document.
+   *
+   * @param node ZipTreeNode to inspect.
+   * @returns true when the node is a markdown file.
+   */
+  private isMarkdownFile(node: ZipTreeNode): boolean {
+    const ext = path.extname(node.name).toLowerCase();
+    return node.children.length === 0 && (ext === ".md" || ext === ".markdown");
   }
 
   /**
@@ -692,7 +749,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    * per-page task cascade consumes.
    *
    * @param children ZipTreeNode children of the current folder.
-   * @param collectionId Pre-assigned id of the enclosing collection.
+   * @param rootId Pre-assigned id of the enclosing root node.
    * @param parentDocumentId Optional parent document id when nested.
    * @param out Sibling accumulator to push discovered documents into.
    * @param manifest Attachment manifest accumulator.
@@ -700,14 +757,14 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    */
   private collectDocumentsAndAttachments({
     children,
-    collectionId,
+    rootId,
     parentDocumentId,
     out,
     manifest,
     markdownByNode,
   }: {
     children: ZipTreeNode[];
-    collectionId: string;
+    rootId: string;
     parentDocumentId?: string;
     out: DiscoveredDocument[];
     manifest: MarkdownAttachmentManifestItem[];
@@ -758,7 +815,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         if (isFolder) {
           this.collectDocumentsAndAttachments({
             children: child.children,
-            collectionId,
+            rootId,
             parentDocumentId: sibling.id,
             out: sibling.children,
             manifest,
@@ -772,7 +829,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         id,
         title: child.title,
         pathInZip: child.pathInZip,
-        collectionId,
+        rootId,
         parentDocumentId,
         markdownText,
         children: [],
@@ -783,7 +840,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       if (isFolder) {
         this.collectDocumentsAndAttachments({
           children: child.children,
-          collectionId,
+          rootId,
           parentDocumentId: id,
           out: node.children,
           manifest,

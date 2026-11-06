@@ -12,21 +12,22 @@ import {
   type ImportableIntegrationService,
 } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import Button from "~/components/Button";
 import {
   DropzoneContainer,
   dropzoneIcon,
 } from "~/components/DropzoneContainer";
 import Flex from "~/components/Flex";
-import { InputSelectPermission } from "~/components/InputSelectPermission";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import { EmptySelectValue } from "~/types";
 import { uploadFile } from "~/utils/files";
+import type { ImportOptions } from "./ImportSteps";
+import { ImportSteps } from "./ImportSteps";
 
 type Props = {
   children: React.JSX.Element;
+  /** Explains what the file should contain, shown above the dropzone. */
+  description?: React.ReactNode;
   /** The importable service to create an import for. */
   service: ImportableIntegrationService;
   disabled?: boolean;
@@ -34,15 +35,18 @@ type Props = {
   onSubmit: () => void;
 };
 
-function DropToImport({ disabled, onSubmit, children, service }: Props) {
+function DropToImport({
+  disabled,
+  onSubmit,
+  children,
+  description,
+  service,
+}: Props) {
   const { t } = useTranslation();
   const { imports } = useStores();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setImporting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [permission, setPermission] = useState<CollectionPermission | null>(
-    CollectionPermission.ReadWrite
-  );
 
   const handleFiles = (files: File[]) => {
     if (files.length > 1) {
@@ -52,7 +56,10 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
     setFile(files[0]);
   };
 
-  const handleStartImport = async () => {
+  const handleStartImport = async ({
+    destination,
+    permission,
+  }: ImportOptions) => {
     if (!file) {
       return;
     }
@@ -70,7 +77,8 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
         { service },
         {
           attachmentId: attachment.id,
-          permission: permission ?? undefined,
+          permission,
+          ...destination,
         }
       );
 
@@ -97,57 +105,48 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
   }
 
   return (
-    <Flex gap={8} column>
+    <>
       {isImporting && <LoadingIndicator />}
-      <Text as="p" type="secondary">
-        <Dropzone
-          accept={zipAccept}
-          onDropAccepted={handleFiles}
-          onDropRejected={handleRejection}
-          disabled={isImporting}
-        >
-          {({ getRootProps, getInputProps, isDragActive }) => (
-            <Container
-              {...getRootProps()}
-              $disabled={isImporting}
-              $isDragActive={isDragActive}
-              tabIndex={-1}
-            >
-              <input {...getInputProps()} />
-              <Flex align="center" gap={4} column>
-                <Icon size={32} color="#fff" />
-                {file
-                  ? t(`${file.name} (${bytesToHumanReadable(file.size)})`)
-                  : children}
-              </Flex>
-            </Container>
-          )}
-        </Dropzone>
-      </Text>
-      <div>
-        <InputSelectPermission
-          value={permission}
-          onChange={(value: CollectionPermission | typeof EmptySelectValue) => {
-            setPermission(value === EmptySelectValue ? null : value);
-          }}
-        />
-        <Text as="span" type="secondary">
-          {t(
-            "Set the default permission level for collections created from the import"
-          )}
-          .
-        </Text>
-      </div>
-      <Flex justify="flex-end">
-        <Button disabled={!file || isImporting} onClick={handleStartImport}>
-          {isImporting
-            ? t("Uploading {{progress}}%", {
-                progress: Math.min(99, Math.floor(uploadProgress * 100)),
-              })
-            : t("Start import")}
-        </Button>
-      </Flex>
-    </Flex>
+      <ImportSteps
+        upload={
+          <>
+            {description}
+            <DropzoneText as="div" type="secondary">
+              <Dropzone
+                accept={zipAccept}
+                onDropAccepted={handleFiles}
+                onDropRejected={handleRejection}
+                disabled={isImporting}
+              >
+                {({ getRootProps, getInputProps, isDragActive }) => (
+                  <Container
+                    {...getRootProps()}
+                    $disabled={isImporting}
+                    $isDragActive={isDragActive}
+                    tabIndex={-1}
+                  >
+                    <input {...getInputProps()} />
+                    <Flex align="center" gap={4} column>
+                      <Icon size={32} color="#fff" />
+                      {file
+                        ? t(`${file.name} (${bytesToHumanReadable(file.size)})`)
+                        : children}
+                    </Flex>
+                  </Container>
+                )}
+              </Dropzone>
+            </DropzoneText>
+          </>
+        }
+        canContinue={!!file}
+        defaultPermission={CollectionPermission.ReadWrite}
+        isSubmitting={isImporting}
+        submittingLabel={t("Uploading {{progress}}%", {
+          progress: Math.min(99, Math.floor(uploadProgress * 100)),
+        })}
+        onStart={handleStartImport}
+      />
+    </>
   );
 }
 
@@ -160,7 +159,17 @@ const Icon = styled(NewDocumentIcon)`
   ${dropzoneIcon}
 `;
 
+const DropzoneText = styled(Text)`
+  display: flex;
+  flex: 1;
+  margin-bottom: 12px;
+`;
+
 const Container = styled(DropzoneContainer)`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
   padding: 52px;
 `;
 

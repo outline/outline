@@ -10,11 +10,13 @@ import {
   Import,
   ImportTask,
   User,
+  UserMembership,
 } from "@server/models";
 import FileStorage from "@server/storage/files";
 import {
   CollectionPermission,
   ImportState,
+  DocumentPermission,
   ImportTaskPhase,
   ImportTaskState,
   IntegrationService,
@@ -22,6 +24,7 @@ import {
 import {
   buildAdmin,
   buildAttachment,
+  buildCollection,
   buildDocument,
   buildImport,
   buildTeam,
@@ -232,19 +235,28 @@ async function runImport(opts: {
   createdById: string;
   zipPath: string;
   storageKey?: string;
+  collectionId?: string | null;
+  documentId?: string | null;
 }): Promise<{ importId: string }> {
   vi.spyOn(FileStorage, "getFileHandle").mockResolvedValue({
     path: opts.zipPath,
     cleanup: async () => {},
   });
 
+  const hasDestination = !!(opts.collectionId || opts.documentId);
+
   const importModel = await buildImport({
     teamId: opts.teamId,
     createdById: opts.createdById,
     service: IntegrationService.JSON,
     integrationId: null,
+    collectionId: opts.collectionId ?? null,
+    documentId: opts.documentId ?? null,
     input: [
-      { externalId: randomUUID(), permission: CollectionPermission.Read },
+      {
+        externalId: randomUUID(),
+        permission: hasDestination ? undefined : CollectionPermission.Read,
+      },
     ],
     scratch: { storageKey: opts.storageKey ?? "fixture-key" },
   });
@@ -533,6 +545,268 @@ describe("JSONAPIImportTask", () => {
       for (const document of documents) {
         expect(document.createdById).toBe(admin.id);
       }
+    });
+  });
+
+  describe("import into an existing collection", () => {
+    it("materializes root nodes as root documents without creating collections", async () => {
+      const admin = await buildAdmin();
+      const destination = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        collectionId: destination.id,
+      });
+
+      const createdCollections = await Collection.findAll({
+        where: { apiImportId: importId },
+      });
+      expect(createdCollections.length).toBe(0);
+
+      const documents = await Document.findAll({
+        where: { apiImportId: importId },
+      });
+      // The exported collection becomes a root document + its two documents.
+      expect(documents.length).toBe(3);
+      for (const document of documents) {
+        expect(document.collectionId).toBe(destination.id);
+      }
+
+      const rootDoc = documents.find((d) => d.title === "Test JSON");
+      const docOne = documents.find((d) => d.title === "Document 1");
+      const docTwo = documents.find((d) => d.title === "Document 2");
+      expect(rootDoc).toBeDefined();
+      expect(rootDoc!.parentDocumentId).toBeNull();
+      expect(docOne!.parentDocumentId).toBe(rootDoc!.id);
+      expect(docTwo!.parentDocumentId).toBe(rootDoc!.id);
+
+      // The destination collection's structure now includes the root document.
+      const refreshed = await Collection.findByPk(destination.id, {
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
+      expect(
+        refreshed.documentStructure?.some((node) => node.id === rootDoc!.id)
+      ).toBe(true);
+    });
+
+    it("rewrites collection links to the materialized document path", async () => {
+      const admin = await buildAdmin();
+      const destination = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        collectionId: destination.id,
+      });
+
+      const rootDoc = await Document.findOne({
+        where: { apiImportId: importId, title: "Test JSON" },
+        rejectOnEmpty: true,
+      });
+      const docOne = await Document.findOne({
+        where: { apiImportId: importId, title: "Document 1" },
+        rejectOnEmpty: true,
+      });
+
+      // The `/collection/...` link now resolves to the root node's document
+      // path rather than a non-existent collection path.
+      const linkParagraph = docOne.content?.content?.[2];
+      const linkText = linkParagraph?.content?.[0];
+      const linkMark = linkText?.marks?.find((m) => m.type === "link");
+      expect(linkMark?.attrs?.href).toBe(rootDoc.path);
+      expect(linkMark?.attrs?.href).toContain("/doc/");
+    });
+  });
+
+  describe("import into an existing document", () => {
+    it("nests the imported subtree under the destination document", async () => {
+      const admin = await buildAdmin();
+      const destination = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const destinationDoc = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        collectionId: destination.id,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        documentId: destinationDoc.id,
+      });
+
+      const createdCollections = await Collection.findAll({
+        where: { apiImportId: importId },
+      });
+      expect(createdCollections.length).toBe(0);
+
+      const documents = await Document.findAll({
+        where: { apiImportId: importId },
+      });
+      expect(documents.length).toBe(3);
+
+      const rootDoc = documents.find((d) => d.title === "Test JSON");
+      expect(rootDoc).toBeDefined();
+      // Root node parents to the destination document, collection inherited.
+      expect(rootDoc!.parentDocumentId).toBe(destinationDoc.id);
+      for (const document of documents) {
+        expect(document.collectionId).toBe(destination.id);
+      }
+    });
+
+    it("copies parent document memberships to every imported document", async () => {
+      const admin = await buildAdmin();
+      const member = await buildUser({ teamId: admin.teamId });
+      const destination = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+        permission: null,
+      });
+      const destinationDoc = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        collectionId: destination.id,
+      });
+      const sourceMembership = await UserMembership.create({
+        documentId: destinationDoc.id,
+        userId: member.id,
+        permission: DocumentPermission.Read,
+        createdById: admin.id,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        documentId: destinationDoc.id,
+      });
+
+      const documents = await Document.findAll({
+        where: { apiImportId: importId },
+      });
+      expect(documents.length).toBe(3);
+
+      const memberships = await UserMembership.findAll({
+        where: {
+          documentId: documents.map((document) => document.id),
+          userId: member.id,
+        },
+      });
+      expect(memberships.length).toBe(documents.length);
+      expect(
+        memberships.every(
+          (membership) => membership.sourceId === sourceMembership.id
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe("deleting an import into an existing collection", () => {
+    it("removes only the created documents, leaving the destination intact", async () => {
+      const admin = await buildAdmin();
+      const destination = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+      const existingDoc = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        collectionId: destination.id,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        collectionId: destination.id,
+      });
+
+      expect(
+        (await Document.findAll({ where: { apiImportId: importId } })).length
+      ).toBe(3);
+
+      await new JSONImportsProcessor().perform({
+        name: "imports.delete",
+        modelId: importId,
+        teamId: admin.teamId,
+        actorId: admin.id,
+        ip: "127.0.0.1",
+        changes: { attributes: {}, previous: {} },
+      });
+
+      // All created documents are gone.
+      expect(
+        (await Document.findAll({ where: { apiImportId: importId } })).length
+      ).toBe(0);
+
+      // The destination collection and its pre-existing document survive.
+      expect(await Collection.findByPk(destination.id)).not.toBeNull();
+      expect(
+        await Document.findByPk(existingDoc.id, { userId: admin.id })
+      ).not.toBeNull();
+    });
+
+    it("keeps documents added below imported content", async () => {
+      const admin = await buildAdmin();
+      const destination = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+        collectionId: destination.id,
+      });
+      const importedRoot = await Document.findOne({
+        where: { apiImportId: importId, parentDocumentId: null },
+        rejectOnEmpty: true,
+      });
+      const existingChild = await buildDocument({
+        teamId: admin.teamId,
+        userId: admin.id,
+        collectionId: destination.id,
+        parentDocumentId: importedRoot.id,
+      });
+
+      await new JSONImportsProcessor().perform({
+        name: "imports.delete",
+        modelId: importId,
+        teamId: admin.teamId,
+        actorId: admin.id,
+        ip: "127.0.0.1",
+        changes: { attributes: {}, previous: {} },
+      });
+
+      const preserved = await Document.findByPk(existingChild.id, {
+        userId: admin.id,
+        rejectOnEmpty: true,
+      });
+      expect(preserved.parentDocumentId).toBeNull();
+
+      const refreshed = await Collection.findByPk(destination.id, {
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
+      expect(
+        refreshed.documentStructure?.some(
+          (document) => document.id === existingChild.id
+        )
+      ).toBe(true);
     });
   });
 });

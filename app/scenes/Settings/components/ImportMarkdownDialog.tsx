@@ -10,25 +10,25 @@ function ImportMarkdownDialog() {
   const appName = env.APP_NAME;
 
   return (
-    <>
-      <Text as="p">
-        <Trans
-          defaults="You can import a zip file that was previously exported from an Outline installation – collections, documents, and images will be imported. In Outline, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>."
-          components={{
-            em: <strong />,
-          }}
-        />
-      </Text>
-      <DropToImport
-        onSubmit={dialogs.closeAllModals}
-        service={IntegrationService.Markdown}
-      >
-        <Trans>
-          Drag and drop the zip file from the Markdown export option in{" "}
-          {{ appName }}, or click to upload
-        </Trans>
-      </DropToImport>
-    </>
+    <DropToImport
+      description={
+        <Text as="p">
+          <Trans
+            defaults="You can import a zip file that was previously exported from an Outline installation – collections, documents, and images will be imported. In Outline, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>."
+            components={{
+              em: <strong />,
+            }}
+          />
+        </Text>
+      }
+      onSubmit={dialogs.closeAllModals}
+      service={IntegrationService.Markdown}
+    >
+      <Trans>
+        Drag and drop the zip file from the Markdown export option in{" "}
+        {{ appName }}, or click to upload
+      </Trans>
+    </DropToImport>
   );
 }
 
