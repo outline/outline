@@ -1,6 +1,7 @@
 import isEqual from "fast-deep-equal";
 import { orderBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
+import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
@@ -69,9 +70,20 @@ function History() {
 
   const updateLocation = React.useCallback(
     (changes: Record<string, string | null>) => {
+      const params = new URLSearchParams(history.location.search);
+
+      Object.entries(changes).forEach(([key, value]) => {
+        if (value === null) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const search = params.toString();
       history.replace({
         pathname: history.location.pathname,
-        search: applySearchParams(history.location.search, changes),
+        search: search ? `?${search}` : "",
         state: history.location.state,
       });
     },
@@ -206,7 +218,10 @@ function History() {
       prevSelectedRef.current = currentRevisionId;
       history.push({
         pathname: documentHistoryPath(document, currentRevisionId),
-        search: applySearchParams(history.location.search, changes),
+        search: queryString.stringify(
+          { ...queryString.parse(history.location.search), ...changes },
+          { skipNull: true }
+        ),
         state: { sidebarContext, retainScrollPosition: true },
       });
     },
@@ -313,21 +328,3 @@ function History() {
 }
 
 export default observer(History);
-
-function applySearchParams(
-  search: string,
-  changes: Record<string, string | null>
-) {
-  const params = new URLSearchParams(search);
-
-  Object.entries(changes).forEach(([key, value]) => {
-    if (value === null) {
-      params.delete(key);
-    } else {
-      params.set(key, value);
-    }
-  });
-
-  const result = params.toString();
-  return result ? `?${result}` : "";
-}
