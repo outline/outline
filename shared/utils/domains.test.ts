@@ -115,6 +115,29 @@ describe("#parseDomain", () => {
     });
   });
 
+  it("should not read a host from after the end of the authority", () => {
+    for (const url of [
+      "https://evil.com?@example.com",
+      "https://evil.com#@example.com",
+      "https://evil.com\\@example.com",
+      "https://evil.com?email=user@example.com",
+    ]) {
+      expect(parseDomain(url)).toMatchObject({
+        teamSubdomain: "",
+        host: "evil.com",
+        custom: true,
+      });
+    }
+  });
+
+  it("should remove a fragment directly after the host", () => {
+    expect(parseDomain("https://example.com#top")).toMatchObject({
+      teamSubdomain: "",
+      host: "example.com",
+      custom: false,
+    });
+  });
+
   it("should treat a host that only contains the base domain as custom", () => {
     expect(parseDomain("myteam.example.com.evil.com")).toMatchObject({
       teamSubdomain: "",

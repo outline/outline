@@ -17,6 +17,12 @@ describe("CSVHelper", () => {
       expect(CSVHelper.sanitizeValue("∑1x2")).toBe(`'∑1x2`);
     });
 
+    it("should escape a formula trigger behind removed characters", () => {
+      expect(CSVHelper.sanitizeValue("\u200B=1x2")).toBe(`'=1x2`);
+      expect(CSVHelper.sanitizeValue("\u0001=1x2")).toBe(`'=1x2`);
+      expect(CSVHelper.sanitizeValue("\u202E\uFEFF@1x2")).toBe(`'@1x2`);
+    });
+
     it("should remove control characters", () => {
       expect(CSVHelper.sanitizeValue("\u00011x2")).toBe(`1x2`);
     });
@@ -43,6 +49,10 @@ describe("CSVHelper", () => {
 
     it("should escape fields with newlines", () => {
       expect(CSVHelper.escapeCSVField("John\nDoe")).toBe('"John\nDoe"');
+    });
+
+    it("should escape fields with carriage returns", () => {
+      expect(CSVHelper.escapeCSVField("John\rDoe")).toBe('"John\rDoe"');
     });
 
     it("should handle null values", () => {
