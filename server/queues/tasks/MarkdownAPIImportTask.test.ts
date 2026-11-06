@@ -17,6 +17,7 @@ import {
   buildDocument,
   buildImport,
 } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import MarkdownImportsProcessor from "../processors/MarkdownImportsProcessor";
 import MarkdownAPIImportTask, {
   rewriteAttachmentPaths,
@@ -241,6 +242,59 @@ describe("MarkdownImportsProcessor destination", () => {
   });
 });
 
+describe("MarkdownImportsProcessor legacy task input", () => {
+  it("assigns documents using collectionExternalId from tasks queued before the rename", async () => {
+    const admin = await buildAdmin();
+    const emptyDoc: ProsemirrorDoc = {
+      type: "doc",
+      content: [{ type: "paragraph" }],
+    };
+    const rootId = randomUUID();
+    const docId = randomUUID();
+
+    const importModel = await buildImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      service: IntegrationService.Markdown,
+      integrationId: null,
+      input: [{ externalId: rootId }],
+      scratch: { storageKey: "fixture-key" },
+      state: ImportState.Processed,
+    });
+
+    await ImportTask.create<ImportTask<IntegrationService.Markdown>>({
+      state: ImportTaskState.Completed,
+      phase: ImportTaskPhase.Page,
+      importId: importModel.id,
+      input: [
+        { externalId: rootId },
+        { externalId: docId, collectionExternalId: rootId },
+      ],
+      output: [
+        { externalId: rootId, title: "Legacy", content: emptyDoc },
+        { externalId: docId, title: "Legacy doc", content: emptyDoc },
+      ],
+    } as Parameters<typeof ImportTask.create>[0]);
+
+    await new MarkdownImportsProcessor().perform({
+      name: "imports.processed",
+      modelId: importModel.id,
+      teamId: admin.teamId,
+      actorId: admin.id,
+      ip: "127.0.0.1",
+      changes: { attributes: {}, previous: {} },
+    });
+
+    const collection = await Collection.findOne({
+      where: { apiImportId: importModel.id },
+    });
+    const document = await Document.findOne({
+      where: { apiImportId: importModel.id },
+    });
+    expect(document?.collectionId).toBe(collection?.id);
+  });
+});
+
 describe("MarkdownAPIImportTask document export archives", () => {
   /** An archive with the layout of a document export. */
   const documentExport = {
@@ -423,5 +477,42 @@ describe("MarkdownAPIImportTask document export archives", () => {
     expect(
       collections.find((c) => c.name === "Parent")?.description
     ).toBeFalsy();
+  });
+
+  it("deletes the children of an archived document when the import is deleted", async () => {
+    const admin = await buildAdmin();
+    const destination = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const { documents } = await importArchive(admin, documentExport, {
+      collectionId: destination.id,
+    });
+    const importId = documents[0].apiImportId;
+    if (!importId) {
+      throw new Error("Expected the document to belong to the import");
+    }
+    const parent = documents.find((d) => d.title === "Parent");
+    if (!parent) {
+      throw new Error("Expected the parent document to be imported");
+    }
+    const archivable = await Document.findByPk(parent.id, {
+      userId: admin.id,
+      rejectOnEmpty: true,
+    });
+    await withAPIContext(admin, (ctx) => archivable.archiveWithCtx(ctx));
+
+    await new MarkdownImportsProcessor().perform({
+      name: "imports.delete",
+      modelId: importId,
+      teamId: admin.teamId,
+      actorId: admin.id,
+      ip: "127.0.0.1",
+      changes: { attributes: {}, previous: {} },
+    });
+
+    expect(await Document.count({ where: { apiImportId: importId } })).toBe(0);
+    expect(await Collection.findByPk(destination.id)).not.toBeNull();
   });
 });

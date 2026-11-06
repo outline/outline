@@ -450,7 +450,9 @@ export default abstract class ImportsProcessor<
       )
       .map((doc) => doc.id);
 
-    for (const id of topLevelIds) {
+    // Deleting an archived document does not cascade, so every imported id is
+    // visited. Top-level ids go first, and cascaded documents are skipped below.
+    for (const id of new Set([...topLevelIds, ...importedIds])) {
       const document = await Document.findByPk(id, {
         userId: user.id,
         transaction,
@@ -710,6 +712,8 @@ export default abstract class ImportsProcessor<
 
             let collectionId: string | undefined;
             let parentDocumentId: string | undefined;
+            const inputRootExternalId =
+              input.rootExternalId ?? input.collectionExternalId;
 
             if (destination) {
               collectionId = destination.collection.id;
@@ -718,7 +722,7 @@ export default abstract class ImportsProcessor<
                 // A materialized root document parents to the destination.
                 parentDocumentId = destination.document?.id;
               } else if (isRootDocument) {
-                const rootExternalId = parentExternalId ?? input.rootExternalId;
+                const rootExternalId = parentExternalId ?? inputRootExternalId;
                 if (rootExternalId && rootExternalId in rootParentOverride) {
                   // Synthetic-root child → parent directly to the destination.
                   parentDocumentId =
@@ -733,9 +737,8 @@ export default abstract class ImportsProcessor<
                 parentDocumentId = parentInternalId;
               }
             } else {
-              const rootExternalId = input.rootExternalId;
-              collectionId = rootExternalId
-                ? await this.getInternalId(rootExternalId, idMap)
+              collectionId = inputRootExternalId
+                ? await this.getInternalId(inputRootExternalId, idMap)
                 : undefined;
               parentDocumentId = isRootDocument ? undefined : parentInternalId;
             }

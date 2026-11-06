@@ -130,7 +130,8 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     item: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
   }): Promise<ParsePageOutput | null> {
-    const rootExternalId = item.rootExternalId ?? item.externalId;
+    const rootExternalId =
+      item.rootExternalId ?? item.collectionExternalId ?? item.externalId;
     const titleMaxLength =
       item.externalId === rootExternalId // This means it's a root page (materialized as a collection or root document)
         ? CollectionValidation.maxNameLength

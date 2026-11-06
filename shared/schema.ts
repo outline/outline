@@ -47,6 +47,8 @@ export const BaseImportTaskInputItemSchema = z.object({
   parentExternalId: z.string().optional(),
   /** External id of the root node this item descends from. */
   rootExternalId: z.string().optional(),
+  /** @deprecated Only present on tasks queued before rootExternalId existed. */
+  collectionExternalId: z.string().optional(),
 });
 
 export type BaseImportTaskInput = z.infer<
@@ -142,6 +144,8 @@ export interface MarkdownPageImportTaskInputItem {
   externalId: string;
   parentExternalId?: string;
   rootExternalId?: string;
+  /** @deprecated Only present on tasks queued before rootExternalId existed. */
+  collectionExternalId?: string;
   title: string;
   path: string;
   markdownText: string;
@@ -173,6 +177,8 @@ export interface JSONPageImportTaskInputItem {
   externalId: string;
   parentExternalId?: string;
   rootExternalId?: string;
+  /** @deprecated Only present on tasks queued before rootExternalId existed. */
+  collectionExternalId?: string;
   title: string;
   urlId?: string;
   icon?: string | null;
