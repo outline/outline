@@ -14173,7 +14173,7 @@ __metadata:
     passport-oauth2: "npm:^1.8.0"
     passport-slack-oauth2: "npm:^1.2.0"
     patch-package: "npm:^8.0.1"
-    pele: "npm:1.12.0"
+    pele: "npm:1.13.0"
     pg: "npm:^8.23.0"
     pg-tsquery: "npm:^8.4.2"
     pinyin-pro: "npm:^3.29.5"
@@ -14945,10 +14945,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pele@npm:1.12.0":
-  version: 1.12.0
-  resolution: "pele@npm:1.12.0"
-  checksum: 10c0/b79435e1b0da049f4fe0ff7cd4192b779b5258edcc0d41f1230ff98c065a7365cbf1d0bf30778af83f82744ea9a9ee5f7a8f31a33a311166e8cce10aadd28610
+"pele@npm:1.13.0":
+  version: 1.13.0
+  resolution: "pele@npm:1.13.0"
+  checksum: 10c0/b58ddca28f63076e7beb344ce180f0efe80dffbf4c917860a10d612a930ca8955717fce1d62e63dbb70051bf18fb8eb0d6e522f512c9db388fc5ebe6cd09e2db
   languageName: node
   linkType: hard
 
