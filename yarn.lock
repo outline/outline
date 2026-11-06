@@ -5648,17 +5648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.35.0":
-  version: 3.37.0
-  resolution: "@smithy/core@npm:3.37.0"
-  dependencies:
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/9aae76ef4d5597154c589ffd35a84ab51e38114d1ff6068d0cf0c9383e675f04203f8a02adb422b80337e2d336aeda7b55b2b5b61bfe73682d0d5fa03c3251b1
-  languageName: node
-  linkType: hard
-
-"@smithy/core@npm:^3.37.0, @smithy/core@npm:^3.38.0, @smithy/core@npm:^3.38.1":
+"@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3, @smithy/core@npm:^3.37.0, @smithy/core@npm:^3.38.0, @smithy/core@npm:^3.38.1":
   version: 3.38.1
   resolution: "@smithy/core@npm:3.38.1"
   dependencies:
@@ -5701,18 +5691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/signature-v4@npm:^5.7.4":
-  version: 5.7.4
-  resolution: "@smithy/signature-v4@npm:5.7.4"
-  dependencies:
-    "@smithy/core": "npm:^3.35.0"
-    "@smithy/types": "npm:^4.19.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/4b8b00ea25122f4fe2233160f8b9e98841fbd1d91004d78e4dba58e34a31d741de0915e3108ef40f2130677fedb7b3a947a8a6d701b06c5117a6f8d05006de58
-  languageName: node
-  linkType: hard
-
-"@smithy/signature-v4@npm:^5.7.5":
+"@smithy/signature-v4@npm:^5.7.4, @smithy/signature-v4@npm:^5.7.5":
   version: 5.7.5
   resolution: "@smithy/signature-v4@npm:5.7.5"
   dependencies:
@@ -8145,15 +8124,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clean-css@npm:^4.0.12":
-  version: 4.2.4
-  resolution: "clean-css@npm:4.2.4"
-  dependencies:
-    source-map: "npm:~0.6.0"
-  checksum: 10c0/0e41795fdc9d65e5e17a3b0016d90bf2a653e3a680829b5bcebdbab48604cfe36d96d8af6346338d2c2aca8aa9af024ac4fb752ac3eb5b71bef68a34a129b58a
-  languageName: node
-  linkType: hard
-
 "cli-cursor@npm:^5.0.0":
   version: 5.0.0
   resolution: "cli-cursor@npm:5.0.0"
@@ -10301,18 +10271,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^11.2.0":
-  version: 11.3.6
-  resolution: "fs-extra@npm:11.3.6"
-  dependencies:
-    graceful-fs: "npm:^4.2.0"
-    jsonfile: "npm:^6.0.1"
-    universalify: "npm:^2.0.0"
-  checksum: 10c0/191c96bf71519fe08595f7920b6e568f6e44b48ed968624f35cb3bb7f4f9b05718b99cd6bf81938c0f7b1daa6d151383c33e0cbfdfe4d95419d7ea121de8e91a
-  languageName: node
-  linkType: hard
-
-"fs-extra@npm:^11.4.1":
+"fs-extra@npm:^11.2.0, fs-extra@npm:^11.4.1":
   version: 11.4.1
   resolution: "fs-extra@npm:11.4.1"
   dependencies:
@@ -14166,7 +14125,6 @@ __metadata:
     oxfmt: "npm:0.73.0"
     oxlint: "npm:1.90.0"
     oxlint-tsgolint: "npm:7.0.2005"
-    oy-vey: "npm:^0.12.1"
     pako: "npm:^3.0.2"
     passport: "npm:^0.7.0"
     passport-google-oauth2: "npm:^0.2.0"
@@ -14529,20 +14487,6 @@ __metadata:
   bin:
     oxlint: bin/oxlint
   checksum: 10c0/bf246bceb9a199e34e06d2189f41d9466a3e8e6180a85f2a8550a4eae49538a4bce6d8a242f9eec65ef8a6165f79c0025dee785bcb94059261ad96bda86d65cb
-  languageName: node
-  linkType: hard
-
-"oy-vey@npm:^0.12.1":
-  version: 0.12.1
-  resolution: "oy-vey@npm:0.12.1"
-  dependencies:
-    clean-css: "npm:^4.0.12"
-    object-assign: "npm:^4.1.1"
-    sanitizer: "npm:^0.1.3"
-  peerDependencies:
-    react: ^16.0.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/9e67aa22b6487e1afdb1dbae60aec45c0fbfc6410c553783732e43df747a11d8deda3b83b69732a801b65a78456a9d89e5a534ce6173c8f0ba79659579f1510d
   languageName: node
   linkType: hard
 
@@ -16520,13 +16464,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sanitizer@npm:^0.1.3":
-  version: 0.1.3
-  resolution: "sanitizer@npm:0.1.3"
-  checksum: 10c0/a2e0077392022f7516c55b1aea4c0ee6221ca3e6435de63066d09dcbda4047993e2043f71e03778acb9c8da8ce1899747a92416e52cc68ea6ebcb6b4a17b23a7
-  languageName: node
-  linkType: hard
-
 "saxes@npm:^6.0.0":
   version: 6.0.0
   resolution: "saxes@npm:6.0.0"
@@ -17073,7 +17010,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map@npm:^0.6.0, source-map@npm:~0.6.0":
+"source-map@npm:^0.6.0":
   version: 0.6.1
   resolution: "source-map@npm:0.6.1"
   checksum: 10c0/ab55398007c5e5532957cb0beee2368529618ac0ab372d789806f5718123cc4367d57de3904b4e6a4170eb5a0b0f41373066d02ca0735a0c4d75c7d328d3e011
