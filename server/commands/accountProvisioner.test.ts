@@ -11,6 +11,7 @@ import {
   buildUser,
   buildTeam,
   buildAdmin,
+  buildInvite,
   buildSubdomain,
 } from "@server/test/factories";
 import { mockTaskSchedule, setSelfHosted } from "@server/test/support";
@@ -22,6 +23,85 @@ describe("accountProvisioner", () => {
   const ip = faker.internet.ip();
   const ctx = createContext({ ip });
   const schedule = mockTaskSchedule();
+
+  describe("invites", () => {
+    it("should record invite_accepted against the invited user and team", async () => {
+      const team = await buildTeam();
+      const invite = await buildInvite({ teamId: team.id });
+      const providers = await team.$get("authenticationProviders");
+
+      const result = await accountProvisioner(ctx, {
+        user: {
+          name: invite.name,
+          email: invite.email!,
+          avatarUrl: invite.avatarUrl,
+          emailVerified: true,
+        },
+        team: {
+          teamId: team.id,
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: providers[0].name,
+          providerId: providers[0].providerId,
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      expect(result.user.id).toEqual(invite.id);
+      expect(result.isNewUser).toEqual(true);
+
+      const event = await Event.findLatest({
+        name: "users.invite_accepted",
+        userId: invite.id,
+      });
+      expect(event?.teamId).toEqual(team.id);
+      expect(event?.actorId).toEqual(invite.id);
+      expect(event?.ip).toEqual(ip);
+    });
+  });
+
+  it("should not record invite_accepted for a user that was not invited", async () => {
+    const team = await buildTeam();
+    const providers = await team.$get("authenticationProviders");
+
+    const result = await accountProvisioner(ctx, {
+      user: {
+        name: faker.person.fullName(),
+        email: faker.internet.email().toLowerCase(),
+        emailVerified: true,
+      },
+      team: {
+        teamId: team.id,
+        name: team.name,
+        avatarUrl: team.avatarUrl,
+        subdomain: faker.internet.domainWord(),
+      },
+      authenticationProvider: {
+        name: providers[0].name,
+        providerId: providers[0].providerId,
+      },
+      authentication: {
+        providerId: randomUUID(),
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    expect(result.isNewUser).toEqual(true);
+    await expect(
+      Event.findLatest({
+        name: "users.invite_accepted",
+        userId: result.user.id,
+      })
+    ).resolves.toBeNull();
+  });
 
   describe("group sync", () => {
     async function provisionExistingUser({

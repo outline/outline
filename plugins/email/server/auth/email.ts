@@ -4,13 +4,12 @@ import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
-import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import { User, Team } from "@server/models";
+import { Event, User, Team } from "@server/models";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
@@ -185,12 +184,18 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   }
 
   if (user.isInvited) {
-    await new WelcomeEmail({
-      to: user.email,
-      language: user.language,
-      role: user.role,
-      teamUrl: user.team.url,
-    }).schedule();
+    // The welcome email is sent in response to this event.
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "users.invite_accepted",
+        userId: user.id,
+      },
+      {
+        actorId: user.id,
+        teamId: user.teamId,
+      }
+    );
 
     const inviter = await user.$get("invitedBy");
     if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {

@@ -201,13 +201,23 @@ async function accountProvisioner(
             : undefined,
         },
   });
-  const { isNewUser, user } = result;
+  const { isNewUser, isInvite, user } = result;
 
-  if (isNewUser && user.isInvited) {
-    await Event.createFromContext(ctx, {
-      name: "users.invite_accepted",
-      userId: user.id,
-    });
+  if (isInvite) {
+    // The request has no authenticated user during sign-in, so the actor and
+    // team must be provided for the event to reach its team's audit log.
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "users.invite_accepted",
+        userId: user.id,
+      },
+      {
+        actorId: user.id,
+        teamId: user.teamId,
+        ip: ctx.context.ip,
+      }
+    );
   }
 
   if (isNewUser || isNewTeam) {
