@@ -39,7 +39,7 @@ describe("shareLoader", () => {
         id: share.id,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.collection?.id).toEqual(collection.id);
       expect(result.sharedTree?.id).toEqual(collection.id);
       expect(result.sharedTree?.url).toEqual(collection.path);
@@ -78,7 +78,7 @@ describe("shareLoader", () => {
         id: share.id,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.collection?.id).toEqual(collection.id);
       expect(result.sharedTree?.id).toEqual(collection.id);
       expect(result.sharedTree?.url).toEqual("");
@@ -101,7 +101,7 @@ describe("shareLoader", () => {
         user,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.parentShare).toBeNull();
     });
 
@@ -156,7 +156,7 @@ describe("shareLoader", () => {
         id: share.id,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.document?.id).toEqual(document.id);
       expect(result.sharedTree?.id).toEqual(document.id);
       expect(result.sharedTree?.children.length).toEqual(1);
@@ -192,7 +192,7 @@ describe("shareLoader", () => {
         id: share.id,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.document?.id).toEqual(document.id);
       expect(result.sharedTree).toBeNull();
       expect(result.collection).toBeNull();
@@ -235,7 +235,7 @@ describe("shareLoader", () => {
         user,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.parentShare?.id).toEqual(parentShare.id);
     });
 
@@ -276,7 +276,94 @@ describe("shareLoader", () => {
         user: member,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
+      expect(result.parentShare).toBeNull();
+    });
+
+    it("should return parentShare when the document has no share of its own", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const parentShare = await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: childDocument.id,
+        user,
+      });
+
+      expect(result.share).toBeNull();
+      expect(result.parentShare?.id).toEqual(parentShare.id);
+    });
+
+    it("should not return parentShare when the user cannot read the document", async () => {
+      const admin = await buildUser();
+      const member = await buildUser({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        permission: null,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: admin.id,
+        teamId: admin.teamId,
+        documentId: document.id,
+      });
+
+      await expect(
+        loadShareWithParent({ documentId: childDocument.id, user: member })
+      ).rejects.toThrow("Resource not found");
+    });
+
+    it("should return the share of a draft without a collection", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        collectionId: null,
+        publishedAt: null,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      const result = await loadShareWithParent({
+        documentId: document.id,
+        user,
+      });
+
+      expect(result.share?.id).toEqual(share.id);
       expect(result.parentShare).toBeNull();
     });
 
@@ -324,7 +411,7 @@ describe("shareLoader", () => {
         user: member,
       });
 
-      expect(result.share.id).toEqual(share.id);
+      expect(result.share?.id).toEqual(share.id);
       expect(result.parentShare).toBeNull();
     });
 
