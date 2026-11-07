@@ -16,13 +16,9 @@ const rules: Record<string, RegExp> = {
   "article before a variable": /\ba \{\{/,
 };
 
-const singularEntries = Object.entries(catalog).filter(
-  ([key]) => !key.endsWith("_plural")
-);
-
 describe("en_US translations", () => {
   it.each(Object.entries(rules))("has no %s", (_name, pattern) => {
-    const failures = singularEntries
+    const failures = Object.entries(catalog)
       .filter(([, value]) => pattern.test(value))
       .map(([key]) => key);
 
@@ -30,7 +26,7 @@ describe("en_US translations", () => {
   });
 
   it("has no plural noun in a singular value", () => {
-    const failures = singularEntries
+    const failures = Object.entries(catalog)
       .filter(
         ([key, value]) =>
           `${key}_plural` in catalog && /\{\{ ?count ?\}\} \w+s\b/.test(value)
