@@ -797,7 +797,7 @@
   "Not supported": "未支持",
   "Sorry, that link won’t work for this embed type": "抱歉，该链接不适用于此嵌入类型",
   "Upload file": "上传文件",
-  "Paste a {{service}} link…": "粘贴一个 {{service}} 链接…",
+  "Paste a link from {{service}}…": "粘贴来自 {{service}} 的链接……",
   "Suggestions": "建议",
   "More options": "更多选项",
   "Type '/' to insert": "输入'/'来插入",
