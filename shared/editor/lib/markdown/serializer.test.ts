@@ -118,10 +118,22 @@ describe("code fences", () => {
 });
 
 describe("escaping", () => {
-  const paragraph = (text: string) =>
+  const text = (value: string, marks: string[] = []) => ({
+    type: "text",
+    text: value,
+    marks: marks.length ? marks.map((type) => ({ type })) : undefined,
+  });
+  const paragraph = (...content: (string | object)[]) =>
     Node.fromJSON(schema, {
       type: "doc",
-      content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      content: [
+        {
+          type: "paragraph",
+          content: content.map((node) =>
+            typeof node === "string" ? text(node) : node
+          ),
+        },
+      ],
     });
 
   it("does not escape a period inside a number at the start of a line", () => {
@@ -188,6 +200,204 @@ describe("escaping", () => {
     const output = serializer.serialize(doc, { commonMark: true });
 
     expect(output).toContain("| 10.12.14.21 |");
+  });
+
+  const expectRoundTrip = (doc: Node) => {
+    const output = serializer.serialize(doc);
+
+    expect(parser.parse(output)?.toJSON()).toEqual(doc.toJSON());
+    return output;
+  };
+
+  it.each([
+    "00:0c:29:de:ad:be",
+    "x :ab: y",
+    "pvc:3fa85f64-5717-4562-b3fc-2c963f66afa6:tail",
+  ])("does not turn %s into an emoji", (value) => {
+    expectRoundTrip(paragraph(text(value)));
+  });
+
+  it("does not escape colons that cannot form an emoji", () => {
+    expect(expectRoundTrip(paragraph(text("10:30 http://x.com a:b")))).toBe(
+      "10:30 http://x.com a:b"
+    );
+  });
+
+  it.each(["__init__", "_private_", "snake_case _x"])(
+    "does not turn underscores in %s into marks",
+    (value) => {
+      expectRoundTrip(paragraph(text(value)));
+    }
+  );
+
+  it("does not escape underscores inside a word", () => {
+    expect(serializer.serialize(paragraph(text("snake_case_name")))).toBe(
+      "snake_case_name"
+    );
+  });
+
+  it("does not decode entities in text", () => {
+    expectRoundTrip(paragraph(text("&amp; &#58; & a&b")));
+  });
+
+  it("keeps a checkbox label that starts with an escaped character", () => {
+    expectRoundTrip(
+      Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "checkbox_list",
+            content: [
+              {
+                type: "checkbox_item",
+                content: [{ type: "paragraph", content: [text("*literal*")] }],
+              },
+            ],
+          },
+        ],
+      })
+    );
+  });
+
+  it("keeps inline code innermost when combined with other marks", () => {
+    expect(
+      expectRoundTrip(paragraph(text("kubectl get", ["strong", "code_inline"])))
+    ).toBe("**`kubectl get`**");
+    expectRoundTrip(
+      paragraph(text("a", ["em"]), text("b", ["em", "code_inline"]))
+    );
+  });
+
+  it.each([" padded ", " `a` ", "  ", " a"])(
+    "keeps the spaces in inline code %j",
+    (value) => {
+      expectRoundTrip(paragraph(text(value, ["code_inline"])));
+    }
+  );
+
+  it.each(["strong", "em", "underline", "strikethrough"])(
+    "closes %s that ends in punctuation before a letter",
+    (mark) => {
+      expectRoundTrip(paragraph(text("done:", [mark]), text("next")));
+    }
+  );
+
+  it.each(["strong", "em", "underline", "strikethrough"])(
+    "opens %s that starts with punctuation after a letter",
+    (mark) => {
+      expectRoundTrip(paragraph(text("x"), text(":done", [mark])));
+    }
+  );
+
+  it("marks part of a word", () => {
+    expectRoundTrip(paragraph(text("a"), text("b", ["underline"]), text("c")));
+    expectRoundTrip(
+      paragraph(
+        text("x"),
+        text("y", ["strong", "em", "strikethrough"]),
+        text("z")
+      )
+    );
+    expectRoundTrip(
+      paragraph(text("kubectl", ["strong", "code_inline"]), text("s"))
+    );
+  });
+
+  it.each(["strong", "em"])(
+    "keeps the spaces in inline code with %s",
+    (mark) => {
+      expect(
+        expectRoundTrip(paragraph(text(" padded ", [mark, "code_inline"])))
+      ).toContain("  padded  ");
+    }
+  );
+
+  it.each([
+    ["strong", "em", "done:", "next"],
+    ["em", "strong", "done:", "next"],
+    ["strong", "em", "done", "next"],
+    ["em", "strong", "done", "next"],
+    ["strong", "em", "done", ":next"],
+    ["em", "strong", "done", ":next"],
+    ["strong", "em", "done:", ":next"],
+    ["strikethrough", "underline", "done:", "next"],
+  ])("handles adjacent %s and %s around %s%s", (first, second, a, b) => {
+    expectRoundTrip(paragraph(text(a, [first]), text(b, [second])));
+  });
+
+  it("encodes each character that prevents a delimiter from flanking", () => {
+    expect(
+      expectRoundTrip(
+        paragraph(
+          text("a"),
+          text("b", ["underline"]),
+          text("c"),
+          text("d", ["underline"]),
+          text("e")
+        )
+      )
+    ).toBe("&#97;__b__&#99;__d__&#101;");
+  });
+
+  it("encodes a whole astral character before a delimiter", () => {
+    expect(
+      expectRoundTrip(paragraph(text("\u{1D41A}"), text(":b", ["strong"])))
+    ).toBe("&#119834;**:b**");
+  });
+
+  it.each([
+    "https://example.com/_file",
+    "https://example.com/:smile:/x",
+    "https://example.com/?a=1&amp;b",
+    "https://example.com/a*b~c",
+  ])("does not escape the automatic link %s", (href) => {
+    const doc = paragraph({
+      type: "text",
+      text: href,
+      marks: [{ type: "link", attrs: { href } }],
+    });
+
+    expect(expectRoundTrip(doc)).toBe(`<${href}>`);
+  });
+
+  it("escapes text after an automatic link", () => {
+    const href = "https://example.com/_file";
+
+    expect(
+      expectRoundTrip(
+        paragraph(
+          {
+            type: "text",
+            text: href,
+            marks: [{ type: "link", attrs: { href } }],
+          },
+          text(" _x_")
+        )
+      )
+    ).toBe(`<${href}> \\_x\\_`);
+  });
+
+  it("keeps a link target with escaped characters", () => {
+    expectRoundTrip(
+      paragraph({
+        type: "text",
+        text: "named",
+        marks: [
+          {
+            type: "link",
+            attrs: { href: "https://example.com/_f_:smile:&amp;" },
+          },
+        ],
+      })
+    );
+  });
+
+  it("does not encode characters when delimiters are already flanking", () => {
+    expect(
+      serializer.serialize(
+        paragraph(text("a "), text("bold", ["strong"]), text("ly done"))
+      )
+    ).toBe("a **bold**ly done");
   });
 });
 
