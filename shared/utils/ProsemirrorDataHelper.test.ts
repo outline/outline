@@ -100,6 +100,42 @@ describe("ProsemirrorDataHelper", () => {
       expect(ProsemirrorDataHelper.getFirstText(data)).toBe("Quote");
     });
 
+    it("stops at a hard break", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "First line" },
+              { type: "br" },
+              { type: "text", text: "Second line" },
+            ],
+          },
+        ],
+      };
+      expect(ProsemirrorDataHelper.getFirstText(data)).toBe("First line");
+    });
+
+    it("stops at the end of a nested block", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "blockquote",
+            content: [
+              { type: "paragraph", content: [{ type: "text", text: "First" }] },
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Second" }],
+              },
+            ],
+          },
+        ],
+      };
+      expect(ProsemirrorDataHelper.getFirstText(data)).toBe("First");
+    });
+
     it("returns undefined for an empty document", () => {
       expect(
         ProsemirrorDataHelper.getFirstText(ProsemirrorDataHelper.getEmpty())

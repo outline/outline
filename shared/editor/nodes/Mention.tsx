@@ -348,7 +348,9 @@ export default class Mention extends Node {
       Enter: (state, dispatch) => {
         const { selection } = state;
         if (selection instanceof NodeSelection && isCard(selection.node)) {
-          const tr = state.tr.split(selection.to);
+          const tr = state.tr.split(selection.to, 1, [
+            { type: state.schema.nodes.paragraph },
+          ]);
           dispatch?.(
             tr
               .setSelection(TextSelection.create(tr.doc, selection.to + 2))
@@ -499,13 +501,14 @@ export default class Mention extends Node {
           : `/collection/${mId}`;
       state.write(`${isCard ? "@" : ""}[${label}](${href}${title})`);
     } else if (
-      state.options.commonMark &&
+      (state.options.commonMark || isCard) &&
       (isExternalMention(mType) || mType === MentionType.URL) &&
       node.attrs.href
     ) {
       // Markdown that leaves Outline cannot resolve a mention:// reference, so
-      // external mentions fall back to the URL they already carry. The "@"
-      // prefix allows them to be parsed back into a mention on the way in.
+      // external mentions fall back to the URL they already carry. Cards need
+      // the URL to render, so they always use it. The "@" prefix allows them to
+      // be parsed back into a mention on the way in.
       state.write(`@[${label}](${sanitizeUrl(node.attrs.href)}${title})`);
     } else {
       // Keep the mention:// format for everything else, it round-trips back
@@ -558,16 +561,21 @@ export default class Mention extends Node {
     };
 
   handleChangeUnfurl =
-    ({
-      node,
-      getPos,
-    }: {
-      node: ProsemirrorNode;
-      getPos: () => number | undefined;
-    }) =>
+    ({ getPos }: { node: ProsemirrorNode; getPos: () => number | undefined }) =>
     (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
       const { view } = this.editor;
       const { tr } = view.state;
+      const pos = getPos();
+      if (pos === undefined) {
+        return;
+      }
+
+      // The node may have changed while the unfurl was loading, for example
+      // when it was switched to a card, so the current node is used.
+      const node = tr.doc.nodeAt(pos);
+      if (!node || node.type.name !== this.name) {
+        return;
+      }
 
       // Only unfurls of a resource the mention can represent are stored, others
       // such as documents depend on the viewer and change between views.
@@ -598,12 +606,6 @@ export default class Mention extends Node {
         unfurledType !== node.attrs.type
       ) {
         overrides.type = unfurledType;
-      }
-
-      const pos = getPos();
-
-      if (pos === undefined) {
-        return;
       }
 
       if (!isMatch(node.attrs, overrides)) {

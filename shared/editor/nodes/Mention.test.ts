@@ -357,6 +357,27 @@ describe("Mention display", () => {
     expect(next.doc.child(1).content.size).toBe(0);
     expect(next.selection.$head.parent).toBe(next.doc.child(1));
   });
+
+  it("creates a paragraph below a selected card in a heading", () => {
+    const state = createEditorState(
+      schema.nodes.doc.create(null, [
+        schema.nodes.heading.create({ level: 2 }, [
+          urlMention({ display: MentionDisplay.Card }),
+        ]),
+      ])
+    );
+    const selected = state.apply(
+      state.tr.setSelection(NodeSelection.create(state.doc, 1))
+    );
+    let next = selected;
+    new Mention().keys().Enter(selected, (tr) => {
+      next = selected.apply(tr);
+    });
+
+    expect(next.doc.child(0).type.name).toBe("heading");
+    expect(next.doc.child(1).type.name).toBe("paragraph");
+    expect(next.selection.$head.parent).toBe(next.doc.child(1));
+  });
 });
 
 describe("Mention markdown round trip", () => {
@@ -404,14 +425,17 @@ describe("Mention markdown round trip", () => {
     );
   });
 
-  it("does not change the url of a link card", () => {
-    const { markdown, mention } = roundTrip(
-      { ...cases.url, display: MentionDisplay.Card },
-      { commonMark: true }
-    );
-    expect(markdown).toBe('@[Example](https://example.com/a?b=c "card")');
-    expect(mention?.attrs.href).toBe("https://example.com/a?b=c");
-  });
+  it.each([false, true])(
+    "keeps the url of a link card with commonMark %s",
+    (commonMark) => {
+      const { markdown, mention } = roundTrip(
+        { ...cases.url, display: MentionDisplay.Card },
+        { commonMark }
+      );
+      expect(markdown).toBe('@[Example](https://example.com/a?b=c "card")');
+      expect(mention?.attrs.href).toBe("https://example.com/a?b=c");
+    }
+  );
 
   it("keeps the model id of a document card", () => {
     const { mention } = roundTrip({

@@ -578,6 +578,7 @@ describe("DocumentHelper", () => {
           mentions.push(node.attrs);
         }
       });
+      expect(mentions[0].href).toBe("https://example.com/a?b=c");
       expect(mentions.map((attrs) => [attrs.type, attrs.display])).toEqual([
         ["url", "card"],
         ["document", "card"],

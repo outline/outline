@@ -131,12 +131,14 @@ export const MentionDocument = observer(function MentionDocument_(
   const isCard = node.attrs.display === MentionDisplay.Card;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
   const sharePath = useSharePath();
+  const { shareId } = useShare();
   const hash = anchorId ? `#${anchorId}` : "";
 
   // The summary is specific to the viewer, so it is kept in the store and not
-  // written to the node.
+  // written to the node. The share id is always included, even for a root
+  // share, so that the server can check access through the share.
   const unfurlUrl = isCard
-    ? `${env.URL}${sharePath(`/doc/${modelId}`)}${hash}`
+    ? `${env.URL}${shareId ? `/s/${shareId}` : ""}/doc/${modelId}${hash}`
     : undefined;
 
   React.useEffect(() => {

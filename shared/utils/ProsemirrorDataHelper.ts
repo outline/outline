@@ -46,26 +46,32 @@ export class ProsemirrorDataHelper {
   }
 
   /**
-   * Returns the text of the first block that contains text, useful for a short
-   * plain text preview.
+   * Returns the first line of text in the document, useful for a short plain
+   * text preview. Text blocks and hard breaks start a new line.
    *
    * @param data the ProsemirrorData to read.
-   * @returns the trimmed text of the first block with text, or undefined.
+   * @returns the trimmed first line with text, or undefined.
    */
   static getFirstText(data: ProsemirrorData): string | undefined {
-    for (const block of data.content ?? []) {
-      const text = ProsemirrorDataHelper.getText(block).trim();
-      if (text) {
-        return text;
-      }
-    }
-    return undefined;
+    const lines: string[] = [];
+    ProsemirrorDataHelper.collectLines(data, lines);
+    return lines.map((line) => line.trim()).find(Boolean);
   }
 
-  private static getText(node: ProsemirrorData): string {
-    if (node.text) {
-      return node.text;
+  private static collectLines(node: ProsemirrorData, lines: string[]) {
+    if (node.type === "text") {
+      lines[lines.length - 1] += node.text ?? "";
+      return;
     }
-    return (node.content ?? []).map(ProsemirrorDataHelper.getText).join("");
+
+    // A hard break or any node with content, such as a paragraph, starts a
+    // new line.
+    lines.push("");
+    for (const child of node.content ?? []) {
+      ProsemirrorDataHelper.collectLines(child, lines);
+    }
+    if (node.content?.length) {
+      lines.push("");
+    }
   }
 }
