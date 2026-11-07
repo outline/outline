@@ -797,7 +797,7 @@
   "Not supported": "Non supporté",
   "Sorry, that link won’t work for this embed type": "Désolé, ce lien ne fonctionne pas pour ce type d'intégration",
   "Upload file": "Téléverser un fichier",
-  "Paste a {{service}} link…": "Collez un lien {{service}}…",
+  "Paste a link from {{service}}…": "Collez un lien depuis {{service}}…",
   "Suggestions": "Propositions",
   "More options": "Plus d'options",
   "Type '/' to insert": "Saisir '/' pour insérer",
