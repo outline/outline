@@ -1,5 +1,6 @@
 import { addDays, differenceInDays, differenceInSeconds } from "date-fns";
 import i18n, { t } from "i18next";
+import { uniq } from "es-toolkit";
 import { capitalize, floor } from "es-toolkit/compat";
 import {
   action,
@@ -212,6 +213,12 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   collaboratorIds: string[] | undefined = undefined;
 
+  /**
+   * The ids of users that are responsible for this document.
+   */
+  @observable
+  ownerIds: string[] = [];
+
   @Relation(() => User)
   createdBy: User | undefined;
 
@@ -331,6 +338,15 @@ export default class Document extends ArchivableModel implements Searchable {
     return (this.collaboratorIds ?? [])
       .map((id) => this.store.rootStore.users.get(id))
       .filter(Boolean) as User[];
+  }
+
+  /**
+   * The ids of users that are responsible for this document, the owners of its
+   * collection first and then its own owners.
+   */
+  @computed
+  get allOwnerIds(): string[] {
+    return uniq([...(this.collection?.ownerIds ?? []), ...this.ownerIds]);
   }
 
   /**
@@ -608,6 +624,7 @@ export default class Document extends ArchivableModel implements Searchable {
           notification.documentId === this.id &&
           [
             NotificationEventType.AddUserToDocument,
+            NotificationEventType.AddOwnerToDocument,
             NotificationEventType.UpdateDocument,
             NotificationEventType.PublishDocument,
           ].includes(notification.event)

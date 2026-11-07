@@ -62,9 +62,16 @@ export default class Collection extends ParanoidModel {
   @observable
   permission?: CollectionPermission = undefined;
 
-  /** The user that owns this collection, if it is a personal collection. */
+  /**
+   * The user that owns this collection, if it is a personal collection. Not to
+   * be confused with `ownerIds`.
+   */
   @observable
   ownerId: string | null;
+
+  /** The ids of users that are responsible for this collection. */
+  @observable
+  ownerIds: string[] = [];
   /**
    * Whether public sharing is enabled for the collection. Note this can also be disabled at the
    * workspace level.

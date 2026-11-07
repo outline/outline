@@ -3,7 +3,7 @@ import { User, Team, FileOperation } from "@server/models";
 import { allow, can } from "./cancan";
 import {
   and,
-  isCollectionOwner,
+  isPersonalCollectionOwner,
   isTeamAdmin,
   isTeamModel,
   isTeamMutable,
@@ -48,7 +48,9 @@ function isOwnerIfPersonalSource(actor: User, fileOperation: FileOperation) {
 
   const collection =
     fileOperation.collection ?? fileOperation.document?.collection;
-  return !collection?.isPersonal || isCollectionOwner(actor, collection);
+  return (
+    !collection?.isPersonal || isPersonalCollectionOwner(actor, collection)
+  );
 }
 
 allow(

@@ -54,11 +54,13 @@ class Notification extends Model {
         NotificationEventType.UpdateDocument,
         NotificationEventType.CreateRevision,
         NotificationEventType.AddUserToDocument,
+        NotificationEventType.AddOwnerToDocument,
         NotificationEventType.RequestDocumentAccess,
       ],
       collections: [
         NotificationEventType.CreateCollection,
         NotificationEventType.AddUserToCollection,
+        NotificationEventType.AddOwnerToCollection,
       ],
       system: [
         NotificationEventType.InviteAccepted,
@@ -225,8 +227,12 @@ class Notification extends Model {
         });
       case NotificationEventType.AddUserToDocument:
         return t("shared");
+      case NotificationEventType.AddOwnerToDocument:
+        return t("made you an owner of");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
+      case NotificationEventType.AddOwnerToCollection:
+        return t("made you an owner of");
       case NotificationEventType.AddUserToGroup:
         return t("added you to the group");
       case NotificationEventType.RemoveUserFromGroup:
@@ -279,6 +285,7 @@ class Notification extends Model {
         return this.document ? documentPath(this.document) : "";
       }
       case NotificationEventType.AddUserToCollection:
+      case NotificationEventType.AddOwnerToCollection:
       case NotificationEventType.CreateCollection: {
         const collection = this.collectionId
           ? this.store.rootStore.collections.get(this.collectionId)
@@ -287,6 +294,7 @@ class Notification extends Model {
       }
       case NotificationEventType.RequestDocumentAccess:
       case NotificationEventType.AddUserToDocument:
+      case NotificationEventType.AddOwnerToDocument:
       case NotificationEventType.GroupMentionedInDocument:
       case NotificationEventType.MentionedInDocument: {
         return this.document?.path;
