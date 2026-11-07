@@ -797,7 +797,7 @@
   "Not supported": "Nepodporováno",
   "Sorry, that link won’t work for this embed type": "Odkaz není pro daný typ vložení podporován.",
   "Upload file": "Nahrát soubor",
-  "Paste a {{service}} link…": "Vložit odkaz na {{service}}…",
+  "Paste a link from {{service}}…": "Vložte odkaz ze služby {{service}}…",
   "Suggestions": "Návrhy",
   "More options": "Další možnosti",
   "Type '/' to insert": "Pro vložení stiskněte „/“",
