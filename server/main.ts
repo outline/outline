@@ -37,6 +37,9 @@ export async function start(id: number, disconnect: () => void) {
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
 
+  // Connect before services start, so that their first commands do not fail
+  await Redis.connectEphemeralClient();
+
   // Clear unfurl cache in development so code changes take effect immediately
   if (env.isDevelopment) {
     void CacheHelper.clearData(RedisPrefixHelper.getUnfurlPrefix());
