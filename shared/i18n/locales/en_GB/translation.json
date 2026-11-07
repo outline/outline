@@ -797,7 +797,7 @@
   "Not supported": "Not supported",
   "Sorry, that link won’t work for this embed type": "Sorry, that link won’t work for this embed type",
   "Upload file": "Upload file",
-  "Paste a {{service}} link…": "Paste a {{service}} link…",
+  "Paste a link from {{service}}…": "Paste a link from {{service}}...",
   "Suggestions": "Suggestions",
   "More options": "More options",
   "Type '/' to insert": "Type '/' to insert",
