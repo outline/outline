@@ -126,7 +126,7 @@ allow(User, "manageUsers", Document, (actor, document) =>
     can(actor, "read", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
-      isTeamAdmin(actor, document),
+      and(!document?.collection?.isPersonal, isTeamAdmin(actor, document)),
       can(actor, "update", document?.collection),
       !!document?.isDraft && actor.id === document?.createdById,
       and(isDocumentOwner(actor, document), can(actor, "update", document))
@@ -259,7 +259,11 @@ allow(User, "archive", Document, (actor, document) =>
         can(actor, "update", document),
         or(
           includesMembership(document, [DocumentPermission.Admin]),
-          and(isTeamAdmin(actor, document), can(actor, "read", document)),
+          and(
+            !document?.collection?.isPersonal,
+            isTeamAdmin(actor, document),
+            can(actor, "read", document)
+          ),
           can(actor, "updateDocument", document?.collection),
           isDocumentOwner(actor, document)
         )

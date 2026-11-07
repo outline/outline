@@ -902,6 +902,42 @@ describe("personal collection", () => {
     expect(abilities.manageUsers).toEqual(false);
   });
 
+  for (const permission of [
+    DocumentPermission.Read,
+    DocumentPermission.ReadWrite,
+  ]) {
+    it(`should not allow a workspace admin with ${permission} membership to manage users`, async () => {
+      const { team, owner, doc } = await buildPersonal();
+      const admin = await buildAdmin({ teamId: team.id });
+      admin.team = team;
+      await UserMembership.create({
+        documentId: doc.id,
+        userId: admin.id,
+        permission,
+        createdById: owner.id,
+      });
+      const document = await Document.findByPk(doc.id, { userId: admin.id });
+      const abilities = serialize(admin, document);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.manageUsers).toEqual(false);
+      expect(abilities.archive).toEqual(false);
+    });
+  }
+
+  it("should allow a workspace admin with admin membership to manage users", async () => {
+    const { team, owner, doc } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    admin.team = team;
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: admin.id,
+      permission: DocumentPermission.Admin,
+      createdById: owner.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    expect(serialize(admin, document).manageUsers).toBeTruthy();
+  });
+
   it("should be read-only when personal documents are turned off", async () => {
     const { team, owner, doc } = await buildPersonal();
     const collaborator = await buildUser({ teamId: team.id });
