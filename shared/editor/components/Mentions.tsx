@@ -27,6 +27,7 @@ import useShare from "../../hooks/useShare";
 import env from "../../env";
 import theme from "../../styles/theme";
 import {
+  MentionDisplay,
   UnfurlResourceType,
   type JSONValue,
   type UnfurlResponse,
@@ -70,12 +71,12 @@ const useSharePath = () => {
   return React.useCallback(
     (path: string) =>
       shareId ? sharedModelPath(shareId, path, env.ROOT_SHARE_ID) : path,
-    [shareId]
+    [shareId],
   );
 };
 
 export const MentionUser = observer(function MentionUser_(
-  props: ComponentProps
+  props: ComponentProps,
 ) {
   const { isSelected, node } = props;
   const { users } = useStores();
@@ -96,7 +97,7 @@ export const MentionUser = observer(function MentionUser_(
 });
 
 export const MentionGroup = observer(function MentionGroup_(
-  props: ComponentProps
+  props: ComponentProps,
 ) {
   const { isSelected, node } = props;
   const { groups } = useStores();
@@ -117,7 +118,7 @@ export const MentionGroup = observer(function MentionGroup_(
 });
 
 export const MentionDocument = observer(function MentionDocument_(
-  props: ComponentProps
+  props: ComponentProps,
 ) {
   const { isSelected, node } = props;
   const { documents } = useStores();
@@ -159,7 +160,7 @@ export const MentionDocument = observer(function MentionDocument_(
 });
 
 export const MentionCollection = observer(function MentionCollection_(
-  props: ComponentProps
+  props: ComponentProps,
 ) {
   const { isSelected, node } = props;
   const { collections } = useStores();
@@ -201,7 +202,7 @@ type IssuePrProps = ComponentProps & {
   onChangeUnfurl: (
     unfurl:
       | UnfurlResponse[UnfurlResourceType.Issue]
-      | UnfurlResponse[UnfurlResourceType.PR]
+      | UnfurlResponse[UnfurlResourceType.PR],
   ) => void;
 };
 
@@ -245,7 +246,7 @@ export const MentionURL = (props: IssueUrlProps) => {
         // We got a result back from the server, so update the unfurl in the node attributes.
         if (unfurlModel) {
           onChangeUnfurl(
-            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL]
+            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL],
           );
           return;
         }
@@ -286,6 +287,18 @@ export const MentionURL = (props: IssueUrlProps) => {
     );
   }
 
+  if (node.attrs.display === MentionDisplay.Card) {
+    return (
+      <LinkCard
+        {...attrs}
+        className={className}
+        isSelected={isSelected}
+        url={url}
+        unfurl={unfurl}
+      />
+    );
+  }
+
   return (
     <a
       {...attrs}
@@ -304,6 +317,64 @@ export const MentionURL = (props: IssueUrlProps) => {
           <Backticks content={unfurl.title} />
         </Text>
       </Flex>
+    </a>
+  );
+};
+
+type LinkCardProps = Record<string, JSONValue> & {
+  className: string;
+  isSelected: boolean;
+  url?: string;
+  unfurl: Partial<UnfurlResponse[UnfurlResourceType.URL]>;
+};
+
+/** A preview card for a link, showing its image, title and description. */
+const LinkCard = ({
+  className,
+  isSelected,
+  url,
+  unfurl,
+  ...attrs
+}: LinkCardProps) => {
+  const [imageFailed, setImageFailed] = React.useState(false);
+  const thumbnailUrl =
+    unfurl.thumbnailUrl && !imageFailed
+      ? sanitizeImageSrc(unfurl.thumbnailUrl)
+      : undefined;
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      contentEditable={false}
+    >
+      <CardContent>
+        <CardTitle>
+          <Backticks content={unfurl.title || (url ? toDisplayUrl(url) : "")} />
+        </CardTitle>
+        {unfurl.description ? (
+          <CardDescription>{unfurl.description}</CardDescription>
+        ) : null}
+        <CardSource align="center" gap={6}>
+          {unfurl.faviconUrl ? (
+            <Logo src={sanitizeImageSrc(unfurl.faviconUrl)} alt="" />
+          ) : null}
+          {url ? <CardUrl>{toDisplayUrl(url)}</CardUrl> : null}
+        </CardSource>
+      </CardContent>
+      {thumbnailUrl ? (
+        <CardImage
+          src={thumbnailUrl}
+          alt=""
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+        />
+      ) : null}
     </a>
   );
 };
@@ -636,6 +707,58 @@ const StyledWarningIcon = styled(WarningIcon)`
 const Logo = styled.img`
   width: 16px;
   height: 16px;
+`;
+
+const CardContent = styled.span`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+`;
+
+const CardTitle = styled.span`
+  font-weight: 500;
+  color: ${(props) => props.theme.text};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const CardDescription = styled.span`
+  font-weight: normal;
+  font-size: 14px;
+  color: ${(props) => props.theme.textSecondary};
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+`;
+
+const CardSource = styled(Flex)`
+  margin-top: 2px;
+  min-width: 0;
+`;
+
+const CardUrl = styled.span`
+  font-weight: normal;
+  font-size: 13px;
+  color: ${(props) => props.theme.textTertiary};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const CardImage = styled.img`
+  flex-shrink: 0;
+  width: 30%;
+  max-width: 200px;
+  min-height: 100%;
+  object-fit: cover;
+  border-left: 1px solid ${(props) => props.theme.divider};
 `;
 
 const ProjectAvatar = styled.img`

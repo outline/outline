@@ -801,7 +801,7 @@ width: 100%;
   &[data-type="issue"],
   &[data-type="pull_request"],
   &[data-type="project"],
-  &[data-type="url"] {
+  &[data-type="url"]:not([data-display="card"]) {
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -853,6 +853,39 @@ width: 100%;
   &.mention-document::before {
     content: "+";
   }
+
+  &[data-display="card"] {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    max-width: 560px;
+    min-height: 88px;
+    margin: 4px 0;
+    padding: 0;
+    overflow: hidden;
+    white-space: normal;
+    font-size: 15px;
+    line-height: 1.4;
+    border-radius: 8px;
+    border: 1px solid ${props.theme.divider};
+    background: ${props.theme.background};
+    cursor: pointer;
+    vertical-align: top;
+
+    &:${hover} {
+      background: ${props.theme.backgroundSecondary};
+    }
+
+    &.ProseMirror-selectednode {
+      outline: 2px solid ${props.theme.selected};
+      outline-offset: -1px;
+    }
+  }
+}
+
+.component-mention:has([data-display="card"]) {
+  display: block;
 }
 
 .${EditorStyleHelper.suggestionTrigger} {

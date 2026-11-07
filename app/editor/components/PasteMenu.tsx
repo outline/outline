@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-import { EmailIcon, LinkIcon } from "outline-icons";
+import { AlignImageRightIcon, EmailIcon, LinkIcon } from "outline-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { MenuItem } from "@shared/editor/types";
-import { MentionType } from "@shared/types";
+import { MentionDisplay, MentionType } from "@shared/types";
 import { isInternalUrl, isUrl } from "@shared/utils/urls";
 import type Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -37,7 +37,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
     (item, _index, options) => (
       <SuggestionsMenuItem {...options} {...item} title={item.title} />
     ),
-    []
+    [],
   );
 
   if (!items) {
@@ -113,7 +113,7 @@ function useItems({
     if (pastedText && isUrl(pastedText)) {
       const url = new URL(pastedText);
       const integration = integrations.find((intg: Integration) =>
-        isURLMentionable({ url, integration: intg })
+        isURLMentionable({ url, integration: intg }),
       );
 
       mentionType = integration
@@ -143,6 +143,21 @@ function useItems({
         appendSpace: true,
       },
       {
+        name: "mention",
+        title: t("Card"),
+        icon: <AlignImageRightIcon />,
+        visible: mentionType === MentionType.URL && !isInternal,
+        attrs: {
+          id: uuidv4(),
+          type: MentionType.URL,
+          label: pastedText,
+          href: pastedText,
+          modelId: uuidv4(),
+          actorId: user?.id,
+          display: MentionDisplay.Card,
+        },
+      },
+      {
         name: "embed",
         title: t("Embed"),
         subtitle:
@@ -167,7 +182,7 @@ function useItems({
 
     const url = new URL(text);
     const integration = integrations.find((intg: Integration) =>
-      isURLMentionable({ url, integration: intg })
+      isURLMentionable({ url, integration: intg }),
     );
 
     const mentionType = integration

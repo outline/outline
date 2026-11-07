@@ -1,12 +1,23 @@
 import type { Node, Schema } from "prosemirror-model";
 import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
+import { MentionType } from "../../types";
 import { isList } from "../queries/isList";
+
+/**
+ * Whether a mention can be displayed as a preview card.
+ *
+ * @param node the node to check.
+ * @returns true if the node is a mention that supports the card display.
+ */
+export function canDisplayAsCard(node: Node): boolean {
+  return node.type.name === "mention" && node.attrs.type === MentionType.URL;
+}
 
 export function transformListToMentions(
   listNode: Node,
   schema: Schema,
-  attrs: Record<string, Primitive>
+  attrs: Record<string, Primitive>,
 ): Node {
   const childNodes: Node[] = [];
 
@@ -20,7 +31,7 @@ export function transformListToMentions(
 function transformListItemToMentions(
   listItemNode: Node,
   schema: Schema,
-  attrs: Record<string, Primitive>
+  attrs: Record<string, Primitive>,
 ) {
   const childNodes: Node[] = [];
 
@@ -40,8 +51,8 @@ function transformListItemToMentions(
               href: link,
               modelId: uuidv4(),
               actorId: attrs.actorId,
-            })
-          )
+            }),
+          ),
         );
       } else {
         childNodes.push(node);

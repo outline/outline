@@ -13,7 +13,9 @@ import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import type { UnfurlResponse } from "../../types";
-import { MentionType, UnfurlResourceType } from "../../types";
+import { t } from "i18next";
+import { AlignImageRightIcon, EmailIcon } from "outline-icons";
+import { MentionDisplay, MentionType, UnfurlResourceType } from "../../types";
 import { dateToReadable } from "../../utils/date";
 import {
   MentionCollection,
@@ -27,13 +29,18 @@ import {
   MentionUser,
 } from "../components/Mentions";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { transformListToMentions } from "../lib/mention";
+import { canDisplayAsCard, transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
 import { RepairPlugin } from "../plugins/RepairPlugin";
 import mentionRule from "../rules/mention";
-import type { ComponentProps, NodeWithPos } from "../types";
+import { isNodeActive } from "../queries/isNodeActive";
+import type {
+  ComponentProps,
+  NodeWithPos,
+  SelectionToolbarMenuDescriptor,
+} from "../types";
 import Node from "./Node";
 
 /**
@@ -118,6 +125,9 @@ export default class Mention extends Node {
         unfurl: {
           default: undefined,
         },
+        display: {
+          default: MentionDisplay.Inline,
+        },
       },
       inline: true,
       marks: "",
@@ -147,6 +157,10 @@ export default class Mention extends Node {
               unfurl: dom.dataset.unfurl
                 ? JSON.parse(dom.dataset.unfurl)
                 : undefined,
+              display:
+                dom.dataset.display === MentionDisplay.Card
+                  ? MentionDisplay.Card
+                  : MentionDisplay.Inline,
             };
           },
         },
@@ -157,10 +171,11 @@ export default class Mention extends Node {
           ? "span"
           : "a",
         {
-          // Date mentions are self-contained and have nothing to unfurl, so
-          // they opt out of the hover preview behaviour.
+          // Dates have nothing to unfurl and cards already show the preview,
+          // so both opt out of the hover preview behaviour.
           class:
-            node.attrs.type === MentionType.Date
+            node.attrs.type === MentionType.Date ||
+            node.attrs.display === MentionDisplay.Card
               ? node.type.name
               : `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
@@ -174,7 +189,7 @@ export default class Mention extends Node {
                   }`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
-                  : node.attrs.href
+                  : node.attrs.href,
           ),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
@@ -184,6 +199,10 @@ export default class Mention extends Node {
             ? sanitizeUrl(node.attrs.href)
             : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
           "data-unfurl": JSON.stringify(node.attrs.unfurl),
+          "data-display":
+            node.attrs.display === MentionDisplay.Card
+              ? MentionDisplay.Card
+              : undefined,
         },
         toPlainText(node),
       ],
@@ -240,6 +259,41 @@ export default class Mention extends Node {
 
   get rulePlugins() {
     return [mentionRule];
+  }
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        priority: 50,
+        matches: (ctx) =>
+          !ctx.readOnly &&
+          ctx.selection instanceof NodeSelection &&
+          canDisplayAsCard(ctx.selection.node),
+        getItems: (ctx) => {
+          const { schema } = ctx;
+          return [
+            {
+              name: "mentionDisplay",
+              tooltip: t("Display as mention"),
+              attrs: { display: MentionDisplay.Inline },
+              active: isNodeActive(schema.nodes.mention, {
+                display: MentionDisplay.Inline,
+              }),
+              icon: <EmailIcon />,
+            },
+            {
+              name: "mentionDisplay",
+              tooltip: t("Display as card"),
+              attrs: { display: MentionDisplay.Card },
+              active: isNodeActive(schema.nodes.mention, {
+                display: MentionDisplay.Card,
+              }),
+              icon: <AlignImageRightIcon />,
+            },
+          ];
+        },
+      },
+    ];
   }
 
   get plugins() {
@@ -342,6 +396,27 @@ export default class Mention extends Node {
           dispatch?.(transaction);
           return true;
         },
+      mentionDisplay:
+        (attrs: { display: MentionDisplay }): Command =>
+        (state, dispatch) => {
+          const { selection } = state;
+          if (
+            !(selection instanceof NodeSelection) ||
+            !canDisplayAsCard(selection.node)
+          ) {
+            return false;
+          }
+
+          const tr = state.tr.setNodeAttribute(
+            selection.from,
+            "display",
+            attrs.display,
+          );
+          dispatch?.(
+            tr.setSelection(NodeSelection.create(tr.doc, selection.from)),
+          );
+          return true;
+        },
       mention_list:
         (attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {
@@ -357,7 +432,7 @@ export default class Mention extends Node {
 
           const resolvedPos = state.tr.doc.resolve(position);
           const nodeWithPos = findParentNodeClosestToPos(resolvedPos, (node) =>
-            isList(node, this.editor.schema)
+            isList(node, this.editor.schema),
           );
 
           if (!nodeWithPos) {
@@ -371,14 +446,14 @@ export default class Mention extends Node {
           const listNodeWithMentions = transformListToMentions(
             listNode,
             this.editor.schema,
-            attrs
+            attrs,
           );
 
           const tr = state.tr.deleteRange(from, to);
           dispatch?.(
             tr
               .setSelection(TextSelection.near(tr.doc.resolve(from)))
-              .replaceSelectionWith(listNodeWithMentions)
+              .replaceSelectionWith(listNodeWithMentions),
           );
 
           return true;
@@ -400,7 +475,7 @@ export default class Mention extends Node {
       state.write(
         `[${label}](/doc/${mId}${
           node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-        })`
+        })`,
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
@@ -492,8 +567,10 @@ export default class Mention extends Node {
       // The resource an external link points at is only known once it has been
       // unfurled, so narrow a generic URL mention to the type it turned out to
       // be – an issue, pull request or project.
+      // Cards keep the generic URL type so their display survives the unfurl.
       if (
         node.attrs.type === MentionType.URL &&
+        node.attrs.display !== MentionDisplay.Card &&
         unfurledType !== node.attrs.type
       ) {
         overrides.type = unfurledType;
