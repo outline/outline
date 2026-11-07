@@ -1,3 +1,4 @@
+import { subMinutes } from "date-fns";
 import type { MockInstance } from "vitest";
 import { Plan } from "@shared/types";
 import type { User } from "@server/models";
@@ -78,8 +79,9 @@ describe("#events.list", () => {
       collectionId: collection.id,
       teamId: user.teamId,
     });
-    // audit event
+    // audit event, older than the next event as timestamps can tie within a millisecond
     const auditEvent = await buildEvent({
+      createdAt: subMinutes(new Date(), 1),
       name: "users.promote",
       teamId: user.teamId,
       actorId: admin.id,
