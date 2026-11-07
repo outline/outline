@@ -9,7 +9,7 @@ const modelId = "c85a0d80-3a89-4b25-a0cd-e7fc83f0d226";
 
 const serializeMention = (
   attrs: Record<string, unknown>,
-  options?: { commonMark?: boolean },
+  options?: { commonMark?: boolean }
 ) => {
   const doc = schema.nodeFromJSON({
     type: "doc",
@@ -33,10 +33,10 @@ describe("Mention serialization", () => {
             label: "Epic 1: Control plane Helm chart",
             href: "https://github.com/acme/infra/issues/2",
           },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe(
-        "@[Epic 1: Control plane Helm chart](https://github.com/acme/infra/issues/2)",
+        "@[Epic 1: Control plane Helm chart](https://github.com/acme/infra/issues/2)"
       );
     });
 
@@ -48,8 +48,8 @@ describe("Mention serialization", () => {
             label: "Add Helm chart",
             href: "https://github.com/acme/infra/pull/42",
           },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe("@[Add Helm chart](https://github.com/acme/infra/pull/42)");
     });
 
@@ -61,8 +61,8 @@ describe("Mention serialization", () => {
             label: "Q3 Roadmap",
             href: "https://github.com/orgs/acme/projects/7",
           },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe("@[Q3 Roadmap](https://github.com/orgs/acme/projects/7)");
     });
 
@@ -74,8 +74,8 @@ describe("Mention serialization", () => {
             label: "Example",
             href: "https://example.com/page",
           },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe("@[Example](https://example.com/page)");
     });
 
@@ -86,7 +86,7 @@ describe("Mention serialization", () => {
           label: "Epic 1",
           href: "javascript:alert(1)",
         },
-        { commonMark: true },
+        { commonMark: true }
       );
       expect(markdown).not.toContain("(javascript:");
     });
@@ -95,8 +95,8 @@ describe("Mention serialization", () => {
       expect(
         serializeMention(
           { type: MentionType.Issue, label: "Epic 1" },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe(`@[Epic 1](mention://${id}/issue/${modelId})`);
     });
 
@@ -104,8 +104,8 @@ describe("Mention serialization", () => {
       expect(
         serializeMention(
           { type: MentionType.User, label: "John Doe" },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe(`@[John Doe](mention://${id}/user/${modelId})`);
     });
   });
@@ -117,9 +117,9 @@ describe("Mention serialization", () => {
           type: MentionType.Issue,
           label: "Epic 1: Control plane Helm chart",
           href: "https://github.com/acme/infra/issues/2",
-        }),
+        })
       ).toBe(
-        `@[Epic 1: Control plane Helm chart](mention://${id}/issue/${modelId})`,
+        `@[Epic 1: Control plane Helm chart](mention://${id}/issue/${modelId})`
       );
     });
 
@@ -129,7 +129,7 @@ describe("Mention serialization", () => {
           type: MentionType.PullRequest,
           label: "Add Helm chart",
           href: "https://github.com/acme/infra/pull/42",
-        }),
+        })
       ).toBe(`@[Add Helm chart](mention://${id}/pull_request/${modelId})`);
     });
 
@@ -139,7 +139,7 @@ describe("Mention serialization", () => {
           type: MentionType.Project,
           label: "Q3 Roadmap",
           href: "https://github.com/orgs/acme/projects/7",
-        }),
+        })
       ).toBe(`@[Q3 Roadmap](mention://${id}/project/${modelId})`);
     });
   });
@@ -149,8 +149,8 @@ describe("Mention serialization", () => {
       expect(
         serializeMention(
           { type: MentionType.Document, label: "Onboarding" },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe(`[Onboarding](/doc/${modelId})`);
     });
 
@@ -158,8 +158,8 @@ describe("Mention serialization", () => {
       expect(
         serializeMention(
           { type: MentionType.Collection, label: "Engineering" },
-          { commonMark: true },
-        ),
+          { commonMark: true }
+        )
       ).toBe(`[Engineering](/collection/${modelId})`);
     });
   });
@@ -190,7 +190,7 @@ describe("Mention ids", () => {
         schema.nodes.paragraph.create(null, [mention(id)]),
         schema.nodes.paragraph.create(),
       ]),
-      new Mention().plugins,
+      new Mention().plugins
     );
 
     const typed = state.apply(state.tr.insertText("x", 4));
@@ -208,7 +208,7 @@ describe("Mention ids", () => {
         schema.nodes.paragraph.create(null, [mention(id)]),
         schema.nodes.paragraph.create(),
       ]),
-      new Mention().plugins,
+      new Mention().plugins
     );
 
     const pasted = state.apply(state.tr.insert(4, mention(id)));
@@ -226,7 +226,7 @@ describe("Mention ids", () => {
         schema.nodes.paragraph.create(null, [mention(id)]),
         schema.nodes.paragraph.create(),
       ]),
-      new Mention().plugins,
+      new Mention().plugins
     );
 
     const newState = state.apply(state.tr.insertText("x", 7));
@@ -239,7 +239,7 @@ describe("Mention ids", () => {
   it("assigns an id to a mention without one", () => {
     const state = createEditorState(
       schema.nodes.doc.create(null, [schema.nodes.paragraph.create()]),
-      new Mention().plugins,
+      new Mention().plugins
     );
 
     const newState = state.apply(state.tr.insert(1, mention(null)));
@@ -265,10 +265,10 @@ describe("Mention display", () => {
     const state = createEditorState(
       schema.nodes.doc.create(null, [
         schema.nodes.paragraph.create(null, [node]),
-      ]),
+      ])
     );
     return state.apply(
-      state.tr.setSelection(NodeSelection.create(state.doc, 1)),
+      state.tr.setSelection(NodeSelection.create(state.doc, 1))
     );
   };
 
@@ -316,12 +316,28 @@ describe("Mention display", () => {
 
     const toInline = setDisplay(toCard.next, MentionDisplay.Inline);
     expect(toInline.next.doc.nodeAt(1)?.attrs.display).toBe(
-      MentionDisplay.Inline,
+      MentionDisplay.Inline
     );
   });
 
   it("does not change the display of other mention types", () => {
     const state = selectMention(urlMention({ type: MentionType.User }));
     expect(setDisplay(state, MentionDisplay.Card).handled).toBe(false);
+  });
+
+  it("creates a paragraph below a selected card on Enter", () => {
+    const state = selectMention(urlMention({ display: MentionDisplay.Card }));
+    let next = state;
+    const handled = new Mention().keys().Enter(state, (tr) => {
+      next = state.apply(tr);
+    });
+
+    expect(handled).toBe(true);
+    expect(next.doc.childCount).toBe(2);
+    expect(next.doc.child(0).firstChild?.attrs.display).toBe(
+      MentionDisplay.Card
+    );
+    expect(next.doc.child(1).content.size).toBe(0);
+    expect(next.selection.$head.parent).toBe(next.doc.child(1));
   });
 });

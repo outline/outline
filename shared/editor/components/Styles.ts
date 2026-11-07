@@ -858,8 +858,8 @@ width: 100%;
     display: flex;
     align-items: stretch;
     gap: 0;
+    box-sizing: border-box;
     width: 100%;
-    max-width: 560px;
     min-height: 88px;
     margin: 4px 0;
     padding: 0;
@@ -886,6 +886,14 @@ width: 100%;
 
 .component-mention:has([data-display="card"]) {
   display: block;
+}
+
+// Cards are inline nodes displayed as blocks, so hide the forced line below
+.component-mention:has([data-display="card"]) + img.ProseMirror-separator,
+.component-mention:has([data-display="card"])
+  + img.ProseMirror-separator
+  + br.ProseMirror-trailingBreak {
+  display: none;
 }
 
 .${EditorStyleHelper.suggestionTrigger} {

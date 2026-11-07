@@ -37,7 +37,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
     (item, _index, options) => (
       <SuggestionsMenuItem {...options} {...item} title={item.title} />
     ),
-    [],
+    []
   );
 
   if (!items) {
@@ -113,7 +113,7 @@ function useItems({
     if (pastedText && isUrl(pastedText)) {
       const url = new URL(pastedText);
       const integration = integrations.find((intg: Integration) =>
-        isURLMentionable({ url, integration: intg }),
+        isURLMentionable({ url, integration: intg })
       );
 
       mentionType = integration
@@ -182,7 +182,7 @@ function useItems({
 
     const url = new URL(text);
     const integration = integrations.find((intg: Integration) =>
-      isURLMentionable({ url, integration: intg }),
+      isURLMentionable({ url, integration: intg })
     );
 
     const mentionType = integration

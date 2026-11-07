@@ -28,6 +28,7 @@ import {
   MentionURL,
   MentionUser,
 } from "../components/Mentions";
+import { selectBlockLikeVertically } from "../commands/selectBlockLikeVertically";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { canDisplayAsCard, transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
@@ -189,7 +190,7 @@ export default class Mention extends Node {
                   }`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
-                  : node.attrs.href,
+                  : node.attrs.href
           ),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
@@ -337,10 +338,25 @@ export default class Mention extends Node {
       MentionType.PullRequest,
       MentionType.Project,
     ];
+    const isCard = (node: ProsemirrorNode) =>
+      node.type.name === this.name &&
+      node.attrs.display === MentionDisplay.Card;
 
     return {
-      Enter: (state) => {
+      ArrowUp: selectBlockLikeVertically(-1, isCard),
+      ArrowDown: selectBlockLikeVertically(1, isCard),
+      Enter: (state, dispatch) => {
         const { selection } = state;
+        if (selection instanceof NodeSelection && isCard(selection.node)) {
+          const tr = state.tr.split(selection.to);
+          dispatch?.(
+            tr
+              .setSelection(TextSelection.create(tr.doc, selection.to + 2))
+              .scrollIntoView()
+          );
+          return true;
+        }
+
         if (
           selection instanceof NodeSelection &&
           selection.node.type.name === this.name &&
@@ -410,10 +426,10 @@ export default class Mention extends Node {
           const tr = state.tr.setNodeAttribute(
             selection.from,
             "display",
-            attrs.display,
+            attrs.display
           );
           dispatch?.(
-            tr.setSelection(NodeSelection.create(tr.doc, selection.from)),
+            tr.setSelection(NodeSelection.create(tr.doc, selection.from))
           );
           return true;
         },
@@ -432,7 +448,7 @@ export default class Mention extends Node {
 
           const resolvedPos = state.tr.doc.resolve(position);
           const nodeWithPos = findParentNodeClosestToPos(resolvedPos, (node) =>
-            isList(node, this.editor.schema),
+            isList(node, this.editor.schema)
           );
 
           if (!nodeWithPos) {
@@ -446,14 +462,14 @@ export default class Mention extends Node {
           const listNodeWithMentions = transformListToMentions(
             listNode,
             this.editor.schema,
-            attrs,
+            attrs
           );
 
           const tr = state.tr.deleteRange(from, to);
           dispatch?.(
             tr
               .setSelection(TextSelection.near(tr.doc.resolve(from)))
-              .replaceSelectionWith(listNodeWithMentions),
+              .replaceSelectionWith(listNodeWithMentions)
           );
 
           return true;
@@ -475,7 +491,7 @@ export default class Mention extends Node {
       state.write(
         `[${label}](/doc/${mId}${
           node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-        })`,
+        })`
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);

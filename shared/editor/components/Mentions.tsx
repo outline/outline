@@ -71,12 +71,12 @@ const useSharePath = () => {
   return React.useCallback(
     (path: string) =>
       shareId ? sharedModelPath(shareId, path, env.ROOT_SHARE_ID) : path,
-    [shareId],
+    [shareId]
   );
 };
 
 export const MentionUser = observer(function MentionUser_(
-  props: ComponentProps,
+  props: ComponentProps
 ) {
   const { isSelected, node } = props;
   const { users } = useStores();
@@ -97,7 +97,7 @@ export const MentionUser = observer(function MentionUser_(
 });
 
 export const MentionGroup = observer(function MentionGroup_(
-  props: ComponentProps,
+  props: ComponentProps
 ) {
   const { isSelected, node } = props;
   const { groups } = useStores();
@@ -118,7 +118,7 @@ export const MentionGroup = observer(function MentionGroup_(
 });
 
 export const MentionDocument = observer(function MentionDocument_(
-  props: ComponentProps,
+  props: ComponentProps
 ) {
   const { isSelected, node } = props;
   const { documents } = useStores();
@@ -160,7 +160,7 @@ export const MentionDocument = observer(function MentionDocument_(
 });
 
 export const MentionCollection = observer(function MentionCollection_(
-  props: ComponentProps,
+  props: ComponentProps
 ) {
   const { isSelected, node } = props;
   const { collections } = useStores();
@@ -202,7 +202,7 @@ type IssuePrProps = ComponentProps & {
   onChangeUnfurl: (
     unfurl:
       | UnfurlResponse[UnfurlResourceType.Issue]
-      | UnfurlResponse[UnfurlResourceType.PR],
+      | UnfurlResponse[UnfurlResourceType.PR]
   ) => void;
 };
 
@@ -246,7 +246,7 @@ export const MentionURL = (props: IssueUrlProps) => {
         // We got a result back from the server, so update the unfurl in the node attributes.
         if (unfurlModel) {
           onChangeUnfurl(
-            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL],
+            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL]
           );
           return;
         }

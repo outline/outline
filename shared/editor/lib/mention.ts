@@ -17,7 +17,7 @@ export function canDisplayAsCard(node: Node): boolean {
 export function transformListToMentions(
   listNode: Node,
   schema: Schema,
-  attrs: Record<string, Primitive>,
+  attrs: Record<string, Primitive>
 ): Node {
   const childNodes: Node[] = [];
 
@@ -31,7 +31,7 @@ export function transformListToMentions(
 function transformListItemToMentions(
   listItemNode: Node,
   schema: Schema,
-  attrs: Record<string, Primitive>,
+  attrs: Record<string, Primitive>
 ) {
   const childNodes: Node[] = [];
 
@@ -51,8 +51,8 @@ function transformListItemToMentions(
               href: link,
               modelId: uuidv4(),
               actorId: attrs.actorId,
-            }),
-          ),
+            })
+          )
         );
       } else {
         childNodes.push(node);
