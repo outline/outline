@@ -9383,13 +9383,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"emoji-mart@npm:^5.6.0":
-  version: 5.6.0
-  resolution: "emoji-mart@npm:5.6.0"
-  checksum: 10c0/23e68ab10984f101b696d8f8e103e553ffa8e4d644e9a315190a9657903f71b833db09aac51b05de20f33bb9eef5bc1425eecdb2437042b25aff2dad0231f029
-  languageName: node
-  linkType: hard
-
 "emoji-regex@npm:^10.3.0, emoji-regex@npm:^10.6.0":
   version: 10.6.0
   resolution: "emoji-regex@npm:10.6.0"
@@ -14142,7 +14135,6 @@ __metadata:
     diff: "npm:^5.2.2"
     discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^2.27.0"
-    emoji-mart: "npm:^5.6.0"
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.53.0"
     express-useragent: "npm:^1.0.15"
