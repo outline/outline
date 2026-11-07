@@ -797,7 +797,7 @@
   "Not supported": "Ikke understøttet",
   "Sorry, that link won’t work for this embed type": "Beklager, linket virker ikke for denne indlejrede type",
   "Upload file": "Upload fil",
-  "Paste a {{service}} link…": "Indsæt et {{service}} link…",
+  "Paste a link from {{service}}…": "Indsæt et link fra {{service}}…",
   "Suggestions": "Forslag",
   "More options": "Flere indstillinger",
   "Type '/' to insert": "Indtast '/' for at indsætte",
