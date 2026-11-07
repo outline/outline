@@ -1,5 +1,5 @@
-import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
+import { Table, TBody, TR, TD } from "./Table";
 
 const EmptySpace = ({ height }: { height?: number }) => {
   height = height || 16;
