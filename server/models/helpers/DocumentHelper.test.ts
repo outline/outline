@@ -1260,6 +1260,47 @@ In a cell
     });
   });
 
+  describe("getPreviewImage", () => {
+    const image = (src: string, width?: number, height?: number) => ({
+      type: "paragraph",
+      content: [{ type: "image", attrs: { src, alt: "", width, height } }],
+    });
+
+    it("returns the first image larger than the minimum size", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          image("/icon.png", 32, 32),
+          image("/narrow.png", 400, 80),
+          image("/large.png", 800, 600),
+          image("/second.png", 800, 600),
+        ],
+      };
+      expect(DocumentHelper.getPreviewImage(data)).toBe("/large.png");
+    });
+
+    it("skips images without a stored size", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [image("/unknown.png")],
+      };
+      expect(DocumentHelper.getPreviewImage(data)).toBeUndefined();
+    });
+
+    it("finds images nested in other blocks", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "blockquote",
+            content: [image("/quoted.png", 200, 200)],
+          },
+        ],
+      };
+      expect(DocumentHelper.getPreviewImage(data)).toBe("/quoted.png");
+    });
+  });
+
   describe("getAnchorContent", () => {
     it("should return the section content for a matching heading anchor", async () => {
       const document = await buildDocument({

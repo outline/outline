@@ -38,6 +38,7 @@ import lazyWithRetry from "../../utils/lazyWithRetry";
 import { sharedModelPath } from "../../utils/routeHelpers";
 import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
+import { ProsemirrorDataHelper } from "../../utils/ProsemirrorDataHelper";
 
 type Attrs = {
   className: string;
@@ -121,12 +122,20 @@ export const MentionDocument = observer(function MentionDocument_(
   props: ComponentProps
 ) {
   const { isSelected, node } = props;
-  const { documents } = useStores();
+  const { documents, collections, unfurls } = useStores();
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
   const anchorId = node.attrs.anchorId;
+  const isCard = node.attrs.display === MentionDisplay.Card;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
   const sharePath = useSharePath();
+  const hash = anchorId ? `#${anchorId}` : "";
+
+  // The summary is specific to the viewer, so it is kept in the store and not
+  // written to the node.
+  const unfurlUrl = isCard
+    ? `${env.URL}${sharePath(`/doc/${modelId}`)}${hash}`
+    : undefined;
 
   React.useEffect(() => {
     if (modelId) {
@@ -134,7 +143,61 @@ export const MentionDocument = observer(function MentionDocument_(
     }
   }, [modelId, documents]);
 
+  React.useEffect(() => {
+    if (unfurlUrl) {
+      void unfurls.fetchUnfurl({ url: unfurlUrl });
+    }
+  }, [unfurlUrl, unfurls]);
+
   const documentPath = sharePath(doc?.path ?? `/doc/${node.attrs.modelId}`);
+  const icon = doc?.icon ? (
+    <Icon value={doc.icon} initial={doc.initial} color={doc.color} size={18} />
+  ) : (
+    <DocumentIcon size={18} />
+  );
+  const title = doc?.title || node.attrs.label;
+
+  if (isCard) {
+    const documentUnfurl = unfurlUrl ? unfurls.get(unfurlUrl)?.data : undefined;
+    const isDocumentUnfurl =
+      documentUnfurl?.type === UnfurlResourceType.Document;
+    const collection = doc?.collectionId
+      ? collections.get(doc.collectionId)
+      : undefined;
+
+    return (
+      <Link
+        {...attrs}
+        className={cn(className, {
+          "ProseMirror-selectednode": isSelected,
+        })}
+        to={`${documentPath}${hash}`}
+        contentEditable={false}
+      >
+        <CardBody
+          icon={icon}
+          title={title}
+          description={isDocumentUnfurl ? documentUnfurl.summary : undefined}
+          thumbnailUrl={
+            isDocumentUnfurl ? documentUnfurl.thumbnailUrl : undefined
+          }
+          source={
+            collection ? (
+              <>
+                <Icon
+                  value={collection.icon}
+                  initial={collection.initial}
+                  color={collection.color}
+                  size={16}
+                />
+                <CardSourceText>{collection.name}</CardSourceText>
+              </>
+            ) : undefined
+          }
+        />
+      </Link>
+    );
+  }
 
   return (
     <Link
@@ -142,19 +205,10 @@ export const MentionDocument = observer(function MentionDocument_(
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      to={anchorId ? `${documentPath}#${anchorId}` : documentPath}
+      to={`${documentPath}${hash}`}
     >
-      {doc?.icon ? (
-        <Icon
-          value={doc.icon}
-          initial={doc.initial}
-          color={doc.color}
-          size={18}
-        />
-      ) : (
-        <DocumentIcon size={18} />
-      )}
-      <span>{doc?.title || node.attrs.label}</span>
+      {icon}
+      <span>{title}</span>
     </Link>
   );
 });
@@ -175,25 +229,52 @@ export const MentionCollection = observer(function MentionCollection_(
     }
   }, [modelId, collections]);
 
+  const icon = collection?.icon ? (
+    <Icon
+      value={collection.icon}
+      initial={collection.initial}
+      color={collection.color}
+      size={18}
+    />
+  ) : (
+    <CollectionIcon size={18} />
+  );
+  const title = collection?.title || node.attrs.label;
+  const to = sharePath(collection?.path ?? `/collection/${node.attrs.modelId}`);
+
+  if (node.attrs.display === MentionDisplay.Card) {
+    return (
+      <Link
+        {...attrs}
+        className={cn(className, {
+          "ProseMirror-selectednode": isSelected,
+        })}
+        to={to}
+        contentEditable={false}
+      >
+        <CardBody
+          icon={icon}
+          title={title}
+          description={
+            collection?.data
+              ? ProsemirrorDataHelper.getFirstText(collection.data)
+              : undefined
+          }
+        />
+      </Link>
+    );
+  }
+
   return (
     <Link
       {...attrs}
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      to={sharePath(collection?.path ?? `/collection/${node.attrs.modelId}`)}
+      to={to}
     >
-      {collection?.icon ? (
-        <Icon
-          value={collection.icon}
-          initial={collection.initial}
-          color={collection.color}
-          size={18}
-        />
-      ) : (
-        <CollectionIcon size={18} />
-      )}
-      <span>{collection?.title || node.attrs.label}</span>
+      {icon}
+      <span>{title}</span>
     </Link>
   );
 });
@@ -335,47 +416,99 @@ const LinkCard = ({
   url,
   unfurl,
   ...attrs
-}: LinkCardProps) => {
-  const [imageFailed, setImageFailed] = React.useState(false);
-  const thumbnailUrl =
-    unfurl.thumbnailUrl && !imageFailed
-      ? sanitizeImageSrc(unfurl.thumbnailUrl)
-      : undefined;
-
-  return (
-    <a
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-      contentEditable={false}
-    >
-      <CardContent>
-        <CardTitle>
-          <Backticks content={unfurl.title || (url ? toDisplayUrl(url) : "")} />
-        </CardTitle>
-        {unfurl.description ? (
-          <CardDescription>{unfurl.description}</CardDescription>
-        ) : null}
-        <CardSource align="center" gap={6}>
+}: LinkCardProps) => (
+  <a
+    {...attrs}
+    className={cn(className, {
+      "ProseMirror-selectednode": isSelected,
+    })}
+    href={url}
+    target="_blank"
+    rel="noopener noreferrer nofollow"
+    contentEditable={false}
+  >
+    <CardBody
+      title={unfurl.title || (url ? toDisplayUrl(url) : "")}
+      description={unfurl.description}
+      thumbnailUrl={unfurl.thumbnailUrl}
+      source={
+        <>
           {unfurl.faviconUrl ? (
             <Logo src={sanitizeImageSrc(unfurl.faviconUrl)} alt="" />
           ) : null}
-          {url ? <CardUrl>{toDisplayUrl(url)}</CardUrl> : null}
-        </CardSource>
+          {url ? <CardSourceText>{toDisplayUrl(url)}</CardSourceText> : null}
+        </>
+      }
+    />
+  </a>
+);
+
+interface CardBodyProps {
+  /** An icon shown before the title. */
+  icon?: React.ReactNode;
+  /** The title of the card. */
+  title: string;
+  /** A short plain text description. */
+  description?: string;
+  /** Content shown below the description, such as the source of the link. */
+  source?: React.ReactNode;
+  /** An image shown at the side of the card. */
+  thumbnailUrl?: string;
+}
+
+/** The content of a mention that is displayed as a card. */
+const CardBody = ({
+  icon,
+  title,
+  description,
+  source,
+  thumbnailUrl,
+}: CardBodyProps) => {
+  const imageSrc = thumbnailUrl ? sanitizeImageSrc(thumbnailUrl) : undefined;
+
+  return (
+    <>
+      <CardContent>
+        <CardTitle align="center" gap={6}>
+          {icon}
+          <CardTitleText>
+            <Backticks content={title} />
+          </CardTitleText>
+        </CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
+        {source ? (
+          <CardSource align="center" gap={6}>
+            {source}
+          </CardSource>
+        ) : null}
       </CardContent>
-      {thumbnailUrl ? (
-        <CardImage
-          src={thumbnailUrl}
-          alt=""
-          loading="lazy"
-          onError={() => setImageFailed(true)}
-        />
-      ) : null}
-    </a>
+      {imageSrc ? <CardThumbnail key={imageSrc} src={imageSrc} /> : null}
+    </>
+  );
+};
+
+/**
+ * The image of a card. It is hidden until it loads and removed if it fails, as
+ * the viewer may not have access to it.
+ */
+const CardThumbnail = ({ src }: { src: string }) => {
+  const [status, setStatus] = React.useState<"loading" | "loaded" | "failed">(
+    "loading"
+  );
+
+  if (status === "failed") {
+    return null;
+  }
+
+  return (
+    <CardImageFrame $loaded={status === "loaded"}>
+      <CardImage
+        src={src}
+        alt=""
+        onLoad={() => setStatus("loaded")}
+        onError={() => setStatus("failed")}
+      />
+    </CardImageFrame>
   );
 };
 
@@ -719,9 +852,13 @@ const CardContent = styled.span`
   padding: 12px 14px;
 `;
 
-const CardTitle = styled.span`
+const CardTitle = styled(Flex)`
+  min-width: 0;
   font-weight: 500;
   color: ${(props) => props.theme.text};
+`;
+
+const CardTitleText = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -743,7 +880,7 @@ const CardSource = styled(Flex)`
   min-width: 0;
 `;
 
-const CardUrl = styled.span`
+const CardSourceText = styled.span`
   font-weight: normal;
   font-size: 13px;
   color: ${(props) => props.theme.textTertiary};
@@ -752,13 +889,22 @@ const CardUrl = styled.span`
   white-space: nowrap;
 `;
 
-const CardImage = styled.img`
+// The frame takes the height of the card, so the image does not change it.
+const CardImageFrame = styled.span<{ $loaded: boolean }>`
+  display: ${(props) => (props.$loaded ? "block" : "none")};
+  position: relative;
   flex-shrink: 0;
   width: 30%;
   max-width: 200px;
-  min-height: 100%;
-  object-fit: cover;
   border-left: 1px solid ${(props) => props.theme.divider};
+`;
+
+const CardImage = styled.img`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const ProjectAvatar = styled.img`

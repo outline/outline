@@ -90,6 +90,8 @@ export type UnfurlResponse = {
     title: string;
     /** Document summary */
     summary: string;
+    /** Source of an image from the document to use as a preview */
+    thumbnailUrl?: string;
     /** Viewer's last activity on this document */
     lastActivityByViewer?: string;
   };

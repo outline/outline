@@ -11,8 +11,16 @@ import { isList } from "../queries/isList";
  * @returns true if the node is a mention that supports the card display.
  */
 export function canDisplayAsCard(node: Node): boolean {
-  return node.type.name === "mention" && node.attrs.type === MentionType.URL;
+  return (
+    node.type.name === "mention" && cardMentionTypes.includes(node.attrs.type)
+  );
 }
+
+const cardMentionTypes: string[] = [
+  MentionType.URL,
+  MentionType.Document,
+  MentionType.Collection,
+];
 
 export function transformListToMentions(
   listNode: Node,

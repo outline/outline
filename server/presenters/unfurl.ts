@@ -3,9 +3,11 @@ import { t } from "i18next";
 import type { UnfurlResponse } from "@shared/types";
 import { UnfurlResourceType } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
+import { Hour } from "@shared/utils/time";
 import type { Document, User, Group } from "@server/models";
 import { View } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { opts } from "@server/utils/i18n";
 
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
@@ -96,9 +98,9 @@ const presentGroup = async (
   };
 };
 
-const presentDocument = (
+const presentDocument = async (
   data: UnfurlData
-): UnfurlResponse[UnfurlResourceType.Document] => {
+): Promise<UnfurlResponse[UnfurlResourceType.Document]> => {
   const document: Document = data.document;
   const viewer: User | undefined = data.viewer;
   const url: string | undefined = data.url;
@@ -116,6 +118,7 @@ const presentDocument = (
     id: document.id,
     title: document.displayTitle,
     summary: sectionSummary || document.getSummary(),
+    thumbnailUrl: await presentThumbnailUrl(document, !!data.signedUrls),
     lastActivityByViewer: viewer
       ? presentLastActivityInfoFor(document, viewer)
       : undefined,
@@ -233,6 +236,25 @@ const presentLastActivityInfoFor = (document: Document, viewer: User) => {
   }
 
   return info;
+};
+
+/**
+ * Returns the preview image of a document. Signed URLs are used for viewers of
+ * a public share, who cannot load attachments through the redirect URL.
+ */
+const presentThumbnailUrl = async (
+  document: Document,
+  signedUrls: boolean
+): Promise<string | undefined> => {
+  const src = DocumentHelper.getPreviewImage(document);
+  if (!src || !signedUrls) {
+    return src;
+  }
+  return ProsemirrorHelper.signAttachmentUrl(
+    src,
+    document.teamId,
+    Hour.seconds
+  );
 };
 
 export default presentUnfurl;

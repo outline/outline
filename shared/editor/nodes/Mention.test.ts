@@ -320,6 +320,18 @@ describe("Mention display", () => {
     );
   });
 
+  it.each([MentionType.Document, MentionType.Collection])(
+    "switches a selected %s mention to a card",
+    (type) => {
+      const state = selectMention(urlMention({ type, href: undefined }));
+      const toCard = setDisplay(state, MentionDisplay.Card);
+      expect(toCard.handled).toBe(true);
+      expect(toCard.next.doc.nodeAt(1)?.attrs.display).toBe(
+        MentionDisplay.Card
+      );
+    }
+  );
+
   it("does not change the display of other mention types", () => {
     const state = selectMention(urlMention({ type: MentionType.User }));
     expect(setDisplay(state, MentionDisplay.Card).handled).toBe(false);

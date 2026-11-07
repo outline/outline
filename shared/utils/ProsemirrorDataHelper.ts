@@ -44,4 +44,28 @@ export class ProsemirrorDataHelper {
 
     return !data.content || data.content.length === 0;
   }
+
+  /**
+   * Returns the text of the first block that contains text, useful for a short
+   * plain text preview.
+   *
+   * @param data the ProsemirrorData to read.
+   * @returns the trimmed text of the first block with text, or undefined.
+   */
+  static getFirstText(data: ProsemirrorData): string | undefined {
+    for (const block of data.content ?? []) {
+      const text = ProsemirrorDataHelper.getText(block).trim();
+      if (text) {
+        return text;
+      }
+    }
+    return undefined;
+  }
+
+  private static getText(node: ProsemirrorData): string {
+    if (node.text) {
+      return node.text;
+    }
+    return (node.content ?? []).map(ProsemirrorDataHelper.getText).join("");
+  }
 }

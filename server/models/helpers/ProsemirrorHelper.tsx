@@ -460,6 +460,34 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
+   * Returns a signed URL for an attachment redirect URL. URLs that do not point
+   * at an attachment are returned unchanged.
+   *
+   * @param url the URL to sign.
+   * @param teamId the team that the attachment must belong to.
+   * @param expiresIn the number of seconds until the signed URL expires.
+   * @returns the signed URL, or undefined if the attachment is not in the team.
+   */
+  static async signAttachmentUrl(
+    url: string,
+    teamId: string,
+    expiresIn = 60
+  ): Promise<string | undefined> {
+    const id = new RegExp(attachmentRedirectRegex.source, "i").exec(url)?.groups
+      ?.id;
+    if (!id) {
+      return url;
+    }
+
+    const attachment = await Attachment.findOne({ where: { id, teamId } });
+    if (!attachment) {
+      return undefined;
+    }
+
+    return FileStorage.getSignedUrl(attachment.key, expiresIn);
+  }
+
+  /**
    * Returns the document as a plain JSON object with attachment URLs signed.
    *
    * @param node The node to convert to JSON
