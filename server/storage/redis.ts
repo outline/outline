@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
 import { defaults } from "es-toolkit/compat";
@@ -248,6 +249,28 @@ export default class RedisAdapter extends Redis {
         connectionNameSuffix: "ephemeral",
       }))
     );
+  }
+
+  /**
+   * Creates the ephemeral client and waits for its connection, as it fails
+   * commands at once until connected. Never rejects, so that a process can
+   * start without Redis.
+   */
+  public static async connectEphemeralClient(): Promise<void> {
+    const client = this.ephemeralClient;
+    if (client.status === "ready") {
+      return;
+    }
+
+    try {
+      await once(client, "ready", {
+        signal: AbortSignal.timeout(env.REDIS_EPHEMERAL_COMMAND_TIMEOUT),
+      });
+    } catch (err) {
+      Logger.warn("Starting before the ephemeral Redis client connected", {
+        error: err,
+      });
+    }
   }
 
   /**
