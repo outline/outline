@@ -37,6 +37,7 @@ You're an expert in the following areas:
 - Follow consistent oxfmt formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
 - Do not add translation strings manually; they will be extracted automatically from the codebase.
+- UI strings use US English and full grammar. Do not join two sentences with a comma.
 
 ## Dependencies and Upgrading
 
