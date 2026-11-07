@@ -1,7 +1,12 @@
 import type { EditorState } from "prosemirror-state";
 import { NodeSelection } from "prosemirror-state";
 import { MentionDisplay, MentionType } from "../../types";
-import { createEditorState, schema, serializer } from "../../test/editor";
+import {
+  createEditorState,
+  parser,
+  schema,
+  serializer,
+} from "../../test/editor";
 import Mention from "./Mention";
 
 const id = "0c440212-8b40-49fa-8a64-2548d6b60d59";
@@ -351,5 +356,82 @@ describe("Mention display", () => {
     );
     expect(next.doc.child(1).content.size).toBe(0);
     expect(next.selection.$head.parent).toBe(next.doc.child(1));
+  });
+});
+
+describe("Mention markdown round trip", () => {
+  const roundTrip = (
+    attrs: Record<string, unknown>,
+    options?: { commonMark?: boolean }
+  ) => {
+    const markdown = serializeMention(attrs, options);
+    let mention: ReturnType<typeof schema.nodes.mention.create> | undefined;
+    parser.parse(markdown)?.descendants((node) => {
+      if (node.type.name === "mention") {
+        mention = node;
+      }
+    });
+    return { markdown, mention };
+  };
+
+  const cases: Record<string, Record<string, unknown>> = {
+    url: {
+      type: MentionType.URL,
+      label: "Example",
+      href: "https://example.com/a?b=c",
+    },
+    document: { type: MentionType.Document, label: "Roadmap" },
+    collection: { type: MentionType.Collection, label: "Product" },
+  };
+
+  describe.each([false, true])("with commonMark %s", (commonMark) => {
+    it.each(Object.keys(cases))("keeps a %s card", (key) => {
+      const { markdown, mention } = roundTrip(
+        { ...cases[key], display: MentionDisplay.Card },
+        { commonMark }
+      );
+      expect(markdown).toContain('"card")');
+      expect(mention?.attrs.type).toBe(cases[key].type);
+      expect(mention?.attrs.display).toBe(MentionDisplay.Card);
+    });
+
+    it.each(Object.keys(cases))(
+      "does not add a title to an inline %s",
+      (key) => {
+        const { markdown } = roundTrip(cases[key], { commonMark });
+        expect(markdown).not.toContain('"card"');
+      }
+    );
+  });
+
+  it("does not change the url of a link card", () => {
+    const { markdown, mention } = roundTrip(
+      { ...cases.url, display: MentionDisplay.Card },
+      { commonMark: true }
+    );
+    expect(markdown).toBe('@[Example](https://example.com/a?b=c "card")');
+    expect(mention?.attrs.href).toBe("https://example.com/a?b=c");
+  });
+
+  it("keeps the model id of a document card", () => {
+    const { mention } = roundTrip({
+      ...cases.document,
+      display: MentionDisplay.Card,
+    });
+    expect(mention?.attrs.modelId).toBe(modelId);
+  });
+
+  it("keeps the anchor of a document card", () => {
+    const { markdown, mention } = roundTrip({
+      ...cases.document,
+      anchorId: "h-goals",
+      display: MentionDisplay.Card,
+    });
+    expect(markdown).toBe(`@[Roadmap](/doc/${modelId}#h-goals "card")`);
+    expect(mention?.attrs.anchorId).toBe("h-goals");
+  });
+
+  it("keeps inline document mentions as plain links", () => {
+    expect(serializeMention(cases.document)).toBe(`[Roadmap](/doc/${modelId})`);
   });
 });

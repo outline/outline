@@ -2,7 +2,7 @@ import type MarkdownIt from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 import { v4 as uuidv4 } from "uuid";
-import { MentionType } from "../../types";
+import { MentionDisplay, MentionType } from "../../types";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { sanitizeUrl } from "@shared/utils/urls";
 
@@ -33,6 +33,32 @@ function parseExternalHref(href: string): URL | undefined {
   } catch {
     return undefined;
   }
+}
+
+/** Matches the links that document and collection mentions are written as. */
+const internalHrefRegex =
+  /^\/(doc|collection)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:#(.+))?$/i;
+
+/**
+ * Parse an href that points at a document or collection by id.
+ *
+ * @param href the URL string to parse.
+ * @returns the mention type, model id and anchor, or undefined when the href
+ * does not point at a document or collection by id.
+ */
+function parseInternalHref(
+  href: string
+): { type: MentionType; modelId: string; anchorId?: string } | undefined {
+  const match = internalHrefRegex.exec(href);
+  if (!match) {
+    return undefined;
+  }
+
+  const [, kind, modelId, anchorId] = match;
+  if (kind === "collection") {
+    return anchorId ? undefined : { type: MentionType.Collection, modelId };
+  }
+  return { type: MentionType.Document, modelId, anchorId };
 }
 
 /**
@@ -68,10 +94,14 @@ const renderMention = (md: MarkdownIt) => (tokens: Token[], idx: number) => {
   const mId = esc(tokens[idx].attrGet("modelId"));
   const href = tokens[idx].attrGet("href");
   const label = esc(tokens[idx].content);
+  const display =
+    tokens[idx].attrGet("display") === MentionDisplay.Card
+      ? ` data-display="${MentionDisplay.Card}"`
+      : "";
 
   return href
-    ? `<a id="${id}" class="mention" href="${esc(sanitizeUrl(href) ?? "")}" data-type="${mType}" data-id="${mId}">${label}</a>`
-    : `<span id="${id}" class="mention" data-type="${mType}" data-id="${mId}">${label}</span>`;
+    ? `<a id="${id}" class="mention" href="${esc(sanitizeUrl(href) ?? "")}" data-type="${mType}" data-id="${mId}"${display}>${label}</a>`
+    : `<span id="${id}" class="mention" data-type="${mType}" data-id="${mId}"${display}>${label}</span>`;
 };
 
 function parseMentions(state: StateCore) {
@@ -110,7 +140,9 @@ function parseMentions(state: StateCore) {
         !(
           attr &&
           attr[0] === "href" &&
-          (isMentionHref(attr[1]) || parseExternalHref(attr[1]))
+          (isMentionHref(attr[1]) ||
+            parseExternalHref(attr[1]) ||
+            parseInternalHref(attr[1]))
         )
       ) {
         return false;
@@ -129,11 +161,19 @@ function parseMentions(state: StateCore) {
       // href must be present, otherwise the href test would've failed
       const href = openToken.attrs![0][1];
       const mentionToken = new state.Token("mention", "", 0);
-      const externalUrl = isMentionHref(href)
-        ? undefined
-        : parseExternalHref(href);
+      const isMention = isMentionHref(href);
+      const internal = isMention ? undefined : parseInternalHref(href);
+      const externalUrl =
+        isMention || internal ? undefined : parseExternalHref(href);
 
-      if (externalUrl) {
+      if (internal) {
+        mentionToken.attrSet("id", uuidv4());
+        mentionToken.attrSet("type", internal.type);
+        mentionToken.attrSet("modelId", internal.modelId);
+        if (internal.anchorId) {
+          mentionToken.attrSet("anchorId", internal.anchorId);
+        }
+      } else if (externalUrl) {
         // External links carry their identity in the href, so the ids are
         // generated the same way a paste in the editor would. The mention is
         // generic here and is narrowed to the resource it points at by the
@@ -150,6 +190,11 @@ function parseMentions(state: StateCore) {
       }
 
       mentionToken.content = textToken.content;
+
+      // The link title stores the display, so the URL is not changed.
+      if (openToken.attrGet("title") === MentionDisplay.Card) {
+        mentionToken.attrSet("display", MentionDisplay.Card);
+      }
 
       // "link_open", followed by "text" and "link_close" tokens are coalesced
       // into "mention" token, hence removed

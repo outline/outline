@@ -485,16 +485,19 @@ export default class Mention extends Node {
     const label =
       mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
     const id = node.attrs.id;
+    const isCard = node.attrs.display === MentionDisplay.Card;
 
-    // Use regular links for document and collection mentions
-    if (mType === MentionType.Document) {
-      state.write(
-        `[${label}](/doc/${mId}${
-          node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-        })`
-      );
-    } else if (mType === MentionType.Collection) {
-      state.write(`[${label}](/collection/${mId})`);
+    // The link title stores the card display, so the URL is not changed.
+    const title = isCard ? ` "${MentionDisplay.Card}"` : "";
+
+    // Use regular links for document and collection mentions. Cards add the
+    // "@" prefix so they are parsed back into a mention.
+    if (mType === MentionType.Document || mType === MentionType.Collection) {
+      const href =
+        mType === MentionType.Document
+          ? `/doc/${mId}${node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""}`
+          : `/collection/${mId}`;
+      state.write(`${isCard ? "@" : ""}[${label}](${href}${title})`);
     } else if (
       state.options.commonMark &&
       (isExternalMention(mType) || mType === MentionType.URL) &&
@@ -503,11 +506,11 @@ export default class Mention extends Node {
       // Markdown that leaves Outline cannot resolve a mention:// reference, so
       // external mentions fall back to the URL they already carry. The "@"
       // prefix allows them to be parsed back into a mention on the way in.
-      state.write(`@[${label}](${sanitizeUrl(node.attrs.href)})`);
+      state.write(`@[${label}](${sanitizeUrl(node.attrs.href)}${title})`);
     } else {
       // Keep the mention:// format for everything else, it round-trips back
       // into a live mention through Outline's own parser.
-      state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
+      state.write(`@[${label}](mention://${id}/${mType}/${mId}${title})`);
     }
   }
 
@@ -519,7 +522,12 @@ export default class Mention extends Node {
         type: tok.attrGet("type"),
         modelId: tok.attrGet("modelId"),
         href: tok.attrGet("href") ?? undefined,
+        anchorId: tok.attrGet("anchorId") ?? undefined,
         label: tok.content,
+        display:
+          tok.attrGet("display") === MentionDisplay.Card
+            ? MentionDisplay.Card
+            : MentionDisplay.Inline,
       }),
     };
   }

@@ -532,6 +532,59 @@ describe("DocumentHelper", () => {
   });
 
   describe("applyMarkdownToDocument", () => {
+    it("should keep mention cards when the whole document is replaced", async () => {
+      const modelId = "f0e1d2c3-b4a5-6789-0abc-def123456789";
+      const mention = (attrs: Record<string, string>) => ({
+        type: "paragraph",
+        content: [
+          {
+            type: "mention",
+            attrs: {
+              id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              modelId,
+              display: "card",
+              ...attrs,
+            },
+          },
+        ],
+      });
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            mention({
+              type: "url",
+              label: "Example",
+              href: "https://example.com/a?b=c",
+            }),
+            mention({ type: "document", label: "Roadmap" }),
+            mention({ type: "collection", label: "Product" }),
+          ],
+        },
+      });
+
+      const markdown = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        markdown,
+        TextEditMode.Replace
+      );
+
+      const mentions: Array<Record<string, unknown>> = [];
+      DocumentHelper.toProsemirror(result).descendants((node) => {
+        if (node.type.name === "mention") {
+          mentions.push(node.attrs);
+        }
+      });
+      expect(mentions.map((attrs) => [attrs.type, attrs.display])).toEqual([
+        ["url", "card"],
+        ["document", "card"],
+        ["collection", "card"],
+      ]);
+    });
+
     it("should merge prepended text into the first paragraph", async () => {
       const document = await buildDocument({ text: "Existing" });
       const result = DocumentHelper.applyMarkdownToDocument(

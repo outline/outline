@@ -1971,6 +1971,7 @@
   "Click to copy": "Click to copy",
   "Empty diagram": "Empty diagram",
   "Double-click to edit": "Double-click to edit",
+  "in {{ collectionName }}": "in {{ collectionName }}",
   "Loading": "Loading",
   "Error loading data": "Error loading data",
   "Uploading {{ name }}": "Uploading {{ name }}",

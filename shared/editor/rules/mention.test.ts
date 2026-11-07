@@ -234,4 +234,77 @@ describe("mention rule", () => {
       expect(mentions).toHaveLength(0);
     });
   });
+
+  describe("documents and collections", () => {
+    const docId = "f0e1d2c3-b4a5-6789-0abc-def123456789";
+
+    const firstMention = (markdown: string) => {
+      const inline = md.parse(markdown, {}).find((t) => t.type === "inline");
+      return inline?.children?.find((t) => t.type === "mention");
+    };
+
+    it("should parse a document link with @ prefix as a document mention", () => {
+      const mention = firstMention(`@[Roadmap](/doc/${docId})`);
+      expect(mention?.attrGet("type")).toEqual(MentionType.Document);
+      expect(mention?.attrGet("modelId")).toEqual(docId);
+      expect(mention?.attrGet("id")).toBeTruthy();
+      expect(mention?.attrGet("display")).toBeNull();
+      expect(mention?.content).toEqual("Roadmap");
+    });
+
+    it("should keep the anchor of a document link", () => {
+      const mention = firstMention(`@[Roadmap](/doc/${docId}#h-goals)`);
+      expect(mention?.attrGet("anchorId")).toEqual("h-goals");
+    });
+
+    it("should parse a collection link with @ prefix as a collection mention", () => {
+      const mention = firstMention(`@[Product](/collection/${docId})`);
+      expect(mention?.attrGet("type")).toEqual(MentionType.Collection);
+      expect(mention?.attrGet("modelId")).toEqual(docId);
+    });
+
+    it("should not parse a document link that uses a slug", () => {
+      expect(firstMention("@[Roadmap](/doc/roadmap-abc123)")).toBeUndefined();
+    });
+
+    it("should not parse a collection link with an anchor", () => {
+      expect(
+        firstMention(`@[Product](/collection/${docId}#h-goals)`)
+      ).toBeUndefined();
+    });
+
+    it("should not parse a document link without @ prefix", () => {
+      expect(firstMention(`[Roadmap](/doc/${docId})`)).toBeUndefined();
+    });
+  });
+
+  describe("card display", () => {
+    const displayOf = (markdown: string) => {
+      const inline = md.parse(markdown, {}).find((t) => t.type === "inline");
+      return inline?.children
+        ?.find((t) => t.type === "mention")
+        ?.attrGet("display");
+    };
+
+    it("should read the card display from the link title", () => {
+      expect(displayOf('@[Example](https://example.com/a?b=c "card")')).toEqual(
+        "card"
+      );
+      expect(
+        displayOf(
+          '@[Roadmap](/doc/f0e1d2c3-b4a5-6789-0abc-def123456789 "card")'
+        )
+      ).toEqual("card");
+    });
+
+    it("should ignore other link titles", () => {
+      expect(displayOf('@[Example](https://example.com "other")')).toBeNull();
+    });
+
+    it("should render the display in HTML", () => {
+      expect(md.render('@[Example](https://example.com "card")')).toContain(
+        'data-display="card"'
+      );
+    });
+  });
 });
