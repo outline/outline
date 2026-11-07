@@ -38,6 +38,7 @@ import lazyWithRetry from "../../utils/lazyWithRetry";
 import { sharedModelPath } from "../../utils/routeHelpers";
 import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
+import { LinkCard, MentionCard } from "./MentionCard";
 import { ProsemirrorDataHelper } from "../../utils/ProsemirrorDataHelper";
 
 type Attrs = {
@@ -122,6 +123,7 @@ export const MentionDocument = observer(function MentionDocument_(
   props: ComponentProps
 ) {
   const { isSelected, node } = props;
+  const { t } = useTranslation();
   const { documents, collections, unfurls } = useStores();
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
@@ -174,25 +176,19 @@ export const MentionDocument = observer(function MentionDocument_(
         to={`${documentPath}${hash}`}
         contentEditable={false}
       >
-        <CardBody
+        <MentionCard
           icon={icon}
           title={title}
           description={isDocumentUnfurl ? documentUnfurl.summary : undefined}
           thumbnailUrl={
             isDocumentUnfurl ? documentUnfurl.thumbnailUrl : undefined
           }
-          source={
-            collection ? (
-              <>
-                <Icon
-                  value={collection.icon}
-                  initial={collection.initial}
-                  color={collection.color}
-                  size={16}
-                />
-                <CardSourceText>{collection.name}</CardSourceText>
-              </>
-            ) : undefined
+          titleSuffix={
+            collection
+              ? t("in {{ collectionName }}", {
+                  collectionName: collection.name,
+                })
+              : undefined
           }
         />
       </Link>
@@ -252,7 +248,7 @@ export const MentionCollection = observer(function MentionCollection_(
         to={to}
         contentEditable={false}
       >
-        <CardBody
+        <MentionCard
           icon={icon}
           title={title}
           description={
@@ -399,116 +395,6 @@ export const MentionURL = (props: IssueUrlProps) => {
         </Text>
       </Flex>
     </a>
-  );
-};
-
-type LinkCardProps = Record<string, JSONValue> & {
-  className: string;
-  isSelected: boolean;
-  url?: string;
-  unfurl: Partial<UnfurlResponse[UnfurlResourceType.URL]>;
-};
-
-/** A preview card for a link, showing its image, title and description. */
-const LinkCard = ({
-  className,
-  isSelected,
-  url,
-  unfurl,
-  ...attrs
-}: LinkCardProps) => (
-  <a
-    {...attrs}
-    className={cn(className, {
-      "ProseMirror-selectednode": isSelected,
-    })}
-    href={url}
-    target="_blank"
-    rel="noopener noreferrer nofollow"
-    contentEditable={false}
-  >
-    <CardBody
-      title={unfurl.title || (url ? toDisplayUrl(url) : "")}
-      description={unfurl.description}
-      thumbnailUrl={unfurl.thumbnailUrl}
-      source={
-        <>
-          {unfurl.faviconUrl ? (
-            <Logo src={sanitizeImageSrc(unfurl.faviconUrl)} alt="" />
-          ) : null}
-          {url ? <CardSourceText>{toDisplayUrl(url)}</CardSourceText> : null}
-        </>
-      }
-    />
-  </a>
-);
-
-interface CardBodyProps {
-  /** An icon shown before the title. */
-  icon?: React.ReactNode;
-  /** The title of the card. */
-  title: string;
-  /** A short plain text description. */
-  description?: string;
-  /** Content shown below the description, such as the source of the link. */
-  source?: React.ReactNode;
-  /** An image shown at the side of the card. */
-  thumbnailUrl?: string;
-}
-
-/** The content of a mention that is displayed as a card. */
-const CardBody = ({
-  icon,
-  title,
-  description,
-  source,
-  thumbnailUrl,
-}: CardBodyProps) => {
-  const imageSrc = thumbnailUrl ? sanitizeImageSrc(thumbnailUrl) : undefined;
-
-  return (
-    <>
-      <CardContent>
-        <CardTitle align="center" gap={6}>
-          {icon}
-          <CardTitleText>
-            <Backticks content={title} />
-          </CardTitleText>
-        </CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-        {source ? (
-          <CardSource align="center" gap={6}>
-            {source}
-          </CardSource>
-        ) : null}
-      </CardContent>
-      {imageSrc ? <CardThumbnail key={imageSrc} src={imageSrc} /> : null}
-    </>
-  );
-};
-
-/**
- * The image of a card. It is hidden until it loads and removed if it fails, as
- * the viewer may not have access to it.
- */
-const CardThumbnail = ({ src }: { src: string }) => {
-  const [status, setStatus] = React.useState<"loading" | "loaded" | "failed">(
-    "loading"
-  );
-
-  if (status === "failed") {
-    return null;
-  }
-
-  return (
-    <CardImageFrame $loaded={status === "loaded"}>
-      <CardImage
-        src={src}
-        alt=""
-        onLoad={() => setStatus("loaded")}
-        onError={() => setStatus("failed")}
-      />
-    </CardImageFrame>
   );
 };
 
@@ -840,71 +726,6 @@ const StyledWarningIcon = styled(WarningIcon)`
 const Logo = styled.img`
   width: 16px;
   height: 16px;
-`;
-
-const CardContent = styled.span`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-  padding: 12px 14px;
-`;
-
-const CardTitle = styled(Flex)`
-  min-width: 0;
-  font-weight: 500;
-  color: ${(props) => props.theme.text};
-`;
-
-const CardTitleText = styled.span`
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const CardDescription = styled.span`
-  font-weight: normal;
-  font-size: 14px;
-  color: ${(props) => props.theme.textSecondary};
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  white-space: normal;
-`;
-
-const CardSource = styled(Flex)`
-  margin-top: 2px;
-  min-width: 0;
-`;
-
-const CardSourceText = styled.span`
-  font-weight: normal;
-  font-size: 13px;
-  color: ${(props) => props.theme.textTertiary};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-// The frame takes the height of the card, so the image does not change it.
-const CardImageFrame = styled.span<{ $loaded: boolean }>`
-  display: ${(props) => (props.$loaded ? "block" : "none")};
-  position: relative;
-  flex-shrink: 0;
-  width: 30%;
-  max-width: 200px;
-  border-left: 1px solid ${(props) => props.theme.divider};
-`;
-
-const CardImage = styled.img`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 `;
 
 const ProjectAvatar = styled.img`
