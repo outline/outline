@@ -4,6 +4,7 @@ import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
+import { canDisplayAsCard } from "@shared/editor/lib/mention";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -173,6 +174,14 @@ export default class SelectionToolbarExtension extends Extension {
       ["image", "attachment", "embed", "video"].includes(
         selection.node.type.name
       )
+    ) {
+      return selection;
+    }
+
+    if (
+      selection instanceof NodeSelection &&
+      view.editable &&
+      canDisplayAsCard(selection.node)
     ) {
       return selection;
     }

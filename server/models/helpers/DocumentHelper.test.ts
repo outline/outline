@@ -532,6 +532,60 @@ describe("DocumentHelper", () => {
   });
 
   describe("applyMarkdownToDocument", () => {
+    it("should keep mention cards when the whole document is replaced", async () => {
+      const modelId = "6f4e9a32-5b1c-4d2e-9f3a-8b7c6d5e4f30";
+      const mention = (attrs: Record<string, string>) => ({
+        type: "paragraph",
+        content: [
+          {
+            type: "mention",
+            attrs: {
+              id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              modelId,
+              display: "card",
+              ...attrs,
+            },
+          },
+        ],
+      });
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            mention({
+              type: "url",
+              label: "Example",
+              href: "https://example.com/a?b=c",
+            }),
+            mention({ type: "document", label: "Roadmap" }),
+            mention({ type: "collection", label: "Product" }),
+          ],
+        },
+      });
+
+      const markdown = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        markdown,
+        TextEditMode.Replace
+      );
+
+      const mentions: Array<Record<string, unknown>> = [];
+      DocumentHelper.toProsemirror(result).descendants((node) => {
+        if (node.type.name === "mention") {
+          mentions.push(node.attrs);
+        }
+      });
+      expect(mentions[0].href).toBe("https://example.com/a?b=c");
+      expect(mentions.map((attrs) => [attrs.type, attrs.display])).toEqual([
+        ["url", "card"],
+        ["document", "card"],
+        ["collection", "card"],
+      ]);
+    });
+
     it("should merge prepended text into the first paragraph", async () => {
       const document = await buildDocument({ text: "Existing" });
       const result = DocumentHelper.applyMarkdownToDocument(
@@ -1257,6 +1311,47 @@ In a cell
 
 
 `);
+    });
+  });
+
+  describe("getPreviewImage", () => {
+    const image = (src: string, width?: number, height?: number) => ({
+      type: "paragraph",
+      content: [{ type: "image", attrs: { src, alt: "", width, height } }],
+    });
+
+    it("returns the first image larger than the minimum size", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          image("/icon.png", 32, 32),
+          image("/narrow.png", 400, 80),
+          image("/large.png", 800, 600),
+          image("/second.png", 800, 600),
+        ],
+      };
+      expect(DocumentHelper.getPreviewImage(data)).toBe("/large.png");
+    });
+
+    it("skips images without a stored size", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [image("/unknown.png")],
+      };
+      expect(DocumentHelper.getPreviewImage(data)).toBeUndefined();
+    });
+
+    it("finds images nested in other blocks", () => {
+      const data: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "blockquote",
+            content: [image("/quoted.png", 200, 200)],
+          },
+        ],
+      };
+      expect(DocumentHelper.getPreviewImage(data)).toBe("/quoted.png");
     });
   });
 

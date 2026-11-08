@@ -27,6 +27,9 @@ import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
 
+/** The minimum width and height, in pixels, of an image used as a preview. */
+const previewImageMinSize = 100;
+
 /** Maps a range of text-content offsets to ProseMirror Fragment offsets. */
 interface InlineSegment {
   textFrom: number;
@@ -318,6 +321,42 @@ export class DocumentHelper {
       .serialize(sectionDoc)
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
+  }
+
+  /**
+   * Returns the source of the first image in the document that is larger than
+   * the minimum preview size. Images without a stored size are skipped, so
+   * small images such as icons are not used.
+   *
+   * @param document the document, revision or prosemirror data to read.
+   * @returns the image source, or undefined if there is no suitable image.
+   */
+  static getPreviewImage(
+    document: Document | Revision | ProsemirrorData
+  ): string | undefined {
+    const node = DocumentHelper.toProsemirror(document);
+    let src: string | undefined;
+
+    node.descendants((child) => {
+      if (src) {
+        return false;
+      }
+      const { attrs } = child;
+      if (
+        child.type.name === "image" &&
+        typeof attrs.src === "string" &&
+        attrs.src &&
+        typeof attrs.width === "number" &&
+        typeof attrs.height === "number" &&
+        attrs.width > previewImageMinSize &&
+        attrs.height > previewImageMinSize
+      ) {
+        src = attrs.src;
+      }
+      return true;
+    });
+
+    return src;
   }
 
   /**
