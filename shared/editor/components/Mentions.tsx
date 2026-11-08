@@ -46,7 +46,14 @@ type Attrs = {
   unfurl?: UnfurlResponse[keyof UnfurlResponse];
 } & Record<string, JSONValue>;
 
-const getAttributesFromNode = (node: Node): Attrs => {
+/**
+ * Returns mention attributes with the selection class applied.
+ *
+ * @param node the mention node.
+ * @param isSelected whether the mention is selected.
+ * @returns the attributes for the rendered mention.
+ */
+const getAttributesFromNode = (node: Node, isSelected = false): Attrs => {
   const spec = node.type.spec.toDOM?.(node) as unknown as Record<
     string,
     JSONValue
@@ -54,7 +61,9 @@ const getAttributesFromNode = (node: Node): Attrs => {
   const { class: className, "data-unfurl": unfurl, ...attrs } = spec[1];
 
   return {
-    className: className as Attrs["className"],
+    className: cn(typeof className === "string" ? className : undefined, {
+      "ProseMirror-selectednode": isSelected,
+    }),
     unfurl: unfurl
       ? (JSON.parse(unfurl as string) as Attrs["unfurl"])
       : undefined,
@@ -83,15 +92,13 @@ export const MentionUser = observer(function MentionUser_(
   const { isSelected, node } = props;
   const { users } = useStores();
   const user = users.get(node.attrs.modelId);
-  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(
+    node,
+    isSelected
+  );
 
   return (
-    <span
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-    >
+    <span {...attrs} className={className}>
       <EmailIcon size={18} />
       <span>{user?.name || node.attrs.label}</span>
     </span>
@@ -104,15 +111,10 @@ export const MentionGroup = observer(function MentionGroup_(
   const { isSelected, node } = props;
   const { groups } = useStores();
   const group = groups.get(node.attrs.modelId);
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, ...attrs } = getAttributesFromNode(node, isSelected);
 
   return (
-    <span
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-    >
+    <span {...attrs} className={className}>
       <EmailIcon size={18} />
       <span>{group?.name || node.attrs.label}</span>
     </span>
@@ -129,7 +131,10 @@ export const MentionDocument = observer(function MentionDocument_(
   const modelId = node.attrs.modelId;
   const anchorId = node.attrs.anchorId;
   const isCard = node.attrs.display === MentionDisplay.Card;
-  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(
+    node,
+    isSelected
+  );
   const sharePath = useSharePath();
   const { shareId } = useShare();
   const hash = anchorId ? `#${anchorId}` : "";
@@ -172,9 +177,7 @@ export const MentionDocument = observer(function MentionDocument_(
     return (
       <Link
         {...attrs}
-        className={cn(className, {
-          "ProseMirror-selectednode": isSelected,
-        })}
+        className={className}
         to={`${documentPath}${hash}`}
         contentEditable={false}
       >
@@ -198,13 +201,7 @@ export const MentionDocument = observer(function MentionDocument_(
   }
 
   return (
-    <Link
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-      to={`${documentPath}${hash}`}
-    >
+    <Link {...attrs} className={className} to={`${documentPath}${hash}`}>
       {icon}
       <span>{title}</span>
     </Link>
@@ -218,7 +215,10 @@ export const MentionCollection = observer(function MentionCollection_(
   const { collections } = useStores();
   const collection = collections.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
-  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(
+    node,
+    isSelected
+  );
   const sharePath = useSharePath();
 
   React.useEffect(() => {
@@ -242,14 +242,7 @@ export const MentionCollection = observer(function MentionCollection_(
 
   if (node.attrs.display === MentionDisplay.Card) {
     return (
-      <Link
-        {...attrs}
-        className={cn(className, {
-          "ProseMirror-selectednode": isSelected,
-        })}
-        to={to}
-        contentEditable={false}
-      >
+      <Link {...attrs} className={className} to={to} contentEditable={false}>
         <MentionCard
           icon={icon}
           title={title}
@@ -264,13 +257,7 @@ export const MentionCollection = observer(function MentionCollection_(
   }
 
   return (
-    <Link
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-      to={to}
-    >
+    <Link {...attrs} className={className} to={to}>
       {icon}
       <span>{title}</span>
     </Link>
@@ -299,7 +286,7 @@ export const MentionURL = (props: IssueUrlProps) => {
     className,
     unfurl: unfurlAttr,
     ...attrs
-  } = getAttributesFromNode(node);
+  } = getAttributesFromNode(node, isSelected);
 
   const url = typeof attrs.href === "string" ? attrs.href : undefined;
   const unfurl = url ? (unfurls.get(url)?.data ?? unfurlAttr) : undefined;
@@ -368,22 +355,14 @@ export const MentionURL = (props: IssueUrlProps) => {
 
   if (node.attrs.display === MentionDisplay.Card) {
     return (
-      <LinkCard
-        {...attrs}
-        className={className}
-        isSelected={isSelected}
-        url={url}
-        unfurl={unfurl}
-      />
+      <LinkCard {...attrs} className={className} url={url} unfurl={unfurl} />
     );
   }
 
   return (
     <a
       {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
+      className={className}
       href={url}
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -410,7 +389,7 @@ export const MentionIssue = observer((props: IssuePrProps) => {
     className,
     unfurl: unfurlAttr,
     ...attrs
-  } = getAttributesFromNode(node);
+  } = getAttributesFromNode(node, isSelected);
 
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
@@ -456,9 +435,7 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   return (
     <a
       {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
+      className={className}
       href={attrs.href as string}
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -490,7 +467,7 @@ export const MentionProject = observer((props: ProjectProps) => {
     className,
     unfurl: unfurlAttr,
     ...attrs
-  } = getAttributesFromNode(node);
+  } = getAttributesFromNode(node, isSelected);
 
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
@@ -536,9 +513,7 @@ export const MentionProject = observer((props: ProjectProps) => {
   return (
     <a
       {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
+      className={className}
       href={attrs.href as string}
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -574,7 +549,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
     className,
     unfurl: unfurlAttr,
     ...attrs
-  } = getAttributesFromNode(node);
+  } = getAttributesFromNode(node, isSelected);
 
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
@@ -607,17 +582,11 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
     };
   }, [unfurls, attrs.href, onChangeUnfurl]);
 
-  const sharedProps = {
-    className: cn(className, {
-      "ProseMirror-selectednode": isSelected,
-    }),
-  };
-
   if (!unfurl) {
     return !loaded ? (
-      <MentionLoading {...sharedProps} />
+      <MentionLoading className={className} />
     ) : (
-      <MentionError {...sharedProps} />
+      <MentionError className={className} />
     );
   }
 
@@ -626,7 +595,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   return (
     <a
       {...attrs}
-      {...sharedProps}
+      className={className}
       href={attrs.href as string}
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -657,7 +626,10 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
   const { isSelected, isEditable, node, onChangeDate } = props;
   const { t } = useTranslation();
   const { auth } = useStores();
-  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(
+    node,
+    isSelected
+  );
 
   const language = auth.user?.language;
   const iso = typeof node.attrs.modelId === "string" ? node.attrs.modelId : "";
@@ -665,13 +637,7 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
   const selectedDate = parseISODate(iso) ?? undefined;
 
   const content = (
-    <DateMention
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-      $editable={isEditable}
-    >
+    <DateMention {...attrs} className={className} $editable={isEditable}>
       {display}
     </DateMention>
   );

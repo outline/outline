@@ -8,13 +8,10 @@ import type {
   UnfurlResponse,
 } from "../../types";
 import { sanitizeImageSrc, toDisplayUrl } from "../../utils/urls";
-import { cn } from "../styles/utils";
 
 type LinkCardProps = Record<string, JSONValue> & {
   /** Class names from the mention node. */
   className: string;
-  /** Whether the mention is selected in the editor. */
-  isSelected: boolean;
   /** The URL of the link. */
   url?: string;
   /** The unfurled data for the link. */
@@ -29,16 +26,13 @@ type LinkCardProps = Record<string, JSONValue> & {
  */
 export const LinkCard = ({
   className,
-  isSelected,
   url,
   unfurl,
   ...attrs
 }: LinkCardProps) => (
   <a
     {...attrs}
-    className={cn(className, {
-      "ProseMirror-selectednode": isSelected,
-    })}
+    className={className}
     href={url}
     target="_blank"
     rel="noopener noreferrer nofollow"
