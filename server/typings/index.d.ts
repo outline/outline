@@ -1,5 +1,3 @@
-declare module "oy-vey";
-
 declare module "email-providers" {
   const list: string[];
   export default list;
