@@ -2,6 +2,7 @@ import type MarkdownIt from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 import { v4 as uuidv4 } from "uuid";
+import isUUID from "validator/lib/isUUID";
 import { MentionDisplay, MentionType } from "../../types";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { sanitizeUrl } from "@shared/utils/urls";
@@ -36,8 +37,7 @@ function parseExternalHref(href: string): URL | undefined {
 }
 
 /** Matches the links that document and collection mentions are written as. */
-const internalHrefRegex =
-  /^\/(doc|collection)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:#(.+))?$/i;
+const internalHrefRegex = /^\/(doc|collection)\/([^/#?]+)(?:#(.+))?$/;
 
 /**
  * Parse an href that points at a document or collection by id.
@@ -55,6 +55,9 @@ function parseInternalHref(
   }
 
   const [, kind, modelId, anchorId] = match;
+  if (!isUUID(modelId)) {
+    return undefined;
+  }
   if (kind === "collection") {
     return anchorId ? undefined : { type: MentionType.Collection, modelId };
   }

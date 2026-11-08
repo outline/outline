@@ -53,25 +53,26 @@ export class ProsemirrorDataHelper {
    * @returns the trimmed first line with text, or undefined.
    */
   static getFirstText(data: ProsemirrorData): string | undefined {
-    const lines: string[] = [];
-    ProsemirrorDataHelper.collectLines(data, lines);
-    return lines.map((line) => line.trim()).find(Boolean);
+    return ProsemirrorDataHelper.toLines(data)
+      .map((line) => line.trim())
+      .find(Boolean);
   }
 
-  private static collectLines(node: ProsemirrorData, lines: string[]) {
+  private static toLines(node: ProsemirrorData): string[] {
     if (node.type === "text") {
-      lines[lines.length - 1] += node.text ?? "";
-      return;
+      return [node.text ?? ""];
     }
 
-    // A hard break or any node with content, such as a paragraph, starts a
-    // new line.
-    lines.push("");
+    // Text joins the current line. Any other node, such as a paragraph or a
+    // hard break, is on its own lines.
+    const lines = [""];
     for (const child of node.content ?? []) {
-      ProsemirrorDataHelper.collectLines(child, lines);
+      if (child.type === "text") {
+        lines[lines.length - 1] += child.text ?? "";
+      } else {
+        lines.push(...ProsemirrorDataHelper.toLines(child), "");
+      }
     }
-    if (node.content?.length) {
-      lines.push("");
-    }
+    return lines;
   }
 }

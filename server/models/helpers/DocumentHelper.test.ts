@@ -533,7 +533,7 @@ describe("DocumentHelper", () => {
 
   describe("applyMarkdownToDocument", () => {
     it("should keep mention cards when the whole document is replaced", async () => {
-      const modelId = "f0e1d2c3-b4a5-6789-0abc-def123456789";
+      const modelId = "6f4e9a32-5b1c-4d2e-9f3a-8b7c6d5e4f30";
       const mention = (attrs: Record<string, string>) => ({
         type: "paragraph",
         content: [

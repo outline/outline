@@ -7,7 +7,7 @@ import { Hour } from "@shared/utils/time";
 import type { Document, User, Group } from "@server/models";
 import { View } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { opts } from "@server/utils/i18n";
 
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
@@ -250,11 +250,7 @@ const presentThumbnailUrl = async (
   if (!src || !signedUrls) {
     return src;
   }
-  return ProsemirrorHelper.signAttachmentUrl(
-    src,
-    document.teamId,
-    Hour.seconds
-  );
+  return TextHelper.attachmentsToSignedUrls(src, document.teamId, Hour.seconds);
 };
 
 export default presentUnfurl;

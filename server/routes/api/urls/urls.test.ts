@@ -508,7 +508,7 @@ Install instructions here.`
       });
       const body = await res.json();
       expect(res.status).toEqual(200);
-      expect(body.thumbnailUrl).toBeUndefined();
+      expect(body.thumbnailUrl).toEqual(attachment.redirectUrl);
     });
   });
 

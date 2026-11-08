@@ -236,7 +236,7 @@ describe("mention rule", () => {
   });
 
   describe("documents and collections", () => {
-    const docId = "f0e1d2c3-b4a5-6789-0abc-def123456789";
+    const docId = "6f4e9a32-5b1c-4d2e-9f3a-8b7c6d5e4f30";
 
     const firstMention = (markdown: string) => {
       const inline = md.parse(markdown, {}).find((t) => t.type === "inline");
@@ -292,7 +292,7 @@ describe("mention rule", () => {
       );
       expect(
         displayOf(
-          '@[Roadmap](/doc/f0e1d2c3-b4a5-6789-0abc-def123456789 "card")'
+          '@[Roadmap](/doc/6f4e9a32-5b1c-4d2e-9f3a-8b7c6d5e4f30 "card")'
         )
       ).toEqual("card");
     });
