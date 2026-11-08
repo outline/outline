@@ -289,27 +289,40 @@ describe("Mention display", () => {
     return { handled, next };
   };
 
-  it("defaults to inline", () => {
-    expect(urlMention().attrs.display).toBe(MentionDisplay.Inline);
-  });
-
-  it("writes the card display to the DOM and reads it back", () => {
-    const spec = schema.nodes.mention.spec;
-    const node = urlMention({ display: MentionDisplay.Card });
-    const [, domAttrs] = spec.toDOM!(node) as [string, Record<string, string>];
-    expect(domAttrs["data-display"]).toBe(MentionDisplay.Card);
-
-    const rule = spec.parseDOM?.[0] as {
-      getAttrs: (dom: unknown) => Record<string, unknown>;
+  it("keeps the JSON of an existing inline mention unchanged", () => {
+    const json = {
+      type: "mention",
+      attrs: { type: MentionType.URL, label: "Article", modelId, id, href },
     };
-    const attrs = rule.getAttrs({
-      dataset: { type: MentionType.URL, id: modelId, display: "card" },
-      innerText: "Article",
-      id,
-      getAttribute: () => href,
-    });
-    expect(attrs.display).toBe(MentionDisplay.Card);
+    const node = schema.nodeFromJSON(json);
+
+    expect(node.attrs.display).toBeUndefined();
+    expect(JSON.stringify(node.toJSON())).toBe(JSON.stringify(json));
   });
+
+  it.each([undefined, MentionDisplay.Card])(
+    "writes display %s to the DOM and reads it back",
+    (display) => {
+      const spec = schema.nodes.mention.spec;
+      const node = urlMention({ display });
+      const [, domAttrs] = spec.toDOM!(node) as [
+        string,
+        Record<string, string>,
+      ];
+      expect(domAttrs["data-display"]).toBe(display);
+
+      const rule = spec.parseDOM?.[0] as {
+        getAttrs: (dom: unknown) => Record<string, unknown>;
+      };
+      const attrs = rule.getAttrs({
+        dataset: { type: MentionType.URL, id: modelId, display },
+        innerText: "Article",
+        id,
+        getAttribute: () => href,
+      });
+      expect(attrs.display).toBe(display);
+    }
+  );
 
   it("switches a selected link mention between inline and card", () => {
     const state = selectMention(urlMention());
@@ -320,8 +333,9 @@ describe("Mention display", () => {
     expect(toCard.next.selection).toBeInstanceOf(NodeSelection);
 
     const toInline = setDisplay(toCard.next, MentionDisplay.Inline);
-    expect(toInline.next.doc.nodeAt(1)?.attrs.display).toBe(
-      MentionDisplay.Inline
+    expect(toInline.next.doc.nodeAt(1)?.attrs.display).toBeUndefined();
+    expect(JSON.stringify(toInline.next.doc.toJSON())).toBe(
+      JSON.stringify(state.doc.toJSON())
     );
   });
 
@@ -457,5 +471,12 @@ describe("Mention markdown round trip", () => {
 
   it("keeps inline document mentions as plain links", () => {
     expect(serializeMention(cases.document)).toBe(`[Roadmap](/doc/${modelId})`);
+  });
+
+  it("omits the display from an inline mention parsed from Markdown", () => {
+    const { mention } = roundTrip(cases.url, { commonMark: true });
+
+    expect(mention).toBeDefined();
+    expect(JSON.stringify(mention?.toJSON())).not.toContain('"display"');
   });
 });

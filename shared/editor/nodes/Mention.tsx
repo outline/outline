@@ -127,7 +127,7 @@ export default class Mention extends Node {
           default: undefined,
         },
         display: {
-          default: MentionDisplay.Inline,
+          default: undefined,
         },
       },
       inline: true,
@@ -161,7 +161,7 @@ export default class Mention extends Node {
               display:
                 dom.dataset.display === MentionDisplay.Card
                   ? MentionDisplay.Card
-                  : MentionDisplay.Inline,
+                  : undefined,
             };
           },
         },
@@ -277,9 +277,9 @@ export default class Mention extends Node {
               name: "mentionDisplay",
               tooltip: t("Display as mention"),
               attrs: { display: MentionDisplay.Inline },
-              active: isNodeActive(schema.nodes.mention, {
-                display: MentionDisplay.Inline,
-              }),
+              active: (state) =>
+                state.selection instanceof NodeSelection &&
+                state.selection.node.attrs.display !== MentionDisplay.Card,
               icon: <EmailIcon />,
             },
             {
@@ -428,7 +428,9 @@ export default class Mention extends Node {
           const tr = state.tr.setNodeAttribute(
             selection.from,
             "display",
-            attrs.display
+            attrs.display === MentionDisplay.Card
+              ? MentionDisplay.Card
+              : undefined
           );
           dispatch?.(
             tr.setSelection(NodeSelection.create(tr.doc, selection.from))
@@ -530,7 +532,7 @@ export default class Mention extends Node {
         display:
           tok.attrGet("display") === MentionDisplay.Card
             ? MentionDisplay.Card
-            : MentionDisplay.Inline,
+            : undefined,
       }),
     };
   }
