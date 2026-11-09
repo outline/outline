@@ -425,7 +425,7 @@
   "Sorry, part of the application failed to load. This may be because it was updated since you opened the tab or because of a failed network request. Please try reloading.": "对不起，部分应用程序加载失败。这可能是因为它在您打开选项卡后更新了，或者是因为网络请求失败。请尝试重新加载。",
   "Reload": "重新加载",
   "Something unexpected happened": "发生了意外情况",
-  "An error has occurred multiple times recently. If it continues, please try clearing the cache or using a different browser.": "最近多次发生错误。如果问题持续出现，请尝试清除缓存或使用其他浏览器。￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼百科通的。",
+  "An error has occurred multiple times recently. If it continues, please try clearing the cache or using a different browser.": "最近多次发生错误。如果问题持续出现，请尝试清除缓存或使用其他浏览器。",
   "Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page – it may have been a temporary glitch.": "抱歉，发生了无法恢复的错误{{notified}}。请尝试重新加载页面，这可能只是暂时的故障。",
   "our engineers have been notified": "已通知我们的工程师",
   "Clear cache + reload": "清理缓存并重启",
