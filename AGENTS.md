@@ -128,7 +128,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Always handle database errors gracefully.
 - When updating Sequelize array or JSON attributes, replace the value instead of mutating it in place; reload the model in tests to verify persistence rather than trusting its in-memory state.
 - Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
-- When changing persisted task input fields, keep readers compatible with queued inputs or migrate them before removing old fields. Test a pre-change payload, including nested child inputs, and verify that previously queued work retains its destination.
+- When changing persisted task input fields, keep readers compatible with queued inputs or migrate them before removing old fields.
 
 ## API Design
 
@@ -146,7 +146,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Use cancan-style ability checks.
 - Use authenticated middleware for protected routes.
 - Always verify user permissions before data access.
-- When linking accounts by provider email, use exact case-insensitive equality within the workspace, never `LIKE`/`ILIKE`. Test mixed-case matches and literal `_` and `%` characters so pattern matching cannot link a different account.
+- When linking accounts by provider email, use exact case-insensitive equality within the workspace.
 - Set account email and passkey management routes to `AuthenticationType.APP`; API-key authentication must not change login credentials or authenticators.
 
 ## Real-time Collaboration
@@ -207,7 +207,6 @@ yarn test:shared   # All shared code tests
 - Log errors with appropriate context.
 - Return user-friendly error messages.
 - Never expose sensitive information in errors.
-- For importers that queue child pages, carry ancestor external IDs across tasks, skip self/ancestor references, and deduplicate repeated children before scheduling. Stop work for processed, completed, errored, or canceled imports before fetching or scheduling. Cover cycles, duplicate children, and finished imports in tests.
 
 ## Performance
 
@@ -215,7 +214,7 @@ yarn test:shared   # All shared code tests
 - Implement pagination for large lists.
 - Use database indexes effectively.
 - Cache expensive computations.
-- Use `Redis.ephemeralClient` for request-path caches, rate limits, and locks, including lock extension and release. Keep commands bounded when Redis is disconnected or stops replying. Await `connectEphemeralClient()` before starting services, with a bounded, non-fatal wait; verify both unavailable Redis and a healthy first command after startup.
+- Use `Redis.ephemeralClient` for request-path caches, rate limits, and locks, including lock extension and release.
 - Monitor performance with appropriate tools.
 - Lazy load routes and components where appropriate.
 
