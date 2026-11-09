@@ -90,7 +90,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       allowSubscriptions: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
-      expiresAt: z.coerce.date().optional(),
+      expiresAt: z.coerce.date().nullish(),
       urlId: z
         .string()
         .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {

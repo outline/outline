@@ -321,7 +321,8 @@ router.post(
         allowSubscriptions,
         showLastUpdated,
         showTOC,
-        expiresAt: expiresAt ?? user.team.defaultShareExpiresAt,
+        expiresAt:
+          expiresAt === undefined ? user.team.defaultShareExpiresAt : expiresAt,
         urlId,
       },
     });

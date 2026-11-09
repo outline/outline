@@ -424,6 +424,18 @@ describe("#shares.create", () => {
       expect(body.data.expiresAt).toEqual(expiresAt);
     });
 
+    it("should create a share without expiry when expiresAt is null", async () => {
+      planSpy.mockReturnValue(Plan.Business);
+      const { user, document } = await buildTeamWithDefault();
+
+      const res = await server.post("/api/shares.create", user, {
+        body: { documentId: document.id, published: true, expiresAt: null },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.expiresAt).toBeNull();
+    });
+
     it("should not apply the team default without the entitlement", async () => {
       planSpy.mockReturnValue(Plan.Community);
       const { user, document } = await buildTeamWithDefault();
