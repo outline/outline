@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import type MimeNode from "nodemailer/lib/mime-node";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -7,6 +8,7 @@ import {
   BaseEmailProvider,
   type EmailTags,
 } from "./providers/BaseEmailProvider";
+import EmailLayout from "./templates/components/EmailLayout";
 
 /** A provider that records the message it was handed, rather than sending it. */
 class CapturingEmailProvider extends BaseEmailProvider {
@@ -38,6 +40,34 @@ const message = {
   subject: "Welcome to Outline",
   text: "Hello there",
   component: <div>Hello there</div>,
+};
+
+const headStyles =
+  "#__bodyTable__{font-family:-apple-system,BlinkMacSystemFont,Inter,'Segoe UI',Roboto,Oxygen,sans-serif;font-size:16px;line-height:1.5}@media (prefers-color-scheme:dark){.email-button{background:#fff!important;color:#000!important}}";
+
+/**
+ * Sends a message through a JSON transport, so the rendered HTML can be read
+ * back without the MIME encoding a provider would see.
+ */
+const renderHtml = async (subject: string, lang?: string) => {
+  env.EMAIL_PROVIDER = "capturing";
+  const transporter = nodemailer.createTransport({ jsonTransport: true });
+  const createTransport = vi
+    .spyOn(nodemailer, "createTransport")
+    .mockReturnValue(transporter);
+  const spy = vi.spyOn(transporter, "sendMail");
+
+  await new Mailer().sendMail({
+    to: "user@example.com",
+    from: { name: "Outline", address: "hello@example.com" },
+    subject,
+    lang,
+    text: "Text",
+    component: <EmailLayout previewText="Preview">Body</EmailLayout>,
+  });
+
+  createTransport.mockRestore();
+  return String(spy.mock.calls[0][0].html);
 };
 
 describe("Mailer", () => {
@@ -157,5 +187,28 @@ describe("Mailer", () => {
     );
 
     error.mockRestore();
+  });
+
+  it("should inject the exact head styles", async () => {
+    const html = await renderHtml("Subject");
+
+    expect(html).toContain(
+      `<style type="text/css">\n          ${headStyles}\n`
+    );
+  });
+
+  it("should escape the subject and language in the document", async () => {
+    const html = await renderHtml("<b>A&B</b>", `en"><script>`);
+
+    expect(html).toContain("<title>&lt;b&gt;A&amp;B&lt;/b&gt;</title>");
+    expect(html).toContain('lang="en&quot;&gt;&lt;script&gt;"');
+  });
+
+  it("should remove the default spacing from layout tables", async () => {
+    const html = await renderHtml("Subject");
+
+    expect(html).toContain(
+      '<table role="presentation" border="0" cellSpacing="0" cellPadding="0" bgcolor="#FFFFFF" id="__bodyTable__"'
+    );
   });
 });

@@ -11,6 +11,14 @@ export enum MentionType {
   Date = "date",
 }
 
+/** How a mention is presented in a document. */
+export enum MentionDisplay {
+  /** Rendered inline with surrounding text. */
+  Inline = "inline",
+  /** Rendered as a preview card with image, title and description. */
+  Card = "card",
+}
+
 /** The kinds of resource that a link can unfurl to. */
 export enum UnfurlResourceType {
   URL = "url",
@@ -82,6 +90,8 @@ export type UnfurlResponse = {
     title: string;
     /** Document summary */
     summary: string;
+    /** Source of an image from the document to use as a preview */
+    thumbnailUrl?: string;
     /** Viewer's last activity on this document */
     lastActivityByViewer?: string;
   };

@@ -5,12 +5,7 @@ import {
   ySyncPlugin,
   ySyncPluginKey,
   yCursorPlugin,
-  yUndoPlugin,
   yUndoPluginKey,
-  undo,
-  redo,
-  undoCommand,
-  redoCommand,
 } from "y-prosemirror";
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
@@ -142,7 +137,6 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
         awarenessStateFilter,
         selectionBuilder,
       }),
-      yUndoPlugin(),
       // Facade plugin that exposes the collaboration operations to shared
       // code without a static dependency on the collaboration libraries.
       new Plugin({
@@ -154,20 +148,5 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
         },
       }),
     ];
-  }
-
-  commands() {
-    return {
-      undo: () => undo,
-      redo: () => redo,
-    };
-  }
-
-  keys() {
-    return {
-      "Mod-z": undoCommand,
-      "Mod-y": redoCommand,
-      "Shift-Mod-z": redoCommand,
-    };
   }
 }

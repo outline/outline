@@ -23,6 +23,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
+import { MultiplayerUndo } from "~/editor/extensions/MultiplayerUndo";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
@@ -270,8 +271,8 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
       return props.extensions;
     }
 
-    // The Yjs undo manager (added by the Multiplayer extension below) is the
-    // sole source of undo/redo history when collaborating.
+    // The Yjs undo manager (added by MultiplayerUndo below) is the sole source
+    // of undo/redo history when collaborating.
     return [
       ...(props.extensions || []).filter(
         (extension) => extension !== History && !(extension instanceof History)
@@ -281,6 +282,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
         provider: remoteProvider,
         document: ydoc,
       }),
+      MultiplayerUndo,
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
