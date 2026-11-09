@@ -158,6 +158,9 @@ export const PinValidation = {
 };
 
 export const TeamValidation = {
+  /** The choices for the default share link expiry in days, 0 for no expiry. */
+  defaultShareExpiryDays: [0, 7, 30, 60, 90],
+
   /** The maximum number of domains per team on cloud hosted */
   maxDomains: 10,
 

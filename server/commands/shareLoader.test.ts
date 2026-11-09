@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { addDays, subDays } from "date-fns";
 import { DocumentPermission } from "@shared/types";
 import { UserMembership } from "@server/models";
 import {
@@ -280,6 +281,39 @@ describe("shareLoader", () => {
       expect(result.parentShare).toBeNull();
     });
 
+    it("should not return an expired parentShare", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+        expiresAt: subDays(new Date(), 1),
+      });
+
+      const result = await loadShareWithParent({
+        documentId: childDocument.id,
+        user,
+      });
+
+      expect(result.parentShare).toBeNull();
+    });
+
     it("should return parentShare when the document has no share of its own", async () => {
       const user = await buildUser();
       const collection = await buildCollection({
@@ -499,6 +533,23 @@ describe("shareLoader", () => {
   });
 
   describe("inactive share when requested with id", () => {
+    it("should throw error when share has expired", async () => {
+      const share = await buildShare({
+        expiresAt: subDays(new Date(), 1),
+      });
+
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
+    });
+
+    it("should return share when expiry is in the future", async () => {
+      const share = await buildShare({
+        expiresAt: addDays(new Date(), 1),
+      });
+
+      const result = await loadPublicShare({ id: share.id });
+      expect(result.share.id).toEqual(share.id);
+    });
+
     it("should throw error when share is not published", async () => {
       const share = await buildShare({
         published: false,

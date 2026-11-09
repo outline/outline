@@ -276,6 +276,7 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      expiresAt,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
@@ -320,6 +321,7 @@ router.post(
         allowSubscriptions,
         showLastUpdated,
         showTOC,
+        expiresAt: expiresAt ?? user.team.defaultShareExpiresAt,
         urlId,
       },
     });
@@ -361,6 +363,7 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      expiresAt,
       title,
       iconUrl,
     } = ctx.input.body;
@@ -388,6 +391,7 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      expiresAt,
       title: title === "" ? null : title,
       iconUrl: iconUrl === "" ? null : iconUrl,
     });

@@ -151,7 +151,7 @@ export default class SharesStore extends Store<Share> {
       ? this.getByCollectionId(document.collectionId)
       : undefined;
 
-    if (collectionShare?.published) {
+    if (collectionShare?.isActive) {
       return collectionShare;
     }
 
@@ -170,7 +170,7 @@ export default class SharesStore extends Store<Share> {
     for (const parentId of parentIds) {
       const share = this.getByDocumentId(parentId);
 
-      if (share?.includeChildDocuments && share.published) {
+      if (share?.includeChildDocuments && share.isActive) {
         return share;
       }
     }

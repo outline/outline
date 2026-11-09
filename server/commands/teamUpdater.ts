@@ -4,6 +4,7 @@ import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { User } from "@server/models";
 import { Collection, Team, TeamDomain } from "@server/models";
+import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -87,6 +88,17 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   }
 
   if (preferences) {
+    const shareExpiryDays = preferences[TeamPreference.DefaultShareExpiryDays];
+
+    // Removing the default stays possible after losing the entitlement.
+    if (
+      shareExpiryDays &&
+      shareExpiryDays !==
+        team.getPreference(TeamPreference.DefaultShareExpiryDays)
+    ) {
+      authorize(user, "setDefaultShareExpiry", team);
+    }
+
     for (const key of Object.values(TeamPreference)) {
       if (
         has(preferences, key) &&

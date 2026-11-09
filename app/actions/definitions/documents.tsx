@@ -41,6 +41,7 @@ import {
   PDFIcon,
 } from "outline-icons";
 import { toast } from "sonner";
+import { showPublicLinkCopiedToast } from "~/components/Sharing/components/toasts";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import {
@@ -871,7 +872,7 @@ export const copyDocumentShareLink = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId &&
-    !!stores.shares.getByDocumentId(activeDocumentId)?.published,
+    !!stores.shares.getByDocumentId(activeDocumentId)?.isActive,
   perform: ({ stores, activeDocumentId, t }) => {
     if (!activeDocumentId) {
       return;
@@ -879,7 +880,7 @@ export const copyDocumentShareLink = createAction({
     const share = stores.shares.getByDocumentId(activeDocumentId);
     if (share) {
       copy(share.url);
-      toast.success(t("Link copied to clipboard"));
+      showPublicLinkCopiedToast(share, t);
     }
   },
 });

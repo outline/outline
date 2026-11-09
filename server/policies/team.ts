@@ -68,6 +68,14 @@ allow(User, "externalGroupSync", Team, (actor, team) =>
   )
 );
 
+allow(User, "setDefaultShareExpiry", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    teamHasEntitlement(team, PlanFeature.AdvancedSecurity)
+  )
+);
+
 allow(User, ["createTemplate", "updateTemplate"], Team, (actor, team) =>
   and(
     //

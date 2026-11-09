@@ -70,6 +70,7 @@ export async function loadPublicShare({
 
   if (
     !share ||
+    share.isExpired ||
     (teamId && share.teamId !== teamId) ||
     !!share.team.suspendedAt ||
     !!share.collection?.archivedAt ||
@@ -205,9 +206,10 @@ export async function loadShareWithParent({
         includeDocumentStructure: true,
         rejectOnEmpty: true,
       }),
-      Share.scope({
-        method: ["withCollectionPermissions", user.id],
-      }).findOne({
+      Share.scope([
+        { method: ["withCollectionPermissions", user.id] },
+        "notExpired",
+      ]).findOne({
         where: {
           revokedAt: {
             [Op.is]: null,
@@ -230,9 +232,10 @@ export async function loadShareWithParent({
       const parentDocIds = docCollection.getDocumentParents(documentId);
 
       const allParentShares = parentDocIds
-        ? await Share.scope({
-            method: ["withCollectionPermissions", user.id],
-          }).findAll({
+        ? await Share.scope([
+            { method: ["withCollectionPermissions", user.id] },
+            "notExpired",
+          ]).findAll({
             where: {
               revokedAt: {
                 [Op.is]: null,
