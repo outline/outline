@@ -1,4 +1,5 @@
 import { isEqual, omit } from "es-toolkit/compat";
+import fastDeepEqual from "fast-deep-equal";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -1305,7 +1306,7 @@ export class DocumentHelper {
     second: Document | Revision,
     options?: { ignoreMarks?: string[] }
   ) {
-    if (isEqual(first.content, second.content)) {
+    if (fastDeepEqual(first.content, second.content)) {
       return true;
     }
 

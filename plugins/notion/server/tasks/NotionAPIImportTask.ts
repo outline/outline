@@ -18,7 +18,7 @@ import { NotionConverter } from "../utils/NotionConverter";
 type ChildPage = { type: PageType; externalId: string };
 
 type ParsePageOutput = ImportTaskOutput[number] & {
-  collectionExternalId?: string;
+  rootExternalId?: string;
   children: ChildPage[];
 };
 
@@ -95,7 +95,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
             type: childPage.type,
             externalId: childPage.externalId,
             parentExternalId: parsedPage.externalId,
-            collectionExternalId: parsedPage.collectionExternalId,
+            rootExternalId: parsedPage.rootExternalId,
             ancestorExternalIds: parsedPage.ancestorExternalIds,
           }))
       );
@@ -130,9 +130,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     item: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
   }): Promise<ParsePageOutput | null> {
-    const collectionExternalId = item.collectionExternalId ?? item.externalId;
+    const rootExternalId =
+      item.rootExternalId ?? item.collectionExternalId ?? item.externalId;
     const titleMaxLength =
-      item.externalId === collectionExternalId // This means it's a root page which will be imported as a collection
+      item.externalId === rootExternalId // This means it's a root page (materialized as a collection or root document)
         ? CollectionValidation.maxNameLength
         : DocumentValidation.maxTitleLength;
 
@@ -149,7 +150,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           icon: emoji,
           externalId: item.externalId,
           content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
-          collectionExternalId,
+          rootExternalId,
           children: pages.map((page) => ({
             type: page.type,
             externalId: page.id,
@@ -167,7 +168,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         icon: emoji,
         externalId: item.externalId,
         content: NotionConverter.page({ children: blocks } as NotionPage),
-        collectionExternalId,
+        rootExternalId,
         children: this.parseChildPages(blocks),
       };
     } catch (error) {

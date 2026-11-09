@@ -59,7 +59,7 @@ export default class ExportFailureEmail extends BaseEmail<
     return `
 ${this.t("Your Data Export")}
 
-${this.t("Sorry, your requested data export has failed, please visit the admin section to try again \u2013 if the problem persists please contact support.")}
+${this.t("Sorry, your requested data export has failed. Please visit the admin section to try again \u2013 if the problem persists, please contact support.")}
 `;
   }
 
@@ -73,14 +73,14 @@ ${this.t("Sorry, your requested data export has failed, please visit the admin s
           <Heading>{this.t("Your Data Export")}</Heading>
           <p>
             {this.t(
-              "Sorry, your requested data export has failed, please visit the"
+              "Sorry, your requested data export has failed. Please visit the"
             )}{" "}
             <a href={exportLink} rel="noreferrer" target="_blank">
               {this.t("admin section")}
             </a>
             .{" "}
             {this.t(
-              "to try again \u2013 if the problem persists please contact support."
+              "to try again \u2013 if the problem persists, please contact support."
             )}
           </p>
           <EmptySpace height={10} />

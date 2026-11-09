@@ -42,7 +42,7 @@ function CollectionDeleteDialog({ collection, onSubmit }: Props) {
       <>
         <Text as="p" type="secondary">
           <Trans
-            defaults="Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash."
+            defaults="Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, but all published documents within will be moved to the trash."
             values={{
               collectionName: collection.displayName,
             }}

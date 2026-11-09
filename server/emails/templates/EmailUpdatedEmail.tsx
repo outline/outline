@@ -42,7 +42,7 @@ ${this.t(
 )}
 
 ${this.t(
-  "If you did not expect this change, contact your workspace admin immediately to secure your account, otherwise no action is required."
+  "If you did not expect this change, contact your workspace admin immediately to secure your account. Otherwise, no action is required."
 )}
 
 ${teamUrl}
@@ -70,7 +70,7 @@ ${teamUrl}
           <p>
             <strong>
               {this.t(
-                "If you did not expect this change, contact your workspace admin immediately to secure your account, otherwise no action is required."
+                "If you did not expect this change, contact your workspace admin immediately to secure your account. Otherwise, no action is required."
               )}
             </strong>
           </p>

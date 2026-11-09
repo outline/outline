@@ -87,7 +87,7 @@ function Drafts() {
           <Empty>
             {isFiltered
               ? t("No documents found for your filters.")
-              : t("You’ve not got any drafts at the moment.")}
+              : t("You don’t have any drafts at the moment.")}
           </Empty>
         }
         fetch={documents.fetchDrafts}

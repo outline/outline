@@ -75,7 +75,7 @@ router.post(
     });
     authorize(user, "delete", passkey);
 
-    await passkey.destroyWithCtx(ctx);
+    await passkey.destroyWithCtx(ctx, { data: { name: passkey.name } });
 
     ctx.body = {
       success: true,

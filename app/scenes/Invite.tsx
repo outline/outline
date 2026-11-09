@@ -134,7 +134,7 @@ function Invite({ onSubmit }: Props) {
         }
       >
         <strong>
-          <Trans>{{ collectionCount }} collections</Trans>
+          {t("{{ count }} collection", { count: collectionCount })}
         </strong>
       </Tooltip>
       .{" "}
@@ -194,7 +194,7 @@ function Invite({ onSubmit }: Props) {
             {collectionAccessNote}
             {can.update && (
               <Trans>
-                As an admin you can also{" "}
+                As an admin, you can also{" "}
                 <Link to="/settings/authentication">enable email sign-in</Link>.
               </Trans>
             )}

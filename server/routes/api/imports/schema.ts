@@ -8,11 +8,24 @@ import {
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { BaseSchema } from "../schema";
 
+/**
+ * Optional destination for the import. When either is set, root nodes are
+ * materialized as documents under the destination rather than as new
+ * collections.
+ */
+const DestinationShape = {
+  /** Existing collection to import root nodes into as root documents. */
+  collectionId: z.uuid().optional(),
+  /** Existing document to import root nodes under as child documents. */
+  documentId: z.uuid().optional(),
+};
+
 /** The body to import an uploaded file. */
 export const AttachmentImportBodySchema = z.object({
   service: z.enum(ImportableIntegrationService),
   attachmentId: z.uuid(),
   permission: z.enum(CollectionPermission).optional(),
+  ...DestinationShape,
 });
 
 /** The body to import from a connected integration. */
@@ -20,6 +33,7 @@ export const IntegrationImportBodySchema = z.object({
   service: z.enum(ImportableIntegrationService),
   integrationId: z.uuid(),
   input: z.array(BaseImportInputItemSchema),
+  ...DestinationShape,
 });
 
 /** A body that an import plugin accepts in imports.create. */
@@ -57,16 +71,35 @@ const ImportsSortParamsSchema = z.object({
 });
 
 export const ImportsCreateSchema = BaseSchema.extend({
-  body: z.union([
-    AttachmentImportBodySchema.extend({
-      service: z.enum([
-        IntegrationService.Markdown,
-        IntegrationService.OKF,
-        IntegrationService.JSON,
-      ]),
-    }),
-    pluginBodies,
-  ]),
+  body: z
+    .union([
+      AttachmentImportBodySchema.extend({
+        service: z.enum([
+          IntegrationService.Markdown,
+          IntegrationService.OKF,
+          IntegrationService.JSON,
+        ]),
+      }),
+      pluginBodies,
+    ])
+    .refine((body) => !(body.collectionId && body.documentId), {
+      error: "Only one of collectionId or documentId may be set",
+    })
+    .refine(
+      (body) => {
+        if (!body.collectionId && !body.documentId) {
+          return true;
+        }
+        if ("input" in body) {
+          return !body.input.some((item) => item.permission);
+        }
+        return body.permission === undefined;
+      },
+      {
+        error:
+          "permission cannot be set when importing into an existing destination",
+      }
+    ),
 });
 
 export type ImportsCreateReq = z.infer<typeof ImportsCreateSchema>;

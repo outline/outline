@@ -8,6 +8,12 @@ import {
 
 export const BaseImportInputItemSchema = z.object({
   permission: z.enum(CollectionPermission).optional(),
+  /**
+   * Marks a synthetic root node (e.g. Markdown's fallback "Documents" node)
+   * so it can collapse when importing into an existing destination — its loose
+   * child files then parent directly to the destination.
+   */
+  synthetic: z.boolean().optional(),
 });
 
 export type BaseImportInput = z.infer<typeof BaseImportInputItemSchema>[];
@@ -39,6 +45,9 @@ export type ImportInput<T extends ImportableIntegrationService> =
 export const BaseImportTaskInputItemSchema = z.object({
   externalId: z.string(),
   parentExternalId: z.string().optional(),
+  /** External id of the root node this item descends from. */
+  rootExternalId: z.string().optional(),
+  /** @deprecated Only present on tasks queued before rootExternalId existed. */
   collectionExternalId: z.string().optional(),
 });
 
@@ -134,6 +143,8 @@ export type ImportScratch<T extends ImportableIntegrationService> =
 export interface MarkdownPageImportTaskInputItem {
   externalId: string;
   parentExternalId?: string;
+  rootExternalId?: string;
+  /** @deprecated Only present on tasks queued before rootExternalId existed. */
   collectionExternalId?: string;
   title: string;
   path: string;
@@ -165,6 +176,8 @@ export type MarkdownImportTaskInput = (
 export interface JSONPageImportTaskInputItem {
   externalId: string;
   parentExternalId?: string;
+  rootExternalId?: string;
+  /** @deprecated Only present on tasks queued before rootExternalId existed. */
   collectionExternalId?: string;
   title: string;
   urlId?: string;

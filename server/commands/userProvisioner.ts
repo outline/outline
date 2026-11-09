@@ -22,6 +22,8 @@ import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 type UserProvisionerResult = {
   user: User;
   isNewUser: boolean;
+  /** Whether this sign-in accepted an existing invite. */
+  isInvite: boolean;
   authentication: UserAuthentication | null;
 };
 
@@ -160,6 +162,7 @@ export default async function userProvisioner(
         user,
         authentication: auth,
         isNewUser: false,
+        isInvite: false,
       };
     }
 
@@ -258,6 +261,7 @@ export default async function userProvisioner(
       user: existingUser,
       authentication: userAuth,
       isNewUser: isInvite,
+      isInvite,
     };
   } else if (!authentication && !team?.allowedDomains.length) {
     // There's no existing invite or user that matches the external auth email
@@ -313,6 +317,7 @@ export default async function userProvisioner(
       user,
       authentication: user.authentications[0],
       isNewUser: true,
+      isInvite: false,
     };
   } catch (err) {
     await transaction.rollback();

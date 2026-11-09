@@ -817,6 +817,40 @@ describe("#shares.info", () => {
     });
     expect(res.status).toEqual(204);
   });
+  it("should return parent share when the document has no share of its own", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    const childDocument = await buildDocument({
+      userId: user.id,
+      teamId: document.teamId,
+      parentDocumentId: document.id,
+      collectionId: collection.id,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+      includeChildDocuments: true,
+    });
+    const res = await server.post("/api/shares.info", user, {
+      body: {
+        documentId: childDocument.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares.length).toBe(1);
+    expect(body.data.shares[0].id).toBe(share.id);
+    expect(body.policies.length).toBe(1);
+  });
   it("should return share for parent document with includeChildDocuments=true", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

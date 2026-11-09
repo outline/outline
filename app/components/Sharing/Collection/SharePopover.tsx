@@ -271,6 +271,12 @@ function SharePopover({
                 count: invitedUsers.length,
               })
             );
+          } else if (invitedGroups.length === 1) {
+            toast.success(
+              t("{{ count }} people and a group added to the collection", {
+                count: invitedUsers.length,
+              })
+            );
           } else {
             toast.success(
               t(

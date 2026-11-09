@@ -201,13 +201,20 @@ async function accountProvisioner(
             : undefined,
         },
   });
-  const { isNewUser, user } = result;
+  const { isNewUser, isInvite, user } = result;
 
-  if (isNewUser && user.isInvited) {
-    await Event.createFromContext(ctx, {
-      name: "users.invite_accepted",
-      userId: user.id,
-    });
+  if (isInvite) {
+    // The browser may have a session for another user, which must not be used.
+    await Event.create(
+      {
+        name: "users.invite_accepted",
+        userId: user.id,
+        actorId: user.id,
+        teamId: user.teamId,
+        ip: ctx.context.ip,
+      },
+      { transaction: ctx.state.transaction }
+    );
   }
 
   if (isNewUser || isNewTeam) {

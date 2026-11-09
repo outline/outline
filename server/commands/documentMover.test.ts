@@ -208,6 +208,53 @@ describe("documentMover", () => {
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
   });
 
+  it("should remove collection pins of child documents if moved to another collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      teamId: team.id,
+    });
+    const newCollection = await buildCollection({
+      teamId: team.id,
+    });
+    await Pin.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      documentId: child.id,
+      teamId: team.id,
+    });
+    const homePin = await Pin.create({
+      createdById: user.id,
+      collectionId: null,
+      documentId: child.id,
+      teamId: team.id,
+    });
+
+    await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: newCollection.id,
+        parentDocumentId: undefined,
+        index: 0,
+      })
+    );
+
+    const pins = await Pin.findAll({ where: { teamId: team.id } });
+    expect(pins.map((pin) => pin.id)).toEqual([homePin.id]);
+  });
+
   it("should remove all pins if moved to a personal collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
