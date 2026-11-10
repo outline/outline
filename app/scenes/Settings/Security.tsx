@@ -6,6 +6,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
+import { TeamValidation } from "@shared/validations";
 import type { TeamPreferences, UserRole } from "@shared/types";
 import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -16,6 +17,7 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
@@ -24,6 +26,7 @@ function Security() {
   const { dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const can = usePolicy(team);
 
   const [data, setData] = useState({
     sharing: team.sharing,
@@ -91,6 +94,16 @@ function Security() {
           value: CommentingAccess.None,
         },
       ] satisfies Option[],
+    [t]
+  );
+
+  const defaultShareExpiryOptions: Option[] = React.useMemo(
+    () =>
+      TeamValidation.defaultShareExpiryDays.map((count): Option => ({
+        type: "item",
+        label: count === 0 ? t("Never") : t("{{ count }} days", { count }),
+        value: String(count),
+      })),
     [t]
   );
 
@@ -211,6 +224,17 @@ function Security() {
     [saveData, team.preferences]
   );
 
+  const handleDefaultShareExpiryChange = React.useCallback(
+    async (days: string) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.DefaultShareExpiryDays]: Number(days),
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
   const handleInviteRequiredChange = React.useCallback(
     async (checked: boolean) => {
       const inviteRequired = checked;
@@ -318,6 +342,26 @@ function Security() {
           onChange={handleSharingChange}
         />
       </SettingRow>
+      {can.setDefaultShareExpiry && (
+        <SettingRow
+          label={t("Default link expiration")}
+          name={TeamPreference.DefaultShareExpiryDays}
+          description={t(
+            "New public links will expire after this period. Existing links are not affected."
+          )}
+        >
+          <InputSelect
+            value={String(
+              team.getPreference(TeamPreference.DefaultShareExpiryDays)
+            )}
+            options={defaultShareExpiryOptions}
+            onChange={handleDefaultShareExpiryChange}
+            label={t("Default link expiration")}
+            labelHidden
+            short
+          />
+        </SettingRow>
+      )}
       <SettingRow
         label={t("Viewer document exports")}
         name={TeamPreference.ViewersCanExport}

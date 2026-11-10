@@ -30,9 +30,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
 
   const share = shares.getByCollectionId(collection.id);
   const isPubliclyShared =
-    team.sharing !== false &&
-    collection.sharing !== false &&
-    !!share?.published;
+    team.sharing !== false && collection.sharing !== false && !!share?.isActive;
 
   // The document structure is cached on the collection once loaded, so this is
   // a no-op when the sidebar or another tab has already requested it.

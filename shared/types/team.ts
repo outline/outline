@@ -67,6 +67,8 @@ export enum TeamPreference {
   DisabledEmbeds = "disabledEmbeds",
   /** Whether users can create documents in a personal collection. */
   PersonalDocs = "personalDocs",
+  /** The number of days until new public share links expire, 0 for no expiry. */
+  DefaultShareExpiryDays = "defaultShareExpiryDays",
 }
 
 /** Workspace preference values, keyed by preference. */
@@ -86,4 +88,5 @@ export type TeamPreferences = {
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
   [TeamPreference.PersonalDocs]?: boolean;
+  [TeamPreference.DefaultShareExpiryDays]?: number;
 };
