@@ -1948,12 +1948,8 @@ li p:first-child {
 }
 
 /* Space block images in list items like top-level blocks */
-li p:has(> .component-image > .image:not(.image-icon, .image-left-50, .image-right-50)) {
+li .component-image:has(> .image:not(.image-icon, .image-left-50, .image-right-50)) {
   margin: .5em 0;
-
-  &:first-child {
-    margin-top: 0;
-  }
 }
 
 hr {
