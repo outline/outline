@@ -17,6 +17,7 @@ interface Props {
 
 /**
  * The "+" button on a sidebar row, which adds a nested document or link.
+ * Alt+click adds a document without opening the menu.
  */
 export function NewChildMenu({ onNewDoc, onNewLink }: Props) {
   const { t } = useTranslation();
@@ -25,6 +26,26 @@ export function NewChildMenu({ onNewDoc, onNewLink }: Props) {
     (ev: React.MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault();
       onNewDoc();
+    },
+    [onNewDoc]
+  );
+
+  // The menu opens on pointer down, so Alt is handled there to skip it.
+  const handleMenuPointerDown = React.useCallback(
+    (ev: React.PointerEvent<HTMLButtonElement>) => {
+      if (ev.altKey) {
+        ev.preventDefault();
+      }
+    },
+    []
+  );
+
+  const handleMenuClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLButtonElement>) => {
+      if (ev.altKey) {
+        ev.preventDefault();
+        onNewDoc();
+      }
     },
     [onNewDoc]
   );
@@ -62,7 +83,10 @@ export function NewChildMenu({ onNewDoc, onNewLink }: Props) {
   return (
     <Tooltip content={t("Add")}>
       <DropdownMenu action={rootAction} align="end" ariaLabel={t("Add")}>
-        <NudeButton>
+        <NudeButton
+          onPointerDown={handleMenuPointerDown}
+          onClick={handleMenuClick}
+        >
           <PlusIcon />
         </NudeButton>
       </DropdownMenu>
