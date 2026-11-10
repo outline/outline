@@ -368,7 +368,8 @@ const Link = styled.a<{
   }
 
   &: ${hover},
-  &:has([data-state="open"]) {
+  &:has([data-state="open"]),
+  &:has([aria-haspopup="menu"][aria-expanded="true"]) {
     ${HiddenDisclosure} {
       opacity: 1;
     }
