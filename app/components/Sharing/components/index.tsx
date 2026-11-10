@@ -30,6 +30,17 @@ export const StyledInfoIcon = styled(InfoIcon).attrs({
   flex-shrink: 0;
 `;
 
+export const ShareNotice = styled(Flex).attrs({
+  align: "flex-start",
+  gap: 4,
+})`
+  padding-bottom: 4px;
+
+  &:not(:last-child) {
+    margin-bottom: 4px;
+  }
+`;
+
 export const ShareLinkInput = styled(Input)`
   padding: 12px 0 1px;
   min-width: 100px;

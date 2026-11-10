@@ -128,6 +128,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Always handle database errors gracefully.
 - When updating Sequelize array or JSON attributes, replace the value instead of mutating it in place; reload the model in tests to verify persistence rather than trusting its in-memory state.
 - Schedule optional background work that depends on a transaction from `afterCommit`, and use non-fatal scheduling so a queue failure does not fail the committed operation.
+- When changing persisted task input fields, keep readers compatible with queued inputs or migrate them before removing old fields.
 
 ## API Design
 
@@ -145,6 +146,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Use cancan-style ability checks.
 - Use authenticated middleware for protected routes.
 - Always verify user permissions before data access.
+- When linking accounts by provider email, use exact case-insensitive equality within the workspace.
 - Set account email and passkey management routes to `AuthenticationType.APP`; API-key authentication must not change login credentials or authenticators.
 
 ## Real-time Collaboration
@@ -154,6 +156,7 @@ yarn sequelize migration:create --name=add-field-to-table
 - Handle connection state changes gracefully.
 - For bulk deletions that drive authorization or WebSocket processing, load affected models in the transaction and delete each with request context so downstream processors receive the expected per-item events.
 - Do not persist viewer-specific unfurls in shared document mentions; only store unfurls that map to a stable mention type.
+- When persisting pasted attachment URLs, use `signedUrlToAttachmentUrl` to convert this instance’s signed URLs to stable attachment redirects. Cover HTML, Markdown, and single-URL pastes, including pasting over selected text; document nodes and link marks must not retain expiring local URLs, and external URLs must remain unchanged.
 - Editor plugins that repair the document (assigning missing IDs, fixing invalid structure) must use `RepairPlugin` from `shared/editor/plugins/RepairPlugin.ts`. Other plugins that change the document in `appendTransaction` must only respond to local changes, guard with `isLocalDocChange` from `shared/editor/lib/multiplayer.ts`. Otherwise every connected client writes the change in response to remote edits and is attributed as an editor.
 
 ## Documentation
@@ -211,6 +214,7 @@ yarn test:shared   # All shared code tests
 - Implement pagination for large lists.
 - Use database indexes effectively.
 - Cache expensive computations.
+- Use `Redis.ephemeralClient` for request-path caches, rate limits, and locks, including lock extension and release.
 - Monitor performance with appropriate tools.
 - Lazy load routes and components where appropriate.
 

@@ -26,6 +26,16 @@ describe("mention type rule", () => {
     expect(mention?.attrs.label).toBe("Fix parser");
   });
 
+  it("should keep a card as a generic link mention", () => {
+    const mention = firstMention(
+      '@[Fix parser](https://github.com/acme/infra/issues/2 "card")'
+    );
+
+    expect(mention?.attrs.type).toBe(MentionType.URL);
+    expect(mention?.attrs.display).toBe("card");
+    expect(mention?.attrs.href).toBe("https://github.com/acme/infra/issues/2");
+  });
+
   it("should resolve a GitHub pull request link", () => {
     const mention = firstMention(
       "@[Add parser](https://github.com/acme/infra/pull/5)"

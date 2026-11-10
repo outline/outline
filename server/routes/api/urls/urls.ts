@@ -75,10 +75,12 @@ router.post(
           return;
         }
 
+        // The share page signs this document's attachments, so this adds no access.
         ctx.body = await presentUnfurl({
           type: UnfurlResourceType.Document,
           document,
           anchor: urlObj.hash,
+          signedUrls: true,
           url: `${share.canonicalUrl}/doc/${document.url.replace("/doc/", "")}${urlObj.hash}`,
         });
         return;

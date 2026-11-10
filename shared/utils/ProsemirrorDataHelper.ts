@@ -44,4 +44,35 @@ export class ProsemirrorDataHelper {
 
     return !data.content || data.content.length === 0;
   }
+
+  /**
+   * Returns the first line of text in the document, useful for a short plain
+   * text preview. Text blocks and hard breaks start a new line.
+   *
+   * @param data the ProsemirrorData to read.
+   * @returns the trimmed first line with text, or undefined.
+   */
+  static getFirstText(data: ProsemirrorData): string | undefined {
+    return ProsemirrorDataHelper.toLines(data)
+      .map((line) => line.trim())
+      .find(Boolean);
+  }
+
+  private static toLines(node: ProsemirrorData): string[] {
+    if (node.type === "text") {
+      return [node.text ?? ""];
+    }
+
+    // Text joins the current line. Any other node, such as a paragraph or a
+    // hard break, is on its own lines.
+    const lines = [""];
+    for (const child of node.content ?? []) {
+      if (child.type === "text") {
+        lines[lines.length - 1] += child.text ?? "";
+      } else {
+        lines.push(...ProsemirrorDataHelper.toLines(child), "");
+      }
+    }
+    return lines;
+  }
 }

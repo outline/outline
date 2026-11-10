@@ -9,7 +9,7 @@ export default function shareDomains() {
     const isCustomDomain = parseDomain(ctx.host).custom;
 
     if (env.isDevelopment || (isCustomDomain && env.isCloudHosted)) {
-      const share = await Share.unscoped().findOne({
+      const share = await Share.scope("notExpired").findOne({
         where: {
           domain: ctx.hostname,
           published: true,
