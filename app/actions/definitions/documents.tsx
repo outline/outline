@@ -51,6 +51,7 @@ import {
   UserPreference,
 } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
+import { isLinkNode } from "@shared/utils/collections";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
 import Document from "~/models/Document";
@@ -135,10 +136,9 @@ export const openDocument = createActionWithChildren({
   keywords: "go to",
   icon: <DocumentIcon />,
   children: ({ stores, activeDocumentId, t }) => {
-    const nodes = stores.collections.navigationNodes.reduce(
-      (acc, node) => [...acc, ...node.children],
-      [] as NavigationNode[]
-    );
+    const nodes = stores.collections.navigationNodes
+      .reduce((acc, node) => [...acc, ...node.children], [] as NavigationNode[])
+      .filter((node) => !isLinkNode(node));
     const documents = stores.documents.orderedData;
 
     // Documents already listed under "Recently viewed" are skipped so that they
@@ -1359,7 +1359,7 @@ export const openRandomDocument = createAction({
   perform: ({ stores, activeDocumentId }) => {
     const nodes = stores.collections.navigationNodes
       .reduce((acc, node) => [...acc, ...node.children], [] as NavigationNode[])
-      .filter((node) => node.id !== activeDocumentId);
+      .filter((node) => node.id !== activeDocumentId && !isLinkNode(node));
 
     const random = nodes[Math.round(Math.random() * nodes.length)];
 

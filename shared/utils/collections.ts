@@ -1,4 +1,4 @@
-import type { NavigationNode } from "../types";
+import { NavigationNodeType, type NavigationNode } from "../types";
 import shallowEqual from "./shallowEqual";
 import naturalSort from "./naturalSort";
 
@@ -6,6 +6,16 @@ type Sort = {
   field: string;
   direction: "asc" | "desc";
 };
+
+/**
+ * Returns whether the node is a link to an external location, rather than a
+ * document.
+ *
+ * @param node The navigation node to check.
+ * @returns true if the node is a link.
+ */
+export const isLinkNode = (node: Pick<NavigationNode, "type">): boolean =>
+  node.type === NavigationNodeType.Link;
 
 export const sortNavigationNodes = (
   nodes: NavigationNode[],

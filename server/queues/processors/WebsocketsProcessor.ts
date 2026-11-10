@@ -459,6 +459,28 @@ export default class WebsocketsProcessor {
           });
       }
 
+      case "collections.add_link":
+      case "collections.update_link":
+      case "collections.remove_link": {
+        const collection = await Collection.findOne({
+          where: { id: event.collectionId },
+          attributes: ["id", "updatedAt"],
+        });
+        if (!collection) {
+          return;
+        }
+
+        return socketio.to(`collection-${collection.id}`).emit("entities", {
+          event: event.name,
+          collectionIds: [
+            {
+              id: collection.id,
+              updatedAt: collection.updatedAt,
+            },
+          ],
+        });
+      }
+
       case "collections.move": {
         return socketio
           .to(`collection-${event.collectionId}`)

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
+import { isLinkNode } from "@shared/utils/collections";
 import { flattenTree } from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
@@ -39,7 +40,9 @@ export const CollectionMeta = observer(function CollectionMeta_({
   }, [collection]);
 
   const documentCount = collection.documents
-    ? flattenTree(collection.asNavigationNode).length - 1
+    ? flattenTree(collection.asNavigationNode).filter(
+        (node) => !isLinkNode(node)
+      ).length - 1
     : undefined;
 
   return (

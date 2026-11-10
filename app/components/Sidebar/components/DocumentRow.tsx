@@ -1,6 +1,5 @@
 import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
@@ -9,11 +8,10 @@ import { DocumentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
-import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
+import { NewChildMenu } from "./NewChildMenu";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
@@ -92,6 +90,8 @@ export type DocumentRowProps = {
 
   /** When true, the "+" new-child button is rendered in the menu slot. */
   canCreateChild?: boolean;
+  /** Opens the dialog to add a link below the row. When omitted, links cannot be added. */
+  onCreateLink?: () => void;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
   /** Depth of the inline new-child SidebarLink. Defaults to `depth + 1`. */
@@ -145,6 +145,7 @@ function DocumentRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
+  onCreateLink,
   newChildDepth,
   contextAction,
   isActiveOverride,
@@ -180,14 +181,10 @@ function DocumentRow({
     [hasChildren, expanded, onExpand, onCollapse]
   );
 
-  const handleAddChild = React.useCallback(
-    (ev: React.MouseEvent<HTMLButtonElement>) => {
-      ev.preventDefault();
-      setIsAddingNewChild();
-      onExpand?.();
-    },
-    [setIsAddingNewChild, onExpand]
-  );
+  const handleAddChild = React.useCallback(() => {
+    setIsAddingNewChild();
+    onExpand?.();
+  }, [setIsAddingNewChild, onExpand]);
 
   const handleNewChildSubmit = React.useCallback(
     async (value: string) => {
@@ -224,14 +221,7 @@ function DocumentRow({
   const menuElement = menuVisible ? (
     <Fade>
       {canCreateChild && (
-        <Tooltip content={t("New doc")}>
-          <NudeButton
-            aria-label={t("New nested document")}
-            onClick={handleAddChild}
-          >
-            <PlusIcon />
-          </NudeButton>
-        </Tooltip>
+        <NewChildMenu onNewDoc={handleAddChild} onNewLink={onCreateLink} />
       )}
       {menu}
     </Fade>

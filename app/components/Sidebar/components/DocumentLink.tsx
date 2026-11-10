@@ -29,6 +29,7 @@ import {
   useDropToReorderDocument,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
+import { useLinkDialog } from "../hooks/useLinkDialog";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
@@ -273,6 +274,13 @@ const DocumentLink = observer(function DocumentLink({
     ]
   );
 
+  const linkDialog = useLinkDialog();
+  const handleNewLink = React.useCallback(() => {
+    if (collection) {
+      linkDialog.openCreate(collection, node.id, handleExpand);
+    }
+  }, [linkDialog, collection, node.id, handleExpand]);
+
   const contextMenuAction = useDocumentMenuAction({
     documentId: node.id,
     onRename: handleRename,
@@ -357,6 +365,7 @@ const DocumentLink = observer(function DocumentLink({
       menuOpen={menuOpen}
       canCreateChild={can.createChildDocument}
       onCreateChild={handleNewDoc}
+      onCreateLink={collection && !isDraft ? handleNewLink : undefined}
       contextAction={contextMenuAction}
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}

@@ -19,6 +19,7 @@ import {
   StatusFilter,
   UserRole,
 } from "@shared/types";
+import { isLinkNode } from "@shared/utils/collections";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@server/utils/slugify";
 import { Day } from "@shared/utils/time";
@@ -310,6 +311,7 @@ router.post(
       });
       authorize(user, "readDocument", collection);
       documentIds = (collection.documentStructure || [])
+        .filter((node) => !isLinkNode(node))
         .slice(offset, offset + limit)
         .map((node) => node.id);
       where[Op.and].push({ id: documentIds });

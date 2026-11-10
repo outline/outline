@@ -14,6 +14,7 @@ import * as Scenes from "~/routes/scenes";
 import useBoolean from "~/hooks/useBoolean";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
+import { useLinkDialog } from "../hooks/useLinkDialog";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
 import { useSidebarContext } from "./SidebarContext";
@@ -91,6 +92,11 @@ const CollectionLink: React.FC<Props> = ({
     [user, sidebarContext, history, collection, documents]
   );
 
+  const linkDialog = useLinkDialog();
+  const handleNewLink = React.useCallback(() => {
+    linkDialog.openCreate(collection, undefined, handleExpand);
+  }, [linkDialog, collection, handleExpand]);
+
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
     onRename: handleRename,
@@ -124,6 +130,7 @@ const CollectionLink: React.FC<Props> = ({
       menuOpen={menuOpen}
       canCreateChild={!isDraggingAnyCollection && can.createDocument}
       onCreateChild={handleNewDoc}
+      onCreateLink={handleNewLink}
       parentRef={parentRef}
       dropRef={dropRef}
       isActiveDropTarget={isOver && canDrop}

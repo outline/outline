@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import useShare from "@shared/hooks/useShare";
 import { NavigationNodeType, type NavigationNode } from "@shared/types";
+import { isLinkNode } from "@shared/utils/collections";
 import { flattenTree } from "@shared/utils/tree";
 import { createAction } from "~/actions";
 import { RecentSection, SearchResultsSection } from "~/actions/sections";
@@ -28,7 +29,7 @@ const serverSearchDelay = 350;
  * document for document shares – only the latter are searchable.
  */
 const isDocumentNode = (node: NavigationNode) =>
-  node.type !== NavigationNodeType.Collection;
+  node.type !== NavigationNodeType.Collection && !isLinkNode(node);
 
 /**
  * Registers search result actions in the command bar scoped to a public share.

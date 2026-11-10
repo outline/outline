@@ -6,7 +6,11 @@ import {
   CollectionStatusFilter,
   FileOperationFormat,
 } from "@shared/types";
-import { DeprecationValidation } from "@shared/validations";
+import { isUrl } from "@shared/utils/urls";
+import {
+  DeprecationValidation,
+  NavigationLinkValidation,
+} from "@shared/validations";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
@@ -313,3 +317,60 @@ export const CollectionsMoveSchema = BaseSchema.extend({
 });
 
 export type CollectionsMoveReq = z.infer<typeof CollectionsMoveSchema>;
+
+const LinkTitleSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(NavigationLinkValidation.maxTitleLength);
+
+const LinkUrlSchema = z
+  .string()
+  .trim()
+  .max(NavigationLinkValidation.maxUrlLength)
+  .refine((url) => isUrl(url), { message: "Must be a valid url" });
+
+/** Links are changed by collection id, so that it can be compared to the parent's. */
+const LinkCollectionIdSchema = z.object({
+  /** Id of the collection that contains the link. */
+  id: z.uuid(),
+});
+
+export const CollectionsAddLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the document to add the link below, if any. */
+    parentDocumentId: z.uuid().nullish(),
+    /** Title of the link. */
+    title: LinkTitleSchema,
+    /** External url that the link points to. */
+    url: LinkUrlSchema,
+  }),
+});
+
+export type CollectionsAddLinkReq = z.infer<typeof CollectionsAddLinkSchema>;
+
+export const CollectionsUpdateLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the link to update. */
+    linkId: z.uuid(),
+    /** Title of the link. */
+    title: LinkTitleSchema.optional(),
+    /** External url that the link points to. */
+    url: LinkUrlSchema.optional(),
+  }),
+});
+
+export type CollectionsUpdateLinkReq = z.infer<
+  typeof CollectionsUpdateLinkSchema
+>;
+
+export const CollectionsRemoveLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the link to remove. */
+    linkId: z.uuid(),
+  }),
+});
+
+export type CollectionsRemoveLinkReq = z.infer<
+  typeof CollectionsRemoveLinkSchema
+>;

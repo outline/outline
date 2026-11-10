@@ -4,6 +4,7 @@ import type { ZipFile } from "yazl";
 import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
+import { isLinkNode } from "@shared/utils/collections";
 import Logger from "@server/logging/Logger";
 import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
@@ -439,6 +440,10 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat
   ) {
     for (const node of nodes) {
+      if (isLinkNode(node)) {
+        continue;
+      }
+
       const title = serializeFilename(node.title) || "Untitled";
       const extension = ExportDocumentTreeTask.extensionForFormat(format);
 

@@ -52,7 +52,7 @@ import type {
 } from "@shared/types";
 import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { sortNavigationNodes } from "@shared/utils/collections";
+import { isLinkNode, sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@server/utils/slugify";
 import {
   CollectionValidation,
@@ -1250,6 +1250,9 @@ class Collection extends ParanoidModel<
     const allDocumentIds: string[] = [];
 
     const loopChildren = (node: NavigationNode) => {
+      if (isLinkNode(node)) {
+        return;
+      }
       allDocumentIds.push(node.id);
       (node.children ?? []).forEach((childNode) => {
         loopChildren(childNode);
@@ -1258,6 +1261,115 @@ class Collection extends ParanoidModel<
 
     this.documentStructure.forEach(loopChildren);
     return allDocumentIds;
+  };
+
+  /**
+   * Finds a link node in the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @returns the link node and the id of its parent document, or undefined if not found.
+   */
+  findLinkInStructure = (
+    linkId: string
+  ): { node: NavigationNode; parentDocumentId?: string } | undefined => {
+    const search = (
+      nodes: NavigationNode[],
+      parentDocumentId?: string
+    ): { node: NavigationNode; parentDocumentId?: string } | undefined => {
+      for (const node of nodes) {
+        if (node.id === linkId && isLinkNode(node)) {
+          return { node, parentDocumentId };
+        }
+        const result = search(node.children ?? [], node.id);
+        if (result) {
+          return result;
+        }
+      }
+      return undefined;
+    };
+
+    return search(this.documentStructure ?? []);
+  };
+
+  /**
+   * Adds a link node to the documentStructure, at the end of the given parent.
+   *
+   * @param node the link node to add.
+   * @param parentDocumentId the id of the parent document, or undefined for the root.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   */
+  addLinkToStructure = async (
+    node: NavigationNode,
+    parentDocumentId: string | undefined,
+    options?: { transaction?: Transaction | null }
+  ) => {
+    const structure = this.documentStructure ?? [];
+
+    if (!parentDocumentId) {
+      this.documentStructure = [...structure, node];
+    } else {
+      const place = (nodes: NavigationNode[]): NavigationNode[] =>
+        nodes.map((child) =>
+          child.id === parentDocumentId
+            ? { ...child, children: [...(child.children ?? []), node] }
+            : { ...child, children: place(child.children ?? []) }
+        );
+      this.documentStructure = place(structure);
+    }
+
+    this.changed("documentStructure", true);
+    return this.save({ ...options, fields: ["documentStructure"] });
+  };
+
+  /**
+   * Updates the title and url of a link node in the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @param attributes the attributes to update.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   */
+  updateLinkInStructure = async (
+    linkId: string,
+    attributes: Partial<Pick<NavigationNode, "title" | "url">>,
+    options?: { transaction?: Transaction | null }
+  ) => {
+    const update = (nodes: NavigationNode[]): NavigationNode[] =>
+      nodes.map((node) =>
+        node.id === linkId && isLinkNode(node)
+          ? {
+              ...node,
+              title: attributes.title ?? node.title,
+              url: attributes.url ?? node.url,
+            }
+          : { ...node, children: update(node.children ?? []) }
+      );
+
+    this.documentStructure = update(this.documentStructure ?? []);
+    this.changed("documentStructure", true);
+    return this.save({ ...options, fields: ["documentStructure"] });
+  };
+
+  /**
+   * Removes a link node from the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   */
+  removeLinkFromStructure = async (
+    linkId: string,
+    options?: { transaction?: Transaction | null }
+  ) => {
+    const remove = (nodes: NavigationNode[]): NavigationNode[] =>
+      nodes
+        .filter((node) => !(node.id === linkId && isLinkNode(node)))
+        .map((node) => ({ ...node, children: remove(node.children ?? []) }));
+
+    this.documentStructure = remove(this.documentStructure ?? []);
+    this.changed("documentStructure", true);
+    return this.save({ ...options, fields: ["documentStructure"] });
   };
 
   /**

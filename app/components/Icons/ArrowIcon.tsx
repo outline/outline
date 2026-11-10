@@ -14,3 +14,7 @@ export const ArrowDownIcon = styled(ArrowRightIcon)`
 export const ArrowLeftIcon = styled(ArrowRightIcon)`
   transform: rotate(180deg);
 `;
+
+export const ArrowUpRightIcon = styled(ArrowRightIcon)`
+  transform: rotate(-45deg);
+`;

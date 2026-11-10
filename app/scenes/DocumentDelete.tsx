@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import { isLinkNode } from "@shared/utils/collections";
 import { errToString } from "@shared/utils/error";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
@@ -28,7 +29,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
     ? collections.get(document.collectionId)
     : undefined;
   const nestedDocumentsCount = collection
-    ? collection.getChildrenForDocument(document.id).length
+    ? collection
+        .getChildrenForDocument(document.id)
+        .filter((node) => !isLinkNode(node)).length
     : 0;
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {

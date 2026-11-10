@@ -3,10 +3,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
+import { isLinkNode } from "@shared/utils/collections";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
+import { ExternalLink } from "./ExternalLink";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import SidebarLink from "./SidebarLink";
 
@@ -130,21 +132,29 @@ function DocumentLink({
         isActive={() => !!isActiveDocument}
       />
       {expanded &&
-        nodeChildren.map((childNode, index) => (
-          <SharedDocumentLink
-            shareId={shareId}
-            key={childNode.id}
-            collection={collection}
-            node={childNode}
-            activeDocumentId={activeDocumentId}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            isDraft={childNode.isDraft}
-            depth={depth + 1}
-            index={index}
-            parentId={node.id}
-          />
-        ))}
+        nodeChildren.map((childNode, index) =>
+          isLinkNode(childNode) ? (
+            <ExternalLink
+              key={childNode.id}
+              node={childNode}
+              depth={depth + 1}
+            />
+          ) : (
+            <SharedDocumentLink
+              shareId={shareId}
+              key={childNode.id}
+              collection={collection}
+              node={childNode}
+              activeDocumentId={activeDocumentId}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              isDraft={childNode.isDraft}
+              depth={depth + 1}
+              index={index}
+              parentId={node.id}
+            />
+          )
+        )}
     </>
   );
 }

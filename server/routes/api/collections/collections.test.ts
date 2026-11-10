@@ -6,6 +6,7 @@ import {
 } from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
 import {
+  Collection,
   Document,
   UserMembership,
   GroupMembership,
@@ -995,6 +996,239 @@ describe("#collections.add_user", () => {
         userId: anotherUser.id,
       },
     });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#collections.add_link", () => {
+  it("should add a link to the root of the collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.type).toEqual("link");
+    expect(body.data.title).toEqual("Status page");
+    expect(body.data.url).toEqual("https://status.example.com");
+
+    const reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure).toEqual([body.data]);
+    expect(reloaded.getAllDocumentIds()).toEqual([]);
+  });
+
+  it("should add a link below a document", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        parentDocumentId: document.id,
+        title: "Design",
+        url: "https://example.com/design",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.getDocumentTree(document.id)?.children).toEqual([
+      body.data,
+    ]);
+  });
+
+  it("should not allow a parent document in another collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        parentDocumentId: document.id,
+        title: "Design",
+        url: "https://example.com/design",
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow unsafe urls", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "Unsafe",
+        url: "javascript:alert(1)",
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require permission to create documents", async () => {
+    const viewer = await buildViewer();
+    const collection = await buildCollection({
+      teamId: viewer.teamId,
+    });
+
+    const res = await server.post("/api/collections.add_link", viewer, {
+      body: {
+        id: collection.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#collections.update_link", () => {
+  it("should update a link", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const created = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    const link = (await created.json()).data;
+
+    const res = await server.post("/api/collections.update_link", user, {
+      body: {
+        id: collection.id,
+        linkId: link.id,
+        title: "Status",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Status");
+    expect(body.data.url).toEqual("https://status.example.com");
+  });
+
+  it("should not update a document", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/collections.update_link", user, {
+      body: {
+        id: collection.id,
+        linkId: document.id,
+        url: "https://example.com",
+      },
+    });
+
+    expect(res.status).toEqual(404);
+  });
+});
+
+describe("#collections.remove_link", () => {
+  it("should remove a link", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const created = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    const link = (await created.json()).data;
+
+    const res = await server.post("/api/collections.remove_link", user, {
+      body: {
+        id: collection.id,
+        linkId: link.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    const reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure).toEqual([]);
+  });
+
+  it("should require permission to create documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const viewer = await buildViewer({ teamId: user.teamId });
+    const created = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    const link = (await created.json()).data;
+
+    const res = await server.post("/api/collections.remove_link", viewer, {
+      body: {
+        id: collection.id,
+        linkId: link.id,
+      },
+    });
+
     expect(res.status).toEqual(403);
   });
 });

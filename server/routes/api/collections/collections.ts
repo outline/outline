@@ -10,10 +10,13 @@ import {
   FileOperationFormat,
   ImportState,
   IntegrationService,
+  NavigationNodeType,
+  type NavigationNode,
   UserRole,
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
+import { authorizeDocumentCreate } from "@server/commands/documentCreator";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -28,6 +31,7 @@ import {
   Group,
   Attachment,
   Document,
+  Event,
   Import,
   FileOperation,
 } from "@server/models";
@@ -52,7 +56,7 @@ import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { InvalidRequestError } from "@server/errors";
+import { InvalidRequestError, NotFoundError } from "@server/errors";
 
 const router = new Router();
 
@@ -182,6 +186,91 @@ router.post(
 
     ctx.body = {
       data: documentStructure || [],
+    };
+  }
+);
+
+router.post(
+  "collections.add_link",
+  auth(),
+  validate(T.CollectionsAddLinkSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsAddLinkReq>) => {
+    const { transaction } = ctx.state;
+    const { id, parentDocumentId, title, url } = ctx.input.body;
+
+    const collection = await loadCollectionForLink(ctx, id, parentDocumentId);
+    const node: NavigationNode = {
+      id: randomUUID(),
+      type: NavigationNodeType.Link,
+      title,
+      url,
+      children: [],
+    };
+
+    await collection.addLinkToStructure(node, parentDocumentId ?? undefined, {
+      transaction,
+    });
+    await Event.createFromContext(ctx, {
+      name: "collections.add_link",
+      collectionId: collection.id,
+      modelId: node.id,
+      data: { title, url },
+    });
+
+    ctx.body = {
+      data: node,
+    };
+  }
+);
+
+router.post(
+  "collections.update_link",
+  auth(),
+  validate(T.CollectionsUpdateLinkSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsUpdateLinkReq>) => {
+    const { transaction } = ctx.state;
+    const { id, linkId, title, url } = ctx.input.body;
+
+    const collection = await loadCollectionForExistingLink(ctx, id, linkId);
+    await collection.updateLinkInStructure(
+      linkId,
+      { title, url },
+      { transaction }
+    );
+    await Event.createFromContext(ctx, {
+      name: "collections.update_link",
+      collectionId: collection.id,
+      modelId: linkId,
+      data: { title, url },
+    });
+
+    ctx.body = {
+      data: collection.findLinkInStructure(linkId)?.node,
+    };
+  }
+);
+
+router.post(
+  "collections.remove_link",
+  auth(),
+  validate(T.CollectionsRemoveLinkSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsRemoveLinkReq>) => {
+    const { transaction } = ctx.state;
+    const { id, linkId } = ctx.input.body;
+
+    const collection = await loadCollectionForExistingLink(ctx, id, linkId);
+    await collection.removeLinkFromStructure(linkId, { transaction });
+    await Event.createFromContext(ctx, {
+      name: "collections.remove_link",
+      collectionId: collection.id,
+      modelId: linkId,
+    });
+
+    ctx.body = {
+      success: true,
     };
   }
 );
@@ -970,5 +1059,84 @@ router.post(
     };
   }
 );
+
+/**
+ * Authorizes the user to change links at the given location, with the same
+ * rules as creating a document there, and loads the collection with its
+ * structure locked for update.
+ *
+ * @param ctx the API context.
+ * @param collectionId the id of the collection.
+ * @param parentDocumentId the id of the parent document, if any.
+ * @returns the collection, with its documentStructure.
+ */
+async function loadCollectionForLink(
+  ctx: APIContext,
+  collectionId: string,
+  parentDocumentId: string | null | undefined
+) {
+  const { transaction } = ctx.state;
+  const { collection } = await authorizeDocumentCreate(ctx, {
+    collectionId,
+    parentDocumentId,
+  });
+
+  // With a parent document, the collection is resolved from the parent.
+  if (collection?.id !== collectionId) {
+    throw InvalidRequestError("Parent document is not in the collection");
+  }
+
+  const locked = await Collection.findByPk(collection.id, {
+    includeDocumentStructure: true,
+    rejectOnEmpty: true,
+    transaction,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
+  });
+
+  if (parentDocumentId && !locked.getDocumentTree(parentDocumentId)) {
+    throw InvalidRequestError("Parent document is not in the collection");
+  }
+
+  return locked;
+}
+
+/**
+ * Loads the collection that contains the given link, after authorizing the
+ * user to change links at its location.
+ *
+ * @param ctx the API context.
+ * @param collectionId the id of the collection.
+ * @param linkId the id of the link.
+ * @returns the collection, with its documentStructure.
+ * @throws NotFoundError if the link is not in the collection.
+ */
+async function loadCollectionForExistingLink(
+  ctx: APIContext,
+  collectionId: string,
+  linkId: string
+) {
+  const { user } = ctx.state.auth;
+  const existing = await Collection.findByPk(collectionId, {
+    userId: user.id,
+    includeDocumentStructure: true,
+    transaction: ctx.state.transaction,
+  });
+  authorize(user, "readDocument", existing);
+
+  const link = existing.findLinkInStructure(linkId);
+  if (!link) {
+    throw NotFoundError("Link not found");
+  }
+
+  const collection = await loadCollectionForLink(
+    ctx,
+    existing.id,
+    link.parentDocumentId
+  );
+  if (!collection.findLinkInStructure(linkId)) {
+    throw NotFoundError("Link not found");
+  }
+  return collection;
+}
 
 export default router;

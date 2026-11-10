@@ -73,6 +73,14 @@ export const DeprecationValidation = {
   maxReasonLength: 2000,
 };
 
+export const NavigationLinkValidation = {
+  /** The maximum length of the link title */
+  maxTitleLength: 100,
+
+  /** The maximum length of the link url */
+  maxUrlLength: 2048,
+};
+
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,

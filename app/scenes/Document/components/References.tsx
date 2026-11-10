@@ -17,6 +17,7 @@ import ReferenceListItem, {
 } from "./ReferenceListItem";
 import useShare from "@shared/hooks/useShare";
 import type { NavigationNode } from "@shared/types";
+import { isLinkNode } from "@shared/utils/collections";
 import { flattenTree } from "@shared/utils/tree";
 
 type Props = {
@@ -163,7 +164,7 @@ function useChildren(
   document: Document,
   sharedTree: NavigationNode | undefined
 ): NavigationNode[] {
-  return useMemo(() => {
+  const children = useMemo(() => {
     if (!sharedTree) {
       return document.children;
     }
@@ -185,6 +186,11 @@ function useChildren(
 
     return findChildren(sharedTree) || [];
   }, [document.id, document.children, sharedTree]);
+
+  return useMemo(
+    () => children.filter((node) => !isLinkNode(node)),
+    [children]
+  );
 }
 
 /**

@@ -373,6 +373,87 @@ export default class Collection extends ParanoidModel {
     travelNodes(this.documents);
   }
 
+  /**
+   * Adds a link to an external location to the collection structure.
+   *
+   * @param attributes The title and url of the link.
+   * @param parentDocumentId The id of the document to add the link below, if any.
+   * @returns A promise that resolves to the new link node.
+   */
+  addLink = async (
+    attributes: Pick<NavigationNode, "title" | "url">,
+    parentDocumentId?: string
+  ): Promise<NavigationNode> => {
+    const res = await client.post("/collections.add_link", {
+      id: this.id,
+      parentDocumentId,
+      ...attributes,
+    });
+    invariant(res?.data, "Data should be available");
+
+    runInAction(() => {
+      if (!this.documents) {
+        return;
+      }
+      if (!parentDocumentId) {
+        this.documents = [...this.documents, res.data];
+        return;
+      }
+      this.documents = this.mapNodes(this.documents, (node) =>
+        node.id === parentDocumentId
+          ? { ...node, children: [...node.children, res.data] }
+          : node
+      );
+    });
+
+    return res.data;
+  };
+
+  /**
+   * Updates a link to an external location in the collection structure.
+   *
+   * @param linkId The id of the link.
+   * @param attributes The title and url of the link.
+   * @returns A promise that resolves when the link is updated.
+   */
+  updateLink = async (
+    linkId: string,
+    attributes: Partial<Pick<NavigationNode, "title" | "url">>
+  ): Promise<void> => {
+    const res = await client.post("/collections.update_link", {
+      id: this.id,
+      linkId,
+      ...attributes,
+    });
+    invariant(res?.data, "Data should be available");
+
+    runInAction(() => {
+      if (!this.documents) {
+        return;
+      }
+      this.documents = this.mapNodes(this.documents, (node) =>
+        node.id === linkId ? { ...res.data, children: node.children } : node
+      );
+    });
+  };
+
+  /**
+   * Removes a link to an external location from the collection structure.
+   *
+   * @param linkId The id of the link.
+   * @returns A promise that resolves when the link is removed.
+   */
+  removeLink = async (linkId: string): Promise<void> => {
+    await client.post("/collections.remove_link", {
+      id: this.id,
+      linkId,
+    });
+
+    runInAction(() => {
+      this.removeDocument(linkId);
+    });
+  };
+
   @action
   updateIndex(index: string) {
     this.index = index;
@@ -492,6 +573,31 @@ export default class Collection extends ParanoidModel {
         policies.remove(document.id);
       });
     }
+  }
+
+  /**
+   * Returns a copy of the given tree with each node replaced by the result of
+   * the callback. Children of a replaced node are not visited, and unchanged
+   * nodes keep their reference.
+   *
+   * @param nodes The nodes to map.
+   * @param callback Returns the replacement for a node, or the node itself.
+   * @returns The mapped nodes.
+   */
+  private mapNodes(
+    nodes: NavigationNode[],
+    callback: (node: NavigationNode) => NavigationNode
+  ): NavigationNode[] {
+    return nodes.map((node) => {
+      const result = callback(node);
+      if (result !== node) {
+        return result;
+      }
+      const children = this.mapNodes(node.children ?? [], callback);
+      return children.every((child, index) => child === node.children[index])
+        ? node
+        : { ...node, children };
+    });
   }
 
   private isFetching = false;

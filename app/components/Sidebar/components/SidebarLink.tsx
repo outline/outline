@@ -4,6 +4,7 @@ import styled, { useTheme, css } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
+import { ArrowUpRightIcon } from "~/components/Icons/ArrowIcon";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
@@ -86,6 +87,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren | ActionFactory;
+  /** Whether the link points to an external location, opened in a new tab */
+  external?: boolean;
 };
 
 const activeDropStyle = {
@@ -118,6 +121,7 @@ function SidebarLink({
   disabled,
   unreadBadge,
   contextAction,
+  external,
   ellipsis = true,
   ref,
   ...rest
@@ -192,6 +196,7 @@ function SidebarLink({
       )}
       {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
       <Label $ellipsis={ellipsis}>{label}</Label>
+      {external && <ExternalIcon size={16} aria-hidden />}
       {unreadBadge && <UnreadBadge style={unreadStyle} />}
     </Content>
   );
@@ -226,6 +231,8 @@ function SidebarLink({
         onMouseLeave={handleMouseLeave}
         onDragEnter={handleMouseEnter}
         href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
         className={className}
         ref={ref}
         {...rest}
@@ -269,6 +276,13 @@ export const IconWrapper = styled.span`
   overflow: hidden;
   flex-shrink: 0;
   transition: opacity 200ms ease-in-out;
+`;
+
+const ExternalIcon = styled(ArrowUpRightIcon)`
+  flex-shrink: 0;
+  align-self: center;
+  margin-inline-start: 4px;
+  color: ${s("textTertiary")};
 `;
 
 const Content = styled.span`

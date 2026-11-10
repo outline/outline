@@ -5,7 +5,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import type { NavigationNode } from "@shared/types";
-import { sortNavigationNodes } from "@shared/utils/collections";
+import { isLinkNode, sortNavigationNodes } from "@shared/utils/collections";
 import {
   flattenExpandedTree,
   type FlattenedTreeNode,
@@ -19,6 +19,7 @@ import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
 import { useScrollMargin } from "../hooks/useScrollMargin";
 import DocumentLink from "./DocumentLink";
+import { ExternalLink } from "./ExternalLink";
 import { useDraggedItemId, useSidebarScrollElement } from "./DragActiveContext";
 import { isActiveSidebarContext, useSidebarContext } from "./SidebarContext";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
@@ -212,15 +213,17 @@ export const DocumentTree = observer(function DocumentTree({
 
   const getNavigationItems = React.useCallback(
     () =>
-      rows.map((row) => ({
-        id: row.node.id,
-        url: row.node.url,
-        title: row.node.title,
-        sidebarContext,
-        collapsedChildren: expansion.isExpanded(row.node.id)
-          ? undefined
-          : row.node.children,
-      })),
+      rows
+        .filter((row) => !isLinkNode(row.node))
+        .map((row) => ({
+          id: row.node.id,
+          url: row.node.url,
+          title: row.node.title,
+          sidebarContext,
+          collapsedChildren: expansion.isExpanded(row.node.id)
+            ? undefined
+            : row.node.children,
+        })),
     [rows, expansion, sidebarContext]
   );
   useSidebarNavigation(containerRef, getNavigationItems);
@@ -252,18 +255,27 @@ export const DocumentTree = observer(function DocumentTree({
       <React.Fragment key={item.key}>
         {gap > 0 && <div style={{ height: gap }} />}
         <div data-index={item.index} ref={virtualizer.measureElement}>
-          <DocumentLink
-            node={row.node}
-            collection={collection}
-            membership={membership}
-            prefetchDocument={prefetchDocument}
-            isDraft={row.node.isDraft}
-            depth={row.depth}
-            index={row.index}
-            parentId={row.parentId}
-            hasChildren={row.hasChildren}
-            trailingAncestors={row.trailingAncestors}
-          />
+          {isLinkNode(row.node) ? (
+            <ExternalLink
+              node={row.node}
+              collection={collection}
+              parentId={row.parentId}
+              depth={row.depth}
+            />
+          ) : (
+            <DocumentLink
+              node={row.node}
+              collection={collection}
+              membership={membership}
+              prefetchDocument={prefetchDocument}
+              isDraft={row.node.isDraft}
+              depth={row.depth}
+              index={row.index}
+              parentId={row.parentId}
+              hasChildren={row.hasChildren}
+              trailingAncestors={row.trailingAncestors}
+            />
+          )}
         </div>
       </React.Fragment>
     );
