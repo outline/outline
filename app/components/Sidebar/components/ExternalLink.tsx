@@ -1,13 +1,17 @@
+import type { Location } from "history";
+import { parsePath } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, LinkIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import type { match } from "react-router";
 import styled from "styled-components";
 import { toast } from "sonner";
+import useShare from "@shared/hooks/useShare";
 import type { NavigationNode } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type { FlattenedTreeNode } from "@shared/utils/tree";
-import { sanitizeUrl } from "@shared/utils/urls";
+import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import type Collection from "~/models/Collection";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
@@ -16,10 +20,13 @@ import { DocumentSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
+import { toRelative } from "~/utils/urls";
 import { useDragLink } from "../hooks/useDragAndDrop";
 import { useLinkDialog } from "../hooks/useLinkDialog";
 import Relative from "./Relative";
 import { useReorderDropCursors } from "./ReorderDropCursors";
+import type { SidebarContextType } from "./SidebarContext";
+import { useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
 interface Props {
@@ -40,7 +47,8 @@ interface Props {
 const noAncestors: FlattenedTreeNode[] = [];
 
 /**
- * A sidebar row for a link to an external location, which opens in a new tab.
+ * A sidebar row for a link. A link to a page in this app opens through the
+ * router, any other link opens in a new tab.
  */
 export const ExternalLink = observer(function ExternalLink({
   node,
@@ -51,6 +59,8 @@ export const ExternalLink = observer(function ExternalLink({
   trailingAncestors = noAncestors,
 }: Props) {
   const { t } = useTranslation();
+  const { shareId } = useShare();
+  const sidebarContext = useSidebarContext();
   const linkDialog = useLinkDialog();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const canCollection = usePolicy(collection);
@@ -78,6 +88,22 @@ export const ExternalLink = observer(function ExternalLink({
     isDragging,
     trailingAncestors,
   });
+
+  // In a public share, app pages other than the share are not available.
+  const to = React.useMemo(() => {
+    const path = shareId ? undefined : toInternalPath(node.url);
+    return path
+      ? { ...parsePath(path), state: { title: node.title, sidebarContext } }
+      : undefined;
+  }, [shareId, node.url, node.title, sidebarContext]);
+
+  const isActive = React.useCallback(
+    (
+      routeMatch: match | null,
+      location: Location<{ sidebarContext?: SidebarContextType }>
+    ) => !!routeMatch && location.state?.sidebarContext === sidebarContext,
+    [sidebarContext]
+  );
 
   const handleEdit = React.useCallback(() => {
     if (collection) {
@@ -132,8 +158,10 @@ export const ExternalLink = observer(function ExternalLink({
       {cursorBefore}
       <Draggable ref={dragRef} $isDragging={isDragging}>
         <SidebarLink
-          href={sanitizeUrl(node.url)}
-          external
+          to={to}
+          href={to ? undefined : sanitizeUrl(node.url)}
+          external={!to}
+          isActive={to ? isActive : undefined}
           depth={depth}
           icon={depth === 0 ? <LinkIcon /> : undefined}
           label={node.title}
@@ -146,6 +174,30 @@ export const ExternalLink = observer(function ExternalLink({
     </Relative>
   );
 });
+
+/**
+ * Returns the router path for a url that points to a page in this app.
+ *
+ * @param url The url of the link.
+ * @returns the path, or undefined if the url must open as a normal link.
+ */
+function toInternalPath(url: string): string | undefined {
+  if (!isInternalUrl(url)) {
+    return undefined;
+  }
+
+  try {
+    const path = toRelative(url);
+
+    // The API is not part of the app, and the router cannot decode a
+    // malformed percent-encoding. The result is used so that the minifier
+    // keeps the call.
+    const decoded = decodeURI(path);
+    return decoded && !path.startsWith("/api/") ? path : undefined;
+  } catch (_err) {
+    return undefined;
+  }
+}
 
 const Draggable = styled.div<{ $isDragging: boolean }>`
   transition: opacity 250ms ease;
