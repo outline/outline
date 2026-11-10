@@ -28,7 +28,12 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { ListItem } from "../components/ListItem";
 import ShareSettingsPopover from "../components/ShareSettingsPopover";
-import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
+import {
+  DomainPrefix,
+  ShareLinkInput,
+  ShareNotice,
+  StyledInfoIcon,
+} from "../components";
 
 type Props = {
   /** The collection to share. */
@@ -183,7 +188,7 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
             </Flex>
             <ShareExpiredNotice share={share} onUpdate={handleUpdateExpiry} />
             {!share.isExpired && (
-              <Flex align="flex-start" gap={4}>
+              <ShareNotice>
                 <StyledInfoIcon color={theme.textTertiary} />
                 <Text type="tertiary" size="xsmall">
                   {t(
@@ -191,7 +196,7 @@ function InnerPublicAccess({ collection, share, ref }: Props) {
                   )}
                   .
                 </Text>
-              </Flex>
+              </ShareNotice>
             )}
           </>
         )}
