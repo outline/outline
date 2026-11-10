@@ -214,6 +214,7 @@ allow(User, "restore", Document, (actor, document) =>
     !actor.isGuest,
     !actor.isViewer,
     !!document?.isDeleted,
+    !document?.isDestroyed,
     isTeamModel(actor, document),
     or(
       includesMembership(document, [
@@ -230,6 +231,7 @@ allow(User, "permanentDelete", Document, (actor, document) =>
   and(
     !actor.isGuest,
     !!document?.isDeleted,
+    !document?.isDestroyed,
     isTeamModel(actor, document),
     isTeamAdmin(actor, document),
     or(
