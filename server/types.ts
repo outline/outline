@@ -359,6 +359,7 @@ export type CollectionLinkEvent = BaseEvent<Collection> & {
   name:
     | "collections.add_link"
     | "collections.update_link"
+    | "collections.move_link"
     | "collections.remove_link";
   collectionId: string;
   modelId: string;

@@ -15,7 +15,10 @@ import {
   NavigationNodeType,
   type ProsemirrorData,
 } from "@shared/types";
-import { sortNavigationNodes } from "@shared/utils/collections";
+import {
+  moveNavigationNode,
+  sortNavigationNodes,
+} from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
 import ParanoidModel from "~/models/base/ParanoidModel";
@@ -434,6 +437,43 @@ export default class Collection extends ParanoidModel {
       this.documents = this.mapNodes(this.documents, (node) =>
         node.id === linkId ? { ...res.data, children: node.children } : node
       );
+    });
+  };
+
+  /**
+   * Moves a link to an external location to a new position in the collection
+   * structure.
+   *
+   * @param linkId The id of the link.
+   * @param parentDocumentId The id of the new parent document, or undefined for the root.
+   * @param index The position among the new siblings, defaults to the end.
+   * @returns A promise that resolves when the link is moved.
+   */
+  moveLink = async (
+    linkId: string,
+    parentDocumentId: string | undefined,
+    index?: number
+  ): Promise<void> => {
+    await client.post("/collections.move_link", {
+      id: this.id,
+      linkId,
+      parentDocumentId: parentDocumentId ?? null,
+      index,
+    });
+
+    runInAction(() => {
+      if (!this.documents) {
+        return;
+      }
+      const documents = moveNavigationNode(
+        this.documents,
+        linkId,
+        parentDocumentId,
+        index
+      );
+      if (documents) {
+        this.documents = documents;
+      }
     });
   };
 

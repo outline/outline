@@ -1175,6 +1175,92 @@ describe("#collections.update_link", () => {
   });
 });
 
+describe("#collections.move_link", () => {
+  it("should move a link below a document and back to the root", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const created = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    const link = (await created.json()).data;
+
+    const nested = await server.post("/api/collections.move_link", user, {
+      body: {
+        id: collection.id,
+        linkId: link.id,
+        parentDocumentId: document.id,
+      },
+    });
+    expect(nested.status).toEqual(200);
+
+    let reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure?.map((node) => node.id)).toEqual([
+      document.id,
+    ]);
+    expect(reloaded.getDocumentTree(document.id)?.children).toEqual([link]);
+
+    const root = await server.post("/api/collections.move_link", user, {
+      body: {
+        id: collection.id,
+        linkId: link.id,
+        parentDocumentId: null,
+        index: 0,
+      },
+    });
+    expect(root.status).toEqual(200);
+
+    reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure?.map((node) => node.id)).toEqual([
+      link.id,
+      document.id,
+    ]);
+  });
+
+  it("should not move a link below another link", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const [first, second] = await Promise.all(
+      ["https://a.example.com", "https://b.example.com"].map(async (url) => {
+        const res = await server.post("/api/collections.add_link", user, {
+          body: { id: collection.id, title: url, url },
+        });
+        return (await res.json()).data;
+      })
+    );
+
+    const res = await server.post("/api/collections.move_link", user, {
+      body: {
+        id: collection.id,
+        linkId: first.id,
+        parentDocumentId: second.id,
+      },
+    });
+
+    expect(res.status).not.toEqual(200);
+  });
+});
+
 describe("#collections.remove_link", () => {
   it("should remove a link", async () => {
     const user = await buildUser();

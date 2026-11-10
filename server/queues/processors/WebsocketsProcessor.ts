@@ -461,6 +461,7 @@ export default class WebsocketsProcessor {
 
       case "collections.add_link":
       case "collections.update_link":
+      case "collections.move_link":
       case "collections.remove_link": {
         const collection = await Collection.findOne({
           where: { id: event.collectionId },

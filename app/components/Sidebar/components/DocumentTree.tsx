@@ -261,6 +261,8 @@ export const DocumentTree = observer(function DocumentTree({
               collection={collection}
               parentId={row.parentId}
               depth={row.depth}
+              index={row.index}
+              trailingAncestors={row.trailingAncestors}
             />
           ) : (
             <DocumentLink

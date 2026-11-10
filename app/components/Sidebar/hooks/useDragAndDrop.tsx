@@ -25,7 +25,12 @@ import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 export type DragObject = NavigationNode & {
   depth: number;
   collectionId: string;
+  /** Id of the parent document, set for dragged links. */
+  parentId?: string;
 };
+
+/** Drag type of a link to an external location in a collection. */
+const LinkDragType = "link";
 
 /**
  * Returns functions to start and cancel a timer that calls the callback once
@@ -242,6 +247,57 @@ export function useDragDocument(
 }
 
 /**
+ * Hook for shared logic that allows dragging links to external locations.
+ *
+ * @param node The link node to drag.
+ * @param depth The depth of the node in the sidebar.
+ * @param collection The collection that contains the link.
+ * @param parentId The id of the parent document, if any.
+ * @param canDrag Whether the user can move the link.
+ */
+export function useDragLink(
+  node: NavigationNode,
+  depth: number,
+  collection: Collection | undefined,
+  parentId: string | undefined,
+  canDrag: boolean
+) {
+  const [isDragging, dragRef] = useDragRef<DragObject>({
+    type: LinkDragType,
+    item: () => ({
+      ...node,
+      depth,
+      parentId,
+      collectionId: collection?.id ?? "",
+    }),
+    canDrag: () => canDrag && !!collection,
+  });
+
+  return [{ isDragging }, dragRef] as const;
+}
+
+/**
+ * Moves a dragged link within its collection, showing an error on failure.
+ *
+ * @param collection The collection that contains the link.
+ * @param item The dragged link.
+ * @param parentDocumentId The id of the new parent document, or undefined for the root.
+ * @param index The position among the new siblings, defaults to the end.
+ */
+async function moveLink(
+  collection: Collection,
+  item: DragObject,
+  parentDocumentId: string | undefined,
+  index?: number
+) {
+  try {
+    await collection.moveLink(item.id, parentDocumentId, index);
+  } catch (err) {
+    toast.error(errToString(err));
+  }
+}
+
+/**
  * Hook for shared logic that allows dropping documents on a collection to move
  * them to the top of it.
  *
@@ -258,9 +314,15 @@ export function useDropToChangeCollection(
   const [startHover, cancelHover] = useHoverTimer(expandNode);
 
   const result = useDropRef<DragObject, { isOver: boolean; canDrop: boolean }>({
-    accept: "document",
+    accept: ["document", LinkDragType],
     drop: async (item, monitor) => {
       if (monitor.didDrop()) {
+        return;
+      }
+
+      if (monitor.getItemType() === LinkDragType) {
+        await moveLink(collection, item, undefined, 0);
+        expandNode();
         return;
       }
 
@@ -304,7 +366,10 @@ export function useDropToChangeCollection(
         }
       }
     },
-    canDrop: (item) => can.createDocument && !!policies.abilities(item.id).move,
+    canDrop: (item, monitor) =>
+      monitor.getItemType() === LinkDragType
+        ? item.collectionId === collection.id && collection.isManualSort
+        : can.createDocument && !!policies.abilities(item.id).move,
     hover: (_, monitor) => {
       if (
         collection.hasDocuments &&
@@ -350,7 +415,7 @@ export function useDropToReparentDocument(
   const [startHover, cancelHover] = useHoverTimer(setExpanded);
 
   const result = useDropRef<DragObject, { isOverReparent: boolean }>({
-    accept: "document",
+    accept: ["document", LinkDragType],
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
         return;
@@ -361,6 +426,14 @@ export function useDropToReparentDocument(
       const targetCollection =
         collection ??
         (collectionId ? collections.get(collectionId) : undefined);
+
+      if (monitor.getItemType() === LinkDragType) {
+        if (targetCollection) {
+          await moveLink(targetCollection, item, node.id);
+          setExpanded();
+        }
+        return;
+      }
       const prevCollection = collections.get(item.collectionId);
 
       if (
@@ -402,8 +475,18 @@ export function useDropToReparentDocument(
         }
       }
     },
-    canDrop: (item) => {
-      if (!node || item.id === node.id || !policies.abilities(item.id).move) {
+    canDrop: (item, monitor) => {
+      if (!node || item.id === node.id) {
+        return false;
+      }
+
+      if (monitor.getItemType() === LinkDragType) {
+        const collectionId =
+          collection?.id ?? node.collectionId ?? document?.collectionId;
+        return item.collectionId === collectionId && !!document?.isActive;
+      }
+
+      if (!policies.abilities(item.id).move) {
         return false;
       }
 
@@ -472,8 +555,19 @@ export function useDropToReorderDocument(
   const document = documents.get(node.id);
 
   return useDropRef<DragObject, { isOverReorder: boolean }>({
-    accept: "document",
-    canDrop: (item: DragObject) => {
+    accept: ["document", LinkDragType],
+    canDrop: (item: DragObject, monitor) => {
+      if (monitor.getItemType() === LinkDragType) {
+        const params = getMoveParams(item);
+        if (!params || item.collectionId !== collection?.id) {
+          return false;
+        }
+        return (
+          item.id !== node.id ||
+          (params.parentDocumentId ?? null) !== (item.parentId ?? null)
+        );
+      }
+
       if (
         (document && !document.isActive) ||
         !policies.abilities(item.id).move
@@ -493,7 +587,7 @@ export function useDropToReorderDocument(
           (document?.parentDocumentId ?? null)
       );
     },
-    drop: async (item) => {
+    drop: async (item, monitor) => {
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
         toast.message(
           t(
@@ -504,6 +598,18 @@ export function useDropToReorderDocument(
       }
 
       const params = getMoveParams(item);
+
+      if (monitor.getItemType() === LinkDragType) {
+        if (collection && params) {
+          await moveLink(
+            collection,
+            item,
+            params.parentDocumentId,
+            params.index
+          );
+        }
+        return;
+      }
 
       if (params) {
         const prevCollection = collections.get(item.collectionId);

@@ -52,7 +52,11 @@ import type {
 } from "@shared/types";
 import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { isLinkNode, sortNavigationNodes } from "@shared/utils/collections";
+import {
+  isLinkNode,
+  moveNavigationNode,
+  sortNavigationNodes,
+} from "@shared/utils/collections";
 import slugify from "@server/utils/slugify";
 import {
   CollectionValidation,
@@ -1347,6 +1351,37 @@ class Collection extends ParanoidModel<
       );
 
     this.documentStructure = update(this.documentStructure ?? []);
+    this.changed("documentStructure", true);
+    return this.save({ ...options, fields: ["documentStructure"] });
+  };
+
+  /**
+   * Moves a link node to a new position in the documentStructure.
+   *
+   * @param linkId the id of the link node.
+   * @param parentDocumentId the id of the new parent document, or undefined for the root.
+   * @param index the position among the new siblings, defaults to the end.
+   * @param options options passed to save.
+   * @returns the updated collection.
+   * @throws ValidationError if the link or parent is not found.
+   */
+  moveLinkInStructure = async (
+    linkId: string,
+    parentDocumentId: string | undefined,
+    index: number | undefined,
+    options?: { transaction?: Transaction | null }
+  ) => {
+    const structure = moveNavigationNode(
+      this.documentStructure ?? [],
+      linkId,
+      parentDocumentId,
+      index
+    );
+    if (!structure) {
+      throw ValidationError("Link or parent document not found");
+    }
+
+    this.documentStructure = structure;
     this.changed("documentStructure", true);
     return this.save({ ...options, fields: ["documentStructure"] });
   };

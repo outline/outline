@@ -253,6 +253,38 @@ router.post(
 );
 
 router.post(
+  "collections.move_link",
+  auth(),
+  validate(T.CollectionsMoveLinkSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsMoveLinkReq>) => {
+    const { transaction } = ctx.state;
+    const { id, linkId, parentDocumentId, index } = ctx.input.body;
+
+    // The user must be able to change links at both the old and new location.
+    await loadCollectionForExistingLink(ctx, id, linkId);
+    const collection = await loadCollectionForLink(ctx, id, parentDocumentId);
+
+    await collection.moveLinkInStructure(
+      linkId,
+      parentDocumentId ?? undefined,
+      index,
+      { transaction }
+    );
+    await Event.createFromContext(ctx, {
+      name: "collections.move_link",
+      collectionId: collection.id,
+      modelId: linkId,
+      data: { parentDocumentId, index },
+    });
+
+    ctx.body = {
+      data: collection.findLinkInStructure(linkId)?.node,
+    };
+  }
+);
+
+router.post(
   "collections.remove_link",
   auth(),
   validate(T.CollectionsRemoveLinkSchema),

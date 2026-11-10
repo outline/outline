@@ -364,6 +364,19 @@ export type CollectionsUpdateLinkReq = z.infer<
   typeof CollectionsUpdateLinkSchema
 >;
 
+export const CollectionsMoveLinkSchema = BaseSchema.extend({
+  body: LinkCollectionIdSchema.extend({
+    /** Id of the link to move. */
+    linkId: z.uuid(),
+    /** Id of the new parent document, or null for the root of the collection. */
+    parentDocumentId: z.uuid().nullish(),
+    /** Position among the new siblings, defaults to the end. */
+    index: z.number().int().gte(0).optional(),
+  }),
+});
+
+export type CollectionsMoveLinkReq = z.infer<typeof CollectionsMoveLinkSchema>;
+
 export const CollectionsRemoveLinkSchema = BaseSchema.extend({
   body: LinkCollectionIdSchema.extend({
     /** Id of the link to remove. */
