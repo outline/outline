@@ -98,6 +98,35 @@ const DocumentMemberListItem = ({
   }
   const MaybeLink = membership?.source ? StyledLink : Fragment;
 
+  const leave: Permission[] = canRemove
+    ? [{ label: `${t("Leave")}…`, value: EmptySelectValue }]
+    : [];
+
+  // Owners stop being an owner before they can leave, which keeps the manage
+  // permission.
+  const ownPermissions: Permission[] = isOwner
+    ? [
+        currentPermission,
+        ...(onUpdate
+          ? [
+              {
+                divider: true,
+                label: t("Remove as owner"),
+                value: DocumentPermission.Admin,
+              },
+            ]
+          : leave),
+      ]
+    : [
+        currentPermission,
+        ...(onUpdate && canBeOwner
+          ? ([
+              { label: t("Owner"), value: OwnerSelectValue },
+            ] satisfies Permission[])
+          : []),
+        ...leave,
+      ];
+
   return (
     <ListItem
       title={user.name}
@@ -125,21 +154,7 @@ const DocumentMemberListItem = ({
       actions={
         <div style={{ marginRight: -8 }}>
           <InputMemberPermissionSelect
-            permissions={
-              onLeave
-                ? [
-                    currentPermission,
-                    ...(canRemove
-                      ? ([
-                          {
-                            label: `${t("Leave")}…`,
-                            value: EmptySelectValue,
-                          },
-                        ] satisfies Permission[])
-                      : []),
-                  ]
-                : permissions
-            }
+            permissions={onLeave ? ownPermissions : permissions}
             value={value}
             onChange={handleChange}
             disabled={!onUpdate && !onLeave}

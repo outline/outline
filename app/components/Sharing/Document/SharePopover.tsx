@@ -15,6 +15,7 @@ import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import usePrevious from "~/hooks/usePrevious";
@@ -61,6 +62,7 @@ function SharePopover({
     document,
   });
   const loading = externalLoading ?? internalLoading;
+  const user = useCurrentUser();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
@@ -80,10 +82,19 @@ function SharePopover({
         !pendingUser.isSuspended
       );
     });
+
+  // Users can add themselves to a document only as an owner.
+  const canAddSelf =
+    !!can.manageOwners &&
+    (user.isAdmin || user.isMember) &&
+    !document.ownerIds.includes(user.id);
+  const isSelfPending = pendingIds.includes(user.id);
   const invitePermission =
-    permission === OwnerSelectValue && !canInviteOwners
-      ? DocumentPermission.Admin
-      : permission;
+    isSelfPending && canInviteOwners
+      ? OwnerSelectValue
+      : permission === OwnerSelectValue && !canInviteOwners
+        ? DocumentPermission.Admin
+        : permission;
   const isOwnerInvite = invitePermission === OwnerSelectValue;
   const membershipPermission =
     invitePermission === OwnerSelectValue
@@ -336,18 +347,22 @@ function SharePopover({
   const permissions = React.useMemo(
     () =>
       [
-        {
-          label: t("View only"),
-          value: DocumentPermission.Read,
-        },
-        {
-          label: t("Can edit"),
-          value: DocumentPermission.ReadWrite,
-        },
-        {
-          label: t("Manage"),
-          value: DocumentPermission.Admin,
-        },
+        ...(isSelfPending
+          ? []
+          : [
+              {
+                label: t("View only"),
+                value: DocumentPermission.Read,
+              },
+              {
+                label: t("Can edit"),
+                value: DocumentPermission.ReadWrite,
+              },
+              {
+                label: t("Manage"),
+                value: DocumentPermission.Admin,
+              },
+            ]),
         ...(canInviteOwners
           ? [
               {
@@ -357,7 +372,7 @@ function SharePopover({
             ]
           : []),
       ] as Permission[],
-    [t, canInviteOwners]
+    [t, canInviteOwners, isSelfPending]
   );
 
   if (!hasRendered) {
@@ -421,6 +436,7 @@ function SharePopover({
         <Suggestions
           ref={suggestionsRef}
           document={document}
+          includeSelf={canAddSelf}
           query={query}
           pendingIds={pendingIds}
           addPendingId={handleAddPendingId}

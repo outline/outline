@@ -194,10 +194,11 @@ export default async function documentUpdater(
 
   if (document.ownerIds !== previousOwnerIds) {
     await createDocumentOwnerEvents(ctx, document, previousOwnerIds);
+    // The acting user can already manage the document.
     await grantDocumentOwnerAccess(
       ctx,
       document,
-      difference(document.ownerIds, previousOwnerIds)
+      difference(document.ownerIds, [...previousOwnerIds, user.id])
     );
   }
 

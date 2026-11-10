@@ -34,6 +34,8 @@ type Props = {
   document?: Document;
   /** The collection being shared. */
   collection?: Collection;
+  /** Whether to suggest the current user when sharing a document. */
+  includeSelf?: boolean;
   /** The search query to filter users by. */
   query: string;
   /** A list of pending user ids that have not yet been invited. */
@@ -51,6 +53,7 @@ type Props = {
 export const Suggestions = observer(function Suggestions({
   document,
   collection,
+  includeSelf,
   query,
   pendingIds,
   addPendingId,
@@ -97,7 +100,7 @@ export const Suggestions = observer(function Suggestions({
       document
         ? users
             .notInDocument(document.id, query)
-            .filter((u) => u.id !== user.id)
+            .filter((u) => includeSelf || u.id !== user.id)
         : collection
           ? users.notInCollection(collection.id, query)
           : users.activeOrInvited
@@ -128,6 +131,7 @@ export const Suggestions = observer(function Suggestions({
     document?.members,
     collection?.id,
     user.id,
+    includeSelf,
     query,
     t,
   ]);

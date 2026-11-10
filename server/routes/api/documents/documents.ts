@@ -1924,7 +1924,9 @@ router.post(
     const { user: actor } = ctx.state.auth;
     const { id, userId, permission, owner } = ctx.input.body;
 
-    if (userId === actor.id) {
+    // Users can only change their own ownership, not their own access.
+    const isSelf = userId === actor.id;
+    if (isSelf && owner === undefined) {
       throw ValidationError("You cannot invite yourself");
     }
 
@@ -1944,6 +1946,25 @@ router.post(
     authorize(actor, "read", user);
 
     const previousOwnerIds = document.ownerIds ?? [];
+
+    if (isSelf && !owner) {
+      await removeDocumentOwner(ctx, document, userId);
+      const selfMembership = await UserMembership.findOne({
+        where: { documentId: id, userId },
+        transaction,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: selfMembership
+            ? [presentMembership(selfMembership)]
+            : [],
+          documents: [await presentDocument(ctx, document)],
+        },
+      };
+      return;
+    }
 
     if (owner) {
       // Lock the document so that concurrent invitations do not overwrite the

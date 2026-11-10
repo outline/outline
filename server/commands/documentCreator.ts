@@ -310,7 +310,13 @@ export default async function documentCreator(
     );
     reloaded.ownerIds = validatedOwnerIds;
     await createDocumentOwnerEvents(ctx, reloaded, []);
-    await grantDocumentOwnerAccess(ctx, reloaded, validatedOwnerIds);
+
+    // The acting user can already manage the document.
+    await grantDocumentOwnerAccess(
+      ctx,
+      reloaded,
+      validatedOwnerIds.filter((id) => id !== user.id)
+    );
   }
 
   return reloaded;

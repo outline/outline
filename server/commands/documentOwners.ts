@@ -68,7 +68,6 @@ export async function createDocumentOwnerEvents(
 
 /**
  * Gives users the manage permission on a document when they are made owners.
- * The acting user is skipped, as they can already manage the document.
  *
  * @param ctx the API context containing the acting user.
  * @param document the document that the users own.
@@ -84,10 +83,6 @@ export async function grantDocumentOwnerAccess(
   const { transaction } = ctx.state;
 
   for (const userId of userIds) {
-    if (userId === user.id) {
-      continue;
-    }
-
     const membership = await UserMembership.findOneForUpdate(
       { userId, documentId: document.id },
       { transaction }

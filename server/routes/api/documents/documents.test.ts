@@ -10004,6 +10004,76 @@ describe("document owners", () => {
     expect(document.ownerIds).toEqual([owner.id]);
   });
 
+  it("should allow a user to make themselves an owner", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({ teamId: admin.teamId });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: { id: document.id, userId: admin.id, owner: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships[0].permission).toEqual(
+      DocumentPermission.Admin
+    );
+    expect(body.data.documents[0].ownerIds).toEqual([admin.id]);
+  });
+
+  it("should allow an owner to stop being an owner and keep their access", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      ownerIds: [admin.id],
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: admin.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Admin,
+    });
+
+    const res = await server.post("/api/documents.add_user", admin, {
+      body: {
+        id: document.id,
+        userId: admin.id,
+        permission: DocumentPermission.Admin,
+        owner: false,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].ownerIds).toEqual([]);
+    expect(body.data.memberships[0].permission).toEqual(
+      DocumentPermission.Admin
+    );
+  });
+
+  it("should not allow a user to change their own access", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({ teamId: user.teamId });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+
+    const res = await server.post("/api/documents.add_user", user, {
+      body: {
+        id: document.id,
+        userId: user.id,
+        permission: DocumentPermission.Admin,
+        owner: false,
+      },
+    });
+    expect(res.status).toEqual(200);
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(DocumentPermission.ReadWrite);
+  });
+
   it("should add owners from concurrent invitations", async () => {
     const admin = await buildAdmin();
     const first = await buildUser({ teamId: admin.teamId });
