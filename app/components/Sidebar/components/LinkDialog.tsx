@@ -89,7 +89,6 @@ export function LinkDialog({ defaultValues, onSubmit }: Props) {
         <Input
           type="text"
           label={t("Title")}
-          placeholder={hostname}
           onChange={handleTitleChange}
           value={title}
           maxLength={NavigationLinkValidation.maxTitleLength}
