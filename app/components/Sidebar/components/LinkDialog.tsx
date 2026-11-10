@@ -7,6 +7,7 @@ import { NavigationLinkValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
+import useStores from "~/hooks/useStores";
 
 /** The values that can be edited in the link dialog. */
 export interface LinkDialogValues {
@@ -28,9 +29,12 @@ interface Props {
  */
 export function LinkDialog({ defaultValues, onSubmit }: Props) {
   const { t } = useTranslation();
+  const { unfurls } = useStores();
   const [url, setUrl] = React.useState(defaultValues?.url ?? "");
   const [title, setTitle] = React.useState(defaultValues?.title ?? "");
   const [isSaving, setIsSaving] = React.useState(false);
+  const latestUrl = React.useRef(url);
+  const isTitleEdited = React.useRef(!!defaultValues?.title);
 
   const normalizedUrl = sanitizeUrl(url) ?? "";
   const isValidUrl = isUrl(normalizedUrl);
@@ -38,13 +42,38 @@ export function LinkDialog({ defaultValues, onSubmit }: Props) {
 
   const handleUrlChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
+      latestUrl.current = ev.target.value;
       setUrl(ev.target.value);
     },
     []
   );
 
+  // Fill in the title from the page, unless the user has entered one.
+  const handleUrlBlur = React.useCallback(async () => {
+    if (!hostname || isTitleEdited.current) {
+      return;
+    }
+
+    const requestedUrl = latestUrl.current;
+    const unfurl = await unfurls.fetchUnfurl({ url: normalizedUrl });
+    if (
+      !unfurl ||
+      !("title" in unfurl.data) ||
+      typeof unfurl.data.title !== "string" ||
+      isTitleEdited.current ||
+      latestUrl.current !== requestedUrl
+    ) {
+      return;
+    }
+
+    setTitle(
+      unfurl.data.title.trim().slice(0, NavigationLinkValidation.maxTitleLength)
+    );
+  }, [unfurls, normalizedUrl, hostname]);
+
   const handleTitleChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
+      isTitleEdited.current = !!ev.target.value;
       setTitle(ev.target.value);
     },
     []
@@ -80,6 +109,7 @@ export function LinkDialog({ defaultValues, onSubmit }: Props) {
           label={t("URL")}
           placeholder="https://"
           onChange={handleUrlChange}
+          onBlur={handleUrlBlur}
           value={url}
           maxLength={NavigationLinkValidation.maxUrlLength}
           required
