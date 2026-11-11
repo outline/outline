@@ -2090,7 +2090,6 @@ export const rootDocumentActions = [
   createNewDocument,
   createNewDocumentInAlphabeticalCollection,
   createNestedDocument,
-  addNestedLink,
   createTemplateFromDocument,
   deleteDocument,
   importDocument,

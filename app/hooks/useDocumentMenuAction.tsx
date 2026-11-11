@@ -55,6 +55,8 @@ type Props = {
   onRename?: () => void;
   /** Callback when a template is selected to apply its content to the document */
   onSelectTemplate?: (template: Template) => void;
+  /** Whether to include the actions that add links around the document, used in the sidebar */
+  showLinkActions?: boolean;
 };
 
 export function useDocumentMenuAction({
@@ -63,6 +65,7 @@ export function useDocumentMenuAction({
   onFindAndReplace,
   onRename,
   onSelectTemplate,
+  showLinkActions = false,
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -78,8 +81,7 @@ export function useDocumentMenuAction({
         // Actions that add to the tree around the document, not change it.
         createNewDocument,
         createNewDocumentInAlphabeticalCollection,
-        addLink,
-        addLinkInAlphabeticalCollection,
+        ...(showLinkActions ? [addLink, addLinkInAlphabeticalCollection] : []),
         importDocument,
         ActionSeparator,
         restoreDocument,
@@ -131,6 +133,7 @@ export function useDocumentMenuAction({
       t,
       isMobile,
       isViewing,
+      showLinkActions,
       templateMenuActions,
       documentId,
       onFindAndReplace,

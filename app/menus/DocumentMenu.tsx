@@ -47,6 +47,8 @@ type Props = {
   onOpen?: () => void;
   /** Invoked when menu is closed */
   onClose?: () => void;
+  /** Whether to include the actions that add links around the document, used in the sidebar */
+  showLinkActions?: boolean;
 };
 
 function DocumentMenu({
@@ -60,6 +62,7 @@ function DocumentMenu({
   onOpen,
   onClose,
   onFindAndReplace,
+  showLinkActions,
 }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -130,6 +133,7 @@ function DocumentMenu({
   const rootAction = useDocumentMenuAction({
     documentId: document.id,
     isViewing: showDisplayOptions,
+    showLinkActions,
     onFindAndReplace,
     onRename,
     onSelectTemplate,
