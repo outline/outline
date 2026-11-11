@@ -13,6 +13,8 @@ import {
   shareDocument,
   createNewDocument,
   createNewDocumentInAlphabeticalCollection,
+  addLink,
+  addLinkInAlphabeticalCollection,
   importDocument,
   createTemplateFromDocument,
   duplicateDocument,
@@ -73,6 +75,13 @@ export function useDocumentMenuAction({
   return useCallback(
     () =>
       createRootMenuAction([
+        // Actions that add to the tree around the document, not change it.
+        createNewDocument,
+        createNewDocumentInAlphabeticalCollection,
+        addLink,
+        addLinkInAlphabeticalCollection,
+        importDocument,
+        ActionSeparator,
         restoreDocument,
         restoreDocumentToCollection,
         starDocument,
@@ -101,9 +110,6 @@ export function useDocumentMenuAction({
         archiveDocument,
         moveDocument,
         applyTemplateActionFactory({ actions: templateMenuActions }),
-        importDocument,
-        createNewDocument,
-        createNewDocumentInAlphabeticalCollection,
         pinDocument,
         ActionSeparator,
         openDocumentComments,

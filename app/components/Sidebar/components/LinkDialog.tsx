@@ -1,6 +1,8 @@
+import type { TFunction } from "i18next";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import type { NavigationNode } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import { isUrl, sanitizeUrl } from "@shared/utils/urls";
 import { NavigationLinkValidation } from "@shared/validations";
@@ -8,6 +10,9 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import useStores from "~/hooks/useStores";
+import type Collection from "~/models/Collection";
+import type RootStore from "~/stores/RootStore";
+import { toCanonicalUrl } from "./internalLinks";
 
 /** The values that can be edited in the link dialog. */
 export interface LinkDialogValues {
@@ -15,6 +20,34 @@ export interface LinkDialogValues {
   title: string;
   /** External url that the link points to. */
   url: string;
+}
+
+/** Options to open the dialog that adds a link. */
+export interface AddLinkDialogOptions {
+  /** The root store. */
+  stores: RootStore;
+  /** The translation function. */
+  t: TFunction;
+  /** The collection to add the link to. */
+  collection: Collection;
+  /** The id of the document to add the link below, if any. */
+  parentDocumentId?: string;
+  /** The position among the siblings, defaults to the end. */
+  index?: number;
+  /** Called after the link is added. */
+  onCreated?: () => void;
+}
+
+/** Options to open the dialog that edits a link. */
+export interface EditLinkDialogOptions {
+  /** The root store. */
+  stores: RootStore;
+  /** The translation function. */
+  t: TFunction;
+  /** The collection that contains the link. */
+  collection: Collection;
+  /** The link to edit. */
+  node: NavigationNode;
 }
 
 interface Props {
@@ -132,4 +165,63 @@ export function LinkDialog({ defaultValues, onSubmit }: Props) {
       </Flex>
     </form>
   );
+}
+
+/**
+ * Opens a dialog that adds a sidebar link at the given position.
+ *
+ * @param options The collection and position of the new link.
+ */
+export function openAddLinkDialog({
+  stores,
+  t,
+  collection,
+  parentDocumentId,
+  index,
+  onCreated,
+}: AddLinkDialogOptions) {
+  const handleSubmit = async (values: LinkDialogValues) => {
+    await collection.addLink(
+      { ...values, url: await toCanonicalUrl(values.url, stores) },
+      parentDocumentId,
+      index
+    );
+    onCreated?.();
+    stores.dialogs.closeAllModals();
+  };
+
+  stores.dialogs.openModal({
+    title: t("Add link"),
+    content: <LinkDialog onSubmit={handleSubmit} />,
+  });
+}
+
+/**
+ * Opens a dialog that edits the title and url of a sidebar link.
+ *
+ * @param options The link to edit.
+ */
+export function openEditLinkDialog({
+  stores,
+  t,
+  collection,
+  node,
+}: EditLinkDialogOptions) {
+  const handleSubmit = async (values: LinkDialogValues) => {
+    await collection.updateLink(node.id, {
+      ...values,
+      url: await toCanonicalUrl(values.url, stores),
+    });
+    stores.dialogs.closeAllModals();
+  };
+
+  stores.dialogs.openModal({
+    title: t("Edit link"),
+    content: (
+      <LinkDialog
+        defaultValues={{ title: node.title, url: node.url }}
+        onSubmit={handleSubmit}
+      />
+    ),
+  });
 }

@@ -344,6 +344,8 @@ export const CollectionsAddLinkSchema = BaseSchema.extend({
     title: LinkTitleSchema,
     /** External url that the link points to. */
     url: LinkUrlSchema,
+    /** Position among the siblings, defaults to the end. */
+    index: z.number().int().gte(0).optional(),
   }),
 });
 

@@ -39,6 +39,10 @@ import {
   ExportIcon,
   CodeIcon,
   PDFIcon,
+  IndentIcon,
+  InsertAboveIcon,
+  InsertBelowIcon,
+  LinkIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import { showPublicLinkCopiedToast } from "~/components/Sharing/components/toasts";
@@ -53,7 +57,9 @@ import {
 import { isMobile } from "@shared/utils/browser";
 import { isLinkNode } from "@shared/utils/collections";
 import { Week } from "@shared/utils/time";
+import type Collection from "~/models/Collection";
 import type UserMembership from "~/models/UserMembership";
+import { openAddLinkDialog } from "~/components/Sidebar/components/LinkDialog";
 import Document from "~/models/Document";
 import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -303,9 +309,10 @@ function canCreateSiblingDocument(
 }
 
 export const createNestedDocument = createInternalLinkAction({
-  name: ({ t }) => t("Nested document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Inside") : t("New nested document")),
   analyticsName: "New document",
   section: ActiveDocumentSection,
+  icon: <IndentIcon />,
   keywords: "create nested",
   visible: ({ currentTeamId, activeDocumentId, stores }) =>
     !!currentTeamId &&
@@ -325,9 +332,10 @@ export const createNestedDocument = createInternalLinkAction({
 });
 
 const createDocumentBefore = createInternalLinkAction({
-  name: ({ t }) => t("Before"),
+  name: ({ t, isMenu }) => (isMenu ? t("Above") : t("New document above")),
   analyticsName: "New document before",
   section: ActiveDocumentSection,
+  icon: <InsertAboveIcon />,
   keywords: "create before",
   visible: ({ currentTeamId, activeDocumentId, stores }) => {
     if (!currentTeamId || !activeDocumentId) {
@@ -367,9 +375,10 @@ const createDocumentBefore = createInternalLinkAction({
 });
 
 const createDocumentAfter = createInternalLinkAction({
-  name: ({ t }) => t("After"),
+  name: ({ t, isMenu }) => (isMenu ? t("Below") : t("New document below")),
   analyticsName: "New document after",
   section: ActiveDocumentSection,
+  icon: <InsertBelowIcon />,
   keywords: "create after",
   visible: ({ currentTeamId, activeDocumentId, stores }) => {
     if (!currentTeamId || !activeDocumentId) {
@@ -498,6 +507,159 @@ export const starDocument = createAction({
           : undefined
     );
     setPersistedState(getHeaderExpandedKey("starred"), true);
+  },
+});
+
+/**
+ * Returns the active document and its collection when a link can be added
+ * next to or inside it. Links live in the collection structure, so the
+ * document must be published in a collection whose structure is loaded.
+ *
+ * @param stores - the root stores.
+ * @param activeDocumentId - the id of the active document.
+ * @returns the document and collection, or undefined.
+ */
+function getLinkLocation(
+  stores: ActionContext["stores"],
+  activeDocumentId: string | undefined
+): { document: Document; collection: Collection } | undefined {
+  const document = activeDocumentId
+    ? stores.documents.get(activeDocumentId)
+    : undefined;
+  if (!document?.collectionId || document.isDraft || document.isDeleted) {
+    return undefined;
+  }
+  const collection = stores.collections.get(document.collectionId);
+  return collection?.documents ? { document, collection } : undefined;
+}
+
+const canAddLinkBeside = (
+  stores: ActionContext["stores"],
+  activeDocumentId: string | undefined
+) => {
+  const location = getLinkLocation(stores, activeDocumentId);
+  return (
+    !!location &&
+    location.collection.isManualSort &&
+    canCreateSiblingDocument(stores, location.document)
+  );
+};
+
+const canAddLinkInside = (
+  stores: ActionContext["stores"],
+  activeDocumentId: string | undefined
+) =>
+  !!getLinkLocation(stores, activeDocumentId) &&
+  !!activeDocumentId &&
+  stores.policies.abilities(activeDocumentId).createChildDocument;
+
+const addLinkAbove = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Above")}…` : `${t("Add link above")}…`,
+  analyticsName: "Add link above",
+  section: ActiveDocumentSection,
+  icon: <InsertAboveIcon />,
+  keywords: "url bookmark",
+  visible: ({ activeDocumentId, stores }) =>
+    canAddLinkBeside(stores, activeDocumentId),
+  perform: ({ activeDocumentId, stores, t }) => {
+    const location = getLinkLocation(stores, activeDocumentId);
+    if (!location) {
+      return;
+    }
+    openAddLinkDialog({
+      stores,
+      t,
+      collection: location.collection,
+      parentDocumentId: location.document.parentDocumentId ?? undefined,
+      index: Math.max(0, findDocumentSiblingIndex(stores, location.document)),
+    });
+  },
+});
+
+const addLinkBelow = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Below")}…` : `${t("Add link below")}…`,
+  analyticsName: "Add link below",
+  section: ActiveDocumentSection,
+  icon: <InsertBelowIcon />,
+  keywords: "url bookmark",
+  visible: ({ activeDocumentId, stores }) =>
+    canAddLinkBeside(stores, activeDocumentId),
+  perform: ({ activeDocumentId, stores, t }) => {
+    const location = getLinkLocation(stores, activeDocumentId);
+    if (!location) {
+      return;
+    }
+    openAddLinkDialog({
+      stores,
+      t,
+      collection: location.collection,
+      parentDocumentId: location.document.parentDocumentId ?? undefined,
+      index: findDocumentSiblingIndex(stores, location.document) + 1,
+    });
+  },
+});
+
+const addNestedLink = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Inside")}…` : `${t("Add nested link")}…`,
+  analyticsName: "Add nested link",
+  section: ActiveDocumentSection,
+  icon: <IndentIcon />,
+  keywords: "url bookmark",
+  visible: ({ activeDocumentId, stores }) =>
+    canAddLinkInside(stores, activeDocumentId),
+  perform: ({ activeDocumentId, stores, t }) => {
+    const location = getLinkLocation(stores, activeDocumentId);
+    if (!location) {
+      return;
+    }
+    openAddLinkDialog({
+      stores,
+      t,
+      collection: location.collection,
+      parentDocumentId: location.document.id,
+    });
+  },
+});
+
+export const addLink = createActionWithChildren({
+  name: ({ t }) => t("Add link"),
+  analyticsName: "Add link",
+  section: ActiveDocumentSection,
+  icon: <LinkIcon />,
+  keywords: "url bookmark",
+  visible: ({ activeDocumentId, stores }) =>
+    canAddLinkBeside(stores, activeDocumentId),
+  children: [addLinkAbove, addLinkBelow, addNestedLink],
+});
+
+export const addLinkInAlphabeticalCollection = createAction({
+  name: ({ t }) => `${t("Add link")}…`,
+  analyticsName: "Add nested link",
+  section: ActiveDocumentSection,
+  icon: <LinkIcon />,
+  keywords: "url bookmark",
+  visible: ({ activeDocumentId, stores }) => {
+    const location = getLinkLocation(stores, activeDocumentId);
+    return (
+      !!location &&
+      !location.collection.isManualSort &&
+      canAddLinkInside(stores, activeDocumentId)
+    );
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    const location = getLinkLocation(stores, activeDocumentId);
+    if (!location) {
+      return;
+    }
+    openAddLinkDialog({
+      stores,
+      t,
+      collection: location.collection,
+      parentDocumentId: location.document.id,
+    });
   },
 });
 
@@ -1928,6 +2090,7 @@ export const rootDocumentActions = [
   createNewDocument,
   createNewDocumentInAlphabeticalCollection,
   createNestedDocument,
+  addNestedLink,
   createTemplateFromDocument,
   deleteDocument,
   importDocument,

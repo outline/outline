@@ -16,6 +16,7 @@ import {
   type ProsemirrorData,
 } from "@shared/types";
 import {
+  insertNavigationNode,
   moveNavigationNode,
   sortNavigationNodes,
 } from "@shared/utils/collections";
@@ -381,15 +382,18 @@ export default class Collection extends ParanoidModel {
    *
    * @param attributes The title and url of the link.
    * @param parentDocumentId The id of the document to add the link below, if any.
+   * @param index The position among the siblings, defaults to the end.
    * @returns A promise that resolves to the new link node.
    */
   addLink = async (
     attributes: Pick<NavigationNode, "title" | "url">,
-    parentDocumentId?: string
+    parentDocumentId?: string,
+    index?: number
   ): Promise<NavigationNode> => {
     const res = await client.post("/collections.add_link", {
       id: this.id,
       parentDocumentId,
+      index,
       ...attributes,
     });
     invariant(res?.data, "Data should be available");
@@ -398,15 +402,15 @@ export default class Collection extends ParanoidModel {
       if (!this.documents) {
         return;
       }
-      if (!parentDocumentId) {
-        this.documents = [...this.documents, res.data];
-        return;
-      }
-      this.documents = this.mapNodes(this.documents, (node) =>
-        node.id === parentDocumentId
-          ? { ...node, children: [...node.children, res.data] }
-          : node
+      const documents = insertNavigationNode(
+        this.documents,
+        res.data,
+        parentDocumentId,
+        index
       );
+      if (documents) {
+        this.documents = documents;
+      }
     });
 
     return res.data;

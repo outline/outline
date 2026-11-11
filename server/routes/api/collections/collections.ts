@@ -197,7 +197,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsAddLinkReq>) => {
     const { transaction } = ctx.state;
-    const { id, parentDocumentId, title, url } = ctx.input.body;
+    const { id, parentDocumentId, title, url, index } = ctx.input.body;
 
     const collection = await loadCollectionForLink(ctx, id, parentDocumentId);
     const node: NavigationNode = {
@@ -208,9 +208,12 @@ router.post(
       children: [],
     };
 
-    await collection.addLinkToStructure(node, parentDocumentId ?? undefined, {
-      transaction,
-    });
+    await collection.addLinkToStructure(
+      node,
+      parentDocumentId ?? undefined,
+      index,
+      { transaction }
+    );
     await Event.createFromContext(ctx, {
       name: "collections.add_link",
       collectionId: collection.id,

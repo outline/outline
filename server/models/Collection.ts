@@ -53,6 +53,7 @@ import type {
 import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
+  insertNavigationNode,
   isLinkNode,
   moveNavigationNode,
   sortNavigationNodes,
@@ -1296,32 +1297,32 @@ class Collection extends ParanoidModel<
   };
 
   /**
-   * Adds a link node to the documentStructure, at the end of the given parent.
+   * Adds a link node to the documentStructure.
    *
    * @param node the link node to add.
    * @param parentDocumentId the id of the parent document, or undefined for the root.
+   * @param index the position among the siblings, defaults to the end.
    * @param options options passed to save.
    * @returns the updated collection.
+   * @throws ValidationError if the parent document is not found.
    */
   addLinkToStructure = async (
     node: NavigationNode,
     parentDocumentId: string | undefined,
+    index: number | undefined,
     options?: { transaction?: Transaction | null }
   ) => {
-    const structure = this.documentStructure ?? [];
-
-    if (!parentDocumentId) {
-      this.documentStructure = [...structure, node];
-    } else {
-      const place = (nodes: NavigationNode[]): NavigationNode[] =>
-        nodes.map((child) =>
-          child.id === parentDocumentId
-            ? { ...child, children: [...(child.children ?? []), node] }
-            : { ...child, children: place(child.children ?? []) }
-        );
-      this.documentStructure = place(structure);
+    const structure = insertNavigationNode(
+      this.documentStructure ?? [],
+      node,
+      parentDocumentId,
+      index
+    );
+    if (!structure) {
+      throw ValidationError("Parent document not found");
     }
 
+    this.documentStructure = structure;
     this.changed("documentStructure", true);
     return this.save({ ...options, fields: ["documentStructure"] });
   };

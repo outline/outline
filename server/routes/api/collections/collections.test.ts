@@ -1062,6 +1062,39 @@ describe("#collections.add_link", () => {
     ]);
   });
 
+  it("should add a link at the given index", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/collections.add_link", user, {
+      body: {
+        id: collection.id,
+        title: "First",
+        url: "https://example.com",
+        index: 0,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const reloaded = await Collection.findByPk(collection.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure?.map((node) => node.id)).toEqual([
+      body.data.id,
+      document.id,
+    ]);
+  });
+
   it("should not allow a parent document in another collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

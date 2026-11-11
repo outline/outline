@@ -1,5 +1,5 @@
 import { NavigationNodeType, type NavigationNode } from "../types";
-import { moveNavigationNode } from "./collections";
+import { insertNavigationNode, moveNavigationNode } from "./collections";
 
 const node = (id: string, children: NavigationNode[] = []): NavigationNode => ({
   id,
@@ -67,5 +67,28 @@ describe("moveNavigationNode", () => {
   it("should not mutate the input", () => {
     moveNavigationNode(tree, "l2", undefined, 0);
     expect(ids(tree)).toEqual([["a", ["a1", "l2"]], "l1", "b"]);
+  });
+});
+
+describe("insertNavigationNode", () => {
+  const tree = [node("a", [node("a1")]), node("b")];
+
+  it("should insert at the given index", () => {
+    expect(ids(insertNavigationNode(tree, link("l"), undefined, 1))).toEqual([
+      ["a", ["a1"]],
+      "l",
+      "b",
+    ]);
+  });
+
+  it("should insert below a parent, at the end by default", () => {
+    expect(ids(insertNavigationNode(tree, link("l"), "a"))).toEqual([
+      ["a", ["a1", "l"]],
+      "b",
+    ]);
+  });
+
+  it("should return undefined when the parent is missing", () => {
+    expect(insertNavigationNode(tree, link("l"), "missing")).toBeUndefined();
   });
 });
