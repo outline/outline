@@ -15,6 +15,7 @@ import {
   subscribeCollection,
   unsubscribeCollection,
   createDocument,
+  addLinkToCollection,
   exportCollection,
   importDocument,
   openCollectionInSplit,
@@ -28,19 +29,27 @@ type Props = {
   collectionId: string;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
+  /** Whether to include the action that adds a link, used in the sidebar */
+  showLinkActions?: boolean;
 };
 
-export function useCollectionMenuAction({ collectionId, onRename }: Props) {
+export function useCollectionMenuAction({
+  collectionId,
+  onRename,
+  showLinkActions = false,
+}: Props) {
   const actions = useMemo(
     () => [
+      // Actions that add to the tree of the collection, not change it.
+      createDocument,
+      ...(showLinkActions ? [addLinkToCollection] : []),
+      importDocument,
+      ActionSeparator,
       restoreCollection,
       starCollection,
       unstarCollection,
       subscribeCollection,
       unsubscribeCollection,
-      ActionSeparator,
-      createDocument,
-      importDocument,
       ActionSeparator,
       renameActionFactory({
         section: ActiveCollectionSection,
@@ -59,7 +68,7 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       ActionSeparator,
       deleteCollection,
     ],
-    [collectionId, onRename]
+    [collectionId, onRename, showLinkActions]
   );
 
   return useMenuAction(actions);

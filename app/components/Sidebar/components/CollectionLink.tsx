@@ -103,11 +103,13 @@ const CollectionLink: React.FC<Props> = ({
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
     onRename: handleRename,
+    showLinkActions: true,
   });
 
   const menu = !isDraggingAnyCollection ? (
     <CollectionMenu
       collection={collection}
+      showLinkActions
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}

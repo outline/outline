@@ -17,6 +17,8 @@ type Props = {
   onRename?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
+  /** Whether to include the action that adds a link, used in the sidebar */
+  showLinkActions?: boolean;
 };
 
 function CollectionMenu({
@@ -26,6 +28,7 @@ function CollectionMenu({
   onRename,
   onOpen,
   onClose,
+  showLinkActions,
 }: Props) {
   const { subscriptions } = useStores();
   const { t } = useTranslation();
@@ -50,6 +53,7 @@ function CollectionMenu({
   const rootAction = useCollectionMenuAction({
     collectionId: collection.id,
     onRename,
+    showLinkActions,
   });
 
   return (
