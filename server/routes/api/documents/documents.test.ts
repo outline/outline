@@ -5052,6 +5052,34 @@ describe("#documents.deleted", () => {
     expect(body.data[0].id).toEqual(sharedDraft.id);
   });
 
+  it("should return deleted drafts shared with a group of the user", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const group = await buildGroup({ teamId: user.teamId });
+    await group.$add("user", user, {
+      through: { createdById: other.id },
+    });
+    const collection = await buildCollection({ teamId: user.teamId });
+    const sharedDraft = await buildDraftDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: sharedDraft.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: other.id,
+    });
+    await withAPIContext(other, (ctx) => sharedDraft.destroyWithCtx(ctx));
+
+    const res = await server.post("/api/documents.deleted", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(sharedDraft.id);
+  });
+
   it("should require member", async () => {
     const viewer = await buildViewer();
     const res = await server.post("/api/documents.deleted", viewer);
