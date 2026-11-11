@@ -177,7 +177,7 @@ export default class Notice extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write("\n:::" + (node.attrs.style || "info") + "\n");
+    state.write(":::" + (node.attrs.style || "info") + "\n");
     state.renderContent(node);
     state.ensureNewLine();
     state.write(":::");
