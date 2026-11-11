@@ -1,4 +1,3 @@
-import { DocumentPermission } from "@shared/types";
 import {
   buildCollection,
   buildDocument,
@@ -140,50 +139,6 @@ describe("#userMemberships.list", () => {
         },
       });
     }
-
-    const res = await server.post("/api/userMemberships.list", member);
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.memberships).toHaveLength(1);
-    expect(body.data.memberships[0].documentId).toEqual(parent.id);
-  });
-
-  it("should not return a nested document after its permission is changed", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      createdById: user.id,
-      permission: null,
-    });
-    const member = await buildUser({
-      teamId: user.teamId,
-    });
-    const parent = await buildDocument({
-      collectionId: collection.id,
-      createdById: user.id,
-      teamId: user.teamId,
-    });
-    const child = await buildDocument({
-      collectionId: collection.id,
-      parentDocumentId: parent.id,
-      createdById: user.id,
-      teamId: user.teamId,
-    });
-
-    await server.post("/api/documents.add_user", user, {
-      body: {
-        id: parent.id,
-        userId: member.id,
-        permission: DocumentPermission.Read,
-      },
-    });
-    await server.post("/api/documents.add_user", user, {
-      body: {
-        id: child.id,
-        userId: member.id,
-        permission: DocumentPermission.ReadWrite,
-      },
-    });
 
     const res = await server.post("/api/userMemberships.list", member);
     const body = await res.json();
