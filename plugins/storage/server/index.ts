@@ -51,13 +51,13 @@ if (enabled) {
 
 /**
  * Logs an error that explains how to fix the permissions when the process
- * cannot write to the local file storage directory.
+ * cannot write to or enter the local file storage directory.
  *
  * @param rootDir the local file storage directory.
  */
 function checkWritable(rootDir: string) {
   try {
-    accessSync(rootDir, constants.W_OK);
+    accessSync(rootDir, constants.W_OK | constants.X_OK);
   } catch (err) {
     if (process.getuid === undefined || process.getgid === undefined) {
       Logger.error(
