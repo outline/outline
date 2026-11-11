@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
+import { toCanonicalUrl } from "../components/internalLinks";
 import { LinkDialog, type LinkDialogValues } from "../components/LinkDialog";
 
 /**
@@ -11,7 +12,8 @@ import { LinkDialog, type LinkDialogValues } from "../components/LinkDialog";
  * @returns functions to open the create and edit dialogs.
  */
 export function useLinkDialog() {
-  const { dialogs } = useStores();
+  const stores = useStores();
+  const { dialogs } = stores;
   const { t } = useTranslation();
 
   const openCreate = React.useCallback(
@@ -21,7 +23,10 @@ export function useLinkDialog() {
       onCreated?: () => void
     ) => {
       const handleSubmit = async (values: LinkDialogValues) => {
-        await collection.addLink(values, parentDocumentId);
+        await collection.addLink(
+          { ...values, url: await toCanonicalUrl(values.url, stores) },
+          parentDocumentId
+        );
         onCreated?.();
         dialogs.closeAllModals();
       };
@@ -31,13 +36,16 @@ export function useLinkDialog() {
         content: <LinkDialog onSubmit={handleSubmit} />,
       });
     },
-    [dialogs, t]
+    [stores, dialogs, t]
   );
 
   const openEdit = React.useCallback(
     (collection: Collection, node: NavigationNode) => {
       const handleSubmit = async (values: LinkDialogValues) => {
-        await collection.updateLink(node.id, values);
+        await collection.updateLink(node.id, {
+          ...values,
+          url: await toCanonicalUrl(values.url, stores),
+        });
         dialogs.closeAllModals();
       };
 
@@ -51,7 +59,7 @@ export function useLinkDialog() {
         ),
       });
     },
-    [dialogs, t]
+    [stores, dialogs, t]
   );
 
   return { openCreate, openEdit };

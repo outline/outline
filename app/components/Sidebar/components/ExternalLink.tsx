@@ -1,17 +1,15 @@
-import type { Location } from "history";
-import { parsePath } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, LinkIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import type { match } from "react-router";
 import styled from "styled-components";
 import { toast } from "sonner";
 import useShare from "@shared/hooks/useShare";
 import type { NavigationNode } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type { FlattenedTreeNode } from "@shared/utils/tree";
-import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { isDocumentUrl, sanitizeUrl } from "@shared/utils/urls";
 import type Collection from "~/models/Collection";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
@@ -19,14 +17,17 @@ import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
 import { useMenuAction } from "~/hooks/useMenuAction";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
-import { toRelative } from "~/utils/urls";
+import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
+import { isModKey } from "@shared/utils/keyboard";
 import { useDragLink } from "../hooks/useDragAndDrop";
 import { useLinkDialog } from "../hooks/useLinkDialog";
+import { resolveInternalLink, toInternalPath } from "./internalLinks";
 import Relative from "./Relative";
 import { useReorderDropCursors } from "./ReorderDropCursors";
-import type { SidebarContextType } from "./SidebarContext";
-import { useSidebarContext } from "./SidebarContext";
+import { determineSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
 interface Props {
@@ -47,8 +48,8 @@ interface Props {
 const noAncestors: FlattenedTreeNode[] = [];
 
 /**
- * A sidebar row for a link. A link to a page in this app opens through the
- * router, any other link opens in a new tab.
+ * A sidebar row for a link. A link to a page in this app opens the canonical
+ * location of that page through the router, any other link opens in a new tab.
  */
 export const ExternalLink = observer(function ExternalLink({
   node,
@@ -60,7 +61,8 @@ export const ExternalLink = observer(function ExternalLink({
 }: Props) {
   const { t } = useTranslation();
   const { shareId } = useShare();
-  const sidebarContext = useSidebarContext();
+  const stores = useStores();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const linkDialog = useLinkDialog();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const canCollection = usePolicy(collection);
@@ -90,20 +92,54 @@ export const ExternalLink = observer(function ExternalLink({
   });
 
   // In a public share, app pages other than the share are not available.
-  const to = React.useMemo(() => {
-    const path = shareId ? undefined : toInternalPath(node.url);
-    return path
-      ? { ...parsePath(path), state: { title: node.title, sidebarContext } }
-      : undefined;
-  }, [shareId, node.url, node.title, sidebarContext]);
-
-  const isActive = React.useCallback(
-    (
-      routeMatch: match | null,
-      location: Location<{ sidebarContext?: SidebarContextType }>
-    ) => !!routeMatch && location.state?.sidebarContext === sidebarContext,
-    [sidebarContext]
+  const internalPath = React.useMemo(
+    () => (shareId ? undefined : toInternalPath(node.url)),
+    [shareId, node.url]
   );
+
+  const handleClick = React.useCallback(
+    async (ev: React.MouseEvent<HTMLAnchorElement>) => {
+      // Let the browser open a new tab or window for modified clicks.
+      if (
+        !internalPath ||
+        isModKey(ev.nativeEvent) ||
+        ev.shiftKey ||
+        ev.button !== 0
+      ) {
+        return;
+      }
+
+      ev.preventDefault();
+      const { path, document, collection } = await resolveInternalLink(
+        internalPath,
+        stores
+      );
+
+      // Open the page at its own place in the sidebar, not at this link.
+      const sidebarContext =
+        document && user
+          ? determineSidebarContext({
+              document,
+              user,
+              currentContext: "collections",
+            })
+          : collection?.isPersonal
+            ? "personal"
+            : "collections";
+      history.push(path, { sidebarContext });
+    },
+    [internalPath, stores, user]
+  );
+
+  const handlePrefetch = React.useCallback(() => {
+    const slug =
+      internalPath && isDocumentUrl(internalPath)
+        ? parseDocumentSlug(internalPath)
+        : undefined;
+    if (slug) {
+      void stores.documents.prefetchDocument(slug).catch(() => undefined);
+    }
+  }, [internalPath, stores]);
 
   const handleEdit = React.useCallback(() => {
     if (collection) {
@@ -158,10 +194,12 @@ export const ExternalLink = observer(function ExternalLink({
       {cursorBefore}
       <Draggable ref={dragRef} $isDragging={isDragging}>
         <SidebarLink
-          to={to}
-          href={to ? undefined : sanitizeUrl(node.url)}
-          external={!to}
-          isActive={to ? isActive : undefined}
+          href={internalPath ?? sanitizeUrl(node.url)}
+          target={internalPath ? undefined : "_blank"}
+          rel={internalPath ? undefined : "noopener noreferrer"}
+          onClick={internalPath ? handleClick : undefined}
+          onClickIntent={internalPath ? handlePrefetch : undefined}
+          external
           depth={depth}
           icon={depth === 0 ? <LinkIcon /> : undefined}
           label={node.title}
@@ -174,30 +212,6 @@ export const ExternalLink = observer(function ExternalLink({
     </Relative>
   );
 });
-
-/**
- * Returns the router path for a url that points to a page in this app.
- *
- * @param url The url of the link.
- * @returns the path, or undefined if the url must open as a normal link.
- */
-function toInternalPath(url: string): string | undefined {
-  if (!isInternalUrl(url)) {
-    return undefined;
-  }
-
-  try {
-    const path = toRelative(url);
-
-    // The API is not part of the app, and the router cannot decode a
-    // malformed percent-encoding. The result is used so that the minifier
-    // keeps the call.
-    const decoded = decodeURI(path);
-    return decoded && !path.startsWith("/api/") ? path : undefined;
-  } catch (_err) {
-    return undefined;
-  }
-}
 
 const Draggable = styled.div<{ $isDragging: boolean }>`
   transition: opacity 250ms ease;

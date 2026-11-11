@@ -87,7 +87,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren | ActionFactory;
-  /** Whether the link points to an external location, opened in a new tab */
+  /** Whether to show an arrow that marks the row as a link */
   external?: boolean;
 };
 
@@ -231,8 +231,6 @@ function SidebarLink({
         onMouseLeave={handleMouseLeave}
         onDragEnter={handleMouseEnter}
         href={href}
-        target={external ? "_blank" : undefined}
-        rel={external ? "noopener noreferrer" : undefined}
         className={className}
         ref={ref}
         {...rest}
