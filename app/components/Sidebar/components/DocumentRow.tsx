@@ -3,23 +3,18 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import type { match } from "react-router";
 import styled from "styled-components";
-import {
-  DocumentValidation,
-  NavigationLinkValidation,
-} from "@shared/validations";
+import { DocumentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import Fade from "~/components/Fade";
-import { errToString } from "@shared/utils/error";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
-import { toLinkUrl } from "./LinkDialog";
+import { NewChildInput } from "./NewChildInput";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
@@ -172,7 +167,6 @@ function DocumentRow({
   );
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
-  const newChildTitleRef = React.useRef<RefHandle>(null);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
@@ -196,39 +190,6 @@ function DocumentRow({
       onExpand?.();
     },
     [setIsAddingNewChild, onExpand]
-  );
-
-  const handleNewChildSubmit = React.useCallback(
-    async (value: string) => {
-      if (!onCreateChild) {
-        return;
-      }
-
-      // A url becomes a link, any other text the title of a new document.
-      const linkUrl = onCreateChildLink ? toLinkUrl(value) : undefined;
-      if (!linkUrl && value.length > DocumentValidation.maxTitleLength) {
-        toast.error(
-          t("The title must be {{ max }} characters or fewer", {
-            max: DocumentValidation.maxTitleLength,
-          })
-        );
-        return;
-      }
-
-      try {
-        newChildTitleRef.current?.setIsEditing(false);
-        if (linkUrl && onCreateChildLink) {
-          await onCreateChildLink(linkUrl);
-        } else {
-          await onCreateChild(value);
-        }
-        closeAddingNewChild();
-      } catch (err) {
-        toast.error(errToString(err));
-        newChildTitleRef.current?.setIsEditing(true);
-      }
-    },
-    [t, onCreateChild, onCreateChildLink, closeAddingNewChild]
   );
 
   const labelElement =
@@ -330,30 +291,11 @@ function DocumentRow({
         {cursorAfter}
       </Relative>
       {isAddingNewChild && onCreateChild && (
-        <SidebarLink
-          isActive={() => true}
+        <NewChildInput
           depth={newChildDepth ?? depth + 1}
-          ellipsis={false}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={
-                onCreateChildLink
-                  ? `${t("New doc or link")}…`
-                  : `${t("New doc")}…`
-              }
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewChildSubmit}
-              maxLength={
-                onCreateChildLink
-                  ? NavigationLinkValidation.maxUrlLength
-                  : DocumentValidation.maxTitleLength
-              }
-              ref={newChildTitleRef}
-            />
-          }
+          onCreateChild={onCreateChild}
+          onCreateChildLink={onCreateChildLink}
+          onClose={closeAddingNewChild}
         />
       )}
       {children}

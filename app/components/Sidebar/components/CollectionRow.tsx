@@ -3,26 +3,20 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
 import { isTouchDevice } from "@shared/utils/browser";
-import {
-  CollectionValidation,
-  DocumentValidation,
-  NavigationLinkValidation,
-} from "@shared/validations";
+import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { errToString } from "@shared/utils/error";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
-import { toLinkUrl } from "./LinkDialog";
+import { NewChildInput } from "./NewChildInput";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
@@ -140,7 +134,6 @@ function CollectionRow({
   );
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
-  const newChildTitleRef = React.useRef<RefHandle>(null);
 
   const handleAddChild = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -149,39 +142,6 @@ function CollectionRow({
       onExpand?.();
     },
     [setIsAddingNewChild, onExpand]
-  );
-
-  const handleNewChildSubmit = React.useCallback(
-    async (value: string) => {
-      if (!onCreateChild) {
-        return;
-      }
-
-      // A url becomes a link, any other text the title of a new document.
-      const linkUrl = onCreateChildLink ? toLinkUrl(value) : undefined;
-      if (!linkUrl && value.length > DocumentValidation.maxTitleLength) {
-        toast.error(
-          t("The title must be {{ max }} characters or fewer", {
-            max: DocumentValidation.maxTitleLength,
-          })
-        );
-        return;
-      }
-
-      try {
-        newChildTitleRef.current?.setIsEditing(false);
-        if (linkUrl && onCreateChildLink) {
-          await onCreateChildLink(linkUrl);
-        } else {
-          await onCreateChild(value);
-        }
-        closeAddingNewChild();
-      } catch (err) {
-        toast.error(errToString(err));
-        newChildTitleRef.current?.setIsEditing(true);
-      }
-    },
-    [t, onCreateChild, onCreateChildLink, closeAddingNewChild]
   );
 
   const defaultIsActive = React.useCallback(
@@ -288,30 +248,11 @@ function CollectionRow({
       </Relative>
       {children(
         isAddingNewChild && onCreateChild ? (
-          <SidebarLink
-            isActive={() => true}
+          <NewChildInput
             depth={newChildDepth ?? Math.max(depth + 1, 2)}
-            ellipsis={false}
-            label={
-              <EditableTitle
-                title=""
-                canUpdate
-                isEditing
-                placeholder={
-                  onCreateChildLink
-                    ? `${t("New doc or link")}…`
-                    : `${t("New doc")}…`
-                }
-                onCancel={closeAddingNewChild}
-                onSubmit={handleNewChildSubmit}
-                maxLength={
-                  onCreateChildLink
-                    ? NavigationLinkValidation.maxUrlLength
-                    : DocumentValidation.maxTitleLength
-                }
-                ref={newChildTitleRef}
-              />
-            }
+            onCreateChild={onCreateChild}
+            onCreateChildLink={onCreateChildLink}
+            onClose={closeAddingNewChild}
           />
         ) : undefined
       )}
