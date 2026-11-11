@@ -290,6 +290,11 @@ describe("nested notices and rules", () => {
     ["a rule in a bullet list item", "* Alpha item:\n\n  ---\n* Bravo item."],
     ["a rule in a blockquote", "> Alpha quoted.\n>\n> ***\n>\n> Omega quoted."],
     ["a rule after a paragraph", "Alpha paragraph.\n\n___\n\nOmega paragraph."],
+    ["a rule after an empty paragraph", "Alpha.\n\n\\\n\n---\n\nOmega."],
+    [
+      "a rule after an empty paragraph in a list item",
+      "* Alpha item:\n\n  \\\n\n  ---\n* Bravo item.",
+    ],
   ])("round trips %s", (_name, markdown) => {
     const { doc, reparsed } = roundTrip(markdown);
     expect(reparsed.toJSON()).toEqual(doc.toJSON());

@@ -100,6 +100,8 @@ export default class HorizontalRule extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    // Separate writes, so that a list or quote delimiter also prefixes the opener.
+    state.write("\n");
     state.write(node.attrs.markup);
     state.closeBlock(node);
   }
