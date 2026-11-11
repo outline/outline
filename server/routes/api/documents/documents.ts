@@ -164,29 +164,9 @@ async function expandDocumentIdLeaves(
 }
 
 /**
- * Fetch the ids of documents the user has a direct membership on. Used to
- * express draft visibility without referencing the (separately-loaded)
- * memberships association, which would otherwise break the COUNT query.
- *
- * @param user the user to fetch membership document ids for.
- * @returns the list of document ids.
- */
-async function directMembershipDocumentIds(user: User): Promise<string[]> {
-  const memberships = await UserMembership.findAll({
-    attributes: ["documentId"],
-    where: {
-      userId: user.id,
-      documentId: { [Op.ne]: null },
-    },
-  });
-  return memberships.map((m) => m.documentId as string);
-}
-
-/**
  * Build the visibility clauses for drafts: a draft is only ever visible to its
- * creator or to a user with a direct membership on it. Both the filter-derived
- * and legacy statusFilter draft paths route through this so the invariant lives
- * in one place.
+ * creator or to a user with a user or group membership on it. List endpoints
+ * that can return drafts route through this so the invariant lives in one place.
  *
  * @param user the user the drafts must be visible to.
  * @returns an array of OR-able Sequelize conditions.
@@ -194,7 +174,7 @@ async function directMembershipDocumentIds(user: User): Promise<string[]> {
 async function draftVisibilityClauses(user: User): Promise<WhereOptions[]> {
   return [
     { createdById: user.id },
-    { id: await directMembershipDocumentIds(user) },
+    { id: await Document.membershipDocumentIds(user.id) },
   ];
 }
 
@@ -570,6 +550,12 @@ router.post(
                 [Op.is]: null,
               },
             },
+          ],
+        },
+        {
+          [Op.or]: [
+            { publishedAt: { [Op.ne]: null } },
+            ...(await draftVisibilityClauses(user)),
           ],
         },
       ],
