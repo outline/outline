@@ -28,9 +28,9 @@ import {
   useDragDocument,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
-import { useLinkDialog } from "../hooks/useLinkDialog";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
+import { addLinkFromUrl } from "./LinkDialog";
 import { useReorderDropCursors } from "./ReorderDropCursors";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
@@ -64,7 +64,8 @@ const DocumentLink = observer(function DocumentLink({
   hasChildren,
   trailingAncestors,
 }: Props) {
-  const { documents } = useStores();
+  const stores = useStores();
+  const { documents } = stores;
   const { t } = useTranslation();
   const history = useHistory();
   const can = usePolicy(node.id);
@@ -227,12 +228,20 @@ const DocumentLink = observer(function DocumentLink({
     ]
   );
 
-  const linkDialog = useLinkDialog();
-  const handleNewLink = React.useCallback(() => {
-    if (collection) {
-      linkDialog.openCreate(collection, node.id, handleExpand);
-    }
-  }, [linkDialog, collection, node.id, handleExpand]);
+  const handleNewLink = React.useCallback(
+    async (url: string) => {
+      if (collection) {
+        await addLinkFromUrl({
+          stores,
+          collection,
+          parentDocumentId: node.id,
+          url,
+          index: 0,
+        });
+      }
+    },
+    [stores, collection, node.id]
+  );
 
   const contextMenuAction = useDocumentMenuAction({
     documentId: node.id,
@@ -296,7 +305,7 @@ const DocumentLink = observer(function DocumentLink({
       menuOpen={menuOpen}
       canCreateChild={can.createChildDocument}
       onCreateChild={handleNewDoc}
-      onCreateLink={collection && !isDraft ? handleNewLink : undefined}
+      onCreateChildLink={collection && !isDraft ? handleNewLink : undefined}
       contextAction={contextMenuAction}
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}

@@ -1,19 +1,28 @@
 import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
 import { isTouchDevice } from "@shared/utils/browser";
-import { CollectionValidation, DocumentValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DocumentValidation,
+  NavigationLinkValidation,
+} from "@shared/validations";
 import type Collection from "~/models/Collection";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { errToString } from "@shared/utils/error";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
-import { NewChildMenu } from "./NewChildMenu";
+import { toLinkUrl } from "./LinkDialog";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
@@ -70,8 +79,8 @@ export type CollectionRowProps = {
 
   /** When true, the "+" new-child button is rendered in the menu slot. */
   canCreateChild?: boolean;
-  /** Opens the dialog to add a link below the row. When omitted, links cannot be added. */
-  onCreateLink?: () => void;
+  /** Adds a link below the row when a url is entered in the new-child input. When omitted, a url creates a document. */
+  onCreateChildLink?: (url: string) => Promise<void>;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
   /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
@@ -112,7 +121,7 @@ function CollectionRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
-  onCreateLink,
+  onCreateChildLink,
   newChildDepth,
   parentRef,
   dropRef,
@@ -133,25 +142,46 @@ function CollectionRow({
     useBoolean();
   const newChildTitleRef = React.useRef<RefHandle>(null);
 
-  const handleAddChild = React.useCallback(() => {
-    setIsAddingNewChild();
-    onExpand?.();
-  }, [setIsAddingNewChild, onExpand]);
+  const handleAddChild = React.useCallback(
+    (ev: React.MouseEvent<HTMLButtonElement>) => {
+      ev.preventDefault();
+      setIsAddingNewChild();
+      onExpand?.();
+    },
+    [setIsAddingNewChild, onExpand]
+  );
 
   const handleNewChildSubmit = React.useCallback(
     async (value: string) => {
       if (!onCreateChild) {
         return;
       }
+
+      // A url becomes a link, any other text the title of a new document.
+      const linkUrl = onCreateChildLink ? toLinkUrl(value) : undefined;
+      if (!linkUrl && value.length > DocumentValidation.maxTitleLength) {
+        toast.error(
+          t("The title must be {{ max }} characters or fewer", {
+            max: DocumentValidation.maxTitleLength,
+          })
+        );
+        return;
+      }
+
       try {
         newChildTitleRef.current?.setIsEditing(false);
-        await onCreateChild(value);
+        if (linkUrl && onCreateChildLink) {
+          await onCreateChildLink(linkUrl);
+        } else {
+          await onCreateChild(value);
+        }
         closeAddingNewChild();
-      } catch (_err) {
+      } catch (err) {
+        toast.error(errToString(err));
         newChildTitleRef.current?.setIsEditing(true);
       }
     },
-    [onCreateChild, closeAddingNewChild]
+    [t, onCreateChild, onCreateChildLink, closeAddingNewChild]
   );
 
   const defaultIsActive = React.useCallback(
@@ -191,7 +221,14 @@ function CollectionRow({
   const menuElement = menuVisible ? (
     <Fade>
       {canCreateChild && (
-        <NewChildMenu onNewDoc={handleAddChild} onNewLink={onCreateLink} />
+        <Tooltip content={t("New doc")}>
+          <NudeButton
+            aria-label={t("New nested document")}
+            onClick={handleAddChild}
+          >
+            <PlusIcon />
+          </NudeButton>
+        </Tooltip>
       )}
       {rowMenu}
     </Fade>
@@ -260,10 +297,18 @@ function CollectionRow({
                 title=""
                 canUpdate
                 isEditing
-                placeholder={`${t("New doc")}…`}
+                placeholder={
+                  onCreateChildLink
+                    ? `${t("New doc or link")}…`
+                    : `${t("New doc")}…`
+                }
                 onCancel={closeAddingNewChild}
                 onSubmit={handleNewChildSubmit}
-                maxLength={DocumentValidation.maxTitleLength}
+                maxLength={
+                  onCreateChildLink
+                    ? NavigationLinkValidation.maxUrlLength
+                    : DocumentValidation.maxTitleLength
+                }
                 ref={newChildTitleRef}
               />
             }

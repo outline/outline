@@ -14,9 +14,9 @@ import * as Scenes from "~/routes/scenes";
 import useBoolean from "~/hooks/useBoolean";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
-import { useLinkDialog } from "../hooks/useLinkDialog";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
+import { addLinkFromUrl } from "./LinkDialog";
 import { useSidebarContext } from "./SidebarContext";
 
 type Props = {
@@ -37,7 +37,8 @@ const CollectionLink: React.FC<Props> = ({
   onClick,
 }: Props) => {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const { documents } = useStores();
+  const stores = useStores();
+  const { documents } = stores;
   const history = useHistory();
   const can = usePolicy(collection);
   const sidebarContext = useSidebarContext();
@@ -92,10 +93,12 @@ const CollectionLink: React.FC<Props> = ({
     [user, sidebarContext, history, collection, documents]
   );
 
-  const linkDialog = useLinkDialog();
-  const handleNewLink = React.useCallback(() => {
-    linkDialog.openCreate(collection, undefined, handleExpand);
-  }, [linkDialog, collection, handleExpand]);
+  const handleNewLink = React.useCallback(
+    async (url: string) => {
+      await addLinkFromUrl({ stores, collection, url, index: 0 });
+    },
+    [stores, collection]
+  );
 
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
@@ -130,7 +133,7 @@ const CollectionLink: React.FC<Props> = ({
       menuOpen={menuOpen}
       canCreateChild={!isDraggingAnyCollection && can.createDocument}
       onCreateChild={handleNewDoc}
-      onCreateLink={handleNewLink}
+      onCreateChildLink={handleNewLink}
       parentRef={parentRef}
       dropRef={dropRef}
       isActiveDropTarget={isOver && canDrop}

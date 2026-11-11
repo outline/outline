@@ -225,3 +225,60 @@ export function openEditLinkDialog({
     ),
   });
 }
+
+/**
+ * Returns the url of a link when the text is a url, so that text pasted or
+ * typed into an input can be added as a link instead.
+ *
+ * @param text The text to check.
+ * @returns the normalized url, or undefined if the text is not a url.
+ */
+export function toLinkUrl(text: string): string | undefined {
+  const trimmed = text.trim();
+  if (
+    !trimmed ||
+    /\s/.test(trimmed) ||
+    !isUrl(trimmed, { requireProtocol: false })
+  ) {
+    return undefined;
+  }
+
+  const url = sanitizeUrl(trimmed);
+  return url && isUrl(url) ? url : undefined;
+}
+
+/**
+ * Adds a sidebar link for a url, with the title of the page when it can be
+ * unfurled and the hostname otherwise.
+ *
+ * @param options The collection, position and url of the new link.
+ * @returns a promise that resolves to the new link node.
+ */
+export async function addLinkFromUrl({
+  stores,
+  collection,
+  parentDocumentId,
+  index,
+  url,
+}: Omit<AddLinkDialogOptions, "t" | "onCreated"> & { url: string }) {
+  const [canonicalUrl, unfurl] = await Promise.all([
+    toCanonicalUrl(url, stores),
+    stores.unfurls.fetchUnfurl({ url }).catch(() => undefined),
+  ]);
+  const unfurledTitle =
+    unfurl && "title" in unfurl.data && typeof unfurl.data.title === "string"
+      ? unfurl.data.title.trim()
+      : "";
+
+  return collection.addLink(
+    {
+      url: canonicalUrl,
+      title: (unfurledTitle || new URL(canonicalUrl).hostname).slice(
+        0,
+        NavigationLinkValidation.maxTitleLength
+      ),
+    },
+    parentDocumentId,
+    index
+  );
+}
