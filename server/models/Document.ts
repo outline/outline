@@ -1571,7 +1571,13 @@ class Document extends ArchivableModel<
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;
-    await this.saveWithCtx(ctx, undefined, { name: "delete", ...eventOpts });
+    // Deleted documents are excluded from the default scope, so the title
+    // cannot be read from the document association when listing this event.
+    await this.saveWithCtx(ctx, undefined, {
+      name: "delete",
+      data: { title: this.title },
+      ...eventOpts,
+    });
   };
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
