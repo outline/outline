@@ -184,9 +184,8 @@ async function directMembershipDocumentIds(user: User): Promise<string[]> {
 
 /**
  * Build the visibility clauses for drafts: a draft is only ever visible to its
- * creator or to a user with a direct membership on it. Both the filter-derived
- * and legacy statusFilter draft paths route through this so the invariant lives
- * in one place.
+ * creator or to a user with a direct membership on it. List endpoints that can
+ * return drafts route through this so the invariant lives in one place.
  *
  * @param user the user the drafts must be visible to.
  * @returns an array of OR-able Sequelize conditions.
@@ -570,6 +569,12 @@ router.post(
                 [Op.is]: null,
               },
             },
+          ],
+        },
+        {
+          [Op.or]: [
+            { publishedAt: { [Op.ne]: null } },
+            ...(await draftVisibilityClauses(user)),
           ],
         },
       ],
