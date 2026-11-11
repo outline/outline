@@ -1,6 +1,6 @@
 import Router from "@koa/router";
 import { uniqBy } from "es-toolkit/compat";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, GroupMembership, GroupUser } from "@server/models";
@@ -44,6 +44,16 @@ router.post(
         sourceId: {
           [Op.eq]: null,
         },
+
+        // Documents that inherit access from a shared ancestor are shown
+        // nested under that ancestor rather than as separate roots.
+        [Op.and]: Sequelize.literal(`NOT EXISTS (
+          SELECT 1 FROM group_permissions AS sourced
+          WHERE sourced."documentId" = "group_permission"."documentId"
+            AND sourced."groupId" = "group_permission"."groupId"
+            AND sourced."sourceId" IS NOT NULL
+            AND sourced."deletedAt" IS NULL
+        )`),
       },
       include: [
         {

@@ -194,4 +194,56 @@ describe("User model", () => {
       expect(user.initials).toBe("JG");
     });
   });
+
+  describe("documentMemberships", () => {
+    const user = new User({ id: "300", name: "Member" }, users);
+
+    beforeEach(() => {
+      stores.documents.clear();
+      stores.userMemberships.clear();
+    });
+
+    const addDocument = (id: string, parentDocumentId?: string) =>
+      stores.documents.add({
+        id,
+        title: id,
+        parentDocumentId,
+        collectionId: "collection",
+      });
+
+    const addMembership = (id: string, documentId: string) =>
+      stores.userMemberships.add({
+        id,
+        userId: user.id,
+        documentId,
+        sourceId: null,
+        index: id,
+      });
+
+    it("should only include the highest shared document of a tree", () => {
+      addDocument("parent");
+      addDocument("child", "parent");
+      addDocument("grandchild", "child");
+      addMembership("m1", "grandchild");
+      addMembership("m2", "child");
+      addMembership("m3", "parent");
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "parent",
+      ]);
+    });
+
+    it("should include a document whose parent is not shared", () => {
+      addDocument("parent");
+      addDocument("child", "parent");
+      addDocument("other");
+      addMembership("m1", "child");
+      addMembership("m2", "other");
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "child",
+        "other",
+      ]);
+    });
+  });
 });
