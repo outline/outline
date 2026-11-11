@@ -233,6 +233,26 @@ describe("User model", () => {
       ]);
     });
 
+    it("should include a moved document that is still in a cached tree", () => {
+      addDocument("parent");
+      addDocument("child");
+      addMembership("m1", "child");
+      const parent = addMembership("m2", "parent");
+      parent.node = {
+        id: "parent",
+        title: "parent",
+        url: "/doc/parent",
+        children: [
+          { id: "child", title: "child", url: "/doc/child", children: [] },
+        ],
+      };
+
+      expect(user.documentMemberships.map((m) => m.documentId)).toEqual([
+        "child",
+        "parent",
+      ]);
+    });
+
     it("should include a document whose parent is not shared", () => {
       addDocument("parent");
       addDocument("child", "parent");

@@ -32,13 +32,22 @@ export default abstract class NavigableModel extends Model {
       }
 
       const visited = new Set([documentId]);
-      let parentId = documents.get(documentId)?.parentDocumentId;
-      while (parentId && !visited.has(parentId)) {
-        if (rootIds.has(parentId)) {
+      let document = documents.get(documentId);
+      while (document?.parentDocumentId) {
+        const { parentDocumentId } = document;
+        if (rootIds.has(parentDocumentId)) {
           return false;
         }
-        visited.add(parentId);
-        parentId = documents.get(parentId)?.parentDocumentId;
+        if (visited.has(parentDocumentId)) {
+          return true;
+        }
+        visited.add(parentDocumentId);
+        document = documents.get(parentDocumentId);
+      }
+
+      // The parent chain is complete, so the loaded trees are not needed.
+      if (document) {
+        return true;
       }
 
       // Parent documents may not be loaded, so also check the loaded trees.

@@ -34,13 +34,25 @@ router.post(
           [Op.eq]: null,
         },
 
-        // Documents that inherit access from a shared ancestor are shown
-        // nested under that ancestor rather than as separate roots.
+        // Documents with a shared ancestor are shown nested under that
+        // ancestor rather than as separate roots.
         [Op.and]: Sequelize.literal(`NOT EXISTS (
-          SELECT 1 FROM user_permissions AS sourced
-          WHERE sourced."documentId" = "user_permission"."documentId"
-            AND sourced."userId" = "user_permission"."userId"
-            AND sourced."sourceId" IS NOT NULL
+          WITH RECURSIVE ancestors AS (
+            SELECT d."parentDocumentId" AS id
+            FROM documents d
+            WHERE d.id = "user_permission"."documentId"
+            UNION
+            SELECT d."parentDocumentId"
+            FROM documents d
+            INNER JOIN ancestors a ON d.id = a.id
+          )
+          SELECT 1 FROM ancestors a
+          INNER JOIN documents ad ON ad.id = a.id
+            AND ad."archivedAt" IS NULL
+            AND ad."deletedAt" IS NULL
+          INNER JOIN user_permissions ap ON ap."documentId" = a.id
+            AND ap."userId" = "user_permission"."userId"
+            AND ap."sourceId" IS NULL
         )`),
       },
       include: [
