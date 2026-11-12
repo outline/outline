@@ -1,10 +1,31 @@
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { vi } from "vitest";
 import { Week, Day } from "@shared/utils/time";
+import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
 import S3Storage from "./S3Storage";
 
 describe("S3Storage", () => {
+  describe("getPresignedPost", () => {
+    it("requires an exact Content-Type match", async () => {
+      const storage = new S3Storage();
+      await storage.getPresignedPost(
+        createContext({}),
+        "uploads/user/id/photo.png",
+        "private",
+        1000,
+        "image/png"
+      );
+
+      const options = vi.mocked(createPresignedPost).mock.lastCall?.[1];
+      expect(options?.Fields?.["Content-Type"]).toBe("image/png");
+      expect(options?.Conditions).not.toContainEqual(
+        expect.arrayContaining(["$Content-Type"])
+      );
+    });
+  });
+
   describe("getFileStream", () => {
     afterEach(() => {
       vi.restoreAllMocks();
