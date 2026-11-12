@@ -88,7 +88,7 @@ export default abstract class ImportsProcessor<
           rejectOnEmpty: true,
           paranoid: false,
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: { level: transaction.LOCK.UPDATE, of: Import },
         });
 
         if (

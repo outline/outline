@@ -131,7 +131,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           required: true,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: { level: transaction.LOCK.UPDATE, of: Integration },
       });
       const authentication = integration.authentication;
 
