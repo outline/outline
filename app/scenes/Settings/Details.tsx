@@ -13,6 +13,7 @@ import type { CustomTheme } from "@shared/types";
 import { TOCPosition, TeamPreference, UserPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import { TeamValidation } from "@shared/validations";
+import { AvatarVariant } from "~/components/Avatar/Avatar";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
@@ -221,6 +222,7 @@ function Details() {
               onError={handleAvatarError}
               model={team}
               borderRadius={0}
+              variant={AvatarVariant.Square}
             />
           </SettingRow>
           <SettingRow
