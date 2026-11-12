@@ -10,6 +10,7 @@ import {
   UserPreference,
 } from "@shared/types";
 import type Collection from "~/models/Collection";
+import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
 import type Star from "~/models/Star";
@@ -251,14 +252,14 @@ export function useDragDocument(
  *
  * @param node The link node to drag.
  * @param depth The depth of the node in the sidebar.
- * @param collection The collection that contains the link.
+ * @param collectionId The id of the collection that contains the link.
  * @param parentId The id of the parent document, if any.
  * @param canDrag Whether the user can move the link.
  */
 export function useDragLink(
   node: NavigationNode,
   depth: number,
-  collection: Collection | undefined,
+  collectionId: string | undefined,
   parentId: string | undefined,
   canDrag: boolean
 ) {
@@ -268,7 +269,7 @@ export function useDragLink(
       ...node,
       depth,
       parentId,
-      collectionId: collection?.id ?? "",
+      collectionId: collectionId ?? "",
     }),
     canDrag: () => canDrag,
   });
@@ -279,19 +280,24 @@ export function useDragLink(
 /**
  * Moves a dragged link within its collection, showing an error on failure.
  *
- * @param collection The collection that contains the link.
+ * @param collections The collections store.
  * @param item The dragged link.
  * @param parentDocumentId The id of the new parent document, or undefined for the root.
  * @param index The position among the new siblings, defaults to the end.
  */
 async function moveLink(
-  collection: Collection,
+  collections: CollectionsStore,
   item: DragObject,
   parentDocumentId: string | undefined,
   index?: number
 ) {
   try {
-    await collection.moveLink(item.id, parentDocumentId, index);
+    await collections.moveLink(
+      item.collectionId,
+      item.id,
+      parentDocumentId,
+      index
+    );
   } catch (err) {
     toast.error(errToString(err));
   }
@@ -321,7 +327,7 @@ export function useDropToChangeCollection(
       }
 
       if (monitor.getItemType() === LinkDragType) {
-        await moveLink(collection, item, undefined, 0);
+        await moveLink(collections, item, undefined, 0);
         expandNode();
         return;
       }
@@ -428,10 +434,8 @@ export function useDropToReparentDocument(
         (collectionId ? collections.get(collectionId) : undefined);
 
       if (monitor.getItemType() === LinkDragType) {
-        if (targetCollection) {
-          await moveLink(targetCollection, item, node.id);
-          setExpanded();
-        }
+        await moveLink(collections, item, node.id);
+        setExpanded();
         return;
       }
       const prevCollection = collections.get(item.collectionId);
@@ -562,7 +566,7 @@ export function useDropToReorderDocument(
     canDrop: (item: DragObject, monitor) => {
       if (monitor.getItemType() === LinkDragType) {
         const params = getMoveParams(item);
-        if (!params || item.collectionId !== collection?.id) {
+        if (!params || item.collectionId !== params.collectionId) {
           return false;
         }
         return (
@@ -603,9 +607,9 @@ export function useDropToReorderDocument(
       const params = getMoveParams(item);
 
       if (monitor.getItemType() === LinkDragType) {
-        if (collection && params) {
+        if (params) {
           await moveLink(
-            collection,
+            collections,
             item,
             params.parentDocumentId,
             params.index

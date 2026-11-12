@@ -161,13 +161,13 @@ export function toLinkUrl(text: string): string | undefined {
  */
 export async function addLinkFromUrl({
   stores,
-  collection,
+  collectionId,
   parentDocumentId,
   index,
   url,
 }: {
   stores: LinkStores;
-  collection: Collection;
+  collectionId: string;
   parentDocumentId?: string;
   index?: number;
   url: string;
@@ -178,7 +178,8 @@ export async function addLinkFromUrl({
     fetchLinkTitle(url, stores),
   ]);
 
-  return collection.addLink(
+  return stores.collections.addLink(
+    collectionId,
     { url: canonicalUrl, title: title || getHostname(canonicalUrl) || url },
     parentDocumentId,
     index

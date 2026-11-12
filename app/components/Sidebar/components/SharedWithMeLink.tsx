@@ -31,6 +31,7 @@ import { DocumentTree } from "./DocumentTree";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
+import { addLinkFromUrl } from "./linkUrls";
 import SidebarDisclosureContext, {
   useSidebarDisclosure,
   useSidebarDisclosureState,
@@ -45,7 +46,8 @@ type Props = {
 };
 
 function SharedWithMeLink({ membership, depth = 0 }: Props) {
-  const { ui, collections, documents } = useStores();
+  const stores = useStores();
+  const { ui, collections, documents } = stores;
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = membership;
@@ -170,6 +172,21 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     ]
   );
 
+  const handleNewLink = React.useCallback(
+    async (url: string) => {
+      if (document?.collectionId) {
+        await addLinkFromUrl({
+          stores,
+          collectionId: document.collectionId,
+          parentDocumentId: document.id,
+          url,
+          index: 0,
+        });
+      }
+    },
+    [stores, document]
+  );
+
   const parentRef = React.useRef<HTMLDivElement>(null);
   const reparentableNode = React.useMemo(
     () => document?.asNavigationNode,
@@ -286,6 +303,11 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       menuOpen={menuOpen}
       canCreateChild={can.createChildDocument}
       onCreateChild={handleNewDoc}
+      onCreateChildLink={
+        document?.collectionId && document.publishedAt
+          ? handleNewLink
+          : undefined
+      }
       isActiveOverride={isActive}
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>

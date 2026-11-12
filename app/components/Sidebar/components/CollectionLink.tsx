@@ -95,7 +95,12 @@ const CollectionLink: React.FC<Props> = ({
 
   const handleNewLink = React.useCallback(
     async (url: string) => {
-      await addLinkFromUrl({ stores, collection, url, index: 0 });
+      await addLinkFromUrl({
+        stores,
+        collectionId: collection.id,
+        url,
+        index: 0,
+      });
     },
     [stores, collection]
   );

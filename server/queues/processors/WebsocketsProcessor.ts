@@ -463,15 +463,35 @@ export default class WebsocketsProcessor {
       case "collections.update_link":
       case "collections.move_link":
       case "collections.remove_link": {
-        const collection = await Collection.findOne({
-          where: { id: event.collectionId },
-          attributes: ["id", "updatedAt"],
-        });
+        const documentIds = event.data?.parentDocumentIds ?? [];
+        const [collection, userMemberships, groupMemberships] =
+          await Promise.all([
+            Collection.findOne({
+              where: { id: event.collectionId },
+              attributes: ["id", "updatedAt"],
+            }),
+            UserMembership.findAll({
+              where: { documentId: documentIds },
+              attributes: ["userId"],
+            }),
+            GroupMembership.findAll({
+              where: { documentId: documentIds },
+              attributes: ["groupId"],
+            }),
+          ]);
         if (!collection) {
           return;
         }
 
-        return socketio.to(`collection-${collection.id}`).emit("entities", {
+        // Members of the parent documents may not be in the collection room,
+        // memberships are copied to the descendants of a shared document.
+        const channels = uniq([
+          `collection-${collection.id}`,
+          ...userMemberships.map((m) => `user-${m.userId}`),
+          ...groupMemberships.map((m) => `group-${m.groupId}`),
+        ]);
+
+        return socketio.to(channels).emit("entities", {
           event: event.name,
           collectionIds: [
             {

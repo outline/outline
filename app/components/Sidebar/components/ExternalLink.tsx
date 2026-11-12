@@ -11,6 +11,8 @@ import type { FlattenedTreeNode } from "@shared/utils/tree";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isDocumentUrl, sanitizeUrl } from "@shared/utils/urls";
 import type Collection from "~/models/Collection";
+import type GroupMembership from "~/models/GroupMembership";
+import type UserMembership from "~/models/UserMembership";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { createAction } from "~/actions";
@@ -33,8 +35,10 @@ import SidebarLink from "./SidebarLink";
 interface Props {
   /** The link node to render. */
   node: NavigationNode;
-  /** The collection that contains the link, required to edit it. */
+  /** The collection that contains the link, if loaded. */
   collection?: Collection;
+  /** The membership that grants access to the link, if any. */
+  membership?: UserMembership | GroupMembership;
   /** Id of the document that contains the link, if any. */
   parentId?: string;
   /** Indentation depth of the row. */
@@ -54,6 +58,7 @@ const noAncestors: FlattenedTreeNode[] = [];
 export const ExternalLink = observer(function ExternalLink({
   node,
   collection,
+  membership,
   parentId,
   depth,
   index,
@@ -66,14 +71,21 @@ export const ExternalLink = observer(function ExternalLink({
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const canCollection = usePolicy(collection);
   const canParent = usePolicy(parentId);
+
+  // A tree from a document membership has no loaded collection, the parent
+  // document gives the collection instead.
+  const collectionId =
+    collection?.id ??
+    (parentId ? stores.documents.get(parentId)?.collectionId : undefined) ??
+    undefined;
   const canEdit =
-    !!collection &&
+    !!collectionId &&
     (parentId ? canParent.createChildDocument : canCollection.createDocument);
 
   const [{ isDragging }, dragRef] = useDragLink(
     node,
     depth,
-    collection,
+    collectionId,
     parentId,
     canEdit
   );
@@ -81,6 +93,8 @@ export const ExternalLink = observer(function ExternalLink({
   const { cursorBefore, cursorAfter } = useReorderDropCursors({
     node,
     collection,
+    collectionId,
+    membership,
     depth,
     index: index ?? 0,
     parentId,
@@ -141,18 +155,20 @@ export const ExternalLink = observer(function ExternalLink({
   }, [internalPath, stores]);
 
   const handleEdit = React.useCallback(() => {
-    if (collection) {
-      openEditLinkDialog({ stores, t, collection, node });
+    if (collectionId) {
+      openEditLinkDialog({ stores, t, collectionId, node });
     }
-  }, [stores, t, collection, node]);
+  }, [stores, t, collectionId, node]);
 
   const handleDelete = React.useCallback(async () => {
     try {
-      await collection?.removeLink(node.id);
+      if (collectionId) {
+        await stores.collections.removeLink(collectionId, node.id);
+      }
     } catch (err) {
       toast.error(errToString(err));
     }
-  }, [collection, node.id]);
+  }, [stores, collectionId, node.id]);
 
   const actions = React.useMemo(
     () => [

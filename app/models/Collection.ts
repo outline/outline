@@ -17,10 +17,7 @@ import {
 } from "@shared/types";
 import {
   filterNavigationNodes,
-  insertNavigationNode,
-  moveNavigationNode,
   sortNavigationNodes,
-  updateNavigationNode,
 } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
@@ -394,130 +391,6 @@ export default class Collection extends ParanoidModel {
 
     travelNodes(this.documents);
   }
-
-  /**
-   * Adds a link to an external location to the collection structure.
-   *
-   * @param attributes The title and url of the link.
-   * @param parentDocumentId The id of the document to add the link below, if any.
-   * @param index The position among the siblings, defaults to the end.
-   * @returns A promise that resolves to the new link node.
-   */
-  addLink = async (
-    attributes: Pick<NavigationNode, "title" | "url">,
-    parentDocumentId?: string,
-    index?: number
-  ): Promise<NavigationNode> => {
-    const res = await client.post("/collections.add_link", {
-      id: this.id,
-      parentDocumentId,
-      index,
-      ...attributes,
-    });
-    invariant(res?.data, "Data should be available");
-
-    runInAction(() => {
-      // The websocket refresh may already contain the link.
-      if (!this.documents || this.childrenByDocumentId.has(res.data.id)) {
-        return;
-      }
-      const documents = insertNavigationNode(
-        this.documents,
-        res.data,
-        parentDocumentId,
-        index
-      );
-      if (documents) {
-        this.documents = documents;
-      }
-    });
-
-    return res.data;
-  };
-
-  /**
-   * Updates a link to an external location in the collection structure.
-   *
-   * @param linkId The id of the link.
-   * @param attributes The title and url of the link.
-   * @returns A promise that resolves when the link is updated.
-   */
-  updateLink = async (
-    linkId: string,
-    attributes: Partial<Pick<NavigationNode, "title" | "url">>
-  ): Promise<void> => {
-    const res = await client.post("/collections.update_link", {
-      id: this.id,
-      linkId,
-      ...attributes,
-    });
-    invariant(res?.data, "Data should be available");
-
-    runInAction(() => {
-      if (!this.documents) {
-        return;
-      }
-      this.documents =
-        updateNavigationNode(this.documents, linkId, (node) => ({
-          ...res.data,
-          children: node.children,
-        })) ?? this.documents;
-    });
-  };
-
-  /**
-   * Moves a link to an external location to a new position in the collection
-   * structure.
-   *
-   * @param linkId The id of the link.
-   * @param parentDocumentId The id of the new parent document, or undefined for the root.
-   * @param index The position among the new siblings, defaults to the end.
-   * @returns A promise that resolves when the link is moved.
-   */
-  moveLink = async (
-    linkId: string,
-    parentDocumentId: string | undefined,
-    index?: number
-  ): Promise<void> => {
-    await client.post("/collections.move_link", {
-      id: this.id,
-      linkId,
-      parentDocumentId: parentDocumentId ?? null,
-      index,
-    });
-
-    runInAction(() => {
-      if (!this.documents) {
-        return;
-      }
-      const documents = moveNavigationNode(
-        this.documents,
-        linkId,
-        parentDocumentId,
-        index
-      );
-      if (documents) {
-        this.documents = documents;
-      }
-    });
-  };
-
-  /**
-   * Removes a link to an external location from the collection structure.
-   *
-   * @param linkId The id of the link.
-   * @returns A promise that resolves when the link is removed.
-   */
-  removeLink = async (linkId: string): Promise<void> => {
-    await client.post("/collections.remove_link", {
-      id: this.id,
-      linkId,
-    });
-
-    runInAction(() => {
-      this.removeDocument(linkId);
-    });
-  };
 
   @action
   updateIndex(index: string) {

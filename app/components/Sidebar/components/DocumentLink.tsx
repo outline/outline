@@ -228,19 +228,21 @@ const DocumentLink = observer(function DocumentLink({
     ]
   );
 
+  // A tree from a document membership has no loaded collection.
+  const linkCollectionId = collection?.id ?? document?.collectionId;
   const handleNewLink = React.useCallback(
     async (url: string) => {
-      if (collection) {
+      if (linkCollectionId) {
         await addLinkFromUrl({
           stores,
-          collection,
+          collectionId: linkCollectionId,
           parentDocumentId: node.id,
           url,
           index: 0,
         });
       }
     },
-    [stores, collection, node.id]
+    [stores, linkCollectionId, node.id]
   );
 
   const contextMenuAction = useDocumentMenuAction({
@@ -305,7 +307,9 @@ const DocumentLink = observer(function DocumentLink({
       menuOpen={menuOpen}
       canCreateChild={can.createChildDocument}
       onCreateChild={handleNewDoc}
-      onCreateChildLink={collection && !isDraft ? handleNewLink : undefined}
+      onCreateChildLink={
+        linkCollectionId && !isDraft ? handleNewLink : undefined
+      }
       contextAction={contextMenuAction}
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}

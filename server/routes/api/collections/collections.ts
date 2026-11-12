@@ -1,6 +1,6 @@
 import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
-import { truncate } from "es-toolkit/compat";
+import { compact, truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import type { Filter } from "@shared/helpers/FilterHelper";
@@ -218,7 +218,7 @@ router.post(
       name: "collections.add_link",
       collectionId: collection.id,
       modelId: node.id,
-      data: { title, url },
+      data: { title, url, parentDocumentIds: compact([parentDocumentId]) },
     });
 
     ctx.body = {
@@ -236,7 +236,11 @@ router.post(
     const { transaction } = ctx.state;
     const { id, linkId, title, url } = ctx.input.body;
 
-    const { collection } = await loadCollectionForExistingLink(ctx, id, linkId);
+    const { collection, link } = await loadCollectionForExistingLink(
+      ctx,
+      id,
+      linkId
+    );
     await collection.updateLinkInStructure(
       linkId,
       { title, url },
@@ -246,7 +250,11 @@ router.post(
       name: "collections.update_link",
       collectionId: collection.id,
       modelId: linkId,
-      data: { title, url },
+      data: {
+        title,
+        url,
+        parentDocumentIds: compact([link.parentDocumentId]),
+      },
     });
 
     ctx.body = {
@@ -284,7 +292,10 @@ router.post(
       name: "collections.move_link",
       collectionId: collection.id,
       modelId: linkId,
-      data: { parentDocumentId, index },
+      data: {
+        index,
+        parentDocumentIds: compact([parentDocumentId, link.parentDocumentId]),
+      },
     });
 
     ctx.body = {
@@ -302,12 +313,17 @@ router.post(
     const { transaction } = ctx.state;
     const { id, linkId } = ctx.input.body;
 
-    const { collection } = await loadCollectionForExistingLink(ctx, id, linkId);
+    const { collection, link } = await loadCollectionForExistingLink(
+      ctx,
+      id,
+      linkId
+    );
     await collection.removeLinkFromStructure(linkId, { transaction });
     await Event.createFromContext(ctx, {
       name: "collections.remove_link",
       collectionId: collection.id,
       modelId: linkId,
+      data: { parentDocumentIds: compact([link.parentDocumentId]) },
     });
 
     ctx.body = {

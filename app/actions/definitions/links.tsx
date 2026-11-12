@@ -23,7 +23,7 @@ export const addLinkToCollection = createAction({
   perform: ({ getActiveModel, stores, t }) => {
     const collection = getActiveModel(Collection);
     if (collection) {
-      openAddLinkDialog({ stores, t, collection, index: 0 });
+      openAddLinkDialog({ stores, t, collectionId: collection.id, index: 0 });
     }
   },
 });
@@ -47,7 +47,7 @@ export const addLinkToDocument = createAction({
       openAddLinkDialog({
         stores,
         t,
-        collection: location.collection,
+        collectionId: location.collection.id,
         parentDocumentId: location.document.id,
       });
     }

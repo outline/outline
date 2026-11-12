@@ -259,6 +259,7 @@ export const DocumentTree = observer(function DocumentTree({
             <ExternalLink
               node={row.node}
               collection={collection}
+              membership={membership}
               parentId={row.parentId}
               depth={row.depth}
               index={row.index}

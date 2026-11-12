@@ -10,7 +10,6 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import useStores from "~/hooks/useStores";
-import type Collection from "~/models/Collection";
 import type RootStore from "~/stores/RootStore";
 import { fetchLinkTitle, toCanonicalUrl } from "./linkUrls";
 
@@ -22,12 +21,13 @@ import { fetchLinkTitle, toCanonicalUrl } from "./linkUrls";
 export function openAddLinkDialog({
   stores,
   t,
-  collection,
+  collectionId,
   parentDocumentId,
   index,
 }: DialogOptions & { parentDocumentId?: string; index?: number }) {
   const handleSubmit = async (values: LinkValues) => {
-    await collection.addLink(
+    await stores.collections.addLink(
+      collectionId,
       { ...values, url: await toCanonicalUrl(values.url, stores) },
       parentDocumentId,
       index
@@ -49,11 +49,11 @@ export function openAddLinkDialog({
 export function openEditLinkDialog({
   stores,
   t,
-  collection,
+  collectionId,
   node,
 }: DialogOptions & { node: NavigationNode }) {
   const handleSubmit = async (values: LinkValues) => {
-    await collection.updateLink(node.id, {
+    await stores.collections.updateLink(collectionId, node.id, {
       ...values,
       url: await toCanonicalUrl(values.url, stores),
     });
@@ -77,8 +77,8 @@ interface DialogOptions {
   stores: RootStore;
   /** The translation function. */
   t: TFunction;
-  /** The collection that contains the link. */
-  collection: Collection;
+  /** The id of the collection that contains the link. */
+  collectionId: string;
 }
 
 /** The values that can be edited in the link dialog. */

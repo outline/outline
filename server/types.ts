@@ -363,6 +363,10 @@ export type CollectionLinkEvent = BaseEvent<Collection> & {
     | "collections.remove_link";
   collectionId: string;
   modelId: string;
+  data: {
+    /** Ids of the documents that contained or now contain the link. */
+    parentDocumentIds: string[];
+  };
 };
 
 export type GroupUserEvent = BaseEvent<UserMembership> & {
