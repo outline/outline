@@ -32,7 +32,7 @@ export default class CleanupDemotedUserTask extends BaseTask<Props> {
             enabled: true,
           },
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: transaction.LOCK.NO_KEY_UPDATE,
         });
         await Promise.all(
           subscriptions.map((subscription) =>
