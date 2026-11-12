@@ -20,6 +20,8 @@ type Props = ImageUploadProps & {
    * existing avatar. Defaults to true.
    */
   showRemoveOption?: boolean;
+  /** The shape of the avatar preview. Defaults to round. */
+  variant?: AvatarVariant;
 };
 
 export default function ImageInput({
@@ -27,13 +29,14 @@ export default function ImageInput({
   onSuccess,
   alt,
   showRemoveOption = true,
+  variant = AvatarVariant.Round,
   ...rest
 }: Props) {
   const { t } = useTranslation();
 
   return (
     <Flex gap={8} justify="space-between">
-      <ImageBox>
+      <ImageBox $variant={variant}>
         <ImageUpload
           onSuccess={onSuccess}
           submitText={t("Crop image")}
@@ -42,7 +45,7 @@ export default function ImageInput({
           <Avatar
             model={model}
             size={AvatarSize.Upload}
-            variant={AvatarVariant.Round}
+            variant={variant}
             alt={alt}
           />
           <Flex auto align="center" justify="center" className="upload">
@@ -64,11 +67,14 @@ const avatarStyles = `
   height: ${AvatarSize.Upload}px;
 `;
 
-const ImageBox = styled(Flex)`
+const ImageBox = styled(Flex)<{ $variant: AvatarVariant }>`
   ${avatarStyles};
   position: relative;
   font-size: 14px;
-  border-radius: 50%;
+  border-radius: ${(props) =>
+    props.$variant === AvatarVariant.Round
+      ? "50%"
+      : `${AvatarSize.Upload / 8}px`};
   box-shadow: 0 0 0 1px ${s("backgroundSecondary")};
   background: ${s("background")};
   overflow: hidden;
