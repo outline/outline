@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
+import isTextInput from "~/utils/isTextInput";
 
 interface MenuFilterState {
   /** The current filter query, or undefined when the filter is hidden. */
@@ -41,7 +42,8 @@ export function useMenuFilter(): MenuFilterState {
       if (
         !(target instanceof HTMLElement) ||
         target.closest("[data-radix-menu-content]") !== currentTarget ||
-        isEditable(target) ||
+        (isTextInput(target) && !target.matches('[role^="menuitem"]')) ||
+        target.isContentEditable ||
         isShortcut ||
         event.nativeEvent.isComposing
       ) {
@@ -168,15 +170,6 @@ function lockLayout(content: HTMLElement) {
 }
 
 const LOCKED_ATTRIBUTE = "data-menu-filter-locked";
-
-function isEditable(element: HTMLElement) {
-  return (
-    element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement ||
-    element instanceof HTMLSelectElement ||
-    element.isContentEditable
-  );
-}
 
 const blink = keyframes`
   0%, 50% { opacity: 1; }
