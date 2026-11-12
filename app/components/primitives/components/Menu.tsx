@@ -68,7 +68,9 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     `
       &[data-highlighted],
       &[data-state="open"],
-      &:focus-visible {
+      &:focus-visible,
+      [data-radix-menu-content]:has([data-menu-filter-input]:focus)
+        &[data-menu-filter-highlighted] {
         color: ${props.theme.accentText};
         background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
         outline-color: ${

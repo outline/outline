@@ -29,9 +29,11 @@ interface MenuFilterState {
 export function useMenuFilter(): MenuFilterState {
   const [query, setQuery] = React.useState<string>();
   const contentRef = React.useRef<HTMLElement | null>(null);
+  const highlightRef = React.useRef<HTMLElement | null>(null);
 
   const reset = React.useCallback(() => {
     contentRef.current = null;
+    highlightRef.current = null;
     setQuery(undefined);
   }, []);
 
@@ -67,6 +69,7 @@ export function useMenuFilter(): MenuFilterState {
       ) {
         event.preventDefault();
         event.stopPropagation();
+        highlightRef.current = highlightItem(currentTarget, target);
         input.focus();
         return;
       }
@@ -87,6 +90,9 @@ export function useMenuFilter(): MenuFilterState {
       // typeahead, item selection and global shortcuts must not handle the key.
       event.stopPropagation();
       contentRef.current = currentTarget;
+      if (target.matches(ITEM_SELECTOR)) {
+        highlightRef.current = target;
+      }
       if (query === undefined) {
         lockLayout(currentTarget);
       }
@@ -106,9 +112,11 @@ export function useMenuFilter(): MenuFilterState {
     [query]
   );
 
-  // Move focus to the first item if the focused item was filtered out, or if
-  // the filter was hidden while it had focus. A passive effect runs after
-  // Radix removes unmounted items from its collection.
+  // While the input has focus, highlight the item that had focus before, or
+  // the first match if it was filtered out. Otherwise move focus to the first
+  // item if the focused item was filtered out, or if the filter was hidden
+  // while it had focus. A passive effect runs after Radix removes unmounted
+  // items from its collection.
   React.useEffect(() => {
     const content = contentRef.current;
     if (!content) {
@@ -116,11 +124,14 @@ export function useMenuFilter(): MenuFilterState {
     }
 
     const active = document.activeElement;
+    if (query !== undefined && active?.hasAttribute(INPUT_ATTRIBUTE)) {
+      highlightRef.current = highlightItem(content, highlightRef.current);
+      return;
+    }
     if (
       active &&
       content.contains(active) &&
-      (active.getAttribute("role")?.startsWith("menuitem") ||
-        (query !== undefined && active.hasAttribute(INPUT_ATTRIBUTE)))
+      active.getAttribute("role")?.startsWith("menuitem")
     ) {
       return;
     }
@@ -170,16 +181,19 @@ export function MenuFilter({ query, onChange }: Props) {
       const items = content
         ? Array.from(content.querySelectorAll<HTMLElement>(ITEM_SELECTOR))
         : [];
+      const highlighted =
+        content?.querySelector<HTMLElement>(`[${HIGHLIGHT_ATTRIBUTE}]`) ??
+        items[0];
 
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        items[0]?.focus();
+        highlighted?.focus();
       } else if (event.key === "ArrowUp") {
         event.preventDefault();
         items[items.length - 1]?.focus();
       } else if (event.key === "Enter") {
         event.preventDefault();
-        items[0]?.click();
+        highlighted?.click();
       }
     },
     []
@@ -234,7 +248,31 @@ function lockLayout(content: HTMLElement) {
   }
 }
 
+/**
+ * Marks the item that Enter selects while the filter input has focus.
+ *
+ * @param content the menu content.
+ * @param preferred the item to mark if it is still in the menu.
+ * @returns the marked item, or null if the menu has no items.
+ */
+function highlightItem(content: HTMLElement, preferred: HTMLElement | null) {
+  const item =
+    preferred?.isConnected &&
+    content.contains(preferred) &&
+    preferred.matches(ITEM_SELECTOR)
+      ? preferred
+      : content.querySelector<HTMLElement>(ITEM_SELECTOR);
+
+  content
+    .querySelectorAll(`[${HIGHLIGHT_ATTRIBUTE}]`)
+    .forEach((element) => element.removeAttribute(HIGHLIGHT_ATTRIBUTE));
+  item?.setAttribute(HIGHLIGHT_ATTRIBUTE, "");
+  return item;
+}
+
 const ITEM_SELECTOR = '[role^="menuitem"]:not([data-disabled])';
+
+const HIGHLIGHT_ATTRIBUTE = "data-menu-filter-highlighted";
 
 const LOCKED_ATTRIBUTE = "data-menu-filter-locked";
 
