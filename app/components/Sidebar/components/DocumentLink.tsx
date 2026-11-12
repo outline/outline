@@ -248,13 +248,13 @@ const DocumentLink = observer(function DocumentLink({
   const contextMenuAction = useDocumentMenuAction({
     documentId: node.id,
     onRename: handleRename,
-    showLinkActions: true,
+    isSidebar: true,
   });
 
   const menu = document ? (
     <DocumentMenu
       document={document}
-      showLinkActions
+      isSidebar
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}

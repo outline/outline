@@ -13,6 +13,7 @@ import {
   shareDocument,
   createNewDocument,
   createNewDocumentInAlphabeticalCollection,
+  createNewNestedDocument,
   importDocument,
   createTemplateFromDocument,
   duplicateDocument,
@@ -54,8 +55,8 @@ type Props = {
   onRename?: () => void;
   /** Callback when a template is selected to apply its content to the document */
   onSelectTemplate?: (template: Template) => void;
-  /** Whether to include the actions that add links around the document, used in the sidebar */
-  showLinkActions?: boolean;
+  /** Whether the menu is shown in the sidebar, where items can be added around the document */
+  isSidebar?: boolean;
 };
 
 export function useDocumentMenuAction({
@@ -64,7 +65,7 @@ export function useDocumentMenuAction({
   onFindAndReplace,
   onRename,
   onSelectTemplate,
-  showLinkActions = false,
+  isSidebar = false,
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -78,9 +79,13 @@ export function useDocumentMenuAction({
     () =>
       createRootMenuAction([
         // Actions that add to the tree around the document, not change it.
-        createNewDocument,
-        createNewDocumentInAlphabeticalCollection,
-        ...(showLinkActions ? [addLinkToDocument] : []),
+        ...(isSidebar
+          ? [
+              createNewDocument,
+              createNewDocumentInAlphabeticalCollection,
+              addLinkToDocument,
+            ]
+          : [createNewNestedDocument]),
         importDocument,
         ActionSeparator,
         restoreDocument,
@@ -132,7 +137,7 @@ export function useDocumentMenuAction({
       t,
       isMobile,
       isViewing,
-      showLinkActions,
+      isSidebar,
       templateMenuActions,
       documentId,
       onFindAndReplace,

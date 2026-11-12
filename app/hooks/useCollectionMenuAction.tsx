@@ -29,20 +29,20 @@ type Props = {
   collectionId: string;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
-  /** Whether to include the action that adds a link, used in the sidebar */
-  showLinkActions?: boolean;
+  /** Whether the menu is shown in the sidebar, where links can be added */
+  isSidebar?: boolean;
 };
 
 export function useCollectionMenuAction({
   collectionId,
   onRename,
-  showLinkActions = false,
+  isSidebar = false,
 }: Props) {
   const actions = useMemo(
     () => [
       // Actions that add to the tree of the collection, not change it.
       createDocument,
-      ...(showLinkActions ? [addLinkToCollection] : []),
+      ...(isSidebar ? [addLinkToCollection] : []),
       importDocument,
       ActionSeparator,
       restoreCollection,
@@ -68,7 +68,7 @@ export function useCollectionMenuAction({
       ActionSeparator,
       deleteCollection,
     ],
-    [collectionId, onRename, showLinkActions]
+    [collectionId, onRename, isSidebar]
   );
 
   return useMenuAction(actions);

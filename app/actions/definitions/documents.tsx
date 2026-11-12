@@ -447,14 +447,24 @@ export const createNewDocument = createActionWithChildren({
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
 });
 
-export const createNewDocumentInAlphabeticalCollection =
-  createInternalLinkAction({
+/**
+ * Creates the action that opens a new document nested inside the active
+ * document.
+ *
+ * @param visible - additional visibility check for the action.
+ * @returns the action.
+ */
+function newNestedDocumentAction(
+  visible: (context: ActionContext) => boolean = () => true
+) {
+  return createInternalLinkAction({
     name: ({ t }) => t("New document"),
     analyticsName: "New document",
     section: ActiveDocumentSection,
     icon: <NewDocumentIcon />,
     keywords: "create",
-    visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    visible: (context) => {
+      const { currentTeamId, activeDocumentId, stores } = context;
       if (!activeDocumentId || !currentTeamId) {
         return false;
       }
@@ -464,7 +474,7 @@ export const createNewDocumentInAlphabeticalCollection =
       if (!stores.policies.abilities(activeDocumentId).createChildDocument) {
         return false;
       }
-      return isAlphabeticallySorted(stores, activeDocumentId);
+      return visible(context);
     },
     to: ({ activeDocumentId, sidebarContext }) => {
       const [pathname, search] =
@@ -477,6 +487,16 @@ export const createNewDocumentInAlphabeticalCollection =
       };
     },
   });
+}
+
+export const createNewDocumentInAlphabeticalCollection =
+  newNestedDocumentAction(
+    ({ activeDocumentId, stores }) =>
+      !!activeDocumentId && isAlphabeticallySorted(stores, activeDocumentId)
+  );
+
+/** A single action to create a nested document, for menus outside the sidebar. */
+export const createNewNestedDocument = newNestedDocumentAction();
 
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),

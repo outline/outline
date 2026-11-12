@@ -265,6 +265,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const menu = !isDragging ? (
     <DocumentMenu
       document={document}
+      isSidebar
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
     />
