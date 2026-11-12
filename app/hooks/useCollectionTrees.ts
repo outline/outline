@@ -40,7 +40,6 @@ function getCollectionTree(collection: Collection): NavigationNode {
   };
 
   root.children = annotateNodes(
-    // Links are not documents, so they cannot be a destination or be selected.
     collection.documentNodes ?? [],
     collection.sort,
     root

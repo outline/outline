@@ -18,7 +18,6 @@ import {
 import {
   filterNavigationNodes,
   insertNavigationNode,
-  isLinkNode,
   moveNavigationNode,
   sortNavigationNodes,
   updateNavigationNode,
@@ -206,7 +205,10 @@ export default class Collection extends ParanoidModel {
   @computed
   get documentNodes(): NavigationNode[] | undefined {
     return this.documents
-      ? filterNavigationNodes(this.documents, (node) => !isLinkNode(node))
+      ? filterNavigationNodes(
+          this.documents,
+          (node) => node.type !== NavigationNodeType.Link
+        )
       : undefined;
   }
 
@@ -534,7 +536,7 @@ export default class Collection extends ParanoidModel {
    */
   getChildDocumentsForDocument(documentId: string) {
     return this.getChildrenForDocument(documentId).filter(
-      (node) => !isLinkNode(node)
+      (node) => node.type !== NavigationNodeType.Link
     );
   }
 

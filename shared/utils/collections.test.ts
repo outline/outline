@@ -3,7 +3,6 @@ import {
   filterNavigationNodes,
   findNavigationNode,
   insertNavigationNode,
-  isLinkNode,
   moveNavigationNode,
   removeNavigationNode,
   updateNavigationNode,
@@ -143,13 +142,18 @@ describe("removeNavigationNode", () => {
 describe("filterNavigationNodes", () => {
   it("should remove links at every depth and keep unchanged nodes", () => {
     const tree = [node("a", [node("a1"), link("l2")]), link("l1"), node("b")];
-    const result = filterNavigationNodes(tree, (n) => !isLinkNode(n));
+    const result = filterNavigationNodes(
+      tree,
+      (n) => n.type !== NavigationNodeType.Link
+    );
     expect(ids(result)).toEqual([["a", ["a1"]], "b"]);
     expect(result[1]).toBe(tree[2]);
   });
 
   it("should return the same array when nothing is removed", () => {
     const tree = [node("a", [node("a1")])];
-    expect(filterNavigationNodes(tree, (n) => !isLinkNode(n))).toBe(tree);
+    expect(
+      filterNavigationNodes(tree, (n) => n.type !== NavigationNodeType.Link)
+    ).toBe(tree);
   });
 });

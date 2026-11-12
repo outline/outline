@@ -3,8 +3,7 @@ import { escapeRegExp } from "es-toolkit/compat";
 import type { ZipFile } from "yazl";
 import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
-import { FileOperationFormat } from "@shared/types";
-import { isLinkNode } from "@shared/utils/collections";
+import { FileOperationFormat, NavigationNodeType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
@@ -440,7 +439,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat
   ) {
     for (const node of nodes) {
-      if (isLinkNode(node)) {
+      if (node.type === NavigationNodeType.Link) {
         continue;
       }
 

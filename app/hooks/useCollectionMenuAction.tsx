@@ -15,13 +15,13 @@ import {
   subscribeCollection,
   unsubscribeCollection,
   createDocument,
-  addLinkToCollection,
   exportCollection,
   importDocument,
   openCollectionInSplit,
   sortCollection,
 } from "~/actions/definitions/collections";
 import { renameActionFactory } from "~/actions/definitions/common";
+import { addLinkToCollection } from "~/actions/definitions/links";
 import { ActiveCollectionSection } from "~/actions/sections";
 
 type Props = {

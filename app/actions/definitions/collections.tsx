@@ -7,7 +7,6 @@ import {
   EditIcon,
   ExportIcon,
   ImportIcon,
-  LinkIcon,
   SortManualIcon,
   NewDocumentIcon,
   PadlockIcon,
@@ -32,7 +31,6 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
-import { openAddLinkDialog } from "~/components/Sidebar/components/LinkDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
@@ -557,25 +555,6 @@ export const createDocument = createInternalLinkAction({
       search,
       state: { sidebarContext },
     };
-  },
-});
-
-export const addLinkToCollection = createAction({
-  name: ({ t }) => `${t("Add link")}…`,
-  analyticsName: "Add link",
-  section: ActiveCollectionSection,
-  icon: <LinkIcon />,
-  keywords: "url bookmark",
-  visible: ({ getActiveModel, getActivePolicies }) =>
-    !!getActiveModel(Collection)?.documents &&
-    getActivePolicies(Collection).some(
-      (policy) => policy.abilities.createDocument
-    ),
-  perform: ({ getActiveModel, stores, t }) => {
-    const collection = getActiveModel(Collection);
-    if (collection) {
-      openAddLinkDialog({ stores, t, collection, index: 0 });
-    }
   },
 });
 

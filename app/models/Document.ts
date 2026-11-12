@@ -26,7 +26,6 @@ import {
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import Storage from "@shared/utils/Storage";
-import { isLinkNode } from "@shared/utils/collections";
 import { isRTL } from "@shared/utils/rtl";
 import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
@@ -737,7 +736,7 @@ export default class Document extends ArchivableModel implements Searchable {
       collection?.getChildrenForDocument(this.id) ??
       membership?.getChildrenForDocument(this.id) ??
       []
-    ).filter((node) => !isLinkNode(node));
+    ).filter((node) => node.type !== NavigationNodeType.Link);
   }
 
   /**

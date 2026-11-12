@@ -13,8 +13,6 @@ import {
   shareDocument,
   createNewDocument,
   createNewDocumentInAlphabeticalCollection,
-  addLink,
-  addLinkInAlphabeticalCollection,
   importDocument,
   createTemplateFromDocument,
   duplicateDocument,
@@ -39,6 +37,10 @@ import {
   toggleDocumentStats,
 } from "~/actions/definitions/documents";
 import { renameActionFactory } from "~/actions/definitions/common";
+import {
+  addLink,
+  addLinkInAlphabeticalCollection,
+} from "~/actions/definitions/links";
 import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
 import type Template from "~/models/Template";

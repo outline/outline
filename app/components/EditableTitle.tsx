@@ -116,8 +116,6 @@ function EditableTitle({
         setValue(value);
         setIsEditing(true);
 
-        // The error is shown here, callers are event handlers that cannot
-        // handle it.
         toast.error(errToString(error));
       } finally {
         setIsSubmitting(false);

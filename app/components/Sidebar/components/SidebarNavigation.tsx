@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import type { NavigationNode } from "@shared/types";
-import { isLinkNode } from "@shared/utils/collections";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
@@ -169,7 +168,7 @@ function lastDocumentDescendant(
 ): NavigationNode | undefined {
   for (let i = nodes.length - 1; i >= 0; i--) {
     const node = nodes[i];
-    if (!isLinkNode(node)) {
+    if (node.type !== NavigationNodeType.Link) {
       return lastDocumentDescendant(node.children) ?? node;
     }
   }

@@ -55,7 +55,6 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   findNavigationNode,
   insertNavigationNode,
-  isLinkNode,
   moveNavigationNode,
   removeNavigationNode,
   updateNavigationNode,
@@ -1258,7 +1257,7 @@ class Collection extends ParanoidModel<
     const allDocumentIds: string[] = [];
 
     const loopChildren = (node: NavigationNode) => {
-      if (isLinkNode(node)) {
+      if (node.type === NavigationNodeType.Link) {
         return;
       }
       allDocumentIds.push(node.id);
@@ -1281,7 +1280,7 @@ class Collection extends ParanoidModel<
     linkId: string
   ): { node: NavigationNode; parentDocumentId?: string } | undefined => {
     const result = findNavigationNode(this.documentStructure ?? [], linkId);
-    return result && isLinkNode(result.node)
+    return result && result.node.type === NavigationNodeType.Link
       ? { node: result.node, parentDocumentId: result.parentId }
       : undefined;
   };

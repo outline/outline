@@ -1,7 +1,6 @@
 import type { Team } from "@server/models";
 import type { NavigationNode } from "@shared/types";
 import { NavigationNodeType } from "@shared/types";
-import { isLinkNode } from "@shared/utils/collections";
 
 export interface PresentedNavigationNode {
   id: string;
@@ -30,7 +29,10 @@ export default function presentNavigationNode(
     url: /^https?:\/\//.test(node.url)
       ? node.url
       : new URL(node.url, team.url).href,
-    type: isLinkNode(node) ? NavigationNodeType.Link : undefined,
+    type:
+      node.type === NavigationNodeType.Link
+        ? NavigationNodeType.Link
+        : undefined,
     children: (node.children ?? []).map((child) =>
       presentNavigationNode(team, child)
     ),

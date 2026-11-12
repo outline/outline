@@ -2,8 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
-import type { NavigationNode } from "@shared/types";
-import { isLinkNode } from "@shared/utils/collections";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
@@ -157,7 +156,7 @@ const ObservedDocumentLink = observer(DocumentLink);
  * A row in the sidebar of a public share, for a document or a link.
  */
 export function SharedDocumentLink(props: Props) {
-  return isLinkNode(props.node) ? (
+  return props.node.type === NavigationNodeType.Link ? (
     <ExternalLink node={props.node} depth={props.depth} />
   ) : (
     <ObservedDocumentLink {...props} />

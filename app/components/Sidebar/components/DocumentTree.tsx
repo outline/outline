@@ -4,8 +4,8 @@ import { noop } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
-import type { NavigationNode } from "@shared/types";
-import { isLinkNode, sortNavigationNodes } from "@shared/utils/collections";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import {
   flattenExpandedTree,
   type FlattenedTreeNode,
@@ -214,7 +214,7 @@ export const DocumentTree = observer(function DocumentTree({
   const getNavigationItems = React.useCallback(
     () =>
       rows
-        .filter((row) => !isLinkNode(row.node))
+        .filter((row) => row.node.type !== NavigationNodeType.Link)
         .map((row) => ({
           id: row.node.id,
           url: row.node.url,
@@ -255,7 +255,7 @@ export const DocumentTree = observer(function DocumentTree({
       <React.Fragment key={item.key}>
         {gap > 0 && <div style={{ height: gap }} />}
         <div data-index={item.index} ref={virtualizer.measureElement}>
-          {isLinkNode(row.node) ? (
+          {row.node.type === NavigationNodeType.Link ? (
             <ExternalLink
               node={row.node}
               collection={collection}
