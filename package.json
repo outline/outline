@@ -219,7 +219,7 @@
     "rate-limiter-flexible": "^11.2.3",
     "react": "^19.3.0",
     "react-avatar-editor": "^15.1.0",
-    "react-colorful": "^5.8.0",
+    "react-colorful": "^5.8.1",
     "react-day-picker": "^8.10.2",
     "react-dom": "^19.3.0",
     "react-dropzone": "^20.1.4",
