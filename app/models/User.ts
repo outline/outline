@@ -17,6 +17,7 @@ import { client } from "~/utils/ApiClient";
 import type Document from "./Document";
 import type Group from "./Group";
 import type UserMembership from "./UserMembership";
+import NavigableModel from "./base/NavigableModel";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
@@ -211,13 +212,14 @@ class User extends ParanoidModel implements Searchable {
   /**
    * Returns the direct memberships that this user has to documents. Documents that the
    * user already has access to through a collection, archived, and trashed documents are not included.
+   * Documents nested under another shared document in the list are also not included.
    *
    * @returns A list of user memberships
    */
   @computed
   get documentMemberships(): UserMembership[] {
     const { userMemberships, documents, policies } = this.store.rootStore;
-    return userMemberships.orderedData
+    const memberships = userMemberships.orderedData
       .filter(
         (m) => m.userId === this.id && m.sourceId === null && m.documentId
       )
@@ -228,6 +230,8 @@ class User extends ParanoidModel implements Searchable {
           : undefined;
         return !policy?.abilities?.readDocument && !!document?.isActive;
       });
+
+    return NavigableModel.filterRoots(memberships, documents);
   }
 
   @computed
