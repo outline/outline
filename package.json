@@ -76,7 +76,6 @@
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/react-fontawesome": "^3.5.0",
     "@getoutline/react-roving-tabindex": "^3.2.4",
-    "@gitbeaker/rest": "^43.8.0",
     "@hocuspocus/extension-redis": "1.1.3",
     "@hocuspocus/extension-throttle": "1.1.3",
     "@hocuspocus/provider": "1.1.3",
