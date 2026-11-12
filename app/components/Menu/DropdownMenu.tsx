@@ -20,6 +20,7 @@ import type {
   MenuItem,
   MenuItemWithChildren,
 } from "~/types";
+import { MenuFilter, MenuFilterEmpty, useMenuFilter } from "./MenuFilter";
 import { toMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
@@ -65,6 +66,12 @@ export const DropdownMenu = observer(function DropdownMenu({
   const actionContext = useActionContext({
     isMenu: true,
   });
+  const {
+    query,
+    handleKeyDownCapture,
+    handleEscapeKeyDown,
+    reset: resetFilter,
+  } = useMenuFilter();
 
   const menuItems = useComputed(() => {
     if (!open) {
@@ -93,12 +100,13 @@ export const DropdownMenu = observer(function DropdownMenu({
     (open: boolean) => {
       setOpen(open);
       if (open) {
+        resetFilter();
         onOpen?.();
       } else {
         onClose?.();
       }
     },
-    [onOpen, onClose]
+    [onOpen, onClose, resetFilter]
   );
 
   const enablePointerEvents = React.useCallback(() => {
@@ -130,7 +138,7 @@ export const DropdownMenu = observer(function DropdownMenu({
     );
   }
 
-  const content = toMenuItems(menuItems);
+  const content = toMenuItems(menuItems, query);
 
   return (
     <MenuProvider variant="dropdown">
@@ -144,9 +152,12 @@ export const DropdownMenu = observer(function DropdownMenu({
           onAnimationStart={disablePointerEvents}
           onAnimationEnd={enablePointerEvents}
           onCloseAutoFocus={preventDefault}
+          onEscapeKeyDown={handleEscapeKeyDown}
+          onKeyDownCapture={handleKeyDownCapture}
         >
-          {content}
-          {append}
+          {query !== undefined && <MenuFilter query={query} />}
+          {content ?? (query ? <MenuFilterEmpty /> : null)}
+          {query ? null : append}
         </MenuContent>
       </Menu>
     </MenuProvider>

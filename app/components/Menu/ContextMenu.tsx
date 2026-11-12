@@ -4,6 +4,7 @@ import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import type { ActionFactory, ActionVariant, ActionWithChildren } from "~/types";
 import { preventDefault } from "~/utils/events";
+import { MenuFilter, MenuFilterEmpty, useMenuFilter } from "./MenuFilter";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
@@ -31,6 +32,12 @@ export const ContextMenu = observer(
     const actionContext = useActionContext({
       isMenu: true,
     });
+    const {
+      query,
+      handleKeyDownCapture,
+      handleEscapeKeyDown,
+      reset: resetFilter,
+    } = useMenuFilter();
 
     // Menu items are only built while the menu is open.
     const menuItems = useComputed(() => {
@@ -54,12 +61,13 @@ export const ContextMenu = observer(
       (open: boolean) => {
         setOpen(open);
         if (open) {
+          resetFilter();
           onOpen?.();
         } else {
           onClose?.();
         }
       },
-      [onOpen, onClose]
+      [onOpen, onClose, resetFilter]
     );
 
     const enablePointerEvents = React.useCallback(() => {
@@ -86,7 +94,7 @@ export const ContextMenu = observer(
       return <>{children}</>;
     }
 
-    const content = open ? toMenuItems(menuItems) : null;
+    const content = open ? toMenuItems(menuItems, query) : null;
 
     return (
       <MenuProvider variant="context">
@@ -97,8 +105,11 @@ export const ContextMenu = observer(
             onAnimationStart={disablePointerEvents}
             onAnimationEnd={enablePointerEvents}
             onCloseAutoFocus={preventDefault}
+            onEscapeKeyDown={handleEscapeKeyDown}
+            onKeyDownCapture={handleKeyDownCapture}
           >
-            {content}
+            {query !== undefined && <MenuFilter query={query} />}
+            {content ?? (query ? <MenuFilterEmpty /> : null)}
           </MenuContent>
         </Menu>
       </MenuProvider>
