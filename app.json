@@ -181,6 +181,10 @@
       "value": "26214400",
       "required": false
     },
+    "EMAIL_PROVIDER": {
+      "description": "How email is delivered: 'smtp' (default), 'msgraph', 'gmail' or 'ses' (optional)",
+      "required": false
+    },
     "SMTP_HOST": {
       "description": "smtp.example.com (optional)",
       "required": false
@@ -212,6 +216,34 @@
     "SMTP_SECURE": {
       "value": "true",
       "description": "Use a secure SMTP connection (optional)",
+      "required": false
+    },
+    "AZURE_MAIL_CLIENT_ID": {
+      "description": "Entra ID application with the Mail.Send permission, for EMAIL_PROVIDER=msgraph (optional)",
+      "required": false
+    },
+    "AZURE_MAIL_CLIENT_SECRET": {
+      "description": "(optional)",
+      "required": false
+    },
+    "AZURE_MAIL_TENANT_ID": {
+      "description": "(optional)",
+      "required": false
+    },
+    "GOOGLE_MAIL_CLIENT_EMAIL": {
+      "description": "Service account with domain-wide delegation, for EMAIL_PROVIDER=gmail (optional)",
+      "required": false
+    },
+    "GOOGLE_MAIL_PRIVATE_KEY": {
+      "description": "PEM private key for the service account, base64 encoded (optional)",
+      "required": false
+    },
+    "AWS_SES_REGION": {
+      "description": "The region SES is configured in, for EMAIL_PROVIDER=ses (optional)",
+      "required": false
+    },
+    "AWS_SES_CONFIGURATION_SET": {
+      "description": "SES configuration set used to publish sending events (optional)",
       "required": false
     },
     "SMTP_DISABLE_STARTTLS": {
