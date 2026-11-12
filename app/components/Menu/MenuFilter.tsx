@@ -33,13 +33,16 @@ export function useMenuFilter(): MenuFilterState {
   const handleKeyDownCapture = React.useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
       const { target, currentTarget } = event;
+
+      // AltGr is reported as Ctrl+Alt on Windows, but it types a character.
+      const isShortcut =
+        (event.ctrlKey || event.metaKey || event.altKey) &&
+        !event.getModifierState("AltGraph");
       if (
         !(target instanceof HTMLElement) ||
         target.closest("[data-radix-menu-content]") !== currentTarget ||
         isEditable(target) ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.altKey ||
+        isShortcut ||
         event.nativeEvent.isComposing
       ) {
         return;
@@ -50,8 +53,8 @@ export function useMenuFilter(): MenuFilterState {
         if (!query) {
           return;
         }
-        next = query.slice(0, -1);
-      } else if (event.key.length === 1) {
+        next = Array.from(query).slice(0, -1).join("");
+      } else if (Array.from(event.key).length === 1) {
         // Space selects the focused item until there is a query to add it to.
         if (event.key === " " && !query) {
           return;
