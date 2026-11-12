@@ -1294,6 +1294,85 @@ describe("#collections.move_link", () => {
   });
 });
 
+describe("nested links with document access", () => {
+  it("should allow a document member to change links below the document", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+      collectionId: collection.id,
+    });
+    const member = await buildUser({ teamId: admin.teamId });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: member.id,
+      createdById: admin.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+
+    const created = await server.post("/api/collections.add_link", member, {
+      body: {
+        id: collection.id,
+        parentDocumentId: document.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    expect(created.status).toEqual(200);
+    const link = (await created.json()).data;
+
+    const updated = await server.post("/api/collections.update_link", member, {
+      body: { id: collection.id, linkId: link.id, title: "Status" },
+    });
+    expect(updated.status).toEqual(200);
+
+    // The root of the private collection is not available to the member.
+    const moved = await server.post("/api/collections.move_link", member, {
+      body: { id: collection.id, linkId: link.id, parentDocumentId: null },
+    });
+    expect(moved.status).toEqual(403);
+
+    const removed = await server.post("/api/collections.remove_link", member, {
+      body: { id: collection.id, linkId: link.id },
+    });
+    expect(removed.status).toEqual(200);
+  });
+
+  it("should not allow other users to change a nested link", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+      collectionId: collection.id,
+    });
+    const created = await server.post("/api/collections.add_link", admin, {
+      body: {
+        id: collection.id,
+        parentDocumentId: document.id,
+        title: "Status page",
+        url: "https://status.example.com",
+      },
+    });
+    const link = (await created.json()).data;
+    const other = await buildUser({ teamId: admin.teamId });
+
+    const res = await server.post("/api/collections.remove_link", other, {
+      body: { id: collection.id, linkId: link.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe("#collections.remove_link", () => {
   it("should remove a link", async () => {
     const user = await buildUser();

@@ -1097,8 +1097,32 @@ router.post(
 
 /**
  * Authorizes the user to change links at the given location, with the same
- * rules as creating a document there, and loads the collection with its
- * structure locked for update.
+ * rules as creating a document there.
+ *
+ * @param ctx the API context.
+ * @param collectionId the id of the collection.
+ * @param parentDocumentId the id of the parent document, if any.
+ * @throws AuthorizationError if the user may not change links there.
+ */
+async function authorizeLinkLocation(
+  ctx: APIContext,
+  collectionId: string,
+  parentDocumentId: string | null | undefined
+) {
+  const { collection } = await authorizeDocumentCreate(ctx, {
+    collectionId,
+    parentDocumentId,
+  });
+
+  // With a parent document, the collection is resolved from the parent.
+  if (collection?.id !== collectionId) {
+    throw InvalidRequestError("Parent document is not in the collection");
+  }
+}
+
+/**
+ * Authorizes the user to add a link at the given location and loads the
+ * collection with its structure locked for update.
  *
  * @param ctx the API context.
  * @param collectionId the id of the collection.
@@ -1111,33 +1135,25 @@ async function loadCollectionForLink(
   parentDocumentId: string | null | undefined
 ) {
   const { transaction } = ctx.state;
-  const { collection } = await authorizeDocumentCreate(ctx, {
-    collectionId,
-    parentDocumentId,
-  });
+  await authorizeLinkLocation(ctx, collectionId, parentDocumentId);
 
-  // With a parent document, the collection is resolved from the parent.
-  if (collection?.id !== collectionId) {
-    throw InvalidRequestError("Parent document is not in the collection");
-  }
-
-  const locked = await Collection.findByPk(collection.id, {
+  const collection = await Collection.findByPk(collectionId, {
     includeDocumentStructure: true,
     rejectOnEmpty: true,
     transaction,
     lock: transaction.LOCK.NO_KEY_UPDATE,
   });
 
-  if (parentDocumentId && !locked.getDocumentTree(parentDocumentId)) {
+  if (parentDocumentId && !collection.getDocumentTree(parentDocumentId)) {
     throw InvalidRequestError("Parent document is not in the collection");
   }
 
-  return locked;
+  return collection;
 }
 
 /**
- * Loads the collection that contains the given link, after authorizing the
- * user to change links at its location.
+ * Loads the collection that contains the given link, locked for update, and
+ * authorizes the user to change links at the current location of the link.
  *
  * @param ctx the API context.
  * @param collectionId the id of the collection.
@@ -1150,27 +1166,25 @@ async function loadCollectionForExistingLink(
   collectionId: string,
   linkId: string
 ) {
+  const { transaction } = ctx.state;
   const { user } = ctx.state.auth;
-  const existing = await Collection.findByPk(collectionId, {
-    userId: user.id,
+
+  // Locked before the lookup, so that the link cannot move to a parent that
+  // was not authorized.
+  const collection = await Collection.findByPk(collectionId, {
     includeDocumentStructure: true,
-    transaction: ctx.state.transaction,
+    transaction,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
-  authorize(user, "readDocument", existing);
 
-  const link = existing.findLinkInStructure(linkId);
-  if (!link) {
+  const link = collection?.findLinkInStructure(linkId);
+  if (!collection || !link) {
+    authorize(user, "readDocument", collection);
     throw NotFoundError("Link not found");
   }
 
-  const collection = await loadCollectionForLink(
-    ctx,
-    existing.id,
-    link.parentDocumentId
-  );
-  if (!collection.findLinkInStructure(linkId)) {
-    throw NotFoundError("Link not found");
-  }
+  // A nested link is authorized through its parent document, as when added.
+  await authorizeLinkLocation(ctx, collection.id, link.parentDocumentId);
   return collection;
 }
 

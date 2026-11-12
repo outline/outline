@@ -399,7 +399,8 @@ export default class Collection extends ParanoidModel {
     invariant(res?.data, "Data should be available");
 
     runInAction(() => {
-      if (!this.documents) {
+      // The websocket refresh may already contain the link.
+      if (!this.documents || this.childrenByDocumentId.has(res.data.id)) {
         return;
       }
       const documents = insertNavigationNode(

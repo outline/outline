@@ -631,7 +631,9 @@ export const addLink = createActionWithChildren({
   icon: <LinkIcon />,
   keywords: "url bookmark",
   visible: ({ activeDocumentId, stores }) =>
-    canAddLinkBeside(stores, activeDocumentId),
+    !!getLinkLocation(stores, activeDocumentId)?.collection.isManualSort &&
+    (canAddLinkBeside(stores, activeDocumentId) ||
+      canAddLinkInside(stores, activeDocumentId)),
   children: [addLinkAbove, addLinkBelow, addNestedLink],
 });
 

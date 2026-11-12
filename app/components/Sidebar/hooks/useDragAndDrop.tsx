@@ -483,7 +483,10 @@ export function useDropToReparentDocument(
       if (monitor.getItemType() === LinkDragType) {
         const collectionId =
           collection?.id ?? node.collectionId ?? document?.collectionId;
-        return item.collectionId === collectionId && !!document?.isActive;
+        // Optimistic when the document is not loaded, the server validates.
+        return (
+          item.collectionId === collectionId && (!document || document.isActive)
+        );
       }
 
       if (!policies.abilities(item.id).move) {

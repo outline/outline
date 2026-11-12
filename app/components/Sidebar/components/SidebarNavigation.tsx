@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { NavigationNode } from "@shared/types";
+import { isLinkNode } from "@shared/utils/collections";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
@@ -60,14 +61,10 @@ export const SidebarNavigationProvider = observer(
         }
 
         // Moving up into a collapsed row goes to its last descendant.
-        let target: Pick<SidebarNavigationItem, "url" | "title"> = item;
-        if (offset < 0 && item.collapsedChildren?.length) {
-          let node = item.collapsedChildren[item.collapsedChildren.length - 1];
-          while (node.children.length) {
-            node = node.children[node.children.length - 1];
-          }
-          target = node;
-        }
+        const target: Pick<SidebarNavigationItem, "url" | "title"> =
+          (offset < 0 && item.collapsedChildren
+            ? lastDocumentDescendant(item.collapsedChildren)
+            : undefined) ?? item;
 
         event.preventDefault();
         history.push({
@@ -159,3 +156,22 @@ const isAltArrow = (event: KeyboardEvent) =>
 
 // The shortcut also works while the document editor has focus.
 const keyDownOptions = { allowInTextInput: true };
+
+/**
+ * Returns the last document shown below the given nodes when expanded,
+ * skipping links, which are not pages in the app.
+ *
+ * @param nodes The child nodes of a collapsed row.
+ * @returns the last document descendant, or undefined if there is none.
+ */
+function lastDocumentDescendant(
+  nodes: NavigationNode[]
+): NavigationNode | undefined {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const node = nodes[i];
+    if (!isLinkNode(node)) {
+      return lastDocumentDescendant(node.children) ?? node;
+    }
+  }
+  return undefined;
+}
