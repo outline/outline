@@ -25,7 +25,10 @@ export function useMenuFilter(): MenuFilterState {
   const [query, setQuery] = React.useState<string>();
   const contentRef = React.useRef<HTMLElement | null>(null);
 
-  const reset = React.useCallback(() => setQuery(undefined), []);
+  const reset = React.useCallback(() => {
+    contentRef.current = null;
+    setQuery(undefined);
+  }, []);
 
   const handleKeyDownCapture = React.useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
@@ -83,11 +86,11 @@ export function useMenuFilter(): MenuFilterState {
   );
 
   // Keep focus on the same item, or move it to the first match if that item
-  // was filtered out. A passive effect runs after Radix removes unmounted
-  // items from its collection.
+  // was filtered out or the filter was cleared. A passive effect runs after
+  // Radix removes unmounted items from its collection.
   React.useEffect(() => {
     const content = contentRef.current;
-    if (query === undefined || !content) {
+    if (!content) {
       return;
     }
 
