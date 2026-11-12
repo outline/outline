@@ -236,7 +236,7 @@ router.post(
     const { transaction } = ctx.state;
     const { id, linkId, title, url } = ctx.input.body;
 
-    const collection = await loadCollectionForExistingLink(ctx, id, linkId);
+    const { collection } = await loadCollectionForExistingLink(ctx, id, linkId);
     await collection.updateLinkInStructure(
       linkId,
       { title, url },
@@ -265,8 +265,14 @@ router.post(
     const { id, linkId, parentDocumentId, index } = ctx.input.body;
 
     // The user must be able to change links at both the old and new location.
-    await loadCollectionForExistingLink(ctx, id, linkId);
-    const collection = await loadCollectionForLink(ctx, id, parentDocumentId);
+    const { collection, link } = await loadCollectionForExistingLink(
+      ctx,
+      id,
+      linkId
+    );
+    if ((parentDocumentId ?? undefined) !== link.parentDocumentId) {
+      await authorizeLinkLocation(ctx, id, parentDocumentId);
+    }
 
     await collection.moveLinkInStructure(
       linkId,
@@ -282,7 +288,7 @@ router.post(
     });
 
     ctx.body = {
-      data: collection.findLinkInStructure(linkId)?.node,
+      data: link.node,
     };
   }
 );
@@ -296,7 +302,7 @@ router.post(
     const { transaction } = ctx.state;
     const { id, linkId } = ctx.input.body;
 
-    const collection = await loadCollectionForExistingLink(ctx, id, linkId);
+    const { collection } = await loadCollectionForExistingLink(ctx, id, linkId);
     await collection.removeLinkFromStructure(linkId, { transaction });
     await Event.createFromContext(ctx, {
       name: "collections.remove_link",
@@ -1137,18 +1143,12 @@ async function loadCollectionForLink(
   const { transaction } = ctx.state;
   await authorizeLinkLocation(ctx, collectionId, parentDocumentId);
 
-  const collection = await Collection.findByPk(collectionId, {
+  return Collection.findByPk(collectionId, {
     includeDocumentStructure: true,
     rejectOnEmpty: true,
     transaction,
     lock: transaction.LOCK.NO_KEY_UPDATE,
   });
-
-  if (parentDocumentId && !collection.getDocumentTree(parentDocumentId)) {
-    throw InvalidRequestError("Parent document is not in the collection");
-  }
-
-  return collection;
 }
 
 /**
@@ -1158,7 +1158,7 @@ async function loadCollectionForLink(
  * @param ctx the API context.
  * @param collectionId the id of the collection.
  * @param linkId the id of the link.
- * @returns the collection, with its documentStructure.
+ * @returns the collection, with its documentStructure, and the link.
  * @throws NotFoundError if the link is not in the collection.
  */
 async function loadCollectionForExistingLink(
@@ -1185,7 +1185,7 @@ async function loadCollectionForExistingLink(
 
   // A nested link is authorized through its parent document, as when added.
   await authorizeLinkLocation(ctx, collection.id, link.parentDocumentId);
-  return collection;
+  return { collection, link };
 }
 
 export default router;

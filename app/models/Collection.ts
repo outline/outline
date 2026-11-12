@@ -16,9 +16,12 @@ import {
   type ProsemirrorData,
 } from "@shared/types";
 import {
+  filterNavigationNodes,
   insertNavigationNode,
+  isLinkNode,
   moveNavigationNode,
   sortNavigationNodes,
+  updateNavigationNode,
 } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
@@ -192,6 +195,19 @@ export default class Collection extends ParanoidModel {
   @computed
   get isManualSort(): boolean {
     return this.sort.field === "index";
+  }
+
+  /**
+   * Returns the document structure without links, for consumers that only
+   * handle documents.
+   *
+   * @returns the document nodes, or undefined if not loaded.
+   */
+  @computed
+  get documentNodes(): NavigationNode[] | undefined {
+    return this.documents
+      ? filterNavigationNodes(this.documents, (node) => !isLinkNode(node))
+      : undefined;
   }
 
   @computed({ equals: comparer.structural })
@@ -439,9 +455,11 @@ export default class Collection extends ParanoidModel {
       if (!this.documents) {
         return;
       }
-      this.documents = this.mapNodes(this.documents, (node) =>
-        node.id === linkId ? { ...res.data, children: node.children } : node
-      );
+      this.documents =
+        updateNavigationNode(this.documents, linkId, (node) => ({
+          ...res.data,
+          children: node.children,
+        })) ?? this.documents;
     });
   };
 
@@ -508,6 +526,18 @@ export default class Collection extends ParanoidModel {
     return this.childrenByDocumentId.get(documentId) ?? [];
   }
 
+  /**
+   * Returns the child documents of a document, without links.
+   *
+   * @param documentId The id of the document.
+   * @returns the child document nodes.
+   */
+  getChildDocumentsForDocument(documentId: string) {
+    return this.getChildrenForDocument(documentId).filter(
+      (node) => !isLinkNode(node)
+    );
+  }
+
   @computed
   get asNavigationNode(): NavigationNode {
     return {
@@ -516,7 +546,7 @@ export default class Collection extends ParanoidModel {
       title: this.name,
       color: this.color ?? undefined,
       icon: this.icon ?? undefined,
-      children: this.documents ?? [],
+      children: this.documentNodes ?? [],
       url: this.url,
     };
   }
@@ -618,31 +648,6 @@ export default class Collection extends ParanoidModel {
         policies.remove(document.id);
       });
     }
-  }
-
-  /**
-   * Returns a copy of the given tree with each node replaced by the result of
-   * the callback. Children of a replaced node are not visited, and unchanged
-   * nodes keep their reference.
-   *
-   * @param nodes The nodes to map.
-   * @param callback Returns the replacement for a node, or the node itself.
-   * @returns The mapped nodes.
-   */
-  private mapNodes(
-    nodes: NavigationNode[],
-    callback: (node: NavigationNode) => NavigationNode
-  ): NavigationNode[] {
-    return nodes.map((node) => {
-      const result = callback(node);
-      if (result !== node) {
-        return result;
-      }
-      const children = this.mapNodes(node.children ?? [], callback);
-      return children.every((child, index) => child === node.children[index])
-        ? node
-        : { ...node, children };
-    });
   }
 
   private isFetching = false;

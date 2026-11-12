@@ -2,10 +2,8 @@ import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { isLinkNode } from "@shared/utils/collections";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { ExternalLink } from "./ExternalLink";
 import { SharedDocumentLink } from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
 
@@ -42,26 +40,18 @@ function CollectionLink({ node, shareId, hideRootNode }: Props) {
           isActive={() => ui.activeCollectionId === node.id}
         />
       )}
-      {node.children.map((childNode, index) =>
-        isLinkNode(childNode) ? (
-          <ExternalLink
-            key={childNode.id}
-            node={childNode}
-            depth={hideRootNode ? 1 : 2}
-          />
-        ) : (
-          <SharedDocumentLink
-            key={childNode.id}
-            index={index}
-            depth={hideRootNode ? 1 : 2}
-            shareId={shareId}
-            node={childNode}
-            prefetchDocument={documents.prefetchDocument}
-            activeDocumentId={ui.activeDocumentId}
-            activeDocument={documents.active}
-          />
-        )
-      )}
+      {node.children.map((childNode, index) => (
+        <SharedDocumentLink
+          key={childNode.id}
+          index={index}
+          depth={hideRootNode ? 1 : 2}
+          shareId={shareId}
+          node={childNode}
+          prefetchDocument={documents.prefetchDocument}
+          activeDocumentId={ui.activeDocumentId}
+          activeDocument={documents.active}
+        />
+      ))}
     </>
   );
 }

@@ -16,7 +16,7 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
-import { addLinkFromUrl } from "./LinkDialog";
+import { addLinkFromUrl } from "./linkUrls";
 import { useSidebarContext } from "./SidebarContext";
 
 type Props = {

@@ -30,7 +30,7 @@ import {
 } from "../hooks/useDragAndDrop";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
-import { addLinkFromUrl } from "./LinkDialog";
+import { addLinkFromUrl } from "./linkUrls";
 import { useReorderDropCursors } from "./ReorderDropCursors";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";

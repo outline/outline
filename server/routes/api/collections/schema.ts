@@ -13,7 +13,7 @@ import {
 } from "@shared/validations";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
-import { ValidateColor, ValidateIndex } from "@server/validation";
+import { ValidateColor, ValidateIndex, ValidateURL } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
 
 const BaseIdSchema = z.object({
@@ -328,7 +328,7 @@ const LinkUrlSchema = z
   .string()
   .trim()
   .max(NavigationLinkValidation.maxUrlLength)
-  .refine((url) => isUrl(url), { message: "Must be a valid url" });
+  .refine((url) => isUrl(url), { message: ValidateURL.message });
 
 /** Links are changed by collection id, so that it can be compared to the parent's. */
 const LinkCollectionIdSchema = z.object({

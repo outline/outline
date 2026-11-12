@@ -17,7 +17,7 @@ import ReferenceListItem, {
 } from "./ReferenceListItem";
 import useShare from "@shared/hooks/useShare";
 import type { NavigationNode } from "@shared/types";
-import { isLinkNode } from "@shared/utils/collections";
+import { findNavigationNode, isLinkNode } from "@shared/utils/collections";
 import { flattenTree } from "@shared/utils/tree";
 
 type Props = {
@@ -164,33 +164,15 @@ function useChildren(
   document: Document,
   sharedTree: NavigationNode | undefined
 ): NavigationNode[] {
-  const children = useMemo(() => {
+  return useMemo(() => {
     if (!sharedTree) {
       return document.children;
     }
 
-    function findChildren(node: NavigationNode): NavigationNode[] | undefined {
-      if (node.id === document.id) {
-        return node.children;
-      }
-
-      for (const child of node.children) {
-        const result = findChildren(child);
-        if (result) {
-          return result;
-        }
-      }
-
-      return undefined;
-    }
-
-    return findChildren(sharedTree) || [];
+    const children =
+      findNavigationNode([sharedTree], document.id)?.node.children ?? [];
+    return children.filter((node) => !isLinkNode(node));
   }, [document.id, document.children, sharedTree]);
-
-  return useMemo(
-    () => children.filter((node) => !isLinkNode(node)),
-    [children]
-  );
 }
 
 /**

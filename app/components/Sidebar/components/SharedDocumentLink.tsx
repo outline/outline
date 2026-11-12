@@ -132,31 +132,34 @@ function DocumentLink({
         isActive={() => !!isActiveDocument}
       />
       {expanded &&
-        nodeChildren.map((childNode, index) =>
-          isLinkNode(childNode) ? (
-            <ExternalLink
-              key={childNode.id}
-              node={childNode}
-              depth={depth + 1}
-            />
-          ) : (
-            <SharedDocumentLink
-              shareId={shareId}
-              key={childNode.id}
-              collection={collection}
-              node={childNode}
-              activeDocumentId={activeDocumentId}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={childNode.isDraft}
-              depth={depth + 1}
-              index={index}
-              parentId={node.id}
-            />
-          )
-        )}
+        nodeChildren.map((childNode, index) => (
+          <SharedDocumentLink
+            shareId={shareId}
+            key={childNode.id}
+            collection={collection}
+            node={childNode}
+            activeDocumentId={activeDocumentId}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            isDraft={childNode.isDraft}
+            depth={depth + 1}
+            index={index}
+            parentId={node.id}
+          />
+        ))}
     </>
   );
 }
 
-export const SharedDocumentLink = observer(DocumentLink);
+const ObservedDocumentLink = observer(DocumentLink);
+
+/**
+ * A row in the sidebar of a public share, for a document or a link.
+ */
+export function SharedDocumentLink(props: Props) {
+  return isLinkNode(props.node) ? (
+    <ExternalLink node={props.node} depth={props.depth} />
+  ) : (
+    <ObservedDocumentLink {...props} />
+  );
+}

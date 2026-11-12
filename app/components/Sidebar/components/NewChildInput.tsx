@@ -5,7 +5,7 @@ import {
   NavigationLinkValidation,
 } from "@shared/validations";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
-import { toLinkUrl } from "./LinkDialog";
+import { toLinkUrl } from "./linkUrls";
 import SidebarLink from "./SidebarLink";
 
 interface Props {

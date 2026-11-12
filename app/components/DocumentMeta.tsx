@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
-import { isLinkNode } from "@shared/utils/collections";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
@@ -167,9 +166,7 @@ const DocumentMeta: React.FC<Props> = ({
   }
 
   const nestedDocumentsCount = collection
-    ? collection
-        .getChildrenForDocument(document.id)
-        .filter((node) => !isLinkNode(node)).length
+    ? collection.getChildDocumentsForDocument(document.id).length
     : 0;
   const canShowProgressBar = isTasks;
 

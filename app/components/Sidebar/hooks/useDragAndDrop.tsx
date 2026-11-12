@@ -270,7 +270,7 @@ export function useDragLink(
       parentId,
       collectionId: collection?.id ?? "",
     }),
-    canDrag: () => canDrag && !!collection,
+    canDrag: () => canDrag,
   });
 
   return [{ isDragging }, dragRef] as const;

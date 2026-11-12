@@ -23,8 +23,8 @@ import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { isModKey } from "@shared/utils/keyboard";
 import { useDragLink } from "../hooks/useDragAndDrop";
-import { useLinkDialog } from "../hooks/useLinkDialog";
-import { resolveInternalLink, toInternalPath } from "./internalLinks";
+import { openEditLinkDialog } from "./LinkDialog";
+import { resolveInternalLink, toInternalPath } from "./linkUrls";
 import Relative from "./Relative";
 import { useReorderDropCursors } from "./ReorderDropCursors";
 import { determineSidebarContext } from "./SidebarContext";
@@ -63,7 +63,6 @@ export const ExternalLink = observer(function ExternalLink({
   const { shareId } = useShare();
   const stores = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const linkDialog = useLinkDialog();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const canCollection = usePolicy(collection);
   const canParent = usePolicy(parentId);
@@ -81,7 +80,7 @@ export const ExternalLink = observer(function ExternalLink({
 
   const { cursorBefore, cursorAfter } = useReorderDropCursors({
     node,
-    collection: index === undefined ? undefined : collection,
+    collection,
     depth,
     index: index ?? 0,
     parentId,
@@ -143,9 +142,9 @@ export const ExternalLink = observer(function ExternalLink({
 
   const handleEdit = React.useCallback(() => {
     if (collection) {
-      linkDialog.openEdit(collection, node);
+      openEditLinkDialog({ stores, t, collection, node });
     }
-  }, [linkDialog, collection, node]);
+  }, [stores, t, collection, node]);
 
   const handleDelete = React.useCallback(async () => {
     try {

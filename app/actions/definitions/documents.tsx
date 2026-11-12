@@ -55,7 +55,6 @@ import {
   UserPreference,
 } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
-import { isLinkNode } from "@shared/utils/collections";
 import { Week } from "@shared/utils/time";
 import type Collection from "~/models/Collection";
 import type UserMembership from "~/models/UserMembership";
@@ -142,9 +141,10 @@ export const openDocument = createActionWithChildren({
   keywords: "go to",
   icon: <DocumentIcon />,
   children: ({ stores, activeDocumentId, t }) => {
-    const nodes = stores.collections.navigationNodes
-      .reduce((acc, node) => [...acc, ...node.children], [] as NavigationNode[])
-      .filter((node) => !isLinkNode(node));
+    const nodes = stores.collections.navigationNodes.reduce(
+      (acc, node) => [...acc, ...node.children],
+      [] as NavigationNode[]
+    );
     const documents = stores.documents.orderedData;
 
     // Documents already listed under "Recently viewed" are skipped so that they
@@ -539,8 +539,7 @@ const canAddLinkBeside = (
 ) => {
   const location = getLinkLocation(stores, activeDocumentId);
   return (
-    !!location &&
-    location.collection.isManualSort &&
+    !!location?.collection.isManualSort &&
     canCreateSiblingDocument(stores, location.document)
   );
 };
@@ -548,10 +547,43 @@ const canAddLinkBeside = (
 const canAddLinkInside = (
   stores: ActionContext["stores"],
   activeDocumentId: string | undefined
-) =>
-  !!getLinkLocation(stores, activeDocumentId) &&
-  !!activeDocumentId &&
-  stores.policies.abilities(activeDocumentId).createChildDocument;
+) => {
+  const location = getLinkLocation(stores, activeDocumentId);
+  return (
+    !!location &&
+    stores.policies.abilities(location.document.id).createChildDocument
+  );
+};
+
+/**
+ * Returns an action handler that opens the dialog to add a link at the given
+ * position relative to the active document.
+ *
+ * @param position - where to add the link.
+ * @returns the action handler.
+ */
+const addLinkAt =
+  (position: "above" | "below" | "inside") =>
+  ({ activeDocumentId, stores, t }: ActionContext) => {
+    const location = getLinkLocation(stores, activeDocumentId);
+    if (!location) {
+      return;
+    }
+    const { collection, document } = location;
+    const index = findDocumentSiblingIndex(stores, document);
+
+    openAddLinkDialog({
+      stores,
+      t,
+      collection,
+      ...(position === "inside"
+        ? { parentDocumentId: document.id }
+        : {
+            parentDocumentId: document.parentDocumentId ?? undefined,
+            index: position === "above" ? Math.max(0, index) : index + 1,
+          }),
+    });
+  };
 
 const addLinkAbove = createAction({
   name: ({ t, isMenu }) =>
@@ -562,19 +594,7 @@ const addLinkAbove = createAction({
   keywords: "url bookmark",
   visible: ({ activeDocumentId, stores }) =>
     canAddLinkBeside(stores, activeDocumentId),
-  perform: ({ activeDocumentId, stores, t }) => {
-    const location = getLinkLocation(stores, activeDocumentId);
-    if (!location) {
-      return;
-    }
-    openAddLinkDialog({
-      stores,
-      t,
-      collection: location.collection,
-      parentDocumentId: location.document.parentDocumentId ?? undefined,
-      index: Math.max(0, findDocumentSiblingIndex(stores, location.document)),
-    });
-  },
+  perform: addLinkAt("above"),
 });
 
 const addLinkBelow = createAction({
@@ -586,19 +606,7 @@ const addLinkBelow = createAction({
   keywords: "url bookmark",
   visible: ({ activeDocumentId, stores }) =>
     canAddLinkBeside(stores, activeDocumentId),
-  perform: ({ activeDocumentId, stores, t }) => {
-    const location = getLinkLocation(stores, activeDocumentId);
-    if (!location) {
-      return;
-    }
-    openAddLinkDialog({
-      stores,
-      t,
-      collection: location.collection,
-      parentDocumentId: location.document.parentDocumentId ?? undefined,
-      index: findDocumentSiblingIndex(stores, location.document) + 1,
-    });
-  },
+  perform: addLinkAt("below"),
 });
 
 const addNestedLink = createAction({
@@ -610,18 +618,7 @@ const addNestedLink = createAction({
   keywords: "url bookmark",
   visible: ({ activeDocumentId, stores }) =>
     canAddLinkInside(stores, activeDocumentId),
-  perform: ({ activeDocumentId, stores, t }) => {
-    const location = getLinkLocation(stores, activeDocumentId);
-    if (!location) {
-      return;
-    }
-    openAddLinkDialog({
-      stores,
-      t,
-      collection: location.collection,
-      parentDocumentId: location.document.id,
-    });
-  },
+  perform: addLinkAt("inside"),
 });
 
 export const addLink = createActionWithChildren({
@@ -643,26 +640,10 @@ export const addLinkInAlphabeticalCollection = createAction({
   section: ActiveDocumentSection,
   icon: <LinkIcon />,
   keywords: "url bookmark",
-  visible: ({ activeDocumentId, stores }) => {
-    const location = getLinkLocation(stores, activeDocumentId);
-    return (
-      !!location &&
-      !location.collection.isManualSort &&
-      canAddLinkInside(stores, activeDocumentId)
-    );
-  },
-  perform: ({ activeDocumentId, stores, t }) => {
-    const location = getLinkLocation(stores, activeDocumentId);
-    if (!location) {
-      return;
-    }
-    openAddLinkDialog({
-      stores,
-      t,
-      collection: location.collection,
-      parentDocumentId: location.document.id,
-    });
-  },
+  visible: ({ activeDocumentId, stores }) =>
+    getLinkLocation(stores, activeDocumentId)?.collection.isManualSort ===
+      false && canAddLinkInside(stores, activeDocumentId),
+  perform: addLinkAt("inside"),
 });
 
 export const unstarDocument = createAction({
@@ -1523,7 +1504,7 @@ export const openRandomDocument = createAction({
   perform: ({ stores, activeDocumentId }) => {
     const nodes = stores.collections.navigationNodes
       .reduce((acc, node) => [...acc, ...node.children], [] as NavigationNode[])
-      .filter((node) => node.id !== activeDocumentId && !isLinkNode(node));
+      .filter((node) => node.id !== activeDocumentId);
 
     const random = nodes[Math.round(Math.random() * nodes.length)];
 

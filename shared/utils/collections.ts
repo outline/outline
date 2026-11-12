@@ -49,11 +49,119 @@ export const insertNavigationNode = (
         return { ...child, children: insert(child.children ?? []) };
       }
       const children = place(child.children ?? []);
-      return children === child.children ? child : { ...child, children };
+      return shallowEqual(children, child.children ?? [])
+        ? child
+        : { ...child, children };
     });
 
   const result = place(nodes);
   return found ? result : undefined;
+};
+
+/**
+ * Finds a node in a navigation tree.
+ *
+ * @param nodes The root nodes of the tree.
+ * @param nodeId The id of the node to find.
+ * @returns the node and the id of its parent, or undefined if not found.
+ */
+export const findNavigationNode = (
+  nodes: NavigationNode[],
+  nodeId: string
+): { node: NavigationNode; parentId?: string } | undefined => {
+  const search = (
+    list: NavigationNode[],
+    parentId?: string
+  ): { node: NavigationNode; parentId?: string } | undefined => {
+    for (const node of list) {
+      if (node.id === nodeId) {
+        return { node, parentId };
+      }
+      const result = search(node.children ?? [], node.id);
+      if (result) {
+        return result;
+      }
+    }
+    return undefined;
+  };
+
+  return search(nodes);
+};
+
+/**
+ * Replaces a node in a navigation tree. Unchanged subtrees keep their
+ * reference.
+ *
+ * @param nodes The root nodes of the tree.
+ * @param nodeId The id of the node to replace.
+ * @param update Returns the replacement for the node.
+ * @returns the new root nodes, or undefined if the node is not found.
+ */
+export const updateNavigationNode = (
+  nodes: NavigationNode[],
+  nodeId: string,
+  update: (node: NavigationNode) => NavigationNode
+): NavigationNode[] | undefined => {
+  let found = false;
+  const replace = (list: NavigationNode[]): NavigationNode[] =>
+    list.map((node) => {
+      if (node.id === nodeId) {
+        found = true;
+        return update(node);
+      }
+      const children = replace(node.children ?? []);
+      return shallowEqual(children, node.children ?? [])
+        ? node
+        : { ...node, children };
+    });
+
+  const result = replace(nodes);
+  return found ? result : undefined;
+};
+
+/**
+ * Removes a node from a navigation tree. Unchanged subtrees keep their
+ * reference.
+ *
+ * @param nodes The root nodes of the tree.
+ * @param nodeId The id of the node to remove.
+ * @returns the new root nodes, with the removed node, its parent id and its
+ * position among its siblings, or undefined if the node is not found.
+ */
+export const removeNavigationNode = (
+  nodes: NavigationNode[],
+  nodeId: string
+):
+  | {
+      nodes: NavigationNode[];
+      node: NavigationNode;
+      parentId?: string;
+      index: number;
+    }
+  | undefined => {
+  let removed:
+    | { node: NavigationNode; parentId?: string; index: number }
+    | undefined;
+
+  const remove = (
+    list: NavigationNode[],
+    parentId?: string
+  ): NavigationNode[] => {
+    const index = list.findIndex((node) => node.id === nodeId);
+    if (index !== -1) {
+      removed = { node: list[index], parentId, index };
+      return list.filter((_, i) => i !== index);
+    }
+    return list.map((node) => {
+      const children = remove(node.children ?? [], node.id);
+      return shallowEqual(children, node.children ?? [])
+        ? node
+        : { ...node, children };
+    });
+  };
+
+  const result = remove(nodes);
+  return removed ? { nodes: result, ...removed } : undefined;
 };
 
 /**
@@ -73,38 +181,40 @@ export const moveNavigationNode = (
   parentId: string | undefined,
   index?: number
 ): NavigationNode[] | undefined => {
-  let moved: NavigationNode | undefined;
-  let fromParentId: string | undefined;
-  let fromIndex = -1;
-
-  const remove = (
-    list: NavigationNode[],
-    listParentId?: string
-  ): NavigationNode[] => {
-    const position = list.findIndex((node) => node.id === nodeId);
-    if (position !== -1) {
-      moved = list[position];
-      fromParentId = listParentId;
-      fromIndex = position;
-      return list.filter((_, i) => i !== position);
-    }
-    return list.map((node) => {
-      const children = remove(node.children ?? [], node.id);
-      return children === node.children ? node : { ...node, children };
-    });
-  };
-
-  const removed = remove(nodes);
-  if (!moved) {
+  const removed = removeNavigationNode(nodes, nodeId);
+  if (!removed) {
     return undefined;
   }
 
   // Removing the node shifts the later siblings back by one.
   const target =
-    index !== undefined && fromParentId === parentId && fromIndex < index
+    index !== undefined &&
+    removed.parentId === parentId &&
+    removed.index < index
       ? index - 1
       : index;
-  return insertNavigationNode(removed, moved, parentId, target);
+  return insertNavigationNode(removed.nodes, removed.node, parentId, target);
+};
+
+/**
+ * Returns a copy of a navigation tree without the nodes that do not match.
+ * Unchanged subtrees keep their reference.
+ *
+ * @param nodes The root nodes of the tree.
+ * @param predicate Returns whether to keep a node and its descendants.
+ * @returns the filtered root nodes.
+ */
+export const filterNavigationNodes = (
+  nodes: NavigationNode[],
+  predicate: (node: NavigationNode) => boolean
+): NavigationNode[] => {
+  const result = nodes.filter(predicate).map((node) => {
+    const children = filterNavigationNodes(node.children ?? [], predicate);
+    return shallowEqual(children, node.children ?? [])
+      ? node
+      : { ...node, children };
+  });
+  return shallowEqual(result, nodes) ? nodes : result;
 };
 
 export const sortNavigationNodes = (

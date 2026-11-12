@@ -1,16 +1,16 @@
 import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
-import * as React from "react";
 import { PlusIcon } from "outline-icons";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
 import styled from "styled-components";
 import { DocumentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
+import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";

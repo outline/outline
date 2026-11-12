@@ -1,6 +1,6 @@
 import type { CollectionSort, NavigationNode } from "@shared/types";
 import { NavigationNodeType } from "@shared/types";
-import { isLinkNode, sortNavigationNodes } from "@shared/utils/collections";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import { useComputed } from "~/hooks/useComputed";
 import useStores from "~/hooks/useStores";
 import type Collection from "~/models/Collection";
@@ -40,7 +40,8 @@ function getCollectionTree(collection: Collection): NavigationNode {
   };
 
   root.children = annotateNodes(
-    collection.documents ?? [],
+    // Links are not documents, so they cannot be a destination or be selected.
+    collection.documentNodes ?? [],
     collection.sort,
     root
   );
@@ -66,10 +67,7 @@ function annotateNodes(
     return [];
   }
 
-  // Links are not documents, so they cannot be a destination or be selected.
-  const documents = nodes.filter((node) => !isLinkNode(node));
-
-  return sortNavigationNodes(documents, sort, false).map((node) => {
+  return sortNavigationNodes(nodes, sort, false).map((node) => {
     const annotated: NavigationNode = {
       ...node,
       type: node.type ?? NavigationNodeType.Document,
