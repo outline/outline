@@ -64,7 +64,7 @@ export default function init(
     "upgrade",
     function (req: IncomingMessage, socket: Duplex, head: Buffer) {
       if (req.url?.startsWith(path) && ioHandleUpgrade) {
-        if (!isOriginAllowed(req)) {
+        if (!isOriginAllowed(app, req)) {
           rejectUpgrade(socket);
           return;
         }
@@ -118,7 +118,7 @@ export default function init(
     });
 
     try {
-      const user = await authenticate(socket);
+      const user = await authenticate(app, socket);
       Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
       socket.emit("authenticated", true);
@@ -207,7 +207,7 @@ async function authenticated(
  * Authenticate the socket with the given token, returning the user model and
  * attaching lightweight auth identifiers for the lifetime of the connection.
  */
-async function authenticate(socket: SocketWithAuth): Promise<User> {
+async function authenticate(app: Koa, socket: SocketWithAuth): Promise<User> {
   const cookies = socket.request.headers.cookie
     ? cookie.parse(socket.request.headers.cookie)
     : {};
@@ -218,7 +218,11 @@ async function authenticate(socket: SocketWithAuth): Promise<User> {
   }
 
   const { user } = await getUserForJWT(accessToken);
-  if (!(await user.team.canAuthenticateOnHost(socket.request.headers.host))) {
+  if (
+    !(await user.team.canAuthenticateOnHost(
+      getRequestHost(app, socket.request)
+    ))
+  ) {
     throw AuthenticationError("Token is not valid for this workspace");
   }
 
@@ -227,15 +231,30 @@ async function authenticate(socket: SocketWithAuth): Promise<User> {
 }
 
 /**
+ * Returns the public host of the request, using the same proxy trust as Koa.
+ *
+ * @param app The Koa application.
+ * @param req The incoming request.
+ * @returns The host of the request, if any.
+ */
+function getRequestHost(app: Koa, req: IncomingMessage): string | undefined {
+  const forwarded = app.proxy ? req.headers["x-forwarded-host"] : undefined;
+  const host =
+    (Array.isArray(forwarded) ? forwarded[0] : forwarded) || req.headers.host;
+  return host?.split(",")[0].trim();
+}
+
+/**
  * Returns whether the websocket upgrade request comes from an allowed origin.
  * On-premise the origin must match the deployed URL. In cloud-hosted the
  * origin must match the requested host, which allows custom domains.
  *
+ * @param app The Koa application.
  * @param req The upgrade request.
  * @returns True if the origin is allowed.
  */
-function isOriginAllowed(req: IncomingMessage): boolean {
-  const { origin, host } = req.headers;
+function isOriginAllowed(app: Koa, req: IncomingMessage): boolean {
+  const { origin } = req.headers;
   if (!origin) {
     return false;
   }
@@ -245,7 +264,7 @@ function isOriginAllowed(req: IncomingMessage): boolean {
   }
 
   try {
-    return new URL(origin).host === host;
+    return new URL(origin).host === getRequestHost(app, req);
   } catch {
     return false;
   }
