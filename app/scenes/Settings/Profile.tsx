@@ -30,6 +30,7 @@ const Profile = () => {
     // The name saves on blur, so Enter saves it.
     if (
       ev.key === "Enter" &&
+      !ev.nativeEvent.isComposing &&
       ev.target instanceof HTMLInputElement &&
       ev.currentTarget.contains(ev.target)
     ) {

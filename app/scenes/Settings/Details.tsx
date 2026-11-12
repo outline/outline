@@ -110,8 +110,8 @@ function Details() {
 
   const savePreference = React.useCallback(
     <T extends TeamPreference>(key: T, value: TeamPreferences[T]) =>
-      saveData({ preferences: { ...team.preferences, [key]: value } }),
-    [team, saveData]
+      saveData({ preferences: { [key]: value } }),
+    [saveData]
   );
 
   const saveTheme = React.useMemo(
@@ -130,8 +130,10 @@ function Details() {
       nextAccent: string | null | undefined,
       nextText: string | null | undefined
     ) => {
-      // Wait until every entered color is complete before saving.
-      if ([nextAccent, nextText].some((value) => value && !isHexColor(value))) {
+      // Wait until every entered color is complete or empty before saving.
+      const isReady = (value: string | null | undefined) =>
+        !value || value === "#" || isHexColor(value);
+      if (!isReady(nextAccent) || !isReady(nextText)) {
         return;
       }
       saveTheme(
@@ -172,6 +174,7 @@ function Details() {
     // Text fields save on blur, so Enter saves the focused field.
     if (
       ev.key === "Enter" &&
+      !ev.nativeEvent.isComposing &&
       ev.target instanceof HTMLInputElement &&
       ev.currentTarget.contains(ev.target)
     ) {
@@ -267,21 +270,21 @@ function Details() {
 
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
-      try {
-        team.setPreference(TeamPreference.SeamlessEdit, !checked);
-        await team.save();
+      if (!(await savePreference(TeamPreference.SeamlessEdit, !checked))) {
+        return;
+      }
 
-        // Enabling separate editing also applies it to the current user.
-        if (checked) {
+      // Enabling separate editing also applies it to the current user.
+      if (checked) {
+        try {
           user.setPreference(UserPreference.SeamlessEdit, false);
           await user.save();
+        } catch (err) {
+          toast.error(errToString(err));
         }
-        showSuccessMessage();
-      } catch (err) {
-        toast.error(errToString(err));
       }
     },
-    [team, user, showSuccessMessage]
+    [savePreference, user]
   );
 
   const newTheme = React.useMemo(
