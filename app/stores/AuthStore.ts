@@ -129,6 +129,11 @@ export default class AuthStore extends Store<Team> {
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
           if (isNil(newData.user)) {
+            // Save this tab's location without changing the path shared with other tabs.
+            setPostLoginPath(
+              window.location.pathname + window.location.search,
+              { tabOnly: true }
+            );
             void this.logout({
               savePath: false,
               clearCache: false,
