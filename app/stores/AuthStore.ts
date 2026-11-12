@@ -129,13 +129,8 @@ export default class AuthStore extends Store<Team> {
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
           if (isNil(newData.user)) {
-            // Save this tab's location without changing the path shared with other tabs.
-            setPostLoginPath(
-              window.location.pathname + window.location.search,
-              { tabOnly: true }
-            );
             void this.logout({
-              savePath: false,
+              savePath: "tab",
               clearCache: false,
               revokeToken: false,
             });
@@ -343,7 +338,8 @@ export default class AuthStore extends Store<Team> {
    *
    * @param clearCache Whether to clear the IndexedDB databases used for document caching.
    * @param revokeToken Whether the auth token should attempt to be revoked, this should be
-   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param savePath Whether the current path should be saved and returned to after login,
+   * "tab" saves it for the current tab only.
    * @param userInitiated Whether the logout was initiated by the user.
    * disabled with requests from ApiClient to prevent infinite loops.
    */
@@ -356,13 +352,15 @@ export default class AuthStore extends Store<Team> {
   }: {
     clearCache?: boolean;
     revokeToken?: boolean;
-    savePath?: boolean;
+    savePath?: boolean | "tab";
     userInitiated?: boolean;
   }) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setPostLoginPath(window.location.pathname + window.location.search);
+      setPostLoginPath(window.location.pathname + window.location.search, {
+        tabOnly: savePath === "tab",
+      });
     }
 
     if (revokeToken) {
