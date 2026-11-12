@@ -15,7 +15,7 @@ import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { childDepthFor } from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
@@ -94,8 +94,6 @@ export type DocumentRowProps = {
   canCreateChild?: boolean;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
-  /** Depth of the inline new-child SidebarLink. Defaults to `depth + 1`. */
-  newChildDepth?: number;
 
   /** Context menu action for the row. */
   contextAction?: ActionWithChildren | ActionFactory;
@@ -145,7 +143,6 @@ function DocumentRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
-  newChildDepth,
   contextAction,
   isActiveOverride,
   children,
@@ -306,7 +303,7 @@ function DocumentRow({
       {isAddingNewChild && onCreateChild && (
         <SidebarLink
           isActive={() => true}
-          depth={newChildDepth ?? depth + 1}
+          depth={childDepthFor(depth)}
           ellipsis={false}
           label={
             <EditableTitle
