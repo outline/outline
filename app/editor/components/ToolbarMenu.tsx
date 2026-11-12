@@ -51,6 +51,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const {
     query,
+    setQuery,
     handleKeyDownCapture,
     handleEscapeKeyDown,
     reset: resetFilter,
@@ -106,7 +107,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
             onEscapeKeyDown={handleEscapeKeyDown}
             onKeyDownCapture={handleKeyDownCapture}
           >
-            {query !== undefined && <MenuFilter query={query} />}
+            <MenuFilter query={query} onChange={setQuery} />
             <EventBoundary>
               {toMenuItems(items, query) ??
                 (query ? <MenuFilterEmpty /> : null)}

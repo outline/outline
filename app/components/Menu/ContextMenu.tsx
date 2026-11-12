@@ -34,6 +34,7 @@ export const ContextMenu = observer(
     });
     const {
       query,
+      setQuery,
       handleKeyDownCapture,
       handleEscapeKeyDown,
       reset: resetFilter,
@@ -108,7 +109,7 @@ export const ContextMenu = observer(
             onEscapeKeyDown={handleEscapeKeyDown}
             onKeyDownCapture={handleKeyDownCapture}
           >
-            {query !== undefined && <MenuFilter query={query} />}
+            <MenuFilter query={query} onChange={setQuery} />
             {content ?? (query ? <MenuFilterEmpty /> : null)}
           </MenuContent>
         </Menu>

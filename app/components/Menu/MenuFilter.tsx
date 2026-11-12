@@ -1,14 +1,16 @@
+import { VISUALLY_HIDDEN_STYLES } from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
-import { isModKey } from "@shared/utils/keyboard";
 import isTextInput from "~/utils/isTextInput";
 
 interface MenuFilterState {
   /** The current filter query, or undefined when the filter is hidden. */
   query: string | undefined;
+  /** Sets the filter query. */
+  setQuery: (query: string) => void;
   /** Capture-phase keydown handler to attach to the menu content. */
   handleKeyDownCapture: (event: React.KeyboardEvent<HTMLElement>) => void;
   /** Escape handler to attach to the menu content. */
@@ -18,8 +20,9 @@ interface MenuFilterState {
 }
 
 /**
- * Lets the user filter a menu by typing while focus stays on the menu items,
- * so that the arrow keys continue to move between the items.
+ * Lets the user filter a menu by typing. When a key that types text is pressed
+ * on a menu item, focus moves to the filter input, which then receives the
+ * text.
  *
  * @returns the filter query and the handlers to attach to the menu content.
  */
@@ -35,81 +38,59 @@ export function useMenuFilter(): MenuFilterState {
   const handleKeyDownCapture = React.useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
       const { target, currentTarget } = event;
+      if (
+        !(target instanceof HTMLElement) ||
+        target.closest("[data-radix-menu-content]") !== currentTarget ||
+        (isTextInput(target) && !target.matches('[role^="menuitem"]')) ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      const input = currentTarget.querySelector<HTMLInputElement>(
+        `[${INPUT_ATTRIBUTE}]`
+      );
 
       // AltGr is reported as Ctrl+Alt on Windows, but it types a character.
       const isShortcut =
         (event.ctrlKey || event.metaKey || event.altKey) &&
         !event.getModifierState("AltGraph");
+      if (!input || isShortcut) {
+        return;
+      }
+
+      // Move up from the first item to the input while the filter is visible.
       if (
-        !(target instanceof HTMLElement) ||
-        target.closest("[data-radix-menu-content]") !== currentTarget ||
-        (isTextInput(target) && !target.matches('[role^="menuitem"]')) ||
-        target.isContentEditable ||
-        event.nativeEvent.isComposing
+        event.key === "ArrowUp" &&
+        query !== undefined &&
+        target === currentTarget.querySelector(ITEM_SELECTOR)
       ) {
+        event.preventDefault();
+        event.stopPropagation();
+        input.focus();
         return;
       }
 
-      const queryElement = currentTarget.querySelector<HTMLElement>(
-        `[${QUERY_ATTRIBUTE}]`
-      );
-
-      if (isShortcut) {
-        // Select the query like a text input does, instead of the page.
-        if (
-          queryElement &&
-          isModKey(event) &&
-          !event.altKey &&
-          !event.shiftKey &&
-          event.key.toLowerCase() === "a"
-        ) {
-          event.preventDefault();
-          event.stopPropagation();
-          window.getSelection()?.selectAllChildren(queryElement);
-        }
+      const isText =
+        Array.from(event.key).length === 1 ||
+        (event.key === "Backspace" && !!query);
+      if (!isText) {
         return;
       }
 
-      const current = query ?? "";
-      const selected = queryElement
-        ? getSelectedRange(queryElement)
-        : undefined;
-
-      let next: string;
-      if (event.key === "Backspace" || event.key === "Delete") {
-        if (selected) {
-          next = current.slice(0, selected.start) + current.slice(selected.end);
-        } else if (event.key === "Backspace" && current) {
-          next = Array.from(current).slice(0, -1).join("");
-        } else {
-          return;
-        }
-      } else if (Array.from(event.key).length === 1) {
-        // Space selects the focused item until there is a query to add it to.
-        if (event.key === " " && !current) {
-          return;
-        }
-        next = selected
-          ? current.slice(0, selected.start) +
-            event.key +
-            current.slice(selected.end)
-          : current + event.key;
-      } else {
+      // Space selects the focused item until there is a query to add it to.
+      if (event.key === " " && !query) {
         return;
       }
 
-      // The filter uses the key, so Radix typeahead, item selection and global
-      // shortcuts must not also handle it.
-      event.preventDefault();
+      // The default action is kept, so the browser types into the input. Radix
+      // typeahead, item selection and global shortcuts must not handle the key.
       event.stopPropagation();
       contentRef.current = currentTarget;
       if (query === undefined) {
         lockLayout(currentTarget);
       }
-      if (selected) {
-        window.getSelection()?.removeAllRanges();
-      }
-      setQuery(next);
+      input.focus();
     },
     [query]
   );
@@ -125,8 +106,8 @@ export function useMenuFilter(): MenuFilterState {
     [query]
   );
 
-  // Keep focus on the same item, or move it to the first match if that item
-  // was filtered out or the filter was cleared. A passive effect runs after
+  // Move focus to the first item if the focused item was filtered out, or if
+  // the filter was hidden while it had focus. A passive effect runs after
   // Radix removes unmounted items from its collection.
   React.useEffect(() => {
     const content = contentRef.current;
@@ -138,50 +119,85 @@ export function useMenuFilter(): MenuFilterState {
     if (
       active &&
       content.contains(active) &&
-      active.getAttribute("role")?.startsWith("menuitem")
+      (active.getAttribute("role")?.startsWith("menuitem") ||
+        (query !== undefined && active.hasAttribute(INPUT_ATTRIBUTE)))
     ) {
       return;
     }
 
-    const first = content.querySelector<HTMLElement>(
-      '[role^="menuitem"]:not([data-disabled])'
-    );
+    const first = content.querySelector<HTMLElement>(ITEM_SELECTOR);
     (first ?? content).focus();
   }, [query]);
 
-  return { query, handleKeyDownCapture, handleEscapeKeyDown, reset };
+  return { query, setQuery, handleKeyDownCapture, handleEscapeKeyDown, reset };
 }
 
 interface Props {
-  /** The current filter query. */
-  query: string;
+  /** The current filter query, or undefined when the filter is hidden. */
+  query: string | undefined;
+  /** Called when the user changes the query. */
+  onChange: (query: string) => void;
 }
 
 /**
- * Displays the filter query at the top of a menu. Focus is not moved here, so
- * a caret is drawn to show where typed text goes.
+ * Displays the filter input at the top of a menu. The input is always
+ * rendered, so that it can receive focus before the first character is typed,
+ * but it is only visible while there is a query.
  */
-export function MenuFilter({ query }: Props) {
+export function MenuFilter({ query, onChange }: Props) {
   const { t } = useTranslation();
-  const queryRef = React.useRef<HTMLSpanElement>(null);
-  const [isSelected, setSelected] = React.useState(false);
+  const isActive = query !== undefined;
 
-  React.useEffect(() => {
-    const handleSelectionChange = () => {
-      setSelected(!!queryRef.current && !!getSelectedRange(queryRef.current));
-    };
-    document.addEventListener("selectionchange", handleSelectionChange);
-    return () =>
-      document.removeEventListener("selectionchange", handleSelectionChange);
-  }, []);
+  const handleChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onChange(event.target.value);
+    },
+    [onChange]
+  );
+
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      // Radix typeahead must not handle keys typed into the input, but Tab
+      // must reach the menu so that focus stays in it.
+      if (event.key !== "Tab") {
+        event.stopPropagation();
+      }
+      if (event.nativeEvent.isComposing) {
+        return;
+      }
+
+      const content = event.currentTarget.closest("[data-radix-menu-content]");
+      const items = content
+        ? Array.from(content.querySelectorAll<HTMLElement>(ITEM_SELECTOR))
+        : [];
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        items[0]?.focus();
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        items[items.length - 1]?.focus();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        items[0]?.click();
+      }
+    },
+    []
+  );
 
   return (
-    <Wrapper>
-      <span ref={queryRef} {...{ [QUERY_ATTRIBUTE]: "" }}>
-        {query}
-      </span>
-      <Caret aria-hidden $hidden={isSelected} />
-      {!query && <Placeholder>{`${t("Filter")}…`}</Placeholder>}
+    <Wrapper style={isActive ? undefined : VISUALLY_HIDDEN_STYLES}>
+      <Input
+        value={query ?? ""}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={`${t("Filter")}…`}
+        aria-label={t("Filter")}
+        tabIndex={-1}
+        autoComplete="off"
+        spellCheck={false}
+        {...{ [INPUT_ATTRIBUTE]: "" }}
+      />
     </Wrapper>
   );
 }
@@ -204,6 +220,7 @@ function lockLayout(content: HTMLElement) {
     "--menu-filter-width",
     getComputedStyle(content).width
   );
+  content.setAttribute(LOCKED_ATTRIBUTE, "");
 
   const wrapper = content.closest<HTMLElement>(
     "[data-radix-popper-content-wrapper]"
@@ -217,49 +234,13 @@ function lockLayout(content: HTMLElement) {
   }
 }
 
-/**
- * Returns the part of the element text that is in the document selection.
- *
- * @param element the element that contains the text.
- * @returns the start and end offsets, or undefined if no text is selected.
- */
-function getSelectedRange(element: HTMLElement) {
-  const selection = window.getSelection();
-  if (!selection || selection.isCollapsed || !selection.rangeCount) {
-    return undefined;
-  }
-
-  // Limit the selection to the text of the element.
-  const range = selection.getRangeAt(0);
-  const selected = document.createRange();
-  selected.selectNodeContents(element);
-  if (range.compareBoundaryPoints(Range.START_TO_START, selected) > 0) {
-    selected.setStart(range.startContainer, range.startOffset);
-  }
-  if (range.compareBoundaryPoints(Range.END_TO_END, selected) < 0) {
-    selected.setEnd(range.endContainer, range.endOffset);
-  }
-  if (selected.collapsed) {
-    return undefined;
-  }
-
-  const before = document.createRange();
-  before.selectNodeContents(element);
-  before.setEnd(selected.startContainer, selected.startOffset);
-  const start = before.toString().length;
-  return { start, end: start + selected.toString().length };
-}
+const ITEM_SELECTOR = '[role^="menuitem"]:not([data-disabled])';
 
 const LOCKED_ATTRIBUTE = "data-menu-filter-locked";
 
-const QUERY_ATTRIBUTE = "data-menu-filter-query";
+const INPUT_ATTRIBUTE = "data-menu-filter-input";
 
-const blink = keyframes`
-  0%, 50% { opacity: 1; }
-  50.01%, 100% { opacity: 0; }
-`;
-
-const Wrapper = styled.div`
+const Wrapper = styled.label`
   position: sticky;
   top: 0;
   z-index: 1;
@@ -268,41 +249,40 @@ const Wrapper = styled.div`
   min-height: 40px;
   margin: -6px -6px 6px;
   padding: 8px 18px;
-  font-size: 16px;
-  white-space: pre;
-  overflow: hidden;
   cursor: text;
-  user-select: text;
-  color: ${s("text")};
   background: ${s("menuBackground")};
   border-bottom: 1px solid ${s("divider")};
 
-  ${breakpoint("tablet")`
-    font-size: 14px;
-  `}
-
   // Keep the size and position that the menu had before filtering. This rule
   // overrides the inline transform that Radix changes when the menu resizes.
-  [data-radix-menu-content]:has(&) {
+  [data-radix-menu-content][${LOCKED_ATTRIBUTE}]:has(&) {
     width: var(--menu-filter-width);
   }
 
-  [${LOCKED_ATTRIBUTE}]:has(&) {
+  [data-radix-popper-content-wrapper][${LOCKED_ATTRIBUTE}]:has(&) {
     transform: var(--menu-filter-transform) !important;
   }
 `;
 
-const Caret = styled.span<{ $hidden: boolean }>`
-  flex-shrink: 0;
-  visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
-  width: 1px;
-  height: 1.2em;
-  background: currentColor;
-  animation: ${blink} 1s step-end infinite;
-`;
+const Input = styled.input`
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  color: ${s("text")};
 
-const Placeholder = styled.span`
-  color: ${s("placeholder")};
+  &::placeholder {
+    color: ${s("placeholder")};
+  }
+
+  ${breakpoint("tablet")`
+    font-size: 14px;
+  `}
 `;
 
 const Empty = styled.div`

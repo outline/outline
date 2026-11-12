@@ -68,6 +68,7 @@ export const DropdownMenu = observer(function DropdownMenu({
   });
   const {
     query,
+    setQuery,
     handleKeyDownCapture,
     handleEscapeKeyDown,
     reset: resetFilter,
@@ -155,7 +156,7 @@ export const DropdownMenu = observer(function DropdownMenu({
           onEscapeKeyDown={handleEscapeKeyDown}
           onKeyDownCapture={handleKeyDownCapture}
         >
-          {query !== undefined && <MenuFilter query={query} />}
+          <MenuFilter query={query} onChange={setQuery} />
           {content ?? (query ? <MenuFilterEmpty /> : null)}
           {query ? null : append}
         </MenuContent>
