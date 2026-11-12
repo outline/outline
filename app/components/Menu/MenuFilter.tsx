@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
+import { isModKey } from "@shared/utils/keyboard";
 import isTextInput from "~/utils/isTextInput";
 
 interface MenuFilterState {
@@ -44,24 +45,55 @@ export function useMenuFilter(): MenuFilterState {
         target.closest("[data-radix-menu-content]") !== currentTarget ||
         (isTextInput(target) && !target.matches('[role^="menuitem"]')) ||
         target.isContentEditable ||
-        isShortcut ||
         event.nativeEvent.isComposing
       ) {
         return;
       }
 
+      const queryElement = currentTarget.querySelector<HTMLElement>(
+        `[${QUERY_ATTRIBUTE}]`
+      );
+
+      if (isShortcut) {
+        // Select the query like a text input does, instead of the page.
+        if (
+          queryElement &&
+          isModKey(event) &&
+          !event.altKey &&
+          !event.shiftKey &&
+          event.key.toLowerCase() === "a"
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.getSelection()?.selectAllChildren(queryElement);
+        }
+        return;
+      }
+
+      const current = query ?? "";
+      const selected = queryElement
+        ? getSelectedRange(queryElement)
+        : undefined;
+
       let next: string;
-      if (event.key === "Backspace") {
-        if (!query) {
+      if (event.key === "Backspace" || event.key === "Delete") {
+        if (selected) {
+          next = current.slice(0, selected.start) + current.slice(selected.end);
+        } else if (event.key === "Backspace" && current) {
+          next = Array.from(current).slice(0, -1).join("");
+        } else {
           return;
         }
-        next = Array.from(query).slice(0, -1).join("");
       } else if (Array.from(event.key).length === 1) {
         // Space selects the focused item until there is a query to add it to.
-        if (event.key === " " && !query) {
+        if (event.key === " " && !current) {
           return;
         }
-        next = (query ?? "") + event.key;
+        next = selected
+          ? current.slice(0, selected.start) +
+            event.key +
+            current.slice(selected.end)
+          : current + event.key;
       } else {
         return;
       }
@@ -73,6 +105,9 @@ export function useMenuFilter(): MenuFilterState {
       contentRef.current = currentTarget;
       if (query === undefined) {
         lockLayout(currentTarget);
+      }
+      if (selected) {
+        window.getSelection()?.removeAllRanges();
       }
       setQuery(next);
     },
@@ -128,11 +163,24 @@ interface Props {
  */
 export function MenuFilter({ query }: Props) {
   const { t } = useTranslation();
+  const queryRef = React.useRef<HTMLSpanElement>(null);
+  const [isSelected, setSelected] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleSelectionChange = () => {
+      setSelected(!!queryRef.current && !!getSelectedRange(queryRef.current));
+    };
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () =>
+      document.removeEventListener("selectionchange", handleSelectionChange);
+  }, []);
 
   return (
     <Wrapper>
-      {query}
-      <Caret aria-hidden />
+      <span ref={queryRef} {...{ [QUERY_ATTRIBUTE]: "" }}>
+        {query}
+      </span>
+      <Caret aria-hidden $hidden={isSelected} />
       {!query && <Placeholder>{`${t("Filter")}…`}</Placeholder>}
     </Wrapper>
   );
@@ -169,7 +217,42 @@ function lockLayout(content: HTMLElement) {
   }
 }
 
+/**
+ * Returns the part of the element text that is in the document selection.
+ *
+ * @param element the element that contains the text.
+ * @returns the start and end offsets, or undefined if no text is selected.
+ */
+function getSelectedRange(element: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || !selection.rangeCount) {
+    return undefined;
+  }
+
+  // Limit the selection to the text of the element.
+  const range = selection.getRangeAt(0);
+  const selected = document.createRange();
+  selected.selectNodeContents(element);
+  if (range.compareBoundaryPoints(Range.START_TO_START, selected) > 0) {
+    selected.setStart(range.startContainer, range.startOffset);
+  }
+  if (range.compareBoundaryPoints(Range.END_TO_END, selected) < 0) {
+    selected.setEnd(range.endContainer, range.endOffset);
+  }
+  if (selected.collapsed) {
+    return undefined;
+  }
+
+  const before = document.createRange();
+  before.selectNodeContents(element);
+  before.setEnd(selected.startContainer, selected.startOffset);
+  const start = before.toString().length;
+  return { start, end: start + selected.toString().length };
+}
+
 const LOCKED_ATTRIBUTE = "data-menu-filter-locked";
+
+const QUERY_ATTRIBUTE = "data-menu-filter-query";
 
 const blink = keyframes`
   0%, 50% { opacity: 1; }
@@ -188,6 +271,8 @@ const Wrapper = styled.div`
   font-size: 16px;
   white-space: pre;
   overflow: hidden;
+  cursor: text;
+  user-select: text;
   color: ${s("text")};
   background: ${s("menuBackground")};
   border-bottom: 1px solid ${s("divider")};
@@ -207,11 +292,12 @@ const Wrapper = styled.div`
   }
 `;
 
-const Caret = styled.span`
+const Caret = styled.span<{ $hidden: boolean }>`
   flex-shrink: 0;
+  visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
   width: 1px;
   height: 1.2em;
-  background: ${s("accent")};
+  background: currentColor;
   animation: ${blink} 1s step-end infinite;
 `;
 
