@@ -230,7 +230,7 @@
     "react-remove-scroll": "^2.7.2",
     "react-router-dom": "^5.3.4",
     "react-use-measure": "^2.1.7",
-    "react-window": "^2.3.4",
+    "react-window": "^2.5.3",
     "react-zoom-pan-pinch": "^3.7.0",
     "reflect-metadata": "^0.2.2",
     "refractor": "^5.0.0",
