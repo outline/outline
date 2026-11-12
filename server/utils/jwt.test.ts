@@ -104,7 +104,7 @@ describe("getUserForJWT", () => {
     expect(result.user.id).toEqual(user.id);
   });
 
-  it("should not leak the suspending admin for a token with a wrong signature", async () => {
+  it("should reject a token with a wrong signature for a suspended user", async () => {
     const admin = await buildAdmin();
     const user = await buildUser({
       teamId: admin.teamId,
