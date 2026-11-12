@@ -528,18 +528,6 @@ export default class Collection extends ParanoidModel {
     return this.childrenByDocumentId.get(documentId) ?? [];
   }
 
-  /**
-   * Returns the child documents of a document, without links.
-   *
-   * @param documentId The id of the document.
-   * @returns the child document nodes.
-   */
-  getChildDocumentsForDocument(documentId: string) {
-    return this.getChildrenForDocument(documentId).filter(
-      (node) => node.type !== NavigationNodeType.Link
-    );
-  }
-
   @computed
   get asNavigationNode(): NavigationNode {
     return {
