@@ -28,7 +28,7 @@ const defaultColors: Colors = {
   yellow: "#EDBA07",
   warmGrey: "hsl(212 31% 95% / 1)",
   danger: "#ed2651",
-  warning: "#f08a24",
+  warning: "#f05a28",
   success: "#3ad984",
   info: "#a0d3e8",
   brand: {
