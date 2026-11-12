@@ -74,6 +74,12 @@ export async function getUserForJWT(
     throw AuthenticationError("Invalid token");
   }
 
+  try {
+    JWT.verify(token, user.jwtSecret);
+  } catch (_err) {
+    throw AuthenticationError("Invalid token");
+  }
+
   if (user.isSuspended) {
     const suspendingAdmin = user.suspendedById
       ? await User.findByPk(user.suspendedById)
@@ -93,12 +99,6 @@ export async function getUserForJWT(
     ) {
       throw AuthenticationError("Token has already been used");
     }
-  }
-
-  try {
-    JWT.verify(token, user.jwtSecret);
-  } catch (_err) {
-    throw AuthenticationError("Invalid token");
   }
 
   return {
