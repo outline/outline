@@ -11,6 +11,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import SettingRow from "./components/SettingRow";
+import { SettingsSection } from "./components/SettingsSection";
 import Input from "~/components/Input";
 import Tooltip from "~/components/Tooltip";
 import CopyToClipboard from "~/components/CopyToClipboard";
@@ -56,102 +57,102 @@ function AI() {
         <Trans>Control how AI features are used in the workspace.</Trans>
       </Text>
 
-      <Heading as="h2">{t("MCP server")}</Heading>
-      <SettingRow
-        name={TeamPreference.MCP}
-        label={t("Enabled")}
-        description={
-          <>
-            <Text type="secondary" as="p">
-              {t(
-                "Let members connect AI assistants and other apps to this workspace. Connected apps can read and edit content with the same permissions as the member who connects them."
-              )}
-            </Text>
-            {team.getPreference(TeamPreference.MCP) && (
-              <>
-                <Text
-                  type="secondary"
-                  as="p"
-                  style={{ marginTop: 8, marginBottom: 4 }}
-                >
-                  <Trans
-                    defaults="Use this URL in your MCP client. See <a>the setup guide</a> for more details."
-                    components={{
-                      a: (
-                        <Text
-                          as="a"
-                          weight="bold"
-                          href="https://docs.getoutline.com/s/guide/doc/mcp-6j9jtENNKL"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
-                      ),
-                    }}
-                  />
-                </Text>
-                <Input readOnly value={mcpEndpoint}>
-                  <Tooltip content={t("Copy URL")}>
-                    <CopyToClipboard text={mcpEndpoint} onCopy={handleCopied}>
-                      <NudeButton type="button" style={{ marginRight: 3 }}>
-                        <CopyIcon color={theme.placeholder} size={18} />
-                      </NudeButton>
-                    </CopyToClipboard>
-                  </Tooltip>
-                </Input>
-              </>
-            )}
-          </>
-        }
-      >
-        <Switch
-          id={TeamPreference.MCP}
-          name={TeamPreference.MCP}
-          aria-label={t("MCP server")}
-          checked={team.getPreference(TeamPreference.MCP)}
-          onChange={handleMCPChange}
-        />
-      </SettingRow>
-
-      {team.getPreference(TeamPreference.MCP) && (
+      <SettingsSection title={t("MCP server")}>
         <SettingRow
-          name="guidanceMCP"
-          label={t("Custom instructions")}
-          border={false}
+          name={TeamPreference.MCP}
+          label={t("Enabled")}
           description={
             <>
-              <div style={{ marginBottom: 8 }}>
+              <Text type="secondary" as="p">
                 {t(
-                  "Optional instructions that are sent to connected AI apps, for example how your workspace is organized or where to find important information."
+                  "Let members connect AI assistants and other apps to this workspace. Connected apps can read and edit content with the same permissions as the member who connects them."
                 )}
-              </div>
-              <Input
-                id="guidanceMCP"
-                type="textarea"
-                autoSize
-                minHeight="6lh"
-                maxHeight="20lh"
-                value={team.guidanceMCP ?? ""}
-                maxLength={TeamValidation.maxGuidanceMCPLength}
-                warningLimit={TeamValidation.warnGuidanceMCPLength}
-                onChange={handleGuidanceMCPChange}
-                onBlur={handleGuidanceMCPBlur}
-              />
+              </Text>
+              {team.getPreference(TeamPreference.MCP) && (
+                <>
+                  <Text
+                    type="secondary"
+                    as="p"
+                    style={{ marginTop: 8, marginBottom: 4 }}
+                  >
+                    <Trans
+                      defaults="Use this URL in your MCP client. See <a>the setup guide</a> for more details."
+                      components={{
+                        a: (
+                          <Text
+                            as="a"
+                            weight="bold"
+                            href="https://docs.getoutline.com/s/guide/doc/mcp-6j9jtENNKL"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        ),
+                      }}
+                    />
+                  </Text>
+                  <Input readOnly value={mcpEndpoint}>
+                    <Tooltip content={t("Copy URL")}>
+                      <CopyToClipboard text={mcpEndpoint} onCopy={handleCopied}>
+                        <NudeButton type="button" style={{ marginRight: 3 }}>
+                          <CopyIcon color={theme.placeholder} size={18} />
+                        </NudeButton>
+                      </CopyToClipboard>
+                    </Tooltip>
+                  </Input>
+                </>
+              )}
             </>
           }
-        />
-      )}
+        >
+          <Switch
+            id={TeamPreference.MCP}
+            name={TeamPreference.MCP}
+            aria-label={t("MCP server")}
+            checked={team.getPreference(TeamPreference.MCP)}
+            onChange={handleMCPChange}
+          />
+        </SettingRow>
 
-      <Heading as="h2">{t("AI answers")}</Heading>
-      <SettingRow
-        name="answers"
-        label={t("Enabled")}
-        description={t(
-          "Show AI-generated answers to questions in search, based on content in your workspace. Requires a paid license."
+        {team.getPreference(TeamPreference.MCP) && (
+          <SettingRow
+            name="guidanceMCP"
+            label={t("Custom instructions")}
+            description={
+              <>
+                <div style={{ marginBottom: 8 }}>
+                  {t(
+                    "Optional instructions that are sent to connected AI apps, for example how your workspace is organized or where to find important information."
+                  )}
+                </div>
+                <Input
+                  id="guidanceMCP"
+                  type="textarea"
+                  autoSize
+                  minHeight="6lh"
+                  maxHeight="20lh"
+                  value={team.guidanceMCP ?? ""}
+                  maxLength={TeamValidation.maxGuidanceMCPLength}
+                  warningLimit={TeamValidation.warnGuidanceMCPLength}
+                  onChange={handleGuidanceMCPChange}
+                  onBlur={handleGuidanceMCPBlur}
+                />
+              </>
+            }
+          />
         )}
-        border={false}
-      >
-        <Switch disabled />
-      </SettingRow>
+      </SettingsSection>
+
+      <SettingsSection title={t("AI answers")}>
+        <SettingRow
+          name="answers"
+          label={t("Enabled")}
+          description={t(
+            "Show AI-generated answers to questions in search, based on content in your workspace. Requires a paid license."
+          )}
+        >
+          <Switch disabled />
+        </SettingRow>
+      </SettingsSection>
     </Scene>
   );
 }
