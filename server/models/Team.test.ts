@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { TeamValidation } from "@shared/validations";
+import sharedEnv from "@shared/env";
+import env from "@server/env";
 import { Team } from "@server/models";
 import {
   buildTeam,
@@ -7,6 +9,7 @@ import {
   buildAttachment,
   buildSubdomain,
 } from "@server/test/factories";
+import { setCloudHosted, setSelfHosted } from "@server/test/support";
 
 describe("Team", () => {
   describe("findByDomain", () => {
@@ -160,6 +163,73 @@ describe("Team", () => {
     });
   });
 
+  describe("canAuthenticateOnHost", () => {
+    const url = env.URL;
+
+    beforeEach(setCloudHosted);
+
+    afterEach(() => {
+      env.URL = sharedEnv.URL = url;
+    });
+
+    it("should accept any host when self hosted", async () => {
+      setSelfHosted();
+      const team = await buildTeam({ subdomain: buildSubdomain() });
+      await expect(
+        team.canAuthenticateOnHost("other.outline.dev")
+      ).resolves.toBe(true);
+    });
+
+    it("should accept the team subdomain when cloud hosted", async () => {
+      const team = await buildTeam({ subdomain: buildSubdomain() });
+      await expect(
+        team.canAuthenticateOnHost(`${team.subdomain}.outline.dev`)
+      ).resolves.toBe(true);
+    });
+
+    it("should reject another team subdomain when cloud hosted", async () => {
+      const [team, other] = await Promise.all([
+        buildTeam({ subdomain: buildSubdomain() }),
+        buildTeam({ subdomain: buildSubdomain() }),
+      ]);
+      await expect(
+        team.canAuthenticateOnHost(`${other.subdomain}.outline.dev`)
+      ).resolves.toBe(false);
+    });
+
+    it("should accept a previous subdomain of the team", async () => {
+      const previous = buildSubdomain();
+      const team = await buildTeam({ subdomain: previous });
+      await team.update({ subdomain: buildSubdomain() });
+      await expect(
+        team.canAuthenticateOnHost(`${previous}.outline.dev`)
+      ).resolves.toBe(true);
+    });
+
+    it("should reject a previous subdomain claimed by another team", async () => {
+      const previous = buildSubdomain();
+      const team = await buildTeam({ subdomain: previous });
+      await team.update({ subdomain: buildSubdomain() });
+      await buildTeam({ subdomain: previous });
+      await expect(
+        team.canAuthenticateOnHost(`${previous}.outline.dev`)
+      ).resolves.toBe(false);
+    });
+
+    it("should accept hosts without a team subdomain when cloud hosted", async () => {
+      const team = await buildTeam({ subdomain: buildSubdomain() });
+      await expect(team.canAuthenticateOnHost("outline.dev")).resolves.toBe(
+        true
+      );
+      await expect(team.canAuthenticateOnHost("app.outline.dev")).resolves.toBe(
+        true
+      );
+      await expect(
+        team.canAuthenticateOnHost("docs.example.com")
+      ).resolves.toBe(true);
+    });
+  });
+
   describe("publicAvatarUrl", () => {
     it("should return null when no avatarUrl is set", async () => {
       const team = await buildTeam({ avatarUrl: null });
@@ -178,7 +248,7 @@ describe("Team", () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2026-04-16T00:00:00.000Z"));
       try {
-        const team = await buildTeam();
+        const team = await buildTeam({ subdomain: buildSubdomain() });
         const attachment = await buildAttachment({
           teamId: team.id,
           acl: "private",
@@ -196,7 +266,7 @@ describe("Team", () => {
     });
 
     it("should return canonical URL for public-bucket attachment redirect", async () => {
-      const team = await buildTeam();
+      const team = await buildTeam({ subdomain: buildSubdomain() });
       const id = randomUUID();
       const attachment = await buildAttachment({
         id,

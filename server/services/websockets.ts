@@ -64,12 +64,7 @@ export default function init(
     "upgrade",
     function (req: IncomingMessage, socket: Duplex, head: Buffer) {
       if (req.url?.startsWith(path) && ioHandleUpgrade) {
-        // For on-premise deployments, ensure the websocket origin matches the deployed URL.
-        // In cloud-hosted we support any origin for custom domains.
-        if (
-          !env.isCloudHosted &&
-          (!req.headers.origin || !env.URL.startsWith(req.headers.origin))
-        ) {
+        if (!isOriginAllowed(req)) {
           rejectUpgrade(socket);
           return;
         }
@@ -223,6 +218,35 @@ async function authenticate(socket: SocketWithAuth): Promise<User> {
   }
 
   const { user } = await getUserForJWT(accessToken);
+  if (!(await user.team.canAuthenticateOnHost(socket.request.headers.host))) {
+    throw AuthenticationError("Token is not valid for this workspace");
+  }
+
   socket.client.auth = { userId: user.id, teamId: user.teamId };
   return user;
+}
+
+/**
+ * Returns whether the websocket upgrade request comes from an allowed origin.
+ * On-premise the origin must match the deployed URL. In cloud-hosted the
+ * origin must match the requested host, which allows custom domains.
+ *
+ * @param req The upgrade request.
+ * @returns True if the origin is allowed.
+ */
+function isOriginAllowed(req: IncomingMessage): boolean {
+  const { origin, host } = req.headers;
+  if (!origin) {
+    return false;
+  }
+
+  if (!env.isCloudHosted) {
+    return env.URL.startsWith(origin);
+  }
+
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
 }

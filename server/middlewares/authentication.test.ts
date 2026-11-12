@@ -8,8 +8,11 @@ import {
   buildAdmin,
   buildApiKey,
   buildOAuthAuthentication,
+  buildSubdomain,
 } from "@server/test/factories";
-import { buildMockContext } from "@server/test/support";
+import sharedEnv from "@shared/env";
+import env from "@server/env";
+import { buildMockContext, setCloudHosted } from "@server/test/support";
 import { AuthenticationType } from "@server/types";
 import auth from "./authentication";
 
@@ -473,6 +476,117 @@ describe("Authentication middleware", () => {
         next
       );
       expect(next).toHaveBeenCalled();
+      expect(state.auth.user.id).toEqual(user.id);
+    });
+  });
+
+  describe("with cloud hosted workspace host", () => {
+    const url = env.URL;
+
+    beforeEach(setCloudHosted);
+
+    afterEach(() => {
+      env.URL = sharedEnv.URL = url;
+    });
+
+    const buildCookieContext = (
+      token: string,
+      hostname: string,
+      state: DefaultState
+    ) =>
+      buildMockContext({
+        request: {
+          get: vi.fn(() => null),
+          hostname,
+        },
+        cookies: {
+          get: vi.fn(() => token),
+        },
+        state,
+        cache: {},
+      });
+
+    it("should authenticate on the subdomain of the user's team", async () => {
+      const state = {} as DefaultState;
+      const team = await buildTeam({ subdomain: buildSubdomain() });
+      const user = await buildUser({ teamId: team.id });
+      await auth()(
+        buildCookieContext(
+          user.getSessionToken(),
+          `${team.subdomain}.outline.dev`,
+          state
+        ),
+        vi.fn()
+      );
+      expect(state.auth.user.id).toEqual(user.id);
+    });
+
+    it("should reject a session token on another team's subdomain", async () => {
+      const state = {} as DefaultState;
+      const [user, team] = await Promise.all([
+        buildUser(),
+        buildTeam({ subdomain: buildSubdomain() }),
+      ]);
+      await expect(
+        auth()(
+          buildCookieContext(
+            user.getSessionToken(),
+            `${team.subdomain}.outline.dev`,
+            state
+          ),
+          vi.fn()
+        )
+      ).rejects.toThrow("Token is not valid for this workspace");
+    });
+
+    it("should reject an API key on another team's subdomain", async () => {
+      const state = {} as DefaultState;
+      const [user, team] = await Promise.all([
+        buildUser(),
+        buildTeam({ subdomain: buildSubdomain() }),
+      ]);
+      const apiKey = await buildApiKey({ userId: user.id });
+      await expect(
+        auth()(
+          buildMockContext({
+            request: {
+              get: vi.fn(() => `Bearer ${apiKey.value}`),
+              hostname: `${team.subdomain}.outline.dev`,
+            },
+            state,
+            cache: {},
+          }),
+          vi.fn()
+        )
+      ).rejects.toThrow("Token is not valid for this workspace");
+    });
+
+    it("should treat optional auth on another team's subdomain as anonymous", async () => {
+      const state = {} as DefaultState;
+      const next = vi.fn();
+      const [user, team] = await Promise.all([
+        buildUser(),
+        buildTeam({ subdomain: buildSubdomain() }),
+      ]);
+      await auth({ optional: true })(
+        buildCookieContext(
+          user.getSessionToken(),
+          `${team.subdomain}.outline.dev`,
+          state
+        ),
+        next
+      );
+      expect(next).toHaveBeenCalled();
+      expect(state.auth).toEqual({});
+    });
+
+    it("should authenticate on a host without a team subdomain", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      await auth()(
+        buildCookieContext(user.getSessionToken(), "app.outline.dev", state),
+        vi.fn()
+      );
       expect(state.auth.user.id).toEqual(user.id);
     });
   });
