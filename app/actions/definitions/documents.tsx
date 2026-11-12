@@ -258,7 +258,7 @@ export const createDraftDocument = createInternalLinkAction({
  * @param document - the document to find the index of.
  * @returns the index of the document among its siblings, or -1 if not found.
  */
-export function findDocumentSiblingIndex(
+function findDocumentSiblingIndex(
   stores: ActionContext["stores"],
   document: {
     id: string;
@@ -291,7 +291,7 @@ export function findDocumentSiblingIndex(
  * @param document - the document to create a sibling of.
  * @returns true if the user can create a sibling.
  */
-export function canCreateSiblingDocument(
+function canCreateSiblingDocument(
   stores: ActionContext["stores"],
   document: Document
 ): boolean {

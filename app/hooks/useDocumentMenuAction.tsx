@@ -37,10 +37,7 @@ import {
   toggleDocumentStats,
 } from "~/actions/definitions/documents";
 import { renameActionFactory } from "~/actions/definitions/common";
-import {
-  addLink,
-  addLinkInAlphabeticalCollection,
-} from "~/actions/definitions/links";
+import { addLinkToDocument } from "~/actions/definitions/links";
 import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
 import type Template from "~/models/Template";
@@ -83,7 +80,7 @@ export function useDocumentMenuAction({
         // Actions that add to the tree around the document, not change it.
         createNewDocument,
         createNewDocumentInAlphabeticalCollection,
-        ...(showLinkActions ? [addLink, addLinkInAlphabeticalCollection] : []),
+        ...(showLinkActions ? [addLinkToDocument] : []),
         importDocument,
         ActionSeparator,
         restoreDocument,
