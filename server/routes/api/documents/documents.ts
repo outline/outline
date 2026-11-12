@@ -2118,7 +2118,7 @@ router.post(
         groupId,
       },
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       rejectOnEmpty: true,
     });
 

@@ -984,7 +984,7 @@ class Collection extends ParanoidModel<
         attributes: ["id"],
         where: { id: this.id },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         rejectOnEmpty: true,
       });
     }

@@ -114,7 +114,7 @@ export default async function documentUpdater(
         ...(lastRevision !== undefined && { revisionCount: lastRevision }),
       },
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       paranoid: false,
     });
 

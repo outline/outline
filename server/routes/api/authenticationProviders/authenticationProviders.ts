@@ -48,7 +48,7 @@ router.post(
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
 
     authorize(user, "update", authenticationProvider);

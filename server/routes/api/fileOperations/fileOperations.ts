@@ -136,7 +136,7 @@ router.post(
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(user, "delete", fileOperation);
 

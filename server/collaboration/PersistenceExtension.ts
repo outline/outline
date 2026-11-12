@@ -66,7 +66,7 @@ export default class PersistenceExtension implements Extension {
       const document = await Document.unscoped().findOne({
         attributes: ["id", "state", "content", "text"],
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         rejectOnEmpty: true,
         where: {
           id: documentId,

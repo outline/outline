@@ -286,7 +286,7 @@ router.post(
         externalGroupInclude,
       ],
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Group,
       },
     });
@@ -334,7 +334,7 @@ router.post(
       transaction,
       include: [externalGroupInclude],
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Group,
       },
     });
@@ -380,7 +380,7 @@ router.post(
       const groups = await Group.findAll({
         where: { id: groupIds, teamId: user.teamId },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
 
       // Each group is destroyed individually so that a delete event is

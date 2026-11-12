@@ -164,7 +164,7 @@ class GroupMembership extends ParanoidModel<
     return this.findOne({
       ...options,
       where: collectionId ? { groupId, collectionId } : { groupId, documentId },
-      lock: options.transaction.LOCK.UPDATE,
+      lock: options.transaction.LOCK.NO_KEY_UPDATE,
     });
   }
 

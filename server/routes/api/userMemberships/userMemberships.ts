@@ -97,7 +97,7 @@ router.post(
     const membership = await UserMembership.scope("withUser").findByPk(id, {
       transaction,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: UserMembership,
       },
       rejectOnEmpty: true,
