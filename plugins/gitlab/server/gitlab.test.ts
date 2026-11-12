@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { addHours } from "date-fns";
+import { addHours, subHours } from "date-fns";
 import { http, HttpResponse } from "msw";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration, IntegrationAuthentication } from "@server/models";
@@ -15,21 +15,25 @@ async function buildGitLabIntegration({
   teamId,
   userId,
   url,
+  expiresAt = addHours(new Date(), 1),
 }: {
   teamId: string;
   userId: string;
   url: string;
+  expiresAt?: Date;
 }) {
   const authentication = await IntegrationAuthentication.create({
     service: IntegrationService.GitLab,
     userId,
     teamId,
+    clientId: "client-id",
+    clientSecret: "client-secret",
     token: "token",
     refreshToken: "refresh",
-    expiresAt: addHours(new Date(), 1),
+    expiresAt,
   });
 
-  return Integration.create({
+  const integration = await Integration.create({
     service: IntegrationService.GitLab,
     type: IntegrationType.Embed,
     userId,
@@ -37,6 +41,7 @@ async function buildGitLabIntegration({
     authenticationId: authentication.id,
     settings: { gitlab: { url } },
   });
+  return { integration, authentication };
 }
 
 describe("GitLab", () => {
@@ -118,6 +123,64 @@ describe("GitLab", () => {
   });
 
   describe("unfurl", () => {
+    it("should refresh an expired token and use the new token", async () => {
+      const user = await buildUser();
+      const customUrl = buildBaseUrl();
+      const { authentication } = await buildGitLabIntegration({
+        teamId: user.teamId,
+        userId: user.id,
+        url: customUrl,
+        expiresAt: subHours(new Date(), 1),
+      });
+      let tokenRequest: Record<string, string> | undefined;
+      let authorization: string | null = null;
+      server.use(
+        http.post(`${customUrl}/oauth/token`, async ({ request }) => {
+          tokenRequest = (await request.json()) as Record<string, string>;
+          return HttpResponse.json({
+            access_token: "new-token",
+            token_type: "Bearer",
+            expires_in: 7200,
+            refresh_token: "new-refresh",
+            scope: "read_api read_user",
+            created_at: 0,
+          });
+        }),
+        http.get(
+          `${customUrl}/api/v4/projects/:project/merge_requests/5`,
+          ({ request }) => {
+            authorization = request.headers.get("authorization");
+            return HttpResponse.json({
+              iid: 5,
+              title: "Change",
+              web_url: `${customUrl}/group/repo/-/merge_requests/5`,
+              state: "opened",
+              author,
+              created_at: "2026-01-01T00:00:00Z",
+            });
+          }
+        )
+      );
+
+      const result = await GitLab.unfurl(
+        `${customUrl}/group/repo/-/merge_requests/5`,
+        user
+      );
+
+      expect(result).toMatchObject({ title: "Change" });
+      expect(tokenRequest).toMatchObject({
+        grant_type: "refresh_token",
+        refresh_token: "refresh",
+        client_id: "client-id",
+        client_secret: "client-secret",
+      });
+      expect(authorization).toEqual("Bearer new-token");
+
+      await authentication.reload();
+      expect(authentication.token).toEqual("new-token");
+      expect(authentication.refreshToken).toEqual("new-refresh");
+    });
+
     it("should unfurl a project without progress when statistics fail", async () => {
       const user = await buildUser();
       const customUrl = buildBaseUrl();
