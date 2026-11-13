@@ -7,6 +7,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 const server = getTestServer();
 
@@ -114,6 +115,27 @@ describe("#suggestions.mention", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.users).toEqual([]);
+  });
+
+  it("should return the other sections when a section is too slow", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId, name: "Elizabeth" });
+    const spy = vi
+      .spyOn(SearchProviderManager.getProvider(), "searchTitlesForUser")
+      .mockReturnValue(new Promise(() => undefined));
+
+    try {
+      const res = await server.post("/api/suggestions.mention", user);
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.documents).toEqual([]);
+      expect(body.data.users.map((u: { id: string }) => u.id)).toContain(
+        other.id
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("should require authentication", async () => {

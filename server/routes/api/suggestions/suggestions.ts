@@ -1,6 +1,9 @@
 import Router from "@koa/router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
+import { Second } from "@shared/utils/time";
+import { withinTimeLimit } from "@shared/utils/timers";
+import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
@@ -21,6 +24,9 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/** The time each section of the suggestions may take before it is left out. */
+const sectionTimeLimit = Second.ms;
 
 router.post(
   "suggestions.mention",
@@ -80,44 +86,81 @@ router.post(
       };
     };
 
+    const timedOut: string[] = [];
+    const withinLimit = <T>(
+      section: string,
+      run: () => Promise<T>,
+      fallback: T
+    ) =>
+      withinTimeLimit(run, sectionTimeLimit, fallback, () => {
+        timedOut.push(section);
+      });
+
     const [documents, { users, familiarity }, groups, collections] =
       await Promise.all([
-        SearchProviderManager.getProvider().searchTitlesForUser(actor, {
-          query,
-          offset,
-          limit,
-          filter: {
-            operator: "AND",
-            filters: [
-              { field: "archivedAt", operator: "isNull" },
-              { field: "publishedAt", operator: "isNotNull" },
-            ],
-          },
-        }),
-        suggestUsers(),
-        can(actor, "listGroups", actor.team)
-          ? Group.findAll({
-              where: {
-                teamId: actor.teamId,
-                disableMentions: false,
-                [Op.and]: query
-                  ? Sequelize.literal(
-                      `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                    )
-                  : {},
-              },
-              order: [["name", "ASC"]],
-              replacements: { query: QueryHelper.likeContains(query ?? "") },
+        withinLimit(
+          "documents",
+          () =>
+            SearchProviderManager.getProvider().searchTitlesForUser(actor, {
+              query,
               offset,
               limit,
-            })
-          : [],
-        SearchProviderManager.getProvider().searchCollectionsForUser(actor, {
-          query,
-          offset,
-          limit,
-        }),
+              filter: {
+                operator: "AND",
+                filters: [
+                  { field: "archivedAt", operator: "isNull" },
+                  { field: "publishedAt", operator: "isNotNull" },
+                ],
+              },
+            }),
+          []
+        ),
+        withinLimit("users", suggestUsers, { users: [], familiarity: {} }),
+        withinLimit(
+          "groups",
+          async () =>
+            can(actor, "listGroups", actor.team)
+              ? Group.findAll({
+                  where: {
+                    teamId: actor.teamId,
+                    disableMentions: false,
+                    [Op.and]: query
+                      ? Sequelize.literal(
+                          `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                        )
+                      : {},
+                  },
+                  order: [["name", "ASC"]],
+                  replacements: {
+                    query: QueryHelper.likeContains(query ?? ""),
+                  },
+                  offset,
+                  limit,
+                })
+              : [],
+          []
+        ),
+        withinLimit(
+          "collections",
+          () =>
+            SearchProviderManager.getProvider().searchCollectionsForUser(
+              actor,
+              {
+                query,
+                offset,
+                limit,
+              }
+            ),
+          []
+        ),
       ]);
+
+    if (timedOut.length) {
+      addTags(
+        { "suggestions.timedOut": timedOut.join(",") },
+        getRootSpanFromRequestContext(ctx)
+      );
+    }
 
     const [presentedDocuments, presentedGroups] = await Promise.all([
       presentDocuments(ctx, documents),
