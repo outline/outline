@@ -93,8 +93,10 @@ const SelectFilterChip = observer(function SelectFilterChip_({
     [id, onOpenChange]
   );
 
+  // Default values are implied, so only show values that the user picked.
+  const shown = isSet ? selected : [];
   const icon =
-    selected.length === 1 && selected[0].icon ? selected[0].icon : filter.icon;
+    shown.length === 1 && shown[0].icon ? shown[0].icon : filter.icon;
 
   return (
     <Chip>
@@ -113,7 +115,7 @@ const SelectFilterChip = observer(function SelectFilterChip_({
             <ChipContent
               icon={icon}
               label={filter.label}
-              value={selected.map((option) => option.label).join(", ")}
+              value={shown.map((option) => option.label).join(", ")}
               disclosure={!isSet}
             />
           </ChipButton>

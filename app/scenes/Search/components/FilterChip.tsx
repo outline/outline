@@ -33,7 +33,7 @@ export function ChipContent({
       {icon && <ChipIcon aria-hidden>{icon}</ChipIcon>}
       <ChipLabel $muted={!!value}>{label}</ChipLabel>
       {value && <ChipValue>{value}</ChipValue>}
-      {disclosure && <Disclosure size={20} aria-hidden />}
+      {disclosure && <Disclosure size={18} aria-hidden />}
     </>
   );
 }
@@ -55,7 +55,7 @@ export function ChipRemoveButton({ label, onClick }: ChipRemoveButtonProps) {
   return (
     <Tooltip content={label}>
       <RemoveButton aria-label={label} onClick={onClick}>
-        <CloseIcon size={18} />
+        <CloseIcon size={16} />
       </RemoveButton>
     </Tooltip>
   );
@@ -66,10 +66,9 @@ export const Chip = styled.div`
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  height: 32px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 13px;
   color: ${s("text")};
   box-shadow: inset 0 0 0 1px ${s("buttonNeutralBorder")};
   transition: background 100ms ease-out;
@@ -93,10 +92,10 @@ export const Chip = styled.div`
 export const ChipButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   height: 100%;
-  padding: 0 6px 0 10px;
+  padding: 0 6px 0 8px;
   margin: 0;
   border: 0;
   border-radius: inherit;
@@ -114,16 +113,25 @@ export const ChipButton = styled.button`
 export const ChipStatic = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
-  padding: 0 6px 0 10px;
+  padding: 0 6px 0 8px;
 `;
 
 const ChipIcon = styled.span`
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin: 0 -2px 0 -4px;
-  color: ${s("textSecondary")};
+  width: 18px;
+  height: 18px;
+  margin-inline-start: -2px;
+  color: ${s("textTertiary")};
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 `;
 
 const ChipLabel = styled.span<{ $muted: boolean }>`
@@ -137,6 +145,7 @@ const ChipValue = styled.span`
   ${ellipsis()}
   max-width: 240px;
   margin-inline-start: -2px;
+  font-weight: 500;
 `;
 
 const RemoveButton = styled(NudeButton)`
@@ -146,7 +155,7 @@ const RemoveButton = styled(NudeButton)`
   flex-shrink: 0;
   width: auto;
   height: 100%;
-  padding: 0 6px;
+  padding: 0 5px;
   border-start-start-radius: 0;
   border-end-start-radius: 0;
   border-start-end-radius: inherit;
@@ -163,5 +172,5 @@ const RemoveButton = styled(NudeButton)`
 const Disclosure = styled(DisclosureIcon)`
   flex-shrink: 0;
   margin-inline-start: -4px;
-  color: ${s("textSecondary")};
+  color: ${s("textTertiary")};
 `;

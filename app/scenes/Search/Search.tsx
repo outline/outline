@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
@@ -26,6 +27,7 @@ import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
@@ -129,6 +131,11 @@ function Search() {
     [query, titleFilter, sort, direction, filters]
   );
 
+  const [resultCount, setResultCount] = React.useState<{
+    params: typeof requestParams;
+    total: number;
+  }>();
+
   const requestFn = React.useMemo(() => {
     // Add to the searches store so this search can immediately appear in the recent searches list
     // without a flash of loading.
@@ -146,20 +153,31 @@ function Search() {
           offset: params?.offset,
           limit: params?.limit,
         };
-        return titleFilter
-          ? await documents.searchTitles({
-              ...requestParams,
-              ...paginationParams,
-            })
-          : await documents.search({
-              ...requestParams,
-              ...paginationParams,
-            });
+        if (titleFilter) {
+          return await documents.searchTitles({
+            ...requestParams,
+            ...paginationParams,
+          });
+        }
+
+        const results = await documents.search({
+          ...requestParams,
+          ...paginationParams,
+        });
+        const total = results[PAGINATION_SYMBOL]?.total;
+        if (!params?.offset && total !== undefined) {
+          setResultCount({ params: requestParams, total });
+        }
+        return results;
       };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
   }, [query, titleFilter, requestParams, searches, documents, isSearchable]);
+
+  // Keyed on the request so a count from an earlier search is never shown.
+  const total =
+    resultCount?.params === requestParams ? resultCount.total : undefined;
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
@@ -348,7 +366,17 @@ function Search() {
               />
             )}
           </FilterChips>
-          {sortInput && <SortRow>{sortInput}</SortRow>}
+          {sortInput && (
+            <ResultsMeta>
+              {total !== undefined && (
+                <>
+                  <span>{t("{{ count }} result", { count: total })}</span>
+                  <span aria-hidden>·</span>
+                </>
+              )}
+              {sortInput}
+            </ResultsMeta>
+          )}
         </form>
         {isSearchable ? (
           <>
@@ -454,8 +482,13 @@ const FilterChips = styled(Flex)`
   `};
 `;
 
-const SortRow = styled.div`
+const ResultsMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 8px;
+  font-size: 14px;
+  color: ${s("textSecondary")};
 `;
 
 export default observer(Search);

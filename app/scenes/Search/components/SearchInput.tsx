@@ -2,7 +2,7 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import Input, { NativeInput } from "~/components/Input";
+import Input, { NativeInput, Outline } from "~/components/Input";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -32,20 +32,35 @@ function SearchInput({ defaultValue, ref, ...rest }: Props) {
       defaultValue={defaultValue}
       ref={ref}
       spellCheck="false"
-      margin="0 0 8px"
+      margin="0 0 12px"
       autoFocus
     />
   );
 }
 
 const StyledInput = styled(Input)`
+  ${Outline} {
+    border-color: transparent;
+    border-radius: 10px;
+    background: ${s("backgroundSecondary")};
+    transition:
+      background 100ms ease-out,
+      border-color 100ms ease-out;
+  }
+
+  &:focus-within ${Outline} {
+    border-color: ${s("inputBorderFocused")};
+    background: ${s("background")};
+  }
+
   ${NativeInput} {
-    height: 40px;
-    font-size: 16px;
+    height: 46px;
+    font-size: 17px;
   }
 `;
 
 const StyledSearchIcon = styled(SearchIcon)`
+  margin-inline-start: 4px;
   color: ${s("textTertiary")};
 `;
 

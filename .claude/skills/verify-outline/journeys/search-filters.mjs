@@ -52,6 +52,7 @@ export default async ({ page, click, step, args, log, psql, literal }) => {
   await box.fill(args.query);
   await box.press("Enter");
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
+  await page.getByText("1 result", { exact: true }).waitFor();
   await step("results");
 
   // Pinned chip: pick a collection.

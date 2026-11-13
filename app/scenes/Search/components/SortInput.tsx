@@ -87,7 +87,7 @@ export const SortInput = ({ sort, direction, onSelect }: Props) => {
         trigger={
           <Trigger>
             {selectedLabel}
-            <DisclosureIcon size={20} aria-hidden />
+            <Disclosure size={20} aria-hidden />
           </Trigger>
         }
       />
@@ -99,8 +99,6 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
-  color: ${s("textSecondary")};
 `;
 
 const Trigger = styled.button`
@@ -113,11 +111,15 @@ const Trigger = styled.button`
   background: none;
   font: inherit;
   font-weight: 500;
-  color: ${s("accent")};
+  color: ${s("text")};
   cursor: var(--pointer);
 
   &:hover,
   &[aria-expanded="true"] {
     text-decoration: underline;
   }
+`;
+
+const Disclosure = styled(DisclosureIcon)`
+  color: ${s("textTertiary")};
 `;
