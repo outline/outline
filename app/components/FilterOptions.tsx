@@ -25,7 +25,7 @@ import { Menu, MenuContent, MenuTrigger, MenuButton } from "./primitives/Menu";
 import * as MenuComponents from "./primitives/components/Menu";
 import { MenuIconWrapper } from "./primitives/components/Menu";
 
-interface TFilterOption extends PaginatedItem {
+export interface TFilterOption extends PaginatedItem {
   key: string;
   label: string;
   icon?: React.ReactNode;
@@ -42,6 +42,12 @@ type Props = {
   fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
   fetchQueryOptions?: Record<string, string>;
   disclosure?: boolean;
+  /** Custom element that opens the options, defaults to a button showing the selection. */
+  trigger?: React.ReactElement;
+  /** Whether the options are open when the component mounts. */
+  defaultOpen?: boolean;
+  /** Callback when the options open or close. */
+  onOpenChange?: (open: boolean) => void;
 };
 
 const FilterOptions = ({
@@ -54,13 +60,23 @@ const FilterOptions = ({
   fetchQuery,
   fetchQueryOptions,
   disclosure = true,
+  trigger: customTrigger,
+  defaultOpen = false,
+  onOpenChange,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
   const isMobile = useMobile();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpenState] = React.useState(defaultOpen);
+  const setOpen = React.useCallback(
+    (value: boolean) => {
+      setOpenState(value);
+      onOpenChange?.(value);
+    },
+    [onOpenChange]
+  );
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
   );
@@ -111,7 +127,7 @@ const FilterOptions = ({
         />
       );
     },
-    [onSelect, showIcons, selectedKeys, isMobile]
+    [onSelect, setOpen, showIcons, selectedKeys, isMobile]
   );
 
   const handleFilter = React.useCallback(
@@ -193,7 +209,7 @@ const FilterOptions = ({
           break;
       }
     },
-    [filteredOptions, onSelect]
+    [filteredOptions, onSelect, setOpen]
   );
 
   const handleEscapeFromList = React.useCallback((ev: React.KeyboardEvent) => {
@@ -219,7 +235,7 @@ const FilterOptions = ({
   const showFilterInput = showFilter || options.length > 10;
   const defaultLabel = rest.defaultLabel || t("Filter options");
 
-  const trigger = (
+  const trigger = customTrigger ?? (
     <StyledButton
       className={className}
       icon={selectedItems[0]?.key && selectedItems[0]?.icon}

@@ -1,27 +1,31 @@
-import { CloseIcon } from "outline-icons";
-import * as React from "react";
+import { DocumentIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
-import { StyledButton } from "~/components/FilterOptions";
-import Tooltip from "~/components/Tooltip";
+import { Chip, ChipContent, ChipRemoveButton, ChipStatic } from "./FilterChip";
 
 type Props = {
   /** The currently selected document */
   document: Document;
   /** Callback to remove the document filter */
-  onClick: React.MouseEventHandler;
+  onRemove: () => void;
 };
 
 export function DocumentFilter(props: Props) {
   const { t } = useTranslation();
 
   return (
-    <div>
-      <Tooltip content={t("Remove document filter")}>
-        <StyledButton onClick={props.onClick} icon={<CloseIcon />} neutral>
-          {props.document.displayTitle}
-        </StyledButton>
-      </Tooltip>
-    </div>
+    <Chip>
+      <ChipStatic>
+        <ChipContent
+          icon={<DocumentIcon />}
+          label={t("Document")}
+          value={props.document.displayTitle}
+        />
+      </ChipStatic>
+      <ChipRemoveButton
+        label={t("Remove document filter")}
+        onClick={props.onRemove}
+      />
+    </Chip>
   );
 }

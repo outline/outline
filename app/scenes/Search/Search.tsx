@@ -8,13 +8,10 @@ import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
-import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
 import type {
   SortFilter as TSortFilter,
   DirectionFilter as TDirectionFilter,
-  DateFilter as TDateFilter,
 } from "@shared/types";
-import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
@@ -24,7 +21,6 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import { ModelSelectionProvider } from "~/components/ModelSelectionContext";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
-import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
@@ -33,22 +29,24 @@ import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
-import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
-import CollectionFilter from "./components/CollectionFilter";
-import DateFilter from "./components/DateFilter";
+import { decodeURIComponentSafe } from "~/utils/urls";
+import { AddFilterButton } from "./components/AddFilterButton";
 import { DocumentFilter } from "./components/DocumentFilter";
-import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
-import UserFilter from "./components/UserFilter";
-import { HStack } from "~/components/primitives/HStack";
-import useMobile from "~/hooks/useMobile";
+import { SearchFilterChip } from "./components/SearchFilterChip";
+import type { SearchFilter } from "./searchFilters";
+import {
+  TOGGLE_ON,
+  getFilterValues,
+  isFilterSet,
+  useSearchFilters,
+} from "./searchFilters";
 
 function Search() {
   const { t } = useTranslation();
   const { documents, searches, policies } = useStores();
-  const isMobile = useMobile();
 
   // routing
   const params = useQuery();
@@ -66,99 +64,59 @@ function Search() {
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
-  const collectionId = params.get("collectionId") ?? "";
-  const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
-  const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
-  // Keyed on the serialized value so the array keeps a stable identity between
-  // renders and can be used directly as a dependency.
-  const statusFilterKey = params.getAll("statusFilter").join(",");
-  const statusFilter = React.useMemo(
-    () =>
-      statusFilterKey
-        ? (statusFilterKey.split(",") as TStatusFilter[])
-        : [TStatusFilter.Published, TStatusFilter.Draft],
-    [statusFilterKey]
-  );
-  const titleFilter = isTruthyQueryValue(params.get("titleFilter"));
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
-
-  const isSearchable = !!(query || collectionId || userId);
-
   const document = documentId ? documents.get(documentId) : undefined;
 
-  const filterVisibility = {
-    document: !!document,
-    collection: !document,
-    user: !document || !!(document && query),
-    documentType: isSearchable,
-    date: isSearchable,
-    title: !!query && !document,
-    sort: isSearchable,
-  };
+  const searchFilters = useSearchFilters();
+  const [pendingFilterIds, setPendingFilterIds] = React.useState<string[]>([]);
 
-  const filters = React.useMemo<Filter[] | undefined>(() => {
-    const children: Filter[] = [];
-    if (collectionId) {
-      children.push({
-        field: "collectionId",
-        operator: "eq",
-        value: collectionId,
-      });
-    }
-    if (userId) {
-      children.push({ field: "userId", operator: "eq", value: userId });
-    }
-    if (documentId) {
-      children.push({
-        field: "documentId",
-        operator: "eq",
-        value: documentId,
-      });
-    }
-    if (dateFilter) {
-      const duration = DURATION_BY_DATE_FILTER[dateFilter];
-      if (duration) {
-        children.push({ field: "updatedAt", operator: "gte", value: duration });
+  const { isSearchable, visibleFilters, filters, titleFilter } =
+    React.useMemo(() => {
+      const visible = searchFilters.filter(
+        (filter) => filter.isAvailable?.({ query, document }) ?? true
+      );
+      // Show results when there is a query or at least one filter is set.
+      const searchable =
+        !!query ||
+        !!documentId ||
+        visible.some((filter) => isFilterSet(filter, params));
+
+      const expressions = visible
+        .map((filter) => filter.toFilter?.(getFilterValues(filter, params)))
+        .filter((filter): filter is Filter => !!filter);
+
+      if (documentId) {
+        expressions.push({
+          field: "documentId",
+          operator: "eq",
+          value: documentId,
+        });
       }
-    }
-    if (statusFilter.length > 0) {
-      const statusShape = (status: TStatusFilter): Filter => {
-        if (status === TStatusFilter.Archived) {
-          return { field: "archivedAt", operator: "isNotNull" };
-        }
-        if (status === TStatusFilter.Published) {
-          return {
-            operator: "AND",
-            filters: [
-              { field: "archivedAt", operator: "isNull" },
-              { field: "publishedAt", operator: "isNotNull" },
-            ],
-          };
-        }
-        return {
-          operator: "AND",
-          filters: [
-            { field: "archivedAt", operator: "isNull" },
-            { field: "publishedAt", operator: "isNull" },
-          ],
-        };
+
+      return {
+        isSearchable: searchable,
+        visibleFilters: visible,
+        filters: expressions.length > 0 ? expressions : undefined,
+        // An empty query matches every title, so list all results without one.
+        titleFilter:
+          !!query &&
+          visible.some(
+            (filter) => filter.type === "toggle" && isFilterSet(filter, params)
+          ),
       };
-      const statusGroup =
-        statusFilter.length === 1
-          ? statusShape(statusFilter[0])
-          : ({
-              operator: "OR",
-              filters: statusFilter.map(statusShape),
-            } as Filter);
-      children.push(statusGroup);
-    }
-    if (children.length === 0) {
-      return undefined;
-    }
-    return children;
-  }, [collectionId, userId, documentId, dateFilter, statusFilter]);
+    }, [searchFilters, params, query, document, documentId]);
+
+  const shownFilters = visibleFilters.filter(
+    (filter) =>
+      filter.pinned ||
+      isFilterSet(filter, params) ||
+      pendingFilterIds.includes(filter.id)
+  );
+  const addableFilters = visibleFilters.filter(
+    (filter) => !shownFilters.includes(filter)
+  );
 
   const requestParams = React.useMemo(
     () => ({
@@ -235,16 +193,9 @@ function Search() {
 
   // All filters go through the query string so that searches are bookmarkable, which neccesitates
   // some complexity as the query string is the source of truth for the filters.
-  const handleFilterChange = (search: {
-    collectionId?: string | undefined;
-    documentId?: string | undefined;
-    userId?: string | undefined;
-    dateFilter?: TDateFilter;
-    statusFilter?: TStatusFilter[];
-    titleFilter?: boolean | undefined;
-    sort?: string | undefined;
-    direction?: string | undefined;
-  }) => {
+  const handleFilterChange = (
+    search: Record<string, string | string[] | undefined>
+  ) => {
     if (search.sort === "relevance") {
       search.sort = undefined;
       search.direction = undefined;
@@ -260,6 +211,37 @@ function Search() {
       ),
     });
   };
+
+  const handleChangeFilter = React.useCallback(
+    (id: string, values: string[] | undefined) => {
+      history.replace({
+        pathname: history.location.pathname,
+        search: queryString.stringify(
+          { ...queryString.parse(history.location.search), [id]: values },
+          { skipEmptyString: true }
+        ),
+      });
+    },
+    [history]
+  );
+
+  const handleAddFilter = (id: string) => {
+    const filter = searchFilters.find((item) => item.id === id);
+    if (filter?.type === "toggle") {
+      handleChangeFilter(id, [TOGGLE_ON]);
+      return;
+    }
+    setPendingFilterIds((ids) => [...ids, id]);
+  };
+
+  const handleFilterOpenChange = React.useCallback(
+    (id: string, open: boolean) => {
+      if (!open) {
+        setPendingFilterIds((ids) => ids.filter((item) => item !== id));
+      }
+    },
+    []
+  );
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.nativeEvent.isComposing) {
@@ -311,7 +293,19 @@ function Search() {
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
 
-  const sortInput = filterVisibility.sort ? (
+  const renderFilterChip = (filter: SearchFilter) => (
+    <SearchFilterChip
+      key={filter.id}
+      filter={filter}
+      values={getFilterValues(filter, params)}
+      isSet={isFilterSet(filter, params)}
+      defaultOpen={pendingFilterIds.includes(filter.id)}
+      onChange={handleChangeFilter}
+      onOpenChange={handleFilterOpenChange}
+    />
+  );
+
+  const sortInput = isSearchable ? (
     <SortInput
       sort={sort}
       direction={direction}
@@ -320,10 +314,7 @@ function Search() {
   ) : null;
 
   return (
-    <Scene
-      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
-      actions={isMobile ? sortInput : null}
-    >
+    <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
       <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
@@ -335,66 +326,29 @@ function Search() {
             placeholder={`${
               documentId
                 ? t("Search in document")
-                : collectionId
+                : params.get("collectionId")
                   ? t("Search in collection")
                   : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
           />
-          <Filters>
-            <Flex align="center" gap={4} wrap>
-              {filterVisibility.document && (
-                <DocumentFilter
-                  document={document!}
-                  onClick={() => {
-                    handleFilterChange({ documentId: undefined });
-                  }}
-                />
-              )}
-              {filterVisibility.collection && (
-                <CollectionFilter
-                  collectionId={collectionId}
-                  onSelect={(collectionId) =>
-                    handleFilterChange({ collectionId })
-                  }
-                />
-              )}
-              {filterVisibility.user && (
-                <UserFilter
-                  userId={userId}
-                  onSelect={(userId) => handleFilterChange({ userId })}
-                />
-              )}
-              {filterVisibility.documentType && (
-                <DocumentTypeFilter
-                  statusFilter={statusFilter}
-                  onSelect={({ statusFilter }) =>
-                    handleFilterChange({ statusFilter })
-                  }
-                />
-              )}
-              {filterVisibility.date && (
-                <DateFilter
-                  dateFilter={dateFilter}
-                  onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
-                />
-              )}
-              {filterVisibility.title && (
-                <SearchTitlesFilter
-                  width={26}
-                  height={14}
-                  label={t("Search titles only")}
-                  onChange={(checked: boolean) => {
-                    handleFilterChange({ titleFilter: checked });
-                  }}
-                  checked={titleFilter}
-                  inForm={false}
-                />
-              )}
-            </Flex>
-            {isMobile ? null : sortInput}
-          </Filters>
+          <FilterChips align="center" gap={6} wrap>
+            {document && (
+              <DocumentFilter
+                document={document}
+                onRemove={() => handleFilterChange({ documentId: undefined })}
+              />
+            )}
+            {shownFilters.map(renderFilterChip)}
+            {addableFilters.length > 0 && (
+              <AddFilterButton
+                filters={addableFilters}
+                onSelect={handleAddFilter}
+              />
+            )}
+          </FilterChips>
+          {sortInput && <SortRow>{sortInput}</SortRow>}
         </form>
         {isSearchable ? (
           <>
@@ -451,7 +405,7 @@ function Search() {
               </ResultList>
             </ModelSelectionProvider>
           </>
-        ) : documentId ? null : (
+        ) : (
           <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
         )}
       </ResultsWrapper>
@@ -482,24 +436,26 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-const Filters = styled(HStack)`
-  flex-wrap: wrap;
-  justify-content: space-between;
+const FilterChips = styled(Flex)`
+  row-gap: 8px;
   margin-bottom: 12px;
-  transition: opacity 100ms ease-in-out;
-  padding: 8px 0;
+  padding-top: 4px;
 
-  ${breakpoint("tablet")`
-    padding: 0;
+  ${breakpoint("mobile", "tablet")`
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -16px;
+    padding: 4px 16px 0;
+
+    & > * {
+      flex-shrink: 0;
+    }
   `};
 `;
 
-const SearchTitlesFilter = styled(Switch)`
-  white-space: nowrap;
-  margin-left: 8px;
-  font-size: 14px;
-  font-weight: 400;
-  height: 28px;
+const SortRow = styled.div`
+  margin-bottom: 8px;
 `;
 
 export default observer(Search);
