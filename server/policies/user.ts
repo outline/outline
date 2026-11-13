@@ -4,7 +4,6 @@ import { allow } from "./cancan";
 import {
   and,
   isTeamAdmin,
-  isTeamMember,
   isTeamModel,
   isTeamMutable,
   or,
@@ -47,29 +46,27 @@ allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
   )
 );
 
-allow(User, "readEmail", User, (actor, user) => {
+allow(User, "readEmail", [User, Team], (actor, model) => {
+  if (model instanceof User && actor.id === model.id) {
+    return true;
+  }
+  if (!isTeamModel(actor, model)) {
+    return false;
+  }
+
+  // A team target asks whether the actor may read the emails of its users.
+  const team = model instanceof Team ? model : actor.team;
   const emailDisplay =
-    actor.team?.getPreference(TeamPreference.EmailDisplay) ??
-    EmailDisplay.Members;
+    team?.getPreference(TeamPreference.EmailDisplay) ?? EmailDisplay.Members;
 
-  if (emailDisplay === EmailDisplay.None) {
-    return or(isTeamAdmin(actor, user), actor.id === user?.id);
+  switch (emailDisplay) {
+    case EmailDisplay.None:
+      return actor.isAdmin;
+    case EmailDisplay.Members:
+      return actor.isAdmin || actor.isMember;
+    default:
+      return true;
   }
-
-  if (emailDisplay === EmailDisplay.Members) {
-    return or(
-      isTeamAdmin(actor, user),
-      isTeamMember(actor, user),
-      actor.id === user?.id
-    );
-  }
-
-  // EmailDisplay.Everyone
-  return or(
-    //
-    isTeamModel(actor, user),
-    actor.id === user?.id
-  );
 });
 
 allow(User, "delete", User, (actor, user) =>

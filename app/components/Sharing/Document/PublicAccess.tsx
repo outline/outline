@@ -4,7 +4,6 @@ import { observer } from "mobx-react";
 import { CopyIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import Flex from "@shared/components/Flex";
@@ -18,11 +17,16 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { AvatarSize } from "../../Avatar";
 import CopyToClipboard from "../../CopyToClipboard";
+import {
+  showErrorToast,
+  showPublicLinkCopiedToast,
+} from "../components/toasts";
 import NudeButton from "../../NudeButton";
 import { ResizingHeightContainer } from "../../ResizingHeightContainer";
 import Text from "../../Text";
 import Tooltip from "../../Tooltip";
 import { ListItem } from "../components/ListItem";
+import { ShareExpiredNotice } from "../components/ShareExpiredNotice";
 import ShareSettingsPopover from "../components/ShareSettingsPopover";
 import {
   DomainPrefix,
@@ -56,6 +60,11 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
   const documentAbilities = usePolicy(document);
   const canPublish = share ? can.update : documentAbilities.share;
   const [creating, setCreating] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+
+  const handleUpdateExpiry = React.useCallback(() => {
+    setSettingsOpen(true);
+  }, []);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -72,16 +81,16 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
             published: true,
           });
           copy(newShare.url);
-          toast.success(t("Public link copied to clipboard"));
+          showPublicLinkCopiedToast(newShare, t);
         } else if (share) {
           await share.save({ published: checked });
           if (checked) {
             copy(share.url);
-            toast.success(t("Public link copied to clipboard"));
+            showPublicLinkCopiedToast(share, t);
           }
         }
       } catch (err) {
-        toast.error(errToString(err));
+        showErrorToast(err);
       } finally {
         setCreating(false);
       }
@@ -121,17 +130,19 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
     [t, share]
   );
 
+  const linkShare = sharedParent && !document.isDraft ? sharedParent : share;
+
   const handleCopied = React.useCallback(() => {
-    toast.success(t("Public link copied to clipboard"));
-  }, [t]);
+    showPublicLinkCopiedToast(linkShare, t);
+  }, [t, linkShare]);
 
   const shareUrl =
     sharedParent?.url && !document.isDraft
-      ? `${sharedParent.url}${document.url}`
+      ? `${sharedParent.url}${document.path}`
       : (share?.url ?? "");
 
   const copyButton = (
-    <Tooltip content={t("Copy public link")} placement="top">
+    <Tooltip content={t("Copy public link")}>
       <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
           <CopyIcon color={theme.placeholder} size={18} />
@@ -148,24 +159,27 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
           <>
             {sharedParent && !document.isDraft ? (
               sharedParent.collectionId ? (
-                <Trans>
-                  Anyone with the link can access because the containing
-                  collection,{" "}
-                  <UnderlinedLink
-                    to={`/collection/${sharedParent.collectionId}`}
-                  >
-                    {sharedParent.sourceTitle}
-                  </UnderlinedLink>
-                  , is shared
-                </Trans>
+                <Trans
+                  defaults="Anyone with the link can access because the containing collection, <link>{{ sourceTitle }}</link>, is shared"
+                  values={{ sourceTitle: sharedParent.sourceTitle }}
+                  components={{
+                    link: (
+                      <UnderlinedLink
+                        to={`/collection/${sharedParent.collectionId}`}
+                      />
+                    ),
+                  }}
+                />
               ) : (
-                <Trans>
-                  Anyone with the link can access because the parent document,{" "}
-                  <UnderlinedLink to={`/doc/${sharedParent.documentId}`}>
-                    {sharedParent.sourceTitle}
-                  </UnderlinedLink>
-                  , is shared
-                </Trans>
+                <Trans
+                  defaults="Anyone with the link can access because the parent document, <link>{{ sourceTitle }}</link>, is shared"
+                  values={{ sourceTitle: sharedParent.sourceTitle }}
+                  components={{
+                    link: (
+                      <UnderlinedLink to={`/doc/${sharedParent.documentId}`} />
+                    ),
+                  }}
+                />
               )
             ) : (
               t("Allow anyone with the link to access")
@@ -213,18 +227,23 @@ function PublicAccess({ document, share, sharedParent, ref }: Props) {
             >
               {copyButton}
             </ShareLinkInput>
-            <ShareSettingsPopover share={share} />
+            <ShareSettingsPopover
+              share={share}
+              open={settingsOpen}
+              onOpenChange={setSettingsOpen}
+            />
           </Flex>
         ) : null}
+
+        <ShareExpiredNotice share={linkShare} onUpdate={handleUpdateExpiry} />
 
         {share?.published && !share.includeChildDocuments ? (
           <Text as="p" type="tertiary" size="xsmall">
             <StyledInfoIcon color={theme.textTertiary} />
             <span>
               {t(
-                "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
+                "Nested documents are not shared on the web. Toggle sharing to enable access. This will be the default behavior in the future."
               )}
-              .
             </span>
           </Text>
         ) : null}

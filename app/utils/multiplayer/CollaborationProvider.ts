@@ -114,6 +114,9 @@ export class CollaborationProvider extends HocuspocusProvider {
   /** Whether an edit was made since the server last confirmed a full sync. */
   private editedSinceSync = false;
 
+  /** Whether the server has confirmed a full sync since the provider was created. */
+  private hasSyncedOnce = false;
+
   private unsyncedTimeout?: ReturnType<typeof setTimeout>;
 
   private handleDocumentUpdate = (_update: Uint8Array, origin: unknown) => {
@@ -134,6 +137,7 @@ export class CollaborationProvider extends HocuspocusProvider {
     });
     if (state) {
       this.unsyncedChanges = 0;
+      this.hasSyncedOnce = true;
     }
     this.updateSyncState();
   };
@@ -145,24 +149,31 @@ export class CollaborationProvider extends HocuspocusProvider {
     if (this.synced && !this.hasUnsyncedChanges) {
       this.editedSinceSync = false;
     }
-    const hasUnsyncedChanges = this.synced
-      ? this.hasUnsyncedChanges
-      : this.editedSinceSync;
+    const hasUnsyncedChanges = this.computeUnsyncedChanges();
 
     // A connected server echoes each update within milliseconds, so only
     // report changes as unsynced once they have been pending for a while.
     if (hasUnsyncedChanges && this.synced) {
       this.unsyncedTimeout ??= setTimeout(() => {
         this.unsyncedTimeout = undefined;
-        this.emitSyncState(
-          this.synced ? this.hasUnsyncedChanges : this.editedSinceSync
-        );
+        this.emitSyncState(this.computeUnsyncedChanges());
       }, unsyncedGracePeriod);
       return;
     }
     this.clearUnsyncedTimeout();
     this.emitSyncState(hasUnsyncedChanges);
   };
+
+  private computeUnsyncedChanges() {
+    if (this.synced) {
+      return this.hasUnsyncedChanges;
+    }
+    // Edits before the first sync are kept locally and are mostly load repairs.
+    if (!this.hasSyncedOnce && this.localPersistence) {
+      return false;
+    }
+    return this.editedSinceSync;
+  }
 
   private emitSyncState(hasUnsyncedChanges: boolean) {
     const next: SyncStateEvent = {

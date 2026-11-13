@@ -30,7 +30,7 @@ export default class ShareSubscriptionConfirmEmail extends BaseEmail<Props> {
 
   protected preview({ documentTitle }: Props) {
     return this.t(
-      'Confirm your subscription to receive updates when "{{ documentTitle }}" changes.',
+      "Confirm your subscription to receive updates when “{{ documentTitle }}” changes.",
       { documentTitle }
     );
   }
@@ -45,7 +45,7 @@ export default class ShareSubscriptionConfirmEmail extends BaseEmail<Props> {
 ${this.t("Confirm your subscription")}
 
 ${this.t(
-  'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}. Please confirm your subscription by following the link below.',
+  "You requested to receive email notifications when “{{ documentTitle }}” is updated on {{ appName }}. Please confirm your subscription by following the link below.",
   { documentTitle, appName }
 )}
 
@@ -65,7 +65,7 @@ ${this.t("This link will expire in 24 hours.")}
           <Heading>{this.t("Confirm your subscription")}</Heading>
           <p>
             {this.t(
-              'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}.',
+              "You requested to receive email notifications when “{{ documentTitle }}” is updated on {{ appName }}.",
               { documentTitle, appName }
             )}
           </p>

@@ -1,5 +1,6 @@
 import type MarkdownIt from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
+import { MentionDisplay } from "@shared/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 /**
@@ -21,7 +22,9 @@ function resolveMentionTypes(state: StateCore) {
 
     for (const child of token.children) {
       const href = child.type === "mention" ? child.attrGet("href") : null;
-      if (!href) {
+
+      // Cards keep the generic URL type, as the client does after an unfurl.
+      if (!href || child.attrGet("display") === MentionDisplay.Card) {
         continue;
       }
 

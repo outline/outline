@@ -8,6 +8,7 @@ import {
   isTomorrow,
   isSameWeek,
   isPast,
+  differenceInCalendarDays,
 } from "date-fns";
 import type { TFunction } from "i18next";
 import type { locales } from "@shared/utils/date";
@@ -121,4 +122,24 @@ export function dateToExpiry(
   return t("Expires {{ date }}", {
     date: formatDate(date, "MMM dd, yyyy", { locale }),
   });
+}
+
+/**
+ * Converts a date string to a human-readable count of days until expiry.
+ *
+ * @param dateTime the date string to convert.
+ * @param t the translation function.
+ * @returns a localized string such as "Expires in 3 days".
+ */
+export function daysToExpiry(dateTime: string, t: TFunction) {
+  const date = Date.parse(dateTime);
+
+  if (isPast(date)) {
+    return t("Expired");
+  }
+
+  const count = differenceInCalendarDays(date, new Date());
+  return count === 0
+    ? t("Expires today")
+    : t("Expires in {{ count }} day", { count });
 }

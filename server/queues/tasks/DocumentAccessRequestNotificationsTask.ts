@@ -105,6 +105,16 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
     }
 
     if (document.collectionId) {
+      const collection = await Collection.findOne({
+        attributes: ["id", "ownerId"],
+        where: { id: document.collectionId },
+      });
+
+      // Only the owner manages a personal collection, never the workspace admins.
+      if (collection?.ownerId) {
+        return this.loadUsers([collection.ownerId], document.teamId);
+      }
+
       const collectionManagerIds = await Collection.membershipUserIds(
         document.collectionId,
         CollectionPermission.Admin

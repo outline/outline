@@ -15,7 +15,7 @@ declare module "@outlinewiki/koa-passport" {
   // oxlint-disable-next-line
   import Express from "express";
   import { Request } from "koa";
-  import { IMiddleware } from "koa-router";
+  import { RouterMiddleware } from "@koa/router";
 
   namespace passport {
     interface AuthenticateOptions {
@@ -40,7 +40,7 @@ declare module "@outlinewiki/koa-passport" {
     }
 
     interface Authenticator<
-      InitializeRet = IMiddleware,
+      InitializeRet = RouterMiddleware,
       AuthenticateRet = any,
       AuthorizeRet = AuthenticateRet,
       AuthorizeOptions = AuthenticateOptions,

@@ -18,14 +18,14 @@ export class CSVHelper {
     return (
       value
         .toString()
-        // Formula triggers
-        .replace(/^([+\-=@∑√∏<>＜＞≤≥＝≠±÷×])/u, "'$1")
         // Control characters (excluding tab, newline, and carriage return)
         .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/gu, "")
         // Zero-width spaces
         .replace(/[\u200B-\u200D\uFEFF]/g, "")
         // Bidirectional control
         .replace(/[\u202A-\u202E\u2066-\u2069]/g, "")
+        // Formula triggers, last so that removed characters cannot hide one
+        .replace(/^([+\-=@∑√∏<>＜＞≤≥＝≠±÷×])/u, "'$1")
     );
   }
 
@@ -45,11 +45,12 @@ export class CSVHelper {
         ? JSON.stringify(value)
         : String(value as string | number | boolean);
 
-    // If the value contains comma, quote, or newline, wrap it in quotes and escape internal quotes
+    // If the value contains comma, quote, or line break, wrap it in quotes and escape internal quotes
     if (
       stringValue.includes(",") ||
       stringValue.includes('"') ||
-      stringValue.includes("\n")
+      stringValue.includes("\n") ||
+      stringValue.includes("\r")
     ) {
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
@@ -77,13 +78,11 @@ export class CSVHelper {
       );
     }
 
-    // Create header row
     const headerRow = headers
       .map((h) => String(h))
       .map((h) => this.escapeCSVField(this.sanitizeValue(h)))
       .join(",");
 
-    // Create data rows
     const dataRows = data.map((row) =>
       headers
         .map((header) => {

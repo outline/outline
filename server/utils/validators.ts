@@ -1,4 +1,4 @@
-import addressparser from "addressparser";
+import addressparser from "nodemailer/lib/addressparser";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import { registerDecorator } from "class-validator";
 import { isEmail } from "validator";
@@ -312,8 +312,7 @@ export function IsDatabaseUrl(
 export function isMailboxAddress(value: string): boolean {
   try {
     const parsed = addressparser(value);
-    // If parsing results in multiple addresses (e.g., comma in unquoted display
-    // name), the input is malformed and should be rejected.
+    // Reject input that contains more than one address.
     if (parsed.length !== 1) {
       return false;
     }

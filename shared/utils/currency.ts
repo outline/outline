@@ -104,28 +104,27 @@ export function parseCurrency(value: string): number | null {
     return null;
   }
 
-  let trimmed = value.trim();
-
-  // Detect negative values: parentheses indicate negative in accounting
-  const isNegative =
-    trimmed.startsWith("(") ||
-    trimmed.startsWith("-") ||
-    trimmed.includes(")-") ||
-    (trimmed.endsWith(")") && trimmed.includes("("));
-
-  // Remove currency symbols, parentheses, and whitespace
+  // Remove currency symbols and whitespace
   // Sort symbols by length descending so multi-character symbols (like R$) are removed first
-  let cleaned = trimmed;
+  let cleaned = value.trim();
   const sortedSymbols = [...currencySymbols].sort(
     (a, b) => b.length - a.length
   );
   for (const symbol of sortedSymbols) {
     cleaned = cleaned.split(symbol).join("");
   }
-  cleaned = cleaned
-    .replace(/[()]/g, "")
-    .replace(/\s/g, "")
-    .replace(/^-|-$/g, "");
+  cleaned = cleaned.replace(/\s/g, "");
+
+  // Detect negative values after the symbols are removed, so a sign placed
+  // after the symbol (e.g. "€ -50") is found. Parentheses indicate negative
+  // in accounting.
+  const isNegative =
+    cleaned.startsWith("(") ||
+    cleaned.startsWith("-") ||
+    cleaned.endsWith("-") ||
+    (cleaned.endsWith(")") && cleaned.includes("("));
+
+  cleaned = cleaned.replace(/[()]/g, "").replace(/^-|-$/g, "");
 
   // Determine the decimal separator by looking at the last separator
   // European format uses comma as decimal: 1.234,56

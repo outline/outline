@@ -19,7 +19,7 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       compact([
         {
           key: "all",
-          label: t("All status"),
+          label: t("Any status"),
         },
         {
           key: "",

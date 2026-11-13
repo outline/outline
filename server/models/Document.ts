@@ -1,4 +1,3 @@
-/* oxlint-disable lines-between-class-members */
 import { compact, isNil, uniq } from "es-toolkit/compat";
 import type {
   Identifier,
@@ -55,9 +54,10 @@ import type {
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
@@ -70,6 +70,7 @@ import GroupUser from "./GroupUser";
 import Import from "./Import";
 import Relationship from "./Relationship";
 import Revision from "./Revision";
+import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
@@ -96,6 +97,15 @@ const stateIfContentEmpty: ProjectionAlias = [
     `CASE WHEN document.content IS NULL THEN document.state ELSE NULL END`
   ),
   "state",
+];
+
+// The markdown text column is only needed to deserialize documents that have
+// neither content nor state.
+const textIfContentAndStateEmpty: ProjectionAlias = [
+  Sequelize.literal(
+    `CASE WHEN document.content IS NULL AND document.state IS NULL THEN document.text ELSE NULL END`
+  ),
+  "text",
 ];
 
 type AdditionalFindOptions = {
@@ -165,6 +175,12 @@ const publishedWhere: WhereOptions<Document> = {
     attributes: {
       exclude: ["state"],
       include: [stateIfContentEmpty],
+    },
+  },
+  withoutStateOrText: {
+    attributes: {
+      exclude: ["state", "text"],
+      include: [stateIfContentEmpty, textIfContentAndStateEmpty],
     },
   },
   withoutContent: {
@@ -541,7 +557,13 @@ class Document extends ArchivableModel<
     }
 
     await collection.updateDocument(model, { transaction });
-    model.collection = collection;
+
+    // Keep a loaded collection so that its membership data stays available.
+    if (model.collection?.id === collection.id) {
+      model.collection.documentStructure = collection.documentStructure;
+    } else {
+      model.collection = collection;
+    }
   }
 
   @AfterCreate
@@ -711,12 +733,7 @@ class Document extends ArchivableModel<
         await APIUpdateExtension.notifyUpdate(model.id, actorId);
       };
 
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+      void afterCommit(ctx.transaction, notify);
     }
   }
 
@@ -830,6 +847,7 @@ class Document extends ArchivableModel<
   ) {
     const document = await this.scope("withAllMemberships").findOne({
       where: { id: documentId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
@@ -956,7 +974,7 @@ class Document extends ArchivableModel<
   ) {
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
-      "withoutState",
+      "withoutStateOrText",
       {
         method: ["withViews", userId],
       },
@@ -1036,6 +1054,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           id,
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -1044,6 +1063,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           urlId: match[1],
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -1231,7 +1251,7 @@ class Document extends ArchivableModel<
    *
    * @returns boolean
    */
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || "Untitled";
   }
 
@@ -1677,6 +1697,17 @@ class Document extends ArchivableModel<
       this.collectionId = collectionId;
     }
 
+    // A parent outside the destination collection is stale, so publish at the root.
+    if (this.parentDocumentId && this.collectionId) {
+      const parentDocument = await Document.unscoped().findByPk(
+        this.parentDocumentId,
+        { attributes: ["collectionId"], transaction }
+      );
+      if (parentDocument?.collectionId !== this.collectionId) {
+        this.parentDocumentId = null;
+      }
+    }
+
     if (this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         includeDocumentStructure: true,
@@ -1796,9 +1827,28 @@ class Document extends ArchivableModel<
 
     if (options.detach) {
       this.collectionId = null;
+      this.parentDocumentId = null;
     }
 
-    return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
+    // Withdrawing the document also disables its public share links.
+    const shares = await Share.findAll({
+      where: {
+        documentId: this.id,
+        published: true,
+        revokedAt: { [Op.is]: null },
+      },
+      transaction,
+    });
+    for (const share of shares) {
+      await share.updateWithCtx(ctx, { published: false });
+    }
+
+    // Drafts are excluded from the default scope, so the title cannot be read
+    // from the document association when listing this event.
+    return this.saveWithCtx(ctx, undefined, {
+      name: "unpublish",
+      data: { title: this.title },
+    });
   };
 
   // Moves a document from being visible to the team within a collection
@@ -1907,7 +1957,13 @@ class Document extends ArchivableModel<
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;
-    await this.saveWithCtx(ctx, undefined, { name: "delete", ...eventOpts });
+    // Deleted documents are excluded from the default scope, so the title
+    // cannot be read from the document association when listing this event.
+    await this.saveWithCtx(ctx, undefined, {
+      name: "delete",
+      data: { title: this.title },
+      ...eventOpts,
+    });
   };
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);

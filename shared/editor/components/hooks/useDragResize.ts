@@ -1,4 +1,5 @@
 import * as React from "react";
+import { contentWidth } from "../../lib/contentWidth";
 import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
 
 type DragDirection =
@@ -315,12 +316,7 @@ export default function useDragResize(props: Params): ReturnValue {
       event.stopPropagation();
 
       // Calculate constraints once at the start of dragging as it's relatively expensive operation
-      const max = ref.current
-        ? parseInt(
-            getComputedStyle(ref.current).getPropertyValue("--document-width")
-          ) -
-          EditorStyleHelper.padding * 2
-        : Infinity;
+      const max = ref.current ? contentWidth(ref.current) : Infinity;
       setMaxWidth(max);
       setSizeAtDragStart({
         // When no width has been set yet the element is displayed at full width,

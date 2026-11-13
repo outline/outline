@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { NotificationEventType, UserRole } from "@shared/types";
@@ -10,7 +10,7 @@ import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -86,6 +86,16 @@ router.post(
       where[Op.and].push({ suspendedAt: { [Op.is]: null } });
     }
 
+    // Filtering or sorting by email would reveal addresses the actor may not see.
+    const canReadEmails = can(actor, "readEmail", actor.team);
+    if (
+      !canReadEmails &&
+      (sort === "email" ||
+        (filter !== undefined && hasFieldInFilter(filter, "email")))
+    ) {
+      throw AuthorizationError();
+    }
+
     if (filter) {
       where[Op.and].push(buildWhere<User>(filter));
     }
@@ -93,9 +103,13 @@ router.post(
     if (query) {
       where[Op.and].push({
         [Op.or]: [
-          Sequelize.literal(
-            `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
-          ),
+          ...(canReadEmails
+            ? [
+                Sequelize.literal(
+                  `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
+                ),
+              ]
+            : []),
           Sequelize.literal(
             `unaccent(LOWER("user"."name")) like unaccent(LOWER(:query))`
           ),
@@ -119,7 +133,6 @@ router.post(
       }),
       User.count({
         where,
-        // @ts-expect-error Types are incorrect for count
         replacements,
       }),
     ]);
@@ -164,7 +177,7 @@ router.post(
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { user: actor } = ctx.state.auth;
@@ -207,7 +220,7 @@ router.get(
   validate(T.UsersUpdateEmailConfirmSchema),
   async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { transaction } = ctx.state;
@@ -224,7 +237,7 @@ router.get(
     try {
       const res = await getDetailsForEmailUpdateToken(code as string, {
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
       user = res.user;
       email = res.email;
@@ -268,33 +281,29 @@ router.post(
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     }
     authorize(actor, "update", user);
     const includeDetails = !!can(actor, "readDetails", user);
 
-    if (name) {
-      user.name = name;
-    }
-    if (avatarUrl !== undefined) {
-      user.avatarUrl = avatarUrl;
+    user.fill({
+      name: name || undefined,
+      avatarUrl,
+      language: language || undefined,
+      timezone: timezone || undefined,
+    });
 
-      // Mark that the user has manually changed their avatar
-      // This prevents automatic syncing from identity providers
+    // Mark that the user has manually changed their avatar
+    // This prevents automatic syncing from identity providers
+    if (avatarUrl !== undefined) {
       user.setFlag(UserFlag.AvatarUpdated, avatarUrl ? true : false);
-    }
-    if (language) {
-      user.language = language;
     }
     if (preferences) {
       user.preferences = {
         ...user.preferences,
         ...preferences,
       };
-    }
-    if (timezone) {
-      user.timezone = timezone;
     }
 
     await user.saveWithCtx(ctx);
@@ -372,13 +381,14 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   const actor = ctx.state.auth.user;
 
   const user = await User.findByPk(userId, {
-    rejectOnEmpty: true,
     transaction,
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
+  authorize(actor, "update", user);
+
   await Team.findByPk(user.teamId, {
     transaction,
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
   });
 
   let name;
@@ -425,7 +435,7 @@ router.post(
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(actor, "suspend", user);
 
@@ -462,7 +472,7 @@ router.post(
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(actor, "activate", user);
 
@@ -529,7 +539,7 @@ router.post(
     const actor = auth.user;
 
     const user = await User.findByPk(id, {
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       transaction,
     });
     authorize(actor, "resendInvite", user);
@@ -572,7 +582,7 @@ router.post(
   auth(),
   async (ctx: APIContext) => {
     if (!env.EMAIL_ENABLED) {
-      throw ValidationError("Email support is not setup for this instance");
+      throw ValidationError("Email support is not set up for this instance");
     }
 
     const { user } = ctx.state.auth;
@@ -608,7 +618,7 @@ router.post(
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     } else {
       user = actor;

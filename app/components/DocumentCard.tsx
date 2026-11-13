@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { subDays } from "date-fns";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
+import { CloseIcon, ClockIcon } from "outline-icons";
 import { useRef, useCallback, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -21,6 +21,7 @@ import Time from "~/components/Time";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { DocumentContextMenu } from "~/menus/DocumentContextMenu";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 import CollectionIcon from "./Icons/CollectionIcon";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
@@ -127,7 +128,7 @@ function DocumentCard(props: Props) {
             to={{
               pathname: document.path,
               state: {
-                title: document.titleWithDefault,
+                title: document.displayTitle,
               },
             }}
           >
@@ -162,15 +163,15 @@ function DocumentCard(props: Props) {
                   pinnedToHome ? (
                     <CollectionIcon collection={collection} color="white" />
                   ) : (
-                    <DocumentIcon color="white" />
+                    <DocumentIcon color="white" empty={document.isEmpty} />
                   )}
                 </Squircle>
               )}
               <div>
                 <Heading dir={document.dir}>
                   {hasEmojiInTitle
-                    ? document.titleWithDefault.replace(document.icon!, "")
-                    : document.titleWithDefault}
+                    ? document.displayTitle.replace(document.icon!, "")
+                    : document.displayTitle}
                 </Heading>
                 <DocumentMeta size="xsmall">
                   {isRecentlyUpdated ? (

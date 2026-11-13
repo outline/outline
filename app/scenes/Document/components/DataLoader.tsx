@@ -101,7 +101,7 @@ function DataLoader({ match, children }: Props) {
   const missingPolicy = !can || Object.keys(can).length === 0;
   const isJustCreated = React.useMemo(
     () => !!document?.isJustCreated,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [document?.id]
   );
 
@@ -211,7 +211,7 @@ function DataLoader({ match, children }: Props) {
         }
       );
 
-      return newDocument.url;
+      return newDocument.path;
     },
     [document, documents]
   );
@@ -230,7 +230,7 @@ function DataLoader({ match, children }: Props) {
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
       if (!missingPolicy && !can.update && isEditRoute) {
-        history.push(document.url);
+        history.push(document.path);
         return;
       }
 

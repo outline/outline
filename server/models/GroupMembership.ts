@@ -5,6 +5,7 @@ import {
   type FindOptions,
   type DestroyOptions,
   type WhereOptions,
+  type Transaction,
 } from "sequelize";
 import {
   BelongsTo,
@@ -136,6 +137,38 @@ class GroupMembership extends ParanoidModel<
   // static methods
 
   /**
+   * Find the membership of a group on a collection or document and lock it for
+   * the remainder of the transaction. The lock is held even when no membership
+   * exists, so that concurrent grants cannot each create a membership.
+   *
+   * @param where the group and the collection or document of the membership.
+   * @param options additional options to pass to the query, with a transaction.
+   * @returns a promise that resolves to the membership, or null.
+   */
+  public static async findOneForUpdate(
+    where: {
+      groupId: string;
+      collectionId?: string | null;
+      documentId?: string | null;
+    },
+    options: FindOptions<GroupMembership> & { transaction: Transaction }
+  ) {
+    const { groupId, collectionId, documentId } = where;
+    const targetId = collectionId ?? documentId;
+    await LockHelper.acquire(
+      this.sequelize!,
+      `groupMembership:${targetId}:${groupId}`.toLowerCase(),
+      options.transaction
+    );
+
+    return this.findOne({
+      ...options,
+      where: collectionId ? { groupId, collectionId } : { groupId, documentId },
+      lock: options.transaction.LOCK.NO_KEY_UPDATE,
+    });
+  }
+
+  /**
    * Copy group memberships from one document to another.
    *
    * @param where The where clause to find the group memberships to copy.
@@ -204,7 +237,10 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership> & { documentId?: string }
+    options: SaveOptions<GroupMembership> & {
+      documentId?: string;
+      childDocumentIds?: string[];
+    }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -333,79 +369,90 @@ class GroupMembership extends ParanoidModel<
 
   /**
    * Recreate all sourced permissions for a given permission.
+   *
+   * @param model the source membership.
+   * @param options the save options, with an optional target document id and
+   * precomputed published child document ids of the target document.
    */
   static async recreateSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership> & { documentId?: string }
+    options: SaveOptions<GroupMembership> & {
+      documentId?: string;
+      childDocumentIds?: string[];
+    }
   ) {
     if (!model.documentId) {
       return;
     }
     const { transaction, documentId } = options;
+    let { childDocumentIds } = options;
 
-    const document = await Document.unscoped()
-      .scope("withoutState")
-      .findOne({
-        attributes: ["id", "isPrivate", "restrictionSourceId"],
-        where: {
-          id: documentId ?? model.documentId,
-        },
+    if (!childDocumentIds) {
+      const document = await Document.unscoped()
+        .scope("withoutState")
+        .findOne({
+          attributes: ["id", "isPrivate", "restrictionSourceId"],
+          where: {
+            id: documentId ?? model.documentId,
+          },
+          transaction,
+        });
+      if (!document) {
+        return;
+      }
+
+      // When the document is private, cascade to children sharing its
+      // restriction root — nested restricted subtrees manage their own
+      // memberships. When non-private, stop at private boundaries.
+      const whereClause: Record<string, unknown> = {
+        publishedAt: { [Op.ne]: null },
+      };
+      if (document.isPrivate) {
+        whereClause.restrictionSourceId =
+          document.restrictionSourceId ?? document.id;
+      } else {
+        whereClause.isPrivate = false;
+      }
+
+      childDocumentIds = await document.findAllChildDocumentIds(whereClause, {
         transaction,
       });
-    if (!document) {
+    }
+
+    const documentIds = [
+      ...(documentId ? [documentId] : []),
+      ...childDocumentIds,
+    ];
+    if (!documentIds.length) {
       return;
     }
 
-    // When the document is private, cascade to children sharing its
-    // restriction root — nested restricted subtrees manage their own
-    // memberships. When non-private, stop at private boundaries.
-    const whereClause: Record<string, unknown> = {
-      publishedAt: { [Op.ne]: null },
-    };
-    if (document.isPrivate) {
-      whereClause.restrictionSourceId =
-        document.restrictionSourceId ?? document.id;
-    } else {
-      whereClause.isPrivate = false;
-    }
+    await this.destroy({
+      where: {
+        groupId: model.groupId,
+        sourceId: model.id,
+        documentId: {
+          [Op.in]: documentIds,
+        },
+      },
+      transaction,
+    });
 
-    const childDocumentIds = [
-      ...(documentId ? [documentId] : []),
-      ...(await document.findAllChildDocumentIds(whereClause, {
-        transaction,
+    await this.bulkCreate(
+      documentIds.map((childDocumentId) => ({
+        documentId: childDocumentId,
+        groupId: model.groupId,
+        permission: model.permission,
+        sourceId: model.id,
+        createdById: model.createdById,
+        createdAt: model.createdAt,
+        updatedAt: model.updatedAt,
       })),
-    ];
-
-    if (childDocumentIds.length) {
-      await this.destroy({
-        where: {
-          groupId: model.groupId,
-          sourceId: model.id,
-          documentId: {
-            [Op.in]: childDocumentIds,
-          },
-        },
+      {
         transaction,
-      });
-    }
-
-    for (const childDocumentId of childDocumentIds) {
-      await this.create(
-        {
-          documentId: childDocumentId,
-          groupId: model.groupId,
-          permission: model.permission,
-          sourceId: model.id,
-          createdById: model.createdById,
-          createdAt: model.createdAt,
-          updatedAt: model.updatedAt,
-        },
-        {
-          transaction,
-          hooks: false,
-        }
-      );
-    }
+        hooks: false,
+      }
+    );
   }
 
   /**

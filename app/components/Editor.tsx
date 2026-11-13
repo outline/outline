@@ -1,8 +1,6 @@
 import { difference } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
 import EditorContainer from "@shared/editor/components/Styles";
@@ -31,29 +29,13 @@ export type Props = Optional<
 };
 
 function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
-  const {
-    id,
-    onChange,
-    onCreateCommentMark,
-    onDeleteCommentMark,
-    onFileUploadStart,
-    onFileUploadStop,
-  } = props;
+  const { id, onChange, onCreateCommentMark, onDeleteCommentMark } = props;
   const { comments } = useStores();
   const { shareId } = useShare();
-  const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor | null>(null);
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousCommentIds = React.useRef<string[] | undefined>(undefined);
-
-  // Upload progress tracking for delayed toast
-  const progressMap = React.useMemo(() => new Map<string, number>(), []);
-  const uploadState = React.useRef<{
-    toastId?: string | number;
-    timeoutId?: ReturnType<typeof setTimeout>;
-    progress: Map<string, number>;
-  }>({ progress: progressMap });
 
   const handleUploadFile = React.useCallback(
     async (
@@ -79,49 +61,6 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
   );
 
   const { handleClickLink } = useEditorClickHandlers({ shareId });
-
-  // Show toast only after uploads have been running for 2 seconds
-  const handleFileUploadStart = React.useCallback(() => {
-    uploadState.current.timeoutId = setTimeout(() => {
-      uploadState.current.toastId = toast.loading(
-        t("Uploading… {{ progress }}%", { progress: 0 })
-      );
-    }, 2000);
-    onFileUploadStart?.();
-  }, [onFileUploadStart, t]);
-
-  const handleFileUploadProgress = React.useCallback(
-    (fileId: string, fractionComplete: number) => {
-      uploadState.current.progress.set(fileId, fractionComplete);
-
-      // Calculate average progress across all files
-      const progressValues = Array.from(uploadState.current.progress.values());
-      const avgProgress =
-        progressValues.reduce((a, b) => a + b, 0) / progressValues.length;
-      const percent = Math.round(avgProgress * 100);
-
-      // Update toast if visible
-      if (uploadState.current.toastId) {
-        toast.loading(t("Uploading… {{ progress }}%", { progress: percent }), {
-          id: uploadState.current.toastId,
-        });
-      }
-    },
-    [t]
-  );
-
-  const handleFileUploadStop = React.useCallback(() => {
-    if (uploadState.current.timeoutId) {
-      clearTimeout(uploadState.current.timeoutId);
-      uploadState.current.timeoutId = undefined;
-    }
-    if (uploadState.current.toastId) {
-      toast.dismiss(uploadState.current.toastId);
-      uploadState.current.toastId = undefined;
-    }
-    uploadState.current.progress.clear();
-    onFileUploadStop?.();
-  }, [onFileUploadStop]);
 
   const focusAtEnd = React.useCallback(() => {
     localRef?.current?.focusAtEnd();
@@ -244,9 +183,6 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
               {...props}
               onClickLink={handleClickLink}
               onChange={handleChange}
-              onFileUploadStart={handleFileUploadStart}
-              onFileUploadStop={handleFileUploadStop}
-              onFileUploadProgress={handleFileUploadProgress}
               placeholder={props.placeholder || ""}
               defaultValue={props.defaultValue || ""}
             />

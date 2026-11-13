@@ -93,7 +93,7 @@ function Matomo() {
           label={t("Instance URL")}
           name="instanceUrl"
           description={t(
-            "The URL of your Matomo instance. If you are using Matomo Cloud it will end in matomo.cloud/"
+            "The URL of your Matomo instance. If you are using Matomo Cloud, it will end in matomo.cloud/"
           )}
           border={false}
         >

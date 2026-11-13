@@ -114,4 +114,12 @@ export class ProsemirrorHelper {
     );
     return text;
   };
+
+  /**
+   * Returns the ProseMirror node for the document data.
+   *
+   * @param document The document to parse.
+   * @returns The parsed node.
+   */
+  static toNode = (document: HasData) => Node.fromJSON(schema, document.data);
 }

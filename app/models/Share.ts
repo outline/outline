@@ -1,3 +1,4 @@
+import { isPast } from "date-fns";
 import { computed, observable } from "mobx";
 import type { NavigationNode, PublicTeam } from "@shared/types";
 import type SharesStore from "~/stores/SharesStore";
@@ -19,6 +20,7 @@ class Share extends Model implements Searchable {
 
   store: SharesStore;
 
+  /** Whether the share is published. This ignores expiry, prefer `isActive` to check if the link works. */
   @Field
   @observable
   published: boolean;
@@ -97,12 +99,27 @@ class Share extends Model implements Searchable {
   @observable
   iconUrl: string | null;
 
+  /** The time after which the public link stops working, if any. */
+  @Field
+  @observable
+  expiresAt: string | null;
+
   @observable
   views: number;
 
   /** The user that shared the document. */
   @Relation(() => User, { onDelete: "null" })
   createdBy: User;
+
+  /** Whether the expiry date has passed, not computed as time is not observable. */
+  get isExpired(): boolean {
+    return this.expiresAt ? isPast(new Date(this.expiresAt)) : false;
+  }
+
+  /** Whether the share is published and its public link still works. */
+  get isActive(): boolean {
+    return this.published && !this.isExpired;
+  }
 
   @computed
   get sourcePathWithFallback(): string {

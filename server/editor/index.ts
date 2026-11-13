@@ -62,11 +62,6 @@ for (const extension of basicExtensionManager.extensions) {
   extension.bindEditor(stubEditor(basicSchema));
 }
 
-export const basicParser = basicExtensionManager.parser({
-  schema: basicSchema,
-  plugins: basicExtensionManager.rulePlugins,
-});
-
 const commentExtensions = [...basicExtensions, CodeBlock, CodeFence, Mention];
 export const commentExtensionManager = new ExtensionManager(commentExtensions);
 

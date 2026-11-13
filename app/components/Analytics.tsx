@@ -1,4 +1,3 @@
-/* oxlint-disable prefer-rest-params */
 /* global ga */
 import { escape } from "es-toolkit/compat";
 import * as React from "react";

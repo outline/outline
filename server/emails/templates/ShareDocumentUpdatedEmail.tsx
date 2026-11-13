@@ -2,7 +2,7 @@ import * as React from "react";
 import { TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import { Revision, Share, ShareSubscription } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { diffSnippet } from "@server/emails/snippets";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import ShareSubscriptionHelper from "@server/models/helpers/ShareSubscriptionHelper";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -77,7 +77,7 @@ export default class ShareDocumentUpdatedEmail extends BaseEmail<
 
           if (revision) {
             const before = await revision.before();
-            const content = await DocumentHelper.toEmailDiff(before, revision, {
+            const content = await diffSnippet(before, revision, {
               includeTitle: false,
               centered: false,
               signedUrls: 4 * Day.seconds,
@@ -105,16 +105,16 @@ export default class ShareDocumentUpdatedEmail extends BaseEmail<
   }
 
   protected subject({ documentTitle }: Props) {
-    return this.t(`"{{ documentTitle }}" updated`, { documentTitle });
+    return this.t("“{{ documentTitle }}” updated", { documentTitle });
   }
 
   protected preview({ documentTitle }: Props): string {
-    return this.t('"{{ documentTitle }}" has been updated.', { documentTitle });
+    return this.t("“{{ documentTitle }}” has been updated.", { documentTitle });
   }
 
   protected renderAsText({ documentTitle, shareUrl }: Props): string {
     return `
-${this.t(`"{{ documentTitle }}" updated`, { documentTitle })}
+${this.t("“{{ documentTitle }}” updated", { documentTitle })}
 
 ${this.t("A document you subscribed to has been updated.")}
 
@@ -134,7 +134,7 @@ ${this.t("View Document")}: ${shareUrl}
 
         <Body>
           <Heading>
-            {this.t(`"{{ documentTitle }}" updated`, { documentTitle })}
+            {this.t("“{{ documentTitle }}” updated", { documentTitle })}
           </Heading>
           <p>
             {this.t("A document you subscribed to has been updated.")}{" "}

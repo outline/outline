@@ -9,6 +9,7 @@ import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { afterCommit } from "@server/storage/transaction";
 import { AuthenticationType } from "@server/types";
 import semver from "semver";
 
@@ -88,7 +89,7 @@ export default async function documentCollaborativeUpdater({
       transaction,
       lock: {
         of: Document,
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
       },
       rejectOnEmpty: true,
       paranoid: false,
@@ -147,7 +148,7 @@ export default async function documentCollaborativeUpdater({
       }
     );
 
-    transaction.afterCommit(async () => {
+    await afterCommit(transaction, async () => {
       try {
         await Event.schedule({
           name: "documents.update",

@@ -13,6 +13,7 @@ import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import ImageInput from "~/scenes/Settings/components/ImageInput";
+import type { ImageUploadHandle } from "~/scenes/Settings/components/ImageUpload";
 import { performBatch } from "~/actions/definitions/common";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
@@ -58,14 +59,20 @@ export function UserChangeRoleDialog({
   return (
     <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
       {users.length === 1
-        ? t("Are you sure you want to make {{ userName }} a {{ role }}?", {
-            role,
-            userName: users[0].name,
-          })
-        : t("Are you sure you want to make {{ count }} user a {{ role }}?", {
-            role,
-            count: users.length,
-          })}{" "}
+        ? t(
+            "Are you sure you want to change the role of {{ userName }} to {{ role }}?",
+            {
+              role,
+              userName: users[0].name,
+            }
+          )
+        : t(
+            "Are you sure you want to change the role of {{ count }} user to {{ role }}?",
+            {
+              role,
+              count: users.length,
+            }
+          )}{" "}
       {accessNote}
     </ConfirmationDialog>
   );
@@ -160,7 +167,7 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         name="name"
         label={t("New name")}
         onChange={handleChange}
-        error={!name ? t("Name can't be empty") : undefined}
+        error={!name ? t("Name can’t be empty") : undefined}
         value={name}
         maxLength={UserValidation.maxNameLength}
         showCharacterCount
@@ -177,6 +184,11 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
   onSubmit,
 }: Props) {
   const { t } = useTranslation();
+  const imageRef = React.useRef<ImageUploadHandle>(null);
+
+  const handleReplace = () => {
+    imageRef.current?.open();
+  };
 
   const handleAvatarChange = async (avatarUrl: string | null) => {
     try {
@@ -199,15 +211,21 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
           onSuccess={handleAvatarChange}
           onError={handleAvatarError}
           model={user}
-          showRemoveOption={false}
+          showActions={false}
+          ref={imageRef}
         />
       </Flex>
-      <Flex justify="flex-end" gap={8}>
-        {user.avatarUrl && (
-          <Button onClick={() => handleAvatarChange(null)} neutral>
-            {t("Remove")}
+      <Flex justify="space-between" gap={8}>
+        <Flex gap={8}>
+          <Button onClick={handleReplace} neutral>
+            {user.avatarUrl ? t("Replace") : t("Upload")}…
           </Button>
-        )}
+          {user.avatarUrl && (
+            <Button onClick={() => handleAvatarChange(null)} neutral>
+              {t("Delete")}
+            </Button>
+          )}
+        </Flex>
         <Button onClick={onSubmit}>{t("Done")}</Button>
       </Flex>
     </Flex>
@@ -265,7 +283,7 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
         name="email"
         label={t("New email")}
         onChange={handleChange}
-        error={!email ? t("Email can't be empty") : error}
+        error={!email ? t("Email can’t be empty") : error}
         value={email}
         maxLength={UserValidation.maxEmailLength}
         showCharacterCount

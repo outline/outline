@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";

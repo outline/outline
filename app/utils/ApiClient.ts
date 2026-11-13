@@ -273,17 +273,24 @@ class ApiClient {
           : `Bad gateway response from ${path} with empty body`
       );
 
+      // Cloudflare Zero Trust proxies on the customer's network add this header
+      // to their own error pages, so the failure is outside of our control.
+      if (response.headers.has("cf-team")) {
+        throw err;
+      }
+
       Logger.error(
         "BadGatewayError",
         err,
         {
+          path,
           url: urlToFetch,
           requestTime: Math.round(timeEnd - timeStart),
           responseText: text,
           responseHeaders: Object.fromEntries(response.headers.entries()),
         },
-        // Grouped by endpoint, as the stack trace is identical for every 502.
-        ["BadGatewayError", path]
+        // Grouped together, as the message varies by endpoint and response body.
+        ["BadGatewayError"]
       );
       throw err;
     }
@@ -364,7 +371,12 @@ class ApiClient {
       return new NotFoundError(message);
     }
 
-    if (status === 503) {
+    // A proxy on the client's network requires authentication.
+    if (status === 407) {
+      return new NetworkError(message);
+    }
+
+    if (status === 503 || status === 504) {
       return new ServiceUnavailableError(message);
     }
 

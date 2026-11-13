@@ -104,7 +104,7 @@ export default class GroupCommentMentionedEmail extends BaseEmail<
   protected subject({ document, groupName }: Props) {
     return this.t(
       "The {{ groupName }} group was mentioned in “{{ documentTitle }}”",
-      { groupName, documentTitle: document.titleWithDefault }
+      { groupName, documentTitle: document.displayTitle }
     );
   }
 
@@ -129,7 +129,7 @@ export default class GroupCommentMentionedEmail extends BaseEmail<
   }: Props): string {
     const action = this.t(
       "{{ actorName }} mentioned the “{{ groupName }}” group in a comment on “{{ documentTitle }}”",
-      { actorName, groupName, documentTitle: document.titleWithDefault }
+      { actorName, groupName, documentTitle: document.displayTitle }
     );
     const inCollection = collection.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
@@ -163,13 +163,13 @@ ${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {this.t(
               "{{ actorName }} mentioned the “{{ groupName }}” group in a comment on",
               { actorName, groupName }
             )}{" "}
-            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
+            <a href={threadLink}>{document.displayTitle}</a>{" "}
             {collection.name
               ? this.t("in the {{ collectionName }} collection", {
                   collectionName: collection.name,

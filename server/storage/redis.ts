@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
 import { defaults } from "es-toolkit/compat";
@@ -77,12 +78,46 @@ export default class RedisAdapter extends Redis {
     this.setMaxListeners(100);
 
     this.on("error", (err) => {
-      if (err.name === "MaxRetriesPerRequestError") {
-        Logger.fatal("Redis maximum retries exceeded", err);
-      } else {
-        Logger.error("Redis error", err);
-      }
+      Logger.error("Redis error", err);
     });
+
+    // Exit when the connection stays unavailable, as a restart can recover a
+    // process that is unable to reconnect by itself.
+    let unavailableTimeout: NodeJS.Timeout | undefined;
+
+    const startUnavailableTimeout = () => {
+      if (unavailableTimeout) {
+        return;
+      }
+
+      unavailableTimeout = setTimeout(() => {
+        unavailableTimeout = undefined;
+        if (this.status === "ready" || this.status === "end") {
+          return;
+        }
+
+        Logger.fatal(
+          "Redis connection unavailable",
+          new Error(
+            `Redis connection not ready after ${env.REDIS_UNAVAILABLE_TIMEOUT}ms`
+          ),
+          { connectionName, status: this.status }
+        );
+      }, env.REDIS_UNAVAILABLE_TIMEOUT);
+
+      // Don't keep the Node event loop alive solely for the timeout.
+      unavailableTimeout.unref();
+    };
+
+    const clearUnavailableTimeout = () => {
+      clearTimeout(unavailableTimeout);
+      unavailableTimeout = undefined;
+    };
+
+    this.on("connecting", startUnavailableTimeout);
+    this.on("reconnecting", startUnavailableTimeout);
+    this.on("ready", clearUnavailableTimeout);
+    this.on("end", clearUnavailableTimeout);
 
     // Skip the healthcheck on connections reserved for blocking or pub/sub
     // operations (signalled via maxRetriesPerRequest: null). A PING issued on
@@ -176,6 +211,7 @@ export default class RedisAdapter extends Redis {
 
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
+  private static ephemeral: RedisAdapter;
   private static collabClient: RedisAdapter;
   private static collabSubscriber: RedisAdapter;
 
@@ -196,6 +232,45 @@ export default class RedisAdapter extends Redis {
         connectionNameSuffix: "subscriber",
       }))
     );
+  }
+
+  /**
+   * A Redis adapter for ephemeral data that can be lost, such as caches, locks
+   * and rate limits. Commands fail at once when there is no connection, and
+   * after a short timeout when Redis does not reply, so that callers can
+   * continue without Redis.
+   */
+  public static get ephemeralClient(): RedisAdapter {
+    return (
+      this.ephemeral ||
+      (this.ephemeral = new this(env.REDIS_URL, {
+        commandTimeout: env.REDIS_EPHEMERAL_COMMAND_TIMEOUT,
+        enableOfflineQueue: false,
+        connectionNameSuffix: "ephemeral",
+      }))
+    );
+  }
+
+  /**
+   * Creates the ephemeral client and waits for its connection, as it fails
+   * commands at once until connected. Never rejects, so that a process can
+   * start without Redis.
+   */
+  public static async connectEphemeralClient(): Promise<void> {
+    const client = this.ephemeralClient;
+    if (client.status === "ready") {
+      return;
+    }
+
+    try {
+      await once(client, "ready", {
+        signal: AbortSignal.timeout(env.REDIS_EPHEMERAL_COMMAND_TIMEOUT),
+      });
+    } catch (err) {
+      Logger.warn("Starting before the ephemeral Redis client connected", {
+        error: err,
+      });
+    }
   }
 
   /**

@@ -52,7 +52,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
         if (canCollection.createTemplate) {
           memo.push({
             type: "item",
-            label: collection.name,
+            label: collection.displayName,
             value: collection.id,
             icon: <CollectionIcon collection={collection} />,
           });
@@ -77,7 +77,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
   );
 
   if (error) {
-    toast.error(t("Collections could not be loaded, please reload the app"));
+    toast.error(t("Collections could not be loaded – please reload the app"));
   }
 
   if (loading || !options.length) {

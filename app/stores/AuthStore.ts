@@ -14,6 +14,11 @@ import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import {
+  getRememberedSessions,
+  getSessionsCookieExpiry,
+  parseSessionsCookie,
+} from "@shared/utils/sessions";
 import type RootStore from "~/stores/RootStore";
 import Team from "~/models/Team";
 import env from "~/env";
@@ -110,7 +115,7 @@ export default class AuthStore extends Store<Team> {
     });
 
     // listen to the localstorage value changing in other tabs to react to
-    // signin/signout events in other tabs and follow suite.
+    // signin/signout events in other tabs and follow suit.
     window.addEventListener("storage", (event) => {
       if (event.key === this.name && event.newValue) {
         const newData: PersistedData | null = JSON.parse(event.newValue);
@@ -125,7 +130,7 @@ export default class AuthStore extends Store<Team> {
         if (this.authenticated) {
           if (isNil(newData.user)) {
             void this.logout({
-              savePath: false,
+              savePath: "tab",
               clearCache: false,
               revokeToken: false,
             });
@@ -333,7 +338,8 @@ export default class AuthStore extends Store<Team> {
    *
    * @param clearCache Whether to clear the IndexedDB databases used for document caching.
    * @param revokeToken Whether the auth token should attempt to be revoked, this should be
-   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param savePath Whether the current path should be saved and returned to after login,
+   * "tab" saves it for the current tab only.
    * @param userInitiated Whether the logout was initiated by the user.
    * disabled with requests from ApiClient to prevent infinite loops.
    */
@@ -346,13 +352,15 @@ export default class AuthStore extends Store<Team> {
   }: {
     clearCache?: boolean;
     revokeToken?: boolean;
-    savePath?: boolean;
+    savePath?: boolean | "tab";
     userInitiated?: boolean;
   }) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setPostLoginPath(window.location.pathname + window.location.search);
+      setPostLoginPath(window.location.pathname + window.location.search, {
+        tabOnly: savePath === "tab",
+      });
     }
 
     if (revokeToken) {
@@ -364,15 +372,35 @@ export default class AuthStore extends Store<Team> {
       }
     }
 
-    // remove session record on apex cookie
+    // Retain the workspace as logged out so it remains available for login.
     const team = this.team;
 
-    if (team) {
-      const sessions = JSON.parse(getCookie("sessions") || "{}");
-      delete sessions[team.id];
-      setCookie("sessions", JSON.stringify(sessions), {
+    if (
+      team &&
+      isCloudHosted &&
+      !parseDomain(window.location.hostname).custom
+    ) {
+      const sessions = getRememberedSessions(
+        parseSessionsCookie(getCookie("sessions") || "{}")
+      );
+      sessions[team.id] = {
+        name: team.name,
+        logoUrl: team.avatarUrl ?? null,
+        url: team.url,
+        expiresAt: new Date().toISOString(),
+        lastUsedAt: new Date().toISOString(),
+      };
+      const expires = getSessionsCookieExpiry(sessions);
+      const options = {
         domain: getCookieDomain(window.location.hostname, isCloudHosted),
-      });
+        path: "/",
+      };
+      if (expires) {
+        setCookie("sessions", JSON.stringify(sessions), {
+          ...options,
+          expires,
+        });
+      }
     }
 
     if (

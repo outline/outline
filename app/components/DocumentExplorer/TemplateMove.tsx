@@ -47,7 +47,7 @@ function TemplateMove({ template }: Props) {
 
       dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn’t move the template, try again?"));
+      toast.error(t("Couldn’t move the template. Try again?"));
     }
   };
 

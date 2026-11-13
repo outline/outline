@@ -1,9 +1,6 @@
-import type { BaseContext } from "koa";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import Router from "koa-router";
-import type { UserAgentContext } from "koa-useragent";
-import userAgent from "koa-useragent";
+import Router from "@koa/router";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
@@ -12,6 +9,7 @@ import coalesceBody from "@server/middlewares/coaleseBody";
 import requestContextMiddleware from "@server/middlewares/requestContext";
 import requestTracer from "@server/middlewares/requestTracer";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import { userAgent } from "@server/middlewares/userAgent";
 import type { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
@@ -75,7 +73,7 @@ api.use(
 );
 api.use(cleanupMultipartFiles());
 api.use(coalesceBody());
-api.use<BaseContext, UserAgentContext>(userAgent);
+api.use(userAgent());
 api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
@@ -133,11 +131,11 @@ if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 
-router.register("*", ["get", "post"], (ctx) => {
+router.register("{/*path}", ["get", "post"], (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 
-// Router is embedded in a Koa application wrapper, because koa-router does not
+// Router is embedded in a Koa application wrapper, because @koa/router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());
 api.use(router.allowedMethods());

@@ -1,5 +1,4 @@
-import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { AuthInfo, CallToolResult } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { errToString } from "@shared/utils/error";
 import env from "@server/env";
@@ -11,7 +10,7 @@ import { type APIContext, AuthenticationType } from "@server/types";
 import type { NavigationNode } from "@shared/types";
 
 interface McpContext {
-  authInfo?: AuthInfo;
+  http?: { authInfo?: AuthInfo };
 }
 
 /**
@@ -21,7 +20,7 @@ interface McpContext {
  * @returns the authenticated user.
  */
 export function getActorFromContext(context: McpContext) {
-  return context.authInfo?.extra?.user as User;
+  return context.http?.authInfo?.extra?.user as User;
 }
 
 /**
@@ -32,9 +31,9 @@ export function getActorFromContext(context: McpContext) {
  * @returns a partial APIContext suitable for command functions.
  */
 export function buildAPIContext(context: McpContext) {
-  const user = context.authInfo?.extra?.user as User;
-  const token = context.authInfo?.token ?? "";
-  const ip = context.authInfo?.extra?.ip as string | undefined;
+  const user = context.http?.authInfo?.extra?.user as User;
+  const token = context.http?.authInfo?.token ?? "";
+  const ip = context.http?.authInfo?.extra?.ip as string | undefined;
 
   const auth = {
     user,

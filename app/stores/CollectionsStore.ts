@@ -31,9 +31,23 @@ export default class CollectionsStore extends IndexedStore<Collection> {
       : undefined;
   }
 
+  /** Active collections, other than the personal collection. */
   @computed
   get allActive() {
-    return this.orderedData.filter((c) => c.isActive);
+    return this.orderedData.filter((c) => c.isActive && !c.isPersonal);
+  }
+
+  /**
+   * Returns the personal collection of the current user, if it was loaded.
+   *
+   * @returns The personal Collection or undefined
+   */
+  @computed
+  get personal(): Collection | undefined {
+    const userId = this.rootStore.auth.user?.id;
+    return userId
+      ? this.orderedData.find((c) => c.ownerId === userId)
+      : undefined;
   }
 
   @override
@@ -73,7 +87,7 @@ export default class CollectionsStore extends IndexedStore<Collection> {
   get all(): Collection[] {
     return sortBy(
       Array.from(this.data.values()),
-      (collection) => collection.name
+      (collection) => collection.displayName
     );
   }
 
@@ -172,10 +186,7 @@ export default class CollectionsStore extends IndexedStore<Collection> {
     });
 
   get(id: string = ""): Collection | undefined {
-    return (
-      this.data.get(id) ??
-      this.orderedData.find((collection) => id.endsWith(collection.urlId))
-    );
+    return this.getByIdOrUrlId(id);
   }
 
   @computed

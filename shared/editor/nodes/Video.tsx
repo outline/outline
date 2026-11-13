@@ -5,10 +5,13 @@ import type {
   NodeType,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
+import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
+import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
 import Caption from "../components/Caption";
 import VideoComponent from "../components/Video";
@@ -20,6 +23,42 @@ import Node from "./Node";
 const parseDimension = (value: string | null): number | null => {
   const parsed = parseInt(value ?? "", 10);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+/**
+ * Downloads a video through a blob URL, as videos are served inline and a
+ * plain link would open them for playback.
+ *
+ * @param src the sanitized video URL.
+ * @param title the video caption, used as the file name.
+ */
+const downloadVideo = async (src: string, title: string | null) => {
+  try {
+    const response = await fetch(src);
+    if (!response.ok) {
+      throw new Error(`Failed to download video: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const extension = blob.type.split("/")[1];
+    const name = title || "video";
+
+    // create a temporary link node and click it with our video data
+    const link = document.createElement("a");
+    link.href = url;
+    link.download =
+      extension && !name.endsWith(`.${extension}`)
+        ? `${name}.${extension}`
+        : name;
+    document.body.appendChild(link);
+    link.click();
+
+    // cleanup
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url));
+  } catch {
+    window.open(src, "_blank", "noopener,noreferrer");
+  }
 };
 
 export default class Video extends Node {
@@ -225,7 +264,86 @@ export default class Video extends Node {
   );
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
+    return {
+      video: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs),
+      deleteVideo: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.deleteSelection());
+        return true;
+      },
+      replaceVideo: (): Command => (state) => {
+        if (
+          !(state.selection instanceof NodeSelection) ||
+          state.selection.node.type !== type
+        ) {
+          return false;
+        }
+        const { view } = this.editor;
+        const { node } = state.selection;
+        const { uploadFile, onFileUploadStart, onFileUploadStop, onNotice } =
+          this.editor.props;
+
+        if (!uploadFile) {
+          throw new Error("uploadFile prop is required to replace videos");
+        }
+
+        // create an input element and click to trigger picker
+        const inputElement = document.createElement("input");
+        inputElement.type = "file";
+        inputElement.accept = "video/*";
+        inputElement.onchange = (event) => {
+          const files = getEventFiles(event);
+          void insertFiles(view, event, state.selection.from, files, {
+            uploadFile,
+            onFileUploadStart,
+            onFileUploadStop,
+            onNotice,
+            replaceExisting: true,
+            attrs: node.attrs.title ? { title: node.attrs.title } : undefined,
+          });
+        };
+        inputElement.click();
+        return true;
+      },
+      downloadVideo: (): Command => (state) => {
+        if (
+          !(state.selection instanceof NodeSelection) ||
+          state.selection.node.type !== type
+        ) {
+          return false;
+        }
+        const { node } = state.selection;
+        const src = sanitizeUrl(node.attrs.src);
+        if (!src) {
+          return false;
+        }
+
+        void downloadVideo(src, node.attrs.title);
+        return true;
+      },
+      resizeVideo:
+        ({ width, height }: { width: number; height: number }): Command =>
+        (state, dispatch) => {
+          if (
+            !(state.selection instanceof NodeSelection) ||
+            state.selection.node.type !== type
+          ) {
+            return false;
+          }
+
+          const { selection } = state;
+          const tr = state.tr
+            .setNodeMarkup(selection.from, undefined, {
+              ...selection.node.attrs,
+              width,
+              height,
+            })
+            .setMeta("addToHistory", true);
+
+          const $pos = tr.doc.resolve(selection.from);
+          dispatch?.(tr.setSelection(new NodeSelection($pos)));
+          return true;
+        },
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

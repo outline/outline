@@ -30,27 +30,28 @@ export class TextHelper {
     expiresIn = 3000
   ) {
     const attachmentIds = parseAttachmentIds(text);
+    if (!attachmentIds.length) {
+      return text;
+    }
+
+    const attachments = await Attachment.findAll({
+      where: {
+        id: attachmentIds,
+        teamId,
+      },
+    });
 
     await Promise.all(
-      attachmentIds.map(async (id) => {
-        const attachment = await Attachment.findOne({
-          where: {
-            id,
-            teamId,
-          },
-        });
+      attachments.map(async (attachment) => {
+        const signedUrl = await FileStorage.getSignedUrl(
+          attachment.key,
+          expiresIn
+        );
 
-        if (attachment) {
-          const signedUrl = await FileStorage.getSignedUrl(
-            attachment.key,
-            expiresIn
-          );
-
-          text = text.replace(
-            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-            signedUrl
-          );
-        }
+        text = text.replace(
+          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+          signedUrl
+        );
       })
     );
     return text;
@@ -85,9 +86,7 @@ export class TextHelper {
       await Promise.all(
         chunk.map(async (image) => {
           // Skip attempting to fetch images that are not valid urls
-          try {
-            new URL(image.src);
-          } catch (_e) {
+          if (!URL.canParse(image.src)) {
             return;
           }
 

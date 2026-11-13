@@ -134,13 +134,14 @@ export default class Attachment extends Node {
   component = (props: ComponentProps) => {
     const { embedsDisabled } = this.editor.props;
     const { isSelected, isEditable, node } = props;
-    const context = node.attrs.href ? (
-      bytesToHumanReadable(node.attrs.size || "0")
-    ) : (
-      <>
-        <Trans>Uploading</Trans>…
-      </>
-    );
+    const context =
+      node.attrs.href || node.attrs.size ? (
+        bytesToHumanReadable(node.attrs.size || "0")
+      ) : (
+        <>
+          <Trans>Uploading</Trans>…
+        </>
+      );
 
     return node.attrs.preview && !embedsDisabled && isPDFAttachment(node) ? (
       <PdfViewer
@@ -187,13 +188,8 @@ export default class Attachment extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const {
-          uploadFile,
-          onFileUploadStart,
-          onFileUploadStop,
-          onFileUploadProgress,
-          onNotice,
-        } = this.editor.props;
+        const { uploadFile, onFileUploadStart, onFileUploadStop, onNotice } =
+          this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace attachments");
@@ -219,7 +215,6 @@ export default class Attachment extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
-            onFileUploadProgress,
             onNotice,
             replaceExisting: true,
             attrs: {

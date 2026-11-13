@@ -135,7 +135,10 @@ async function accountProvisioner(
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
-    if (errToId(err) === "invalid_authentication") {
+    if (
+      errToId(err) === "invalid_authentication" &&
+      AuthenticationHelper.allowsEmailMatch(authenticationProviderParams.name)
+    ) {
       const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,
@@ -198,13 +201,20 @@ async function accountProvisioner(
             : undefined,
         },
   });
-  const { isNewUser, user } = result;
+  const { isNewUser, isInvite, user } = result;
 
-  if (isNewUser && user.isInvited) {
-    await Event.createFromContext(ctx, {
-      name: "users.invite_accepted",
-      userId: user.id,
-    });
+  if (isInvite) {
+    // The browser may have a session for another user, which must not be used.
+    await Event.create(
+      {
+        name: "users.invite_accepted",
+        userId: user.id,
+        actorId: user.id,
+        teamId: user.teamId,
+        ip: ctx.context.ip,
+      },
+      { transaction: ctx.state.transaction }
+    );
   }
 
   if (isNewUser || isNewTeam) {
@@ -217,6 +227,7 @@ async function accountProvisioner(
       const count = await Collection.count({
         where: {
           teamId: team.id,
+          ownerId: null,
         },
       });
       provision = count === 0;
@@ -246,7 +257,16 @@ async function accountProvisioner(
   };
 }
 
-async function provisionFirstCollection(
+/**
+ * Creates the default "Welcome" collection and onboarding documents for a
+ * newly created team.
+ *
+ * @param ctx the request context.
+ * @param team the team to provision the collection for.
+ * @param user the user that will be recorded as the creator.
+ * @returns a promise that resolves when the collection has been created.
+ */
+export async function provisionFirstCollection(
   ctx: APIContext,
   team: Team,
   user: User

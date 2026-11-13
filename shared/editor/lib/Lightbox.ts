@@ -32,6 +32,21 @@ class LightboxRegularImage extends LightboxImage {
   }
 }
 
+/** Theme variables that a rendered diagram inherits from its container. */
+const diagramVariables = [
+  "--pele-bg",
+  "--pele-fg",
+  "--pele-muted",
+  "--pele-line",
+  "--pele-surface",
+  "--pele-surface-alt",
+  "--pele-border",
+  "--pele-accent",
+  "--pele-critical",
+  "--pele-font",
+  "--pele-font-mono",
+];
+
 class LightboxMermaidImage extends LightboxImage {
   constructor(view: EditorView, pos: number) {
     super();
@@ -55,8 +70,23 @@ class LightboxMermaidImage extends LightboxImage {
       return "";
     }
 
+    // The diagram reads its colors from variables on the container, which an
+    // image does not inherit, so copy them onto the SVG.
+    const clone = svg.cloneNode(true);
+    if (!(clone instanceof SVGElement)) {
+      return "";
+    }
+    const style = getComputedStyle(svg);
+    for (const name of diagramVariables) {
+      const value = style.getPropertyValue(name).trim();
+      if (value) {
+        clone.style.setProperty(name, value);
+      }
+    }
+    clone.style.setProperty("background", "var(--pele-bg)");
+
     const serializer = new XMLSerializer();
-    return serializer.serializeToString(svg);
+    return serializer.serializeToString(clone);
   }
 
   getElement() {

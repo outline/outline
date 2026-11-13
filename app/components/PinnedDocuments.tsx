@@ -21,7 +21,7 @@ import { CollapseIcon } from "outline-icons";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s, hover, hideScrollbars } from "@shared/styles";
 import type Pin from "~/models/Pin";
 import DocumentCard from "~/components/DocumentCard";
@@ -256,7 +256,7 @@ const List = styled.div<{ $flush?: boolean }>`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 0;
   list-style: none;
-  margin: ${(props) => (props.$flush ? "0" : "16px")} 0 32px;
+  margin: ${(props) => (props.$flush ? "0" : "16px")} 0 0;
 
   &:empty {
     display: none;

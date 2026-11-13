@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
 import { snakeCase } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
@@ -7,7 +6,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import Redis from "@server/storage/redis";
-import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
+import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 
 export function createQueue(
   name: string,

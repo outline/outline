@@ -255,6 +255,47 @@ describe("SearchIndex", () => {
     expect(results[0]?.document.id).toBe("1");
   });
 
+  it("weights heading matches above content matches", () => {
+    const index = new SearchIndex();
+    index.update([
+      { id: "1", title: "Team", url: "/doc/1", text: "onboarding guide" },
+      {
+        id: "2",
+        title: "People",
+        url: "/doc/2",
+        text: "Onboarding\nhow new starters get set up in their first week",
+        headings: ["Onboarding"],
+      },
+    ]);
+
+    const results = index.search("onboarding");
+    expect(results[0]?.document.id).toBe("2");
+  });
+
+  it("preserves previously indexed headings when a later update omits them", () => {
+    const index = new SearchIndex();
+    index.update([
+      { id: "1", title: "Team", url: "/doc/1", headings: ["Onboarding"] },
+    ]);
+
+    expect(index.update([{ id: "1", title: "Team", url: "/doc/1" }])).toBe(
+      false
+    );
+    expect(index.search("onboarding")[0]?.document.id).toBe("1");
+  });
+
+  it("reports a change when headings change", () => {
+    const index = new SearchIndex();
+    index.update([{ id: "1", title: "A", url: "/doc/1", headings: ["One"] }]);
+
+    expect(
+      index.update([{ id: "1", title: "A", url: "/doc/1", headings: ["One"] }])
+    ).toBe(false);
+    expect(
+      index.update([{ id: "1", title: "A", url: "/doc/1", headings: ["Two"] }])
+    ).toBe(true);
+  });
+
   it("reports whether an update changed the collection", () => {
     const index = new SearchIndex();
     expect(index.update([{ id: "1", title: "A", url: "/doc/1" }])).toBe(true);

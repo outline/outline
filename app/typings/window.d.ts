@@ -73,6 +73,12 @@ declare global {
       loadAuthConfig: (host: string) => Promise<{ providers: unknown[] }>;
 
       /**
+       * Returns true when passkeys can be created and used inside the app, rather
+       * than in the system browser. Not present in older desktop apps.
+       */
+      isPasskeySupported?: () => Promise<boolean>;
+
+      /**
        * Clears the desktop configuration, removing any custom hosts. Intended
        * for debugging use.
        */

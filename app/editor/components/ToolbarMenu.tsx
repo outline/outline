@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
 import { closeHistory } from "@shared/editor/lib/closeHistory";
 import { MenuItemGroup, type MenuItem } from "@shared/editor/types";
 import { hideScrollbars, s } from "@shared/styles";
+import { UndoIcon } from "~/components/Icons/UndoIcon";
 import { TooltipProvider } from "~/components/TooltipContext";
 import useMobile from "~/hooks/useMobile";
 import type { MenuItem as TMenuItem } from "~/types";
@@ -15,6 +16,11 @@ import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
 import Tooltip from "./Tooltip";
 import { toMenuItems } from "~/components/Menu/transformer";
+import {
+  MenuFilter,
+  MenuFilterEmpty,
+  useMenuFilter,
+} from "~/components/Menu/MenuFilter";
 import { MenuContent } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { Menu, MenuTrigger } from "~/components/primitives/Menu";
@@ -23,6 +29,8 @@ import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
+  /** Whether to pin an undo button to the start of the toolbar. */
+  showUndo?: boolean;
 };
 
 type ToolbarDropdownProps = {
@@ -41,10 +49,23 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
   const { item, shortcut, tooltip } = props;
   const { state } = view;
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const {
+    query,
+    setQuery,
+    handleKeyDownCapture,
+    handleEscapeKeyDown,
+    reset: resetFilter,
+  } = useMenuFilter();
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open);
-  }, []);
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      setIsOpen(open);
+      if (open) {
+        resetFilter();
+      }
+    },
+    [resetFilter]
+  );
 
   const items: TMenuItem[] = useMemo(() => {
     if (!isOpen) {
@@ -58,7 +79,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       : [];
     // Menu items are resolved against the editor state at the moment the menu
     // opens, recomputing on every transaction would rebuild the open menu.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
@@ -83,8 +104,14 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
             align="end"
             aria-label={item.tooltip || t("More options")}
             onCloseAutoFocus={handleCloseAutoFocus}
+            onEscapeKeyDown={handleEscapeKeyDown}
+            onKeyDownCapture={handleKeyDownCapture}
           >
-            <EventBoundary>{toMenuItems(items)}</EventBoundary>
+            <MenuFilter query={query} onChange={setQuery} />
+            <EventBoundary>
+              {toMenuItems(items, query) ??
+                (query ? <MenuFilterEmpty /> : null)}
+            </EventBoundary>
           </MenuContent>
         </Menu>
       </MenuProvider>
@@ -94,7 +121,8 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
 
 function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
-  const { items } = props;
+  const { t } = useTranslation();
+  const { items, showUndo } = props;
   const { state } = view;
   const isMobile = useMobile();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -141,67 +169,85 @@ function ToolbarMenu(props: Props) {
     closeHistory(view);
   };
 
+  const handleUndo = () => {
+    commands.undo();
+  };
+
+  const content = (
+    <FlexibleWrapper ref={wrapperRef} $pinned={showUndo}>
+      {items.map((item, index) => {
+        if (item.name === "separator" && item.visible !== false) {
+          // The mobile bar spaces its buttons evenly instead, as dividers
+          // would eat into the room for them.
+          return isMobile ? null : <ToolbarSeparator key={index} />;
+        }
+        if (item.visible === false || (!item.skipIcon && !item.icon)) {
+          return null;
+        }
+        const isActive = item.active ? item.active(state) : false;
+
+        if (item.children) {
+          return (
+            <ToolbarDropdown
+              key={index}
+              active={isActive && !item.label}
+              item={item}
+              tooltip={item.label === item.tooltip ? undefined : item.tooltip}
+              shortcut={item.shortcut}
+            />
+          );
+        }
+
+        return (
+          <Tooltip
+            key={index}
+            shortcut={item.shortcut}
+            content={item.label === item.tooltip ? undefined : item.tooltip}
+          >
+            {item.name === "dimensions" ? (
+              <MediaDimension key={index} />
+            ) : (
+              <Toolbar.Button asChild>
+                <ToolbarButton
+                  data-group={item.group}
+                  onClick={handleClick(item)}
+                  active={isActive && !item.label}
+                  aria-label={item.label ? undefined : item.tooltip}
+                  disabled={item.disabled}
+                >
+                  {item.label && <Label>{item.label}</Label>}
+                  {item.icon}
+                </ToolbarButton>
+              </Toolbar.Button>
+            )}
+          </Tooltip>
+        );
+      })}
+    </FlexibleWrapper>
+  );
+
   return (
     <TooltipProvider>
       <Toolbar.Root asChild>
-        <FlexibleWrapper ref={wrapperRef}>
-          {items.map((item, index) => {
-            if (item.name === "separator" && item.visible !== false) {
-              // The mobile bar spaces its buttons evenly instead, as dividers
-              // would eat into the room for them.
-              return isMobile ? null : <ToolbarSeparator key={index} />;
-            }
-            if (item.visible === false || (!item.skipIcon && !item.icon)) {
-              return null;
-            }
-            const isActive = item.active ? item.active(state) : false;
-
-            if (item.children) {
-              return (
-                <ToolbarDropdown
-                  key={index}
-                  active={isActive && !item.label}
-                  item={item}
-                  tooltip={
-                    item.label === item.tooltip ? undefined : item.tooltip
-                  }
-                  shortcut={item.shortcut}
-                />
-              );
-            }
-
-            return (
-              <Tooltip
-                key={index}
-                shortcut={item.shortcut}
-                content={item.label === item.tooltip ? undefined : item.tooltip}
-              >
-                {item.name === "dimensions" ? (
-                  <MediaDimension key={index} />
-                ) : (
-                  <Toolbar.Button asChild>
-                    <ToolbarButton
-                      data-group={item.group}
-                      onClick={handleClick(item)}
-                      active={isActive && !item.label}
-                      aria-label={item.label ? undefined : item.tooltip}
-                      disabled={item.disabled}
-                    >
-                      {item.label && <Label>{item.label}</Label>}
-                      {item.icon}
-                    </ToolbarButton>
-                  </Toolbar.Button>
-                )}
-              </Tooltip>
-            );
-          })}
-        </FlexibleWrapper>
+        {showUndo ? (
+          <PinnedWrapper>
+            <Toolbar.Button asChild>
+              <PinnedButton onClick={handleUndo} aria-label={t("Undo")}>
+                <UndoIcon />
+              </PinnedButton>
+            </Toolbar.Button>
+            <PinnedSeparator />
+            {content}
+          </PinnedWrapper>
+        ) : (
+          content
+        )}
       </Toolbar.Root>
     </TooltipProvider>
   );
 }
 
-const FlexibleWrapper = styled.div`
+const FlexibleWrapper = styled.div<{ $pinned?: boolean }>`
   color: ${s("textSecondary")};
   overflow: hidden;
   display: flex;
@@ -237,6 +283,37 @@ const FlexibleWrapper = styled.div`
 
     ${hideScrollbars()}
   `}
+
+  // A pinned button takes the place of one of the six. The space after the
+  // separator is padding so buttons scroll right up to the separator.
+  ${(props) =>
+    props.$pinned &&
+    breakpoint("mobile", "tablet")`
+      flex: 1;
+      gap: 0 calc((100% - 20px) / 5 - 40px);
+      padding-inline-start: 8px;
+      scroll-padding-inline-start: 8px;
+    `}
+`;
+
+const PinnedWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  min-width: 0;
+`;
+
+const PinnedButton = styled(ToolbarButton)`
+  flex-shrink: 0;
+  min-width: 40px;
+  height: 40px;
+  justify-content: center;
+  border-radius: 20px;
+`;
+
+const PinnedSeparator = styled(ToolbarSeparator)`
+  flex-shrink: 0;
+  height: 24px;
+  margin: 0 0 0 4px;
 `;
 
 const Label = styled.span`

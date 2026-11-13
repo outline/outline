@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
@@ -159,24 +159,27 @@ router.post(
       }),
     ]);
 
+    const [presentedGroups, groupUsers] = await Promise.all([
+      Promise.all(groups.map(presentGroup)),
+      Promise.all(
+        groups.map((group) =>
+          GroupUser.scope("withUser").findAll({
+            where: {
+              groupId: group.id,
+            },
+            order: [["permission", "ASC"]],
+            limit: MAX_AVATAR_DISPLAY,
+          })
+        )
+      ),
+    ]);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        groups: await Promise.all(groups.map(presentGroup)),
+        groups: presentedGroups,
         // TODO: Deprecated, will remove in the future as language conflicts with GroupMembership
-        groupMemberships: (
-          await Promise.all(
-            groups.map((group) =>
-              GroupUser.scope("withUser").findAll({
-                where: {
-                  groupId: group.id,
-                },
-                order: [["permission", "ASC"]],
-                limit: MAX_AVATAR_DISPLAY,
-              })
-            )
-          )
-        )
+        groupMemberships: groupUsers
           .flat()
           .filter((groupUser) => groupUser.user)
           .map((groupUser) =>
@@ -233,13 +236,16 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, description, externalId, disableMentions } = ctx.input.body;
+    const { name, description, icon, color, externalId, disableMentions } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
       description,
+      icon,
+      color,
       externalId,
       disableMentions,
       teamId: user.teamId,
@@ -280,7 +286,7 @@ router.post(
         externalGroupInclude,
       ],
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Group,
       },
     });
@@ -328,7 +334,7 @@ router.post(
       transaction,
       include: [externalGroupInclude],
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Group,
       },
     });
@@ -371,10 +377,17 @@ router.post(
     );
 
     if (groupIds.length) {
-      await Group.destroy({
-        where: { id: groupIds },
+      const groups = await Group.findAll({
+        where: { id: groupIds, teamId: user.teamId },
         transaction,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
+
+      // Each group is destroyed individually so that a delete event is
+      // emitted, which revokes the access that its members were granted.
+      for (const group of groups) {
+        await group.destroyWithCtx(ctx);
+      }
     }
 
     ctx.body = {
@@ -427,6 +440,14 @@ router.post(
       GroupUser.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
+        include: [
+          ...options.include,
+          {
+            model: User,
+            as: "createdBy",
+            required: false,
+          },
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
@@ -480,8 +501,6 @@ router.post(
       );
     }
 
-    const userPermission = permission;
-
     const [groupUser, created] = await GroupUser.findOrCreateWithCtx(
       ctx,
       {
@@ -491,18 +510,15 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
-          permission: userPermission || GroupPermission.Member,
+          permission: permission ?? GroupPermission.Member,
         },
       },
       { name: "add_user" }
     );
 
     // If the user already exists in the group, update the permission if provided
-    if (
-      userPermission !== undefined &&
-      groupUser.permission !== userPermission
-    ) {
-      await groupUser.updateWithCtx(ctx, { permission: userPermission });
+    if (permission !== undefined && groupUser.permission !== permission) {
+      await groupUser.updateWithCtx(ctx, { permission });
     }
 
     if (created) {

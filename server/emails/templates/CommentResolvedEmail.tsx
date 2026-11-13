@@ -3,6 +3,7 @@ import { NotificationEventType } from "@shared/types";
 import type { Collection } from "@server/models";
 import { Comment, Document } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { can } from "@server/policies";
 import type { EmailProps } from "./BaseEmail";
@@ -12,7 +13,7 @@ import Button from "./components/Button";
 import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
-import Footer from "./components/Footer";
+import Footer, { Link } from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -95,7 +96,7 @@ export default class CommentResolvedEmail extends BaseEmail<
 
   protected subject({ document }: Props) {
     return this.t("Resolved a comment thread in “{{ documentTitle }}”", {
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
     });
   }
 
@@ -116,7 +117,7 @@ export default class CommentResolvedEmail extends BaseEmail<
   }: Props): string {
     const action = this.t(
       "{{ actorName }} resolved a comment thread on “{{ documentTitle }}”",
-      { actorName, documentTitle: document.titleWithDefault }
+      { actorName, documentTitle: document.displayTitle }
     );
     const inCollection = collection.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
@@ -145,10 +146,10 @@ export default class CommentResolvedEmail extends BaseEmail<
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {this.t("{{ actorName }} resolved a comment on", { actorName })}{" "}
-            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
+            <a href={threadLink}>{document.displayTitle}</a>{" "}
             {collection.name
               ? this.t("in the {{ collectionName }} collection", {
                   collectionName: collection.name,
@@ -173,7 +174,16 @@ export default class CommentResolvedEmail extends BaseEmail<
         <Footer
           unsubscribeUrl={unsubscribeUrl}
           unsubscribeText={this.t("Unsubscribe from these emails")}
-        />
+        >
+          <Link
+            href={SubscriptionHelper.unsubscribeUrl(
+              props.userId,
+              props.documentId
+            )}
+          >
+            {this.t("Unsubscribe from this doc")}
+          </Link>
+        </Footer>
       </EmailTemplate>
     );
   }

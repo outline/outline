@@ -1,8 +1,12 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { FindOptions } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import { Team, User } from "@server/models";
+import Redis from "@server/storage/redis";
 import { AuthenticationError, UserSuspendedError } from "../errors";
+import { hash } from "./crypto";
+import { RedisPrefixHelper } from "./RedisPrefixHelper";
 import type { Context } from "koa";
 
 /**
@@ -36,14 +40,14 @@ export function getJWTPayload(token: string) {
  * Retrieves the user associated with a JWT token, validating the token's type and expiration.
  *
  * @param token The JWT token to validate and extract the user from.
- * @param allowedTypes An array of allowed token types (default: ["session", "transfer"]). The token's type must be included in this array to be considered valid.
+ * @param allowedTypes An array of allowed token types (default: ["session"]). The token's type must be included in this array to be considered valid.
  * @returns An object containing the user associated with the token, an optional service string if included in the token's payload, and the time the token expires at if it has one.
  * @throws AuthenticationError if the token is missing, invalid, expired, or if the token's type is not allowed.
  * @throws UserSuspendedError if the user associated with the token is suspended.
  */
 export async function getUserForJWT(
   token: string,
-  allowedTypes = ["session", "transfer"]
+  allowedTypes = ["session"]
 ): Promise<{ user: User; service?: string; expiresAt?: Date }> {
   const payload = getJWTPayload(token);
   const expiresAt = payload.expiresAt ? new Date(payload.expiresAt) : undefined;
@@ -70,6 +74,12 @@ export async function getUserForJWT(
     throw AuthenticationError("Invalid token");
   }
 
+  try {
+    JWT.verify(token, user.jwtSecret);
+  } catch (_err) {
+    throw AuthenticationError("Invalid token");
+  }
+
   if (user.isSuspended) {
     const suspendingAdmin = user.suspendedById
       ? await User.findByPk(user.suspendedById)
@@ -91,12 +101,6 @@ export async function getUserForJWT(
     }
   }
 
-  try {
-    JWT.verify(token, user.jwtSecret);
-  } catch (_err) {
-    throw AuthenticationError("Invalid token");
-  }
-
   return {
     user,
     service: payload.service as string | undefined,
@@ -106,12 +110,13 @@ export async function getUserForJWT(
 
 /**
  * Retrieves the user associated with an email sign-in token, validating the
- * token's type, expiration, and originating IP address.
+ * token's type, expiration, and originating IP address. A valid token is
+ * marked as used, so each token can only be redeemed once.
  *
  * @param ctx the Koa context of the current request.
  * @param token the email sign-in token to validate.
  * @returns the user associated with the token.
- * @throws AuthenticationError if the token is invalid, expired, or from a different IP.
+ * @throws AuthenticationError if the token is invalid, expired, from a different IP, or already used.
  */
 export async function getUserForEmailSigninToken(
   ctx: Context,
@@ -142,6 +147,18 @@ export async function getUserForEmailSigninToken(
     JWT.verify(token, user.jwtSecret);
   } catch (_err) {
     throw AuthenticationError("Invalid token");
+  }
+
+  // Atomically claim the token so concurrent requests cannot both redeem it.
+  const claimed = await Redis.defaultClient.set(
+    RedisPrefixHelper.getEmailSigninTokenKey(hash(token)),
+    "1",
+    "PX",
+    Minute.ms * 10,
+    "NX"
+  );
+  if (!claimed) {
+    throw AuthenticationError("Token has already been used");
   }
 
   return user;

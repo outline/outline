@@ -1,4 +1,5 @@
 import { APIResponseError, APIErrorCode } from "@notionhq/client";
+import { uniqBy } from "es-toolkit/compat";
 import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import type { IntegrationService, ProsemirrorDoc } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -17,7 +18,7 @@ import { NotionConverter } from "../utils/NotionConverter";
 type ChildPage = { type: PageType; externalId: string };
 
 type ParsePageOutput = ImportTaskOutput[number] & {
-  collectionExternalId?: string;
+  rootExternalId?: string;
   children: ChildPage[];
 };
 
@@ -49,15 +50,24 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const client = new NotionClient(integration.authentication.token);
 
-    const parsedPages: (ParsePageOutput | null)[] = [];
+    const parsedPages: (ParsePageOutput & { ancestorExternalIds: string[] })[] =
+      [];
     for (const item of importTask.input) {
-      parsedPages.push(await this.parsePage({ item, client }));
+      const parsedPage = await this.parsePage({ item, client });
+
+      // Skip pages/databases that couldn't be accessed
+      if (parsedPage) {
+        parsedPages.push({
+          ...parsedPage,
+          ancestorExternalIds: [
+            ...(item.ancestorExternalIds ?? []),
+            item.externalId,
+          ],
+        });
+      }
     }
 
-    // Filter out any null results (from pages/databases that couldn't be accessed)
-    const validParsedPages = parsedPages.filter(Boolean) as ParsePageOutput[];
-
-    const taskOutput: ImportTaskOutput = validParsedPages.map((parsedPage) => ({
+    const taskOutput: ImportTaskOutput = parsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,
       title: parsedPage.title,
       icon: parsedPage.icon,
@@ -68,13 +78,26 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     }));
 
     const childTasksInput: ImportTaskInput<IntegrationService.Notion> =
-      validParsedPages.flatMap((parsedPage) =>
-        parsedPage.children.map((childPage) => ({
-          type: childPage.type,
-          externalId: childPage.externalId,
-          parentExternalId: parsedPage.externalId,
-          collectionExternalId: parsedPage.collectionExternalId,
-        }))
+      parsedPages.flatMap((parsedPage) =>
+        uniqBy(parsedPage.children, "externalId")
+          .filter((childPage) => {
+            // A page that contains one of its ancestors would be queued forever.
+            if (parsedPage.ancestorExternalIds.includes(childPage.externalId)) {
+              Logger.warn(
+                `Skipping Notion page ${childPage.externalId} - it is an ancestor of ${parsedPage.externalId}`,
+                { importId: importTask.importId }
+              );
+              return false;
+            }
+            return true;
+          })
+          .map((childPage) => ({
+            type: childPage.type,
+            externalId: childPage.externalId,
+            parentExternalId: parsedPage.externalId,
+            rootExternalId: parsedPage.rootExternalId,
+            ancestorExternalIds: parsedPage.ancestorExternalIds,
+          }))
       );
 
     return { taskOutput, childTasksInput };
@@ -107,9 +130,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     item: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
   }): Promise<ParsePageOutput | null> {
-    const collectionExternalId = item.collectionExternalId ?? item.externalId;
+    const rootExternalId =
+      item.rootExternalId ?? item.collectionExternalId ?? item.externalId;
     const titleMaxLength =
-      item.externalId === collectionExternalId // This means it's a root page which will be imported as a collection
+      item.externalId === rootExternalId // This means it's a root page (materialized as a collection or root document)
         ? CollectionValidation.maxNameLength
         : DocumentValidation.maxTitleLength;
 
@@ -126,7 +150,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           icon: emoji,
           externalId: item.externalId,
           content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
-          collectionExternalId,
+          rootExternalId,
           children: pages.map((page) => ({
             type: page.type,
             externalId: page.id,
@@ -144,7 +168,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         icon: emoji,
         externalId: item.externalId,
         content: NotionConverter.page({ children: blocks } as NotionPage),
-        collectionExternalId,
+        rootExternalId,
         children: this.parseChildPages(blocks),
       };
     } catch (error) {

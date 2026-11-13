@@ -195,38 +195,11 @@ export function EmailAuthenticationRequiredError(
   });
 }
 
-export function MicrosoftGraphError(
-  message = "Microsoft Graph API did not return required fields"
-) {
-  return httpErrors(400, message, {
-    id: "graph_error",
-    isReportable: false,
-  });
-}
-
 export function TeamDomainRequiredError(
   message = "Unable to determine workspace from current domain or subdomain"
 ) {
   return httpErrors(400, message, {
     id: "domain_required",
-    isReportable: false,
-  });
-}
-
-export function GmailAccountCreationError(
-  message = "Cannot create account using personal gmail address"
-) {
-  return httpErrors(400, message, {
-    id: "gmail_account_creation",
-    isReportable: false,
-  });
-}
-
-export function OIDCMalformedUserInfoError(
-  message = "User profile information malformed"
-) {
-  return httpErrors(400, message, {
-    id: "malformed_user_info",
     isReportable: false,
   });
 }
@@ -247,6 +220,24 @@ export function UnprocessableEntityError(
 ) {
   return httpErrors(422, message, {
     id: "unprocessable_entity",
+    isReportable: false,
+  });
+}
+
+export function InvalidClientMetadataError(
+  message = "The client metadata document is invalid"
+) {
+  return httpErrors(422, message, {
+    id: "invalid_client_metadata",
+    isReportable: false,
+  });
+}
+
+export function InvalidRedirectUriError(
+  message = "The redirect URI is invalid"
+) {
+  return httpErrors(400, message, {
+    id: "invalid_redirect_uri",
     isReportable: false,
   });
 }

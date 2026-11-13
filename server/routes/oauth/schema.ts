@@ -26,10 +26,12 @@ export const TokenRevokeSchema = BaseSchema.extend({
 
 export type TokenRevokeReq = z.infer<typeof TokenRevokeSchema>;
 
-// The received count is included in the message so that clients registering an
-// oversized list, and our own logs, show how far over the limit they are.
+// The URIs themselves are validated by the handler, so that it can respond with
+// the invalid_redirect_uri error code. The received count is included in the
+// message so that clients registering an oversized list, and our own logs, show
+// how far over the limit they are.
 const redirectUris = z
-  .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
+  .array(z.string().max(OAuthClientValidation.maxRedirectUriLength))
   .min(1)
   .max(OAuthClientValidation.maxRedirectUris, {
     error: (issue) =>

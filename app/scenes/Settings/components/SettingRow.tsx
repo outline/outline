@@ -1,7 +1,7 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
@@ -27,6 +27,41 @@ const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
   &:last-child {
     border-bottom: 0;
   }
+
+  /* Center switches, unless the text column also holds a field. */
+  &:has(> :last-child > [role="switch"]):not(
+      :has(> :first-child :is(input, textarea))
+    ) {
+    align-items: center;
+  }
+
+  /* A switch column is only as wide as the switch. */
+  &:has(> :last-child > [role="switch"]) > :last-child {
+    flex: 0 0 auto;
+  }
+
+  ${breakpoint("mobile", "tablet")`
+    &:has([role="switch"]) {
+      gap: 16px;
+
+      > :first-child {
+        min-width: 0;
+      }
+
+      > :last-child {
+        flex: 0 0 auto;
+      }
+    }
+
+    &:not(:has([role="switch"])) {
+      flex-direction: column;
+      gap: 12px;
+
+      > :last-child > * {
+        align-self: stretch;
+      }
+    }
+  `};
 `;
 
 const Column = styled.div`
@@ -50,11 +85,10 @@ const Column = styled.div`
       align-self: flex-end;
     }
 
-    ${breakpoint("tablet")`
-      > * {
-        align-self: initial;
-      }
-    `}
+    /* Text fields and selects fill the column. */
+    > :has(input:not([type="file"]), textarea, [role="combobox"]) {
+      align-self: stretch;
+    }
   }
 
   ${breakpoint("tablet")`

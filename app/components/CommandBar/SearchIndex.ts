@@ -1,4 +1,4 @@
-import { escapeRegExp } from "es-toolkit/compat";
+import { escapeRegExp, isEqual } from "es-toolkit/compat";
 import Fuse, { type IFuseOptions } from "fuse.js";
 
 /** A document as represented within the search index. */
@@ -8,6 +8,8 @@ export interface SearchIndexDocument {
   title: string;
   /** Plain text content of the document, may be absent until it has loaded. */
   text?: string;
+  /** Plain text of each heading in the document, may be absent until it has loaded. */
+  headings?: string[];
   url: string;
   icon?: string | null;
   color?: string | null;
@@ -36,7 +38,8 @@ enum TitleRanking {
 
 const options: IFuseOptions<SearchIndexDocument> = {
   keys: [
-    { name: "title", weight: 2 },
+    { name: "title", weight: 4 },
+    { name: "headings", weight: 2 },
     { name: "text", weight: 1 },
   ],
   includeScore: true,
@@ -197,11 +200,15 @@ export class SearchIndex {
       if (incoming.text === undefined && existing?.text !== undefined) {
         merged.text = existing.text;
       }
+      if (incoming.headings === undefined && existing?.headings !== undefined) {
+        merged.headings = existing.headings;
+      }
 
       if (
         existing &&
         existing.title === merged.title &&
         existing.text === merged.text &&
+        isEqual(existing.headings, merged.headings) &&
         existing.url === merged.url &&
         existing.isArchived === merged.isArchived
       ) {

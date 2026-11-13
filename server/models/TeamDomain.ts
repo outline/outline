@@ -10,8 +10,8 @@ import {
   Table,
   BelongsTo,
   ForeignKey,
+  Is,
   NotEmpty,
-  NotIn,
   BeforeValidate,
   BeforeCreate,
 } from "sequelize-typescript";
@@ -30,9 +30,10 @@ class TeamDomain extends IdModel<
   InferAttributes<TeamDomain>,
   Partial<InferCreationAttributes<TeamDomain>>
 > {
-  @NotIn({
-    args: env.isCloudHosted ? [emailProviders] : [],
-    msg: "You chose a restricted domain, please try another.",
+  @Is("notRestricted", (value: string) => {
+    if (env.isCloudHosted && emailProviders.includes(value)) {
+      throw new Error("You chose a restricted domain, please try another.");
+    }
   })
   @NotEmpty
   @Length({

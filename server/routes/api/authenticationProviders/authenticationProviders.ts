@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { UserRole } from "@shared/types";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
@@ -48,7 +48,7 @@ router.post(
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
 
     authorize(user, "update", authenticationProvider);

@@ -233,9 +233,9 @@ const NavLink = observer(function NavLink({
         event.preventDefault();
       }
 
-      // Fire onActiveClick on click rather than mousedown so that the native
-      // HTML5 drag gesture can initiate from an active row without being
-      // blocked by a preventDefault on mousedown.
+      // Fire onActiveClick on click rather than mousedown so that a drag can
+      // start from an active row without being blocked by a preventDefault on
+      // mousedown.
       if (isActive && wasActive) {
         onActiveClick?.(event);
       }

@@ -1,15 +1,15 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
-import { ImportState, IntegrationService, UserRole } from "@shared/types";
+import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Attachment, Integration } from "@server/models";
+import { Attachment, Collection, Document, Integration } from "@server/models";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
@@ -19,6 +19,45 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/**
+ * Resolves and authorizes the optional import destination. When a collection
+ * is chosen the user must be able to create documents in it; when a document
+ * is chosen the user must be able to add children to it.
+ *
+ * @param ctx The API context for the create request.
+ * @returns The resolved destination ids (both null when no destination set).
+ */
+async function resolveImportDestination(
+  ctx: APIContext<T.ImportsCreateReq>
+): Promise<{ collectionId: string | null; documentId: string | null }> {
+  const { user } = ctx.state.auth;
+  const { transaction } = ctx.state;
+  const { collectionId, documentId } = ctx.input.body;
+
+  if (collectionId) {
+    const collection = await Collection.findByPk(collectionId, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "createDocument", collection);
+    return { collectionId, documentId: null };
+  }
+
+  if (documentId) {
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "createChildDocument", document);
+
+    return { collectionId: null, documentId };
+  }
+
+  return { collectionId: null, documentId: null };
+}
 
 router.post(
   "imports.create",
@@ -32,11 +71,9 @@ router.post(
 
     authorize(user, "createImport", user.team);
 
-    if (
-      body.service === IntegrationService.Markdown ||
-      body.service === IntegrationService.Slab ||
-      body.service === IntegrationService.JSON
-    ) {
+    const { collectionId, documentId } = await resolveImportDestination(ctx);
+
+    if ("attachmentId" in body) {
       const attachment = await Attachment.findByPk(body.attachmentId, {
         rejectOnEmpty: true,
       });
@@ -56,6 +93,8 @@ router.post(
         ],
         scratch: { storageKey: attachment.key },
         integrationId: null,
+        collectionId,
+        documentId,
         createdById: user.id,
         teamId: user.teamId,
       });
@@ -83,6 +122,8 @@ router.post(
       state: ImportState.Created,
       input: body.input,
       integrationId: body.integrationId,
+      collectionId,
+      documentId,
       createdById: user.id,
       teamId: user.teamId,
     });
@@ -168,7 +209,7 @@ router.post(
     const importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
     });
     authorize(user, "delete", importModel);
 
@@ -193,7 +234,7 @@ router.post(
     let importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
     });
     authorize(user, "cancel", importModel);
 

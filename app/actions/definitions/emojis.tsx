@@ -37,7 +37,7 @@ export const deleteEmojiActionFactory = (emoji: Emoji) =>
     analyticsName: "Delete emoji",
     section: EmojiSecion,
     name: (t) => `${t("Delete")}…`,
-    title: (t) => t("Delete Emoji"),
+    title: (t) => t("Delete emoji"),
     content: (onSubmit) => (
       <EmojiDeleteDialog emoji={emoji} onSubmit={onSubmit} />
     ),

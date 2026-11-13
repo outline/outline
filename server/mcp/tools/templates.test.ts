@@ -83,6 +83,30 @@ describe("list_templates", () => {
     ).toBe(true);
   });
 
+  it("filters by a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_templates", {
+      collectionId: collection.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text?: string }) =>
+      JSON.parse(c.text ?? "{}")
+    );
+    const ids = data.map((t: { id: string }) => t.id);
+    expect(ids).toEqual([template.id]);
+  });
+
   it("does not return templates from collections the user cannot access", async () => {
     const owner = await buildUser();
     const otherUser = await buildUser({ teamId: owner.teamId });

@@ -78,6 +78,17 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         [TeamPreference.MCP]: z.boolean(),
         /** List of disabled embed provider titles. */
         [TeamPreference.DisabledEmbeds]: z.array(z.string()),
+        /** Whether users can create documents in a personal collection. */
+        [TeamPreference.PersonalDocs]: z.boolean(),
+        /** The number of days until new public share links expire, 0 for no expiry. */
+        [TeamPreference.DefaultShareExpiryDays]: z
+          .number()
+          .refine(
+            (val) => TeamValidation.defaultShareExpiryDays.includes(val),
+            {
+              error: "must be one of the available expiry periods",
+            }
+          ),
       })
       .partial()
       .optional(),
@@ -93,3 +104,12 @@ export const TeamsDeleteSchema = BaseSchema.extend({
 });
 
 export type TeamsDeleteSchemaReq = z.infer<typeof TeamsDeleteSchema>;
+
+export const TeamsCreateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Name of the new team */
+    name: z.string(),
+  }),
+});
+
+export type TeamsCreateSchemaReq = z.infer<typeof TeamsCreateSchema>;

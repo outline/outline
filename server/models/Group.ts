@@ -18,6 +18,7 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { CounterCache } from "./decorators/CounterCache";
+import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -83,6 +84,15 @@ class Group extends ParanoidModel<
   })
   @Column(DataType.TEXT)
   description: string;
+
+  /** An icon (or) emoji to use as the group icon. */
+  @Column(DataType.STRING)
+  icon: string | null;
+
+  /** The color of the icon. */
+  @IsHexColor
+  @Column(DataType.STRING)
+  color: string | null;
 
   @Column(DataType.STRING)
   externalId: string;

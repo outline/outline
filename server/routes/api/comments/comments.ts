@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { difference } from "es-toolkit/compat";
 import { v4 as uuidv4 } from "uuid";
 import { MentionType, IconType } from "@shared/types";
@@ -51,7 +51,7 @@ router.post(
         where: { id: documentId },
         attributes: ["id"],
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     }
 
@@ -176,6 +176,7 @@ router.post(
       includeAnchorText,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listComments", user.team);
 
     let document: Document | null = null;
     if (documentId) {
@@ -229,7 +230,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -305,7 +306,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -339,7 +340,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -375,7 +376,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -412,7 +413,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -468,7 +469,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });

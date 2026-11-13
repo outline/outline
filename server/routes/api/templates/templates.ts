@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -155,7 +155,6 @@ router.post(
       }),
       Template.count({
         where,
-        // @ts-expect-error Types are incorrect for count
         replacements,
       }),
     ]);

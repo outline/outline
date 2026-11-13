@@ -36,14 +36,21 @@ export function ResizingHeightContainer(props: Props) {
     ref: forwardedRef,
   } = props;
 
-  const [measureRef, { height }] = useMeasure();
+  const [measureRef, { width, height }] = useMeasure();
+
+  // Bounds are zero until first measured, do not animate toward them on mount.
+  const isMeasured = width > 0 || height > 0;
 
   return (
     <m.div
-      animate={{
-        ...config,
-        height: Math.round(height),
-      }}
+      animate={
+        isMeasured
+          ? {
+              ...config,
+              height: Math.round(height),
+            }
+          : undefined
+      }
       style={{
         ...style,
         overflow: hideOverflow ? "hidden" : "inherit",

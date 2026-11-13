@@ -61,19 +61,19 @@ const StyledInput = styled.input`
   border-radius: 4px;
   color: ${s("text")};
 
-  ::-webkit-search-cancel-button {
+  &::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
-  ::-webkit-input-placeholder {
+  &::-webkit-input-placeholder {
     color: ${s("placeholder")};
   }
-  :-moz-placeholder {
+  &:-moz-placeholder {
     color: ${s("placeholder")};
   }
-  ::-moz-placeholder {
+  &::-moz-placeholder {
     color: ${s("placeholder")};
   }
-  :-ms-input-placeholder {
+  &:-ms-input-placeholder {
     color: ${s("placeholder")};
   }
 `;

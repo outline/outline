@@ -89,15 +89,16 @@ export function TemplatesTable(props: Props) {
           type: "data",
           id: "title",
           header: t("Title"),
-          accessor: (template) => template.titleWithDefault,
+          accessor: (template) => template.displayTitle,
           component: (template) => <TemplateLink template={template} />,
           width: "4fr",
+          minWidth: 240,
         },
         {
           type: "data",
           id: "collectionId",
           header: t("Visibility"),
-          accessor: (template) => template.collection?.name,
+          accessor: (template) => template.collection?.displayName,
           component: (template) => <Permission template={template} />,
           width: "2fr",
         },
@@ -155,7 +156,7 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
   const { t } = useTranslation();
   const can = usePolicy(template);
   const content = (
-    <Flex align="center" gap={4}>
+    <TitleRow align="center" gap={4}>
       {template.icon ? (
         <Icon
           value={template.icon}
@@ -167,16 +168,16 @@ const TemplateLink = observer(({ template }: { template: Template }) => {
         <ShapesIcon size={24} color={theme.textSecondary} />
       )}
       {can.update ? (
-        <Title>{template.titleWithDefault}</Title>
+        <Title ellipsis>{template.displayTitle}</Title>
       ) : (
-        <Text>{template.titleWithDefault}</Text>
+        <Text ellipsis>{template.displayTitle}</Text>
       )}
       {template.isDraft && (
-        <Tooltip content={t("Only visible to you")} placement="top">
+        <Tooltip content={t("Only visible to you")}>
           <Badge>{t("Draft")}</Badge>
         </Tooltip>
       )}
-    </Flex>
+    </TitleRow>
   );
 
   if (!can.update) {
@@ -198,10 +199,23 @@ const Permission = observer(({ template }: { template: Template }) => {
       {template.collection ? (
         <CollectionIcon collection={template.collection} />
       ) : null}
-      {template.collectionId ? template.collection?.name : t("Workspace")}
+      {template.collectionId
+        ? template.collection?.displayName
+        : t("Workspace")}
     </Flex>
   );
 });
+
+/** Only the title shrinks, so the icon and badge keep their size. */
+const TitleRow = styled(Flex)`
+  > * {
+    flex-shrink: 0;
+  }
+
+  > ${Text} {
+    flex-shrink: 1;
+  }
+`;
 
 const Title = styled(Text)`
   &: ${hover} {

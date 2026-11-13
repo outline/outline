@@ -1,4 +1,4 @@
-import { Scope } from "@shared/types";
+import { CommentingAccess, Scope, TeamPreference } from "@shared/types";
 import type { ProsemirrorData } from "@shared/types";
 import { Comment } from "@server/models";
 import {
@@ -13,6 +13,32 @@ import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
 const server = getTestServer();
+
+/**
+ * Builds a user, document and comment in a team that has commenting disabled.
+ *
+ * @returns the access token, document and comment.
+ */
+async function buildCommentWithCommentingDisabled() {
+  const { user, accessToken } = await buildOAuthUser();
+  const collection = await buildCollection({
+    teamId: user.teamId,
+    userId: user.id,
+  });
+  const document = await buildDocument({
+    teamId: user.teamId,
+    userId: user.id,
+    collectionId: collection.id,
+  });
+  const comment = await buildComment({
+    userId: user.id,
+    documentId: document.id,
+  });
+  user.team.setPreference(TeamPreference.Commenting, CommentingAccess.None);
+  await user.team.save();
+
+  return { accessToken, document, comment };
+}
 
 describe("list_comments", () => {
   it("returns comments on a document", async () => {
@@ -38,6 +64,34 @@ describe("list_comments", () => {
       JSON.parse(c.text)
     );
 
+    const ids = data.map((c: { id: string }) => c.id);
+    expect(ids).toContain(comment.id);
+  });
+
+  it("returns comments in a collection referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      collectionId: collection.urlId,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
     const ids = data.map((c: { id: string }) => c.id);
     expect(ids).toContain(comment.id);
   });
@@ -118,6 +172,43 @@ describe("list_comments", () => {
   });
 });
 
+describe("commenting disabled", () => {
+  it("fails to list comments", async () => {
+    const { accessToken, document } =
+      await buildCommentWithCommentingDisabled();
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      documentId: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+
+  it("fails to resolve a comment", async () => {
+    const { accessToken, comment } = await buildCommentWithCommentingDisabled();
+
+    const res = await callMcpTool(server, accessToken, "update_comment", {
+      id: comment.id,
+      status: "resolved",
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    await comment.reload();
+    expect(comment.resolvedAt).toBeNull();
+  });
+
+  it("fails to delete a comment", async () => {
+    const { accessToken, comment } = await buildCommentWithCommentingDisabled();
+
+    const res = await callMcpTool(server, accessToken, "delete_comment", {
+      id: comment.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(await Comment.findByPk(comment.id)).not.toBeNull();
+  });
+});
+
 describe("create_comment", () => {
   it("creates a comment on a document", async () => {
     const { user, accessToken } = await buildOAuthUser();
@@ -143,6 +234,33 @@ describe("create_comment", () => {
 
     const comment = await Comment.findByPk(data.id, { rejectOnEmpty: true });
     expect(comment.toMarkdown()).toContain("This is a **test** comment");
+  });
+
+  it("creates an anchored comment on a document referenced by urlId", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Some highlighted text",
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_comment", {
+      documentId: document.urlId,
+      text: "An inline comment",
+      anchorText: "highlighted",
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.documentId).toEqual(document.id);
+
+    const comment = await Comment.findByPk(data.id, { rejectOnEmpty: true });
+    expect(comment.documentId).toEqual(document.id);
   });
 
   it("creates a reply to an existing comment", async () => {

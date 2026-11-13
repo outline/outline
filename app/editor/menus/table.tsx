@@ -31,6 +31,7 @@ export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
       label: isFullWidth ? t("Default width") : t("Full width"),
       icon: <AlignFullWidthIcon />,
       attrs: isFullWidth ? { layout: null } : { layout: TableLayout.fullWidth },
+      visible: !ctx.isInNotice,
     },
     {
       name: "distributeColumns",

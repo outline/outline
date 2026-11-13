@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AttachmentPreset } from "@shared/types";
+import { AttachmentPreset } from "@shared/types";
 import type { User } from "@server/models";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -71,7 +71,9 @@ export default async function attachmentCreator({
 
   if ("url" in rest) {
     const { url } = rest;
-    const res = await FileStorage.storeFromUrl(url, key, acl, fetchOptions);
+    const res = await FileStorage.storeFromUrl(url, key, acl, fetchOptions, {
+      imagesOnly: preset === AttachmentPreset.Avatar,
+    });
 
     if (!res) {
       return;

@@ -8,11 +8,11 @@ PluginManager.add([
     ...config,
     type: Hook.Settings,
     value: {
-      group: "Workspace",
-      after: "Shared Links",
+      group: "Developer",
+      after: "Applications",
       icon: Icon,
       description:
-        "Automate downstream workflows with real-time JSON POSTs, subscribe to events in Outline so external systems can react instantly.",
+        "Automate downstream workflows with real-time JSON POSTs. Subscribe to events in Outline so external systems can react instantly.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },

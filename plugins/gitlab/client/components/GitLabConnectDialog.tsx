@@ -90,7 +90,7 @@ function GitLabConnectDialog() {
             required
           />
           <Input
-            label={t("Client Secret")}
+            label={t("Client secret")}
             placeholder={t("OAuth application secret")}
             value={clientSecret}
             onChange={(ev) => setClientSecret(ev.currentTarget.value)}

@@ -328,7 +328,7 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Title");
   });
 
-  it("should convert frontmatter to yaml codeblock", async () => {
+  it("should remove frontmatter from the body", async () => {
     const user = await buildUser();
     const fileName = "markdown-frontmatter.md";
     const content = await fs.readFile(
@@ -345,13 +345,13 @@ describe("documentImporter", () => {
       })
     );
 
-    expect(response.text).toContain("```yaml");
-    expect(response.text).toContain("title: Test Document");
-    expect(response.text).toContain("date: 2024-01-15");
-    expect(response.text).toContain("tags: [test, markdown]");
-    expect(response.text).toContain("```");
+    expect(response.text).not.toContain("```yaml");
+    expect(response.text).not.toContain("title: Test Document");
+    expect(response.text).not.toContain("author: John Doe");
     expect(response.text).toContain("This is content after frontmatter");
-    expect(response.title).toEqual("Heading 1");
+    // Frontmatter title is authoritative, the heading stays in the body
+    expect(response.title).toEqual("Test Document");
+    expect(response.text).toContain("# Heading 1");
   });
 
   it("should fallback to extension if mimetype unknown", async () => {

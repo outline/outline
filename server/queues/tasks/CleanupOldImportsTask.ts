@@ -1,6 +1,5 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
-import { ImportState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
@@ -11,7 +10,6 @@ import { CronTask, TaskInterval } from "./base/CronTask";
  */
 export default class CleanupOldImportsTask extends CronTask {
   public async perform() {
-    // TODO: Hardcoded right now, configurable later
     const retentionDays = 1;
     const cutoffDate = subDays(new Date(), retentionDays);
     const maxImportsPerTask = 1000;
@@ -23,11 +21,7 @@ export default class CleanupOldImportsTask extends CronTask {
         {
           attributes: ["id"],
           where: {
-            state: [
-              ImportState.Completed,
-              ImportState.Errored,
-              ImportState.Canceled,
-            ],
+            state: [...Import.terminalStates],
             createdAt: {
               [Op.lt]: cutoffDate,
             },

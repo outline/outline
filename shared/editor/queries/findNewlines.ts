@@ -10,7 +10,7 @@ export function findPreviousNewline($pos: ResolvedPos) {
   const beginningOfNode = $pos.pos - $pos.parentOffset;
 
   // The easiest way to find the previous newline is to reverse the string and
-  // perform a forward seach as if looking for the next newline.
+  // perform a forward search as if looking for the next newline.
   const startOfLine = $pos.parent.textContent
     .split("")
     .reverse()

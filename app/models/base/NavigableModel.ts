@@ -1,11 +1,66 @@
 import { action, computed, observable, runInAction } from "mobx";
 import type { JSONObject, NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
+import { CoalescedFetch } from "./CoalescedFetch";
 import Model from "./Model";
 import type Document from "../Document";
+import type DocumentsStore from "~/stores/DocumentsStore";
 
 export default abstract class NavigableModel extends Model {
-  private isFetching = false;
+  /**
+   * Filters memberships to those whose document is not nested under the
+   * document of another membership in the list, so that each shared tree is
+   * shown once from its highest shared document.
+   *
+   * @param memberships the memberships to filter.
+   * @param documents the documents store used to find parent documents.
+   * @returns the memberships that are roots of a shared tree.
+   */
+  static filterRoots<T extends NavigableModel>(
+    memberships: T[],
+    documents: DocumentsStore
+  ): T[] {
+    if (memberships.length < 2) {
+      return memberships;
+    }
+
+    const rootIds = new Set(memberships.map((m) => m.documentId));
+
+    return memberships.filter((membership) => {
+      const { documentId } = membership;
+      if (!documentId) {
+        return true;
+      }
+
+      const visited = new Set([documentId]);
+      let document = documents.get(documentId);
+      while (document?.parentDocumentId) {
+        const { parentDocumentId } = document;
+        if (rootIds.has(parentDocumentId)) {
+          return false;
+        }
+        if (visited.has(parentDocumentId)) {
+          return true;
+        }
+        visited.add(parentDocumentId);
+        document = documents.get(parentDocumentId);
+      }
+
+      // The parent chain is complete, so the loaded trees are not needed.
+      if (document) {
+        return true;
+      }
+
+      // Parent documents may not be loaded, so also check the loaded trees.
+      return !memberships.some(
+        (other) =>
+          other.documentId !== documentId &&
+          other.childrenByDocumentId.has(documentId)
+      );
+    });
+  }
+
+  private documentsFetch = new CoalescedFetch();
 
   /** The document ID associated with this model. */
   documentId?: string;
@@ -20,24 +75,17 @@ export default abstract class NavigableModel extends Model {
     params: JSONObject;
     force?: boolean;
   }) {
-    if (this.isFetching) {
-      return;
-    }
-
     if (this.documents && options.force !== true) {
       return;
     }
 
-    try {
-      this.isFetching = true;
+    await this.documentsFetch.run(async () => {
       const res = await client.post(options.path, options.params);
 
       runInAction(() => {
         this.node = res.data;
       });
-    } finally {
-      this.isFetching = false;
-    }
+    }, options.force);
   }
 
   /**
@@ -128,14 +176,15 @@ export default abstract class NavigableModel extends Model {
 
   /**
    * Adds the document identified by the given id to the model in
-   * memory. Does not add the document to the database or store.
+   * memory, if it is not already present. Does not add the document to the
+   * database or store.
    *
    * @param document The document to add.
    * @param parentDocumentId The id of the document to add the new document to.
    */
   @action
   addDocument(document: Document, parentDocumentId: string) {
-    if (!this.documents || !document || !parentDocumentId?.trim()) {
+    if (!this.documents || this.childrenByDocumentId.has(document.id)) {
       return;
     }
 

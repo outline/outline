@@ -1,7 +1,12 @@
 // @vitest-isolate true
 import { createContext } from "@server/context";
-import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
+import {
+  buildAttachment,
+  buildProseMirrorDoc,
+  buildUser,
+} from "@server/test/factories";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
+import { TextHelper } from "./TextHelper";
 
 vi.mock("@server/storage/files");
 
@@ -166,6 +171,63 @@ describe("ProsemirrorHelper", () => {
       );
 
       expect(result.toJSON()).toEqual(doc.toJSON());
+    });
+  });
+});
+
+describe("TextHelper", () => {
+  describe("attachmentsToSignedUrls", () => {
+    it("should return the text when there are no attachments", async () => {
+      const user = await buildUser();
+      const text = "<p>No attachments here</p>";
+
+      const result = await TextHelper.attachmentsToSignedUrls(
+        text,
+        user.teamId
+      );
+
+      expect(result).toEqual(text);
+    });
+
+    it("should replace each attachment url with a signed url", async () => {
+      const user = await buildUser();
+      const first = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const second = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const text = `<img src="${first.redirectUrl}"><img src="${second.redirectUrl}"><a href="${first.redirectUrl}">file</a>`;
+
+      const result = await TextHelper.attachmentsToSignedUrls(
+        text,
+        user.teamId
+      );
+
+      const urls = Array.from(
+        result.matchAll(/(?:src|href)="([^"]+)"/g),
+        (match) => match[1]
+      );
+
+      expect(result).not.toContain("/api/attachments.redirect");
+      expect(urls).toHaveLength(3);
+      expect(urls[0]).not.toEqual(urls[1]);
+      expect(urls[2]).toEqual(urls[0]);
+    });
+
+    it("should not sign attachments from another team", async () => {
+      const user = await buildUser();
+      const attachment = await buildAttachment();
+      const text = `<img src="${attachment.redirectUrl}">`;
+
+      const result = await TextHelper.attachmentsToSignedUrls(
+        text,
+        user.teamId
+      );
+
+      expect(result).toEqual(text);
     });
   });
 });

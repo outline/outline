@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { ListImperativeAPI } from "react-window";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { IconType } from "@shared/types";
@@ -24,6 +25,7 @@ const GRID_HEIGHT = 314 - PREVIEW_HEIGHT;
 type Props = {
   panelWidth: number;
   initial: string;
+  icon: string | null;
   color: string;
   query: string;
   panelActive: boolean;
@@ -35,6 +37,7 @@ type Props = {
 const IconPanel = ({
   panelWidth,
   initial,
+  icon,
   color,
   query,
   panelActive,
@@ -45,7 +48,7 @@ const IconPanel = ({
   const { t } = useTranslation();
 
   const searchRef = React.useRef<HTMLInputElement | null>(null);
-  const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollableRef = React.useRef<ListImperativeAPI>(null);
 
   const { incrementIconCount, frequentIcons } = useIconState(IconType.SVG);
 
@@ -129,7 +132,7 @@ const IconPanel = ({
     if (!panelActive) {
       return;
     }
-    scrollableRef.current?.scroll({ top: 0 });
+    scrollableRef.current?.element?.scroll({ top: 0 });
     requestAnimationFrame(() => searchRef.current?.focus());
   }, [panelActive]);
 
@@ -153,6 +156,7 @@ const IconPanel = ({
         width={panelWidth}
         height={GRID_HEIGHT}
         data={templateData}
+        selected={icon}
         onIconSelect={handleIconSelection}
         onIconActive={handleIconActive}
         onOverflowChange={setHasMoreBelow}

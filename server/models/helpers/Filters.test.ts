@@ -1213,7 +1213,7 @@ describe("Filters", () => {
               : op === "notIn"
                 ? { field: "collectionId", operator: op, value: ["x"] }
                 : { field: "collectionId", operator: op, value: "x" };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // oxlint-disable-next-line @typescript-eslint/no-explicit-any
           expect(collectEqValues(leaf as any, "collectionId")).toEqual([]);
         }
       });

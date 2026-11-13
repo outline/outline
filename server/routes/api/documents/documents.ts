@@ -3,7 +3,7 @@ import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
 import contentDisposition from "content-disposition";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
@@ -20,7 +20,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { Day } from "@shared/utils/time";
 import documentCreator, {
   authorizeDocumentCreate,
@@ -164,29 +164,9 @@ async function expandDocumentIdLeaves(
 }
 
 /**
- * Fetch the ids of documents the user has a direct membership on. Used to
- * express draft visibility without referencing the (separately-loaded)
- * memberships association, which would otherwise break the COUNT query.
- *
- * @param user the user to fetch membership document ids for.
- * @returns the list of document ids.
- */
-async function directMembershipDocumentIds(user: User): Promise<string[]> {
-  const memberships = await UserMembership.findAll({
-    attributes: ["documentId"],
-    where: {
-      userId: user.id,
-      documentId: { [Op.ne]: null },
-    },
-  });
-  return memberships.map((m) => m.documentId as string);
-}
-
-/**
  * Build the visibility clauses for drafts: a draft is only ever visible to its
- * creator or to a user with a direct membership on it. Both the filter-derived
- * and legacy statusFilter draft paths route through this so the invariant lives
- * in one place.
+ * creator or to a user with a user or group membership on it. List endpoints
+ * that can return drafts route through this so the invariant lives in one place.
  *
  * @param user the user the drafts must be visible to.
  * @returns an array of OR-able Sequelize conditions.
@@ -194,7 +174,7 @@ async function directMembershipDocumentIds(user: User): Promise<string[]> {
 async function draftVisibilityClauses(user: User): Promise<WhereOptions[]> {
   return [
     { createdById: user.id },
-    { id: await directMembershipDocumentIds(user) },
+    { id: await Document.membershipDocumentIds(user.id) },
   ];
 }
 
@@ -580,6 +560,12 @@ router.post(
             },
           ],
         },
+        {
+          [Op.or]: [
+            { publishedAt: { [Op.ne]: null } },
+            ...(await draftVisibilityClauses(user)),
+          ],
+        },
       ],
     };
 
@@ -619,38 +605,30 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const userId = user.id;
-    const [collectionIds, membershipDocumentIds] = await Promise.all([
-      user.collectionIds(),
-      Document.membershipDocumentIds(userId),
-    ]);
-    const views = await View.findAll({
-      where: {
-        userId,
-      },
-      order: [[sort, direction]],
-      include: [
-        {
-          model: Document.scope([
-            "withDrafts",
-            "withoutState",
-            { method: ["withMembership", userId] },
-          ]),
-          required: true,
-          where: {
-            teamId: user.teamId,
-            [Op.or]: [
-              { collectionId: collectionIds },
-              { id: membershipDocumentIds },
-              { createdById: userId, collectionId: { [Op.is]: null } },
-            ],
-          },
-        },
-      ],
+    const viewIds = await View.findAccessibleIds(user, {
+      sort,
+      direction,
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
-      subQuery: false,
     });
+    const views = viewIds.length
+      ? await View.findAll({
+          where: {
+            id: viewIds,
+          },
+          order: [[sort, direction]],
+          include: [
+            {
+              model: Document.scope([
+                "withDrafts",
+                "withoutStateOrText",
+                { method: ["withMembership", user.id] },
+              ]),
+              required: true,
+            },
+          ],
+        })
+      : [];
     const documents = views.map((view) => {
       const document = view.document;
       document.views = [view];
@@ -753,25 +731,27 @@ router.post(
         throw NotFoundError("Document could not be found for shareId");
       }
 
-      // reload with membership scope if user is authenticated
-      if (user) {
-        document = await Document.findByPk(document.id, {
-          userId: user.id,
-          rejectOnEmpty: true,
-        });
-      }
+      const { sharedTree } = result;
+      const [scopedDocument, backlinkIds] = await Promise.all([
+        // reload with membership scope if user is authenticated
+        user
+          ? Document.findByPk(document.id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+            })
+          : document,
+
+        // Get backlinks that are within the shared tree
+        sharedTree
+          ? Relationship.findSourceDocumentIdsInSharedTree(
+              document.id,
+              getAllIdsInSharedTree(sharedTree)
+            )
+          : undefined,
+      ]);
+      document = scopedDocument;
 
       isPublic = cannot(user, "read", document);
-
-      // Get backlinks that are within the shared tree
-      let backlinkIds: string[] | undefined;
-      if (result.sharedTree) {
-        const allowedDocumentIds = getAllIdsInSharedTree(result.sharedTree);
-        backlinkIds = await Relationship.findSourceDocumentIdsInSharedTree(
-          document.id,
-          allowedDocumentIds
-        );
-      }
 
       serializedDocument = await presentDocument(ctx, document, {
         isPublic,
@@ -916,7 +896,6 @@ router.post(
       () =>
         User.count({
           where,
-          // @ts-expect-error Types are incorrect for count
           replacements,
         }) as unknown as Promise<number>
     );
@@ -1063,7 +1042,7 @@ router.post(
     const extension =
       contentType === "text/markdown" ? "md" : mime.extension(contentType);
 
-    const fileName = slugify(document.titleWithDefault);
+    const fileName = slugify(document.displayTitle);
     const attachmentIds = ProsemirrorHelper.parseAttachmentIds(
       DocumentHelper.toProsemirror(document)
     );
@@ -1186,9 +1165,9 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
-      rejectOnEmpty: true,
       transaction,
     });
+    authorize(user, "read", document);
 
     await documentRestorer(ctx, { document, collectionId, revisionId });
 
@@ -1295,28 +1274,14 @@ router.post(
       });
 
       share = result.share;
-      let { collection, document } = result; // One of collection or document should be available
-
-      // reload with membership scope if user is authenticated
-      if (user) {
-        collection = collection
-          ? await Collection.findByPk(collection.id, { userId: user.id })
-          : null;
-        document = document
-          ? await Document.findByPk(document.id, { userId: user.id })
-          : null;
-      }
-
-      isPublic = collection
-        ? cannot(user, "read", collection)
-        : cannot(user, "read", document);
+      const { collection, document } = result; // One of collection or document should be available
 
       if (share.documentId && !share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
       }
 
       teamId = share.teamId;
-      const team = await share.$get("team");
+      const team = share.team;
       invariant(team, "Share must belong to a team");
 
       const shareScopeId = collection?.id || document?.collectionId;
@@ -1332,9 +1297,23 @@ router.post(
             ]
           : []),
       ]);
-      const resolvedShareFilter = shareFilter
-        ? await expandDocumentIdLeaves(shareFilter, { teamId: share.teamId })
-        : undefined;
+      const [resolvedShareFilter, scopedCollection, scopedDocument] =
+        await Promise.all([
+          shareFilter
+            ? expandDocumentIdLeaves(shareFilter, { teamId: share.teamId })
+            : undefined,
+          // reload with membership scope if user is authenticated
+          user && collection
+            ? Collection.findByPk(collection.id, { userId: user.id })
+            : collection,
+          user && document
+            ? Document.findByPk(document.id, { userId: user.id })
+            : document,
+        ]);
+
+      isPublic = scopedCollection
+        ? cannot(user, "read", scopedCollection)
+        : cannot(user, "read", scopedDocument);
 
       response = await SearchProviderManager.getProvider().searchForTeam(team, {
         query,
@@ -1378,33 +1357,34 @@ router.post(
     const { results, total } = response;
     const documents = results.map((result) => result.document);
 
-    const data = await Promise.all(
-      results.map(async (result) => {
-        const document = await presentDocument(ctx, result.document, {
-          isPublic,
-          shareId,
-        });
-        return { ...result, document };
-      })
-    );
+    const [data] = await Promise.all([
+      Promise.all(
+        results.map(async (result) => {
+          const document = await presentDocument(ctx, result.document, {
+            isPublic,
+            shareId,
+          });
+          return { ...result, document };
+        })
+      ),
 
-    // When requesting subsequent pages of search results we don't want to record
-    // duplicate search query records
-    if (query && offset === 0) {
-      const duration = Date.now() - searchStartedAt;
-      await SearchQuery.record({
-        userId: user?.id,
-        teamId,
-        shareId: share?.id,
-        // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
-        source:
-          (ctx.state.auth.type as unknown as SearchQuerySource) ||
-          SearchQuerySource.App,
-        query,
-        results: total,
-        duration,
-      });
-    }
+      // When requesting subsequent pages of search results we don't want to record
+      // duplicate search query records
+      query && offset === 0
+        ? SearchQuery.record({
+            userId: user?.id,
+            teamId,
+            shareId: share?.id,
+            // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
+            source:
+              (ctx.state.auth.type as unknown as SearchQuerySource) ||
+              SearchQuerySource.App,
+            query,
+            results: total,
+            duration: Date.now() - searchStartedAt,
+          })
+        : undefined,
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -1472,6 +1452,7 @@ router.post(
 router.post(
   "documents.update",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
@@ -1555,6 +1536,14 @@ router.post(
 
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
+    }
+
+    if (input.templateId && input.templateId !== document.templateId) {
+      const template = await Template.findByPk(input.templateId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "read", template);
     }
 
     document = await documentUpdater(ctx, {
@@ -2017,14 +2006,10 @@ router.post(
       UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    let membership = await UserMembership.findOne({
-      where: {
-        documentId: id,
-        userId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await UserMembership.findOneForUpdate(
+      { documentId: id, userId },
+      { transaction }
+    );
 
     if (membership) {
       if (permission) {
@@ -2132,14 +2117,10 @@ router.post(
     authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
-      where: {
-        documentId: id,
-        groupId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
-    });
+    let membership = await GroupMembership.findOneForUpdate(
+      { documentId: id, groupId },
+      { transaction }
+    );
 
     if (membership) {
       if (permission) {
@@ -2153,7 +2134,7 @@ router.post(
         {
           documentId: id,
           groupId,
-          permission: permission || user.defaultDocumentPermission,
+          permission: permission ?? DocumentPermission.ReadWrite,
           createdById: user.id,
         },
         ctx.context
@@ -2199,7 +2180,7 @@ router.post(
         groupId,
       },
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       rejectOnEmpty: true,
     });
 

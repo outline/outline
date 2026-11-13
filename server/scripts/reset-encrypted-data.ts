@@ -56,7 +56,7 @@ export default async function main() {
     });
 
     const webhooks = await WebhookSubscription.findAll({
-      lock: Transaction.LOCK.UPDATE,
+      lock: { level: Transaction.LOCK.UPDATE, of: WebhookSubscription },
       transaction,
     });
 

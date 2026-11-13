@@ -1,5 +1,7 @@
+import { refractor } from "refractor/core";
 import Storage from "../../utils/Storage";
 import {
+  codeLanguages,
   getRefractorLangForLanguage,
   getLabelForLanguage,
   setRecentlyUsedCodeLanguage,
@@ -17,6 +19,19 @@ describe("getRefractorLangForLanguage", () => {
     expect(getRefractorLangForLanguage("fortran")).toBe("fortran");
     expect(getRefractorLangForLanguage("unknown")).toBeUndefined();
     expect(getRefractorLangForLanguage("")).toBeUndefined();
+  });
+});
+
+describe("codeLanguages", () => {
+  it("should load and register a syntax for every language", async () => {
+    for (const { lang, loader } of Object.values(codeLanguages)) {
+      if (!loader) {
+        continue;
+      }
+      refractor.register(await loader());
+      expect(refractor.registered(lang)).toBe(true);
+      expect(refractor.highlight("x", lang).type).toBe("root");
+    }
   });
 });
 

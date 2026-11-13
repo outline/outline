@@ -9,6 +9,7 @@ import { bytesToHumanReadable } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import Text from "~/components/Text";
 import { VStack } from "~/components/primitives/VStack";
+import { toDropzoneAccept } from "~/utils/files";
 
 interface UseEmojiFileUploadOptions {
   /** Optional callback fired after a valid file is selected. */
@@ -75,9 +76,10 @@ export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDropAccepted: handleDrop,
-    accept: AttachmentValidation.emojiContentTypes,
+    accept: emojiAccept,
     maxSize: AttachmentValidation.emojiMaxFileSize,
     maxFiles: 1,
+    noPaste: true,
   });
 
   return { file, getRootProps, getInputProps, isDragActive };
@@ -138,6 +140,8 @@ export function EmojiImageDropZone({
     </DropZone>
   );
 }
+
+const emojiAccept = toDropzoneAccept(AttachmentValidation.emojiContentTypes);
 
 const DropZone = styled.div`
   border: 2px dashed ${s("inputBorder")};

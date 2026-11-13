@@ -17,6 +17,7 @@ import TeamLogo from "~/components/TeamLogo";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -58,12 +59,21 @@ export const AccessControlList = observer(
     const { t } = useTranslation();
     const theme = useTheme();
     const collection = document.collection;
-    const { documents, groupMemberships } = useStores();
+    const { documents, groupMemberships, users } = useStores();
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
+    const user = useCurrentUser();
     const can = usePolicy(document);
     const canCollection = usePolicy(collection);
     const documentId = document.id;
+    const ownerId = document.ownerId;
+    const owner = ownerId ? users.get(ownerId) : undefined;
+
+    React.useEffect(() => {
+      if (ownerId && !owner) {
+        void users.fetch(ownerId);
+      }
+    }, [ownerId, owner, users]);
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const publicAccessRef = React.useRef<HTMLDivElement | null>(null);
@@ -122,7 +132,7 @@ export const AccessControlList = observer(
             maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
           }}
         >
-          {!document.isDraft && can.manageUsers && (
+          {!document.isDraft && !collection?.isPersonal && can.manageUsers && (
             <>
               <ListItem
                 image={
@@ -166,7 +176,7 @@ export const AccessControlList = observer(
                       defaults="Access managed by <link>{{ documentTitle }}</link>"
                       values={{
                         documentTitle:
-                          restrictionSource?.titleWithDefault ?? t("parent"),
+                          restrictionSource?.displayTitle ?? t("parent"),
                       }}
                       components={{
                         link: (
@@ -226,6 +236,13 @@ export const AccessControlList = observer(
             </>
           ) : collection && canCollection.readDocument ? (
             <>
+              {collection.isPersonal && (
+                <ListItem
+                  image={<Avatar model={user} />}
+                  title={user.name}
+                  subtitle={t("You have full access")}
+                />
+              )}
               {(showLoading || hasMemberships) && (
                 <SectionHeading>{t("People with access")}</SectionHeading>
               )}
@@ -240,6 +257,20 @@ export const AccessControlList = observer(
             </>
           ) : (
             <>
+              {owner && (
+                <ListItem
+                  image={<Avatar model={owner} />}
+                  title={owner.name}
+                  subtitle={t("Owner")}
+                  actions={
+                    <AccessTooltip
+                      content={t("This document is in their personal space")}
+                    >
+                      {t("Can edit")}
+                    </AccessTooltip>
+                  }
+                />
+              )}
               {showLoading ? (
                 <Placeholder />
               ) : (
@@ -248,22 +279,24 @@ export const AccessControlList = observer(
                   invitedInSession={invitedInSession}
                 />
               )}
-              <ListItem
-                image={
-                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                    <MoreIcon color={theme.accentText} size={16} />
-                  </Squircle>
-                }
-                title={t("Other people")}
-                subtitle={t("Other workspace members may have access")}
-                actions={
-                  <AccessTooltip
-                    content={t(
-                      "This document may be shared with more workspace members through a parent document or collection you do not have access to"
-                    )}
-                  />
-                }
-              />
+              {!ownerId && (
+                <ListItem
+                  image={
+                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                      <MoreIcon color={theme.accentText} size={16} />
+                    </Squircle>
+                  }
+                  title={t("Other people")}
+                  subtitle={t("Other workspace members may have access")}
+                  actions={
+                    <AccessTooltip
+                      content={t(
+                        "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                      )}
+                    />
+                  }
+                />
+              )}
             </>
           )}
         </ScrollableContainer>

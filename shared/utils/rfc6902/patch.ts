@@ -207,7 +207,6 @@ export function test(
   operation: TestOperation
 ): TestError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  // TODO: this diffAny(...).length usage could/should be lazy
   if (diffAny(endpoint.value, operation.value, new Pointer()).length) {
     return new TestError(endpoint.value, operation.value);
   }

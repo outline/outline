@@ -1,9 +1,85 @@
-import { buildApiKey, buildTeam, buildUser } from "@server/test/factories";
+import { createHash, randomBytes } from "node:crypto";
+import { isoBase64URL, isoCBOR } from "@simplewebauthn/server/helpers";
+import { Plan } from "@shared/types";
+import { Team } from "@server/models";
+import {
+  buildAdmin,
+  buildApiKey,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import type { APIContext } from "@server/types";
-import { getExpectedOrigin, getPasskeyLoginRedirect } from "./passkeys";
+import { PasskeyBrand } from "@shared/utils/passkeys";
+import {
+  getExpectedOrigin,
+  getPasskeyLoginRedirect,
+  isUniqueAuthenticator,
+} from "./passkeys";
 
 const server = getTestServer();
+
+/**
+ * Builds the response of an authenticator that registers a credential without
+ * an attestation statement, which does not require any signature.
+ *
+ * @param challenge the challenge from the registration options.
+ * @param rpId the relying party ID from the registration options.
+ * @returns the WebAuthn registration response.
+ */
+function buildNoneAttestationResponse(challenge: string, rpId: string) {
+  const credentialId = randomBytes(32);
+  // An EC2 P-256 key with the ES256 algorithm, encoded as COSE.
+  const publicKey = isoCBOR.encode(
+    new Map<number, number | Uint8Array>([
+      [1, 2],
+      [3, -7],
+      [-1, 1],
+      [-2, new Uint8Array(32).fill(1)],
+      [-3, new Uint8Array(32).fill(2)],
+    ])
+  );
+  const credentialIdLength = Buffer.alloc(2);
+  credentialIdLength.writeUInt16BE(credentialId.length);
+  const authData = Buffer.concat([
+    createHash("sha256").update(rpId).digest(),
+    // The user present and attested credential data flags.
+    Buffer.from([0x41]),
+    // The signature counter.
+    Buffer.alloc(4),
+    // The AAGUID.
+    Buffer.alloc(16),
+    credentialIdLength,
+    credentialId,
+    publicKey,
+  ]);
+  const clientData = {
+    type: "webauthn.create",
+    challenge,
+    origin: server.address,
+  };
+  const id = isoBase64URL.fromBuffer(credentialId);
+
+  return {
+    id,
+    rawId: id,
+    type: "public-key",
+    clientExtensionResults: {},
+    response: {
+      clientDataJSON: isoBase64URL.fromUTF8String(JSON.stringify(clientData)),
+      attestationObject: isoBase64URL.fromBuffer(
+        isoCBOR.encode(
+          new Map<string, string | Uint8Array | Map<string, string>>([
+            ["fmt", "none"],
+            ["attStmt", new Map<string, string>()],
+            ["authData", authData],
+          ])
+        )
+      ),
+      transports: ["internal"],
+    },
+  };
+}
 
 describe("getExpectedOrigin", () => {
   // Helper to mock APIContext for testing
@@ -118,6 +194,23 @@ describe("getPasskeyLoginRedirect", () => {
   });
 });
 
+describe("isUniqueAuthenticator", () => {
+  it("should be true for a known authenticator", () => {
+    expect(isUniqueAuthenticator(PasskeyBrand.OnePassword)).toBe(true);
+  });
+
+  it("should be false for the Chromium authenticator", () => {
+    expect(isUniqueAuthenticator(PasskeyBrand.ChromiumBrowser)).toBe(false);
+  });
+
+  it("should be false for a missing or zero AAGUID", () => {
+    expect(isUniqueAuthenticator(undefined)).toBe(false);
+    expect(isUniqueAuthenticator("00000000-0000-0000-0000-000000000000")).toBe(
+      false
+    );
+  });
+});
+
 describe("#passkeys.generateRegistrationOptions", () => {
   it("should return registration options for a session", async () => {
     const team = await buildTeam({ passkeysEnabled: true });
@@ -164,5 +257,105 @@ describe("#passkeys.verifyRegistration", () => {
 
     expect(res.status).toEqual(403);
     expect(body.message).toEqual("Invalid authentication type");
+  });
+
+  it("should consume the challenge on a failed attempt", async () => {
+    const team = await buildTeam({ passkeysEnabled: true });
+    const user = await buildUser({ teamId: team.id });
+
+    const options = await server.post(
+      "/auth/passkeys.generateRegistrationOptions",
+      user
+    );
+    const { data } = await options.json();
+
+    const failed = await server.post(
+      "/auth/passkeys.verifyRegistration",
+      user,
+      {
+        body: buildNoneAttestationResponse(
+          isoBase64URL.fromBuffer(randomBytes(32)),
+          data.rp.id
+        ),
+      }
+    );
+    expect(failed.status).toEqual(400);
+
+    const res = await server.post("/auth/passkeys.verifyRegistration", user, {
+      body: buildNoneAttestationResponse(data.challenge, data.rp.id),
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "No registration challenge found or challenge expired"
+    );
+  });
+
+  it("should record the registration in the audit log", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    const team = await buildTeam({ passkeysEnabled: true });
+    const admin = await buildAdmin({ teamId: team.id });
+
+    const options = await server.post(
+      "/auth/passkeys.generateRegistrationOptions",
+      admin
+    );
+    const { data } = await options.json();
+
+    const res = await server.post("/auth/passkeys.verifyRegistration", admin, {
+      body: buildNoneAttestationResponse(data.challenge, data.rp.id),
+    });
+    expect(res.status).toEqual(200);
+
+    const list = await server.post("/api/events.list", admin, {
+      body: { auditLog: true, name: "passkeys.create" },
+    });
+    const body = await list.json();
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].actorId).toEqual(admin.id);
+    expect(body.data[0].userId).toEqual(admin.id);
+    expect(body.data[0].changes.attributes.name).toBeTruthy();
+    expect(body.data[0].changes.attributes.credentialPublicKey).toBeUndefined();
+
+    planSpy.mockRestore();
+  });
+});
+
+describe("#passkeys.verifyAuthentication", () => {
+  it("should consume the challenge on a failed attempt", async () => {
+    const options = await server.post(
+      "/auth/passkeys.generateAuthenticationOptions",
+      { body: {} }
+    );
+    const { data } = await options.json();
+    const body = {
+      challengeId: data.challengeId,
+      id: "unknown",
+      rawId: "unknown",
+      response: {
+        authenticatorData: "",
+        clientDataJSON: "",
+        signature: "",
+      },
+      type: "public-key",
+    };
+
+    const failed = await server.post("/auth/passkeys.verifyAuthentication", {
+      body,
+    });
+    const failedBody = await failed.json();
+    expect(failed.status).toEqual(400);
+    expect(failedBody.message).toContain("Passkey not found");
+
+    const res = await server.post("/auth/passkeys.verifyAuthentication", {
+      body,
+    });
+    const resBody = await res.json();
+    expect(res.status).toEqual(400);
+    expect(resBody.message).toEqual(
+      "No authentication challenge found or challenge expired"
+    );
   });
 });

@@ -13,6 +13,9 @@ updates:
         update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
+    cooldown:
+      semver-patch-days: 3
+      semver-minor-days: 7
     groups:
       babel:
         patterns:

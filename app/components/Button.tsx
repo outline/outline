@@ -3,6 +3,8 @@ import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s } from "@shared/styles";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";
 import ActionButton from "~/components/ActionButton";
@@ -35,6 +37,12 @@ const RealButton = styled(ActionButton)<RealProps>`
   appearance: none !important;
   transition: background 200ms ease-out;
   ${undraggableOnDesktop()}
+
+  ${breakpoint("mobile", "tablet")`
+    height: ${MOBILE_TOUCH_TARGET}px;
+    border-radius: ${MOBILE_TOUCH_TARGET / 2}px;
+    font-size: 16px;
+  `};
 
   &::-moz-focus-inner {
     padding: 0;
@@ -126,11 +134,13 @@ const Label = styled.span<{ hasIcon?: boolean }>`
   ${(props) => props.hasIcon && "padding-inline-start: 4px;"};
 `;
 
-export const Inner = styled.span<{
+interface InnerProps {
   disclosure?: boolean;
   hasIcon?: boolean;
   hasText?: boolean;
-}>`
+}
+
+export const Inner = styled.span<InnerProps>`
   display: flex;
   padding: 0 8px;
   padding-inline-end: ${(props) => (props.disclosure ? 2 : 8)}px;
@@ -141,6 +151,18 @@ export const Inner = styled.span<{
 
   ${(props) => props.hasIcon && props.hasText && "padding-inline-start: 4px;"};
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
+
+  ${breakpoint("mobile", "tablet")`
+    min-height: ${MOBILE_TOUCH_TARGET}px;
+    padding: 0 16px;
+    padding-inline-end: ${(props: InnerProps) => (props.disclosure ? 8 : 16)}px;
+    ${(props: InnerProps) =>
+      props.hasIcon && props.hasText && "padding-inline-start: 12px;"};
+    ${(props: InnerProps) =>
+      props.hasIcon &&
+      !props.hasText &&
+      `padding: 0 ${(MOBILE_TOUCH_TARGET - 24) / 2}px;`};
+  `};
 `;
 
 export type Props<T> = ActionButtonProps & {
@@ -192,6 +214,7 @@ function Button<T extends React.ElementType = "button">(
       $danger={danger}
       $fullwidth={fullwidth}
       $borderOnHover={borderOnHover}
+      data-variant={danger ? "danger" : neutral ? "neutral" : "primary"}
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>

@@ -1,11 +1,13 @@
 import * as React from "react";
-import { DocumentPermission } from "@shared/types";
+import { DocumentPermission, NotificationEventType } from "@shared/types";
 import { Document, GroupMembership, UserMembership } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -56,10 +58,17 @@ export default class DocumentSharedEmail extends BaseEmail<
     return { document, membership };
   }
 
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.AddUserToDocument
+    );
+  }
+
   protected subject({ actorName, document }: Props) {
     return this.t(`{{ actorName }} shared “{{ documentTitle }}” with you`, {
       actorName,
-      documentTitle: document.titleWithDefault,
+      documentTitle: document.displayTitle,
     });
   }
 
@@ -73,7 +82,7 @@ export default class DocumentSharedEmail extends BaseEmail<
 
   protected renderAsText({ actorName, teamUrl, document }: Props): string {
     return `
-${this.t(`{{ actorName }} shared “{{ documentTitle }}” with you.`, { actorName, documentTitle: document.titleWithDefault })}
+${this.t(`{{ actorName }} shared “{{ documentTitle }}” with you.`, { actorName, documentTitle: document.displayTitle })}
 
 ${this.t("View Document")}: ${teamUrl}${document.path}
 `;
@@ -96,19 +105,24 @@ ${this.t("View Document")}: ${teamUrl}${document.path}
         <Header />
 
         <Body>
-          <Heading>{document.titleWithDefault}</Heading>
+          <Heading>{document.displayTitle}</Heading>
           <p>
             {this.t("{{ actorName }} invited you to {{ permission }} the", {
               actorName,
               permission,
             })}{" "}
-            <a href={documentUrl}>{document.titleWithDefault}</a>{" "}
+            <a href={documentUrl}>{document.displayTitle}</a>{" "}
             {this.t("document")}.
           </p>
           <p>
             <Button href={documentUrl}>{this.t("View Document")}</Button>
           </p>
         </Body>
+
+        <Footer
+          unsubscribeUrl={this.unsubscribeUrl(props)}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

@@ -1,4 +1,5 @@
 import type { Socket } from "net";
+import { buildMockContext } from "@server/test/support";
 import timeout from "./timeout";
 
 describe("Timeout middleware", () => {
@@ -21,11 +22,7 @@ describe("Timeout middleware", () => {
     const next = vi.fn();
     const middleware = timeout(newTimeout);
 
-    await middleware(
-      // @ts-expect-error mock context
-      ctx,
-      next
-    );
+    await middleware(buildMockContext(ctx), next);
 
     // Should have set the new timeout
     expect(setTimeout).toHaveBeenCalledWith(newTimeout);
@@ -55,13 +52,9 @@ describe("Timeout middleware", () => {
     const next = vi.fn().mockRejectedValue(error);
     const middleware = timeout(newTimeout);
 
-    await expect(
-      middleware(
-        // @ts-expect-error mock context
-        ctx,
-        next
-      )
-    ).rejects.toThrow("Test error");
+    await expect(middleware(buildMockContext(ctx), next)).rejects.toThrow(
+      "Test error"
+    );
 
     // Should have set the new timeout
     expect(setTimeout).toHaveBeenCalledWith(newTimeout);
@@ -89,11 +82,7 @@ describe("Timeout middleware", () => {
     const next = vi.fn();
     const middleware = timeout(newTimeout);
 
-    await middleware(
-      // @ts-expect-error mock context
-      ctx,
-      next
-    );
+    await middleware(buildMockContext(ctx), next);
 
     // Should have set the new timeout
     expect(setTimeout).toHaveBeenCalledWith(newTimeout);

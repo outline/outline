@@ -1,10 +1,11 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { iconNames } from "@shared/utils/IconNames";
 import { attachmentTools } from "./tools/attachments";
 import { collectionTools } from "./tools/collections";
 import { commentTools } from "./tools/comments";
 import { documentTools } from "./tools/documents";
 import { fetchTool } from "./tools/fetch";
+import { revisionTools } from "./tools/revisions";
 import { templateTools } from "./tools/templates";
 import { userTools } from "./tools/users";
 import { skillResources, skillsExtensionId } from "./skills";
@@ -49,14 +50,19 @@ export function createMcpServer(
       ],
     },
     {
+      // The lists never change during a request, so subscriptions/listen
+      // completes at once instead of holding a stream open.
       capabilities: {
-        tools: {},
-        resources: {},
+        tools: { listChanged: false },
+        resources: { listChanged: false, subscribe: false },
         extensions: {
           [skillsExtensionId]: {},
         },
       },
       instructions,
+
+      // Tool arguments are flat, so a large element count is never legitimate.
+      maxToolInputElements: 1000,
     }
   );
 
@@ -89,6 +95,7 @@ export function createMcpServer(
   commentTools(server, scopes);
   documentTools(server, scopes);
   fetchTool(server, scopes);
+  revisionTools(server, scopes);
   templateTools(server, scopes);
   userTools(server, scopes);
 
@@ -102,5 +109,7 @@ Document and collection markdown support @mentions using the syntax: @[Display N
 Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.
 
 Base64-encoded images are supported in document content for all formats. When creating a document from HTML that includes images or videos, pass the markup with format "html" — remote URLs and base64 media are imported as attachments automatically. Do not convert such HTML to markdown, and do not upload the HTML file itself as an attachment.
+
+Each user can have a personal collection, marked with isPersonal. It is private to that user, cannot be shared as a collection, and cannot be renamed or archived. Use the collectionId "personal" in create_document, move_document or update_document to place a document in it; the collection is created if it does not exist yet.
 
 When asked to create a document that follows a template, use the "list_templates" tool to find a matching template; each result already includes the template body as markdown. To use it unchanged, pass its ID as templateId to "create_document" and the new document is pre-filled from it. To adapt it first, modify the returned body and pass the result as the text parameter to "create_document". Either way no separate fetch is needed.`;

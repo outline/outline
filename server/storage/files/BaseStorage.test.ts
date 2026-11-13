@@ -129,6 +129,43 @@ describe("BaseStorage", () => {
     });
   });
 
+  describe("getSignedUrlMinimumLifetime", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should return half of the default lifetime", () => {
+      expect(BaseStorage.getSignedUrlMinimumLifetime()).toBe(
+        BaseStorage.defaultSignedUrlExpires / 2
+      );
+    });
+
+    it("should subtract the capped window from long lifetimes", () => {
+      expect(BaseStorage.getSignedUrlMinimumLifetime(Hour.seconds)).toBe(
+        Hour.seconds - BaseStorage.maxSigningWindow
+      );
+    });
+
+    it("should return the full lifetime when it is too short to align", () => {
+      expect(BaseStorage.getSignedUrlMinimumLifetime(1)).toBe(1);
+    });
+
+    it("should not exceed the remaining lifetime at the end of a window", () => {
+      const expiresIn = BaseStorage.defaultSignedUrlExpires;
+      const now = new Date("2026-04-16T12:07:29.999Z");
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const expiresAt =
+        MockStorage.signingDateFor(expiresIn).getTime() + expiresIn * 1000;
+      const remaining = (expiresAt - now.getTime()) / 1000;
+
+      expect(
+        BaseStorage.getSignedUrlMinimumLifetime(expiresIn)
+      ).toBeLessThanOrEqual(remaining);
+    });
+  });
+
   describe("getPresignedPut", () => {
     it("should return undefined from default implementation", async () => {
       const storage = new MockStorage();
@@ -247,6 +284,41 @@ describe("BaseStorage", () => {
           base64Url,
           "test-key",
           "public-read"
+        );
+
+        expect(result).toBeUndefined();
+        expect(storage.storedFiles).toHaveLength(0);
+      });
+    });
+
+    describe("imagesOnly", () => {
+      it("should store a supported image with the detected content type", async () => {
+        const gif = Buffer.from("GIF89a...").toString("base64");
+
+        const result = await storage.storeFromUrl(
+          `data:image/png;base64,${gif}`,
+          "test-key",
+          "public-read",
+          undefined,
+          { imagesOnly: true }
+        );
+
+        expect(result?.contentType).toBe("image/gif");
+        expect(storage.storedFiles).toHaveLength(1);
+        expect(storage.storedFiles[0].contentType).toBe("image/gif");
+      });
+
+      it("should not store an SVG", async () => {
+        const svg = Buffer.from(
+          '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+        ).toString("base64");
+
+        const result = await storage.storeFromUrl(
+          `data:image/png;base64,${svg}`,
+          "test-key",
+          "public-read",
+          undefined,
+          { imagesOnly: true }
         );
 
         expect(result).toBeUndefined();

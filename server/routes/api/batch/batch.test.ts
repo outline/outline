@@ -1,5 +1,7 @@
 import { RateLimiterRes } from "rate-limiter-flexible";
+import { DatabaseError } from "sequelize";
 import env from "@server/env";
+import { Collection, Document as DocumentModel } from "@server/models";
 import type { Document, User } from "@server/models";
 import {
   buildAdmin,
@@ -197,6 +199,44 @@ describe("#batch", () => {
     expect(body.data[0].data.documentId).toEqual(doc.id);
   });
 
+  it("should apply document moves in request order", async () => {
+    const [source, destination] = await Promise.all([
+      buildCollection({ userId: user.id, teamId: user.teamId }),
+      buildCollection({ userId: user.id, teamId: user.teamId }),
+    ]);
+    const documents = [];
+    for (let i = 0; i < 6; i++) {
+      documents.push(
+        await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          collectionId: source.id,
+        })
+      );
+    }
+    const ordered = documents.reverse();
+
+    const res = await server.post("/api/batch", user, {
+      body: {
+        requests: ordered.map((document) => ({
+          method: "documents.move",
+          body: { id: document.id, collectionId: destination.id },
+        })),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.every((result: { ok: boolean }) => result.ok)).toBe(true);
+
+    const reloaded = await Collection.findByPk(destination.id, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.documentStructure?.map((node) => node.id)).toEqual(
+      ordered.map((document) => document.id)
+    );
+  });
+
   it("should reject a known endpoint that is not allowlisted", async () => {
     // documents.list is a real route, but reads aren't permitted in a batch.
     const res = await server.post("/api/batch", user, {
@@ -229,6 +269,34 @@ describe("#batch", () => {
     expect(body.data[0].ok).toBe(false);
     expect(body.data[0].status).toEqual(404);
     expect(body.data[0].error).toEqual("not_found");
+  });
+
+  it("should return a request timeout when a sub-request waits too long for a lock", async () => {
+    const parent = Object.assign(
+      new Error("canceling statement due to lock timeout"),
+      { code: "55P03", sql: "" }
+    );
+    vi.spyOn(DocumentModel, "findByPk").mockRejectedValueOnce(
+      new DatabaseError(parent)
+    );
+
+    const res = await server.post("/api/batch", user, {
+      body: {
+        requests: [
+          {
+            method: "documents.update",
+            body: { id: documentOne.id, title: "Updated" },
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    vi.restoreAllMocks();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[0].ok).toBe(false);
+    expect(body.data[0].status).toEqual(503);
+    expect(body.data[0].error).toEqual("request_timeout");
   });
 
   it("should surface per-request validation errors", async () => {

@@ -163,7 +163,6 @@ class ShareSubscription extends IdModel<
    */
   static normalizeEmailFingerprint(email: string): string {
     // Strip null bytes to prevent injection bypasses
-    // eslint-disable-next-line no-control-regex
     const lower = email.replace(/\0/g, "").toLowerCase().trim();
     const [localPart, domain] = lower.split("@");
     if (!localPart || !domain) {

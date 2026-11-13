@@ -8,9 +8,8 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
 import { expandCodeBlockAt } from "@shared/editor/nodes/CodeFence";
-import { Action, toggleFoldPluginKey } from "@shared/editor/nodes/ToggleBlock";
-import { isToggleBlock } from "@shared/editor/queries/toggleBlock";
-import { ancestors } from "@shared/editor/utils";
+import { unfoldToggleBlocksAt } from "@shared/editor/commands/toggleBlock";
+import { toggleFoldPluginKey } from "@shared/editor/nodes/ToggleBlock";
 import isTextInput from "~/utils/isTextInput";
 import FindAndReplace from "../components/FindAndReplace";
 import { deburrWithMap } from "./deburrWithMap";
@@ -264,48 +263,8 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       return;
     }
 
-    const state = this.editor.view.state;
-    const pluginState = toggleFoldPluginKey.getState(state);
-    if (!pluginState) {
-      return;
-    }
-
-    const $pos = state.doc.resolve(result.from);
-    const isToggle = isToggleBlock(state);
-
-    // Find all ancestor toggle block IDs that are folded
-    const foldedToggleIds = ancestors($pos)
-      .filter(
-        (node) => isToggle(node) && pluginState.foldedIds.has(node.attrs.id)
-      )
-      .map((node) => node.attrs.id as string);
-
-    // Unfold each toggle by ID (getting fresh state after each dispatch)
-    foldedToggleIds.forEach((toggleId) => {
-      const currentState = this.editor.view.state;
-
-      // Find the position of this toggle in the current document
-      let togglePos: number | null = null;
-      currentState.doc.descendants((node, pos) => {
-        if (
-          node.type.name === "container_toggle" &&
-          node.attrs.id === toggleId
-        ) {
-          togglePos = pos;
-          return false;
-        }
-        return true;
-      });
-
-      if (togglePos !== null) {
-        this.editor.view.dispatch(
-          currentState.tr.setMeta(toggleFoldPluginKey, {
-            type: Action.UNFOLD,
-            at: togglePos,
-          })
-        );
-      }
-    });
+    const view = this.editor.view;
+    unfoldToggleBlocksAt(result.from)(view.state, view.dispatch);
   }
 
   /**
@@ -423,9 +382,9 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             const from = type === "inline" ? pos + start : pos;
             const to = type === "inline" ? pos + end : pos + node.nodeSize;
 
-            // A match against the deburred text can cover only part of a
-            // decomposed sequence (e.g. a single jamo of a Hangul syllable),
-            // which maps back to a zero-length range in the original text.
+            // A match against the deburred text can cover only part of an
+            // expanded letter (e.g. a single "s" of "ß"), which maps back to a
+            // zero-length range in the original text.
             // Skip these so replace operations don't degenerate into inserts.
             if (to <= from) {
               continue;
@@ -452,9 +411,9 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
       // Also search the diacritics-stripped text so that, for example, "cafe"
       // matches "café". Because deburring can change the string length (e.g. it
-      // decomposes CJK/Hangul characters), match indices are translated back to
-      // the original text rather than assumed equal. Skip it when deburring was
-      // a no-op, since it would only re-find the matches already collected.
+      // expands "ß" to "ss"), match indices are translated back to the original
+      // text rather than assumed equal. Skip it when deburring was a no-op, since
+      // it would only re-find the matches already collected.
       const { deburred, toOriginalIndex } = deburrWithMap(text);
       if (deburred !== text) {
         collect(deburred, toOriginalIndex);

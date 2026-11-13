@@ -9,6 +9,15 @@ describe("replaceMarkdownLinks", () => {
     );
   });
 
+  it("passes the label of a link and an image", () => {
+    const labels: string[] = [];
+    replaceMarkdownLinks("[one](a.md) and ![two](b.png)", (_href, label) => {
+      labels.push(label);
+      return undefined;
+    });
+    expect(labels).toEqual(["one", "two"]);
+  });
+
   it("replaces the destination of an image", () => {
     expect(replaceMarkdownLinks("![alt](assets/a.png)", toUpper)).toBe(
       "![alt](ASSETS/A.PNG)"

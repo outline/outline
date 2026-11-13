@@ -3,7 +3,7 @@ import { GlobeIcon, PadlockIcon, TeamIcon } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { flattenTree } from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
@@ -30,9 +30,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
 
   const share = shares.getByCollectionId(collection.id);
   const isPubliclyShared =
-    team.sharing !== false &&
-    collection.sharing !== false &&
-    !!share?.published;
+    team.sharing !== false && collection.sharing !== false && !!share?.isActive;
 
   // The document structure is cached on the collection once loaded, so this is
   // a no-op when the sidebar or another tab has already requested it.
@@ -52,7 +50,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
             ? t("Only members with access can view")
             : t("All members in the workspace can view")
         }
-        placement="bottom"
+        side="bottom"
       >
         <IconLabel align="center">
           {collection.isPrivate ? (
@@ -66,10 +64,7 @@ export const CollectionMeta = observer(function CollectionMeta_({
       {isPubliclyShared && (
         <>
           <Separator />
-          <Tooltip
-            content={t("Anyone with the link can view")}
-            placement="bottom"
-          >
+          <Tooltip content={t("Anyone with the link can view")} side="bottom">
             <IconLabel align="center">
               <GlobeIcon size={18} />
               {t("Publicly shared")}

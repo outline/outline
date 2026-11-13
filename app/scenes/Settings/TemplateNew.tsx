@@ -26,13 +26,13 @@ function TemplateNewScene() {
         );
         history.replace(template.path);
       } catch (_err) {
-        toast.error(t("Couldn’t create the template, try again?"));
+        toast.error(t("Couldn’t create the template. Try again?"));
         history.replace(settingsPath("templates"));
       }
     }
 
     void createTemplate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -1,5 +1,5 @@
 import JWT from "jsonwebtoken";
-import Router from "koa-router";
+import Router from "@koa/router";
 import mime from "mime-types";
 import contentDisposition from "content-disposition";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -83,7 +83,7 @@ router.post(
       await attachment.destroy();
       if (err instanceof Error && err.message.includes("permission denied")) {
         throw Error(
-          `Permission denied writing to "${key}". Check the host machine file system permissions.`
+          `Permission denied writing to "${key}". Check that uid ${process.getuid?.() ?? "unknown"} can write to the storage directory on the host machine.`
         );
       }
       throw err;

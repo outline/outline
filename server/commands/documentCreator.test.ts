@@ -1,3 +1,4 @@
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import {
   buildUser,
@@ -10,6 +11,22 @@ import { withAPIContext } from "@server/test/support";
 import documentCreator from "./documentCreator";
 
 describe("documentCreator", () => {
+  it("should attribute Markdown mentions to the authenticated writer", async () => {
+    const user = await buildUser();
+    const mentioned = await buildUser({ teamId: user.teamId });
+    const document = await withAPIContext(user, (ctx) =>
+      documentCreator(ctx, {
+        title: "Mentions",
+        text: `@[${mentioned.name}](mention://user/${mentioned.id})`,
+      })
+    );
+
+    await document.reload();
+    expect(DocumentHelper.parseMentions(document)).toEqual([
+      expect.objectContaining({ modelId: mentioned.id, actorId: user.id }),
+    ]);
+  });
+
   describe("content vs text priority", () => {
     it("should prioritize content over text when both are provided", async () => {
       const user = await buildUser();

@@ -31,6 +31,13 @@ class GroupUser extends Model {
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
 
+  /** The ID of the user that added the user to the group. */
+  createdById: string;
+
+  /** The user that added the user to the group. */
+  @Relation(() => User, { onDelete: "null" })
+  createdBy?: User;
+
   /** The permission of the user in the group. */
   @Field
   @observable

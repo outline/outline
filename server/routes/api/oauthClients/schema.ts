@@ -8,8 +8,11 @@ export const OAuthClientsInfoSchema = BaseSchema.extend({
       /** OAuth client id */
       id: z.uuid().optional(),
 
-      /** OAuth clientId */
-      clientId: z.string().optional(),
+      /** OAuth clientId, or the URL of a client ID metadata document */
+      clientId: z
+        .string()
+        .max(OAuthClientValidation.maxClientIdLength)
+        .optional(),
 
       redirectUri: z.string().optional(),
     })

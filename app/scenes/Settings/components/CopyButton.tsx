@@ -43,7 +43,7 @@ export function CopyButton({
   }, [success]);
 
   return (
-    <Tooltip content={tooltip} placement="top">
+    <Tooltip content={tooltip}>
       <CopyToClipboard text={value} onCopy={handleCopied}>
         <NudeButton type="button">{icon}</NudeButton>
       </CopyToClipboard>

@@ -60,7 +60,7 @@ export const moveToNextNewline: Command = (state, dispatch) => {
 };
 
 /**
- * Replace the selection with a newline character preceeded by a number of
+ * Replace the selection with a newline character preceded by a number of
  * spaces to have the new line align with the code on the previous. This is
  * standard code editor behavior.
  *
@@ -235,6 +235,80 @@ export const enterInCode: Command = (state, dispatch) => {
 };
 
 /**
+ * Delete the line break before the cursor in a code block. Browsers do not
+ * reliably delete a line break next to the line number widgets.
+ *
+ * @returns A prosemirror command
+ */
+export const backspaceInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { $from, from, empty } = state.selection;
+  if (
+    !empty ||
+    $from.parentOffset === 0 ||
+    state.doc.textBetween(from - 1, from) !== newline
+  ) {
+    return false;
+  }
+
+  dispatch?.(state.tr.delete(from - 1, from).scrollIntoView());
+  return true;
+};
+
+/**
+ * Delete the line break after the cursor in a code block. Browsers do not
+ * reliably delete a line break next to the line number widgets.
+ *
+ * @returns A prosemirror command
+ */
+export const deleteInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { $from, from, empty } = state.selection;
+  if (
+    !empty ||
+    $from.parentOffset === $from.parent.content.size ||
+    state.doc.textBetween(from, from + 1) !== newline
+  ) {
+    return false;
+  }
+
+  dispatch?.(state.tr.delete(from, from + 1).scrollIntoView());
+  return true;
+};
+
+/**
+ * Move the cursor back over the line break before it in a code block.
+ * Browsers otherwise place the caret beside the line number widget, where it
+ * is not visible.
+ *
+ * @returns A prosemirror command
+ */
+export const arrowLeftInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { $from, from, empty } = state.selection;
+  if (
+    !empty ||
+    $from.parentOffset === 0 ||
+    state.doc.textBetween(from - 1, from) !== newline
+  ) {
+    return false;
+  }
+
+  dispatch?.(
+    state.tr
+      .setSelection(TextSelection.create(state.doc, from - 1))
+      .scrollIntoView()
+  );
+  return true;
+};
+
+/**
  * Split a code block into two when three backticks are typed within it.
  * This creates a new code block below the current one with the same language.
  *
@@ -259,22 +333,19 @@ export const splitCodeBlockOnTripleBackticks: Command = (state, dispatch) => {
     return false;
   }
 
+  // The third backtick is not in the document yet, so only remove two.
+  const contentStart = (findParentNode(isCode)(selection)?.pos ?? 0) + 1;
+  const backticksStart = from - backticks.length;
+
+  // Do not split when the backticks are at the start of the block.
+  if (backticksStart <= contentStart) {
+    return false;
+  }
+
   if (dispatch) {
-    // Get position of parent node start
-    const codeBlockStart = findParentNode(isCode)(selection)?.pos || 0;
-    const backticksStart = Math.max(0, from - backticks.length - 1);
-    if (backticksStart <= codeBlockStart) {
-      return false;
-    }
-
     tr.delete(backticksStart, from);
-
-    // Split the node at the current position (minus the backticks)
-    const pos = tr.mapping.map(backticksStart);
-    tr.split(pos, 1);
-
+    tr.split(tr.mapping.map(backticksStart), 1);
     dispatch(tr);
-    return true;
   }
 
   return true;

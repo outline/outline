@@ -117,9 +117,7 @@ export type CollectionsImportReq = z.infer<typeof CollectionsImportSchema>;
 export const CollectionsAddGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     groupId: z.uuid(),
-    permission: z
-      .enum(CollectionPermission)
-      .prefault(CollectionPermission.ReadWrite),
+    permission: z.enum(CollectionPermission).optional(),
   }),
 });
 

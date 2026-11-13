@@ -1,6 +1,7 @@
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import { useFocusedSplitLocation } from "./useFocusedSplitLocation";
-import { useLocationSidebarContext } from "./useLocationSidebarContext";
+import { useSplitView } from "~/components/SplitView/context";
+import { getFocusedSplitPane, getSplitPath } from "~/utils/splitView";
+import { useLocationSelector } from "./useLocationSelector";
 
 /**
  * Hook to retrieve the sidebar context that the sidebar should treat as
@@ -14,12 +15,19 @@ import { useLocationSidebarContext } from "./useLocationSidebarContext";
  * @returns the active sidebar context.
  */
 export function useActiveSidebarContext(): SidebarContextType {
-  const locationSidebarContext = useLocationSidebarContext();
-  const splitLocation = useFocusedSplitLocation();
+  const focusedPane = getFocusedSplitPane();
+  const { isSplitView } = useSplitView();
+  const isSecondaryFocused = !isSplitView && focusedPane === "secondary";
 
-  if (splitLocation) {
-    return splitLocation.state?.sidebarContext;
-  }
-
-  return locationSidebarContext;
+  // Select only the sidebar context, so that callers do not re-render on
+  // every navigation.
+  return useLocationSelector<
+    { sidebarContext?: SidebarContextType },
+    SidebarContextType
+  >((location) => {
+    if (isSecondaryFocused && getSplitPath(location.search)) {
+      return location.state?.sidebarContext ?? "collections";
+    }
+    return location.state?.sidebarContext;
+  });
 }

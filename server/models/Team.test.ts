@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { TeamValidation } from "@shared/validations";
 import { Team } from "@server/models";
 import {
   buildTeam,
@@ -76,6 +77,30 @@ describe("Team", () => {
       await buildTeam({ subdomain: slug });
       expect(await Team.findAvailableSubdomain(slug)).toEqual(`${slug}1`);
     });
+
+    it("should truncate to the maximum length", async () => {
+      const max = TeamValidation.maxSubdomainSelfHostedLength;
+      const slug = buildSubdomain();
+      const requested = slug.padEnd(max + 20, "a");
+      expect(await Team.findAvailableSubdomain(requested)).toEqual(
+        requested.slice(0, max)
+      );
+    });
+
+    it("should remove trailing hyphens after truncating", async () => {
+      const max = TeamValidation.maxSubdomainSelfHostedLength;
+      const slug = buildSubdomain().padEnd(max - 1, "a");
+      expect(await Team.findAvailableSubdomain(`${slug} more`)).toEqual(slug);
+    });
+
+    it("should keep the numeric suffix within the maximum length", async () => {
+      const max = TeamValidation.maxSubdomainSelfHostedLength;
+      const slug = buildSubdomain().padEnd(max, "a");
+      await buildTeam({ subdomain: slug });
+      expect(await Team.findAvailableSubdomain(slug)).toEqual(
+        `${slug.slice(0, max - 1)}1`
+      );
+    });
   });
 
   describe("collectionIds", () => {
@@ -117,6 +142,21 @@ describe("Team", () => {
       expect(team.previousSubdomains?.length).toEqual(2);
       expect(team.previousSubdomains?.[0]).toEqual(originalSubdomain);
       expect(team.previousSubdomains?.[1]).toEqual(subdomain);
+    });
+
+    it("should persist every previous subdomain", async () => {
+      const id = randomUUID();
+      const subdomains = [1, 2, 3, 4, 5].map((n) => `sub${n}-${id}`);
+      const team = await buildTeam({ subdomain: subdomains[0] });
+
+      for (const subdomain of subdomains.slice(1)) {
+        await team.update({ subdomain });
+      }
+
+      await team.reload();
+      expect(team.previousSubdomains).toEqual(subdomains.slice(1, 4));
+      expect((await Team.findBySubdomain(subdomains[3]))?.id).toEqual(team.id);
+      expect(await Team.findBySubdomain(subdomains[0])).toBeNull();
     });
   });
 

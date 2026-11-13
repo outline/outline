@@ -2,7 +2,7 @@ import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { extraArea, s } from "@shared/styles";
+import { extraArea, hover, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 
 type Props = React.ComponentProps<typeof Button> & {
@@ -34,7 +34,7 @@ const Button = styled(NudeButton)`
   margin: 2px;
   ${extraArea(4)}
 
-  &:hover {
+  &:${hover} {
     color: ${s("text")};
     background: ${s("sidebarControlHoverBackground")};
   }

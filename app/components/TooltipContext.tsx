@@ -15,11 +15,6 @@ type Props = {
   skipDelayDuration?: number;
   /** Prevents the tooltip from opening */
   disableHoverableContent?: boolean;
-  /** Props to pass to the Tippy component - kept for backward compatibility */
-  tippyProps?: {
-    delay?: number;
-    [key: string]: unknown;
-  };
 };
 
 /**
@@ -30,14 +25,10 @@ export function TooltipProvider({
   delayDuration = 500,
   skipDelayDuration = 300,
   disableHoverableContent = false,
-  tippyProps,
 }: Props) {
-  // Handle backward compatibility with tippyProps
-  const finalDelayDuration = tippyProps?.delay ?? delayDuration;
-
   return (
     <TooltipPrimitive.Provider
-      delayDuration={finalDelayDuration}
+      delayDuration={delayDuration}
       skipDelayDuration={skipDelayDuration}
       disableHoverableContent={disableHoverableContent}
     >

@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -99,12 +99,8 @@ router.post(
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: AccessRequest },
     });
-
-    if (accessRequest.status !== AccessRequestStatus.Pending) {
-      throw InvalidRequestError("Access request has already been responded to");
-    }
 
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
@@ -114,14 +110,14 @@ router.post(
     authorize(user, "manageUsers", document);
     authorize(user, "read", accessRequest.user);
 
-    const membership = await UserMembership.findOne({
-      where: {
-        userId: accessRequest.userId,
-        documentId: accessRequest.documentId,
-      },
-      lock: transaction.LOCK.UPDATE,
-      transaction,
-    });
+    if (accessRequest.status !== AccessRequestStatus.Pending) {
+      throw InvalidRequestError("Access request has already been responded to");
+    }
+
+    const membership = await UserMembership.findOneForUpdate(
+      { userId: accessRequest.userId, documentId: accessRequest.documentId },
+      { transaction }
+    );
 
     if (!membership) {
       await UserMembership.createWithCtx(ctx, {
@@ -155,7 +151,7 @@ router.post(
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: AccessRequest },
     });
 
     const document = await Document.findByPk(accessRequest.documentId, {

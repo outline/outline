@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import {
   createContext,
   useCallback,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -112,6 +111,7 @@ function DraggableSection({ section, children }: Props) {
     [SidebarSection.Starred]: t("Starred"),
     [SidebarSection.SharedWithMe]: t("Shared with me"),
     [SidebarSection.Collections]: t("Collections"),
+    [SidebarSection.Personal]: t("Personal"),
   };
 
   const order = normalizeSidebarSectionOrder(
@@ -205,12 +205,6 @@ function DraggableSection({ section, children }: Props) {
     (dragged) => moveSidebarSection(order, dragged, "after", section)
   );
 
-  // The drop cursors and the drag styling must not appear inside the
-  // browser's dragstart dispatch — Chromium aborts the drag when the element
-  // under the drag origin changes before the drag session starts.
-  const showCursors = useDeferredFlag(bottomProps.isDragging);
-  const isDraggingDeferred = useDeferredFlag(isDragging);
-
   const contextValue = useMemo(
     () => ({ dragRef, menuActions }),
     [dragRef, menuActions]
@@ -218,19 +212,19 @@ function DraggableSection({ section, children }: Props) {
 
   return (
     <SectionWrapper ref={setWrapper} data-section={section}>
-      {showCursors && (
+      {bottomProps.isDragging && (
         <TopDropCursor
           isActiveDrop={topProps.isOverCursor}
           innerRef={dropTopRef}
           position="top"
         />
       )}
-      <Draggable $isDragging={isDraggingDeferred}>
+      <Draggable $isDragging={isDragging}>
         <SidebarSectionContext.Provider value={contextValue}>
           {children}
         </SidebarSectionContext.Provider>
       </Draggable>
-      {showCursors && (
+      {bottomProps.isDragging && (
         <SectionDropCursor
           isActiveDrop={bottomProps.isOverCursor}
           innerRef={dropBottomRef}
@@ -238,28 +232,6 @@ function DraggableSection({ section, children }: Props) {
       )}
     </SectionWrapper>
   );
-}
-
-/**
- * Returns the given flag with its rising edge deferred by one task. A falling
- * edge resets immediately.
- *
- * @param value The flag to defer.
- * @returns the deferred flag.
- */
-function useDeferredFlag(value: boolean): boolean {
-  const [deferred, setDeferred] = useState(false);
-
-  useEffect(() => {
-    if (!value) {
-      setDeferred(false);
-      return undefined;
-    }
-    const timer = setTimeout(() => setDeferred(true), 0);
-    return () => clearTimeout(timer);
-  }, [value]);
-
-  return deferred;
 }
 
 const Draggable = styled.div<{ $isDragging: boolean }>`

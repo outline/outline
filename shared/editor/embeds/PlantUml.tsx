@@ -17,7 +17,7 @@ function PlantUmlDiagrams({ matches, ...props }: Props) {
       icon={
         <Image
           src="/images/plantuml.png"
-          alt="PlantUml"
+          alt="PlantUML"
           width={16}
           height={16}
         />

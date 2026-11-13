@@ -154,7 +154,7 @@ export const TemplateForm = observer(function TemplateForm_({
         void saveRef.current();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

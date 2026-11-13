@@ -2,5 +2,5 @@
   "id": "google-analytics",
   "name": "Google Analytics",
   "priority": 30,
-  "description": "Adds support for reporting analytics to a Google."
+  "description": "Adds support for reporting analytics to Google Analytics."
 }

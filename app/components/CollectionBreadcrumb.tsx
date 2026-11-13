@@ -25,7 +25,7 @@ export const CollectionBreadcrumb: React.FC<Props> = ({ collection }) => {
         to: archivePath(),
       }),
       createInternalLinkAction({
-        name: collection.name,
+        name: collection.displayName,
         section: ActiveCollectionSection,
         icon: <CollectionIcon collection={collection} expanded />,
         to: collectionPath(collection),

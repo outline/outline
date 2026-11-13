@@ -53,6 +53,12 @@ describe("policies/team", () => {
     expect(abilities.createIntegration).toBeTruthy();
   });
 
+  it("should not allow creation from another team", async () => {
+    const team = await buildTeam({ memberTeamCreate: true });
+    const admin = await buildAdmin();
+    expect(serialize(admin, team).createTeam).toEqual(false);
+  });
+
   describe("read template", () => {
     const permissions = new Map<UserRole, boolean>([
       [UserRole.Admin, true],

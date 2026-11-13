@@ -2,7 +2,7 @@ import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s, borderRadius } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
@@ -68,7 +68,9 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     `
       &[data-highlighted],
       &[data-state="open"],
-      &:focus-visible {
+      &:focus-visible,
+      [data-radix-menu-content]:has([data-menu-filter-input]:focus)
+        &[data-menu-filter-highlighted] {
         color: ${props.theme.accentText};
         background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
         outline-color: ${
@@ -98,11 +100,11 @@ export const MenuButton = styled.button<MenuButtonProps>`
   ${BaseMenuItemCSS}
 `;
 
-export const MenuInternalLink = styled(Link)`
+export const MenuInternalLink = styled(Link)<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
 `;
 
-export const MenuExternalLink = styled.a`
+export const MenuExternalLink = styled.a<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
 `;
 
@@ -167,6 +169,14 @@ export const SelectedIconWrapper = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
+`;
+
+export const MenuBadge = styled.span`
+  font-size: 13px;
+  color: currentColor;
+  opacity: 0.5;
+  margin-inline-start: 16px;
+  flex-shrink: 0;
 `;
 
 export const MenuShortcut = styled.span`

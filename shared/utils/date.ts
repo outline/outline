@@ -1,4 +1,3 @@
-/* oxlint-disable import/no-duplicates */
 import type { Locale } from "date-fns";
 import {
   addSeconds,
@@ -507,6 +506,58 @@ export function dateToReadable(
     return dateFormatter(tag, options).format(date);
   }
   return dateFormatter(tag, { ...options, ...timeOptions }).format(date);
+}
+
+/**
+ * Formats an ISO value into an exact, localized timestamp that always includes
+ * the year, seconds and time zone (e.g. "Nov 5, 2026, 7:48:12 PM EST"), for
+ * contexts such as audit trails where the moment must be unambiguous. The word
+ * order, numerals and hour cycle follow the language, the time zone is local.
+ *
+ * @param iso The ISO string.
+ * @param language The user's language preference.
+ * @returns the localized timestamp, or the original string when invalid.
+ */
+export function dateToTimestamp(
+  iso: string,
+  language?: keyof typeof locales | null
+): string {
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) {
+    return iso;
+  }
+
+  return dateFormatter(languageTag(language), {
+    dateStyle: "medium",
+    timeStyle: "long",
+  }).format(date);
+}
+
+/**
+ * Formats a range of days into a localized label, collapsing the parts that are
+ * shared between the two dates (e.g. "Nov 2 – 3, 2026"). A range that is only
+ * bounded on one side is labelled with its single date.
+ *
+ * @param start The first day of the range.
+ * @param end The last day of the range.
+ * @param language The user's language preference.
+ * @returns the localized label.
+ */
+export function dateRangeToReadable(
+  start: Date | null,
+  end: Date | null,
+  language?: keyof typeof locales | null
+): string {
+  const formatter = dateFormatter(languageTag(language), {
+    dateStyle: "medium",
+  });
+
+  if (start && end) {
+    return formatter.formatRange(start, end);
+  }
+
+  const date = start ?? end;
+  return date ? formatter.format(date) : "";
 }
 
 /**

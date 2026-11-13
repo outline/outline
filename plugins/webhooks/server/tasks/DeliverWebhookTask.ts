@@ -71,6 +71,7 @@ import type {
   WebhookSubscriptionEvent,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
+import { WebhookEventHelper } from "../helpers/WebhookEventHelper";
 import type { WebhookPayload } from "../presenters/webhook";
 import presentWebhook from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
@@ -145,6 +146,16 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (!subscription.enabled) {
       Logger.info("task", `WebhookSubscription was disabled before delivery`, {
+        event: event.name,
+        subscriptionId: subscription.id,
+      });
+      return;
+    }
+
+    // Checked again, as a document can move into a personal collection after
+    // the delivery was queued.
+    if (await WebhookEventHelper.isInPersonalCollection(event)) {
+      Logger.info("task", `Skipped webhook for personal collection event`, {
         event: event.name,
         subscriptionId: subscription.id,
       });
@@ -421,15 +432,26 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CommentEvent
   ): Promise<void> {
-    const model = await Comment.findByPk(event.modelId, {
-      paranoid: false,
-    });
+    const [model, document] = await Promise.all([
+      Comment.findByPk(event.modelId, {
+        paranoid: false,
+      }),
+      Document.unscoped().findOne({
+        attributes: ["collectionId"],
+        where: { id: event.documentId },
+        paranoid: false,
+      }),
+    ]);
+
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentComment(model),
+        model: model && {
+          ...presentComment(model),
+          collectionId: document?.collectionId ?? null,
+        },
       },
     });
   }
@@ -483,7 +505,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentIntegration(model),
+        model: model && presentIntegration(undefined, model),
       },
     });
   }
@@ -733,7 +755,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       Revision.findByPk(event.modelId, {
         paranoid: false,
       }),
-      Document.findByPk(event.documentId, {
+      Document.unscoped().findOne({
+        attributes: ["collectionId"],
+        where: { id: event.documentId },
         paranoid: false,
       }),
     ]);
@@ -771,8 +795,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
   }
 
-  /** Maximum number of bytes to read from webhook response bodies. */
+  /** Maximum number of bytes to store from webhook response bodies. */
   private static readonly MAX_RESPONSE_BODY_SIZE = 1024;
+
+  /** Maximum number of bytes to read from webhook response bodies. */
+  private static readonly MAX_RESPONSE_READ_SIZE = 64 * 1024;
 
   private async sendWebhook({
     event,
@@ -814,6 +841,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         body: JSON.stringify(requestBody),
         redirect: "error",
         timeout: 5000,
+        size: DeliverWebhookTask.MAX_RESPONSE_READ_SIZE,
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
@@ -834,7 +862,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (response) {
       try {
-        // TODO: Use stream to avoid buffering large responses in memory.
         const text = await response.text();
         responseBody = text.slice(0, DeliverWebhookTask.MAX_RESPONSE_BODY_SIZE);
       } catch (err) {

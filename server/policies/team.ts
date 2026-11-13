@@ -35,6 +35,7 @@ allow(User, "createTeam", Team, (actor, team) =>
   and(
     //
     isCloudHosted(),
+    isTeamModel(actor, team),
     !actor.isGuest,
     !actor.isViewer,
     or(actor.isAdmin, !!team?.memberTeamCreate)
@@ -64,6 +65,14 @@ allow(User, "externalGroupSync", Team, (actor, team) =>
     //
     isTeamAdmin(actor, team),
     teamHasEntitlement(team, PlanFeature.GroupSync)
+  )
+);
+
+allow(User, "setDefaultShareExpiry", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    teamHasEntitlement(team, PlanFeature.AdvancedSecurity)
   )
 );
 

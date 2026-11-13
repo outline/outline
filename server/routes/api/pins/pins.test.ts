@@ -4,6 +4,7 @@ import {
   buildCollection,
   buildDocument,
   buildDraftDocument,
+  buildPersonalCollection,
   buildPin,
   buildUser,
 } from "@server/test/factories";
@@ -33,6 +34,17 @@ describe("#pins.create", () => {
       teamId: admin.teamId,
       collectionId: collection.id,
     });
+  });
+
+  it("should not pin to a personal collection", async () => {
+    const personal = await buildPersonalCollection(admin);
+    const res = await server.post("/api/pins.create", admin, {
+      body: {
+        documentId: document.id,
+        collectionId: personal.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should fail with status 401 unauthorized when user token is missing", async () => {

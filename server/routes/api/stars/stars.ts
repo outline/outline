@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Sequelize } from "sequelize";
 import starCreator from "@server/commands/starCreator";
 import auth from "@server/middlewares/authentication";

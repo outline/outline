@@ -1,8 +1,8 @@
-import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
 import { useMergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { isPrintableKeyEvent } from "@shared/utils/keyboard";
 import { TextHelper } from "@shared/utils/TextHelper";
 import useOnScreen from "~/hooks/useOnScreen";
 

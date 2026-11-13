@@ -55,10 +55,7 @@ function useTemplateMenuItem(isActive: boolean): MenuItem | undefined {
 
     const toMenuItem = (template: (typeof allTemplates)[0]): MenuItem => ({
       name: "noop",
-      title: TextHelper.replaceTemplateVariables(
-        template.titleWithDefault,
-        user
-      ),
+      title: TextHelper.replaceTemplateVariables(template.displayTitle, user),
       icon: template.icon ? (
         <Icon
           value={template.icon}
@@ -68,7 +65,7 @@ function useTemplateMenuItem(isActive: boolean): MenuItem | undefined {
       ) : (
         <DocumentIcon />
       ),
-      keywords: template.titleWithDefault,
+      keywords: template.displayTitle,
       onClick: () => {
         const data = cloneDeep(template.data);
         ProsemirrorHelper.replaceTemplateVariables(data, user);

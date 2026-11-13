@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -15,11 +15,12 @@ export default function OAuthClientDeleteDialog({
 }: Props) {
   const { t } = useTranslation();
   const history = useHistory();
-  const location = useLocation();
 
   const handleSubmit = async () => {
     // Navigate back to the list if we're viewing the app being deleted.
-    if (location.pathname === settingsPath("applications", oauthClient.id)) {
+    if (
+      history.location.pathname === settingsPath("applications", oauthClient.id)
+    ) {
       history.push(settingsPath("applications"));
     }
 

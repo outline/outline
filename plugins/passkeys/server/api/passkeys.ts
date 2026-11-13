@@ -3,7 +3,7 @@ import validate from "@server/middlewares/validate";
 import { UserPasskey } from "@server/models";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
-import Router from "koa-router";
+import Router from "@koa/router";
 import * as T from "./schema";
 import { authorize } from "@server/policies";
 import { transaction } from "@server/middlewares/transaction";
@@ -75,7 +75,7 @@ router.post(
     });
     authorize(user, "delete", passkey);
 
-    await passkey.destroyWithCtx(ctx);
+    await passkey.destroyWithCtx(ctx, { data: { name: passkey.name } });
 
     ctx.body = {
       success: true,

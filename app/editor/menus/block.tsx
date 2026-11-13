@@ -13,13 +13,9 @@ import {
   TableIcon,
   TodoListIcon,
   ImageIcon,
-  StarredIcon,
-  WarningIcon,
-  InfoIcon,
   AttachmentIcon,
   CalendarIcon,
   MathIcon,
-  DoneIcon,
   EmbedIcon,
   CollapseIcon,
 } from "outline-icons";
@@ -28,10 +24,12 @@ import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import type { TFunction } from "i18next";
 import Image from "@shared/editor/components/Img";
+import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import { toISODate } from "@shared/utils/date";
 import { metaDisplay } from "@shared/utils/keyboard";
+import { NoticeIcon } from "~/editor/components/NoticeIcon";
 import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
@@ -243,45 +241,45 @@ export default function blockMenuItems(
     {
       name: "container_notice",
       title: t("Info notice"),
-      icon: <InfoIcon />,
+      icon: <NoticeIcon type={NoticeTypes.Info} />,
       keywords: "card callout hint information note",
-      attrs: { style: "info" },
+      attrs: { style: NoticeTypes.Info },
     },
     {
       name: "container_notice",
       title: t("Success notice"),
-      icon: <DoneIcon />,
+      icon: <NoticeIcon type={NoticeTypes.Success} />,
       keywords: "card callout hint",
-      attrs: { style: "success" },
+      attrs: { style: NoticeTypes.Success },
     },
     {
       name: "container_notice",
       title: t("Warning notice"),
-      icon: <WarningIcon />,
+      icon: <NoticeIcon type={NoticeTypes.Warning} />,
       keywords: "card callout hint error caution danger alert",
-      attrs: { style: "warning" },
+      attrs: { style: NoticeTypes.Warning },
     },
     {
       name: "container_notice",
       title: t("Tip notice"),
-      icon: <StarredIcon />,
+      icon: <NoticeIcon type={NoticeTypes.Tip} />,
       keywords: "card callout hint suggestion",
-      attrs: { style: "tip" },
+      attrs: { style: NoticeTypes.Tip },
     },
     {
       name: "separator",
     },
     {
       name: "code_block",
-      title: "Mermaid Diagram",
-      icon: <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
+      title: "Mermaid diagram",
+      icon: <Img src="/images/mermaidjs.png" alt="Mermaid diagram" />,
       keywords: "flowchart graph sequence gantt",
       attrs: { language: "mermaid" },
     },
     {
       name: "editDiagram",
-      title: "Diagrams.net Diagram",
-      icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
+      title: "Diagrams.net diagram",
+      icon: <Img src="/images/diagrams.png" alt="Diagrams.net diagram" />,
       keywords: "flowchart drawio draw.io whiteboard",
     },
   ];

@@ -57,7 +57,7 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
-      <Tooltip content={t("Add reaction")} placement="top">
+      <Tooltip content={t("Add reaction")}>
         <PopoverTrigger>
           <NudeButton
             aria-label={t("Reaction picker")}

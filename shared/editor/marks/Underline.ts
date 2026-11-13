@@ -16,9 +16,11 @@ export default class Underline extends Mark {
         {
           consuming: false,
           tag: ":not(a)",
+          // Elements outside the HTML and SVG namespaces, such as MathML, may
+          // have no style property.
           getAttrs: (node: HTMLElement) =>
-            node.style.textDecoration.includes("underline") ||
-            node.style.textDecorationLine.includes("underline")
+            node.style?.textDecoration.includes("underline") ||
+            node.style?.textDecorationLine.includes("underline")
               ? null
               : false,
         },

@@ -1,8 +1,11 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
 import type Template from "~/models/Template";
+import { ActionSeparator } from "~/actions";
+import { manageTemplates } from "~/actions/definitions/templates";
 import Button from "~/components/Button";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMenuAction } from "~/hooks/useMenuAction";
@@ -23,7 +26,11 @@ function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
     onSelectTemplate,
     documentId: document.id,
   });
-  const rootAction = useMenuAction(allActions);
+  const actions = useMemo(
+    () => [...allActions, ActionSeparator, manageTemplates],
+    [allActions]
+  );
+  const rootAction = useMenuAction(actions);
 
   if (!allActions.length) {
     return null;

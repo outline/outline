@@ -21,6 +21,12 @@ export type TaskSchedule = {
   /** The interval at which to run this task */
   interval: TaskInterval;
   /**
+   * The maximum number of items to process per scheduled run. When the run is
+   * partitioned, the limit is split across all partitions. When unset, the limit
+   * provided by the scheduler applies to each partition.
+   */
+  limit?: number;
+  /**
    * An optional time window (in milliseconds) over which to spread the START time
    * of this task when triggered by cron.
    *
@@ -78,24 +84,41 @@ export abstract class CronTask extends BaseTask<Props> {
   public abstract get cron(): TaskSchedule;
 
   /**
-   * Compute a deterministic delay for a task based on its name and interval.
-   * Different tasks are likely to get different offsets within the stagger
-   * window for their interval, reducing concurrent heavy database operations.
+   * Compute a deterministic delay for a task based on its name and a stagger
+   * window. Different tasks are likely to get different offsets within the
+   * window, reducing concurrent heavy database operations.
    *
    * @param taskName the name of the task class.
-   * @param interval the task interval used to select the stagger window.
+   * @param interval the task interval used to select the default stagger window.
+   * @param windowMs an optional window in milliseconds that replaces the default.
    * @returns a delay in milliseconds.
    */
   public static getStaggerDelay(
     taskName: string,
-    interval: TaskInterval
+    interval: TaskInterval,
+    windowMs = staggerWindows[interval]
   ): number {
-    const windowMs = staggerWindows[interval];
     let hash = 0;
     for (let i = 0; i < taskName.length; i++) {
       hash = ((hash << 5) - hash + taskName.charCodeAt(i)) | 0;
     }
     return Math.abs(hash) % windowMs;
+  }
+
+  /**
+   * Split a per-run limit across partitions so that the run as a whole never
+   * processes more than the limit. Any remainder goes to the first partitions.
+   *
+   * @param limit the maximum number of items to process across the whole run.
+   * @param partition the partition to compute the limit for.
+   * @returns the maximum number of items the partition may process, may be zero.
+   */
+  public static getPartitionLimit(
+    limit: number,
+    { partitionIndex, partitionCount }: PartitionInfo
+  ): number {
+    const base = Math.floor(limit / partitionCount);
+    return partitionIndex < limit % partitionCount ? base + 1 : base;
   }
 
   /**

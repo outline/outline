@@ -22,7 +22,7 @@ export const DiagramPlaceholder = ({ isSelected, onDoubleClick }: Props) => {
         {t("Empty diagram")}
       </Text>{" "}
       <Text size="small" type="tertiary" italic>
-        {t("Double click to edit")}
+        {t("Double-click to edit")}
       </Text>
     </Placeholder>
   );

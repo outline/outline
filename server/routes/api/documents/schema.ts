@@ -1,6 +1,7 @@
 import type formidable from "formidable";
 import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
+import { PersonalCollectionId } from "@shared/constants";
 import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   DirectionFilter,
@@ -115,7 +116,7 @@ const BaseSearchSchema = DateFilterSchema.extend({
   /** Min words to be shown in the results snippets */
   snippetMinWords: z.number().prefault(20),
 
-  /** Max words to be accomodated in the results snippets */
+  /** Max words to be accommodated in the results snippets */
   snippetMaxWords: z.number().prefault(30),
 });
 
@@ -450,9 +451,6 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
 
-    /** Whether the editing session is complete */
-    done: z.boolean().optional(),
-
     /** Whether the document should have restricted access (independent of parent/collection permissions) */
     isPrivate: z.boolean().optional(),
   }),
@@ -563,8 +561,10 @@ export const DocumentsImportSchema = BaseSchema.extend({
         ])
         .optional(),
 
-      /** Import docs to this collection */
-      collectionId: z.uuid().nullish(),
+      /** Import docs to this collection, or "personal" for the personal collection */
+      collectionId: z
+        .union([z.uuid(), z.literal(PersonalCollectionId)])
+        .nullish(),
 
       /** Import under this parent doc */
       parentDocumentId: z.uuid().nullish(),
@@ -606,8 +606,10 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
-    /** Collection to create document within  */
-    collectionId: z.uuid().nullish(),
+    /** Collection to create document within, or "personal" for the personal collection */
+    collectionId: z
+      .union([z.uuid(), z.literal(PersonalCollectionId)])
+      .nullish(),
 
     /** Index to create the document at within the collection */
     index: z.number().optional(),
@@ -687,9 +689,7 @@ export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
 export const DocumentsAddGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     groupId: z.uuid(),
-    permission: z
-      .enum(DocumentPermission)
-      .prefault(DocumentPermission.ReadWrite),
+    permission: z.enum(DocumentPermission).optional(),
   }),
 });
 

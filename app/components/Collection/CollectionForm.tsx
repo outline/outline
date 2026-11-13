@@ -56,7 +56,7 @@ const useIconColor = (collection?: Collection) => {
         : randomElement(colorPalette)),
     // Deliberately only keyed on the collection color so the randomly picked
     // fallback stays stable while the form is open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [collection?.color]
   );
   return iconColor;
@@ -273,7 +273,7 @@ export const CollectionForm = observer(function CollectionForm_({
                 field.onChange(value === EmptySelectValue ? null : value);
               }}
               help={t(
-                "The default access for workspace members, you can share with more users or groups later."
+                "The default access for workspace members. You can share with more users or groups later."
               )}
             />
           )}

@@ -21,6 +21,8 @@ import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import { UnprocessableEntityError } from "@server/errors";
 import { LockHelper } from "@server/storage/LockHelper";
+import Collection from "./Collection";
+import Document from "./Document";
 import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
@@ -42,6 +44,20 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   InferAttributes<Import<T>>,
   Partial<InferCreationAttributes<Import<T>>>
 > {
+  /** States in which an import is still running and can be canceled. */
+  public static readonly activeStates: readonly ImportState[] = [
+    ImportState.Created,
+    ImportState.InProgress,
+    ImportState.Processed,
+  ];
+
+  /** States in which an import has stopped and will not change again. */
+  public static readonly terminalStates: readonly ImportState[] = [
+    ImportState.Completed,
+    ImportState.Errored,
+    ImportState.Canceled,
+  ];
+
   @NotContainsUrl
   @Length({
     max: ImportValidation.maxNameLength,
@@ -97,6 +113,22 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @Column(DataType.UUID)
   teamId: string;
 
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection | null;
+
+  @AllowNull
+  @ForeignKey(() => Collection)
+  @Column(DataType.UUID)
+  collectionId: string | null;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document | null;
+
+  @AllowNull
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId: string | null;
+
   /**
    * Serializes imports per team — blocks creation while another import is
    * already in flight. Centralizing the check here lets every code path that
@@ -119,11 +151,7 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
     const inProgress = await this.count({
       where: {
         teamId: model.teamId,
-        state: [
-          ImportState.Created,
-          ImportState.InProgress,
-          ImportState.Processed,
-        ],
+        state: [...Import.activeStates],
       },
       transaction,
     });

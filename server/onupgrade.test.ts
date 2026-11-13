@@ -28,6 +28,21 @@ describe("onupgrade", () => {
     errorSpy.mockRestore();
   });
 
+  it("should swallow writes to a socket that has already ended", async () => {
+    const errorSpy = vi.spyOn(Logger, "error");
+    const server = http.createServer();
+    const socket = new PassThrough();
+    onupgrade(server);
+
+    server.emit("upgrade", request(), socket);
+    socket.end();
+    socket.write("message");
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
   it("should report unexpected errors", () => {
     const errorSpy = vi.spyOn(Logger, "error").mockImplementation(() => {});
     const server = http.createServer();

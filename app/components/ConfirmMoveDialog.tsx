@@ -46,7 +46,7 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
             "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
             {
               documentName: item.title,
-              collectionName: collection.name,
+              collectionName: collection.displayName,
             }
           )
         );
@@ -68,8 +68,8 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
         defaults="Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will change permission for all workspace members from <em>{{ prevPermission }}</em> to <em>{{ newPermission }}</em>."
         values={{
           title: item.title,
-          prevCollectionName: prevCollection?.name,
-          newCollectionName: collection.name,
+          prevCollectionName: prevCollection?.displayName,
+          newCollectionName: collection.displayName,
           prevPermission: accessMapping[prevCollection?.permission || "null"],
           newPermission: accessMapping[collection.permission || "null"],
         }}

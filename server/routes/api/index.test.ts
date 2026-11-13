@@ -22,3 +22,11 @@ describe("PATCH unknown endpoint", () => {
     expect(res.status).toEqual(405);
   });
 });
+
+describe("unauthenticated request", () => {
+  it("should include a Bearer challenge", async () => {
+    const res = await server.post("/api/auth.info");
+    expect(res.status).toEqual(401);
+    expect(res.headers.get("www-authenticate")).toEqual("Bearer");
+  });
+});

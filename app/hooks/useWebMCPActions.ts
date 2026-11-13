@@ -1,6 +1,5 @@
 import { snakeCase } from "es-toolkit";
 import * as React from "react";
-import { useLocation } from "react-router-dom";
 import { TeamPreference } from "@shared/types";
 import { toError } from "@shared/utils/error";
 import { performAction, resolve } from "~/actions";
@@ -17,6 +16,7 @@ import {
   registerModelContextTool,
 } from "~/utils/ModelContext";
 import useActionContext from "./useActionContext";
+import { useLocationSelector } from "./useLocationSelector";
 import useStores from "./useStores";
 
 type PerformableAction = Exclude<ActionVariant, ActionWithChildren>;
@@ -31,7 +31,7 @@ export default function useWebMCPActions(
   actions: ActionVariant[],
   additionalDeps: React.DependencyList = []
 ) {
-  const location = useLocation();
+  const pathname = useLocationSelector((location) => location.pathname);
   const { auth } = useStores();
   const context = useActionContext({ isMCP: true });
 
@@ -107,8 +107,8 @@ export default function useWebMCPActions(
     Analytics.track("webmcp", "register");
 
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, toolNames.join(","), location.pathname, ...additionalDeps]);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, toolNames.join(","), pathname, ...additionalDeps]);
 }
 
 function flattenActions(

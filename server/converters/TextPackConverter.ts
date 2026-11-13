@@ -205,7 +205,7 @@ export class TextPackConverter extends BaseConverter {
 
     markdown = this.embedTextBundleAssets(markdown, assets);
 
-    return this.processFrontmatter(markdown);
+    return this.stripFrontmatter(markdown);
   }
 
   /**

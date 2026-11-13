@@ -14,7 +14,6 @@ interface UnhealthyResult {
   extra: Record<string, string | number>;
 }
 
-/* oxlint-disable @typescript-eslint/no-misused-promises */
 export default class HealthMonitor {
   /** The interval between health checks. */
   public static readonly checkInterval = 30 * Second.ms;

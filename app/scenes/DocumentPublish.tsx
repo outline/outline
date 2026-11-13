@@ -56,7 +56,7 @@ function DocumentPublish({ document }: Props) {
 
       dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn’t publish the document, try again?"));
+      toast.error(t("Couldn’t publish the document. Try again?"));
     }
   };
 

@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import auth from "@server/middlewares/authentication";
@@ -40,6 +40,7 @@ router.post(
         return { users: [], familiarity: {} };
       }
 
+      const canReadEmails = can(actor, "readEmail", actor.team);
       const groupIds = await actor.groupIds();
       const users = await User.findAll({
         where: {
@@ -50,9 +51,13 @@ router.post(
           [Op.and]: query
             ? {
                 [Op.or]: [
-                  Sequelize.literal(
-                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                  ),
+                  ...(canReadEmails
+                    ? [
+                        Sequelize.literal(
+                          `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                        ),
+                      ]
+                    : []),
                   Sequelize.literal(
                     `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
                   ),
@@ -114,17 +119,22 @@ router.post(
         }),
       ]);
 
+    const [presentedDocuments, presentedGroups] = await Promise.all([
+      presentDocuments(ctx, documents),
+      Promise.all(groups.map((group) => presentGroup(group))),
+    ]);
+
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        documents: await presentDocuments(ctx, documents),
+        documents: presentedDocuments,
         users: users.map((user) =>
           presentUser(user, {
             includeEmail: !!can(actor, "readEmail", user),
             includeDetails: !!can(actor, "readDetails", user),
           })
         ),
-        groups: await Promise.all(groups.map((group) => presentGroup(group))),
+        groups: presentedGroups,
         collections,
         familiarity,
       },

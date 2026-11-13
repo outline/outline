@@ -100,6 +100,9 @@ export const GroupValidation = {
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,
+
+  /** The maximum number of entries in an imported zip archive */
+  maxZipEntries: 250_000,
 };
 
 export const OAuthClientValidation = {
@@ -120,6 +123,12 @@ export const OAuthClientValidation = {
 
   /** The maximum length of an OAuth client redirect URI */
   maxRedirectUriLength: 1024,
+
+  /** The maximum length of an OAuth client ID, which can be a metadata document URL */
+  maxClientIdLength: 1024,
+
+  /** The prefix of client IDs that are the URL of a client ID metadata document */
+  metadataDocumentClientIdPrefix: "https://",
 
   /** The maximum number of redirect URIs for an OAuth client */
   maxRedirectUris: 20,
@@ -152,6 +161,9 @@ export const PinValidation = {
 };
 
 export const TeamValidation = {
+  /** The choices for the default share link expiry in days, 0 for no expiry. */
+  defaultShareExpiryDays: [0, 7, 30, 60, 90],
+
   /** The maximum number of domains per team on cloud hosted */
   maxDomains: 10,
 
