@@ -269,7 +269,7 @@ router.get(
             account: {
               id: userInfo.id,
               name: userInfo.username,
-              avatarUrl: userInfo.avatar_url,
+              avatarUrl: userInfo.avatar_url ?? "",
             },
           },
         },
