@@ -40,14 +40,14 @@ export function getJWTPayload(token: string) {
  * Retrieves the user associated with a JWT token, validating the token's type and expiration.
  *
  * @param token The JWT token to validate and extract the user from.
- * @param allowedTypes An array of allowed token types (default: ["session", "transfer"]). The token's type must be included in this array to be considered valid.
+ * @param allowedTypes An array of allowed token types (default: ["session"]). The token's type must be included in this array to be considered valid.
  * @returns An object containing the user associated with the token, an optional service string if included in the token's payload, and the time the token expires at if it has one.
  * @throws AuthenticationError if the token is missing, invalid, expired, or if the token's type is not allowed.
  * @throws UserSuspendedError if the user associated with the token is suspended.
  */
 export async function getUserForJWT(
   token: string,
-  allowedTypes = ["session", "transfer"]
+  allowedTypes = ["session"]
 ): Promise<{ user: User; service?: string; expiresAt?: Date }> {
   const payload = getJWTPayload(token);
   const expiresAt = payload.expiresAt ? new Date(payload.expiresAt) : undefined;
@@ -74,6 +74,12 @@ export async function getUserForJWT(
     throw AuthenticationError("Invalid token");
   }
 
+  try {
+    JWT.verify(token, user.jwtSecret);
+  } catch (_err) {
+    throw AuthenticationError("Invalid token");
+  }
+
   if (user.isSuspended) {
     const suspendingAdmin = user.suspendedById
       ? await User.findByPk(user.suspendedById)
@@ -93,12 +99,6 @@ export async function getUserForJWT(
     ) {
       throw AuthenticationError("Token has already been used");
     }
-  }
-
-  try {
-    JWT.verify(token, user.jwtSecret);
-  } catch (_err) {
-    throw AuthenticationError("Invalid token");
   }
 
   return {

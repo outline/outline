@@ -22,7 +22,7 @@ export default class CollectionsProcessor extends BaseProcessor {
     await sequelize.transaction(async (transaction) => {
       const team = await Team.findByPk(event.teamId, {
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (team?.defaultCollectionId === event.collectionId) {

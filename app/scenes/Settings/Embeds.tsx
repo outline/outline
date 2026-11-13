@@ -12,6 +12,7 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { IntegrationScene } from "./components/IntegrationScene";
 import SettingRow from "./components/SettingRow";
+import { SettingsSection } from "./components/SettingsSection";
 import { HStack } from "~/components/primitives/HStack";
 
 /** List of embed providers available for configuration. */
@@ -99,15 +100,16 @@ function Embeds() {
       </SettingRow>
 
       {team.documentEmbeds && (
-        <>
-          <Heading as="h2">{t("Providers")}</Heading>
-          <Text as="p" type="secondary">
+        <SettingsSection
+          title={t("Providers")}
+          description={
             <Trans>
               Enabled providers will appear in the editor slash menu and embed
               automatically when a compatible link is pasted. Existing embeds in
               documents will continue to display regardless of these settings.
             </Trans>
-          </Text>
+          }
+        >
           <SettingRow
             name="allEmbeds"
             label={t("All providers")}
@@ -148,7 +150,7 @@ function Embeds() {
               </SettingRow>
             );
           })}
-        </>
+        </SettingsSection>
       )}
     </IntegrationScene>
   );

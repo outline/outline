@@ -6,7 +6,7 @@ ARG APP_PATH
 WORKDIR $APP_PATH
 
 # ---
-FROM node:26.13.0-slim AS runner
+FROM node:26.13.1-slim AS runner
 
 LABEL org.opencontainers.image.source="https://github.com/outline/outline"
 

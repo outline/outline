@@ -42,7 +42,6 @@ import type { Searchable } from "./interfaces/Searchable";
 
 type SaveOptions = JSONObject & {
   publish?: boolean;
-  done?: boolean;
   autosave?: boolean;
 };
 

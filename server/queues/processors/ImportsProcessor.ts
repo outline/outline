@@ -88,7 +88,7 @@ export default abstract class ImportsProcessor<
           rejectOnEmpty: true,
           paranoid: false,
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
         });
 
         if (
@@ -606,9 +606,10 @@ export default abstract class ImportsProcessor<
 
             const rootNode = rootNodesByExternalId[externalId];
 
+            // documentId is set for root pages too.
             const attachments = await Attachment.findAll({
               attributes: ["id", "size"],
-              where: { documentId: externalId }, // This will be set for root pages too
+              where: { documentId: externalId, teamId: importModel.teamId },
               transaction,
             });
 
@@ -690,7 +691,11 @@ export default abstract class ImportsProcessor<
               // Unset documentId for attachments in collection overview.
               await Attachment.update(
                 { documentId: null },
-                { where: { documentId: externalId }, silent: true, transaction }
+                {
+                  where: { documentId: externalId, teamId: importModel.teamId },
+                  silent: true,
+                  transaction,
+                }
               );
 
               continue;
@@ -832,7 +837,11 @@ export default abstract class ImportsProcessor<
             // Update document id for attachments in document content.
             await Attachment.update(
               { documentId: internalId },
-              { where: { documentId: externalId }, silent: true, transaction }
+              {
+                where: { documentId: externalId, teamId: importModel.teamId },
+                silent: true,
+                transaction,
+              }
             );
           }
         }

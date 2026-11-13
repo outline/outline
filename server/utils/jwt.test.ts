@@ -1,8 +1,8 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
-import { buildUser } from "@server/test/factories";
-import { getUserForEmailSigninToken } from "./jwt";
+import { buildAdmin, buildUser } from "@server/test/factories";
+import { getUserForEmailSigninToken, getUserForJWT } from "./jwt";
 
 /**
  * Minimal Koa context stub exposing only the request IP.
@@ -92,5 +92,41 @@ describe("getUserForEmailSigninToken", () => {
     await expect(getUserForEmailSigninToken(ctx, token)).rejects.toThrow(
       "Invalid token"
     );
+  });
+});
+
+describe("getUserForJWT", () => {
+  it("should return the user for a valid token", async () => {
+    const user = await buildUser();
+    const token = user.getSessionToken();
+
+    const result = await getUserForJWT(token);
+    expect(result.user.id).toEqual(user.id);
+  });
+
+  it("should reject a token with a wrong signature for a suspended user", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({
+      teamId: admin.teamId,
+      suspendedAt: new Date(),
+      suspendedById: admin.id,
+    });
+    const token = JWT.sign({ id: user.id, type: "session" }, "wrong-secret");
+
+    await expect(getUserForJWT(token)).rejects.toThrow("Invalid token");
+  });
+
+  it("should reject a valid token for a suspended user", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({
+      teamId: admin.teamId,
+      suspendedAt: new Date(),
+      suspendedById: admin.id,
+    });
+    const token = user.getSessionToken();
+
+    await expect(getUserForJWT(token)).rejects.toMatchObject({
+      id: "user_suspended",
+    });
   });
 });

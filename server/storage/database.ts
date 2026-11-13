@@ -46,11 +46,14 @@ function getDatabaseConfig() {
   );
 }
 
-/** Postgres error code for `query_canceled`. */
-const QueryCanceledErrorCode = "57014";
+/** Postgres error codes for `query_canceled` and `lock_not_available`. */
+const QueryCanceledErrorCodes = ["57014", "55P03"];
 
 /** Headroom between the statement timeout and the HTTP request timeout. */
 const StatementTimeoutMargin = 500;
+
+/** Maximum time a statement in a request transaction waits for a lock. */
+const LockTimeout = 5000;
 
 /** Sequelize types the query generator as unknown; this narrows to the single
  * method used to begin a transaction. */
@@ -91,8 +94,8 @@ const statementTimeout =
     : undefined;
 
 /**
- * Whether an error was caused by Postgres canceling a query, most commonly
- * because it exceeded the configured `statement_timeout`.
+ * Whether an error was caused by Postgres canceling a query because it
+ * exceeded the configured `statement_timeout` or `lock_timeout`.
  *
  * @param err the error to inspect.
  * @returns true if the query was canceled by the database.
@@ -102,7 +105,8 @@ export function isQueryCanceledError(err: unknown): boolean {
     err instanceof DatabaseError &&
     !!err.parent &&
     "code" in err.parent &&
-    err.parent.code === QueryCanceledErrorCode
+    typeof err.parent.code === "string" &&
+    QueryCanceledErrorCodes.includes(err.parent.code)
   );
 }
 
@@ -200,7 +204,8 @@ export function createDatabaseInstance(
     if (statementTimeout) {
       instance = applyStatementTimeoutToTransactions(
         instance,
-        Number(statementTimeout)
+        Number(statementTimeout),
+        LockTimeout
       );
     }
 
@@ -331,19 +336,21 @@ export function createMigrationRunner(
 }
 
 /**
- * Appends `SET LOCAL statement_timeout` to the statement that begins each
- * transaction, so that both are sent in a single round trip. Using `SET LOCAL`
- * scopes the value to the transaction, preventing it from leaking to other
- * consumers (e.g. background workers) sharing the same underlying connection
- * via pgbouncer's transaction pooling.
+ * Appends `SET LOCAL statement_timeout` and `lock_timeout` to the statement
+ * that begins each transaction, so that all are sent in a single round trip.
+ * Using `SET LOCAL` scopes the values to the transaction, preventing them from
+ * leaking to other consumers (e.g. background workers) sharing the same
+ * underlying connection via pgbouncer's transaction pooling.
  *
  * @param instance the Sequelize instance to modify.
  * @param timeoutMs the statement timeout in milliseconds.
+ * @param lockTimeoutMs the lock timeout in milliseconds.
  * @returns the modified Sequelize instance.
  */
 export function applyStatementTimeoutToTransactions(
   instance: Sequelize,
-  timeoutMs: number
+  timeoutMs: number,
+  lockTimeoutMs: number
 ) {
   const queryGenerator = instance.getQueryInterface()
     .queryGenerator as QueryGeneratorWithTransaction;
@@ -353,11 +360,11 @@ export function applyStatementTimeoutToTransactions(
   queryGenerator.startTransactionQuery = (transaction) => {
     const sql = origStartTransactionQuery(transaction);
 
-    // Savepoints inherit the value set when the outer transaction began.
+    // Savepoints inherit the values set when the outer transaction began.
     if (transaction.parent) {
       return sql;
     }
-    return `${sql} SET LOCAL statement_timeout = ${timeoutMs};`;
+    return `${sql} SET LOCAL statement_timeout = ${timeoutMs}; SET LOCAL lock_timeout = ${lockTimeoutMs};`;
   };
 
   return instance;

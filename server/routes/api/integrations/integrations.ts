@@ -130,7 +130,7 @@ router.post(
 
     const integration = await Integration.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(user, "update", integration);
 
@@ -166,7 +166,7 @@ router.post(
     const integration = await Integration.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(user, "delete", integration);
 

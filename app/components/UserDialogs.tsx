@@ -13,6 +13,7 @@ import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import ImageInput from "~/scenes/Settings/components/ImageInput";
+import type { ImageUploadHandle } from "~/scenes/Settings/components/ImageUpload";
 import { performBatch } from "~/actions/definitions/common";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
@@ -183,6 +184,11 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
   onSubmit,
 }: Props) {
   const { t } = useTranslation();
+  const imageRef = React.useRef<ImageUploadHandle>(null);
+
+  const handleReplace = () => {
+    imageRef.current?.open();
+  };
 
   const handleAvatarChange = async (avatarUrl: string | null) => {
     try {
@@ -205,15 +211,21 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
           onSuccess={handleAvatarChange}
           onError={handleAvatarError}
           model={user}
-          showRemoveOption={false}
+          showActions={false}
+          ref={imageRef}
         />
       </Flex>
-      <Flex justify="flex-end" gap={8}>
-        {user.avatarUrl && (
-          <Button onClick={() => handleAvatarChange(null)} neutral>
-            {t("Remove")}
+      <Flex justify="space-between" gap={8}>
+        <Flex gap={8}>
+          <Button onClick={handleReplace} neutral>
+            {user.avatarUrl ? t("Replace") : t("Upload")}…
           </Button>
-        )}
+          {user.avatarUrl && (
+            <Button onClick={() => handleAvatarChange(null)} neutral>
+              {t("Delete")}
+            </Button>
+          )}
+        </Flex>
         <Button onClick={onSubmit}>{t("Done")}</Button>
       </Flex>
     </Flex>

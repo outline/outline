@@ -131,7 +131,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           required: true,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Integration },
       });
       const authentication = integration.authentication;
 
@@ -172,7 +172,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           "settings.github.installation.id": installationId,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (!integration) {
@@ -241,7 +241,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
           "settings.github.installation.id": installationId,
         },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (!integration) {

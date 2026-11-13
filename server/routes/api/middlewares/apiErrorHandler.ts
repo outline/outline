@@ -8,8 +8,10 @@ import {
 import {
   AuthorizationError,
   NotFoundError,
+  RequestTimeoutError,
   ValidationError,
 } from "@server/errors";
+import { isQueryCanceledError } from "@server/storage/database";
 
 /** Postgres codes for a requested date the database cannot represent. */
 const DATE_RANGE_ERROR_CODES = new Set(["22008", "22015"]);
@@ -60,6 +62,10 @@ export default function apiErrorHandler() {
         transformedErr = ValidationError(
           "Date value in request is out of range"
         );
+      }
+
+      if (isQueryCanceledError(err)) {
+        transformedErr = RequestTimeoutError();
       }
 
       if (

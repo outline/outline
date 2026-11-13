@@ -1,7 +1,7 @@
 import { difference } from "es-toolkit";
 import type { DocumentPreferences, TextEditMode } from "@shared/types";
 import { DocumentConflictError, ValidationError } from "@server/errors";
-import { Event, Document } from "@server/models";
+import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
@@ -23,8 +23,6 @@ type Props = {
   color?: string | null;
   /** The new text content */
   text?: string;
-  /** Whether the editing session is complete */
-  done?: boolean;
   /** The version of the client editor that was used */
   editorVersion?: string;
   /** The ID of the template that was used */
@@ -77,7 +75,6 @@ export default async function documentUpdater(
     publish,
     collectionId,
     deprecatedReason,
-    done,
     ownerIds,
   }: Props
 ): Promise<Document> {
@@ -131,7 +128,7 @@ export default async function documentUpdater(
 
   // Serialize concurrent updates to the same document by taking a row-level
   // lock before writing. The wait is already bounded by the transaction's
-  // statement_timeout. When lastRevision is provided it becomes part of the
+  // lock_timeout. When lastRevision is provided it becomes part of the
   // predicate, so a document modified since that revision matches no row.
   if (transaction) {
     const locked = await Document.unscoped().findOne({
@@ -141,7 +138,7 @@ export default async function documentUpdater(
         ...(lastRevision !== undefined && { revisionCount: lastRevision }),
       },
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       paranoid: false,
     });
 
@@ -165,31 +162,17 @@ export default async function documentUpdater(
   }
 
   const changed = document.changed();
-  const eventData = done !== undefined ? { done } : undefined;
   const { collection } = document;
-
-  const event = {
-    name: "documents.update",
-    documentId: document.id,
-    collectionId: cId,
-    data: eventData,
-  };
 
   if (publish && cId) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }
-    await document.publish(ctx, { collectionId: cId, data: eventData });
+    await document.publish(ctx, { collectionId: cId });
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;
-    await document.saveWithCtx(ctx, undefined, { data: eventData });
-  } else if (done) {
-    await Event.schedule({
-      ...event,
-      actorId: user.id,
-      teamId: document.teamId,
-    });
+    await document.saveWithCtx(ctx);
   }
 
   if (document.ownerIds !== previousOwnerIds) {
