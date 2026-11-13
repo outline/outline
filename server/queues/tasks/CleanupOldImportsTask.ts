@@ -1,6 +1,5 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
-import { ImportState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
@@ -22,11 +21,7 @@ export default class CleanupOldImportsTask extends CronTask {
         {
           attributes: ["id"],
           where: {
-            state: [
-              ImportState.Completed,
-              ImportState.Errored,
-              ImportState.Canceled,
-            ],
+            state: [...Import.terminalStates],
             createdAt: {
               [Op.lt]: cutoffDate,
             },
