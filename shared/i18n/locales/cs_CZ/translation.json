@@ -1387,6 +1387,8 @@
   "Synced <2></2>": "Synchronizováno <2></2>",
   "Date created": "Datum vytvoření",
   "Crop image": "Oříznout obrázek",
+  "Change image": "Změnit obrázek",
+  "Remove image": "Odebrat obrázek",
   "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first": "Váš prohlížeč neumí číst obrázky HEIC – nejprve obrázek převeďte do formátu JPEG nebo PNG",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>.": "Můžete importovat soubor ZIP, který byl dříve exportován pomocí možnosti JSON z jiné instance. V {{ appName }} otevřete <em>Export</em> v postranním panelu Nastavení a klikněte na <em>Exportovat data</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Přetáhněte ZIP soubor z exportu JSON aplikace {{appName}}, nebo jej nahrajte kliknutím.",
