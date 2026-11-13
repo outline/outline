@@ -1,4 +1,9 @@
-import { bytesToHumanReadable, getFileNameFromUrl } from "./files";
+import {
+  bytesToHumanReadable,
+  dataUrlToBlob,
+  dataUrlToFile,
+  getFileNameFromUrl,
+} from "./files";
 
 // Mock the browser detection with a mutable value
 let mockIsMacValue = false;
@@ -101,3 +106,69 @@ describe("getFileNameFromUrl", () => {
     );
   });
 });
+
+describe("dataUrlToBlob", () => {
+  it.each(["data:image/png;base64,AP/+", "data:image/png;base64,AP%2F%2B"])(
+    "decodes base64 binary data: %s",
+    async (url) => {
+      const blob = dataUrlToBlob(url);
+      expect(blob.type).toBe("image/png");
+      expect(await readBlobBytes(blob)).toEqual([0, 255, 254]);
+    }
+  );
+
+  it("decodes an empty payload", async () => {
+    expect(
+      await readBlobBytes(dataUrlToBlob("data:image/png;base64,"))
+    ).toEqual([]);
+  });
+
+  it.each([
+    "data:image/svg+xml,%3Csvg%3E%3Ctext%3EHello%2C%20%E4%B8%96%E7%95%8C%3C%2Ftext%3E%3C%2Fsvg%3E",
+    "data:image/svg+xml,<svg><text>Hello, 世界</text></svg>",
+  ])("decodes SVG data without base64 encoding: %s", async (url) => {
+    const blob = dataUrlToBlob(url);
+    expect(blob.type).toBe("image/svg+xml");
+    expect(await readBlobBytes(blob)).toEqual(
+      Array.from(
+        new TextEncoder().encode("<svg><text>Hello, 世界</text></svg>")
+      )
+    );
+  });
+
+  it.each(["https://example.com/image.png", "data:image/png;base64"])(
+    "rejects an invalid data URL: %s",
+    (url) => {
+      expect(() => dataUrlToBlob(url)).toThrow("Invalid data URL");
+    }
+  );
+});
+
+describe("dataUrlToFile", () => {
+  it("preserves the MIME type and content of a non-base64 image", async () => {
+    const url = "data:image/svg+xml,%3Csvg%2F%3E";
+    const file = dataUrlToFile(url, "pasted-image");
+    expect(file.name).toBe("pasted-image");
+    expect(file.type).toBe("image/svg+xml");
+    expect(await readBlobBytes(file)).toEqual([60, 115, 118, 103, 47, 62]);
+  });
+});
+
+async function readBlobBytes(blob: Blob): Promise<number[]> {
+  if (typeof FileReader === "undefined") {
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(Array.from(new Uint8Array(reader.result)));
+      } else {
+        reject(new Error("Expected an ArrayBuffer"));
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(blob);
+  });
+}

@@ -1,5 +1,5 @@
 import { isMac } from "./browser";
-import { isBase64Url, isUrl } from "./urls";
+import { isUrl } from "./urls";
 
 /**
  * Converts bytes to human readable string for display
@@ -151,37 +151,39 @@ export function getFileNameFromUrl(url: string) {
 }
 
 /**
- * Convert a data URL to a Blob
+ * Converts a base64 or percent-encoded data URL to a Blob.
  *
- * @param dataURL The data URL to convert
- * @returns The Blob
+ * @param dataURL the data URL to convert.
+ * @returns the decoded Blob.
+ * @throws Error if the data URL is invalid.
  */
 export const dataUrlToBlob = (dataURL: string): Blob => {
-  const parts = dataURL.split(",");
-  const match = dataURL.match(/:(.*?);/);
-  const mime = match ? match[1] : "image/png";
-  const blobBin = atob(parts[1]);
-  const array = [];
-
-  for (let i = 0; i < blobBin.length; i++) {
-    array.push(blobBin.charCodeAt(i));
+  const comma = dataURL.indexOf(",");
+  if (!dataURL.startsWith("data:") || comma === -1) {
+    throw new Error("Invalid data URL");
   }
 
-  return new Blob([new Uint8Array(array)], {
+  const metadata = dataURL.slice(5, comma);
+  const mime = metadata.split(";")[0] || "image/png";
+  const data = decodeURIComponent(dataURL.slice(comma + 1));
+  const bytes = /;base64$/i.test(metadata)
+    ? Uint8Array.from(atob(data), (char) => char.charCodeAt(0))
+    : new TextEncoder().encode(data);
+
+  return new Blob([bytes], {
     type: mime,
   });
 };
 
 /**
- * Convert a data URL to a File
+ * Converts a data URL to a File.
  *
- * @param dataURL The data URL to convert
- * @param filename The filename to use
- * @returns The File
+ * @param dataURL the data URL to convert.
+ * @param filename the filename to use.
+ * @returns the decoded File.
+ * @throws Error if the data URL is invalid.
  */
 export const dataUrlToFile = (dataURL: string, filename: string): File => {
-  const match = isBase64Url(dataURL);
-  const mime = match ? match[1] : "image/png";
   const blob = dataUrlToBlob(dataURL);
-  return new File([blob], filename, { type: mime });
+  return new File([blob], filename, { type: blob.type });
 };
