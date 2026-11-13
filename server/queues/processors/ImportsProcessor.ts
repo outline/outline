@@ -167,11 +167,20 @@ export default abstract class ImportsProcessor<
    * @returns Promise that resolves when the creation flow setup is done.
    */
   private async onCreation(importModel: Import<T>, transaction: Transaction) {
-    if (!importModel.input.length) {
+    const tasksInput = importModel.input.length
+      ? await this.buildTasksInput(importModel, transaction)
+      : [];
+
+    // Without tasks nothing would move the import out of its current state.
+    if (!tasksInput.length) {
+      importModel.state = ImportState.Errored;
+      importModel.error = "Nothing to import";
+      await importModel.saveWithCtx(
+        createContext({ user: importModel.createdBy, transaction })
+      );
       return;
     }
 
-    const tasksInput = await this.buildTasksInput(importModel, transaction);
     const phase = this.getInitialPhase();
 
     const importTasks = await Promise.all(
@@ -197,9 +206,7 @@ export default abstract class ImportsProcessor<
     importModel.state = ImportState.InProgress;
     await importModel.save({ transaction });
 
-    if (importTasks.length > 0) {
-      await afterCommit(transaction, () => this.scheduleTask(importTasks[0]));
-    }
+    await afterCommit(transaction, () => this.scheduleTask(importTasks[0]));
   }
 
   /**

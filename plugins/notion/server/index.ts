@@ -13,7 +13,7 @@ PluginManager.add({
   type: Hook.ImportSchema,
   value: IntegrationImportBodySchema.extend({
     service: z.literal(IntegrationService.Notion),
-    input: z.array(NotionImportInputItemSchema),
+    input: z.array(NotionImportInputItemSchema).min(1),
   }),
 });
 

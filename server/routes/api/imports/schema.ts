@@ -32,7 +32,7 @@ export const AttachmentImportBodySchema = z.object({
 export const IntegrationImportBodySchema = z.object({
   service: z.enum(ImportableIntegrationService),
   integrationId: z.uuid(),
-  input: z.array(BaseImportInputItemSchema),
+  input: z.array(BaseImportInputItemSchema).min(1),
   ...DestinationShape,
 });
 
