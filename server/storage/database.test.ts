@@ -57,7 +57,8 @@ describe("applyStatementTimeoutToTransactions", () => {
   beforeAll(() => {
     instance = applyStatementTimeoutToTransactions(
       createDatabaseInstance(env.DATABASE_URL ?? "", {}),
-      1234
+      1234,
+      567
     );
   });
 
@@ -68,6 +69,12 @@ describe("applyStatementTimeoutToTransactions", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
+
+  const showLockTimeout = (transaction?: Transaction) =>
+    instance.query<{ lock_timeout: string }>("SHOW lock_timeout", {
+      type: QueryTypes.SELECT,
+      transaction,
+    });
 
   const showTimeout = (transaction?: Transaction) =>
     instance.query<{ statement_timeout: string }>("SHOW statement_timeout", {
@@ -82,10 +89,16 @@ describe("applyStatementTimeoutToTransactions", () => {
 
     expect(rows).toEqual([{ statement_timeout: "1234ms" }]);
     expect(spy.mock.calls.map(([sql]) => sql)).toEqual([
-      "START TRANSACTION; SET LOCAL statement_timeout = 1234;",
+      "START TRANSACTION; SET LOCAL statement_timeout = 1234; SET LOCAL lock_timeout = 567;",
       "SHOW statement_timeout",
       "COMMIT;",
     ]);
+  });
+
+  it("should set the lock timeout in the transaction", async () => {
+    const rows = await instance.transaction(showLockTimeout);
+
+    expect(rows).toEqual([{ lock_timeout: "567ms" }]);
   });
 
   it("should not set the timeout again for a savepoint", async () => {
@@ -109,5 +122,6 @@ describe("applyStatementTimeoutToTransactions", () => {
     const rows = await showTimeout();
 
     expect(rows).not.toEqual([{ statement_timeout: "1234ms" }]);
+    expect(await showLockTimeout()).not.toEqual([{ lock_timeout: "567ms" }]);
   });
 });
