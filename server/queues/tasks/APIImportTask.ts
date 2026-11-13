@@ -72,11 +72,7 @@ export default abstract class APIImportTask<
     }
 
     // Stop when the import has ended, or its tasks are all processed already.
-    const { state } = importTask.import;
-    if (
-      state === ImportState.Processed ||
-      Import.terminalStates.includes(state)
-    ) {
+    if (this.isFinished(importTask.import.state)) {
       if (importTask.state !== ImportTaskState.Completed) {
         importTask.state = ImportTaskState.Canceled;
         await importTask.save();
@@ -138,13 +134,6 @@ export default abstract class APIImportTask<
       const importTask = await ImportTask.findByPk<ImportTask<T>>(
         importTaskId,
         {
-          include: [
-            {
-              model: Import,
-              as: "import",
-              required: true,
-            },
-          ],
           transaction,
           lock: { level: Transaction.LOCK.NO_KEY_UPDATE, of: ImportTask },
         }
@@ -154,10 +143,24 @@ export default abstract class APIImportTask<
         return;
       }
 
-      importTask.state = ImportTaskState.Errored;
-      await importTask.save({ transaction });
+      const associatedImport = await this.lockImport(
+        importTask.importId,
+        transaction
+      );
+      if (!associatedImport) {
+        return;
+      }
 
-      const associatedImport = importTask.import;
+      // Keep the outcome of a cancel or of a finished import.
+      if (this.isFinished(associatedImport.state)) {
+        return;
+      }
+
+      if (importTask.state !== ImportTaskState.Completed) {
+        importTask.state = ImportTaskState.Errored;
+        await importTask.save({ transaction });
+      }
+
       associatedImport.error = importTask.error; // copy error from ImportTask that caused the failure.
       associatedImport.state = ImportState.Errored;
       await associatedImport.saveWithCtx(
@@ -263,7 +266,16 @@ export default abstract class APIImportTask<
     await this.onAllTasksCompleted(importTask);
 
     await sequelize.transaction(async (transaction) => {
-      const associatedImport = importTask.import;
+      const associatedImport = await this.lockImport(
+        importTask.importId,
+        transaction
+      );
+
+      // The import may have been canceled while this task was running.
+      if (!associatedImport || this.isFinished(associatedImport.state)) {
+        return;
+      }
+
       associatedImport.state = ImportState.Processed;
       await associatedImport.saveWithCtx(
         createContext({
@@ -273,6 +285,32 @@ export default abstract class APIImportTask<
         undefined,
         { name: "processed" }
       );
+    });
+  }
+
+  /**
+   * Whether the import has ended, or its tasks are all processed already.
+   *
+   * @param state state of the import.
+   * @returns true if no more import tasks should change the import.
+   */
+  private isFinished(state: ImportState) {
+    return (
+      state === ImportState.Processed || Import.terminalStates.includes(state)
+    );
+  }
+
+  /**
+   * Load the import with a row lock so that concurrent state changes are not lost.
+   *
+   * @param importId id of the import.
+   * @param transaction transaction to hold the lock in.
+   * @returns the locked import, or null if it does not exist.
+   */
+  private lockImport(importId: string, transaction: Transaction) {
+    return Import.findByPk<Import<T>>(importId, {
+      transaction,
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
     });
   }
 
