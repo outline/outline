@@ -6,7 +6,10 @@ import {
   CollectionStatusFilter,
   FileOperationFormat,
 } from "@shared/types";
-import { DeprecationValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DeprecationValidation,
+} from "@shared/validations";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
@@ -59,6 +62,11 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       templateManagement: z
         .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
         .prefault(CollectionPermission.Admin),
+      /** IDs of the users that own the collection */
+      ownerIds: z
+        .array(z.uuid())
+        .max(CollectionValidation.maxOwners)
+        .optional(),
     })
     .refine(refineBodyContent, bodyContentError),
 });
@@ -137,8 +145,16 @@ export const CollectionsAddUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     userId: z.uuid(),
     permission: z.enum(CollectionPermission).optional(),
+    /** Whether the user is an owner of the collection, owners can manage it */
+    owner: z.boolean().optional(),
   }),
-});
+}).refine(
+  (req) =>
+    !req.body.owner ||
+    req.body.permission === undefined ||
+    req.body.permission === CollectionPermission.Admin,
+  { message: "Owners must have the manage permission" }
+);
 
 export type CollectionsAddUserReq = z.infer<typeof CollectionsAddUserSchema>;
 
@@ -216,6 +232,8 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     templateManagement: z
       .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
       .optional(),
+    /** IDs of the users that own the collection */
+    ownerIds: z.array(z.uuid()).max(CollectionValidation.maxOwners).optional(),
   }).refine(refineBodyContent, bodyContentError),
 });
 

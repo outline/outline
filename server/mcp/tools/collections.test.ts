@@ -1,5 +1,6 @@
 import { DeprecationValidation } from "@shared/validations";
-import { Collection } from "@server/models";
+import { CollectionPermission } from "@shared/types";
+import { Collection, UserMembership } from "@server/models";
 import {
   buildCollection,
   buildPersonalCollection,
@@ -114,6 +115,44 @@ describe("collection tools", () => {
     expect(collection.icon).toEqual("rocket");
     expect(collection.color).toEqual("#FF0000");
     expect(collection.permission).toEqual(null);
+  });
+
+  it("create_collection and update_collection set owners", async () => {
+    const { user, accessToken } = await buildOAuthUser({ role: "admin" });
+    const owner = await buildUser({ teamId: user.teamId });
+    const other = await buildUser({ teamId: user.teamId });
+
+    const created = await callMcpTool(
+      server,
+      accessToken,
+      "create_collection",
+      {
+        name: "Owned",
+        ownerIds: [owner.id],
+      }
+    );
+    const { id } = JSON.parse(created?.result?.content?.[0]?.text ?? "{}");
+    const collection = await Collection.findByPk(id, { rejectOnEmpty: true });
+    expect(collection.ownerIds).toEqual([owner.id]);
+
+    const updated = await callMcpTool(
+      server,
+      accessToken,
+      "update_collection",
+      {
+        id,
+        ownerIds: [other.id],
+      }
+    );
+    expect(updated?.result?.isError).toBeFalsy();
+
+    await collection.reload();
+    expect(collection.ownerIds).toEqual([other.id]);
+    const membership = await UserMembership.findOne({
+      where: { collectionId: id, userId: other.id },
+      rejectOnEmpty: true,
+    });
+    expect(membership.permission).toEqual(CollectionPermission.Admin);
   });
 
   it("update_collection updates fields on existing collection", async () => {

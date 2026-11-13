@@ -576,10 +576,19 @@ class Collection extends ParanoidModel<
   @BelongsTo(() => User, "ownerId")
   owner?: User | null;
 
+  /**
+   * The ID of the user that owns this collection when it is a personal
+   * collection, not to be confused with `ownerIds`.
+   */
   @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   ownerId: string | null;
+
+  /** An array of user IDs that are responsible for this collection. */
+  @Default([])
+  @Column(DataType.ARRAY(DataType.UUID))
+  ownerIds: string[];
 
   @HasMany(() => Document, "collectionId")
   documents: Document[];

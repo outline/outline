@@ -236,6 +236,20 @@ export default class WebsocketsProcessor {
         return socketio.to(channels).emit(event.name, data);
       }
 
+      // Owners can be removed without saving the document, so the update is
+      // sent separately.
+      case "documents.remove_owner": {
+        const document = await Document.findByPk(event.documentId, {
+          paranoid: false,
+        });
+        if (!document) {
+          return;
+        }
+        const data = await presentDocument(undefined, document);
+        const channels = await this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit("documents.update", data);
+      }
+
       case "documents.move": {
         const documents = await Document.findAll({
           where: {
@@ -366,6 +380,24 @@ export default class WebsocketsProcessor {
           .emit(event.name, await presentCollection(undefined, collection));
 
         return socketio.in(rooms).socketsJoin(`collection-${collection.id}`);
+      }
+
+      // Owners can be removed without saving the collection, so the update is
+      // sent separately.
+      case "collections.remove_owner": {
+        const collection = await Collection.findByPk(event.collectionId, {
+          paranoid: false,
+        });
+        if (!collection) {
+          return;
+        }
+
+        return socketio
+          .to(this.getCollectionEventChannels(event, collection))
+          .emit(
+            "collections.update",
+            await presentCollection(undefined, collection)
+          );
       }
 
       case "collections.update": {

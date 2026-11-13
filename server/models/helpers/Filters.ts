@@ -15,6 +15,7 @@ import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
+import isUUID from "validator/lib/isUUID";
 import { isISO8601Duration } from "@server/validation";
 
 const operatorMap: Record<
@@ -76,6 +77,26 @@ function isGroup<F extends string>(
   return "filters" in filter;
 }
 
+function ownedByWhere(userIds: string[]): Record<string, unknown> {
+  if (!userIds.every((id) => isUUID(id))) {
+    throw new Error("`ownerIds` values must be UUIDs");
+  }
+  const ids = userIds.map((id) => `'${id}'`).join(",");
+
+  return {
+    [Op.or]: [
+      { ownerIds: { [Op.overlap]: userIds } },
+      {
+        collectionId: {
+          [Op.in]: Sequelize.literal(
+            `(SELECT "id" FROM "collections" WHERE "ownerIds" && ARRAY[${ids}]::uuid[])`
+          ),
+        },
+      },
+    ],
+  };
+}
+
 function leafToWhere(condition: FilterCondition): Record<string, unknown> {
   const { field, operator, value } = condition;
 
@@ -92,6 +113,18 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
       return { collaboratorIds: { [Op.overlap]: value.map(String) } };
     }
     throw new Error("`userId` only supports `eq` or `in` operators");
+  }
+
+  // `ownerIds` matches documents owned by any of the given users, directly or
+  // through the collection that contains them.
+  if (field === "ownerIds") {
+    if (operator === "eq" && value !== undefined) {
+      return ownedByWhere([String(value)]);
+    }
+    if (operator === "in" && Array.isArray(value)) {
+      return ownedByWhere(value.map(String));
+    }
+    throw new Error("`ownerIds` only supports `eq` or `in` operators");
   }
 
   switch (operator) {

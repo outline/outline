@@ -8,7 +8,15 @@ import { authorize } from "@server/policies";
 import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { DeprecationValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DeprecationValidation,
+} from "@shared/validations";
+import {
+  applyCollectionOwnerChanges,
+  resolveCollectionOwnerIds,
+  updateCollectionOwners,
+} from "@server/commands/collectionOwners";
 import {
   success,
   error,
@@ -195,6 +203,13 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           color: optionalString().describe(
             "The hex color for the collection icon, e.g. #FF0000."
           ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(CollectionValidation.maxOwners)
+            .optional()
+            .describe(
+              "The IDs of users responsible for the collection, they also own every document in it. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("create_collection", async (input, context) => {
@@ -206,17 +221,36 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           });
           authorize(user, "createCollection", team);
 
-          const collection = Collection.build({
-            name: input.name,
-            description: input.description,
-            icon: input.icon,
-            color: input.color,
-            teamId: user.teamId,
-            createdById: user.id,
-            permission: null,
-          });
+          const collection = await sequelize.transaction(
+            async (transaction) => {
+              ctx.state.transaction = transaction;
+              ctx.context.transaction = transaction;
 
-          await collection.saveWithCtx(ctx);
+              const created = Collection.build({
+                name: input.name,
+                description: input.description,
+                icon: input.icon,
+                color: input.color,
+                teamId: user.teamId,
+                createdById: user.id,
+                permission: null,
+              });
+              await created.saveWithCtx(ctx);
+
+              // Owners are assigned after authorizing, as ownership grants
+              // permissions.
+              if (input.ownerIds?.length) {
+                const reloaded = await Collection.findByPk(created.id, {
+                  userId: user.id,
+                  transaction,
+                  rejectOnEmpty: true,
+                });
+                await updateCollectionOwners(ctx, reloaded, input.ownerIds);
+              }
+
+              return created;
+            }
+          );
 
           return success({
             success: true,
@@ -269,6 +303,13 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the collection icon. Set to null to remove."
             ),
+          ownerIds: z
+            .array(z.uuid())
+            .max(CollectionValidation.maxOwners)
+            .optional()
+            .describe(
+              "The complete list of IDs of users responsible for the collection, replacing any existing owners. Pass an empty array to remove all owners. Owners must be members or admins of the workspace, use list_users to find user IDs."
+            ),
         }),
       },
       withTracing("update_collection", async (input, context) => {
@@ -276,44 +317,67 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const collection = await Collection.findByPk(input.id, {
-            userId: user.id,
-            rejectOnEmpty: true,
-          });
-          authorize(user, "update", collection);
+          return await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
 
-          if (input.name !== undefined) {
-            collection.name = input.name.trim();
-          }
-          if (input.description !== undefined) {
-            collection.description = input.description;
-          }
-          if (input.icon !== undefined) {
-            collection.icon = input.icon;
-          }
-          if (input.color !== undefined) {
-            collection.color = input.color;
-          }
+            const collection = await Collection.findByPk(input.id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+            authorize(user, "update", collection);
 
-          // A write that changes nothing must fail loud rather than return a
-          // success the caller would read as a completed write — the request
-          // either carried no recognized fields or values identical to the
-          // current collection.
-          if (!collection.changed()) {
-            return error(
-              "The update resulted in no changes to the collection. Ensure at least one field is provided and differs from the current collection."
-            );
-          }
+            const previousOwnerIds = collection.ownerIds ?? [];
+            if (input.ownerIds) {
+              collection.ownerIds = await resolveCollectionOwnerIds(
+                ctx,
+                collection,
+                input.ownerIds
+              );
+            }
 
-          await collection.saveWithCtx(ctx);
+            if (input.name !== undefined) {
+              collection.name = input.name.trim();
+            }
+            if (input.description !== undefined) {
+              collection.description = input.description;
+            }
+            if (input.icon !== undefined) {
+              collection.icon = input.icon;
+            }
+            if (input.color !== undefined) {
+              collection.color = input.color;
+            }
 
-          return success({
-            success: true,
-            ...pathToUrl(user.team, {
-              id: collection.id,
-              name: collection.name,
-              url: collection.path,
-            }),
+            // A write that changes nothing must fail loud rather than return a
+            // success the caller would read as a completed write — the request
+            // either carried no recognized fields or values identical to the
+            // current collection.
+            if (!collection.changed()) {
+              return error(
+                "The update resulted in no changes to the collection. Ensure at least one field is provided and differs from the current collection."
+              );
+            }
+
+            await collection.saveWithCtx(ctx);
+
+            if (collection.ownerIds !== previousOwnerIds) {
+              await applyCollectionOwnerChanges(
+                ctx,
+                collection,
+                previousOwnerIds
+              );
+            }
+
+            return success({
+              success: true,
+              ...pathToUrl(user.team, {
+                id: collection.id,
+                name: collection.name,
+                url: collection.path,
+              }),
+            });
           });
         } catch (message) {
           return error(message);

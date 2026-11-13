@@ -6,7 +6,9 @@ import {
 } from "@shared/types";
 import { DeprecationValidation } from "@shared/validations";
 import {
+  Collection,
   Document,
+  Event,
   UserMembership,
   GroupMembership,
   View,
@@ -24,6 +26,7 @@ import {
   buildPersonalCollection,
   buildOAuthAuthentication,
   buildRelationship,
+  buildGuestUser,
 } from "@server/test/factories";
 import { getTestServer, mockTaskSchedule } from "@server/test/support";
 
@@ -3058,5 +3061,229 @@ describe("personal collection lists", () => {
     });
     const body = await res.json();
     expect(body.data.ownerId).toBeNull();
+  });
+});
+
+describe("collection owners", () => {
+  const ownerMembership = (collectionId: string, userId: string) =>
+    UserMembership.findOne({ where: { collectionId, userId } });
+
+  it("should set owners when creating a collection", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const res = await server.post("/api/collections.create", admin, {
+      body: { name: "Owned", ownerIds: [owner.id, owner.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([owner.id]);
+
+    const membership = await ownerMembership(body.data.id, owner.id);
+    expect(membership?.permission).toEqual(CollectionPermission.Admin);
+
+    const events = await Event.findAll({
+      where: { name: "collections.add_owner", collectionId: body.data.id },
+    });
+    expect(events.map((event) => event.userId)).toEqual([owner.id]);
+  });
+
+  it("should change owners with collections.update", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const other = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      ownerIds: [owner.id],
+    });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: { id: collection.id, ownerIds: [other.id] },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.ownerIds).toEqual([other.id]);
+    expect(body.policies[0].abilities.manageOwners).toBe(true);
+
+    await collection.reload();
+    expect(collection.ownerIds).toEqual([other.id]);
+    const membership = await ownerMembership(collection.id, other.id);
+    expect(membership?.permission).toEqual(CollectionPermission.Admin);
+  });
+
+  it("should not allow owners on a personal collection", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const collection = await buildPersonalCollection(user);
+
+    const res = await server.post("/api/collections.update", user, {
+      body: { id: collection.id, ownerIds: [other.id] },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow a guest to be an owner", async () => {
+    const admin = await buildAdmin();
+    const guest = await buildGuestUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/collections.add_user", admin, {
+      body: { id: collection.id, userId: guest.id, owner: true },
+    });
+    expect(res.status).toEqual(400);
+    expect(await ownerMembership(collection.id, guest.id)).toBeNull();
+  });
+
+  it("should add an owner with collections.add_user", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/collections.add_user", admin, {
+      body: { id: collection.id, userId: owner.id, owner: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships[0].permission).toEqual(
+      CollectionPermission.Admin
+    );
+    expect(body.data.collections[0].ownerIds).toEqual([owner.id]);
+  });
+
+  it("should allow a user to add themselves as an owner", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({ teamId: admin.teamId });
+
+    const res = await server.post("/api/collections.add_user", admin, {
+      body: { id: collection.id, userId: admin.id, owner: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships[0].permission).toEqual(
+      CollectionPermission.Admin
+    );
+    expect(body.data.collections[0].ownerIds).toEqual([admin.id]);
+  });
+
+  it("should add owners from concurrent invitations", async () => {
+    const admin = await buildAdmin();
+    const first = await buildUser({ teamId: admin.teamId });
+    const second = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const responses = await Promise.all(
+      [first, second].map((user) =>
+        server.post("/api/collections.add_user", admin, {
+          body: { id: collection.id, userId: user.id, owner: true },
+        })
+      )
+    );
+    expect(responses.map((res) => res.status)).toEqual([200, 200]);
+
+    await collection.reload();
+    expect([...collection.ownerIds].sort()).toEqual(
+      [first.id, second.id].sort()
+    );
+  });
+
+  it.each([
+    ["a lower permission", { permission: CollectionPermission.ReadWrite }],
+    [
+      "owner set to false",
+      { permission: CollectionPermission.Admin, owner: false },
+    ],
+  ])(
+    "should remove an owner when collections.add_user is called with %s",
+    async (_, params) => {
+      const admin = await buildAdmin();
+      const owner = await buildUser({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        userId: admin.id,
+        ownerIds: [owner.id],
+      });
+      await UserMembership.create({
+        collectionId: collection.id,
+        userId: owner.id,
+        createdById: admin.id,
+        permission: CollectionPermission.Admin,
+      });
+
+      const res = await server.post("/api/collections.add_user", admin, {
+        body: { id: collection.id, userId: owner.id, ...params },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.collections[0].ownerIds).toEqual([]);
+
+      await collection.reload();
+      expect(collection.ownerIds).toEqual([]);
+    }
+  );
+
+  it("should remove an owner when their access is removed", async () => {
+    const admin = await buildAdmin();
+    const owner = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      ownerIds: [owner.id],
+    });
+    await UserMembership.create({
+      collectionId: collection.id,
+      userId: owner.id,
+      createdById: admin.id,
+      permission: CollectionPermission.Admin,
+    });
+
+    const res = await server.post("/api/collections.remove_user", admin, {
+      body: { id: collection.id, userId: owner.id },
+    });
+    expect(res.status).toEqual(200);
+
+    const reloaded = await Collection.findByPk(collection.id, {
+      rejectOnEmpty: true,
+    });
+    expect(reloaded.ownerIds).toEqual([]);
+  });
+
+  it("should filter documents by collection owner", async () => {
+    const user = await buildUser();
+    const owner = await buildUser({ teamId: user.teamId });
+    const owned = await buildCollection({
+      teamId: user.teamId,
+      ownerIds: [owner.id],
+    });
+    const other = await buildCollection({ teamId: user.teamId });
+    const inOwned = await buildDocument({
+      teamId: user.teamId,
+      collectionId: owned.id,
+    });
+    const ownedDirectly = await buildDocument({
+      teamId: user.teamId,
+      collectionId: other.id,
+      ownerIds: [owner.id],
+    });
+    await buildDocument({ teamId: user.teamId, collectionId: other.id });
+
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        filters: [{ field: "ownerIds", operator: "eq", value: owner.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((doc: { id: string }) => doc.id).sort()).toEqual(
+      [inOwned.id, ownedDirectly.id].sort()
+    );
   });
 });

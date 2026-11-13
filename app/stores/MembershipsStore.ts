@@ -38,18 +38,22 @@ export default class MembershipsStore extends Store<Membership> {
     collectionId,
     userId,
     permission,
+    owner,
   }: {
     collectionId: string;
     userId: string;
     permission?: CollectionPermission;
+    owner?: boolean;
   }) {
     const res = await client.post("/collections.add_user", {
       id: collectionId,
       userId,
       permission,
+      owner,
     });
     invariant(res?.data, "Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
+    res.data.collections?.forEach(this.rootStore.collections.add);
 
     const memberships = res.data.memberships.map(this.add);
     return memberships[0];
@@ -68,6 +72,14 @@ export default class MembershipsStore extends Store<Membership> {
       userId,
     });
     this.removeAll({ userId, collectionId });
+
+    // Removing access also removes the user from the owners on the server.
+    const collection = this.rootStore.collections.get(collectionId);
+    if (collection?.ownerIds.includes(userId)) {
+      collection.updateData({
+        ownerIds: collection.ownerIds.filter((id) => id !== userId),
+      });
+    }
   }
 
   @action

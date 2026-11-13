@@ -8,6 +8,7 @@ import ErrorBoundary from "../ErrorBoundary";
 import useStores from "~/hooks/useStores";
 import { observer } from "mobx-react";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import OwnersLabel from "~/components/OwnersLabel";
 import {
   Preview,
   Title,
@@ -51,6 +52,11 @@ const HoverPreviewDocument = observer(
 
               <Title>{title}</Title>
               {lastActivityByViewer && <Info>{lastActivityByViewer}</Info>}
+              {document && document.allOwnerIds.length > 0 && (
+                <Info>
+                  <OwnersLabel ownerIds={document.allOwnerIds} />
+                </Info>
+              )}
               <Description as="div">
                 <React.Suspense fallback={<div />}>
                   <Editor

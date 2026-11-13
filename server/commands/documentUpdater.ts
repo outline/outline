@@ -1,9 +1,16 @@
+import { difference } from "es-toolkit";
 import type { DocumentPreferences, TextEditMode } from "@shared/types";
 import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
+import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
+import {
+  createDocumentOwnerEvents,
+  grantDocumentOwnerAccess,
+  validateDocumentOwnerIds,
+} from "./documentOwners";
 
 type Props = {
   /** The existing document */
@@ -38,6 +45,8 @@ type Props = {
   collectionId?: string | null;
   /** The reason the document is archived or deleted. */
   deprecatedReason?: string | null;
+  /** The IDs of the users that own the document */
+  ownerIds?: string[];
 };
 
 /**
@@ -66,11 +75,29 @@ export default async function documentUpdater(
     publish,
     collectionId,
     deprecatedReason,
+    ownerIds,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
   const cId = collectionId || document.collectionId;
+  const previousOwnerIds = document.ownerIds ?? [];
+
+  if (ownerIds) {
+    const validatedOwnerIds = await validateDocumentOwnerIds(
+      ctx,
+      ownerIds,
+      previousOwnerIds
+    );
+    const isChanged =
+      validatedOwnerIds.length !== previousOwnerIds.length ||
+      validatedOwnerIds.some((id) => !previousOwnerIds.includes(id));
+
+    if (isChanged) {
+      authorize(user, "manageOwners", document);
+      document.ownerIds = validatedOwnerIds;
+    }
+  }
 
   document.fill({
     title: title?.trim(),
@@ -146,6 +173,16 @@ export default async function documentUpdater(
     document.lastModifiedById = user.id;
     document.updatedBy = user;
     await document.saveWithCtx(ctx);
+  }
+
+  if (document.ownerIds !== previousOwnerIds) {
+    await createDocumentOwnerEvents(ctx, document, previousOwnerIds);
+    // The acting user can already manage the document.
+    await grantDocumentOwnerAccess(
+      ctx,
+      document,
+      difference(document.ownerIds, [...previousOwnerIds, user.id])
+    );
   }
 
   // Publishing can move the document to another collection, and the save

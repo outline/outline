@@ -1,15 +1,20 @@
 import invariant from "invariant";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import {
+  CollectionPermission,
+  PlanFeature,
+  TeamPreference,
+} from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { allow, can } from "./cancan";
 import {
   and,
-  isCollectionOwner,
+  isPersonalCollectionOwner,
   isCollectionWritable,
   isTeamAdmin,
   isTeamModel,
   isTeamMutable,
   or,
+  teamHasEntitlement,
 } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
@@ -54,7 +59,7 @@ allow(User, "read", Collection, (user, collection) => {
     return false;
   }
   if (collection.isPersonal) {
-    return isCollectionOwner(user, collection);
+    return isPersonalCollectionOwner(user, collection);
   }
   if (user.isAdmin) {
     return true;
@@ -105,7 +110,7 @@ allow(
     }
 
     if (collection.isPersonal) {
-      return isCollectionOwner(user, collection);
+      return isPersonalCollectionOwner(user, collection);
     }
 
     if (collection.isPrivate || user.isGuest) {
@@ -140,7 +145,7 @@ allow(User, "shareDocument", Collection, (user, collection) => {
     return false;
   }
   if (collection.isPersonal) {
-    return isCollectionOwner(user, collection);
+    return isPersonalCollectionOwner(user, collection);
   }
   if (!collection.isPrivate && user.isAdmin) {
     return true;
@@ -169,7 +174,7 @@ allow(User, "updateDocument", Collection, (user, collection) => {
     return false;
   }
   if (collection.isPersonal) {
-    return isCollectionOwner(user, collection);
+    return isPersonalCollectionOwner(user, collection);
   }
 
   if (
@@ -201,7 +206,7 @@ allow(
       return false;
     }
     if (collection.isPersonal) {
-      return isCollectionOwner(user, collection);
+      return isPersonalCollectionOwner(user, collection);
     }
 
     if (
@@ -258,7 +263,7 @@ allow(User, "update", Collection, (user, collection) =>
     !!collection?.isActive,
     isOwnerIfPersonal(user, collection),
     or(
-      isCollectionOwner(user, collection),
+      isPersonalCollectionOwner(user, collection),
       isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
@@ -295,6 +300,14 @@ allow(User, "manageUsers", Collection, (user, collection) =>
   )
 );
 
+allow(User, "manageOwners", Collection, (user, collection) =>
+  and(
+    !!collection?.isActive,
+    teamHasEntitlement(user.team, PlanFeature.DocumentOwners),
+    can(user, "manageUsers", collection)
+  )
+);
+
 allow(User, "export", Collection, (user, collection) =>
   and(
     !!collection,
@@ -302,7 +315,7 @@ allow(User, "export", Collection, (user, collection) =>
     can(user, "download", collection),
     isOwnerIfPersonal(user, collection),
     or(
-      isCollectionOwner(user, collection),
+      isPersonalCollectionOwner(user, collection),
       isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
@@ -327,7 +340,7 @@ allow(User, "restore", Collection, (user, collection) =>
     !collection?.isActive,
     isOwnerIfPersonal(user, collection),
     or(
-      isCollectionOwner(user, collection),
+      isPersonalCollectionOwner(user, collection),
       isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
@@ -353,7 +366,7 @@ allow(User, "updateDeprecatedReason", Collection, (actor, collection) =>
  * @returns True if the collection is not personal or the actor owns it.
  */
 function isOwnerIfPersonal(user: User, collection: Collection | null) {
-  return !collection?.isPersonal || isCollectionOwner(user, collection);
+  return !collection?.isPersonal || isPersonalCollectionOwner(user, collection);
 }
 
 function includesMembership(

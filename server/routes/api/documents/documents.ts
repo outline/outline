@@ -31,6 +31,10 @@ import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentRestorer from "@server/commands/documentRestorer";
+import {
+  grantDocumentOwnerAccess,
+  removeDocumentOwner,
+} from "@server/commands/documentOwners";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
@@ -1835,6 +1839,7 @@ router.post(
       preferences,
       templateId,
       createdAt,
+      ownerIds,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1880,6 +1885,7 @@ router.post(
       fullWidth,
       preferences,
       editorVersion,
+      ownerIds,
     });
 
     if (collection) {
@@ -1902,9 +1908,11 @@ router.post(
   async (ctx: APIContext<T.DocumentsAddUserReq>) => {
     const { transaction } = ctx.state;
     const { user: actor } = ctx.state.auth;
-    const { id, userId, permission } = ctx.input.body;
+    const { id, userId, permission, owner } = ctx.input.body;
 
-    if (userId === actor.id) {
+    // Users can only change their own ownership, not their own access.
+    const isSelf = userId === actor.id;
+    if (isSelf && owner === undefined) {
       throw ValidationError("You cannot invite yourself");
     }
 
@@ -1922,6 +1930,61 @@ router.post(
 
     authorize(actor, "manageUsers", document);
     authorize(actor, "read", user);
+
+    const previousOwnerIds = document.ownerIds ?? [];
+
+    if (isSelf && !owner) {
+      await removeDocumentOwner(ctx, document, userId);
+      const selfMembership = await UserMembership.findOne({
+        where: { documentId: id, userId },
+        transaction,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: selfMembership
+            ? [presentMembership(selfMembership)]
+            : [],
+          documents: [await presentDocument(ctx, document)],
+        },
+      };
+      return;
+    }
+
+    if (owner) {
+      // Lock the document so that concurrent invitations do not overwrite the
+      // owners added by each other.
+      const locked = await Document.unscoped().findOne({
+        attributes: ["id", "ownerIds"],
+        where: { id: document.id },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
+      });
+      document.ownerIds = locked.ownerIds ?? [];
+
+      const updated = await documentUpdater(ctx, {
+        document,
+        ownerIds: [...document.ownerIds, userId],
+      });
+      await grantDocumentOwnerAccess(ctx, updated, [userId]);
+
+      const membership = await UserMembership.findOne({
+        where: { documentId: id, userId },
+        transaction,
+        rejectOnEmpty: true,
+      });
+
+      ctx.body = {
+        data: {
+          users: [presentUser(user)],
+          memberships: [presentMembership(membership)],
+          documents: [await presentDocument(ctx, updated)],
+        },
+      };
+      return;
+    }
 
     const UserMemberships = await UserMembership.findAll({
       where: {
@@ -1969,10 +2032,20 @@ router.post(
       );
     }
 
+    // Owners must be able to manage the document, so other access removes the
+    // ownership.
+    if (owner === false || membership.permission !== DocumentPermission.Admin) {
+      await removeDocumentOwner(ctx, document, userId);
+    }
+
     ctx.body = {
       data: {
         users: [presentUser(user)],
         memberships: [presentMembership(membership)],
+        documents:
+          document.ownerIds !== previousOwnerIds
+            ? [await presentDocument(ctx, document)]
+            : [],
       },
     };
   }
@@ -2023,6 +2096,7 @@ router.post(
     }
 
     await membership.destroy(ctx.context);
+    await removeDocumentOwner(ctx, document, userId);
 
     ctx.body = {
       success: true,

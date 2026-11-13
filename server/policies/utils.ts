@@ -92,7 +92,7 @@ export function isTeamAdmin(
  * @param collection The collection to check
  * @returns True if the collection is personal and owned by the actor
  */
-export function isCollectionOwner(
+export function isPersonalCollectionOwner(
   actor: User,
   collection: Collection | null | undefined
 ): boolean {

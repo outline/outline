@@ -8,6 +8,7 @@ import { flattenTree } from "@shared/utils/tree";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import { HeaderMeta, Separator } from "~/components/HeaderMeta";
+import OwnersLabel from "~/components/OwnersLabel";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -76,6 +77,12 @@ export const CollectionMeta = observer(function CollectionMeta_({
         <span>
           <Separator />
           {t("{{ count }} document", { count: documentCount })}
+        </span>
+      )}
+      {collection.ownerIds.length > 0 && (
+        <span>
+          <Separator />
+          <OwnersLabel ownerIds={collection.ownerIds} />
         </span>
       )}
     </Meta>
