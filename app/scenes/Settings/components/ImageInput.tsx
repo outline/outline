@@ -21,25 +21,34 @@ type Props = ImageUploadProps & {
   model: IAvatar;
   /** Alt text for the avatar image. */
   alt: string;
-  /**
-   * Whether to render the remove button when the model has an existing
-   * avatar. Defaults to true.
-   */
-  showRemoveOption?: boolean;
   /** The shape of the avatar preview. Defaults to round. */
   variant?: AvatarVariant;
+  /**
+   * Whether to render the change and remove buttons below the image. Hide
+   * them when the parent provides its own controls. Defaults to true.
+   */
+  showActions?: boolean;
+  /** Handle to open the file picker from the parent. */
+  ref?: React.Ref<ImageUploadHandle>;
 };
 
 function ImageInput({
   model,
   onSuccess,
   alt,
-  showRemoveOption = true,
   variant = AvatarVariant.Round,
+  showActions = true,
+  ref,
   ...rest
 }: Props) {
   const { t } = useTranslation();
   const uploadRef = React.useRef<ImageUploadHandle>(null);
+
+  React.useImperativeHandle(
+    ref,
+    () => ({ open: () => uploadRef.current?.open() }),
+    []
+  );
 
   const handleChange = React.useCallback(() => {
     uploadRef.current?.open();
@@ -69,20 +78,22 @@ function ImageInput({
           </Flex>
         </ImageUpload>
       </ImageBox>
-      <Actions gap={4} justify="center">
-        <Tooltip content={t("Change image")}>
-          <NudeButton aria-label={t("Change image")} onClick={handleChange}>
-            <EditIcon />
-          </NudeButton>
-        </Tooltip>
-        {model.avatarUrl && showRemoveOption && (
-          <Tooltip content={t("Remove image")}>
-            <NudeButton aria-label={t("Remove image")} onClick={handleRemove}>
-              <TrashIcon />
+      {showActions && (
+        <Actions gap={4} justify="center">
+          <Tooltip content={t("Change image")}>
+            <NudeButton aria-label={t("Change image")} onClick={handleChange}>
+              <EditIcon />
             </NudeButton>
           </Tooltip>
-        )}
-      </Actions>
+          {model.avatarUrl && (
+            <Tooltip content={t("Remove image")}>
+              <NudeButton aria-label={t("Remove image")} onClick={handleRemove}>
+                <TrashIcon />
+              </NudeButton>
+            </Tooltip>
+          )}
+        </Actions>
+      )}
     </Wrapper>
   );
 }
