@@ -1387,6 +1387,8 @@
   "Synced <2></2>": "同期済み <2></2>",
   "Date created": "作成日時",
   "Crop image": "画像を切り取る",
+  "Change image": "画像を変更",
+  "Remove image": "画像を削除",
   "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first": "ご使用のブラウザではHEIC画像を読み込めません。まず画像をJPEGまたはPNGに変換してください",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>.": "別のインスタンスの JSON オプションから以前にエクスポートした zip ファイルをインポートできます。{{ appName }} で、設定サイドバーの <em>エクスポート</em> を開き、<em>データをエクスポート</em> をクリックします。",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "{{appName}} の JSON エクスポートオプションから zip ファイルをドラッグ&ドロップするか、クリックしてアップロードします",
