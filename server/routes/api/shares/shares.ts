@@ -1,5 +1,4 @@
 import Router from "@koa/router";
-import { compact, keyBy } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { randomString } from "@shared/random";
@@ -213,18 +212,14 @@ router.post(
           required: false,
         },
         {
-          model: Document,
+          // Memberships are needed to compute the share policies.
+          model: Document.scope([
+            "defaultScope",
+            { method: ["withMembership", user.id] },
+          ]),
           required: false,
           paranoid: true,
           as: "document",
-          include: [
-            {
-              model: Collection.scope({
-                method: ["withMembership", user.id],
-              }),
-              as: "collection",
-            },
-          ],
         },
         {
           model: User,
@@ -249,22 +244,6 @@ router.post(
       }),
       Share.count(options),
     ]);
-
-    // The share policies need document memberships, load them for this page only.
-    const documentIds = compact(shares.map((share) => share.documentId));
-    if (documentIds.length) {
-      const documents = await Document.scope([
-        "defaultScope",
-        { method: ["withMembership", user.id] },
-      ]).findAll({ where: { id: documentIds } });
-      const documentsById = keyBy(documents, (document) => document.id);
-
-      for (const share of shares) {
-        if (share.documentId && documentsById[share.documentId]) {
-          share.document = documentsById[share.documentId];
-        }
-      }
-    }
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
