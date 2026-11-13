@@ -9,7 +9,7 @@ import {
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
-import type { User } from "@server/models";
+import type { User, UserAuthentication } from "@server/models";
 import {
   AuthenticationProvider,
   Collection,
@@ -84,6 +84,8 @@ export type AccountProvisionerResult = {
   team: Team;
   isNewTeam: boolean;
   isNewUser: boolean;
+  /** The stored authentication for this sign-in, if one was saved. */
+  authentication?: UserAuthentication;
 };
 
 async function accountProvisioner(
@@ -254,6 +256,7 @@ async function accountProvisioner(
     team,
     isNewUser,
     isNewTeam,
+    authentication: result.authentication ?? undefined,
   };
 }
 
