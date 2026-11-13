@@ -151,7 +151,7 @@
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
     "i18next": "^22.5.1",
-    "i18next-fs-backend": "^2.6.9",
+    "i18next-fs-backend": "^2.6.10",
     "i18next-http-backend": "^4.0.10",
     "invariant": "^2.2.4",
     "ioredis": "^5.11.1",
