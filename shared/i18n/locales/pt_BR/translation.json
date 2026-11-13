@@ -1387,6 +1387,8 @@
   "Synced <2></2>": "Sincronizado <2></2>",
   "Date created": "Data de criação",
   "Crop image": "Cortar imagem",
+  "Change image": "Alterar imagem",
+  "Remove image": "Remover imagem",
   "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first": "Seu navegador não consegue ler imagens HEIC – primeiro, converta a imagem para JPEG ou PNG",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>.": "Você pode importar um arquivo zip que foi exportado anteriormente da opção JSON em outra instância. Em {{ appName }}, abra <em>Exportar</em> na barra lateral de Configurações e clique em <em>Exportar dados</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Arraste e solte o arquivo zip da opção de exportação JSON em {{appName}}, ou clique para realizar o upload",
