@@ -96,48 +96,59 @@ router.post(
         timedOut.push(section);
       });
 
+    // Presentation is part of each section, as presenters can also query.
     const [documents, { users, familiarity }, groups, collections] =
       await Promise.all([
         withinLimit(
           "documents",
-          () =>
-            SearchProviderManager.getProvider().searchTitlesForUser(actor, {
-              query,
-              offset,
-              limit,
-              filter: {
-                operator: "AND",
-                filters: [
-                  { field: "archivedAt", operator: "isNull" },
-                  { field: "publishedAt", operator: "isNotNull" },
-                ],
-              },
-            }),
+          async () =>
+            presentDocuments(
+              ctx,
+              await SearchProviderManager.getProvider().searchTitlesForUser(
+                actor,
+                {
+                  query,
+                  offset,
+                  limit,
+                  filter: {
+                    operator: "AND",
+                    filters: [
+                      { field: "archivedAt", operator: "isNull" },
+                      { field: "publishedAt", operator: "isNotNull" },
+                    ],
+                  },
+                }
+              )
+            ),
           []
         ),
         withinLimit("users", suggestUsers, { users: [], familiarity: {} }),
         withinLimit(
           "groups",
-          async () =>
-            can(actor, "listGroups", actor.team)
-              ? Group.findAll({
-                  where: {
-                    teamId: actor.teamId,
-                    disableMentions: false,
-                    [Op.and]: query
-                      ? Sequelize.literal(
-                          `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                        )
-                      : {},
-                  },
-                  order: [["name", "ASC"]],
-                  replacements: {
-                    query: QueryHelper.likeContains(query ?? ""),
-                  },
-                  offset,
-                  limit,
-                })
-              : [],
+          async () => {
+            if (!can(actor, "listGroups", actor.team)) {
+              return [];
+            }
+
+            const found = await Group.findAll({
+              where: {
+                teamId: actor.teamId,
+                disableMentions: false,
+                [Op.and]: query
+                  ? Sequelize.literal(
+                      `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                    )
+                  : {},
+              },
+              order: [["name", "ASC"]],
+              replacements: {
+                query: QueryHelper.likeContains(query ?? ""),
+              },
+              offset,
+              limit,
+            });
+            return Promise.all(found.map((group) => presentGroup(group)));
+          },
           []
         ),
         withinLimit(
@@ -162,22 +173,17 @@ router.post(
       );
     }
 
-    const [presentedDocuments, presentedGroups] = await Promise.all([
-      presentDocuments(ctx, documents),
-      Promise.all(groups.map((group) => presentGroup(group))),
-    ]);
-
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        documents: presentedDocuments,
+        documents,
         users: users.map((user) =>
           presentUser(user, {
             includeEmail: !!can(actor, "readEmail", user),
             includeDetails: !!can(actor, "readDetails", user),
           })
         ),
-        groups: presentedGroups,
+        groups,
         collections,
         familiarity,
       },
