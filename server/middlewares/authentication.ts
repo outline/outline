@@ -10,7 +10,7 @@ import tracer, {
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
 import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
-import { getJWTPayload, getUserForJWT } from "@server/utils/jwt";
+import { getUserForJWT } from "@server/utils/jwt";
 import {
   AuthenticationError,
   AuthorizationError,
@@ -274,16 +274,11 @@ async function validateAuthentication(
     await apiKey.updateActiveAt();
   } else {
     // Session tokens are long-lived, so keep them out of transports that end up
-    // in browser history, referrers, and request logs. Short-lived single-use
-    // tokens such as transfer are still accepted from anywhere.
+    // in browser history, referrers, and request logs.
     if (transport !== "cookie" && transport !== "header") {
-      const payload = getJWTPayload(token);
-
-      if (payload.type === "session") {
-        throw AuthenticationError(
-          "Session token must be passed in the cookie or Authorization header"
-        );
-      }
+      throw AuthenticationError(
+        "Session token must be passed in the cookie or Authorization header"
+      );
     }
 
     type = AuthenticationType.APP;
