@@ -1,4 +1,4 @@
-import { darken, lighten, transparentize } from "polished";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
@@ -64,19 +64,11 @@ const Rows = styled.div<{ $danger?: boolean }>`
   ${(props) =>
     props.$danger &&
     css`
-      margin-top: 16px;
+      /* Inset by the shadow width so the shadow aligns with the content. */
+      margin: 24px 8px 8px;
       padding: 0 16px;
       border: 1px solid ${transparentize(0.6, props.theme.danger)};
       border-radius: 8px;
-
-      /* Adjust the text color so it has sufficient contrast. */
-      h3,
-      p {
-        color: ${
-          props.theme.isDark
-            ? lighten(0.05, props.theme.danger)
-            : darken(0.1, props.theme.danger)
-        };
-      }
+      box-shadow: 0 0 0 8px ${transparentize(0.9, props.theme.danger)};
     `}
 `;
