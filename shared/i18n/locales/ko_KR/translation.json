@@ -1387,6 +1387,8 @@
   "Synced <2></2>": "동기화됨<2></2>",
   "Date created": "생성 일자",
   "Crop image": "이미지 자르기",
+  "Change image": "이미지 변경",
+  "Remove image": "이미지 삭제",
   "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first": "브라우저에서 HEIC 이미지를 읽을 수 없습니다. 먼저 이미지를 JPEG 또는 PNG로 변환하세요",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>.": "다른 인스턴스의 JSON 옵션에서 이전에 내보낸 ZIP 파일을 가져올 수 있습니다. {{ appName }}에서 설정 사이드바의 <em>내보내기</em>를 열고 <em>데이터 내보내기</em>를 클릭하세요.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "{{appName}}의 JSON 내보내기 옵션에서 zip 파일을 드래그 앤 드롭하거나 클릭하여 업로드",
