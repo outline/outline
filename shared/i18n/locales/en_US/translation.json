@@ -1387,6 +1387,8 @@
   "Synced <2></2>": "Synced <2></2>",
   "Date created": "Date created",
   "Crop image": "Crop image",
+  "Change image": "Change image",
+  "Remove image": "Remove image",
   "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first": "Your browser cannot read HEIC images – please convert the image to JPEG or PNG first",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>.": "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export data</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload",

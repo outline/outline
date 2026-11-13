@@ -1,13 +1,19 @@
-import { EditIcon } from "outline-icons";
+import { observer } from "mobx-react";
+import { EditIcon, ExportIcon, TrashIcon } from "outline-icons";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import type { IAvatar } from "~/components/Avatar";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { AvatarVariant } from "~/components/Avatar/Avatar";
-import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import type { Props as ImageUploadProps } from "./ImageUpload";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
+import type {
+  ImageUploadHandle,
+  Props as ImageUploadProps,
+} from "./ImageUpload";
 import ImageUpload from "./ImageUpload";
 
 type Props = ImageUploadProps & {
@@ -16,15 +22,15 @@ type Props = ImageUploadProps & {
   /** Alt text for the avatar image. */
   alt: string;
   /**
-   * Whether to render the inline "Remove" button when the model has an
-   * existing avatar. Defaults to true.
+   * Whether to render the remove button when the model has an existing
+   * avatar. Defaults to true.
    */
   showRemoveOption?: boolean;
   /** The shape of the avatar preview. Defaults to round. */
   variant?: AvatarVariant;
 };
 
-export default function ImageInput({
+function ImageInput({
   model,
   onSuccess,
   alt,
@@ -33,11 +39,21 @@ export default function ImageInput({
   ...rest
 }: Props) {
   const { t } = useTranslation();
+  const uploadRef = React.useRef<ImageUploadHandle>(null);
+
+  const handleChange = React.useCallback(() => {
+    uploadRef.current?.open();
+  }, []);
+
+  const handleRemove = React.useCallback(() => {
+    void onSuccess(null);
+  }, [onSuccess]);
 
   return (
-    <Flex gap={8} justify="space-between">
+    <Wrapper column align="center" gap={4}>
       <ImageBox $variant={variant}>
         <ImageUpload
+          ref={uploadRef}
           onSuccess={onSuccess}
           submitText={t("Crop image")}
           {...rest}
@@ -49,18 +65,42 @@ export default function ImageInput({
             alt={alt}
           />
           <Flex auto align="center" justify="center" className="upload">
-            <EditIcon />
+            <ExportIcon />
           </Flex>
         </ImageUpload>
       </ImageBox>
-      {model.avatarUrl && showRemoveOption && (
-        <Button onClick={() => onSuccess(null)} neutral>
-          {t("Remove")}
-        </Button>
-      )}
-    </Flex>
+      <Actions gap={4} justify="center">
+        <Tooltip content={t("Change image")}>
+          <NudeButton aria-label={t("Change image")} onClick={handleChange}>
+            <EditIcon />
+          </NudeButton>
+        </Tooltip>
+        {model.avatarUrl && showRemoveOption && (
+          <Tooltip content={t("Remove image")}>
+            <NudeButton aria-label={t("Remove image")} onClick={handleRemove}>
+              <TrashIcon />
+            </NudeButton>
+          </Tooltip>
+        )}
+      </Actions>
+    </Wrapper>
   );
 }
+
+export default observer(ImageInput);
+
+const Wrapper = styled(Flex)`
+  width: fit-content;
+`;
+
+const Actions = styled(Flex)`
+  color: ${s("textSecondary")};
+
+  button:hover,
+  button:focus-visible {
+    color: ${s("text")};
+  }
+`;
 
 const avatarStyles = `
   width: ${AvatarSize.Upload}px;
