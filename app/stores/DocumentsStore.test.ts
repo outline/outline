@@ -1,6 +1,36 @@
 import stores from "~/stores";
+import { client } from "~/utils/ApiClient";
 
 describe("DocumentsStore", () => {
+  describe("fetch", () => {
+    it("should request again when forced while a fetch is in flight", async () => {
+      const id = "6a1f0c3e-2b4d-4e5f-8a9b-0c1d2e3f4a5b";
+      let resolveFirst = () => {};
+      vi.mocked(client.post).mockClear();
+      vi.mocked(client.post)
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirst = () =>
+              resolve({ data: { document: { id, title: "Old" } } });
+          })
+        )
+        .mockResolvedValueOnce({ data: { document: { id, title: "New" } } });
+
+      const first = stores.documents.fetch(id);
+      const joined = stores.documents.fetch(id);
+      const forced = stores.documents.fetch(id, { force: true });
+      resolveFirst();
+
+      expect(await first).toBe(await joined);
+      expect((await forced).title).toBe("New");
+      expect(
+        vi
+          .mocked(client.post)
+          .mock.calls.filter(([path]) => path === "/documents.info")
+      ).toHaveLength(2);
+    });
+  });
+
   describe("get", () => {
     it("should return a document by id or by the urlId in a slug", () => {
       const doc = stores.documents.add({

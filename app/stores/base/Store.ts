@@ -22,6 +22,7 @@ import { type JSONObject } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import type Policy from "~/models/Policy";
 import type ArchivableModel from "~/models/base/ArchivableModel";
+import { KeyedCoalescedFetch } from "~/models/base/CoalescedFetch";
 import type Model from "~/models/base/Model";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
@@ -89,8 +90,8 @@ export default abstract class Store<T extends Model> {
   @observable
   isLoaded = false;
 
-  // oxlint-disable-next-line no-explicit-any
-  requests: Map<string, Promise<any>> = new Map();
+  /** Calls to `Model.loadRelations` that are in flight, keyed by model id. */
+  relationFetches = new KeyedCoalescedFetch<unknown>();
 
   model: ModelClass<T>;
 
@@ -488,25 +489,24 @@ export default abstract class Store<T extends Model> {
       return item;
     }
 
-    if (this.requests.has(id)) {
-      return this.requests.get(id);
-    }
+    return this.fetches.run(
+      id,
+      async () => {
+        runInAction(() => {
+          this.isFetching = true;
+        });
 
-    this.isFetching = true;
+        try {
+          const res = await client.post(`/${this.apiEndpoint}.info`, {
+            id,
+          });
 
-    const promise = new Promise<T>((resolve, reject) => {
-      client
-        .post(`/${this.apiEndpoint}.info`, {
-          id,
-        })
-        .then((res) =>
-          runInAction(() => {
+          return runInAction(() => {
             invariant(res?.data, "Data should be available");
             this.addPolicies(res.policies);
-            resolve(this.add(accessor(res)));
-          })
-        )
-        .catch((err) => {
+            return this.add(accessor(res));
+          });
+        } catch (err) {
           if (
             err instanceof AuthorizationError ||
             err instanceof NotFoundError
@@ -514,16 +514,15 @@ export default abstract class Store<T extends Model> {
             this.remove(id);
           }
 
-          reject(err);
-        })
-        .finally(() => {
-          this.requests.delete(id);
-          this.isFetching = false;
-        });
-    });
-
-    this.requests.set(id, promise);
-    return promise;
+          throw err;
+        } finally {
+          runInAction(() => {
+            this.isFetching = false;
+          });
+        }
+      },
+      Boolean(options.force)
+    );
   }
 
   // Not annotated: subclasses replace this field, and MobX makes an annotated
@@ -685,6 +684,9 @@ export default abstract class Store<T extends Model> {
       });
     }
   }
+
+  /** Requests by `fetch` that are in flight, keyed by model id. */
+  protected fetches = new KeyedCoalescedFetch<T>();
 
   /** Results of `fetchAll` calls keyed by their params, see `fetchAllIfNeeded`. */
   private fetchAllResults = new Map<string, PaginatedResponse<T>>();

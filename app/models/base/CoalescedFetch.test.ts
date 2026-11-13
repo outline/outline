@@ -1,4 +1,4 @@
-import { CoalescedFetch } from "./CoalescedFetch";
+import { CoalescedFetch, KeyedCoalescedFetch } from "./CoalescedFetch";
 
 function deferred() {
   let resolve = () => {};
@@ -76,5 +76,35 @@ describe("CoalescedFetch", () => {
     await queue.run(fetch);
 
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("KeyedCoalescedFetch", () => {
+  it("should share requests for the same key only", async () => {
+    const fetches = new KeyedCoalescedFetch<string>();
+    const fetch = vi.fn((value: string) => Promise.resolve(value));
+
+    const results = await Promise.all([
+      fetches.run("a", () => fetch("a1")),
+      fetches.run("a", () => fetch("a2")),
+      fetches.run("b", () => fetch("b1")),
+    ]);
+
+    expect(results).toEqual(["a1", "a1", "b1"]);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("should return the result of the follow-up request to a forced call", async () => {
+    const fetches = new KeyedCoalescedFetch<number>();
+    let calls = 0;
+    const fetch = () => Promise.resolve(++calls);
+
+    const results = await Promise.all([
+      fetches.run("a", fetch),
+      fetches.run("a", fetch, true),
+    ]);
+
+    expect(results).toEqual([1, 2]);
+    expect(await fetches.run("a", fetch)).toBe(3);
   });
 });
