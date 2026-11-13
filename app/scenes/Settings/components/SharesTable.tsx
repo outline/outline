@@ -1,8 +1,10 @@
+import { format as formatDate } from "date-fns";
 import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { dateLocale } from "@shared/utils/date";
 import type Share from "~/models/Share";
 import Badge from "~/components/Badge";
 import { HEADER_HEIGHT } from "~/components/Header";
@@ -11,6 +13,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import Text from "~/components/Text";
 import { UserLabel } from "~/components/UserLabel";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -19,6 +22,7 @@ import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import useStores from "~/hooks/useStores";
+import useUserLocale from "~/hooks/useUserLocale";
 import ShareSelectionToolbar from "./ShareSelectionToolbar";
 
 const ROW_HEIGHT = 50;
@@ -50,6 +54,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
   const { policies } = useStores();
+  const userLocale = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
   const isRowSelectable = useCallback(
@@ -115,6 +120,29 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             ) : null,
           width: "2fr",
         },
+        {
+          type: "data",
+          id: "expiresAt",
+          header: t("Expires"),
+          accessor: (share) => share.expiresAt,
+          component: (share) =>
+            !share.expiresAt ? (
+              <Text type="tertiary">{t("No expiry")}</Text>
+            ) : share.isExpired ? (
+              <Text type="danger">
+                {t("Expired")} <Time dateTime={share.expiresAt} addSuffix />
+              </Text>
+            ) : (
+              <Text type="tertiary">
+                <Time dateTime={share.expiresAt}>
+                  {formatDate(Date.parse(share.expiresAt), "MMM dd, yyyy", {
+                    locale: dateLocale(userLocale),
+                  })}
+                </Time>
+              </Text>
+            ),
+          width: "2fr",
+        },
         hasDomain
           ? {
               type: "data",
@@ -143,7 +171,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, hasDomain, canManage, formatNumber]
+    [t, userLocale, hasDomain, canManage, formatNumber]
   );
 
   return (
