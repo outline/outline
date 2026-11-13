@@ -150,7 +150,7 @@ export default abstract class APIImportTask<
             },
           ],
           transaction,
-          lock: { level: Transaction.LOCK.UPDATE, of: ImportTask },
+          lock: { level: Transaction.LOCK.NO_KEY_UPDATE, of: ImportTask },
         }
       );
 

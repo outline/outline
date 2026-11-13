@@ -99,7 +99,7 @@ router.post(
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: AccessRequest },
     });
 
     const document = await Document.findByPk(accessRequest.documentId, {
@@ -151,7 +151,7 @@ router.post(
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: { level: transaction.LOCK.UPDATE, of: AccessRequest },
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: AccessRequest },
     });
 
     const document = await Document.findByPk(accessRequest.documentId, {

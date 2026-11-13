@@ -121,7 +121,7 @@ router.post(
 
     const webhookSubscription = await WebhookSubscription.findByPk(id, {
       rejectOnEmpty: true,
-      lock: { level: transaction.LOCK.UPDATE, of: WebhookSubscription },
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: WebhookSubscription },
       transaction,
     });
 
@@ -152,7 +152,7 @@ router.post(
 
     const webhookSubscription = await WebhookSubscription.findByPk(id, {
       rejectOnEmpty: true,
-      lock: { level: transaction.LOCK.UPDATE, of: WebhookSubscription },
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: WebhookSubscription },
       transaction,
     });
 

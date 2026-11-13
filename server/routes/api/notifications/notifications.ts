@@ -49,7 +49,7 @@ const unsubscribe = async (ctx: APIContext<T.NotificationsUnsubscribeReq>) => {
 
   const user = await User.scope("withTeam").findByPk(userId, {
     rejectOnEmpty: true,
-    lock: { level: transaction.LOCK.UPDATE, of: User },
+    lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: User },
     transaction,
   });
 

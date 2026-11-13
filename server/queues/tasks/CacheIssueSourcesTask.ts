@@ -27,7 +27,10 @@ export default class CacheIssueSourcesTask extends BaseTask<Props> {
     const sources = await plugin.value.fetchSources(integration);
 
     await sequelize.transaction(async (transaction) => {
-      await integration.reload({ transaction, lock: transaction.LOCK.UPDATE });
+      await integration.reload({
+        transaction,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
+      });
       integration.issueSources = sources;
       await integration.save({ transaction });
     });

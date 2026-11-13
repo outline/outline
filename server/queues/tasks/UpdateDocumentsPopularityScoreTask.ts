@@ -418,10 +418,11 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     // Update documents in a single batch to improve performance and reduce round-trips.
     // We use unnest with multiple arrays to ensure the IDs and scores stay aligned.
     // We also use SKIP LOCKED to avoid waiting on locked rows from other concurrent tasks.
+    // NO KEY UPDATE does not block the KEY SHARE locks taken by inserts that reference documents.
     await sequelize.query(
       `
       WITH lockable AS (
-        SELECT id FROM documents WHERE id = ANY(ARRAY[:ids]::uuid[]) FOR UPDATE SKIP LOCKED
+        SELECT id FROM documents WHERE id = ANY(ARRAY[:ids]::uuid[]) FOR NO KEY UPDATE SKIP LOCKED
       )
       UPDATE documents AS d
       SET "popularityScore" = s.score
