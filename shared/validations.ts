@@ -100,6 +100,9 @@ export const GroupValidation = {
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,
+
+  /** The maximum number of entries in an imported zip archive */
+  maxZipEntries: 250_000,
 };
 
 export const OAuthClientValidation = {

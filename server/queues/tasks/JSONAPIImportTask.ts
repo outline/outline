@@ -24,6 +24,7 @@ import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
+import { ImportValidation } from "@shared/validations";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import type {
@@ -240,6 +241,11 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
               `Could not parse ${node.name}. ${err instanceof Error ? err.message : "unknown error"}`
             );
           }
+        },
+        // Text read from the archive may not exceed the upload size limit.
+        {
+          maxEntries: ImportValidation.maxZipEntries,
+          maxTotalSize: maxJSONSize,
         }
       );
 

@@ -28,6 +28,13 @@ export interface ZipEntryHandle {
   readBuffer(maxSize: number): Promise<Buffer>;
 }
 
+export interface ZipWalkOptions {
+  /** Maximum number of entries the archive may contain. */
+  maxEntries?: number;
+  /** Maximum total bytes that may be read into memory across all entries. */
+  maxTotalSize?: number;
+}
+
 export interface ZipTreeNode {
   /** The file name (last path segment) including extension. */
   name: string;
@@ -110,15 +117,20 @@ export default class ZipHelper {
    *               the zip contents already in memory.
    * @param onEntry Handler invoked for each entry. Skip an entry by returning
    *                without calling `entry.readBuffer(maxSize)`.
+   * @param options Limits on the entry count and total bytes read.
    * @returns Promise that resolves once the archive has been fully walked.
-   * @throws {FileImportError} if the source is not a readable zip archive.
+   * @throws {FileImportError} if the source is not a readable zip archive, or
+   *   exceeds the given limits.
    */
   public static walk(
     source: string | Buffer,
-    onEntry: (entry: ZipEntryHandle) => Promise<void> | void
+    onEntry: (entry: ZipEntryHandle) => Promise<void> | void,
+    options: ZipWalkOptions = {}
   ): Promise<void> {
+    const { maxEntries = Infinity, maxTotalSize = Infinity } = options;
+
     return new Promise((resolve, reject) => {
-      const options = {
+      const openOptions = {
         lazyEntries: true,
         autoClose: true,
         decodeStrings: false,
@@ -132,7 +144,19 @@ export default class ZipHelper {
           return reject(ZipHelper.toArchiveError(err));
         }
 
+        // The count comes from the central directory, so it is known before
+        // any entry is read.
+        if (zipfile.entryCount > maxEntries) {
+          zipfile.close();
+          return reject(
+            FileImportError(
+              `The archive contains too many files - the maximum is ${maxEntries.toLocaleString()}`
+            )
+          );
+        }
+
         let settled = false;
+        let totalRead = 0;
         const fail = (error: Error) => {
           if (settled) {
             return;
@@ -157,8 +181,15 @@ export default class ZipHelper {
             isDirectory: fileName.endsWith("/"),
             readBuffer: (maxSize) =>
               new Promise<Buffer>((res, rej) => {
-                if (entry.uncompressedSize > maxSize) {
-                  return rej(ZipHelper.entryTooLargeError(fileName, maxSize));
+                const remaining = maxTotalSize - totalRead;
+                const limit = Math.min(maxSize, remaining);
+                const tooLargeError = () =>
+                  maxSize <= remaining
+                    ? ZipHelper.entryTooLargeError(fileName, maxSize)
+                    : ZipHelper.archiveTooLargeError(maxTotalSize);
+
+                if (entry.uncompressedSize > limit) {
+                  return rej(tooLargeError());
                 }
 
                 zipfile.openReadStream(entry, (rErr, readStream) => {
@@ -170,10 +201,8 @@ export default class ZipHelper {
                   let settled = false;
                   readStream.on("data", (chunk: Buffer) => {
                     bytesRead += chunk.length;
-                    if (bytesRead > maxSize) {
-                      readStream.destroy(
-                        ZipHelper.entryTooLargeError(fileName, maxSize)
-                      );
+                    if (bytesRead > limit) {
+                      readStream.destroy(tooLargeError());
                       return;
                     }
                     chunks.push(chunk);
@@ -181,6 +210,7 @@ export default class ZipHelper {
                   readStream.on("end", () => {
                     if (!settled) {
                       settled = true;
+                      totalRead += bytesRead;
                       res(Buffer.concat(chunks));
                     }
                   });
@@ -236,9 +266,9 @@ export default class ZipHelper {
       };
 
       if (typeof source === "string") {
-        yauzl.open(source, options, onOpen);
+        yauzl.open(source, openOptions, onOpen);
       } else {
-        yauzl.fromBuffer(source, options, onOpen);
+        yauzl.fromBuffer(source, openOptions, onOpen);
       }
     });
   }
@@ -256,12 +286,16 @@ export default class ZipHelper {
    *
    * @param filePath Local filesystem path to the zip.
    * @param onFile Optional per-file hook; not called for directory entries.
+   * @param options Limits on the entry count and total bytes read.
    * @returns A synthetic root node whose `children` are the zip's top-level
    *          entries.
+   * @throws {FileImportError} if the archive is unreadable or exceeds the
+   *   given limits.
    */
   public static async toFileTree(
     filePath: string,
-    onFile?: (node: ZipTreeNode, entry: ZipEntryHandle) => Promise<void> | void
+    onFile?: (node: ZipTreeNode, entry: ZipEntryHandle) => Promise<void> | void,
+    options?: ZipWalkOptions
   ): Promise<ZipTreeNode> {
     const root: ZipTreeNode = {
       name: "",
@@ -312,15 +346,19 @@ export default class ZipHelper {
       return current;
     };
 
-    await this.walk(filePath, async (entry) => {
-      const node = resolveNode(entry.fileName);
-      if (!node || entry.isDirectory) {
-        return;
-      }
-      if (onFile) {
-        await onFile(node, entry);
-      }
-    });
+    await this.walk(
+      filePath,
+      async (entry) => {
+        const node = resolveNode(entry.fileName);
+        if (!node || entry.isDirectory) {
+          return;
+        }
+        if (onFile) {
+          await onFile(node, entry);
+        }
+      },
+      options
+    );
 
     return root;
   }
@@ -331,6 +369,14 @@ export default class ZipHelper {
       return error;
     }
     return FileImportError("The file is not a valid zip archive");
+  }
+
+  private static archiveTooLargeError(maxTotalSize: number): Error {
+    return FileImportError(
+      `The archive is too large when uncompressed - the maximum is ${bytesToHumanReadable(
+        maxTotalSize
+      )}`
+    );
   }
 
   private static entryTooLargeError(fileName: string, maxSize: number): Error {
