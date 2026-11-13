@@ -2116,44 +2116,74 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-darwin-arm64@npm:1.11.2":
-  version: 1.11.2
-  resolution: "@firecrawl/pdf-inspector-darwin-arm64@npm:1.11.2"
+"@firecrawl/pdf-inspector-darwin-arm64@npm:1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector-darwin-arm64@npm:1.25.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.11.2":
-  version: 1.11.2
-  resolution: "@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.11.2"
+"@firecrawl/pdf-inspector-linux-arm64-gnu@npm:1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector-linux-arm64-gnu@npm:1.25.2"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@firecrawl/pdf-inspector-linux-arm64-musl@npm:1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector-linux-arm64-musl@npm:1.25.2"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector-linux-x64-gnu@npm:1.25.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.11.2":
-  version: 1.11.2
-  resolution: "@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.11.2"
+"@firecrawl/pdf-inspector-linux-x64-musl@npm:1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector-linux-x64-musl@npm:1.25.2"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector-win32-x64-msvc@npm:1.25.2"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@firecrawl/pdf-inspector@npm:^1.11.2":
-  version: 1.11.2
-  resolution: "@firecrawl/pdf-inspector@npm:1.11.2"
+"@firecrawl/pdf-inspector@npm:^1.25.2":
+  version: 1.25.2
+  resolution: "@firecrawl/pdf-inspector@npm:1.25.2"
   dependencies:
-    "@firecrawl/pdf-inspector-darwin-arm64": "npm:1.11.2"
-    "@firecrawl/pdf-inspector-linux-x64-gnu": "npm:1.11.2"
-    "@firecrawl/pdf-inspector-win32-x64-msvc": "npm:1.11.2"
+    "@firecrawl/pdf-inspector-darwin-arm64": "npm:1.25.2"
+    "@firecrawl/pdf-inspector-linux-arm64-gnu": "npm:1.25.2"
+    "@firecrawl/pdf-inspector-linux-arm64-musl": "npm:1.25.2"
+    "@firecrawl/pdf-inspector-linux-x64-gnu": "npm:1.25.2"
+    "@firecrawl/pdf-inspector-linux-x64-musl": "npm:1.25.2"
+    "@firecrawl/pdf-inspector-win32-x64-msvc": "npm:1.25.2"
   dependenciesMeta:
     "@firecrawl/pdf-inspector-darwin-arm64":
       optional: true
+    "@firecrawl/pdf-inspector-linux-arm64-gnu":
+      optional: true
+    "@firecrawl/pdf-inspector-linux-arm64-musl":
+      optional: true
     "@firecrawl/pdf-inspector-linux-x64-gnu":
+      optional: true
+    "@firecrawl/pdf-inspector-linux-x64-musl":
       optional: true
     "@firecrawl/pdf-inspector-win32-x64-msvc":
       optional: true
   bin:
     pdf-inspector: bin/pdf-inspector.mjs
-  checksum: 10c0/8470dac3f3b5b7b74e7e4df3f3783d3d1537765c6b578eaf96750b83abc7ec85c3cc4c7836285b73ba9e5638d2fb7ed634410e05c76ee5a3e1913f0780f998a9
+  checksum: 10c0/93ab7e1063d05e7327cdf45a567f7ff96da7880c37227b64b09c567c2a1fc636736cf04dd330a3cab71fdfda5e3a314659970bd3d08debb7cb5ab417b1af0987
   languageName: node
   linkType: hard
 
@@ -13989,7 +14019,7 @@ __metadata:
     "@emotion/is-prop-valid": "npm:^1.4.0"
     "@faker-js/faker": "npm:^10.6.0"
     "@fast-csv/parse": "npm:^5.0.8"
-    "@firecrawl/pdf-inspector": "npm:^1.11.2"
+    "@firecrawl/pdf-inspector": "npm:^1.25.2"
     "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
     "@fortawesome/free-brands-svg-icons": "npm:^7.3.1"
     "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"
