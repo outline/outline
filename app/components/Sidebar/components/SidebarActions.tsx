@@ -1,14 +1,15 @@
 import styled, { css } from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
-import { s } from "@shared/styles";
+import { hover, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 
 /**
  * Selector list matching a sidebar row that is hovered, pressed, or has one
  * of its menus open. Radix marks the open trigger with `data-state="open"`:
- * the row itself for a context menu, a descendant button for a dropdown.
+ * the row itself for a context menu, a descendant button for a dropdown. On
+ * touch devices `:hover` sticks after a tap, so only `:active` is matched.
  */
-export const hoveredOrMenuOpen = `&:hover, &:active, &[data-state="open"], &:has([data-state="open"])`;
+export const hoveredOrMenuOpen = `&:${hover}, &:active, &[data-state="open"], &:has([data-state="open"])`;
 
 /**
  * Trailing action buttons for a sidebar row. Hidden until the row reveals
