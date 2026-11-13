@@ -18,11 +18,12 @@ export interface ResolvedDragTarget {
 
 const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
 
-// Distance outside the content column in which the cursor still finds a block.
-const GUTTER_HIT_WIDTH = 60;
-
 // Inset from the content edges, so that posAtCoords lands inside the block.
 const CONTENT_INSET = 1;
+
+// Fraction of the content width, from the handle side, in which hover shows
+// the handle.
+const HOVER_ZONE_RATIO = 0.25;
 
 /**
  * A block in the editor that the drag handle can attach to. Holds the
@@ -46,8 +47,9 @@ export class DragTarget {
   }
 
   /**
-   * Finds the block under the cursor, also when the cursor is in the gutter
-   * to the side of the content.
+   * Finds the block at the cursor's height when the cursor is on the side
+   * where the handle renders, either outside the content or in the first 25%
+   * of the content width.
    *
    * @param view - the editor view.
    * @param event - the mouse event.
@@ -61,17 +63,20 @@ export class DragTarget {
     if (event.clientY < rect.top || event.clientY > rect.bottom) {
       return null;
     }
+
+    // Ignore the cursor over other regions, such as the sidebar or a modal.
+    const region = view.dom.closest("[role='main']");
+    if (
+      region &&
+      !(event.target instanceof Node && region.contains(event.target))
+    ) {
+      return null;
+    }
     const style = window.getComputedStyle(view.dom);
     const paddingLeft = parseFloat(style.paddingLeft) || 0;
     const paddingRight = parseFloat(style.paddingRight) || 0;
     const contentLeft = rect.left + paddingLeft + CONTENT_INSET;
     const contentRight = rect.right - paddingRight - CONTENT_INSET;
-    if (
-      event.clientX < contentLeft - GUTTER_HIT_WIDTH ||
-      event.clientX > contentRight + GUTTER_HIT_WIDTH
-    ) {
-      return null;
-    }
     const projectedX = Math.max(
       contentLeft,
       Math.min(contentRight, event.clientX)
@@ -80,27 +85,20 @@ export class DragTarget {
     // Mermaid diagrams hide their source code block and render an SVG widget
     // next to it — target the underlying code block but anchor the handle to
     // the visible diagram element.
-    const mermaid = this.mermaidFromEvent(view, event, projectedX);
-    if (mermaid) {
-      return mermaid;
+    const target =
+      this.mermaidFromEvent(view, event, projectedX) ??
+      this.blockFromCoords(view, projectedX, event.clientY);
+    if (!target) {
+      return null;
     }
 
-    const coords = view.posAtCoords({
-      left: projectedX,
-      top: event.clientY,
-    });
-    if (!coords) {
-      return null;
-    }
-    const resolved = this.resolvePos(view.state, coords.pos);
-    if (!resolved) {
-      return null;
-    }
-    const dom = view.nodeDOM(resolved.pos);
-    if (!(dom instanceof HTMLElement)) {
-      return null;
-    }
-    return new DragTarget(resolved.pos, dom, resolved.kind);
+    // Only show the handle when the cursor is on the side it renders on.
+    const zoneWidth = (contentRight - contentLeft) * HOVER_ZONE_RATIO;
+    const isRTL = window.getComputedStyle(target.element).direction === "rtl";
+    const inZone = isRTL
+      ? event.clientX >= contentRight - zoneWidth
+      : event.clientX <= contentLeft + zoneWidth;
+    return inZone ? target : null;
   }
 
   /**
@@ -256,6 +254,26 @@ export class DragTarget {
       }
     });
     return found;
+  }
+
+  private static blockFromCoords(
+    view: EditorView,
+    left: number,
+    top: number
+  ): DragTarget | null {
+    const coords = view.posAtCoords({ left, top });
+    if (!coords) {
+      return null;
+    }
+    const resolved = this.resolvePos(view.state, coords.pos);
+    if (!resolved) {
+      return null;
+    }
+    const dom = view.nodeDOM(resolved.pos);
+    if (!(dom instanceof HTMLElement)) {
+      return null;
+    }
+    return new DragTarget(resolved.pos, dom, resolved.kind);
   }
 
   private static mermaidFromEvent(
