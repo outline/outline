@@ -28,6 +28,18 @@ const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
     border-bottom: 0;
   }
 
+  /* Center switches, unless the text column also holds a field. */
+  &:has(> :last-child > [role="switch"]):not(
+      :has(> :first-child :is(input, textarea))
+    ) {
+    align-items: center;
+  }
+
+  /* A switch column is only as wide as the switch. */
+  &:has(> :last-child > [role="switch"]) > :last-child {
+    flex: 0 0 auto;
+  }
+
   ${breakpoint("mobile", "tablet")`
     &:has([role="switch"]) {
       gap: 16px;
@@ -73,11 +85,10 @@ const Column = styled.div`
       align-self: flex-end;
     }
 
-    ${breakpoint("tablet")`
-      > * {
-        align-self: initial;
-      }
-    `}
+    /* Text fields and selects fill the column. */
+    > :has(input:not([type="file"]), textarea, [role="combobox"]) {
+      align-self: stretch;
+    }
   }
 
   ${breakpoint("tablet")`
