@@ -95,8 +95,13 @@ export const setShareExpiry = createActionWithChildren({
   section: ShareSection,
   icon: <CalendarIcon />,
   visible: (context) => {
+    const { auth, policies } = context.stores;
     const share = singleActiveShare(context);
-    return !!share && !!context.stores.policies.abilities(share.id).update;
+    return (
+      !!share &&
+      !!policies.abilities(auth.team?.id || "").share &&
+      !!policies.abilities(share.id).update
+    );
   },
   children: [
     ...[1, 7, 30].map((days) =>
