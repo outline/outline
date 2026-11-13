@@ -259,6 +259,38 @@ describe("#passkeys.verifyRegistration", () => {
     expect(body.message).toEqual("Invalid authentication type");
   });
 
+  it("should consume the challenge on a failed attempt", async () => {
+    const team = await buildTeam({ passkeysEnabled: true });
+    const user = await buildUser({ teamId: team.id });
+
+    const options = await server.post(
+      "/auth/passkeys.generateRegistrationOptions",
+      user
+    );
+    const { data } = await options.json();
+
+    const failed = await server.post(
+      "/auth/passkeys.verifyRegistration",
+      user,
+      {
+        body: buildNoneAttestationResponse(
+          isoBase64URL.fromBuffer(randomBytes(32)),
+          data.rp.id
+        ),
+      }
+    );
+    expect(failed.status).toEqual(400);
+
+    const res = await server.post("/auth/passkeys.verifyRegistration", user, {
+      body: buildNoneAttestationResponse(data.challenge, data.rp.id),
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "No registration challenge found or challenge expired"
+    );
+  });
+
   it("should record the registration in the audit log", async () => {
     const planSpy = vi
       .spyOn(Team.prototype, "plan", "get")
@@ -288,5 +320,42 @@ describe("#passkeys.verifyRegistration", () => {
     expect(body.data[0].changes.attributes.credentialPublicKey).toBeUndefined();
 
     planSpy.mockRestore();
+  });
+});
+
+describe("#passkeys.verifyAuthentication", () => {
+  it("should consume the challenge on a failed attempt", async () => {
+    const options = await server.post(
+      "/auth/passkeys.generateAuthenticationOptions",
+      { body: {} }
+    );
+    const { data } = await options.json();
+    const body = {
+      challengeId: data.challengeId,
+      id: "unknown",
+      rawId: "unknown",
+      response: {
+        authenticatorData: "",
+        clientDataJSON: "",
+        signature: "",
+      },
+      type: "public-key",
+    };
+
+    const failed = await server.post("/auth/passkeys.verifyAuthentication", {
+      body,
+    });
+    const failedBody = await failed.json();
+    expect(failed.status).toEqual(400);
+    expect(failedBody.message).toContain("Passkey not found");
+
+    const res = await server.post("/auth/passkeys.verifyAuthentication", {
+      body,
+    });
+    const resBody = await res.json();
+    expect(res.status).toEqual(400);
+    expect(resBody.message).toEqual(
+      "No authentication challenge found or challenge expired"
+    );
   });
 });
