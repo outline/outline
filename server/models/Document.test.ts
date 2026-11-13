@@ -1056,7 +1056,7 @@ describe("tasks", () => {
 
 describe("isPrivate", () => {
   describe("cascadeRestrict", () => {
-    test("should remove sourced user memberships on document and children", async () => {
+    it("should remove sourced user memberships on document and children", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const viewer = await buildUser({ teamId: team.id });
@@ -1135,7 +1135,7 @@ describe("isPrivate", () => {
       ).toBe(1);
     });
 
-    test("should recreate sourced memberships from direct memberships after restrict", async () => {
+    it("should recreate sourced memberships from direct memberships after restrict", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const viewer = await buildUser({ teamId: team.id });
@@ -1224,7 +1224,7 @@ describe("isPrivate", () => {
       ).toBe(1);
     });
 
-    test("should set children to private", async () => {
+    it("should set children to private", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -1253,7 +1253,7 @@ describe("isPrivate", () => {
   });
 
   describe("cascadeUnrestrict", () => {
-    test("should recreate sourced memberships from parent", async () => {
+    it("should recreate sourced memberships from parent", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const viewer = await buildUser({ teamId: team.id });
@@ -1323,7 +1323,7 @@ describe("isPrivate", () => {
       ).toBe(1);
     });
 
-    test("should recreate sourced memberships from shared ancestor documents", async () => {
+    it("should recreate sourced memberships from shared ancestor documents", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const viewer = await buildUser({ teamId: team.id });
@@ -1407,7 +1407,7 @@ describe("isPrivate", () => {
       expect(dMembership!.sourceId).toBe(directMembership.id);
     });
 
-    test("should recreate sourced memberships from multiple shared ancestors", async () => {
+    it("should recreate sourced memberships from multiple shared ancestors", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const alice = await buildUser({ teamId: team.id });
@@ -1492,7 +1492,7 @@ describe("isPrivate", () => {
       expect(cBob!.sourceId).toBe(bobMembership.id);
     });
 
-    test("should recreate sourced memberships from direct memberships in subtree", async () => {
+    it("should recreate sourced memberships from direct memberships in subtree", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const bob = await buildUser({ teamId: team.id });
@@ -1562,7 +1562,7 @@ describe("isPrivate", () => {
       expect(docC.isPrivate).toBe(false);
     });
 
-    test("should cascade memberships to private children when added to private doc", async () => {
+    it("should cascade memberships to private children when added to private doc", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const viewer = await buildUser({ teamId: team.id });
@@ -1627,7 +1627,7 @@ describe("isPrivate", () => {
       expect(cMembership).not.toBeNull();
     });
 
-    test("should set children to non-private", async () => {
+    it("should set children to non-private", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
