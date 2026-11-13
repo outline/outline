@@ -14203,7 +14203,7 @@ __metadata:
     react-dropzone: "npm:^20.1.4"
     react-hook-form: "npm:^7.85.0"
     react-i18next: "npm:^12.3.1"
-    react-is: "npm:^19.3.0"
+    react-is: "npm:^19.3.1"
     react-merge-refs: "npm:^3.0.2"
     react-refresh: "npm:^0.19.0"
     react-remove-scroll: "npm:^2.7.2"
@@ -15663,10 +15663,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^19.3.0":
-  version: 19.3.0
-  resolution: "react-is@npm:19.3.0"
-  checksum: 10c0/99b16fc1009222ec0bbe05286566c865908430778ea6ba90dd418c7a11594c6cbb8db58432735b9203e3c6463e3eef5a399df1317ee2d75fd96b3a88cfaa662e
+"react-is@npm:^19.3.1":
+  version: 19.3.1
+  resolution: "react-is@npm:19.3.1"
+  checksum: 10c0/428e02d986d56f1859c57756084489f6d2900fd686905003c405b32f1168738b78772bfa4bb6c706f5ac821199171522c28bf6434281f524f901459390a19606
   languageName: node
   linkType: hard
 
