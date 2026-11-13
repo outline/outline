@@ -1,13 +1,6 @@
-import { ImportState } from "@shared/types";
 import { User, Team, Import } from "@server/models";
 import { allow, can } from "./cancan";
-import { and, isTeamAdmin, isTeamMutable, or } from "./utils";
-
-const TerminalStates = [
-  ImportState.Completed,
-  ImportState.Errored,
-  ImportState.Canceled,
-];
+import { and, isTeamAdmin, isTeamMutable } from "./utils";
 
 allow(User, ["createImport", "listImports"], Team, (actor, team) =>
   and(isTeamAdmin(actor, team), isTeamMutable(actor))
@@ -20,7 +13,7 @@ allow(User, "read", Import, (actor, importModel) =>
 allow(User, "delete", Import, (actor, importModel) =>
   and(
     can(actor, "read", importModel),
-    !!importModel && TerminalStates.includes(importModel.state)
+    !!importModel && Import.terminalStates.includes(importModel.state)
   )
 );
 
@@ -28,10 +21,6 @@ allow(User, "cancel", Import, (actor, importModel) =>
   and(
     can(actor, "read", importModel),
     importModel?.createdById === actor.id,
-    or(
-      importModel?.state === ImportState.Created,
-      importModel?.state === ImportState.InProgress,
-      importModel?.state === ImportState.Processed
-    )
+    !!importModel && Import.activeStates.includes(importModel.state)
   )
 );

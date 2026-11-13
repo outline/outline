@@ -44,6 +44,20 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   InferAttributes<Import<T>>,
   Partial<InferCreationAttributes<Import<T>>>
 > {
+  /** States in which an import is still running and can be canceled. */
+  public static readonly activeStates: readonly ImportState[] = [
+    ImportState.Created,
+    ImportState.InProgress,
+    ImportState.Processed,
+  ];
+
+  /** States in which an import has stopped and will not change again. */
+  public static readonly terminalStates: readonly ImportState[] = [
+    ImportState.Completed,
+    ImportState.Errored,
+    ImportState.Canceled,
+  ];
+
   @NotContainsUrl
   @Length({
     max: ImportValidation.maxNameLength,
@@ -137,11 +151,7 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
     const inProgress = await this.count({
       where: {
         teamId: model.teamId,
-        state: [
-          ImportState.Created,
-          ImportState.InProgress,
-          ImportState.Processed,
-        ],
+        state: [...Import.activeStates],
       },
       transaction,
     });
