@@ -22,6 +22,7 @@ import { ca } from "date-fns/locale/ca";
 import { cs } from "date-fns/locale/cs";
 import { da } from "date-fns/locale/da";
 import { de } from "date-fns/locale/de";
+import { el } from "date-fns/locale/el";
 import { enGB } from "date-fns/locale/en-GB";
 import { enUS } from "date-fns/locale/en-US";
 import { es } from "date-fns/locale/es";
@@ -304,6 +305,7 @@ const locales = {
   cs_CZ: cs,
   da_DK: da,
   de_DE: de,
+  el_GR: el,
   en_GB: enGB,
   en_US: enUS,
   es_ES: es,
