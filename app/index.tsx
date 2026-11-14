@@ -33,7 +33,8 @@ import { ActionContextProvider } from "./hooks/useActionContext";
 // Load plugins as soon as possible
 void PluginManager.loadPlugins();
 
-initI18n(env.DEFAULT_LANGUAGE);
+// Start with the language of the stored user to prevent a second fetch.
+initI18n(stores.auth.user?.language ?? env.DEFAULT_LANGUAGE);
 
 // Register ahead of rendering so the capture-phase listeners run before any
 // React-mounted listener, such as kbar's Enter handler.

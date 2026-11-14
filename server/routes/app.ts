@@ -222,6 +222,12 @@ export const renderApp = async (
       href="${escape(shortcutIcon)}"
       sizes="32x32"
     />
+    <link
+      rel="preload"
+      href="${env.CDN_URL ?? ""}/locales/${env.DEFAULT_LANGUAGE}.json"
+      as="fetch"
+      crossorigin="anonymous"
+    />
     `;
 
   if (options.isShare) {
