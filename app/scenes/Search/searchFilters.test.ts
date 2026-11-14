@@ -1,9 +1,13 @@
+import { endOfDay, startOfDay } from "date-fns";
 import i18next from "i18next";
 import { StatusFilter } from "@shared/types";
 import type { SearchFilter, SelectSearchFilter } from "./searchFilters";
 import {
   createSearchFilters,
+  formatDateRange,
   getApiFilter,
+  getDateRange,
+  getDateRangeParamChanges,
   getFilterConditions,
   getFilterParamChanges,
   getFilterValues,
@@ -197,7 +201,7 @@ describe("searchFilters", () => {
       ).toEqual({ field: "collectionId", operator: "neq", value: collectionA });
     });
 
-    it("combines a date range with AND", () => {
+    it("sends a date range as whole local days, combined with AND", () => {
       expect(
         getApiFilter(
           getFilter("publishedAt"),
@@ -206,9 +210,33 @@ describe("searchFilters", () => {
       ).toEqual({
         operator: "AND",
         filters: [
-          { field: "publishedAt", operator: "lte", value: "2026-04-15" },
-          { field: "publishedAt", operator: "gte", value: "2026-03-01" },
+          {
+            field: "publishedAt",
+            operator: "lte",
+            value: endOfDay(new Date(2026, 3, 15)).toISOString(),
+          },
+          {
+            field: "publishedAt",
+            operator: "gte",
+            value: startOfDay(new Date(2026, 2, 1)).toISOString(),
+          },
         ],
+      });
+    });
+
+    it("sends durations and full timestamps without change", () => {
+      expect(
+        getApiFilter(getFilter("updatedAt"), params("updatedAt.gte=-P1W"))
+      ).toEqual({ field: "updatedAt", operator: "gte", value: "-P1W" });
+      expect(
+        getApiFilter(
+          getFilter("updatedAt"),
+          params("updatedAt.lt=2026-03-01T10:00:00Z")
+        )
+      ).toEqual({
+        field: "updatedAt",
+        operator: "lt",
+        value: "2026-03-01T10:00:00Z",
       });
     });
 
@@ -311,6 +339,49 @@ describe("searchFilters", () => {
           params("titleFilter=true")
         )
       ).toEqual({ titleFilter: undefined, titleOnly: "true" });
+    });
+  });
+
+  describe("date ranges", () => {
+    it("reads a custom range and ignores presets", () => {
+      const updated = getFilter("updatedAt");
+
+      expect(
+        getDateRange(
+          updated,
+          params("updatedAt.gte=2026-03-01&updatedAt.lte=2026-04-15")
+        )
+      ).toEqual({ from: "2026-03-01", to: "2026-04-15" });
+      expect(
+        getDateRange(updated, params("updatedAt.gte=-P1W"))
+      ).toBeUndefined();
+      expect(
+        getDateRange(getFilter("collectionId"), params(""))
+      ).toBeUndefined();
+    });
+
+    it("replaces a preset with a range", () => {
+      expect(
+        getDateRangeParamChanges(
+          getFilter("updatedAt"),
+          { from: "2026-03-01", to: "2026-04-15" },
+          params("updatedAt.gte=-P1W&dateFilter=week")
+        )
+      ).toEqual({
+        dateFilter: undefined,
+        "updatedAt.gte": "2026-03-01",
+        "updatedAt.lte": "2026-04-15",
+      });
+    });
+
+    it("labels ranges with one bound", () => {
+      expect(formatDateRange({ from: "2026-03-01" }, i18next.t)).toMatch(
+        /^From /
+      );
+      expect(formatDateRange({ to: "2026-03-01" }, i18next.t)).toMatch(
+        /^Until /
+      );
+      expect(formatDateRange({ from: "bad" }, i18next.t)).toBeUndefined();
     });
   });
 });

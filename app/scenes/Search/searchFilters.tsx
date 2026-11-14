@@ -7,6 +7,7 @@ import {
   TextWrapIcon,
   UserIcon,
 } from "outline-icons";
+import { endOfDay, startOfDay } from "date-fns";
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
@@ -17,6 +18,8 @@ import {
   scalarMatchesKind,
 } from "@shared/helpers/FilterHelper";
 import { StatusFilter } from "@shared/types";
+import { dateRangeToReadable, parseISODate } from "@shared/utils/date";
+import type { locales } from "@shared/utils/date";
 import type Document from "~/models/Document";
 import { isTruthyQueryValue } from "~/utils/urls";
 import type { FilterOptionSource } from "./filterOptions";
@@ -74,9 +77,10 @@ export interface SelectSearchFilter extends BaseSearchFilter {
   isValidValue: (value: string, operator: ComparisonOperator) => boolean;
   /**
    * How a selection is written to the URL: "match" writes one value as `eq`
-   * and many as `in`, "after" writes the value as a `gte` lower bound.
+   * and many as `in`, "date" writes a preset as a `gte` lower bound and a
+   * custom range as `gte` and `lte` dates.
    */
-  selection: "match" | "after";
+  selection: "match" | "date";
   /** Whether more than one value can be selected. */
   multiple?: boolean;
   /** Values that apply when the URL does not include the filter. */
@@ -99,8 +103,19 @@ export interface ToggleSearchFilter extends BaseSearchFilter {
 /** A filter that can be applied on the search page. */
 export type SearchFilter = SelectSearchFilter | ToggleSearchFilter;
 
+/** A custom date range, as ISO dates (yyyy-MM-dd) in local time. */
+export interface DateRange {
+  /** The first day of the range. */
+  from?: string;
+  /** The last day of the range. */
+  to?: string;
+}
+
 /** The URL value that turns a toggle filter on. */
 export const TOGGLE_ON = "true";
+
+/** The option key that opens the custom date range picker. */
+export const CUSTOM_RANGE = "custom";
 
 /**
  * Hook that returns every filter that can be applied on the search page.
@@ -164,7 +179,7 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
       id: "updatedAt",
       label: t("Updated"),
       icon: <CalendarIcon />,
-      ...afterSelection,
+      ...dateSelection,
       legacy: { param: "dateFilter", operator: "gte", map: durationForPreset },
     },
     {
@@ -182,14 +197,14 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
       id: "createdAt",
       label: t("Created"),
       icon: <CalendarIcon />,
-      ...afterSelection,
+      ...dateSelection,
     },
     {
       type: "select",
       id: "publishedAt",
       label: t("Published"),
       icon: <CalendarIcon />,
-      ...afterSelection,
+      ...dateSelection,
     },
     {
       type: "select",
@@ -297,7 +312,7 @@ export function getFilterValues(
   }
   const conditions = getFilterConditions(filter, params);
   const values =
-    filter.selection === "after"
+    filter.selection === "date"
       ? (conditions.gte ?? [])
       : unique([...(conditions.eq ?? []), ...(conditions.in ?? [])]);
   return values.length > 0 ? values : (filter.defaultValues ?? []);
@@ -323,9 +338,33 @@ export function getApiFilter(
       ? set
       : { in: filter.defaultValues };
 
-  return filter.toFilter
-    ? filter.toFilter(conditions)
-    : conditionsToFilter(filter.id, conditions);
+  if (filter.toFilter) {
+    return filter.toFilter(conditions);
+  }
+  return conditionsToFilter(
+    filter.id,
+    filter.selection === "date" ? toLocalDayBounds(conditions) : conditions
+  );
+}
+
+/**
+ * Read a custom date range of a date filter from the URL.
+ *
+ * @param filter the filter to read.
+ * @param params the URL query parameters.
+ * @returns the range as ISO dates, or undefined when the filter has none.
+ */
+export function getDateRange(
+  filter: SearchFilter,
+  params: URLSearchParams
+): DateRange | undefined {
+  if (filter.type !== "select" || filter.selection !== "date") {
+    return undefined;
+  }
+  const conditions = getFilterConditions(filter, params);
+  const from = conditions.gte?.find(isISODate);
+  const to = conditions.lte?.find(isISODate);
+  return from || to ? { from, to } : undefined;
 }
 
 /**
@@ -343,37 +382,76 @@ export function getFilterParamChanges(
   values: string[] | undefined,
   params: URLSearchParams
 ): Record<string, string | string[] | undefined> {
-  const changes: Record<string, string | string[] | undefined> = {};
-
-  for (const key of params.keys()) {
-    if (parseKey(key)?.field === filter.id) {
-      changes[key] = undefined;
-    }
-  }
-
   if (filter.type === "toggle") {
-    if (filter.legacyParam) {
-      changes[filter.legacyParam] = undefined;
-    }
+    const changes = clearFilterParams(filter, params);
     changes[filter.id] = values?.length ? TOGGLE_ON : undefined;
     return changes;
   }
 
-  if (filter.legacy) {
-    changes[filter.legacy.param] = undefined;
-  }
   if (!values?.length) {
-    return changes;
+    return clearFilterParams(filter, params);
   }
+  if (filter.selection === "date") {
+    return getConditionParamChanges(filter, { gte: [values[0]] }, params);
+  }
+  return getConditionParamChanges(
+    filter,
+    values.length === 1 ? { eq: values } : { in: values },
+    params
+  );
+}
 
-  if (filter.selection === "after") {
-    changes[`${filter.id}.gte`] = values[0];
-  } else if (values.length === 1) {
-    changes[`${filter.id}.eq`] = values[0];
-  } else {
-    changes[`${filter.id}.in`] = values;
+/**
+ * Format a custom date range as a short label, for example "Mar 1 – 15, 2026".
+ * A range with one bound is labelled "From …" or "Until …".
+ *
+ * @param range the range as ISO dates.
+ * @param t the translation function.
+ * @param language the user's language preference.
+ * @returns the label, or undefined when the range has no valid date.
+ */
+export function formatDateRange(
+  range: DateRange,
+  t: TFunction,
+  language?: keyof typeof locales | null
+): string | undefined {
+  const from = range.from ? parseISODate(range.from) : null;
+  const to = range.to ? parseISODate(range.to) : null;
+  if (from && to) {
+    return dateRangeToReadable(from, to, language);
   }
-  return changes;
+  if (from) {
+    return t("From {{ date }}", {
+      date: dateRangeToReadable(from, null, language),
+    });
+  }
+  if (to) {
+    return t("Until {{ date }}", {
+      date: dateRangeToReadable(null, to, language),
+    });
+  }
+  return undefined;
+}
+
+/**
+ * Build the URL parameter changes that set a custom date range on a date
+ * filter, replacing any value it has now.
+ *
+ * @param filter the date filter to change.
+ * @param range the range as ISO dates.
+ * @param params the current URL query parameters.
+ * @returns a map of parameter name to new value, undefined removes the key.
+ */
+export function getDateRangeParamChanges(
+  filter: SearchFilter,
+  range: Required<DateRange>,
+  params: URLSearchParams
+): Record<string, string | string[] | undefined> {
+  return getConditionParamChanges(
+    filter,
+    { gte: [range.from], lte: [range.to] },
+    params
+  );
 }
 
 /**
@@ -403,13 +481,74 @@ const matchSelection = {
   selection: "match",
 } as const;
 
-const afterSelection = {
+const dateSelection = {
   operators: ["gt", "gte", "lt", "lte"],
   isValidValue: (value: string, operator: ComparisonOperator) =>
     scalarMatchesKind("date", value, operator),
-  selection: "after",
+  selection: "date",
   useOptions: useRelativeDateOptions,
 } as const;
+
+function clearFilterParams(
+  filter: SearchFilter,
+  params: URLSearchParams
+): Record<string, string | string[] | undefined> {
+  const changes: Record<string, string | string[] | undefined> = {};
+  for (const key of params.keys()) {
+    if (parseKey(key)?.field === filter.id) {
+      changes[key] = undefined;
+    }
+  }
+  const legacyParam =
+    filter.type === "toggle" ? filter.legacyParam : filter.legacy?.param;
+  if (legacyParam) {
+    changes[legacyParam] = undefined;
+  }
+  return changes;
+}
+
+function getConditionParamChanges(
+  filter: SearchFilter,
+  conditions: FilterConditions,
+  params: URLSearchParams
+): Record<string, string | string[] | undefined> {
+  const changes = clearFilterParams(filter, params);
+  for (const operator of ComparisonOperator.options) {
+    const values = conditions[operator];
+    if (values?.length) {
+      changes[`${filter.id}.${operator}`] = isListOperator(operator)
+        ? values
+        : values[0];
+    }
+  }
+  return changes;
+}
+
+function isISODate(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+/**
+ * Convert date-only bounds to the start or end of that day in local time, so
+ * that a range includes the whole of its first and last day.
+ */
+function toLocalDayBounds(conditions: FilterConditions): FilterConditions {
+  const result: FilterConditions = { ...conditions };
+  for (const operator of ["gt", "gte", "lt", "lte"] as const) {
+    result[operator] = conditions[operator]?.map((value) => {
+      const date = isISODate(value) ? parseISODate(value) : null;
+      if (!date) {
+        return value;
+      }
+      const bound =
+        operator === "gt" || operator === "gte"
+          ? startOfDay(date)
+          : endOfDay(date);
+      return bound.toISOString();
+    });
+  }
+  return result;
+}
 
 function durationForPreset(value: string): string | undefined {
   return Object.entries(DURATION_BY_DATE_FILTER).find(

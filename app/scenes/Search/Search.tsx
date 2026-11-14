@@ -26,6 +26,7 @@ import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import useUserLocale from "~/hooks/useUserLocale";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
@@ -37,9 +38,13 @@ import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
 import { SearchFilterChip } from "./components/SearchFilterChip";
-import type { SearchFilter } from "./searchFilters";
+import { DateRangeDialog } from "./components/DateRangeDialog";
+import type { DateRange, SearchFilter } from "./searchFilters";
 import {
   TOGGLE_ON,
+  formatDateRange,
+  getDateRange,
+  getDateRangeParamChanges,
   getApiFilter,
   getFilterParamChanges,
   getFilterValues,
@@ -49,7 +54,8 @@ import {
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches, policies } = useStores();
+  const { documents, searches, policies, dialogs } = useStores();
+  const userLocale = useUserLocale();
 
   // routing
   const params = useQuery();
@@ -236,29 +242,67 @@ function Search() {
     });
   };
 
-  const handleChangeFilter = React.useCallback(
-    (id: string, values: string[] | undefined) => {
-      const filter = searchFilters.find((item) => item.id === id);
-      if (!filter) {
-        return;
-      }
+  const replaceParams = React.useCallback(
+    (
+      getChanges: (
+        current: URLSearchParams
+      ) => Record<string, string | string[] | undefined>
+    ) => {
       const { search } = history.location;
       history.replace({
         pathname: history.location.pathname,
         search: queryString.stringify(
           {
             ...queryString.parse(search),
-            ...getFilterParamChanges(
-              filter,
-              values,
-              new URLSearchParams(search)
-            ),
+            ...getChanges(new URLSearchParams(search)),
           },
           { skipEmptyString: true, arrayFormat: "comma" }
         ),
       });
     },
-    [history, searchFilters]
+    [history]
+  );
+
+  const handleChangeFilter = React.useCallback(
+    (id: string, values: string[] | undefined) => {
+      const filter = searchFilters.find((item) => item.id === id);
+      if (filter) {
+        replaceParams((current) =>
+          getFilterParamChanges(filter, values, current)
+        );
+      }
+    },
+    [replaceParams, searchFilters]
+  );
+
+  const handleCustomRange = React.useCallback(
+    (id: string) => {
+      const filter = searchFilters.find((item) => item.id === id);
+      if (!filter) {
+        return;
+      }
+      const handleSubmit = (range: Required<DateRange>) => {
+        replaceParams((current) =>
+          getDateRangeParamChanges(filter, range, current)
+        );
+        dialogs.closeAllModals();
+      };
+
+      dialogs.openModal({
+        title: filter.label,
+        width: "600px",
+        content: (
+          <DateRangeDialog
+            defaultRange={getDateRange(
+              filter,
+              new URLSearchParams(history.location.search)
+            )}
+            onSubmit={handleSubmit}
+          />
+        ),
+      });
+    },
+    [dialogs, history, replaceParams, searchFilters]
   );
 
   const handleAddFilter = (id: string) => {
@@ -329,6 +373,11 @@ function Search() {
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
 
+  const rangeLabel = (filter: SearchFilter) => {
+    const range = getDateRange(filter, params);
+    return range ? formatDateRange(range, t, userLocale) : undefined;
+  };
+
   const renderFilterChip = (filter: SearchFilter) => (
     <SearchFilterChip
       key={filter.id}
@@ -338,6 +387,8 @@ function Search() {
       defaultOpen={pendingFilterIds.includes(filter.id)}
       onChange={handleChangeFilter}
       onOpenChange={handleFilterOpenChange}
+      rangeLabel={rangeLabel(filter)}
+      onCustomRange={handleCustomRange}
     />
   );
 

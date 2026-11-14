@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
 import type { SearchFilter, SelectSearchFilter } from "../searchFilters";
+import { CUSTOM_RANGE } from "../searchFilters";
 import {
   Chip,
   ChipButton,
@@ -24,6 +25,10 @@ interface Props {
   onChange: (id: string, values: string[] | undefined) => void;
   /** Callback when the options open or close. */
   onOpenChange?: (id: string, open: boolean) => void;
+  /** Label of a custom date range, shown in place of an option label. */
+  rangeLabel?: string;
+  /** Callback when the user asks to choose a custom date range. */
+  onCustomRange?: (id: string) => void;
 }
 
 /**
@@ -61,10 +66,21 @@ const SelectFilterChip = observer(function SelectFilterChip_({
   defaultOpen,
   onChange,
   onOpenChange,
+  rangeLabel,
+  onCustomRange,
 }: Props & { filter: SelectSearchFilter }) {
   const { t } = useTranslation();
   const source = filter.useOptions();
   const { id, multiple } = filter;
+  const allowsRange = filter.selection === "date" && !!onCustomRange;
+
+  const options = useMemo(
+    () =>
+      allowsRange
+        ? [...source.options, { key: CUSTOM_RANGE, label: `${t("Custom")}…` }]
+        : source.options,
+    [allowsRange, source.options, t]
+  );
 
   const selected = useMemo(
     () => source.options.filter((option) => values.includes(option.key)),
@@ -76,6 +92,10 @@ const SelectFilterChip = observer(function SelectFilterChip_({
       if (!key) {
         return;
       }
+      if (key === CUSTOM_RANGE) {
+        onCustomRange?.(id);
+        return;
+      }
       if (!multiple) {
         onChange(id, [key]);
         return;
@@ -85,7 +105,7 @@ const SelectFilterChip = observer(function SelectFilterChip_({
         : [...values, key];
       onChange(id, next.length ? next : undefined);
     },
-    [id, multiple, values, onChange]
+    [id, multiple, values, onChange, onCustomRange]
   );
 
   const handleOpenChange = useCallback(
@@ -101,8 +121,8 @@ const SelectFilterChip = observer(function SelectFilterChip_({
   return (
     <Chip>
       <FilterOptions
-        options={source.options}
-        selectedKeys={values}
+        options={options}
+        selectedKeys={rangeLabel ? [CUSTOM_RANGE] : values}
         onSelect={handleSelect}
         fetchQuery={source.fetchQuery}
         fetchQueryOptions={source.fetchQueryOptions}
@@ -115,7 +135,9 @@ const SelectFilterChip = observer(function SelectFilterChip_({
             <ChipContent
               icon={icon}
               label={filter.label}
-              value={shown.map((option) => option.label).join(", ")}
+              value={
+                rangeLabel ?? shown.map((option) => option.label).join(", ")
+              }
               disclosure={!isSet}
             />
           </ChipButton>
