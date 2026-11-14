@@ -81,6 +81,8 @@ function Search() {
 
   const searchFilters = useSearchFilters();
   const [pendingFilterIds, setPendingFilterIds] = React.useState<string[]>([]);
+  // A filter stays shown while its custom date range dialog is open.
+  const [rangeFilterId, setRangeFilterId] = React.useState<string>();
 
   const { isSearchable, visibleFilters, filters, titleFilter } =
     React.useMemo(() => {
@@ -126,7 +128,8 @@ function Search() {
     (filter) =>
       filter.pinned ||
       isFilterSet(filter, params) ||
-      pendingFilterIds.includes(filter.id)
+      pendingFilterIds.includes(filter.id) ||
+      rangeFilterId === filter.id
   );
   const addableFilters = visibleFilters.filter(
     (filter) => !shownFilters.includes(filter)
@@ -285,12 +288,15 @@ function Search() {
         replaceParams((current) =>
           getDateRangeParamChanges(filter, range, current)
         );
+        setRangeFilterId(undefined);
         dialogs.closeAllModals();
       };
 
+      setRangeFilterId(id);
       dialogs.openModal({
         title: filter.label,
         width: "600px",
+        onClose: () => setRangeFilterId(undefined),
         content: (
           <DateRangeDialog
             defaultRange={getDateRange(

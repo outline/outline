@@ -20,6 +20,11 @@ export default async ({ page, click, step, args }) => {
   await click(page.getByRole("menuitem", { name: "Custom…" }));
   await page.getByRole("dialog").waitFor();
   await page.waitForTimeout(300);
+  // The dialog hides the page from the accessibility tree, so use CSS here.
+  const chip = (name) => page.locator("form button", { hasText: name });
+  if (!(await chip(/^Updated/).isVisible())) {
+    throw new Error("Updated chip is hidden while its date dialog is open");
+  }
   await step("dialog-open");
 
   const today = new Date().getDate();
@@ -53,5 +58,20 @@ export default async ({ page, click, step, args }) => {
   await step("empty-range");
 
   const emptyChip = await page.getByRole("button", { name: /^Updated/ }).innerText();
+  // Cancel the dialog of a newly added filter: its chip goes away.
+  await click(page.getByRole("button", { name: "More filters" }));
+  await click(page.getByRole("menuitem", { name: "Created", exact: true }));
+  await page.getByRole("menu").waitFor();
+  await click(page.getByRole("menuitem", { name: "Custom…" }));
+  await page.getByRole("dialog").waitFor();
+  await page.waitForTimeout(300);
+  if (!(await chip(/^Created$/).isVisible())) {
+    throw new Error("Created chip is hidden while its date dialog is open");
+  }
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.getByRole("button", { name: /^Created$/ }).waitFor({ state: "detached" });
+  await step("cancelled");
+
   return { url: page.url(), chipText, sent, summary, newSummary, emptyChip };
 };
