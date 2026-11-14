@@ -75,9 +75,9 @@ if (env.isProduction) {
 }
 
 router.get("/locales/:lng.json", async (ctx) => {
-  const { lng } = ctx.params;
+  const lng = languages.find((language) => language === ctx.params.lng);
 
-  if (!languages.includes(lng as (typeof languages)[number])) {
+  if (!lng) {
     ctx.status = 404;
     return;
   }

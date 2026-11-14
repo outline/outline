@@ -40,8 +40,12 @@ export async function changeLanguage(
   // frontend translation framework (i18next) expects en-US
   const localeBCP = locale ? unicodeCLDRtoBCP47(locale) : undefined;
 
-  if (localeBCP && instance.languages?.[0] !== localeBCP) {
-    await instance.changeLanguage(localeBCP);
+  if (localeBCP) {
+    if (instance.languages?.[0] !== localeBCP) {
+      await instance.changeLanguage(localeBCP);
+    }
+
+    // i18n can start in this locale, so set the spellchecker in all cases.
     await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
   }
 
