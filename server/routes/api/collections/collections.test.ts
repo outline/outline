@@ -1443,7 +1443,7 @@ describe("#collections.memberships", () => {
 
   it("should allow filtering members in collection by name", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id, name: "Alice Smith" });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,

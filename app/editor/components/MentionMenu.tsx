@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import { runInAction } from "mobx";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { MentionType } from "@shared/types";
@@ -25,6 +25,7 @@ import {
   groupMentionItem,
   userMentionItem,
 } from "~/editor/menus/mention";
+import useDebouncedValue from "~/hooks/useDebouncedValue";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
@@ -35,6 +36,9 @@ import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+
+/** The time in milliseconds the search must stay the same before it is sent. */
+const RequestDelay = 100;
 
 type Props = Omit<
   SuggestionsMenuProps<MentionMenuItem>,
@@ -122,12 +126,23 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     ];
   }
 
+  // Results from the store show at once, the server is only asked for more
+  // when the user stops typing.
+  const requestSearch = useDebouncedValue(search, RequestDelay);
+  const latestRequestId = useRef(0);
+
   const { loading, request } = useRequest(
     useCallback(async () => {
+      const requestId = ++latestRequestId.current;
       const res = await client.post("/suggestions.mention", {
-        query: search,
-        limit: maxResultsInSection,
+        query: requestSearch,
+        limit: requestSearch ? 25 : 5,
       });
+
+      // A newer request was sent while this one was in progress.
+      if (requestId !== latestRequestId.current) {
+        return;
+      }
 
       runInAction(() => {
         res.data.documents.map(documents.add);
@@ -143,7 +158,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
             ...Object.entries<number>(res.data.familiarity ?? {}),
           ])
       );
-    }, [search, documents, users, collections, groups, maxResultsInSection])
+    }, [requestSearch, documents, users, collections, groups])
   );
 
   // Suggestions that the current user is familiar with, for example a member of
