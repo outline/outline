@@ -1,6 +1,6 @@
 import { CloseIcon, DisclosureIcon } from "outline-icons";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { hover, s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
@@ -94,7 +94,7 @@ export const Chip = styled.div`
 export const ChipButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
   height: 100%;
   padding: 0 4px 0 7px;
@@ -106,7 +106,7 @@ export const ChipButton = styled.button`
   cursor: var(--pointer);
   transition: background 100ms ease-out;
 
-  &:hover,
+  &:${hover},
   &[aria-expanded="true"] {
     background: ${s("buttonNeutralHoverBackground")};
   }
@@ -114,15 +114,20 @@ export const ChipButton = styled.button`
   &:focus-visible {
     outline: none;
   }
+
+  /* More space before the remove button, which has no disclosure arrow. */
+  &:not(:last-child) {
+    padding-inline-end: 6px;
+  }
 `;
 
 /** A part of a chip that only shows content, for filters without options. */
 export const ChipStatic = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  padding: 0 6px 0 7px;
+  padding: 0 6px;
 `;
 
 const ChipIcon = styled.span`
@@ -148,7 +153,6 @@ const ChipLabel = styled(Text)`
 
 const ChipValue = styled(Text)`
   max-width: 240px;
-  margin-inline-start: -2px;
 `;
 
 const RemoveButton = styled(NudeButton)`
@@ -163,7 +167,7 @@ const RemoveButton = styled(NudeButton)`
   color: ${s("textTertiary")};
   transition: background 100ms ease-out;
 
-  &:hover,
+  &:${hover},
   &:focus-visible {
     color: ${s("text")};
     background: ${s("buttonNeutralHoverBackground")};

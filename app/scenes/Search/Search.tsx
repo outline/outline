@@ -190,13 +190,13 @@ function Search() {
     return () => Promise.resolve([] as SearchResult[]);
   }, [query, titleFilter, requestParams, searches, documents, isSearchable]);
 
-  // Keyed on the request so a count from an earlier search is never shown.
-  const total =
-    resultCount?.params === requestParams ? resultCount.total : undefined;
-
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
+
+  // Keep the previous count on screen, disabled, until the new one arrives.
+  const isResultCountStale = resultCount?.params !== requestParams;
+  const total = titleFilter || error ? undefined : resultCount?.total;
 
   // Only updatable documents are selectable, matching the per-item checkboxes.
   const itemIds = React.useMemo(
@@ -447,7 +447,13 @@ function Search() {
             )}
           </FilterChips>
           {sortInput && (
-            <ResultsMeta as="div" type="secondary" size="small">
+            <ResultsMeta
+              as="div"
+              type="secondary"
+              size="small"
+              aria-busy={isResultCountStale}
+              $disabled={isResultCountStale && total !== undefined}
+            >
               {total !== undefined && (
                 <>
                   <span>{t("{{ count }} result", { count: total })}</span>
@@ -562,11 +568,19 @@ const FilterChips = styled(Flex)`
   `};
 `;
 
-const ResultsMeta = styled(Text)`
+const ResultsMeta = styled(Text)<{ $disabled: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
+  transition: opacity 100ms ease-out;
+
+  ${(props) =>
+    props.$disabled &&
+    `
+      opacity: 0.8;
+      pointer-events: none;
+    `}
 `;
 
 export default observer(Search);

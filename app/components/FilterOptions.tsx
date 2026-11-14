@@ -287,7 +287,11 @@ const FilterOptions = ({
     <MenuProvider variant="dropdown">
       <Menu open={open} onOpenChange={setOpen}>
         <MenuTrigger>{trigger}</MenuTrigger>
-        <MenuContent aria-label={defaultLabel} align="start">
+        <MenuContent
+          aria-label={defaultLabel}
+          align="start"
+          style={menuContentStyle}
+        >
           {list}
           {showFilterInput && (
             <SearchInput
@@ -303,6 +307,11 @@ const FilterOptions = ({
       </Menu>
     </MenuProvider>
   );
+};
+
+// Filter lists can be long, so keep them shorter than other menus.
+const menuContentStyle = {
+  maxHeight: "min(75vh, var(--radix-dropdown-menu-content-available-height))",
 };
 
 const Empty = () => {

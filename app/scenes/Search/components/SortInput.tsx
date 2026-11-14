@@ -7,7 +7,7 @@ import {
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { hover, s } from "@shared/styles";
 import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
@@ -114,7 +114,7 @@ const Trigger = styled.button`
   color: ${s("text")};
   cursor: var(--pointer);
 
-  &:hover,
+  &:${hover},
   &[aria-expanded="true"] {
     text-decoration: underline;
   }
