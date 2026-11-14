@@ -14,7 +14,11 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import * as Y from "yjs";
-import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import {
+  DocumentReset,
+  EditorUpdateError,
+} from "@shared/collaboration/CloseEvents";
+import { buildDocumentName } from "@shared/collaboration/documentName";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -46,13 +50,49 @@ type Props = EditorProps & {
   ref?: Ref<SharedEditor>;
 };
 
-function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
+type CollaborativeEditorProps = Props & {
+  /** The generation of the collaborative state to connect to. */
+  stateGeneration: number;
+  /** Called with the current generation when the server resets the state. */
+  onReset: (stateGeneration: number) => void;
+};
+
+/**
+ * A collaborative editor for a document. It mounts again with a new Y.Doc
+ * when the server replaces the collaborative state of the document.
+ *
+ * @param props the editor props.
+ * @returns the editor.
+ */
+function MultiplayerEditor(props: Props) {
+  const { documents } = useStores();
+  const [stateGeneration, setStateGeneration] = useState(
+    () => documents.get(props.id)?.stateGeneration ?? 0
+  );
+
+  return (
+    <CollaborativeEditor
+      key={stateGeneration}
+      {...props}
+      stateGeneration={stateGeneration}
+      onReset={setStateGeneration}
+    />
+  );
+}
+
+function CollaborativeEditor({
+  onSynced,
+  ref,
+  stateGeneration,
+  onReset,
+  ...props
+}: CollaborativeEditorProps) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const retryCount = useRef(0);
-  const { presence, auth, ui } = useStores();
+  const { presence, auth, ui, documents } = useStores();
   const documentContext = useDocumentContext();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
@@ -74,7 +114,7 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     // callbacks below do not update state afterwards.
     let isActive = true;
     const debug = env.ENVIRONMENT === "development";
-    const name = `document.${documentId}`;
+    const name = buildDocumentName(documentId, stateGeneration);
     const localProvider =
       typeof indexedDB !== "undefined"
         ? new IndexeddbPersistence(name, ydoc)
@@ -193,6 +233,27 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     });
 
     provider.on("close", (ev: ConnectionMessageEvent) => {
+      // The local state is not current. Load the current generation, which
+      // mounts the editor again with a new Y.Doc.
+      if ("code" in ev.event && ev.event.code === DocumentReset.code) {
+        provider.shouldConnect = false;
+        void documents
+          .fetch(documentId, { force: true })
+          .then((document) => {
+            if (isActive) {
+              onReset(document.stateGeneration);
+            }
+          })
+          .catch(() => {
+            if (isActive) {
+              toast.error(
+                t("The document could not be loaded – please reload the page")
+              );
+            }
+          });
+        return;
+      }
+
       if ("code" in ev.event) {
         // Note other close code are handled internally by the library
         if (ev.event.code === EditorUpdateError.code) {
@@ -255,7 +316,21 @@ function MultiplayerEditor({ onSynced, ref, ...props }: Props) {
     ydoc,
     currentUser.id,
     auth,
+    documents,
+    stateGeneration,
+    onReset,
   ]);
+
+  // Remove the local state of earlier generations, it can not be used again.
+  useEffect(() => {
+    if (typeof indexedDB === "undefined") {
+      return;
+    }
+
+    for (let generation = 0; generation < stateGeneration; generation++) {
+      indexedDB.deleteDatabase(buildDocumentName(documentId, generation));
+    }
+  }, [documentId, stateGeneration]);
 
   const user = useMemo(
     () => ({

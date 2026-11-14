@@ -60,3 +60,12 @@ export const ConnectionTimeout = {
   code: 4408,
   reason: "Connection Timeout",
 };
+
+/**
+ * The collaborative state of the document was replaced. The client must
+ * discard its local copy and connect to the new state generation.
+ */
+export const DocumentReset = {
+  code: 4409,
+  reason: "Document Reset",
+};

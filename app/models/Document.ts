@@ -246,6 +246,10 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   revision: number;
 
+  /** The generation of the collaborative state, it selects the collaboration room. */
+  @observable
+  stateGeneration: number;
+
   /**
    * Whether this document is contained in a collection that has been deleted.
    */

@@ -6,6 +6,8 @@ import type {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
+import { DocumentReset } from "@shared/collaboration/CloseEvents";
+import { parseDocumentName } from "@shared/collaboration/documentName";
 import { Day } from "@shared/utils/time";
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
@@ -218,8 +220,9 @@ export default class PersistenceExtension implements Extension {
     }
 
     try {
-      await documentCollaborativeUpdater({
+      const { reset } = await documentCollaborativeUpdater({
         documentId,
+        stateGeneration: parseDocumentName(documentName)?.stateGeneration ?? 0,
         ydoc: snapshot,
         collaborators: {
           ids: sessionCollaboratorIds,
@@ -230,6 +233,14 @@ export default class PersistenceExtension implements Extension {
       });
 
       this.persistFailureCounts.delete(documentName);
+
+      // The state in this room is no longer current, clients must discard it
+      // and connect to the room of the current generation.
+      if (reset) {
+        document
+          .getConnections()
+          .forEach((connection) => connection.close(DocumentReset));
+      }
     } catch (err) {
       const failures = (this.persistFailureCounts.get(documentName) ?? 0) + 1;
       const giveUp = failures >= PersistenceExtension.maxPersistFailures;

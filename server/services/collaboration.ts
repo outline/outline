@@ -10,6 +10,8 @@ import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
+import { SessionExtension } from "@server/collaboration/SessionExtension";
+import { StateGenerationExtension } from "@server/collaboration/StateGenerationExtension";
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -63,9 +65,11 @@ export default function init(
       }),
       new ConnectionLimitExtension(),
       new EditorVersionExtension(),
+      new StateGenerationExtension(),
       new AuthenticationExtension(),
       new AwarenessIdentityExtension(),
       new PersistenceExtension(),
+      new SessionExtension(),
       new APIUpdateExtension(),
       new ViewsExtension(),
       new LoggerExtension(),

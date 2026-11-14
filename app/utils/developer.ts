@@ -2,6 +2,7 @@ import { flatten } from "es-toolkit/compat";
 import stores from "~/stores";
 import Store from "~/stores/base/Store";
 import StorePersistence from "~/stores/base/StorePersistence";
+import { buildDocumentName } from "@shared/collaboration/documentName";
 import { flattenTree } from "@shared/utils/tree";
 
 /**
@@ -47,7 +48,14 @@ export async function deleteAllDatabases() {
       const nodes = flatten(collection.documents?.map(flattenTree));
 
       return nodes.map(async (node) => {
-        window.indexedDB.deleteDatabase(`document.${node.id}`);
+        const stateGeneration =
+          stores.documents.get(node.id)?.stateGeneration ?? 0;
+
+        for (let generation = 0; generation <= stateGeneration; generation++) {
+          window.indexedDB.deleteDatabase(
+            buildDocumentName(node.id, generation)
+          );
+        }
       });
     })
   );
