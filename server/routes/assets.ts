@@ -98,34 +98,29 @@ router.get("/locales/:lng.json", async (ctx) => {
   ctx.body = locale.body;
 });
 
+type Language = (typeof languages)[number];
+
 interface ClientLocale {
   body: string;
   etag: string;
 }
 
-const clientLocales = new Map<string, Promise<ClientLocale>>();
+const clientLocales = new Map<Language, ClientLocale>();
 
 /**
  * Loads a translation file for the client, without the entries that match
  * their key. The client shows the key when an entry is missing, so the result
  * does not change.
  *
- * @param lng The language in CLDR format (en_US).
+ * @param lng A supported language in CLDR format (en_US).
  * @returns the JSON body and its ETag.
  */
-function loadClientLocale(lng: string): Promise<ClientLocale> {
-  let locale = clientLocales.get(lng);
-
-  if (!locale) {
-    locale = readClientLocale(lng);
-    locale.catch(() => clientLocales.delete(lng));
-    clientLocales.set(lng, locale);
+async function loadClientLocale(lng: Language): Promise<ClientLocale> {
+  const cached = clientLocales.get(lng);
+  if (cached) {
+    return cached;
   }
 
-  return locale;
-}
-
-async function readClientLocale(lng: string): Promise<ClientLocale> {
   const file = path.join(
     __dirname,
     "../../shared/i18n/locales",
@@ -140,9 +135,13 @@ async function readClientLocale(lng: string): Promise<ClientLocale> {
       Object.entries(translations).filter(([key, value]) => key !== value)
     )
   );
-  const hash = crypto.createHash("md5").update(body).digest("hex");
+  const locale = {
+    body,
+    etag: `"${crypto.createHash("md5").update(body).digest("hex")}"`,
+  };
 
-  return { body, etag: `"${hash}"` };
+  clientLocales.set(lng, locale);
+  return locale;
 }
 
 function isNotFound(err: unknown): boolean {
