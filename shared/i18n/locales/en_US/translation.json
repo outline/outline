@@ -1244,7 +1244,7 @@
   "Past month": "Past month",
   "Past year": "Past year",
   "{{ count }} result": "{{ count }} result",
-  "{{ count }} result_plural": "{{ count }} result",
+  "{{ count }} result_plural": "{{ count }} results",
   "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
   "No documents found for your search filters.": "No documents found for your search filters.",
   "Edited by": "Edited by",

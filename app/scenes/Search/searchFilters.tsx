@@ -4,7 +4,7 @@ import {
   DoneIcon,
   EditIcon,
   NewDocumentIcon,
-  TextWrapIcon,
+  CaseSensitiveIcon,
   UserIcon,
 } from "outline-icons";
 import { endOfDay, startOfDay } from "date-fns";
@@ -226,7 +226,7 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
       type: "toggle",
       id: "titleOnly",
       label: t("Title only"),
-      icon: <TextWrapIcon />,
+      icon: <CaseSensitiveIcon />,
       legacyParam: "titleFilter",
     },
   ];

@@ -10,6 +10,7 @@ import type { TFilterOption } from "~/components/FilterOptions";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type { PaginatedItem } from "~/components/PaginatedList";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import type { FetchPageParams } from "~/stores/base/Store";
@@ -51,18 +52,23 @@ export function useCollectionOptions(): FilterOptionSource {
 
 /**
  * Options for each user in the workspace, loaded from the server as needed.
+ * The current user is the first option.
  *
  * @returns the user options.
  */
 export function useUserOptions(): FilterOptionSource {
   const { users } = useStores();
   const team = useCurrentTeam();
+  const currentUserId = useCurrentUser({ rejectOnEmpty: false })?.id;
   const can = usePolicy(team);
   const fetchQuery = can.listUsers ? users.fetchPage : undefined;
 
   return useMemo(
     () => ({
-      options: users.all.map((user) => ({
+      options: [
+        ...users.all.filter((user) => user.id === currentUserId),
+        ...users.all.filter((user) => user.id !== currentUserId),
+      ].map((user) => ({
         key: user.id,
         label: user.name,
         icon: <StyledAvatar model={user} size={AvatarSize.Small} />,
@@ -71,7 +77,7 @@ export function useUserOptions(): FilterOptionSource {
       fetchQueryOptions: userFetchQueryOptions,
       showFilter: true,
     }),
-    [users.all, fetchQuery]
+    [users.all, currentUserId, fetchQuery]
   );
 }
 
