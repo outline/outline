@@ -21,6 +21,7 @@ import {
   sortCollection,
 } from "~/actions/definitions/collections";
 import { renameActionFactory } from "~/actions/definitions/common";
+import { addLinkToCollection } from "~/actions/definitions/links";
 import { ActiveCollectionSection } from "~/actions/sections";
 
 type Props = {
@@ -28,19 +29,27 @@ type Props = {
   collectionId: string;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
+  /** Whether the menu is shown in the sidebar, where links can be added */
+  isSidebar?: boolean;
 };
 
-export function useCollectionMenuAction({ collectionId, onRename }: Props) {
+export function useCollectionMenuAction({
+  collectionId,
+  onRename,
+  isSidebar = false,
+}: Props) {
   const actions = useMemo(
     () => [
+      // Actions that add to the tree of the collection, not change it.
+      createDocument,
+      ...(isSidebar ? [addLinkToCollection] : []),
+      importDocument,
+      ActionSeparator,
       restoreCollection,
       starCollection,
       unstarCollection,
       subscribeCollection,
       unsubscribeCollection,
-      ActionSeparator,
-      createDocument,
-      importDocument,
       ActionSeparator,
       renameActionFactory({
         section: ActiveCollectionSection,
@@ -59,7 +68,7 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       ActionSeparator,
       deleteCollection,
     ],
-    [collectionId, onRename]
+    [collectionId, onRename, isSidebar]
   );
 
   return useMenuAction(actions);

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import type { match } from "react-router";
 import { isTouchDevice } from "@shared/utils/browser";
-import { CollectionValidation, DocumentValidation } from "@shared/validations";
+import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
@@ -16,6 +16,7 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
+import { NewChildInput } from "./NewChildInput";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
@@ -72,6 +73,8 @@ export type CollectionRowProps = {
 
   /** When true, the "+" new-child button is rendered in the menu slot. */
   canCreateChild?: boolean;
+  /** Adds a link below the row when a url is entered in the new-child input. When omitted, a url creates a document. */
+  onCreateChildLink?: (url: string) => Promise<void>;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
   /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
@@ -112,6 +115,7 @@ function CollectionRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
+  onCreateChildLink,
   newChildDepth,
   parentRef,
   dropRef,
@@ -130,7 +134,6 @@ function CollectionRow({
   );
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
-  const newChildTitleRef = React.useRef<RefHandle>(null);
 
   const handleAddChild = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -139,22 +142,6 @@ function CollectionRow({
       onExpand?.();
     },
     [setIsAddingNewChild, onExpand]
-  );
-
-  const handleNewChildSubmit = React.useCallback(
-    async (value: string) => {
-      if (!onCreateChild) {
-        return;
-      }
-      try {
-        newChildTitleRef.current?.setIsEditing(false);
-        await onCreateChild(value);
-        closeAddingNewChild();
-      } catch (_err) {
-        newChildTitleRef.current?.setIsEditing(true);
-      }
-    },
-    [onCreateChild, closeAddingNewChild]
   );
 
   const defaultIsActive = React.useCallback(
@@ -261,22 +248,11 @@ function CollectionRow({
       </Relative>
       {children(
         isAddingNewChild && onCreateChild ? (
-          <SidebarLink
-            isActive={() => true}
+          <NewChildInput
             depth={newChildDepth ?? Math.max(depth + 1, 2)}
-            ellipsis={false}
-            label={
-              <EditableTitle
-                title=""
-                canUpdate
-                isEditing
-                placeholder={`${t("New doc")}…`}
-                onCancel={closeAddingNewChild}
-                onSubmit={handleNewChildSubmit}
-                maxLength={DocumentValidation.maxTitleLength}
-                ref={newChildTitleRef}
-              />
-            }
+            onCreateChild={onCreateChild}
+            onCreateChildLink={onCreateChildLink}
+            onClose={closeAddingNewChild}
           />
         ) : undefined
       )}

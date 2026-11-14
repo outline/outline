@@ -14,6 +14,7 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
+import { NewChildInput } from "./NewChildInput";
 import Relative from "./Relative";
 import SidebarLink, { childDepthFor } from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
@@ -92,6 +93,8 @@ export type DocumentRowProps = {
 
   /** When true, the "+" new-child button is rendered in the menu slot. */
   canCreateChild?: boolean;
+  /** Adds a link below the row when a url is entered in the new-child input. When omitted, a url creates a document. */
+  onCreateChildLink?: (url: string) => Promise<void>;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
 
@@ -143,6 +146,7 @@ function DocumentRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
+  onCreateChildLink,
   contextAction,
   isActiveOverride,
   children,
@@ -160,7 +164,6 @@ function DocumentRow({
   );
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
-  const newChildTitleRef = React.useRef<RefHandle>(null);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
@@ -184,22 +187,6 @@ function DocumentRow({
       onExpand?.();
     },
     [setIsAddingNewChild, onExpand]
-  );
-
-  const handleNewChildSubmit = React.useCallback(
-    async (value: string) => {
-      if (!onCreateChild) {
-        return;
-      }
-      try {
-        newChildTitleRef.current?.setIsEditing(false);
-        await onCreateChild(value);
-        closeAddingNewChild();
-      } catch (_err) {
-        newChildTitleRef.current?.setIsEditing(true);
-      }
-    },
-    [onCreateChild, closeAddingNewChild]
   );
 
   const labelElement =
@@ -301,22 +288,11 @@ function DocumentRow({
         {cursorAfter}
       </Relative>
       {isAddingNewChild && onCreateChild && (
-        <SidebarLink
-          isActive={() => true}
+        <NewChildInput
           depth={childDepthFor(depth)}
-          ellipsis={false}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewChildSubmit}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
+          onCreateChild={onCreateChild}
+          onCreateChildLink={onCreateChildLink}
+          onClose={closeAddingNewChild}
         />
       )}
       {children}

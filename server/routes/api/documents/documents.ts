@@ -11,7 +11,7 @@ import type { Filter } from "@shared/helpers/FilterHelper";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
-import { type NavigationNode } from "@shared/types";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import {
   DocumentPermission,
   ExportContentType,
@@ -290,6 +290,7 @@ router.post(
       });
       authorize(user, "readDocument", collection);
       documentIds = (collection.documentStructure || [])
+        .filter((node) => node.type !== NavigationNodeType.Link)
         .slice(offset, offset + limit)
         .map((node) => node.id);
       where[Op.and].push({ id: documentIds });

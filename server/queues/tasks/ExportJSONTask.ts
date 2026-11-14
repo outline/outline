@@ -1,6 +1,6 @@
 import type { ZipFile } from "yazl";
 import { omit } from "es-toolkit/compat";
-import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import env from "@server/env";
 import type { Collection, FileOperation } from "@server/models";
 import { Attachment, Document } from "@server/models";
@@ -98,6 +98,10 @@ export default class ExportJSONTask extends ExportTask {
 
     const addDocumentTree = async (nodes: NavigationNode[]) => {
       for (const node of nodes) {
+        if (node.type === NavigationNodeType.Link) {
+          continue;
+        }
+
         const result = await sequelizeReadOnly.transaction(
           async (transaction) => {
             const document = await Document.findByPk(node.id, {

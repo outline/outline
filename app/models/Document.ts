@@ -717,7 +717,7 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
-   * Returns all children of the document.
+   * Returns the child documents of the document, without links.
    * This is determined by the collection structure, or the user/group memberships in case it's a shared document.
    *
    * @returns An array of NavigationNode objects.
@@ -735,7 +735,7 @@ export default class Document extends ArchivableModel implements Searchable {
       collection?.getChildrenForDocument(this.id) ??
       membership?.getChildrenForDocument(this.id) ??
       []
-    );
+    ).filter((node) => node.type !== NavigationNodeType.Link);
   }
 
   /**

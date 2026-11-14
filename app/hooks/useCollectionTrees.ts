@@ -40,7 +40,7 @@ function getCollectionTree(collection: Collection): NavigationNode {
   };
 
   root.children = annotateNodes(
-    collection.documents ?? [],
+    collection.documentNodes ?? [],
     collection.sort,
     root
   );

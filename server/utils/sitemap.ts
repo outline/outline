@@ -1,5 +1,5 @@
 import { escape } from "es-toolkit/compat";
-import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 
 /**
  * Converts a navigation tree to a sitemap XML string, by traversing the nodes.
@@ -15,6 +15,10 @@ export function navigationNodeToSitemap(
   const urls: string[] = [];
 
   function collectUrls(node: NavigationNode, urls: string[]) {
+    // Links point to other pages, which are not part of the share.
+    if (node.type === NavigationNodeType.Link) {
+      return;
+    }
     urls.push(`${baseUrl}${node.url}`);
     if (node.children) {
       node.children.forEach((child) => collectUrls(child, urls));

@@ -13,6 +13,7 @@ import {
   shareDocument,
   createNewDocument,
   createNewDocumentInAlphabeticalCollection,
+  createNewNestedDocument,
   importDocument,
   createTemplateFromDocument,
   duplicateDocument,
@@ -37,6 +38,7 @@ import {
   toggleDocumentStats,
 } from "~/actions/definitions/documents";
 import { renameActionFactory } from "~/actions/definitions/common";
+import { addLinkToDocument } from "~/actions/definitions/links";
 import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
 import type Template from "~/models/Template";
@@ -53,6 +55,8 @@ type Props = {
   onRename?: () => void;
   /** Callback when a template is selected to apply its content to the document */
   onSelectTemplate?: (template: Template) => void;
+  /** Whether the menu is shown in the sidebar, where items can be added around the document */
+  isSidebar?: boolean;
 };
 
 export function useDocumentMenuAction({
@@ -61,6 +65,7 @@ export function useDocumentMenuAction({
   onFindAndReplace,
   onRename,
   onSelectTemplate,
+  isSidebar = false,
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -73,6 +78,16 @@ export function useDocumentMenuAction({
   return useCallback(
     () =>
       createRootMenuAction([
+        // Actions that add to the tree around the document, not change it.
+        ...(isSidebar
+          ? [
+              createNewDocument,
+              createNewDocumentInAlphabeticalCollection,
+              addLinkToDocument,
+            ]
+          : [createNewNestedDocument]),
+        importDocument,
+        ActionSeparator,
         restoreDocument,
         restoreDocumentToCollection,
         starDocument,
@@ -101,9 +116,6 @@ export function useDocumentMenuAction({
         archiveDocument,
         moveDocument,
         applyTemplateActionFactory({ actions: templateMenuActions }),
-        importDocument,
-        createNewDocument,
-        createNewDocumentInAlphabeticalCollection,
         pinDocument,
         ActionSeparator,
         openDocumentComments,
@@ -125,6 +137,7 @@ export function useDocumentMenuAction({
       t,
       isMobile,
       isViewing,
+      isSidebar,
       templateMenuActions,
       documentId,
       onFindAndReplace,

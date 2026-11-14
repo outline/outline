@@ -39,6 +39,9 @@ import {
   ExportIcon,
   CodeIcon,
   PDFIcon,
+  IndentIcon,
+  InsertAboveIcon,
+  InsertBelowIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import { showPublicLinkCopiedToast } from "~/components/Sharing/components/toasts";
@@ -303,9 +306,10 @@ function canCreateSiblingDocument(
 }
 
 export const createNestedDocument = createInternalLinkAction({
-  name: ({ t }) => t("Nested document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Inside") : t("New nested document")),
   analyticsName: "New document",
   section: ActiveDocumentSection,
+  icon: <IndentIcon />,
   keywords: "create nested",
   visible: ({ currentTeamId, activeDocumentId, stores }) =>
     !!currentTeamId &&
@@ -325,9 +329,10 @@ export const createNestedDocument = createInternalLinkAction({
 });
 
 const createDocumentBefore = createInternalLinkAction({
-  name: ({ t }) => t("Before"),
+  name: ({ t, isMenu }) => (isMenu ? t("Above") : t("New document above")),
   analyticsName: "New document before",
   section: ActiveDocumentSection,
+  icon: <InsertAboveIcon />,
   keywords: "create before",
   visible: ({ currentTeamId, activeDocumentId, stores }) => {
     if (!currentTeamId || !activeDocumentId) {
@@ -367,9 +372,10 @@ const createDocumentBefore = createInternalLinkAction({
 });
 
 const createDocumentAfter = createInternalLinkAction({
-  name: ({ t }) => t("After"),
+  name: ({ t, isMenu }) => (isMenu ? t("Below") : t("New document below")),
   analyticsName: "New document after",
   section: ActiveDocumentSection,
+  icon: <InsertBelowIcon />,
   keywords: "create after",
   visible: ({ currentTeamId, activeDocumentId, stores }) => {
     if (!currentTeamId || !activeDocumentId) {
@@ -441,14 +447,24 @@ export const createNewDocument = createActionWithChildren({
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
 });
 
-export const createNewDocumentInAlphabeticalCollection =
-  createInternalLinkAction({
+/**
+ * Creates the action that opens a new document nested inside the active
+ * document.
+ *
+ * @param visible - additional visibility check for the action.
+ * @returns the action.
+ */
+function newNestedDocumentAction(
+  visible: (context: ActionContext) => boolean = () => true
+) {
+  return createInternalLinkAction({
     name: ({ t }) => t("New document"),
     analyticsName: "New document",
     section: ActiveDocumentSection,
     icon: <NewDocumentIcon />,
     keywords: "create",
-    visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    visible: (context) => {
+      const { currentTeamId, activeDocumentId, stores } = context;
       if (!activeDocumentId || !currentTeamId) {
         return false;
       }
@@ -458,7 +474,7 @@ export const createNewDocumentInAlphabeticalCollection =
       if (!stores.policies.abilities(activeDocumentId).createChildDocument) {
         return false;
       }
-      return isAlphabeticallySorted(stores, activeDocumentId);
+      return visible(context);
     },
     to: ({ activeDocumentId, sidebarContext }) => {
       const [pathname, search] =
@@ -471,6 +487,16 @@ export const createNewDocumentInAlphabeticalCollection =
       };
     },
   });
+}
+
+export const createNewDocumentInAlphabeticalCollection =
+  newNestedDocumentAction(
+    ({ activeDocumentId, stores }) =>
+      !!activeDocumentId && isAlphabeticallySorted(stores, activeDocumentId)
+  );
+
+/** A single action to create a nested document, for menus outside the sidebar. */
+export const createNewNestedDocument = newNestedDocumentAction();
 
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),

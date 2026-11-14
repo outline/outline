@@ -1,10 +1,13 @@
 import type { Team } from "@server/models";
 import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType } from "@shared/types";
 
 export interface PresentedNavigationNode {
   id: string;
   title: string;
   url: string;
+  /** Set for links to external locations, which are not documents. */
+  type?: NavigationNodeType.Link;
   children: PresentedNavigationNode[];
 }
 
@@ -26,6 +29,10 @@ export default function presentNavigationNode(
     url: /^https?:\/\//.test(node.url)
       ? node.url
       : new URL(node.url, team.url).href,
+    type:
+      node.type === NavigationNodeType.Link
+        ? NavigationNodeType.Link
+        : undefined,
     children: (node.children ?? []).map((child) =>
       presentNavigationNode(team, child)
     ),

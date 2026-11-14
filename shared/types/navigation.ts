@@ -4,6 +4,7 @@ export enum NavigationNodeType {
   Document = "document",
   UserMembership = "userMembership",
   GroupMembership = "groupMembership",
+  Link = "link",
 }
 
 /** A node in a navigation tree, such as a collection's document structure. */
