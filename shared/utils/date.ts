@@ -368,6 +368,16 @@ const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 /**
+ * Whether a string is a date-only ISO value (yyyy-MM-dd).
+ *
+ * @param value The string to check.
+ * @returns true when the value is a date-only ISO string.
+ */
+export function isISODate(value: string): boolean {
+  return isoDateRegex.test(value);
+}
+
+/**
  * Whether a date mention's stored ISO value carries a time component.
  *
  * @param iso The stored ISO string.

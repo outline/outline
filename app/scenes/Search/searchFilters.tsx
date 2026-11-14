@@ -8,17 +8,24 @@ import {
   UserIcon,
 } from "outline-icons";
 import { endOfDay, startOfDay } from "date-fns";
+import { uniq } from "es-toolkit/compat";
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   ComparisonOperator,
-  DURATION_BY_DATE_FILTER,
+  durationForDateFilter,
+  RANGE_OPERATORS,
   scalarMatchesKind,
+  statusToFilter,
 } from "@shared/helpers/FilterHelper";
 import { StatusFilter } from "@shared/types";
-import { dateRangeToReadable, parseISODate } from "@shared/utils/date";
+import {
+  dateRangeToReadable,
+  isISODate,
+  parseISODate,
+} from "@shared/utils/date";
 import type { locales } from "@shared/utils/date";
 import type Document from "~/models/Document";
 import { isTruthyQueryValue } from "~/utils/urls";
@@ -32,9 +39,7 @@ import {
 } from "./filterOptions";
 
 /** The state of the search page that controls which filters can show. */
-export interface SearchFilterContext {
-  /** The search query, if there is one. */
-  query?: string;
+interface SearchFilterContext {
   /** The document that the search is limited to, if there is one. */
   document?: Document;
 }
@@ -43,7 +48,7 @@ export interface SearchFilterContext {
 export type FilterConditions = Partial<Record<ComparisonOperator, string[]>>;
 
 /** A URL parameter from before the `<field>.<operator>` format. */
-export interface LegacyParam {
+interface LegacyParam {
   /** The name of the URL parameter. */
   param: string;
   /** The operator that the parameter stands for. */
@@ -164,15 +169,14 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
       icon: <DoneIcon />,
       pinned: true,
       operators: ["eq", "in"],
-      isValidValue: (value) =>
-        Object.values<string>(StatusFilter).includes(value),
+      isValidValue: isStatus,
       selection: "match",
       multiple: true,
       defaultValues: [StatusFilter.Published, StatusFilter.Draft],
       useOptions: useStatusOptions,
       legacy: { param: "statusFilter", operator: "in" },
       toFilter: (conditions) =>
-        statusToFilter([...(conditions.eq ?? []), ...(conditions.in ?? [])]),
+        statusesToFilter([...(conditions.eq ?? []), ...(conditions.in ?? [])]),
     },
     {
       type: "select",
@@ -180,7 +184,11 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
       label: t("Updated"),
       icon: <CalendarIcon />,
       ...dateSelection,
-      legacy: { param: "dateFilter", operator: "gte", map: durationForPreset },
+      legacy: {
+        param: "dateFilter",
+        operator: "gte",
+        map: durationForDateFilter,
+      },
     },
     {
       type: "select",
@@ -273,6 +281,62 @@ export function getFilterConditions(
   return conditions;
 }
 
+/** The state of one filter, read from the URL in one pass. */
+export interface FilterState {
+  /** Whether the URL sets the filter, as opposed to it using its defaults. */
+  isSet: boolean;
+  /** The selected option keys, including defaults. */
+  values: string[];
+  /** The API expression, undefined when the filter adds no condition. */
+  apiFilter?: Filter;
+  /** A custom date range, for date filters only. */
+  range?: DateRange;
+}
+
+/**
+ * Read the full state of a filter from the URL, parsing it once.
+ *
+ * @param filter the filter to read.
+ * @param params the URL query parameters.
+ * @returns the state of the filter.
+ */
+export function readFilter(
+  filter: SearchFilter,
+  params: URLSearchParams
+): FilterState {
+  if (filter.type === "toggle") {
+    const isSet =
+      isTruthyQueryValue(params.get(filter.id)) ||
+      (!!filter.legacyParam &&
+        isTruthyQueryValue(params.get(filter.legacyParam)));
+    return { isSet, values: isSet ? [TOGGLE_ON] : [] };
+  }
+
+  const set = getFilterConditions(filter, params);
+  const isSet = Object.keys(set).length > 0;
+  const isDate = filter.selection === "date";
+  const selected = isDate
+    ? (set.gte ?? [])
+    : uniq([...(set.eq ?? []), ...(set.in ?? [])]);
+  const conditions =
+    isSet || !filter.defaultValues ? set : { in: filter.defaultValues };
+  const apiFilter = filter.toFilter
+    ? filter.toFilter(conditions)
+    : conditionsToFilter(
+        filter.id,
+        isDate ? toLocalDayBounds(conditions) : conditions
+      );
+  const from = set.gte?.find(isISODate);
+  const to = set.lte?.find(isISODate);
+
+  return {
+    isSet,
+    values: selected.length > 0 ? selected : (filter.defaultValues ?? []),
+    apiFilter,
+    range: isDate && (from || to) ? { from, to } : undefined,
+  };
+}
+
 /**
  * Whether the URL sets a value for the filter, as opposed to the filter using
  * its default values.
@@ -285,14 +349,7 @@ export function isFilterSet(
   filter: SearchFilter,
   params: URLSearchParams
 ): boolean {
-  if (filter.type === "toggle") {
-    return (
-      isTruthyQueryValue(params.get(filter.id)) ||
-      (!!filter.legacyParam &&
-        isTruthyQueryValue(params.get(filter.legacyParam)))
-    );
-  }
-  return Object.keys(getFilterConditions(filter, params)).length > 0;
+  return readFilter(filter, params).isSet;
 }
 
 /**
@@ -307,15 +364,7 @@ export function getFilterValues(
   filter: SearchFilter,
   params: URLSearchParams
 ): string[] {
-  if (filter.type === "toggle") {
-    return isFilterSet(filter, params) ? [TOGGLE_ON] : [];
-  }
-  const conditions = getFilterConditions(filter, params);
-  const values =
-    filter.selection === "date"
-      ? (conditions.gte ?? [])
-      : unique([...(conditions.eq ?? []), ...(conditions.in ?? [])]);
-  return values.length > 0 ? values : (filter.defaultValues ?? []);
+  return readFilter(filter, params).values;
 }
 
 /**
@@ -329,22 +378,7 @@ export function getApiFilter(
   filter: SearchFilter,
   params: URLSearchParams
 ): Filter | undefined {
-  if (filter.type === "toggle") {
-    return undefined;
-  }
-  const set = getFilterConditions(filter, params);
-  const conditions =
-    Object.keys(set).length > 0 || !filter.defaultValues
-      ? set
-      : { in: filter.defaultValues };
-
-  if (filter.toFilter) {
-    return filter.toFilter(conditions);
-  }
-  return conditionsToFilter(
-    filter.id,
-    filter.selection === "date" ? toLocalDayBounds(conditions) : conditions
-  );
+  return readFilter(filter, params).apiFilter;
 }
 
 /**
@@ -358,13 +392,7 @@ export function getDateRange(
   filter: SearchFilter,
   params: URLSearchParams
 ): DateRange | undefined {
-  if (filter.type !== "select" || filter.selection !== "date") {
-    return undefined;
-  }
-  const conditions = getFilterConditions(filter, params);
-  const from = conditions.gte?.find(isISODate);
-  const to = conditions.lte?.find(isISODate);
-  return from || to ? { from, to } : undefined;
+  return readFilter(filter, params).range;
 }
 
 /**
@@ -482,7 +510,7 @@ const matchSelection = {
 } as const;
 
 const dateSelection = {
-  operators: ["gt", "gte", "lt", "lte"],
+  operators: [...RANGE_OPERATORS],
   isValidValue: (value: string, operator: ComparisonOperator) =>
     scalarMatchesKind("date", value, operator),
   selection: "date",
@@ -524,17 +552,13 @@ function getConditionParamChanges(
   return changes;
 }
 
-function isISODate(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
 /**
  * Convert date-only bounds to the start or end of that day in local time, so
  * that a range includes the whole of its first and last day.
  */
 function toLocalDayBounds(conditions: FilterConditions): FilterConditions {
   const result: FilterConditions = { ...conditions };
-  for (const operator of ["gt", "gte", "lt", "lte"] as const) {
+  for (const operator of RANGE_OPERATORS) {
     result[operator] = conditions[operator]?.map((value) => {
       const date = isISODate(value) ? parseISODate(value) : null;
       if (!date) {
@@ -550,12 +574,6 @@ function toLocalDayBounds(conditions: FilterConditions): FilterConditions {
   return result;
 }
 
-function durationForPreset(value: string): string | undefined {
-  return Object.entries(DURATION_BY_DATE_FILTER).find(
-    ([preset]) => preset === value
-  )?.[1];
-}
-
 function isNullOperator(operator: ComparisonOperator) {
   return operator === "isNull" || operator === "isNotNull";
 }
@@ -569,10 +587,6 @@ function splitValues(operator: ComparisonOperator, raw: string): string[] {
     return [];
   }
   return isListOperator(operator) ? raw.split(",").filter(Boolean) : [raw];
-}
-
-function unique(values: string[]) {
-  return Array.from(new Set(values));
 }
 
 function conditionsToFilter(
@@ -608,25 +622,14 @@ function conditionsToFilter(
   return leaves.length === 1 ? leaves[0] : { operator: "AND", filters: leaves };
 }
 
-function statusToFilter(values: string[]): Filter | undefined {
-  const shapes = unique(values).map((status): Filter => {
-    if (status === StatusFilter.Archived) {
-      return { field: "archivedAt", operator: "isNotNull" };
-    }
-    return {
-      operator: "AND",
-      filters: [
-        { field: "archivedAt", operator: "isNull" },
-        {
-          field: "publishedAt",
-          operator: status === StatusFilter.Published ? "isNotNull" : "isNull",
-        },
-      ],
-    };
-  });
-
+function statusesToFilter(values: string[]): Filter | undefined {
+  const shapes = uniq(values).filter(isStatus).map(statusToFilter);
   if (shapes.length === 0) {
     return undefined;
   }
   return shapes.length === 1 ? shapes[0] : { operator: "OR", filters: shapes };
+}
+
+function isStatus(value: string): value is StatusFilter {
+  return Object.values<string>(StatusFilter).includes(value);
 }

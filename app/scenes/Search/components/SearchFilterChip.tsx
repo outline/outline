@@ -22,13 +22,13 @@ interface Props {
   /** Whether the options are open when the chip mounts. */
   defaultOpen?: boolean;
   /** Callback when the selected values change, undefined removes the filter. */
-  onChange: (id: string, values: string[] | undefined) => void;
+  onChange: (filter: SearchFilter, values: string[] | undefined) => void;
   /** Callback when the options open or close. */
-  onOpenChange?: (id: string, open: boolean) => void;
+  onOpenChange?: (filter: SearchFilter, open: boolean) => void;
   /** Label of a custom date range, shown in place of an option label. */
   rangeLabel?: string;
   /** Callback when the user asks to choose a custom date range. */
-  onCustomRange?: (id: string) => void;
+  onCustomRange?: (filter: SearchFilter) => void;
 }
 
 /**
@@ -53,7 +53,7 @@ export function SearchFilterChip(props: Props) {
       </ChipStatic>
       <ChipRemoveButton
         label={t("Remove filter")}
-        onClick={() => onChange(filter.id, undefined)}
+        onClick={() => onChange(filter, undefined)}
       />
     </Chip>
   );
@@ -71,7 +71,7 @@ const SelectFilterChip = observer(function SelectFilterChip_({
 }: Props & { filter: SelectSearchFilter }) {
   const { t } = useTranslation();
   const source = filter.useOptions();
-  const { id, multiple } = filter;
+  const { multiple } = filter;
   const allowsRange = filter.selection === "date" && !!onCustomRange;
 
   const options = useMemo(
@@ -93,24 +93,24 @@ const SelectFilterChip = observer(function SelectFilterChip_({
         return;
       }
       if (key === CUSTOM_RANGE) {
-        onCustomRange?.(id);
+        onCustomRange?.(filter);
         return;
       }
       if (!multiple) {
-        onChange(id, [key]);
+        onChange(filter, [key]);
         return;
       }
       const next = values.includes(key)
         ? values.filter((value) => value !== key)
         : [...values, key];
-      onChange(id, next.length ? next : undefined);
+      onChange(filter, next.length ? next : undefined);
     },
-    [id, multiple, values, onChange, onCustomRange]
+    [filter, multiple, values, onChange, onCustomRange]
   );
 
   const handleOpenChange = useCallback(
-    (open: boolean) => onOpenChange?.(id, open),
-    [id, onOpenChange]
+    (open: boolean) => onOpenChange?.(filter, open),
+    [filter, onOpenChange]
   );
 
   // Default values are implied, so only show values that the user picked.
@@ -146,7 +146,7 @@ const SelectFilterChip = observer(function SelectFilterChip_({
       {isSet && (
         <ChipRemoveButton
           label={t("Remove filter")}
-          onClick={() => onChange(id, undefined)}
+          onClick={() => onChange(filter, undefined)}
         />
       )}
     </Chip>

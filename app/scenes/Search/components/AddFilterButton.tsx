@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
+import { FilterIcon } from "~/components/Icons/FilterIcon";
 import type { SearchFilter } from "../searchFilters";
 import { Chip, ChipButton, ChipContent } from "./FilterChip";
 
@@ -19,6 +20,15 @@ interface Props {
  */
 export function AddFilterButton({ filters, onSelect }: Props) {
   const { t } = useTranslation();
+  const handleSelect = useCallback(
+    (key: string | null | undefined) => {
+      if (key) {
+        onSelect(key);
+      }
+    },
+    [onSelect]
+  );
+
   const options = useMemo(
     () =>
       filters.map((filter) => ({
@@ -33,8 +43,8 @@ export function AddFilterButton({ filters, onSelect }: Props) {
     <Chip>
       <FilterOptions
         options={options}
-        selectedKeys={[]}
-        onSelect={(key) => key && onSelect(key)}
+        selectedKeys={NO_SELECTION}
+        onSelect={handleSelect}
         defaultLabel={t("More filters")}
         trigger={
           <ChipButton aria-label={t("More filters")}>
@@ -46,12 +56,4 @@ export function AddFilterButton({ filters, onSelect }: Props) {
   );
 }
 
-function FilterIcon() {
-  return (
-    <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
-      <rect x="5" y="7" width="14" height="2" rx="1" />
-      <rect x="7.5" y="11" width="9" height="2" rx="1" />
-      <rect x="10" y="15" width="4" height="2" rx="1" />
-    </svg>
-  );
-}
+const NO_SELECTION: string[] = [];
