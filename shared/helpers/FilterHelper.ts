@@ -134,7 +134,7 @@ export const RANGE_OPERATORS = new Set<ComparisonOperator>([
  * @param operator the operator the value is used with.
  * @returns true if the value is a valid input for the field.
  */
-function scalarMatchesKind(
+export function scalarMatchesKind(
   kind: FieldKind,
   value: unknown,
   operator: ComparisonOperator

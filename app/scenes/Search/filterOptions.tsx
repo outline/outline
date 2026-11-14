@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
+import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
 import { StatusFilter } from "@shared/types";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import type { TFilterOption } from "~/components/FilterOptions";
@@ -119,6 +120,28 @@ export function useDateOptions(): FilterOptionSource {
         { key: "week", label: t("Past week") },
         { key: "month", label: t("Past month") },
         { key: "year", label: t("Past year") },
+      ],
+    }),
+    [t]
+  );
+}
+
+/**
+ * Options for a relative date range, keyed by the ISO 8601 duration that the
+ * API accepts as a lower bound.
+ *
+ * @returns the relative date options.
+ */
+export function useRelativeDateOptions(): FilterOptionSource {
+  const { t } = useTranslation();
+
+  return useMemo(
+    () => ({
+      options: [
+        { key: DURATION_BY_DATE_FILTER.day, label: t("Past day") },
+        { key: DURATION_BY_DATE_FILTER.week, label: t("Past week") },
+        { key: DURATION_BY_DATE_FILTER.month, label: t("Past month") },
+        { key: DURATION_BY_DATE_FILTER.year, label: t("Past year") },
       ],
     }),
     [t]

@@ -24,20 +24,20 @@ export default async ({ page, click, step, args, log, psql, literal }) => {
   await click(page.getByRole("button", { name: "More filters" }));
   await click(page.getByRole("menuitem", { name: "Updated", exact: true }));
   await click(page.getByRole("menuitem", { name: "Past week" }));
-  await page.waitForURL(/dateFilter=week/);
+  await page.waitForURL(/updatedAt\.gte=-P1W/);
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
   await step("filter-without-query");
   await click(page.getByRole("button", { name: "Remove filter" }));
-  await page.waitForURL((url) => !url.search.includes("dateFilter"));
+  await page.waitForURL((url) => !url.search.includes("updatedAt"));
 
   // A toggle filter alone, with no query, lists results.
   await click(page.getByRole("button", { name: "More filters" }));
   await click(page.getByRole("menuitem", { name: "Title only" }));
-  await page.waitForURL(/titleFilter=true/);
+  await page.waitForURL(/titleOnly=true/);
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
   await step("title-only-without-query");
   await click(page.getByRole("button", { name: "Remove filter" }));
-  await page.waitForURL((url) => !url.search.includes("titleFilter"));
+  await page.waitForURL((url) => !url.search.includes("titleOnly"));
 
   // A document scope alone, with no query, lists results.
   const [documentId] = await psql(
@@ -58,7 +58,7 @@ export default async ({ page, click, step, args, log, psql, literal }) => {
   // Pinned chip: pick a collection.
   await click(page.getByRole("button", { name: "Collection", exact: true }));
   await click(page.getByRole("menuitem", { name: args.collection }));
-  await page.waitForURL(/collectionId=/);
+  await page.waitForURL(/collectionId\.eq=/);
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
   await step("collection-chip");
 
@@ -70,14 +70,14 @@ export default async ({ page, click, step, args, log, psql, literal }) => {
   await menu.waitFor({ timeout: 5000 });
   await step("created-by-options-open");
   await click(menu.getByRole("menuitem").first());
-  await page.waitForURL(/createdById=/);
+  await page.waitForURL(/createdById\.eq=/);
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
   await step("created-by-chip");
 
   // Toggle filter: "Title only" adds a chip with no options.
   await click(page.getByRole("button", { name: "More filters" }));
   await click(page.getByRole("menuitem", { name: "Title only" }));
-  await page.waitForURL(/titleFilter=true/);
+  await page.waitForURL(/titleOnly=true/);
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
   await step("title-only-chip");
 
@@ -99,7 +99,7 @@ export default async ({ page, click, step, args, log, psql, literal }) => {
   const removeButtons = page.getByRole("button", { name: "Remove filter" });
   const before = await removeButtons.count();
   await click(removeButtons.last());
-  await page.waitForURL((url) => !url.search.includes("titleFilter"));
+  await page.waitForURL((url) => !url.search.includes("titleOnly"));
   const after = await removeButtons.count();
   if (after !== before - 1) {
     throw new Error(`expected ${before - 1} remove buttons, saw ${after}`);
@@ -109,6 +109,30 @@ export default async ({ page, click, step, args, log, psql, literal }) => {
   await page.reload();
   await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
   await step("after-reload");
+  // Legacy URLs still apply their filters.
+  const searchBodies = [];
+  let searchTitleCalls = 0;
+  page.on("request", (req) => {
+    if (req.url().endsWith("/api/documents.search_titles")) {
+      searchTitleCalls += 1;
+      searchBodies.push(req.postDataJSON());
+    }
+  });
+  await page.goto(`/search?q=${args.query}&dateFilter=week&titleFilter=true`);
+  await page.getByRole("button", { name: /^Updated\s*Past week/ }).waitFor();
+  await page.getByText("Title only", { exact: true }).waitFor();
+  await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
+  const legacyFilters = JSON.stringify(searchBodies.at(-1)?.filters ?? []);
+  if (!legacyFilters.includes('"field":"updatedAt","operator":"gte","value":"-P1W"')) {
+    throw new Error(`legacy dateFilter not sent to the API: ${legacyFilters}`);
+  }
+  if (!searchTitleCalls) {
+    throw new Error("legacy titleFilter did not use title search");
+  }
+  await step("legacy-url");
+  await page.goBack();
+  await page.getByRole("link", { name: new RegExp(args.query) }).last().waitFor();
+
   const finalUrl = page.url();
   log("final url:", finalUrl);
 

@@ -1,13 +1,20 @@
 import i18next from "i18next";
 import { StatusFilter } from "@shared/types";
-import type { SearchFilter } from "./searchFilters";
+import type { SearchFilter, SelectSearchFilter } from "./searchFilters";
 import {
   createSearchFilters,
+  getApiFilter,
+  getFilterConditions,
+  getFilterParamChanges,
   getFilterValues,
   isFilterSet,
+  parseKey,
 } from "./searchFilters";
 
 const filters = createSearchFilters(i18next.t);
+
+const collectionA = "9f1b8c2e-3a4d-4e5f-8a6b-7c8d9e0f1a2b";
+const collectionB = "1a2b3c4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d";
 
 function getFilter(id: string): SearchFilter {
   const filter = filters.find((item) => item.id === id);
@@ -17,115 +24,22 @@ function getFilter(id: string): SearchFilter {
   return filter;
 }
 
+function getSelectFilter(id: string): SelectSearchFilter {
+  const filter = getFilter(id);
+  if (filter.type !== "select") {
+    throw new Error(`Filter ${id} is not a select filter`);
+  }
+  return filter;
+}
+
+function params(search: string) {
+  return new URLSearchParams(search);
+}
+
 describe("searchFilters", () => {
   it("has a unique id for each filter", () => {
     const ids = filters.map((filter) => filter.id);
     expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it("falls back to default values when the URL does not set the filter", () => {
-    const status = getFilter("statusFilter");
-    const params = new URLSearchParams();
-
-    expect(isFilterSet(status, params)).toBe(false);
-    expect(getFilterValues(status, params)).toEqual([
-      StatusFilter.Published,
-      StatusFilter.Draft,
-    ]);
-  });
-
-  it("reads repeated and comma separated values from the URL", () => {
-    const status = getFilter("statusFilter");
-
-    expect(
-      getFilterValues(
-        status,
-        new URLSearchParams("statusFilter=archived&statusFilter=draft")
-      )
-    ).toEqual([StatusFilter.Archived, StatusFilter.Draft]);
-    expect(
-      getFilterValues(
-        status,
-        new URLSearchParams("statusFilter=archived,draft")
-      )
-    ).toEqual([StatusFilter.Archived, StatusFilter.Draft]);
-  });
-
-  it("reads toggle filters from truthy URL values", () => {
-    const title = getFilter("titleFilter");
-
-    expect(isFilterSet(title, new URLSearchParams("titleFilter=true"))).toBe(
-      true
-    );
-    expect(isFilterSet(title, new URLSearchParams("titleFilter=false"))).toBe(
-      false
-    );
-    expect(getFilterValues(title, new URLSearchParams())).toEqual([]);
-  });
-
-  it("matches one or many values for id filters", () => {
-    const createdBy = getFilter("createdById");
-
-    expect(createdBy.toFilter?.([])).toBeUndefined();
-    expect(createdBy.toFilter?.(["a"])).toEqual({
-      field: "createdById",
-      operator: "eq",
-      value: "a",
-    });
-    expect(createdBy.toFilter?.(["a", "b"])).toEqual({
-      field: "createdById",
-      operator: "in",
-      value: ["a", "b"],
-    });
-  });
-
-  it("converts date presets to a duration on the right field", () => {
-    expect(getFilter("dateFilter").toFilter?.(["week"])).toEqual({
-      field: "updatedAt",
-      operator: "gte",
-      value: "-P1W",
-    });
-    expect(getFilter("createdDateFilter").toFilter?.(["month"])).toEqual({
-      field: "createdAt",
-      operator: "gte",
-      value: "-P1M",
-    });
-    expect(getFilter("publishedDateFilter").toFilter?.(["day"])).toEqual({
-      field: "publishedAt",
-      operator: "gte",
-      value: "-P1D",
-    });
-    expect(getFilter("dateFilter").toFilter?.(["unknown"])).toBeUndefined();
-  });
-
-  it("combines several statuses with OR", () => {
-    const status = getFilter("statusFilter");
-
-    expect(status.toFilter?.([StatusFilter.Archived])).toEqual({
-      field: "archivedAt",
-      operator: "isNotNull",
-    });
-    expect(
-      status.toFilter?.([StatusFilter.Published, StatusFilter.Draft])
-    ).toEqual({
-      operator: "OR",
-      filters: [
-        {
-          operator: "AND",
-          filters: [
-            { field: "archivedAt", operator: "isNull" },
-            { field: "publishedAt", operator: "isNotNull" },
-          ],
-        },
-        {
-          operator: "AND",
-          filters: [
-            { field: "archivedAt", operator: "isNull" },
-            { field: "publishedAt", operator: "isNull" },
-          ],
-        },
-      ],
-    });
   });
 
   it("offers every filter without a query", () => {
@@ -133,5 +47,270 @@ describe("searchFilters", () => {
       (filter) => filter.isAvailable?.({}) ?? true
     );
     expect(available).toEqual(filters);
+  });
+
+  describe("parseKey", () => {
+    it("reads a bare key as eq", () => {
+      expect(parseKey("collectionId")).toEqual({
+        field: "collectionId",
+        operator: "eq",
+      });
+    });
+
+    it("splits the field and operator", () => {
+      expect(parseKey("updatedAt.gte")).toEqual({
+        field: "updatedAt",
+        operator: "gte",
+      });
+    });
+
+    it("rejects an unknown operator", () => {
+      expect(parseKey("updatedAt.after")).toBeUndefined();
+    });
+  });
+
+  describe("getFilterConditions", () => {
+    it("reads bare, eq and in keys", () => {
+      const collection = getSelectFilter("collectionId");
+
+      expect(
+        getFilterConditions(collection, params(`collectionId=${collectionA}`))
+      ).toEqual({ eq: [collectionA] });
+      expect(
+        getFilterConditions(
+          collection,
+          params(`collectionId.in=${collectionA},${collectionB}`)
+        )
+      ).toEqual({ in: [collectionA, collectionB] });
+    });
+
+    it("drops operators the filter does not allow", () => {
+      expect(
+        getFilterConditions(
+          getSelectFilter("userId"),
+          params(`userId.neq=${collectionA}`)
+        )
+      ).toEqual({});
+    });
+
+    it("drops values that are not valid", () => {
+      expect(
+        getFilterConditions(
+          getSelectFilter("collectionId"),
+          params("collectionId=not-a-uuid")
+        )
+      ).toEqual({});
+      expect(
+        getFilterConditions(
+          getSelectFilter("updatedAt"),
+          params("updatedAt.gte=yesterday")
+        )
+      ).toEqual({});
+    });
+
+    it("reads date ranges with durations and dates", () => {
+      expect(
+        getFilterConditions(
+          getSelectFilter("createdAt"),
+          params("createdAt.gte=2026-03-01&createdAt.lte=2026-04-15")
+        )
+      ).toEqual({ gte: ["2026-03-01"], lte: ["2026-04-15"] });
+    });
+
+    it("reads legacy parameters", () => {
+      expect(
+        getFilterConditions(
+          getSelectFilter("updatedAt"),
+          params("dateFilter=week")
+        )
+      ).toEqual({ gte: ["-P1W"] });
+      expect(
+        getFilterConditions(
+          getSelectFilter("status"),
+          params("statusFilter=archived&statusFilter=draft")
+        )
+      ).toEqual({ in: [StatusFilter.Archived, StatusFilter.Draft] });
+      expect(
+        getFilterConditions(
+          getSelectFilter("status"),
+          params("statusFilter=archived,draft")
+        )
+      ).toEqual({ in: [StatusFilter.Archived, StatusFilter.Draft] });
+    });
+
+    it("prefers the current format over a legacy parameter", () => {
+      expect(
+        getFilterConditions(
+          getSelectFilter("updatedAt"),
+          params("updatedAt.gte=-P1D&dateFilter=week")
+        )
+      ).toEqual({ gte: ["-P1D"] });
+    });
+  });
+
+  describe("getFilterValues", () => {
+    it("falls back to default values", () => {
+      const status = getFilter("status");
+
+      expect(isFilterSet(status, params(""))).toBe(false);
+      expect(getFilterValues(status, params(""))).toEqual([
+        StatusFilter.Published,
+        StatusFilter.Draft,
+      ]);
+    });
+
+    it("reads toggle filters, including the legacy parameter", () => {
+      const title = getFilter("titleOnly");
+
+      expect(isFilterSet(title, params("titleOnly=true"))).toBe(true);
+      expect(isFilterSet(title, params("titleFilter=true"))).toBe(true);
+      expect(isFilterSet(title, params("titleOnly=false"))).toBe(false);
+    });
+  });
+
+  describe("getApiFilter", () => {
+    it("matches one or many values", () => {
+      const createdBy = getFilter("createdById");
+
+      expect(getApiFilter(createdBy, params(""))).toBeUndefined();
+      expect(
+        getApiFilter(createdBy, params(`createdById.eq=${collectionA}`))
+      ).toEqual({ field: "createdById", operator: "eq", value: collectionA });
+      expect(
+        getApiFilter(
+          createdBy,
+          params(`createdById.in=${collectionA},${collectionB}`)
+        )
+      ).toEqual({
+        field: "createdById",
+        operator: "in",
+        value: [collectionA, collectionB],
+      });
+    });
+
+    it("supports exclusion", () => {
+      expect(
+        getApiFilter(
+          getFilter("collectionId"),
+          params(`collectionId.neq=${collectionA}`)
+        )
+      ).toEqual({ field: "collectionId", operator: "neq", value: collectionA });
+    });
+
+    it("combines a date range with AND", () => {
+      expect(
+        getApiFilter(
+          getFilter("publishedAt"),
+          params("publishedAt.gte=2026-03-01&publishedAt.lte=2026-04-15")
+        )
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "publishedAt", operator: "lte", value: "2026-04-15" },
+          { field: "publishedAt", operator: "gte", value: "2026-03-01" },
+        ],
+      });
+    });
+
+    it("combines default statuses with OR", () => {
+      expect(getApiFilter(getFilter("status"), params(""))).toEqual({
+        operator: "OR",
+        filters: [
+          {
+            operator: "AND",
+            filters: [
+              { field: "archivedAt", operator: "isNull" },
+              { field: "publishedAt", operator: "isNotNull" },
+            ],
+          },
+          {
+            operator: "AND",
+            filters: [
+              { field: "archivedAt", operator: "isNull" },
+              { field: "publishedAt", operator: "isNull" },
+            ],
+          },
+        ],
+      });
+      expect(
+        getApiFilter(getFilter("status"), params("status.eq=archived"))
+      ).toEqual({ field: "archivedAt", operator: "isNotNull" });
+    });
+
+    it("adds no condition for toggle filters", () => {
+      expect(
+        getApiFilter(getFilter("titleOnly"), params("titleOnly=true"))
+      ).toBeUndefined();
+    });
+  });
+
+  describe("getFilterParamChanges", () => {
+    it("writes one value as eq and many as in", () => {
+      const collection = getFilter("collectionId");
+
+      expect(
+        getFilterParamChanges(collection, [collectionA], params(""))
+      ).toEqual({ "collectionId.eq": collectionA });
+      expect(
+        getFilterParamChanges(
+          collection,
+          [collectionA, collectionB],
+          params(`collectionId.eq=${collectionA}`)
+        )
+      ).toEqual({
+        "collectionId.eq": undefined,
+        "collectionId.in": [collectionA, collectionB],
+      });
+    });
+
+    it("writes dates as a lower bound and clears the legacy parameter", () => {
+      expect(
+        getFilterParamChanges(
+          getFilter("updatedAt"),
+          ["-P1M"],
+          params("dateFilter=week")
+        )
+      ).toEqual({ dateFilter: undefined, "updatedAt.gte": "-P1M" });
+    });
+
+    it("clears every key of a removed filter", () => {
+      expect(
+        getFilterParamChanges(
+          getFilter("createdAt"),
+          undefined,
+          params("createdAt.gte=2026-03-01&createdAt.lte=2026-04-15&q=x")
+        )
+      ).toEqual({ "createdAt.gte": undefined, "createdAt.lte": undefined });
+    });
+
+    it("round trips through the URL", () => {
+      const status = getFilter("status");
+      const changes = getFilterParamChanges(
+        status,
+        [StatusFilter.Archived, StatusFilter.Draft],
+        params("")
+      );
+      const next = new URLSearchParams();
+      for (const [key, value] of Object.entries(changes)) {
+        if (value !== undefined) {
+          next.set(key, Array.isArray(value) ? value.join(",") : value);
+        }
+      }
+
+      expect(getFilterValues(status, next)).toEqual([
+        StatusFilter.Archived,
+        StatusFilter.Draft,
+      ]);
+    });
+
+    it("writes toggles and clears the legacy parameter", () => {
+      expect(
+        getFilterParamChanges(
+          getFilter("titleOnly"),
+          ["true"],
+          params("titleFilter=true")
+        )
+      ).toEqual({ titleFilter: undefined, titleOnly: "true" });
+    });
   });
 });

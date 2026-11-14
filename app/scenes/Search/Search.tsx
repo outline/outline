@@ -40,6 +40,8 @@ import { SearchFilterChip } from "./components/SearchFilterChip";
 import type { SearchFilter } from "./searchFilters";
 import {
   TOGGLE_ON,
+  getApiFilter,
+  getFilterParamChanges,
   getFilterValues,
   isFilterSet,
   useSearchFilters,
@@ -65,7 +67,8 @@ function Search() {
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
-  const documentId = params.get("documentId") ?? undefined;
+  const documentId =
+    params.get("documentId") ?? params.get("documentId.eq") ?? undefined;
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
   const document = documentId ? documents.get(documentId) : undefined;
@@ -85,7 +88,7 @@ function Search() {
         visible.some((filter) => isFilterSet(filter, params));
 
       const expressions = visible
-        .map((filter) => filter.toFilter?.(getFilterValues(filter, params)))
+        .map((filter) => getApiFilter(filter, params))
         .filter((filter): filter is Filter => !!filter);
 
       if (documentId) {
@@ -108,6 +111,10 @@ function Search() {
           ),
       };
     }, [searchFilters, params, query, document, documentId]);
+
+  const isCollectionScoped = visibleFilters.some(
+    (filter) => filter.id === "collectionId" && isFilterSet(filter, params)
+  );
 
   const shownFilters = visibleFilters.filter(
     (filter) =>
@@ -231,15 +238,27 @@ function Search() {
 
   const handleChangeFilter = React.useCallback(
     (id: string, values: string[] | undefined) => {
+      const filter = searchFilters.find((item) => item.id === id);
+      if (!filter) {
+        return;
+      }
+      const { search } = history.location;
       history.replace({
         pathname: history.location.pathname,
         search: queryString.stringify(
-          { ...queryString.parse(history.location.search), [id]: values },
-          { skipEmptyString: true }
+          {
+            ...queryString.parse(search),
+            ...getFilterParamChanges(
+              filter,
+              values,
+              new URLSearchParams(search)
+            ),
+          },
+          { skipEmptyString: true, arrayFormat: "comma" }
         ),
       });
     },
-    [history]
+    [history, searchFilters]
   );
 
   const handleAddFilter = (id: string) => {
@@ -343,7 +362,7 @@ function Search() {
             placeholder={`${
               documentId
                 ? t("Search in document")
-                : params.get("collectionId")
+                : isCollectionScoped
                   ? t("Search in collection")
                   : t("Search")
             }…`}
@@ -354,7 +373,12 @@ function Search() {
             {document && (
               <DocumentFilter
                 document={document}
-                onRemove={() => handleFilterChange({ documentId: undefined })}
+                onRemove={() =>
+                  handleFilterChange({
+                    documentId: undefined,
+                    "documentId.eq": undefined,
+                  })
+                }
               />
             )}
             {shownFilters.map(renderFilterChip)}
