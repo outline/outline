@@ -16,6 +16,7 @@ export type NavigationNode = {
   color?: string;
   children: NavigationNode[];
   isDraft?: boolean;
+  isPrivate?: boolean;
   collectionId?: string;
   type?: NavigationNodeType;
   parent?: NavigationNode | null;

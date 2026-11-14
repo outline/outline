@@ -395,7 +395,7 @@ class UserMembership extends IdModel<
       const document = await Document.unscoped()
         .scope("withoutState")
         .findOne({
-          attributes: ["id"],
+          attributes: ["id", "isPrivate", "restrictionSourceId"],
           where: {
             id: documentId ?? model.documentId,
           },
@@ -405,16 +405,22 @@ class UserMembership extends IdModel<
         return;
       }
 
-      childDocumentIds = await document.findAllChildDocumentIds(
-        {
-          publishedAt: {
-            [Op.ne]: null,
-          },
-        },
-        {
-          transaction,
-        }
-      );
+      // When the document is private, cascade to children sharing its
+      // restriction root — nested restricted subtrees manage their own
+      // memberships. When non-private, stop at private boundaries.
+      const whereClause: Record<string, unknown> = {
+        publishedAt: { [Op.ne]: null },
+      };
+      if (document.isPrivate) {
+        whereClause.restrictionSourceId =
+          document.restrictionSourceId ?? document.id;
+      } else {
+        whereClause.isPrivate = false;
+      }
+
+      childDocumentIds = await document.findAllChildDocumentIds(whereClause, {
+        transaction,
+      });
     }
 
     const documentIds = [

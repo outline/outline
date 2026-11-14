@@ -70,7 +70,7 @@ class Relationship extends IdModel<
     const documents = await Document.findByIds(
       relationships.map((relationship) => relationship.reverseDocumentId),
       {
-        attributes: ["id", "createdById"],
+        attributes: ["id", "isPrivate", "collectionId", "createdById"],
         userId: user.id,
         includeState: false,
         includeViews: false,

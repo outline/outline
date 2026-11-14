@@ -110,6 +110,8 @@ async function presentDocument(
   if (!options.isPublic) {
     res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
+    res.isPrivate = document.isPrivate;
+    res.restrictionSourceId = document.restrictionSourceId;
     res.collectionId = document.collectionId;
     // The owner of the personal collection that the document is in. Left out
     // when the collection is not loaded, so that the value is not cleared.
