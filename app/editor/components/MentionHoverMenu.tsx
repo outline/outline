@@ -52,7 +52,7 @@ export function MentionHoverMenu({ rtl }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
   const [element, setElement] = React.useState<HTMLElement | null>(null);
-  const [menuPos, setMenuPos] = React.useState<number>();
+  const [isOpen, setIsOpen] = React.useState(false);
   const [placement, setPlacement] = React.useState<Placement | null>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
   const hideTimeout = React.useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -92,6 +92,18 @@ export function MentionHoverMenu({ rtl }: Props) {
     },
     view.dom
   );
+  // Scrolling a table moves the mention away from the button, so hide it.
+  useEventListener(
+    "scroll",
+    () => {
+      if (!isOpenRef.current) {
+        cancelHide();
+        setElement(null);
+      }
+    },
+    view.dom,
+    { capture: true, passive: true }
+  );
   useEventListener(
     "mouseleave",
     (event: MouseEvent) => {
@@ -115,8 +127,8 @@ export function MentionHoverMenu({ rtl }: Props) {
     return () => element.removeAttribute(EditorStyleHelper.mentionMenuTarget);
   }, [element]);
 
-  // Re-measure when the window resizes or the mention changes size, for
-  // example when it is switched to a card or its image loads.
+  // Re-measure when the window resizes, the mention changes size (for example
+  // when it is switched to a card) or content above it moves it.
   useWindowSize();
 
   React.useEffect(() => {
@@ -125,12 +137,21 @@ export function MentionHoverMenu({ rtl }: Props) {
     }
     const observer = new ResizeObserver(forceUpdate);
     observer.observe(element);
+    observer.observe(view.dom);
     return () => observer.disconnect();
-  }, [element]);
+  }, [element, view]);
 
   // Runs after every render by design, the position comparison prevents a loop.
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
+    // Close the menu if the mention was removed, for example by a collaborator.
+    if (element && !view.dom.contains(element)) {
+      isOpenRef.current = false;
+      setIsOpen(false);
+      setElement(null);
+      return;
+    }
+
     const wrapper = wrapperRef.current;
     if (!element || !wrapper) {
       setPlacement((prev) => (prev === null ? prev : null));
@@ -165,12 +186,10 @@ export function MentionHoverMenu({ rtl }: Props) {
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
       isOpenRef.current = open;
-      if (open && element) {
-        setMenuPos(getMentionPos(view, element));
+      setIsOpen(open);
+      if (open) {
         return;
       }
-
-      setMenuPos(undefined);
 
       // The mention may have been replaced by the display change.
       const isHovered =
@@ -183,17 +202,19 @@ export function MentionHoverMenu({ rtl }: Props) {
   );
 
   const items: MenuItem[] = React.useMemo(() => {
-    if (menuPos === undefined) {
+    if (!isOpen || !element) {
       return [];
     }
 
+    // The position is resolved on click, as edits by collaborators can move
+    // the mention while the menu is open.
     return mapMenuItems(
-      mentionDisplayItems(t, menuPos),
+      mentionDisplayItems(t, () => getMentionPos(view, element)),
       commands,
       view,
       view.state
     );
-  }, [t, menuPos, commands, view]);
+  }, [t, isOpen, element, commands, view]);
 
   if (
     isMobile ||
@@ -208,7 +229,7 @@ export function MentionHoverMenu({ rtl }: Props) {
   return (
     <Portal>
       <MenuProvider variant="dropdown">
-        <Menu open={menuPos !== undefined} onOpenChange={handleOpenChange}>
+        <Menu open={isOpen} onOpenChange={handleOpenChange}>
           <Wrapper
             ref={wrapperRef}
             onMouseEnter={cancelHide}

@@ -377,6 +377,19 @@ describe("Mention display", () => {
     expect(next.selection).not.toBeInstanceOf(NodeSelection);
   });
 
+  it("does nothing without a position", () => {
+    const state = selectMention(urlMention());
+    const commands = new Mention().commands({
+      type: schema.nodes.mention,
+      schema,
+    });
+    expect(
+      commands.mentionDisplay({ display: MentionDisplay.Card, pos: null })(
+        state
+      )
+    ).toBe(false);
+  });
+
   it("does not change the display of other mention types", () => {
     const state = selectMention(urlMention({ type: MentionType.User }));
     expect(setDisplay(state, MentionDisplay.Card).handled).toBe(false);

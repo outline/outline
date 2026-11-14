@@ -248,25 +248,34 @@ export function createDocumentMentionItems(
  * Builds the menu items that switch a mention between inline and card display.
  *
  * @param t The translation function.
- * @param pos The position of the mention in the document.
+ * @param getPos Returns the current position of the mention, or undefined if it
+ * no longer exists.
  * @returns the menu items.
  */
-export function mentionDisplayItems(t: TFunction, pos: number): MenuItem[] {
-  const isCard = (state: EditorState) =>
-    state.doc.nodeAt(pos)?.attrs.display === MentionDisplay.Card;
+export function mentionDisplayItems(
+  t: TFunction,
+  getPos: () => number | undefined
+): MenuItem[] {
+  const isCard = (state: EditorState) => {
+    const pos = getPos();
+    return (
+      pos !== undefined &&
+      state.doc.nodeAt(pos)?.attrs.display === MentionDisplay.Card
+    );
+  };
 
   return [
     {
       name: "mentionDisplay",
       label: t("Display as mention"),
-      attrs: { display: MentionDisplay.Inline, pos },
+      attrs: () => ({ display: MentionDisplay.Inline, pos: getPos() ?? null }),
       active: (state) => !isCard(state),
       icon: <EmailIcon />,
     },
     {
       name: "mentionDisplay",
       label: t("Display as card"),
-      attrs: { display: MentionDisplay.Card, pos },
+      attrs: () => ({ display: MentionDisplay.Card, pos: getPos() ?? null }),
       active: isCard,
       icon: <AlignImageRightIcon />,
     },

@@ -373,10 +373,14 @@ export default class Mention extends Node {
           return true;
         },
       mentionDisplay:
-        (attrs: { display: MentionDisplay; pos: number }): Command =>
+        (attrs: { display: MentionDisplay; pos: number | null }): Command =>
         (state, dispatch) => {
           const { selection } = state;
           const { pos } = attrs;
+          if (pos === null) {
+            return false;
+          }
+
           const node = state.doc.nodeAt(pos);
           if (!node || !canDisplayAsCard(node)) {
             return false;
