@@ -70,9 +70,14 @@ const FilterOptions = ({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const [open, setOpenState] = React.useState(defaultOpen);
+  // A menu that mounts open shows at once; later opens animate as usual.
+  const [skipAnimation, setSkipAnimation] = React.useState(defaultOpen);
   const setOpen = React.useCallback(
     (value: boolean) => {
       setOpenState(value);
+      if (!value) {
+        setSkipAnimation(false);
+      }
       onOpenChange?.(value);
     },
     [onOpenChange]
@@ -287,7 +292,12 @@ const FilterOptions = ({
     <MenuProvider variant="dropdown">
       <Menu open={open} onOpenChange={setOpen}>
         <MenuTrigger>{trigger}</MenuTrigger>
-        <MenuContent aria-label={defaultLabel} align="start" maxHeight="75vh">
+        <MenuContent
+          aria-label={defaultLabel}
+          align="start"
+          maxHeight="75vh"
+          skipAnimation={skipAnimation}
+        >
           {list}
           {showFilterInput && (
             <SearchInput

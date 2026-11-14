@@ -80,11 +80,13 @@ type ContentProps = React.ComponentPropsWithoutRef<
     ref?: React.Ref<React.ComponentRef<typeof DropdownMenuPrimitive.Content>>;
     /** The largest height of the menu, defaults to 85vh. */
     maxHeight?: string;
+    /** Show the menu at once, without the opening animation. */
+    skipAnimation?: boolean;
   };
 
 function MenuContent(props: ContentProps) {
   const { variant } = useMenuContext();
-  const { ref, children, maxHeight, ...rest } = props;
+  const { ref, children, maxHeight, skipAnimation, ...rest } = props;
 
   const Portal =
     variant === "dropdown"
@@ -116,6 +118,7 @@ function MenuContent(props: ContentProps) {
         <Components.MenuContent
           {...contentProps}
           maxHeight={maxHeight}
+          $skipAnimation={skipAnimation}
           hiddenScrollbars
         >
           {children}

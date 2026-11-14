@@ -114,11 +114,6 @@ export const ChipButton = styled.button`
   &:focus-visible {
     outline: none;
   }
-
-  /* More space before the remove button, which has no disclosure arrow. */
-  &:not(:last-child) {
-    padding-inline-end: 6px;
-  }
 `;
 
 /** A part of a chip that only shows content, for filters without options. */
@@ -127,7 +122,7 @@ export const ChipStatic = styled.span`
   align-items: center;
   gap: 4px;
   min-width: 0;
-  padding: 0 6px;
+  padding: 0 4px 0 6px;
 `;
 
 const ChipIcon = styled.span`
@@ -160,17 +155,22 @@ const RemoveButton = styled(NudeButton)`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 26px;
+  width: 24px;
   height: auto;
+  padding-inline-end: 2px;
   border-radius: 0;
-  border-inline-start: 1px solid ${s("buttonNeutralBorder")};
+  border-inline-start: 1px solid transparent;
   color: ${s("textTertiary")};
-  transition: background 100ms ease-out;
+  transition:
+    background 100ms ease-out,
+    border-color 100ms ease-out,
+    color 100ms ease-out;
 
   &:${hover},
   &:focus-visible {
     color: ${s("text")};
     background: ${s("buttonNeutralHoverBackground")};
+    border-color: ${s("buttonNeutralBorder")};
   }
 
   &:focus-visible {
@@ -178,7 +178,7 @@ const RemoveButton = styled(NudeButton)`
   }
 
   ${breakpoint("mobile", "tablet")`
-    width: 34px;
+    width: 32px;
   `};
 `;
 
