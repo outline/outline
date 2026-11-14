@@ -1,15 +1,18 @@
 import { isEmail } from "class-validator";
 import type { TFunction } from "i18next";
 import {
+  AlignImageRightIcon,
   CollectionIcon,
   DocumentIcon,
+  EmailIcon,
   NewDocumentIcon,
   PlusIcon,
 } from "outline-icons";
+import type { EditorState } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import Icon from "@shared/components/Icon";
 import type { MenuItem } from "@shared/editor/types";
-import { MentionType } from "@shared/types";
+import { MentionDisplay, MentionType } from "@shared/types";
 import {
   CollectionsSection,
   DocumentsSection,
@@ -237,6 +240,35 @@ export function createDocumentMentionItems(
         label: title,
         nested: true,
       },
+    },
+  ];
+}
+
+/**
+ * Builds the menu items that switch a mention between inline and card display.
+ *
+ * @param t The translation function.
+ * @param pos The position of the mention in the document.
+ * @returns the menu items.
+ */
+export function mentionDisplayItems(t: TFunction, pos: number): MenuItem[] {
+  const isCard = (state: EditorState) =>
+    state.doc.nodeAt(pos)?.attrs.display === MentionDisplay.Card;
+
+  return [
+    {
+      name: "mentionDisplay",
+      label: t("Display as mention"),
+      attrs: { display: MentionDisplay.Inline, pos },
+      active: (state) => !isCard(state),
+      icon: <EmailIcon />,
+    },
+    {
+      name: "mentionDisplay",
+      label: t("Display as card"),
+      attrs: { display: MentionDisplay.Card, pos },
+      active: isCard,
+      icon: <AlignImageRightIcon />,
     },
   ];
 }

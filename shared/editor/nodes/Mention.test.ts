@@ -283,9 +283,12 @@ describe("Mention display", () => {
       schema,
     });
     let next = state;
-    const handled = commands.mentionDisplay({ display })(state, (tr) => {
-      next = state.apply(tr);
-    });
+    const handled = commands.mentionDisplay({ display, pos: 1 })(
+      state,
+      (tr) => {
+        next = state.apply(tr);
+      }
+    );
     return { handled, next };
   };
 
@@ -324,7 +327,7 @@ describe("Mention display", () => {
     }
   );
 
-  it("switches a selected link mention between inline and card", () => {
+  it("switches a selected link mention between inline and card and keeps it selected", () => {
     const state = selectMention(urlMention());
 
     const toCard = setDisplay(state, MentionDisplay.Card);
@@ -350,6 +353,29 @@ describe("Mention display", () => {
       );
     }
   );
+
+  it("switches a mention at a position without changing the selection", () => {
+    const state = createEditorState(
+      schema.nodes.doc.create(null, [
+        schema.nodes.paragraph.create(null, [urlMention()]),
+      ])
+    );
+    const commands = new Mention().commands({
+      type: schema.nodes.mention,
+      schema,
+    });
+    let next = state;
+    const handled = commands.mentionDisplay({
+      display: MentionDisplay.Card,
+      pos: 1,
+    })(state, (tr) => {
+      next = state.apply(tr);
+    });
+
+    expect(handled).toBe(true);
+    expect(next.doc.nodeAt(1)?.attrs.display).toBe(MentionDisplay.Card);
+    expect(next.selection).not.toBeInstanceOf(NodeSelection);
+  });
 
   it("does not change the display of other mention types", () => {
     const state = selectMention(urlMention({ type: MentionType.User }));

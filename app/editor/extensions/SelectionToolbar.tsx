@@ -4,7 +4,6 @@ import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
-import { canDisplayAsCard } from "@shared/editor/lib/mention";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -13,6 +12,7 @@ import {
   type SelectionToolbarMenuDescriptor,
 } from "@shared/editor/types";
 import { CodeBlockHoverToolbar } from "../components/CodeBlockHoverToolbar";
+import { MentionHoverMenu } from "../components/MentionHoverMenu";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
@@ -178,14 +178,6 @@ export default class SelectionToolbarExtension extends Extension {
       return selection;
     }
 
-    if (
-      selection instanceof NodeSelection &&
-      view.editable &&
-      canDisplayAsCard(selection.node)
-    ) {
-      return selection;
-    }
-
     if (selection instanceof NodeSelection) {
       return false;
     }
@@ -236,11 +228,13 @@ export default class SelectionToolbarExtension extends Extension {
           canComment={editorProps.canComment}
           isTemplate={editorProps.template === true}
         />
-        {props.readOnly && (
+        {props.readOnly ? (
           <CodeBlockHoverToolbar
             rtl={props.rtl}
             isTemplate={editorProps.template === true}
           />
+        ) : (
+          <MentionHoverMenu rtl={props.rtl} />
         )}
       </>
     );
