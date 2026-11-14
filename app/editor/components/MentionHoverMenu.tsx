@@ -1,4 +1,6 @@
+import { observer } from "mobx-react";
 import { MoreIcon } from "outline-icons";
+import { NodeSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +16,7 @@ import NudeButton from "~/components/NudeButton";
 import { Portal } from "~/components/Portal";
 import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
+import { useComputed } from "~/hooks/useComputed";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
@@ -41,17 +44,22 @@ interface Placement extends Rect {
 }
 
 /**
- * Renders an overflow button next to the hovered mention when it can be
- * displayed as a card. The button opens a menu to switch the display.
+ * Renders an overflow button on the hovered or selected mention when it can be
+ * displayed as a card. The button opens a menu to switch the display. Touch
+ * devices have no hover, so they show the button for the selected mention only.
  *
  * @param props - the component props.
- * @returns the button, or null when no such mention is hovered.
+ * @returns the button, or null when no such mention is hovered or selected.
  */
-export function MentionHoverMenu({ rtl }: Props) {
-  const { view, commands } = useEditor();
+export const MentionHoverMenu = observer(function MentionHoverMenu({
+  rtl,
+}: Props) {
+  const editor = useEditor();
+  const { view, commands } = editor;
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const [element, setElement] = React.useState<HTMLElement | null>(null);
+  const canHover = !isMobile && !isTouchDevice();
+  const [hovered, setHovered] = React.useState<HTMLElement | null>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const [placement, setPlacement] = React.useState<Placement | null>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
@@ -68,16 +76,32 @@ export function MentionHoverMenu({ rtl }: Props) {
     clearTimeout(hideTimeout.current);
     hideTimeout.current = setTimeout(() => {
       if (!isOpenRef.current) {
-        setElement(null);
+        setHovered(null);
       }
     }, hideDelay);
   }, []);
 
   React.useEffect(() => cancelHide, [cancelHide]);
 
+  // Only the position is derived, so other transactions do not render.
+  const selectedPos = useComputed(() => {
+    const { selection } = editor.editorState;
+    return selection instanceof NodeSelection &&
+      canDisplayAsCard(selection.node)
+      ? selection.from
+      : undefined;
+  }, [editor]);
+  const selected =
+    selectedPos === undefined ? null : getMentionElement(view, selectedPos);
+  const element = (canHover ? hovered : null) ?? selected;
+
   useEventListener(
     "mouseover",
     (event: MouseEvent) => {
+      if (!canHover) {
+        return;
+      }
+
       const mention =
         event.target instanceof Element
           ? event.target.closest<HTMLElement>(".mention")
@@ -85,21 +109,23 @@ export function MentionHoverMenu({ rtl }: Props) {
 
       if (mention && getMentionPos(view, mention) !== undefined) {
         cancelHide();
-        setElement(mention);
+        setHovered(mention);
       } else {
         scheduleHide();
       }
     },
     view.dom
   );
-  // Scrolling a table moves the mention away from the button, so hide it.
+  // Scrolling a table moves the mention away from the button, so hide it for
+  // a hovered mention and re-measure for a selected one.
   useEventListener(
     "scroll",
     () => {
       if (!isOpenRef.current) {
         cancelHide();
-        setElement(null);
+        setHovered(null);
       }
+      forceUpdate();
     },
     view.dom,
     { capture: true, passive: true }
@@ -148,7 +174,7 @@ export function MentionHoverMenu({ rtl }: Props) {
     if (element && !view.dom.contains(element)) {
       isOpenRef.current = false;
       setIsOpen(false);
-      setElement(null);
+      setHovered(null);
       return;
     }
 
@@ -193,12 +219,12 @@ export function MentionHoverMenu({ rtl }: Props) {
 
       // The mention may have been replaced by the display change.
       const isHovered =
-        element?.matches(":hover") || wrapperRef.current?.matches(":hover");
-      if (element && (!view.dom.contains(element) || !isHovered)) {
-        setElement(null);
+        hovered?.matches(":hover") || wrapperRef.current?.matches(":hover");
+      if (hovered && (!view.dom.contains(hovered) || !isHovered)) {
+        setHovered(null);
       }
     },
-    [view, element]
+    [view, hovered]
   );
 
   const items: MenuItem[] = React.useMemo(() => {
@@ -216,13 +242,7 @@ export function MentionHoverMenu({ rtl }: Props) {
     );
   }, [t, isOpen, element, commands, view]);
 
-  if (
-    isMobile ||
-    isTouchDevice() ||
-    !element ||
-    !view.editable ||
-    !view.dom.contains(element)
-  ) {
+  if (!element || !view.editable || !view.dom.contains(element)) {
     return null;
   }
 
@@ -232,8 +252,6 @@ export function MentionHoverMenu({ rtl }: Props) {
         <Menu open={isOpen} onOpenChange={handleOpenChange}>
           <Wrapper
             ref={wrapperRef}
-            onMouseEnter={cancelHide}
-            onMouseLeave={scheduleHide}
             style={
               placement
                 ? {
@@ -249,7 +267,11 @@ export function MentionHoverMenu({ rtl }: Props) {
             $rtl={rtl}
           >
             <MenuTrigger>
-              <Button aria-label={t("Display options")}>
+              <Button
+                aria-label={t("Display options")}
+                onMouseEnter={cancelHide}
+                onMouseLeave={scheduleHide}
+              >
                 <MoreIcon size={20} />
               </Button>
             </MenuTrigger>
@@ -265,7 +287,7 @@ export function MentionHoverMenu({ rtl }: Props) {
       </MenuProvider>
     </Portal>
   );
-}
+});
 
 /** Delay in ms before the button hides once the pointer leaves the mention. */
 const hideDelay = 150;
@@ -295,6 +317,23 @@ function getMentionPos(view: EditorView, element: HTMLElement) {
   const pos = view.posAtDOM(element, 0);
   const node = view.state.doc.nodeAt(pos);
   return node && canDisplayAsCard(node) ? pos : undefined;
+}
+
+/**
+ * Returns the rendered mention element for a mention at a position.
+ *
+ * @param view - the editor view.
+ * @param pos - the position of the mention.
+ * @returns the mention element, or null if it is not rendered.
+ */
+function getMentionElement(view: EditorView, pos: number) {
+  const dom = view.nodeDOM(pos);
+  if (!(dom instanceof HTMLElement)) {
+    return null;
+  }
+  return dom.matches(".mention")
+    ? dom
+    : dom.querySelector<HTMLElement>(".mention");
 }
 
 /**
@@ -349,6 +388,8 @@ const Wrapper = styled.div<{
   z-index: ${depths.editorToolbar};
   display: flex;
   align-items: center;
+  /* Only the button takes the pointer, so the fade does not block the mention. */
+  pointer-events: none;
   justify-content: ${(props) => (props.$rtl ? "flex-start" : "flex-end")};
   ${(props) =>
     props.$inline &&
@@ -375,6 +416,7 @@ const Button = styled(NudeButton)`
   height: 100%;
   max-height: ${buttonSize}px;
   color: ${s("textSecondary")};
+  pointer-events: auto;
 
   &:hover,
   &[data-state="open"] {
