@@ -100,7 +100,7 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
           const contentMatches = tokenChildren[0].content.match(CHECKBOX_REGEX);
 
           if (contentMatches) {
-            const label = contentMatches[2];
+            const label = contentMatches[2] ?? "";
 
             tokens[i].content = label;
             tokenChildren[0].content = label;
