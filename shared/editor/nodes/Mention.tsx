@@ -13,8 +13,6 @@ import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import type { UnfurlResponse } from "../../types";
-import { t } from "i18next";
-import { AlignImageRightIcon, EmailIcon } from "outline-icons";
 import { MentionDisplay, MentionType, UnfurlResourceType } from "../../types";
 import { dateToReadable } from "../../utils/date";
 import {
@@ -36,12 +34,7 @@ import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
 import { RepairPlugin } from "../plugins/RepairPlugin";
 import mentionRule from "../rules/mention";
-import { isNodeActive } from "../queries/isNodeActive";
-import type {
-  ComponentProps,
-  NodeWithPos,
-  SelectionToolbarMenuDescriptor,
-} from "../types";
+import type { ComponentProps, NodeWithPos } from "../types";
 import Node from "./Node";
 
 /**
@@ -262,41 +255,6 @@ export default class Mention extends Node {
     return [mentionRule];
   }
 
-  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
-    return [
-      {
-        priority: 50,
-        matches: (ctx) =>
-          !ctx.readOnly &&
-          ctx.selection instanceof NodeSelection &&
-          canDisplayAsCard(ctx.selection.node),
-        getItems: (ctx) => {
-          const { schema } = ctx;
-          return [
-            {
-              name: "mentionDisplay",
-              tooltip: t("Display as mention"),
-              attrs: { display: MentionDisplay.Inline },
-              active: (state) =>
-                state.selection instanceof NodeSelection &&
-                state.selection.node.attrs.display !== MentionDisplay.Card,
-              icon: <EmailIcon />,
-            },
-            {
-              name: "mentionDisplay",
-              tooltip: t("Display as card"),
-              attrs: { display: MentionDisplay.Card },
-              active: isNodeActive(schema.nodes.mention, {
-                display: MentionDisplay.Card,
-              }),
-              icon: <AlignImageRightIcon />,
-            },
-          ];
-        },
-      },
-    ];
-  }
-
   get plugins() {
     return [
       // Ensure mentions have unique IDs. Unchanged mentions keep their id, so
@@ -415,26 +373,32 @@ export default class Mention extends Node {
           return true;
         },
       mentionDisplay:
-        (attrs: { display: MentionDisplay }): Command =>
+        (attrs: { display: MentionDisplay; pos: number | null }): Command =>
         (state, dispatch) => {
           const { selection } = state;
-          if (
-            !(selection instanceof NodeSelection) ||
-            !canDisplayAsCard(selection.node)
-          ) {
+          const { pos } = attrs;
+          if (pos === null) {
+            return false;
+          }
+
+          const node = state.doc.nodeAt(pos);
+          if (!node || !canDisplayAsCard(node)) {
             return false;
           }
 
           const tr = state.tr.setNodeAttribute(
-            selection.from,
+            pos,
             "display",
             attrs.display === MentionDisplay.Card
               ? MentionDisplay.Card
               : undefined
           );
-          dispatch?.(
-            tr.setSelection(NodeSelection.create(tr.doc, selection.from))
-          );
+
+          // Keep the mention selected if it was selected before the change.
+          if (selection instanceof NodeSelection && selection.from === pos) {
+            tr.setSelection(NodeSelection.create(tr.doc, pos));
+          }
+          dispatch?.(tr);
           return true;
         },
       mention_list:
