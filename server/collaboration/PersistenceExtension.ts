@@ -38,6 +38,7 @@ export default class PersistenceExtension implements Extension {
     ...data
   }: withContext<onLoadDocumentPayload>) {
     const [, documentId] = documentName.split(".");
+    const stateGeneration = parseDocumentName(documentName)?.stateGeneration;
     const fieldName = "default";
 
     // Check if the given field already exists in the given y-doc. This is import
@@ -48,12 +49,18 @@ export default class PersistenceExtension implements Extension {
 
     // First, try to find the document without a lock to check if it has state
     const documentWithoutLock = await Document.unscoped().findOne({
-      attributes: ["state"],
+      attributes: ["state", "stateGeneration"],
       rejectOnEmpty: true,
       where: {
         id: documentId,
       },
     });
+
+    // The generation can change after the connection was accepted. State of
+    // another generation must not load into this room.
+    if (documentWithoutLock.stateGeneration !== stateGeneration) {
+      throw DocumentReset;
+    }
 
     // If the document already has state, we can return it without needing a transaction
     if (documentWithoutLock.state) {

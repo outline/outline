@@ -95,6 +95,7 @@ function CollaborativeEditor({
   const { presence, auth, ui, documents } = useStores();
   const documentContext = useDocumentContext();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
+  const [isResetting, setResetting] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
   const [remoteProvider, setRemoteProvider] = useState<CollaborationProvider>();
   const [hasLocalPersistence, setHasLocalPersistence] = useState(true);
@@ -152,8 +153,14 @@ function CollaborativeEditor({
     window.addEventListener("wheel", finishObserving);
     window.addEventListener("scroll", syncScrollPosition, { passive: true });
 
-    provider.on("authenticationFailed", () => {
+    provider.on("authenticationFailed", ({ reason }: { reason: string }) => {
       provider.shouldConnect = false;
+
+      // A reset is followed by its close event, which is handled below.
+      if (reason === DocumentReset.reason) {
+        return;
+      }
+
       retryCount.current++;
 
       void sleep(retryCount.current * 1000 - 1000).then(() =>
@@ -237,20 +244,32 @@ function CollaborativeEditor({
       // mounts the editor again with a new Y.Doc.
       if ("code" in ev.event && ev.event.code === DocumentReset.code) {
         provider.shouldConnect = false;
+
+        // Edits made to this Y.Doc are discarded, so stop editing until the
+        // new generation mounts.
+        setResetting(true);
+
+        const handleResetFailed = () => {
+          if (isActive) {
+            toast.error(
+              t("The document could not be loaded – please reload the page")
+            );
+          }
+        };
+
         void documents
           .fetch(documentId, { force: true })
           .then((document) => {
-            if (isActive) {
-              onReset(document.stateGeneration);
+            if (!isActive) {
+              return;
             }
+            if (document.stateGeneration === stateGeneration) {
+              handleResetFailed();
+              return;
+            }
+            onReset(document.stateGeneration);
           })
-          .catch(() => {
-            if (isActive) {
-              toast.error(
-                t("The document could not be loaded – please reload the page")
-              );
-            }
-          });
+          .catch(handleResetFailed);
         return;
       }
 
@@ -438,7 +457,7 @@ function CollaborativeEditor({
       )}
       <Editor
         {...props}
-        readOnly={props.readOnly || editorVersionBehind}
+        readOnly={props.readOnly || editorVersionBehind || isResetting}
         value={undefined}
         defaultValue={undefined}
         extensions={extensions}
