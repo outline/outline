@@ -194,6 +194,10 @@ export const MenuShortcut = styled.span`
 type MenuContentProps = {
   maxHeightVar: string;
   transformOriginVar: string;
+  /** The largest height of the menu, defaults to 85vh. */
+  maxHeight?: string;
+  /** Show the menu at once, without the opening animation. */
+  $skipAnimation?: boolean;
 };
 
 export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
@@ -207,7 +211,8 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
   min-width: 180px;
   max-width: 320px;
   min-height: 44px;
-  max-height: ${({ maxHeightVar }) => `min(85vh, var(${maxHeightVar}))`};
+  max-height: ${({ maxHeight = "85vh", maxHeightVar }) =>
+    `min(${maxHeight}, var(${maxHeightVar}))`};
   font-weight: normal;
 
   background: ${s("menuBackground")};
@@ -227,9 +232,13 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
 
   transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
 
-  &[data-state="open"] {
-    animation: ${fadeAndScaleIn} 150ms ease-out;
-  }
+  ${({ $skipAnimation }) =>
+    !$skipAnimation &&
+    css`
+      &[data-state="open"] {
+        animation: ${fadeAndScaleIn} 150ms ease-out;
+      }
+    `}
 
   @media print {
     display: none;

@@ -98,6 +98,7 @@ export default function DateMentionPicker({
 
 const DatePopoverContent = styled.div`
   z-index: ${depths.modal};
+  padding: 12px;
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   ${borderRadius(8)}

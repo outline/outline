@@ -3,8 +3,7 @@ import { CollectionIcon as SVGCollectionIcon } from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
-import useStores from "~/hooks/useStores";
+import { useCollectionOptions } from "../filterOptions";
 
 type Props = {
   /** The currently selected collection ID */
@@ -15,23 +14,19 @@ type Props = {
 
 function CollectionFilter(props: Props) {
   const { t } = useTranslation();
-  const { collections } = useStores();
   const { onSelect, collectionId } = props;
-  const options = useMemo(() => {
-    const collectionOptions = collections.orderedData.map((collection) => ({
-      key: collection.id,
-      label: collection.displayName,
-      icon: <CollectionIcon collection={collection} size={24} />,
-    }));
-    return [
+  const source = useCollectionOptions();
+  const options = useMemo(
+    () => [
       {
         key: "",
         label: t("Any collection"),
         icon: <SVGCollectionIcon size={24} />,
       },
-      ...collectionOptions,
-    ];
-  }, [collections.orderedData, t]);
+      ...source.options,
+    ],
+    [source.options, t]
+  );
 
   return (
     <FilterOptions

@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
 import { Calendar } from "@shared/components/Calendar";
 import { dateLocale } from "@shared/utils/date";
 import type Share from "~/models/Share";
@@ -64,18 +63,16 @@ export const ShareExpiryDialog = observer(function ShareExpiryDialog({
   return (
     <form onSubmit={handleSubmit}>
       <Flex gap={12} column>
-        <CalendarWrapper>
-          <Calendar
-            required
-            mode="single"
-            numberOfMonths={2}
-            selected={date}
-            onSelect={setDate}
-            defaultMonth={date}
-            locale={dateLocale(userLocale)}
-            disabled={{ before: new Date() }}
-          />
-        </CalendarWrapper>
+        <Calendar
+          required
+          mode="single"
+          numberOfMonths={2}
+          selected={date}
+          onSelect={setDate}
+          defaultMonth={date}
+          locale={dateLocale(userLocale)}
+          disabled={{ before: new Date() }}
+        />
         <Flex justify="flex-end">
           <Button type="submit" disabled={!date || isSaving}>
             {isSaving ? `${t("Saving")}…` : t("Save")}
@@ -85,8 +82,3 @@ export const ShareExpiryDialog = observer(function ShareExpiryDialog({
     </form>
   );
 });
-
-const CalendarWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-`;

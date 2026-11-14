@@ -8,13 +8,10 @@ import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
-import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
 import type {
   SortFilter as TSortFilter,
   DirectionFilter as TDirectionFilter,
-  DateFilter as TDateFilter,
 } from "@shared/types";
-import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
@@ -24,31 +21,39 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import { ModelSelectionProvider } from "~/components/ModelSelectionContext";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
-import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import useUserLocale from "~/hooks/useUserLocale";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
-import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
-import CollectionFilter from "./components/CollectionFilter";
-import DateFilter from "./components/DateFilter";
+import { decodeURIComponentSafe } from "~/utils/urls";
+import { AddFilterButton } from "./components/AddFilterButton";
 import { DocumentFilter } from "./components/DocumentFilter";
-import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
-import UserFilter from "./components/UserFilter";
-import { HStack } from "~/components/primitives/HStack";
-import useMobile from "~/hooks/useMobile";
+import { SearchFilterChip } from "./components/SearchFilterChip";
+import { DateRangeDialog } from "./components/DateRangeDialog";
+import type { DateRange, SearchFilter } from "./searchFilters";
+import {
+  TOGGLE_ON,
+  formatDateRange,
+  getDateRange,
+  getDateRangeParamChanges,
+  getFilterParamChanges,
+  readFilter,
+  useSearchFilters,
+} from "./searchFilters";
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches, policies } = useStores();
-  const isMobile = useMobile();
+  const { documents, searches, policies, dialogs } = useStores();
+  const userLocale = useUserLocale();
 
   // routing
   const params = useQuery();
@@ -66,99 +71,79 @@ function Search() {
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
-  const collectionId = params.get("collectionId") ?? "";
-  const userId = params.get("userId") ?? "";
-  const documentId = params.get("documentId") ?? undefined;
-  const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
-  // Keyed on the serialized value so the array keeps a stable identity between
-  // renders and can be used directly as a dependency.
-  const statusFilterKey = params.getAll("statusFilter").join(",");
-  const statusFilter = React.useMemo(
-    () =>
-      statusFilterKey
-        ? (statusFilterKey.split(",") as TStatusFilter[])
-        : [TStatusFilter.Published, TStatusFilter.Draft],
-    [statusFilterKey]
-  );
-  const titleFilter = isTruthyQueryValue(params.get("titleFilter"));
+  const documentId =
+    params.get("documentId") ?? params.get("documentId.eq") ?? undefined;
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
-
-  const isSearchable = !!(query || collectionId || userId);
-
   const document = documentId ? documents.get(documentId) : undefined;
 
-  const filterVisibility = {
-    document: !!document,
-    collection: !document,
-    user: !document || !!(document && query),
-    documentType: isSearchable,
-    date: isSearchable,
-    title: !!query && !document,
-    sort: isSearchable,
-  };
+  const searchFilters = useSearchFilters();
+  // A filter added from the "More" menu shows while its options are open.
+  const [pendingFilterId, setPendingFilterId] = React.useState<string>();
+  // A filter stays shown while its custom date range dialog is open.
+  const [rangeFilterId, setRangeFilterId] = React.useState<string>();
 
-  const filters = React.useMemo<Filter[] | undefined>(() => {
-    const children: Filter[] = [];
-    if (collectionId) {
-      children.push({
-        field: "collectionId",
-        operator: "eq",
-        value: collectionId,
-      });
-    }
-    if (userId) {
-      children.push({ field: "userId", operator: "eq", value: userId });
-    }
-    if (documentId) {
-      children.push({
-        field: "documentId",
-        operator: "eq",
-        value: documentId,
-      });
-    }
-    if (dateFilter) {
-      const duration = DURATION_BY_DATE_FILTER[dateFilter];
-      if (duration) {
-        children.push({ field: "updatedAt", operator: "gte", value: duration });
+  const { isSearchable, visibleFilters, filterStates, filters, titleFilter } =
+    React.useMemo(() => {
+      const visible = searchFilters.filter(
+        (filter) => filter.isAvailable?.({ document }) ?? true
+      );
+      const states = new Map(
+        visible.map((filter) => [filter.id, readFilter(filter, params)])
+      );
+      const setStates = [...states.values()];
+
+      const expressions = setStates
+        .map((state) => state.apiFilter)
+        .filter((filter): filter is Filter => !!filter);
+      if (documentId) {
+        expressions.push({
+          field: "documentId",
+          operator: "eq",
+          value: documentId,
+        });
       }
-    }
-    if (statusFilter.length > 0) {
-      const statusShape = (status: TStatusFilter): Filter => {
-        if (status === TStatusFilter.Archived) {
-          return { field: "archivedAt", operator: "isNotNull" };
-        }
-        if (status === TStatusFilter.Published) {
-          return {
-            operator: "AND",
-            filters: [
-              { field: "archivedAt", operator: "isNull" },
-              { field: "publishedAt", operator: "isNotNull" },
-            ],
-          };
-        }
-        return {
-          operator: "AND",
-          filters: [
-            { field: "archivedAt", operator: "isNull" },
-            { field: "publishedAt", operator: "isNull" },
-          ],
-        };
+
+      return {
+        // Show results when there is a query or at least one filter is set.
+        isSearchable:
+          !!query || !!documentId || setStates.some((state) => state.isSet),
+        visibleFilters: visible,
+        filterStates: states,
+        filters: expressions.length > 0 ? expressions : undefined,
+        // An empty query matches every title, so list all results without one.
+        titleFilter: !!query && !!states.get("titleOnly")?.isSet,
       };
-      const statusGroup =
-        statusFilter.length === 1
-          ? statusShape(statusFilter[0])
-          : ({
-              operator: "OR",
-              filters: statusFilter.map(statusShape),
-            } as Filter);
-      children.push(statusGroup);
-    }
-    if (children.length === 0) {
-      return undefined;
-    }
-    return children;
-  }, [collectionId, userId, documentId, dateFilter, statusFilter]);
+    }, [searchFilters, params, query, document, documentId]);
+
+  const rangeLabels = React.useMemo(
+    () =>
+      new Map(
+        [...filterStates].map(([id, state]) => [
+          id,
+          state.range ? formatDateRange(state.range, t, userLocale) : undefined,
+        ])
+      ),
+    [filterStates, t, userLocale]
+  );
+
+  const isCollectionScoped = !!filterStates.get("collectionId")?.isSet;
+
+  const { shownFilters, addableFilters } = React.useMemo(() => {
+    const shown = visibleFilters.filter(
+      (filter) =>
+        filter.pinned ||
+        filterStates.get(filter.id)?.isSet ||
+        pendingFilterId === filter.id ||
+        rangeFilterId === filter.id
+    );
+    return {
+      shownFilters: shown,
+      addableFilters: visibleFilters.filter(
+        (filter) => !shown.includes(filter)
+      ),
+    };
+  }, [visibleFilters, filterStates, pendingFilterId, rangeFilterId]);
 
   const requestParams = React.useMemo(
     () => ({
@@ -170,6 +155,17 @@ function Search() {
     }),
     [query, titleFilter, sort, direction, filters]
   );
+
+  const [resultCount, setResultCount] = React.useState<{
+    params: typeof requestParams;
+    total: number;
+  }>();
+
+  // Responses from earlier searches must not replace the current count.
+  const currentRequestParams = React.useRef(requestParams);
+  React.useEffect(() => {
+    currentRequestParams.current = requestParams;
+  }, [requestParams]);
 
   const requestFn = React.useMemo(() => {
     // Add to the searches store so this search can immediately appear in the recent searches list
@@ -188,15 +184,26 @@ function Search() {
           offset: params?.offset,
           limit: params?.limit,
         };
-        return titleFilter
-          ? await documents.searchTitles({
-              ...requestParams,
-              ...paginationParams,
-            })
-          : await documents.search({
-              ...requestParams,
-              ...paginationParams,
-            });
+        if (titleFilter) {
+          return await documents.searchTitles({
+            ...requestParams,
+            ...paginationParams,
+          });
+        }
+
+        const results = await documents.search({
+          ...requestParams,
+          ...paginationParams,
+        });
+        const total = results[PAGINATION_SYMBOL]?.total;
+        if (
+          !params?.offset &&
+          total !== undefined &&
+          currentRequestParams.current === requestParams
+        ) {
+          setResultCount({ params: requestParams, total });
+        }
+        return results;
       };
     }
 
@@ -206,6 +213,10 @@ function Search() {
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
+
+  // Keep the previous count on screen, disabled, until the new one arrives.
+  const isResultCountStale = resultCount?.params !== requestParams;
+  const total = titleFilter || error ? undefined : resultCount?.total;
 
   // Only updatable documents are selectable, matching the per-item checkboxes.
   const itemIds = React.useMemo(
@@ -233,33 +244,96 @@ function Search() {
     });
   };
 
-  // All filters go through the query string so that searches are bookmarkable, which neccesitates
-  // some complexity as the query string is the source of truth for the filters.
-  const handleFilterChange = (search: {
-    collectionId?: string | undefined;
-    documentId?: string | undefined;
-    userId?: string | undefined;
-    dateFilter?: TDateFilter;
-    statusFilter?: TStatusFilter[];
-    titleFilter?: boolean | undefined;
-    sort?: string | undefined;
-    direction?: string | undefined;
-  }) => {
-    if (search.sort === "relevance") {
-      search.sort = undefined;
-      search.direction = undefined;
-    }
+  // All filters go through the query string so that searches are bookmarkable,
+  // which means the query string is the source of truth for the filters.
+  const replaceParams = React.useCallback(
+    (
+      getChanges: (
+        current: URLSearchParams
+      ) => Record<string, string | string[] | undefined>
+    ) => {
+      const { search } = history.location;
+      history.replace({
+        pathname: history.location.pathname,
+        search: queryString.stringify(
+          {
+            ...queryString.parse(search),
+            ...getChanges(new URLSearchParams(search)),
+          },
+          { skipEmptyString: true, arrayFormat: "comma" }
+        ),
+      });
+    },
+    [history]
+  );
 
-    history.replace({
-      pathname: history.location.pathname,
-      search: queryString.stringify(
-        { ...queryString.parse(history.location.search), ...search },
-        {
-          skipEmptyString: true,
-        }
+  const handleChangeFilter = React.useCallback(
+    (filter: SearchFilter, values: string[] | undefined) =>
+      replaceParams((current) =>
+        getFilterParamChanges(filter, values, current)
       ),
-    });
-  };
+    [replaceParams]
+  );
+
+  const handleCustomRange = React.useCallback(
+    (filter: SearchFilter) => {
+      const handleSubmit = (range: Required<DateRange>) => {
+        replaceParams((current) =>
+          getDateRangeParamChanges(filter, range, current)
+        );
+        setRangeFilterId(undefined);
+        dialogs.closeAllModals();
+      };
+
+      setRangeFilterId(filter.id);
+      dialogs.openModal({
+        title: filter.label,
+        width: "600px",
+        onClose: () => setRangeFilterId(undefined),
+        content: (
+          <DateRangeDialog
+            defaultRange={getDateRange(
+              filter,
+              new URLSearchParams(history.location.search)
+            )}
+            onSubmit={handleSubmit}
+          />
+        ),
+      });
+    },
+    [dialogs, history, replaceParams]
+  );
+
+  const handleAddFilter = React.useCallback(
+    (id: string) => {
+      const filter = searchFilters.find((item) => item.id === id);
+      if (filter?.type === "toggle") {
+        handleChangeFilter(filter, [TOGGLE_ON]);
+        return;
+      }
+      setPendingFilterId(id);
+    },
+    [searchFilters, handleChangeFilter]
+  );
+
+  const handleFilterOpenChange = React.useCallback(
+    (filter: SearchFilter, open: boolean) => {
+      if (!open) {
+        setPendingFilterId((id) => (id === filter.id ? undefined : id));
+      }
+    },
+    []
+  );
+
+  const handleSort = React.useCallback(
+    (sort: string, direction: string) =>
+      replaceParams(() =>
+        sort === "relevance"
+          ? { sort: undefined, direction: undefined }
+          : { sort, direction }
+      ),
+    [replaceParams]
+  );
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.nativeEvent.isComposing) {
@@ -309,21 +383,28 @@ function Search() {
   };
 
   const handleEscape = () => searchInputRef.current?.focus();
-  const showEmpty = !loading && query && data?.length === 0;
+  const showEmpty = !loading && isSearchable && data?.length === 0;
 
-  const sortInput = filterVisibility.sort ? (
-    <SortInput
-      sort={sort}
-      direction={direction}
-      onSelect={(sort, direction) => handleFilterChange({ sort, direction })}
+  const renderFilterChip = (filter: SearchFilter) => (
+    <SearchFilterChip
+      key={filter.id}
+      filter={filter}
+      values={filterStates.get(filter.id)?.values ?? EMPTY_VALUES}
+      isSet={!!filterStates.get(filter.id)?.isSet}
+      defaultOpen={pendingFilterId === filter.id}
+      onChange={handleChangeFilter}
+      onOpenChange={handleFilterOpenChange}
+      rangeLabel={rangeLabels.get(filter.id)}
+      onCustomRange={handleCustomRange}
     />
+  );
+
+  const sortInput = isSearchable ? (
+    <SortInput sort={sort} direction={direction} onSelect={handleSort} />
   ) : null;
 
   return (
-    <Scene
-      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
-      actions={isMobile ? sortInput : null}
-    >
+    <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
       <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
@@ -335,66 +416,50 @@ function Search() {
             placeholder={`${
               documentId
                 ? t("Search in document")
-                : collectionId
+                : isCollectionScoped
                   ? t("Search in collection")
                   : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
           />
-          <Filters>
-            <Flex align="center" gap={4} wrap>
-              {filterVisibility.document && (
-                <DocumentFilter
-                  document={document!}
-                  onClick={() => {
-                    handleFilterChange({ documentId: undefined });
-                  }}
-                />
+          <FilterChips align="center" gap={6} wrap>
+            {document && (
+              <DocumentFilter
+                document={document}
+                onRemove={() =>
+                  replaceParams(() => ({
+                    documentId: undefined,
+                    "documentId.eq": undefined,
+                  }))
+                }
+              />
+            )}
+            {shownFilters.map(renderFilterChip)}
+            {addableFilters.length > 0 && (
+              <AddFilterButton
+                filters={addableFilters}
+                onSelect={handleAddFilter}
+              />
+            )}
+          </FilterChips>
+          {sortInput && (
+            <ResultsMeta
+              as="div"
+              type="secondary"
+              size="small"
+              aria-busy={isResultCountStale}
+              $disabled={isResultCountStale && total !== undefined}
+            >
+              {total !== undefined && (
+                <>
+                  <span>{t("{{ count }} result", { count: total })}</span>
+                  <span aria-hidden>·</span>
+                </>
               )}
-              {filterVisibility.collection && (
-                <CollectionFilter
-                  collectionId={collectionId}
-                  onSelect={(collectionId) =>
-                    handleFilterChange({ collectionId })
-                  }
-                />
-              )}
-              {filterVisibility.user && (
-                <UserFilter
-                  userId={userId}
-                  onSelect={(userId) => handleFilterChange({ userId })}
-                />
-              )}
-              {filterVisibility.documentType && (
-                <DocumentTypeFilter
-                  statusFilter={statusFilter}
-                  onSelect={({ statusFilter }) =>
-                    handleFilterChange({ statusFilter })
-                  }
-                />
-              )}
-              {filterVisibility.date && (
-                <DateFilter
-                  dateFilter={dateFilter}
-                  onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
-                />
-              )}
-              {filterVisibility.title && (
-                <SearchTitlesFilter
-                  width={26}
-                  height={14}
-                  label={t("Search titles only")}
-                  onChange={(checked: boolean) => {
-                    handleFilterChange({ titleFilter: checked });
-                  }}
-                  checked={titleFilter}
-                  inForm={false}
-                />
-              )}
-            </Flex>
-            {isMobile ? null : sortInput}
-          </Filters>
+              {sortInput}
+            </ResultsMeta>
+          )}
         </form>
         {isSearchable ? (
           <>
@@ -451,7 +516,7 @@ function Search() {
               </ResultList>
             </ModelSelectionProvider>
           </>
-        ) : documentId ? null : (
+        ) : (
           <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
         )}
       </ResultsWrapper>
@@ -482,24 +547,39 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-const Filters = styled(HStack)`
-  flex-wrap: wrap;
-  justify-content: space-between;
+const FilterChips = styled(Flex)`
+  row-gap: 8px;
   margin-bottom: 12px;
-  transition: opacity 100ms ease-in-out;
-  padding: 8px 0;
+  padding-top: 4px;
 
-  ${breakpoint("tablet")`
-    padding: 0;
+  ${breakpoint("mobile", "tablet")`
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -16px;
+    padding: 4px 16px 0;
+
+    & > * {
+      flex-shrink: 0;
+    }
   `};
 `;
 
-const SearchTitlesFilter = styled(Switch)`
-  white-space: nowrap;
-  margin-left: 8px;
-  font-size: 14px;
-  font-weight: 400;
-  height: 28px;
+const ResultsMeta = styled(Text)<{ $disabled: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  transition: opacity 100ms ease-out;
+
+  ${(props) =>
+    props.$disabled &&
+    `
+      opacity: 0.8;
+      pointer-events: none;
+    `}
 `;
+
+const EMPTY_VALUES: string[] = [];
 
 export default observer(Search);
