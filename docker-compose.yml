@@ -2,12 +2,14 @@ services:
   redis:
     image: redis
     ports:
-      - "127.0.0.1:6379:6379"
+      # Set REDIS_PORT in .env to run alongside another checkout.
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     user: "redis:redis"
   postgres:
     image: postgres
     ports:
-      - "127.0.0.1:5432:5432"
+      # Set POSTGRES_PORT in .env to run alongside another checkout.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
