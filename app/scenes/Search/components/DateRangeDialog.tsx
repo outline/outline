@@ -2,7 +2,6 @@ import { subMonths } from "date-fns";
 import { useCallback, useState } from "react";
 import type { DateRange as DayPickerRange } from "react-day-picker";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import { Calendar } from "@shared/components/Calendar";
 import {
   dateLocale,
@@ -70,18 +69,16 @@ export function DateRangeDialog({ defaultRange, onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <Flex gap={12} column>
-        <CalendarWrapper>
-          <Calendar
-            mode="range"
-            numberOfMonths={2}
-            showOutsideDays={false}
-            selected={range}
-            onSelect={handleSelect}
-            defaultMonth={defaultMonth}
-            locale={dateLocale(userLocale)}
-            disabled={{ after: today }}
-          />
-        </CalendarWrapper>
+        <Calendar
+          mode="range"
+          numberOfMonths={2}
+          showOutsideDays={false}
+          selected={range}
+          onSelect={handleSelect}
+          defaultMonth={defaultMonth}
+          locale={dateLocale(userLocale)}
+          disabled={{ after: today }}
+        />
         <Flex justify="space-between" align="center" gap={12}>
           <Text type="secondary" size="small">
             {range?.from
@@ -100,8 +97,3 @@ export function DateRangeDialog({ defaultRange, onSubmit }: Props) {
     </form>
   );
 }
-
-const CalendarWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-`;

@@ -25,7 +25,6 @@ export function Calendar(props: Props) {
 }
 
 const Wrapper = styled.div`
-  padding: 12px;
   color: ${s("text")};
 
   .rdp {
@@ -62,7 +61,7 @@ const Wrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2px 8px;
+    padding: 0 0 8px;
   }
 
   .rdp-caption_label {
