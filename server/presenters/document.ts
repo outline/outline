@@ -86,6 +86,7 @@ async function presentDocument(
     deletedBy: undefined,
     collaboratorIds: [],
     revision: document.revisionCount,
+    stateGeneration: document.stateGeneration,
     fullWidth: document.fullWidth,
     preferences: document.preferences,
     collectionId: undefined,

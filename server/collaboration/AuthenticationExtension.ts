@@ -8,6 +8,7 @@ import type {
 } from "@hocuspocus/server";
 import { uniq } from "es-toolkit";
 import { AuthorizationChanged } from "@shared/collaboration/CloseEvents";
+import { buildDocumentName } from "@shared/collaboration/documentName";
 import { toError } from "@shared/utils/error";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
@@ -100,7 +101,9 @@ export default class AuthenticationExtension implements Extension {
 
     // Other spellings of the id would load a second copy of the document that
     // access changes, which match on the canonical name, cannot reach.
-    if (documentName !== `document.${document.id}`) {
+    if (
+      documentName !== buildDocumentName(document.id, document.stateGeneration)
+    ) {
       throw AuthenticationError("Invalid document name");
     }
 

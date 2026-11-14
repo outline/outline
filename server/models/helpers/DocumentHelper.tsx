@@ -171,6 +171,30 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns collaborative state for a document that has no edit history. The
+   * content is read from the state, a document without state is converted as
+   * in `toState`.
+   *
+   * @param document The document to flatten
+   * @returns The flattened collaborative state
+   */
+  static flatten(document: Document): Buffer {
+    if (!document.state) {
+      return Buffer.from(DocumentHelper.toState(document));
+    }
+
+    const ydoc = new Y.Doc();
+    try {
+      Y.applyUpdate(ydoc, document.state);
+      return ProsemirrorHelper.flatten(
+        Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default")).toJSON()
+      );
+    } finally {
+      ydoc.destroy();
+    }
+  }
+
+  /**
    * Returns the document as a plain JSON object. This method uses the derived content if available
    * then the collaborative state, otherwise it falls back to Markdown.
    *

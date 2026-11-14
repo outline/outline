@@ -1062,6 +1062,7 @@
   "Creator": "Creator",
   "Last edited": "Last edited",
   "Previously edited": "Previously edited",
+  "The document could not be loaded – please reload the page": "The document could not be loaded – please reload the page",
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, the last change could not be persisted – please reload the page",
   "This document will be permanently deleted in <2></2> unless restored.": "This document will be permanently deleted in <2></2> unless restored.",
   "Deleted by {{userName}}": "Deleted by {{userName}}",
