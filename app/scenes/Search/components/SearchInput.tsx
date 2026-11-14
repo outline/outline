@@ -55,6 +55,7 @@ const StyledInput = styled(Input)`
 
   ${NativeInput} {
     height: 46px;
+    padding-inline-start: 12px;
     font-size: 17px;
   }
 `;

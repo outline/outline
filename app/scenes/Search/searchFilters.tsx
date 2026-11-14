@@ -145,6 +145,14 @@ export function createSearchFilters(t: TFunction): SearchFilter[] {
     },
     {
       type: "select",
+      id: "publishedDateFilter",
+      label: t("Published"),
+      icon: <CalendarIcon />,
+      useOptions: useDateOptions,
+      toFilter: withinPast("publishedAt"),
+    },
+    {
+      type: "select",
       id: "templateId",
       label: t("Template"),
       icon: <NewDocumentIcon />,

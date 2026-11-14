@@ -5,7 +5,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
@@ -367,7 +366,7 @@ function Search() {
             )}
           </FilterChips>
           {sortInput && (
-            <ResultsMeta>
+            <ResultsMeta as="div" type="secondary" size="small">
               {total !== undefined && (
                 <>
                   <span>{t("{{ count }} result", { count: total })}</span>
@@ -482,13 +481,11 @@ const FilterChips = styled(Flex)`
   `};
 `;
 
-const ResultsMeta = styled.div`
+const ResultsMeta = styled(Text)`
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
-  font-size: 14px;
-  color: ${s("textSecondary")};
 `;
 
 export default observer(Search);

@@ -1,8 +1,9 @@
 import { CloseIcon, DisclosureIcon } from "outline-icons";
 import styled from "styled-components";
-import { ellipsis, s } from "@shared/styles";
+import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
 import NudeButton from "~/components/NudeButton";
+import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 
 interface ChipContentProps {
@@ -31,9 +32,13 @@ export function ChipContent({
   return (
     <>
       {icon && <ChipIcon aria-hidden>{icon}</ChipIcon>}
-      <ChipLabel $muted={!!value}>{label}</ChipLabel>
-      {value && <ChipValue>{value}</ChipValue>}
-      {disclosure && <Disclosure size={18} aria-hidden />}
+      <ChipLabel type={value ? "secondary" : undefined}>{label}</ChipLabel>
+      {value && (
+        <ChipValue weight="bold" ellipsis>
+          {value}
+        </ChipValue>
+      )}
+      {disclosure && <Disclosure size={20} aria-hidden />}
     </>
   );
 }
@@ -55,7 +60,7 @@ export function ChipRemoveButton({ label, onClick }: ChipRemoveButtonProps) {
   return (
     <Tooltip content={label}>
       <RemoveButton aria-label={label} onClick={onClick}>
-        <CloseIcon size={16} />
+        <CloseIcon size={18} />
       </RemoveButton>
     </Tooltip>
   );
@@ -64,22 +69,19 @@ export function ChipRemoveButton({ label, onClick }: ChipRemoveButtonProps) {
 /** Outlined container for a filter chip. */
 export const Chip = styled.div`
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
   max-width: 100%;
   height: 28px;
-  border-radius: 7px;
+  border: 1px solid ${s("buttonNeutralBorder")};
+  border-radius: 8px;
+  overflow: hidden;
+  user-select: none;
   font-size: 13px;
+  font-weight: 450;
   color: ${s("text")};
-  box-shadow: inset 0 0 0 1px ${s("buttonNeutralBorder")};
-  transition: background 100ms ease-out;
-
-  &:hover,
-  &:has([aria-expanded="true"]) {
-    background: ${s("buttonNeutralHoverBackground")};
-  }
 
   &:has(:focus-visible) {
-    box-shadow: inset 0 0 0 1px ${s("inputBorderFocused")};
+    border-color: ${s("inputBorderFocused")};
   }
 
   ${breakpoint("mobile", "tablet")`
@@ -95,14 +97,19 @@ export const ChipButton = styled.button`
   gap: 5px;
   min-width: 0;
   height: 100%;
-  padding: 0 6px 0 8px;
+  padding: 0 4px 0 7px;
   margin: 0;
   border: 0;
-  border-radius: inherit;
   background: none;
   color: inherit;
   font: inherit;
   cursor: var(--pointer);
+  transition: background 100ms ease-out;
+
+  &:hover,
+  &[aria-expanded="true"] {
+    background: ${s("buttonNeutralHoverBackground")};
+  }
 
   &:focus-visible {
     outline: none;
@@ -115,7 +122,7 @@ export const ChipStatic = styled.span`
   align-items: center;
   gap: 5px;
   min-width: 0;
-  padding: 0 6px 0 8px;
+  padding: 0 6px 0 7px;
 `;
 
 const ChipIcon = styled.span`
@@ -134,18 +141,14 @@ const ChipIcon = styled.span`
   }
 `;
 
-const ChipLabel = styled.span<{ $muted: boolean }>`
+const ChipLabel = styled(Text)`
   flex-shrink: 0;
   white-space: nowrap;
-  color: ${(props) =>
-    props.$muted ? props.theme.textSecondary : props.theme.text};
 `;
 
-const ChipValue = styled.span`
-  ${ellipsis()}
+const ChipValue = styled(Text)`
   max-width: 240px;
   margin-inline-start: -2px;
-  font-weight: 500;
 `;
 
 const RemoveButton = styled(NudeButton)`
@@ -153,24 +156,30 @@ const RemoveButton = styled(NudeButton)`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: auto;
-  height: 100%;
-  padding: 0 5px;
-  border-start-start-radius: 0;
-  border-end-start-radius: 0;
-  border-start-end-radius: inherit;
-  border-end-end-radius: inherit;
+  width: 26px;
+  height: auto;
+  border-radius: 0;
   border-inline-start: 1px solid ${s("buttonNeutralBorder")};
   color: ${s("textTertiary")};
+  transition: background 100ms ease-out;
 
   &:hover,
   &:focus-visible {
     color: ${s("text")};
+    background: ${s("buttonNeutralHoverBackground")};
   }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  ${breakpoint("mobile", "tablet")`
+    width: 34px;
+  `};
 `;
 
 const Disclosure = styled(DisclosureIcon)`
   flex-shrink: 0;
-  margin-inline-start: -4px;
+  margin-inline-start: -3px;
   color: ${s("textTertiary")};
 `;

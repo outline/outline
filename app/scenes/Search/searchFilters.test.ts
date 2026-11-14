@@ -90,6 +90,11 @@ describe("searchFilters", () => {
       operator: "gte",
       value: "-P1M",
     });
+    expect(getFilter("publishedDateFilter").toFilter?.(["day"])).toEqual({
+      field: "publishedAt",
+      operator: "gte",
+      value: "-P1D",
+    });
     expect(getFilter("dateFilter").toFilter?.(["unknown"])).toBeUndefined();
   });
 
