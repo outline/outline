@@ -5,7 +5,11 @@ import mime from "mime-types";
 import type { Node } from "prosemirror-model";
 import { UniqueConstraintError } from "sequelize";
 import { replaceMarkdownLinks } from "@shared/utils/markdown";
-import { CollectionValidation, DocumentValidation } from "@shared/validations";
+import {
+  CollectionValidation,
+  DocumentValidation,
+  ImportValidation,
+} from "@shared/validations";
 import type {
   ImportTaskInput,
   ImportTaskOutput,
@@ -288,6 +292,13 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
             );
             markdownByNode.set(node, buffer.toString("utf8"));
           }
+        },
+        // Text read from the archive may not exceed the upload size limit.
+        {
+          maxEntries: ImportValidation.maxZipEntries,
+          maxTotalSize: AttachmentHelper.presetToMaxUploadSize(
+            AttachmentPreset.WorkspaceImport
+          ),
         }
       );
 

@@ -19,15 +19,18 @@ import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
+import useDebouncedValue from "~/hooks/useDebouncedValue";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { client } from "~/utils/ApiClient";
 import Input from "./Input";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { useEditor } from "./EditorContext";
+
+/** The time in milliseconds the query must stay the same before it is sent. */
+const RequestDelay = 100;
 
 type Props = {
   mark?: Mark;
@@ -67,18 +70,30 @@ const LinkEditor: React.FC<Props> = ({
     ? documents.findByQuery(trimmedQuery, { maxResults: 25 })
     : [];
 
+  // Results from the store show at once, the server is only asked for more
+  // when the user stops typing.
+  const requestQuery = useDebouncedValue(trimmedQuery, RequestDelay);
+
   const { request } = useRequest(
-    React.useCallback(async () => {
-      const res = await client.post("/suggestions.mention", { query });
-      res.data.documents.map(documents.add);
-    }, [documents, query])
+    React.useCallback(
+      () =>
+        documents.searchTitles({
+          query: requestQuery,
+          limit: 25,
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNotNull" },
+          ],
+        }),
+      [documents, requestQuery]
+    )
   );
 
   useEffect(() => {
-    if (trimmedQuery) {
+    if (requestQuery) {
       void request();
     }
-  }, [trimmedQuery, request]);
+  }, [requestQuery, request]);
 
   // Focus imperatively rather than with the autoFocus attribute, which only
   // applies on mount – the editor can already be open when focus is requested.

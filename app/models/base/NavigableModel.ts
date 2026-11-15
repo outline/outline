@@ -1,6 +1,7 @@
 import { action, computed, observable, runInAction } from "mobx";
 import type { JSONObject, NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
+import { CoalescedFetch } from "./CoalescedFetch";
 import Model from "./Model";
 import type Document from "../Document";
 import type DocumentsStore from "~/stores/DocumentsStore";
@@ -59,7 +60,7 @@ export default abstract class NavigableModel extends Model {
     });
   }
 
-  private isFetching = false;
+  private documentsFetch = new CoalescedFetch();
 
   /** The document ID associated with this model. */
   documentId?: string;
@@ -74,24 +75,17 @@ export default abstract class NavigableModel extends Model {
     params: JSONObject;
     force?: boolean;
   }) {
-    if (this.isFetching) {
-      return;
-    }
-
     if (this.documents && options.force !== true) {
       return;
     }
 
-    try {
-      this.isFetching = true;
+    await this.documentsFetch.run(async () => {
       const res = await client.post(options.path, options.params);
 
       runInAction(() => {
         this.node = res.data;
       });
-    } finally {
-      this.isFetching = false;
-    }
+    }, options.force);
   }
 
   /**

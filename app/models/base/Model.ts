@@ -128,42 +128,34 @@ export default abstract class Model {
     this: Model,
     options: { withoutPolicies?: boolean } = {}
   ): Promise<unknown> {
-    // this is to ensure that multiple loads don’t happen in parallel
-    if (this.loadingRelations) {
-      return this.loadingRelations;
-    }
+    return this.store.relationFetches.run(this.id, () => {
+      const promises = [];
 
-    const promises = [];
+      const relations = getRelationsForModelClass(
+        this.constructor as typeof Model
+      );
 
-    const relations = getRelationsForModelClass(
-      this.constructor as typeof Model
-    );
-
-    if (relations) {
-      for (const properties of relations.values()) {
-        const store = this.store.rootStore.getStoreForModelName(
-          properties.relationClassResolver().modelName
-        );
-        if ("canFetchById" in store && store.canFetchById) {
-          const id = this[properties.idKey];
-          if (id) {
-            promises.push(store.fetch(id as string));
+      if (relations) {
+        for (const properties of relations.values()) {
+          const store = this.store.rootStore.getStoreForModelName(
+            properties.relationClassResolver().modelName
+          );
+          if ("canFetchById" in store && store.canFetchById) {
+            const id = this[properties.idKey];
+            if (id) {
+              promises.push(store.fetch(id as string));
+            }
           }
         }
       }
-    }
 
-    const policy = this.store.rootStore.policies.get(this.id);
-    if (!policy && !options.withoutPolicies && this.store.canFetchById) {
-      promises.push(this.store.fetch(this.id, { force: true }));
-    }
+      const policy = this.store.rootStore.policies.get(this.id);
+      if (!policy && !options.withoutPolicies && this.store.canFetchById) {
+        promises.push(this.store.fetch(this.id, { force: true }));
+      }
 
-    try {
-      this.loadingRelations = Promise.all(promises);
-      return await this.loadingRelations;
-    } finally {
-      this.loadingRelations = undefined;
-    }
+      return Promise.all(promises);
+    });
   }
 
   /**
@@ -347,9 +339,6 @@ export default abstract class Model {
   }
 
   protected persistedAttributes: Partial<Model> = {};
-
-  /** A promise that resolves when all relations have been loaded. */
-  private loadingRelations: Promise<unknown[]> | undefined;
 
   /** A boolean representing if the constructor has been called. */
   private initialized = false;

@@ -18,6 +18,7 @@ import {
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
+import { CoalescedFetch } from "~/models/base/CoalescedFetch";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
 import type User from "./User";
@@ -273,15 +274,11 @@ export default class Collection extends ParanoidModel {
   }
 
   fetchDocuments = async (options?: { force: boolean }) => {
-    if (this.isFetching) {
-      return;
-    }
     if (this.documents && options?.force !== true) {
       return;
     }
 
-    try {
-      this.isFetching = true;
+    await this.documentsFetch.run(async () => {
       const res = await client.post("/collections.documents", {
         id: this.id,
       });
@@ -290,9 +287,7 @@ export default class Collection extends ParanoidModel {
       runInAction(() => {
         this.documents = res.data;
       });
-    } finally {
-      this.isFetching = false;
-    }
+    }, options?.force);
   };
 
   /**
@@ -501,5 +496,5 @@ export default class Collection extends ParanoidModel {
     }
   }
 
-  private isFetching = false;
+  private documentsFetch = new CoalescedFetch();
 }

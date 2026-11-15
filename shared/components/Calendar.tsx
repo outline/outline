@@ -25,7 +25,6 @@ export function Calendar(props: Props) {
 }
 
 const Wrapper = styled.div`
-  padding: 12px;
   color: ${s("text")};
 
   .rdp {
@@ -46,15 +45,23 @@ const Wrapper = styled.div`
     appearance: none;
   }
 
+  .rdp-months {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  /* Months sit side by side, and stack when there is not enough space. */
   .rdp-month {
-    width: 100%;
+    flex: 1 1 252px;
   }
 
   .rdp-caption {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2px 8px;
+    padding: 0 0 8px;
   }
 
   .rdp-caption_label {

@@ -70,14 +70,16 @@ const ExpiryDatePicker = ({
           side="right"
           shrink
         >
-          <Calendar
-            required
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleSelect}
-            locale={locale}
-            disabled={{ before: new Date() }}
-          />
+          <CalendarPadding>
+            <Calendar
+              required
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleSelect}
+              locale={locale}
+              disabled={{ before: new Date() }}
+            />
+          </CalendarPadding>
         </PopoverContent>
       </Popover>
       {selectedDate && onClear && (
@@ -95,6 +97,10 @@ const ExpiryDatePicker = ({
     </Wrapper>
   );
 };
+
+const CalendarPadding = styled.div`
+  padding: 12px;
+`;
 
 const Wrapper = styled.div`
   position: relative;

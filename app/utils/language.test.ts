@@ -1,4 +1,6 @@
-import { detectLanguage } from "./language";
+import i18n from "i18next";
+import Desktop from "./Desktop";
+import { changeLanguage, detectLanguage } from "./language";
 
 describe("detectLanguage", () => {
   const mockLanguage = (language: string) =>
@@ -30,5 +32,35 @@ describe("detectLanguage", () => {
 
     mockLanguage("zh-Hant");
     expect(detectLanguage()).toBe("zh_TW");
+  });
+});
+
+describe("changeLanguage", () => {
+  const setSpellCheckerLanguages = vi.fn();
+  const bridge = Desktop.bridge;
+
+  beforeEach(() => {
+    setSpellCheckerLanguages.mockClear();
+    i18n.addResourceBundle("de-DE", "translation", {});
+    Desktop.bridge = {
+      setSpellCheckerLanguages,
+    } as unknown as typeof Desktop.bridge;
+  });
+
+  afterEach(() => {
+    Desktop.bridge = bridge;
+  });
+
+  it("should set the spellchecker when the language is unchanged", async () => {
+    await i18n.changeLanguage("de-DE");
+    await changeLanguage("de_DE", i18n);
+    expect(setSpellCheckerLanguages).toHaveBeenCalledWith(["en-US", "de-DE"]);
+  });
+
+  it("should keep the current language for an unsupported language", async () => {
+    await i18n.changeLanguage("de-DE");
+    await changeLanguage("ar_EG", i18n);
+    expect(i18n.languages).toEqual(["de-DE"]);
+    expect(setSpellCheckerLanguages).not.toHaveBeenCalled();
   });
 });

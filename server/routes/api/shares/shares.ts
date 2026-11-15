@@ -212,18 +212,14 @@ router.post(
           required: false,
         },
         {
-          model: Document,
+          // Memberships are needed to compute the share policies.
+          model: Document.scope([
+            "defaultScope",
+            { method: ["withMembership", user.id] },
+          ]),
           required: false,
           paranoid: true,
           as: "document",
-          include: [
-            {
-              model: Collection.scope({
-                method: ["withMembership", user.id],
-              }),
-              as: "collection",
-            },
-          ],
         },
         {
           model: User,
