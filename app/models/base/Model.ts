@@ -32,12 +32,12 @@ function getAnnotatedKeysForModel(target: Model): (string | symbol)[] {
 
   while (prototype && prototype !== Object.prototype) {
     const symbol = Object.getOwnPropertySymbols(prototype).find(
-      (candidate) => candidate.description === storedAnnotationsDescription,
+      (candidate) => candidate.description === storedAnnotationsDescription
     );
     if (symbol) {
       const annotations: Record<string | symbol, unknown> = Reflect.get(
         prototype,
-        symbol,
+        symbol
       );
       return Reflect.ownKeys(annotations);
     }
@@ -59,7 +59,7 @@ export default abstract class Model {
    * @returns the data to construct or update a model with.
    */
   static fromPersisted<T extends Model>(
-    record: Record<string, unknown>,
+    record: Record<string, unknown>
   ): PartialExcept<T, "id"> {
     const fields = getFieldsForModelClass(this);
     return JSON.parse(JSON.stringify(pick(record, ["id", ...fields])));
@@ -126,19 +126,19 @@ export default abstract class Model {
    */
   async loadRelations(
     this: Model,
-    options: { withoutPolicies?: boolean } = {},
+    options: { withoutPolicies?: boolean } = {}
   ): Promise<unknown> {
     return this.store.relationFetches.run(this.id, () => {
       const promises = [];
 
       const relations = getRelationsForModelClass(
-        this.constructor as typeof Model,
+        this.constructor as typeof Model
       );
 
       if (relations) {
         for (const properties of relations.values()) {
           const store = this.store.rootStore.getStoreForModelName(
-            properties.relationClassResolver().modelName,
+            properties.relationClassResolver().modelName
           );
           if ("canFetchById" in store && store.canFetchById) {
             const id = this[properties.idKey];
@@ -172,7 +172,7 @@ export default abstract class Model {
    */
   save = async (
     params?: Record<string, unknown>,
-    options?: Record<string, string | boolean | number | undefined>,
+    options?: Record<string, string | boolean | number | undefined>
   ): Promise<Model> => {
     const isNew = this.isNew;
     this.isSaving = true;
@@ -220,7 +220,7 @@ export default abstract class Model {
         {
           ...options,
           isNew,
-        },
+        }
       );
 
       // if saving is successful set the new values on the model itself
@@ -300,7 +300,7 @@ export default abstract class Model {
         this.constructor,
         "afterChange",
         this,
-        previousAttributes,
+        previousAttributes
       );
     }
   });
@@ -360,7 +360,7 @@ export default abstract class Model {
         // oxlint-disable-next-line no-prototype-builtins
         this.hasOwnProperty(property) &&
         !["persistedAttributes", "store", "isSaving", "isNew"].includes(
-          property,
+          property
         )
       ) {
         output[property] = this[property];

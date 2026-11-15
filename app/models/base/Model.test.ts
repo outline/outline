@@ -12,7 +12,7 @@ describe("Model#save", () => {
   });
 
   describe("updating an existing model", () => {
-    test("should optimistically apply changes and keep them on success", async () => {
+    it("should optimistically apply changes and keep them on success", async () => {
       const collection = stores.collections.add({
         id: "update-success",
         name: "Before",
@@ -22,7 +22,7 @@ describe("Model#save", () => {
       post.mockReturnValueOnce(
         new Promise((res) => {
           resolve = res;
-        }),
+        })
       );
 
       const promise = collection.save({ name: "After" });
@@ -43,7 +43,7 @@ describe("Model#save", () => {
       expect(collection.isDirty()).toBe(false);
     });
 
-    test("should roll back optimistic changes on failure", async () => {
+    it("should roll back optimistic changes on failure", async () => {
       const collection = stores.collections.add({
         id: "update-failure",
         name: "Before",
@@ -63,7 +63,7 @@ describe("Model#save", () => {
       expect(collection.isDirty()).toBe(false);
     });
 
-    test("should not roll back changes made to the model before saving", async () => {
+    it("should not roll back changes made to the model before saving", async () => {
       const collection = stores.collections.add({
         id: "update-premutation",
         name: "Before",
@@ -82,7 +82,7 @@ describe("Model#save", () => {
   });
 
   describe("creating a new model", () => {
-    test("should optimistically add the model to the store and keep it on success", async () => {
+    it("should optimistically add the model to the store and keep it on success", async () => {
       const collection = new Collection({ name: "Draft" }, stores.collections);
       collection.id = "create-success";
       expect(collection.isNew).toBe(true);
@@ -98,7 +98,7 @@ describe("Model#save", () => {
       expect(collection.isNew).toBe(false);
     });
 
-    test("should remove the model from the store on failure", async () => {
+    it("should remove the model from the store on failure", async () => {
       const collection = new Collection({ name: "Draft" }, stores.collections);
       collection.id = "create-failure";
       expect(collection.isNew).toBe(true);
@@ -246,7 +246,7 @@ describe("Model observability", () => {
     expect(isAction(stores.templates.duplicate)).toBe(true);
     expect(isAction(Reflect.get(stores.unfurls, "unfurl"))).toBe(true);
     expect(isAction(stores.userMemberships.fetchDocumentMemberships)).toBe(
-      true,
+      true
     );
     expect(isAction(stores.users.invite)).toBe(true);
   });
