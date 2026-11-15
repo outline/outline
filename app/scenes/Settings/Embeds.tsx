@@ -58,9 +58,11 @@ function Embeds() {
         ? disabledEmbeds.filter((t) => t !== id)
         : [...disabledEmbeds, id];
 
-      team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
-        preferences: { ...team.preferences },
+        preferences: {
+          ...team.preferences,
+          [TeamPreference.DisabledEmbeds]: updated,
+        },
       });
     },
     [team, saveData]
@@ -70,9 +72,11 @@ function Embeds() {
     async (enabled: boolean) => {
       const updated = enabled ? [] : providers.map((e) => e.id);
 
-      team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
-        preferences: { ...team.preferences },
+        preferences: {
+          ...team.preferences,
+          [TeamPreference.DisabledEmbeds]: updated,
+        },
       });
     },
     [team, saveData]

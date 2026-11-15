@@ -1,5 +1,10 @@
+import { vi } from "vitest";
+import { UserPreference } from "@shared/types";
 import User from "./User";
 import stores from "~/stores";
+import { client } from "~/utils/ApiClient";
+
+const post = vi.mocked(client.post);
 
 describe("User model", () => {
   const users = stores.users;
@@ -264,6 +269,56 @@ describe("User model", () => {
         "child",
         "other",
       ]);
+    });
+  });
+
+  describe("savePreference", () => {
+    beforeEach(() => {
+      post.mockReset();
+    });
+
+    it("should send only preferences and keep other values", async () => {
+      const user = users.add({
+        id: "pref-success",
+        name: "Alice",
+        preferences: { [UserPreference.RememberLastPath]: true },
+      });
+      post.mockResolvedValueOnce({ data: { id: "pref-success" } });
+
+      const promise = user.savePreference(
+        UserPreference.UseCursorPointer,
+        false
+      );
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+      await promise;
+
+      expect(post).toHaveBeenCalledWith("/users.update", {
+        id: "pref-success",
+        preferences: {
+          [UserPreference.RememberLastPath]: true,
+          [UserPreference.UseCursorPointer]: false,
+        },
+      });
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+      expect(user.getPreference(UserPreference.RememberLastPath)).toBe(true);
+    });
+
+    it("should revert the preference on failure", async () => {
+      const user = users.add({
+        id: "pref-failure",
+        name: "Alice",
+        preferences: { [UserPreference.UseCursorPointer]: true },
+      });
+      post.mockRejectedValueOnce(new Error("server error"));
+
+      const promise = user.savePreference(
+        UserPreference.UseCursorPointer,
+        false
+      );
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(false);
+
+      await expect(promise).rejects.toThrow("server error");
+      expect(user.getPreference(UserPreference.UseCursorPointer)).toBe(true);
     });
   });
 });

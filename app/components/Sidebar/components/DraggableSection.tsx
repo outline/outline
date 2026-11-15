@@ -165,8 +165,7 @@ function DraggableSection({ section, children }: Props) {
         target
       );
       if (newOrder) {
-        user.setPreference(UserPreference.SidebarSectionOrder, newOrder);
-        void user.save();
+        void user.savePreference(UserPreference.SidebarSectionOrder, newOrder);
       }
     },
     [findVisibleSibling, section, user]

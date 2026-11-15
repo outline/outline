@@ -1789,11 +1789,10 @@ export const toggleDocumentStats = createAction({
       return;
     }
 
-    user.setPreference(
+    await user.savePreference(
       UserPreference.ShowDocumentStats,
       !user.getPreference(UserPreference.ShowDocumentStats)
     );
-    await user.save();
   },
 });
 
@@ -1839,8 +1838,7 @@ const changeHeadingPrefixFactory = (style: HeadingPrefixStyle) =>
       if (!document) {
         return;
       }
-      document.setPreference(DocumentPreference.HeadingPrefix, style);
-      await document.save();
+      await document.savePreference(DocumentPreference.HeadingPrefix, style);
     },
   });
 

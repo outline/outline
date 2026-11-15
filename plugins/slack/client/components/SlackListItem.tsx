@@ -1,5 +1,4 @@
 import { uniq } from "es-toolkit/compat";
-import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -30,15 +29,11 @@ function SlackListItem({ integration, collection }: Props) {
   const { t } = useTranslation();
 
   const handleChange = (eventName: string) => async (checked: boolean) => {
-    runInAction(() => {
-      if (checked) {
-        integration.events = uniq([...integration.events, eventName]);
-      } else {
-        integration.events = integration.events.filter((n) => n !== eventName);
-      }
+    await integration.save({
+      events: checked
+        ? uniq([...integration.events, eventName])
+        : integration.events.filter((n) => n !== eventName),
     });
-
-    await integration.save();
 
     toast.success(t("Settings saved"));
   };
