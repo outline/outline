@@ -302,20 +302,20 @@ class User extends ParanoidModel implements Searchable {
   }
 
   /**
-   * Set the value for a specific preference key.
+   * Set the value for a specific preference key and save it to the server.
+   * The value is applied at once and reverted if the request fails.
    *
-   * @param key The UserPreference key to retrieve
-   * @param value The value to set
+   * @param key The UserPreference key to set.
+   * @param value The value to set.
+   * @returns a promise that resolves when the preference is saved.
    */
-  @action
-  setPreference<K extends UserPreference>(
+  savePreference<K extends UserPreference>(
     key: K,
     value: NonNullable<UserPreferences[K]>
   ) {
-    this.preferences = {
-      ...this.preferences,
-      [key]: value,
-    };
+    return this.save({
+      preferences: { ...this.preferences, [key]: value },
+    });
   }
 
   getMembership(document: Document) {

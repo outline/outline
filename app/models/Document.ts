@@ -507,20 +507,20 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
-   * Set the value for a specific display preference key.
+   * Set the value for a specific display preference key and save it to the
+   * server. The value is applied at once and reverted if the request fails.
    *
-   * @param key The DocumentPreference key to set
-   * @param value The value to set
+   * @param key The DocumentPreference key to set.
+   * @param value The value to set.
+   * @returns a promise that resolves when the preference is saved.
    */
-  @action
-  setPreference<K extends DocumentPreference>(
+  savePreference<K extends DocumentPreference>(
     key: K,
     value: NonNullable<DocumentPreferences[K]>
   ) {
-    this.preferences = {
-      ...this.preferences,
-      [key]: value,
-    };
+    return this.save({
+      preferences: { ...this.preferences, [key]: value },
+    });
   }
 
   /**
@@ -627,7 +627,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @action
   save = async (
-    fields?: Properties<typeof this>,
+    fields?: Properties<Document>,
     options?: SaveOptions
   ): Promise<Document> => {
     const params = fields ?? this.toAPI();

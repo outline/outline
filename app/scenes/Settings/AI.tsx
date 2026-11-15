@@ -25,8 +25,7 @@ function AI() {
 
   const handleMCPChange = React.useCallback(
     async (checked: boolean) => {
-      team.setPreference(TeamPreference.MCP, checked);
-      await team.save();
+      await team.savePreference(TeamPreference.MCP, checked);
       toast.success(t("Settings saved"));
     },
     [team, t]
