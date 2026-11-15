@@ -102,13 +102,12 @@ export default function init(
     Metrics.increment("websockets.connected");
     Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
 
-    // If the socket didn't authenticate after connection, disconnect it
+    // If the socket didn't authenticate after connection, close the transport
+    // without a disconnect packet so the client reconnects.
     const authTimeout = setTimeout(function () {
       if (!socket.client.auth) {
         Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
-
-        // @ts-expect-error should be boolean
-        socket.disconnect("unauthorized");
+        socket.conn.close();
       }
     }, 1000);
 
