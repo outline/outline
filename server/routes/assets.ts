@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { formatRFC7231 } from "date-fns";
 import Router from "@koa/router";
 import { send } from "@koa/send";
 import { languages } from "@shared/i18n";
@@ -75,26 +75,74 @@ if (env.isProduction) {
 }
 
 router.get("/locales/:lng.json", async (ctx) => {
-  const { lng } = ctx.params;
+  const lng = languages.find((language) => language === ctx.params.lng);
 
-  if (!languages.includes(lng as (typeof languages)[number])) {
+  if (!lng) {
     ctx.status = 404;
     return;
   }
 
-  await send(ctx, path.join(lng, "translation.json"), {
-    setHeaders: (res, _, stats) => {
-      res.setHeader("Last-Modified", formatRFC7231(stats.mtime));
-      res.setHeader("Cache-Control", `public, max-age=${7 * Day.seconds}`);
-      res.setHeader(
-        "ETag",
-        crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
-      );
-      res.setHeader("Access-Control-Allow-Origin", "*");
-    },
-    root: path.join(__dirname, "../../shared/i18n/locales"),
-  });
+  const locale = await loadClientLocale(lng);
+
+  ctx.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
+  ctx.set("ETag", locale.etag);
+  ctx.set("Access-Control-Allow-Origin", "*");
+  ctx.type = "application/json";
+  ctx.status = 200;
+
+  if (ctx.fresh) {
+    ctx.status = 304;
+    return;
+  }
+
+  ctx.body = locale.body;
 });
+
+type Language = (typeof languages)[number];
+
+interface ClientLocale {
+  body: string;
+  etag: string;
+}
+
+const clientLocales = new Map<Language, ClientLocale>();
+
+/**
+ * Loads a translation file for the client, without the entries that match
+ * their key. The client shows the key when an entry is missing, so the result
+ * does not change.
+ *
+ * @param lng A supported language in CLDR format (en_US).
+ * @returns the JSON body and its ETag.
+ */
+async function loadClientLocale(lng: Language): Promise<ClientLocale> {
+  const cached = clientLocales.get(lng);
+  if (cached) {
+    return cached;
+  }
+
+  const file = path.join(
+    __dirname,
+    "../../shared/i18n/locales",
+    lng,
+    "translation.json"
+  );
+  const translations: Record<string, string> = JSON.parse(
+    await readFile(file, "utf8")
+  );
+  const body = JSON.stringify(
+    Object.fromEntries(
+      Object.entries(translations).filter(([key, value]) => key !== value)
+    )
+  );
+  const locale = {
+    body,
+    etag: `"${crypto.createHash("md5").update(body).digest("hex")}"`,
+  };
+
+  clientLocales.set(lng, locale);
+  return locale;
+}
 
 function isNotFound(err: unknown): boolean {
   return err instanceof Error && "status" in err && err.status === 404;

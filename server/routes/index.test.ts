@@ -480,10 +480,34 @@ describe("/locales/:lng.json", () => {
     expect(res.headers.get("content-type")).toContain("application/json");
     expect(res.headers.get("cache-control")).toEqual("public, max-age=604800");
     expect(res.headers.get("etag")).toBeTruthy();
-    expect(res.headers.get("last-modified")).toBeTruthy();
     expect(res.headers.get("access-control-allow-origin")).toEqual("*");
     const body = await res.json();
     expect(typeof body).toEqual("object");
+  });
+
+  it("should omit entries that match their key", async () => {
+    const res = await server.get("/locales/en_US.json");
+    const body: Record<string, string> = await res.json();
+    expect(body.Saving).toBeUndefined();
+    expect(Object.entries(body).length).toBeGreaterThan(0);
+    for (const [key, value] of Object.entries(body)) {
+      expect(value).not.toEqual(key);
+    }
+  });
+
+  it("should keep translated entries", async () => {
+    const res = await server.get("/locales/de_DE.json");
+    const body: Record<string, string> = await res.json();
+    expect(body.Saving).toEqual("Speichert");
+  });
+
+  it("should return 304 when the ETag matches", async () => {
+    const res = await server.get("/locales/de_DE.json");
+    const etag = res.headers.get("etag") ?? "";
+    const cached = await server.get("/locales/de_DE.json", {
+      headers: { "If-None-Match": etag },
+    });
+    expect(cached.status).toEqual(304);
   });
 
   it("should return 404 for an unknown language", async () => {
