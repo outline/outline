@@ -7,6 +7,7 @@ import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { View } from "@server/models";
+import { optionalWrite } from "@server/storage/database";
 import type { withContext } from "./types";
 
 @trace()
@@ -27,7 +28,8 @@ export class ViewsExtension implements Extension {
     context,
     socketId,
   }: withContext<onChangePayload>) {
-    if (!context.user) {
+    const { user } = context;
+    if (!user) {
       return;
     }
 
@@ -37,14 +39,13 @@ export class ViewsExtension implements Extension {
     if (!lastUpdate || Date.now() - lastUpdate.getTime() > Minute.ms) {
       this.lastViewBySocket.set(socketId, new Date());
 
-      Logger.debug(
-        "multiplayer",
-        `User ${context.user.id} viewed "${documentName}"`
+      Logger.debug("multiplayer", `User ${user.id} viewed "${documentName}"`);
+      await optionalWrite(() =>
+        Promise.all([
+          View.touch(documentId, user.id, true),
+          user.updateActiveAt(),
+        ])
       );
-      await Promise.all([
-        View.touch(documentId, context.user.id, true),
-        context.user.updateActiveAt(),
-      ]);
     }
   }
 
