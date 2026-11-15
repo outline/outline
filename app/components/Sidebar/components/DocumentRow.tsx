@@ -2,6 +2,7 @@ import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { match } from "react-router";
 import styled from "styled-components";
@@ -194,7 +195,9 @@ function DocumentRow({
       try {
         newChildTitleRef.current?.setIsEditing(false);
         await onCreateChild(value);
-        closeAddingNewChild();
+
+        // Remove the input in the same paint as the new tree item.
+        flushSync(closeAddingNewChild);
       } catch (_err) {
         newChildTitleRef.current?.setIsEditing(true);
       }
