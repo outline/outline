@@ -63,7 +63,7 @@ export const CollectionValidation = {
   maxNameLength: 100,
 
   /** The maximum number of owners of a collection */
-  maxOwners: 25,
+  maxOwners: 5,
 };
 
 export const CommentValidation = {
@@ -93,7 +93,7 @@ export const DocumentValidation = {
   maxLength: 1500 * 1024,
 
   /** The maximum number of owners of a document */
-  maxOwners: 25,
+  maxOwners: 5,
 };
 
 export const GroupValidation = {

@@ -1959,7 +1959,7 @@ router.post(
         attributes: ["id", "ownerIds"],
         where: { id: document.id },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         rejectOnEmpty: true,
       });
       document.ownerIds = locked.ownerIds ?? [];

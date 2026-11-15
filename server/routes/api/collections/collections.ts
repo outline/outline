@@ -427,7 +427,7 @@ router.post(
         attributes: ["id", "ownerIds"],
         where: { id: collection.id },
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         paranoid: false,
         rejectOnEmpty: true,
       });
