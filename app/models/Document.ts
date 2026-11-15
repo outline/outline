@@ -9,7 +9,6 @@ import {
   observable,
   override,
   set,
-  toJS,
 } from "mobx";
 import type {
   JSONObject,
@@ -634,17 +633,7 @@ export default class Document extends ArchivableModel implements Searchable {
     const params = fields ?? this.toAPI();
     this.isSaving = true;
 
-    // Snapshot the current values of the saved fields so that the optimistic
-    // update below can be rolled back if saving fails.
-    const previousValues: Record<string, unknown> = {};
-    for (const key in params) {
-      // @ts-expect-error TODO
-      previousValues[key] = toJS(this[key]);
-    }
-
-    // optimistically set the new values on the model so that observers update
-    // immediately, without waiting for the server to respond
-    set(this, { ...params, ...fields });
+    const settle = this.applyOptimistic(fields ?? {});
 
     try {
       const model = await this.store.save(
@@ -656,11 +645,11 @@ export default class Document extends ArchivableModel implements Searchable {
       set(this, Object.assign({}, params, model));
 
       this.persistedAttributes = this.toAPI();
+      settle(true);
 
       return model;
     } catch (err) {
-      // roll the model back to its state before saving began
-      set(this, previousValues);
+      settle(false);
       throw err;
     } finally {
       this.isSaving = false;
