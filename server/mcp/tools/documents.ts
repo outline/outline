@@ -756,6 +756,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             authorize(user, "update", document);
+            if (input.ownerIds) {
+              authorize(user, "manageOwners", document);
+            }
 
             // The collection is only used when publishing a draft that has
             // none, so the personal collection is only created in that case.

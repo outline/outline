@@ -4,13 +4,7 @@ import { DocumentConflictError, ValidationError } from "@server/errors";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
-import {
-  createDocumentOwnerEvents,
-  grantDocumentOwnerAccess,
-  validateDocumentOwnerIds,
-} from "./documentOwners";
 
 type Props = {
   /** The existing document */
@@ -84,19 +78,7 @@ export default async function documentUpdater(
   const previousOwnerIds = document.ownerIds ?? [];
 
   if (ownerIds) {
-    const validatedOwnerIds = await validateDocumentOwnerIds(
-      ctx,
-      ownerIds,
-      previousOwnerIds
-    );
-    const isChanged =
-      validatedOwnerIds.length !== previousOwnerIds.length ||
-      validatedOwnerIds.some((id) => !previousOwnerIds.includes(id));
-
-    if (isChanged) {
-      authorize(user, "manageOwners", document);
-      document.ownerIds = validatedOwnerIds;
-    }
+    await document.setOwnerIds(ctx, ownerIds);
   }
 
   document.fill({
@@ -175,12 +157,10 @@ export default async function documentUpdater(
     await document.saveWithCtx(ctx);
   }
 
+  // The acting user can already manage the document.
   if (document.ownerIds !== previousOwnerIds) {
-    await createDocumentOwnerEvents(ctx, document, previousOwnerIds);
-    // The acting user can already manage the document.
-    await grantDocumentOwnerAccess(
+    await document.grantOwnerAccess(
       ctx,
-      document,
       difference(document.ownerIds, [...previousOwnerIds, user.id])
     );
   }

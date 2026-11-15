@@ -1,3 +1,4 @@
+import { difference } from "es-toolkit";
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import type { McpServer } from "@modelcontextprotocol/server";
@@ -12,11 +13,7 @@ import {
   CollectionValidation,
   DeprecationValidation,
 } from "@shared/validations";
-import {
-  applyCollectionOwnerChanges,
-  resolveCollectionOwnerIds,
-  updateCollectionOwners,
-} from "@server/commands/collectionOwners";
+
 import {
   success,
   error,
@@ -237,15 +234,16 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               });
               await created.saveWithCtx(ctx);
 
-              // Owners are assigned after authorizing, as ownership grants
-              // permissions.
               if (input.ownerIds?.length) {
                 const reloaded = await Collection.findByPk(created.id, {
                   userId: user.id,
                   transaction,
                   rejectOnEmpty: true,
                 });
-                await updateCollectionOwners(ctx, reloaded, input.ownerIds);
+                authorize(user, "manageOwners", reloaded);
+                await reloaded.setOwnerIds(ctx, input.ownerIds);
+                await reloaded.saveWithCtx(ctx);
+                await reloaded.grantOwnerAccess(ctx, reloaded.ownerIds);
               }
 
               return created;
@@ -327,14 +325,13 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               transaction,
             });
             authorize(user, "update", collection);
+            if (input.ownerIds) {
+              authorize(user, "manageOwners", collection);
+            }
 
             const previousOwnerIds = collection.ownerIds ?? [];
             if (input.ownerIds) {
-              collection.ownerIds = await resolveCollectionOwnerIds(
-                ctx,
-                collection,
-                input.ownerIds
-              );
+              await collection.setOwnerIds(ctx, input.ownerIds);
             }
 
             if (input.name !== undefined) {
@@ -362,13 +359,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
             await collection.saveWithCtx(ctx);
 
-            if (collection.ownerIds !== previousOwnerIds) {
-              await applyCollectionOwnerChanges(
-                ctx,
-                collection,
-                previousOwnerIds
-              );
-            }
+            await collection.grantOwnerAccess(
+              ctx,
+              difference(collection.ownerIds ?? [], previousOwnerIds)
+            );
 
             return success({
               success: true,

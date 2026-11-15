@@ -1,17 +1,14 @@
 import type { Optional } from "utility-types";
 import { PersonalCollectionId } from "@shared/constants";
 import { TextHelper } from "@shared/utils/TextHelper";
+import { DocumentValidation } from "@shared/validations";
 import { Collection, Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { validateOwnerIds } from "@server/models/helpers/owners";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { assertPresent } from "@server/validation";
-import {
-  createDocumentOwnerEvents,
-  grantDocumentOwnerAccess,
-  validateDocumentOwnerIds,
-} from "./documentOwners";
 import personalCollectionLoader from "./personalCollectionLoader";
 
 type Props = Optional<
@@ -238,7 +235,7 @@ export default async function documentCreator(
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
   const validatedOwnerIds = ownerIds
-    ? await validateDocumentOwnerIds(ctx, ownerIds)
+    ? await validateOwnerIds(ctx, ownerIds, [], DocumentValidation.maxOwners)
     : [];
 
   const document = Document.build({
@@ -304,17 +301,12 @@ export default async function documentCreator(
   // Owners are assigned after authorizing, as ownership grants permissions.
   if (validatedOwnerIds.length > 0) {
     authorize(user, "manageOwners", reloaded);
-    await Document.unscoped().update(
-      { ownerIds: validatedOwnerIds },
-      { where: { id: reloaded.id }, silent: true, transaction }
-    );
     reloaded.ownerIds = validatedOwnerIds;
-    await createDocumentOwnerEvents(ctx, reloaded, []);
+    await reloaded.save({ ...ctx.context, silent: true });
 
     // The acting user can already manage the document.
-    await grantDocumentOwnerAccess(
+    await reloaded.grantOwnerAccess(
       ctx,
-      reloaded,
       validatedOwnerIds.filter((id) => id !== user.id)
     );
   }

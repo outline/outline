@@ -1,5 +1,6 @@
 import Router from "@koa/router";
 import { randomUUID } from "node:crypto";
+import { difference } from "es-toolkit";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
@@ -52,13 +53,6 @@ import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import {
-  applyCollectionOwnerChanges,
-  grantCollectionOwnerAccess,
-  removeCollectionOwner,
-  resolveCollectionOwnerIds,
-  updateCollectionOwners,
-} from "@server/commands/collectionOwners";
 import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
@@ -114,9 +108,12 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    // Owners are assigned after authorizing, as ownership grants permissions.
+    // Owners can only be checked once the collection exists.
     if (ownerIds?.length) {
-      await updateCollectionOwners(ctx, reloaded, ownerIds);
+      authorize(user, "manageOwners", reloaded);
+      await reloaded.setOwnerIds(ctx, ownerIds);
+      await reloaded.saveWithCtx(ctx);
+      await reloaded.grantOwnerAccess(ctx, reloaded.ownerIds);
     }
 
     ctx.body = {
@@ -421,23 +418,8 @@ router.post(
     const previousOwnerIds = collection.ownerIds ?? [];
 
     if (owner) {
-      // Lock the collection so that concurrent invitations do not overwrite
-      // the owners added by each other.
-      const locked = await Collection.unscoped().findOne({
-        attributes: ["id", "ownerIds"],
-        where: { id: collection.id },
-        transaction,
-        lock: transaction.LOCK.NO_KEY_UPDATE,
-        paranoid: false,
-        rejectOnEmpty: true,
-      });
-      collection.ownerIds = locked.ownerIds ?? [];
-
-      await updateCollectionOwners(ctx, collection, [
-        ...collection.ownerIds,
-        userId,
-      ]);
-      await grantCollectionOwnerAccess(ctx, collection, [userId]);
+      authorize(actor, "manageOwners", collection);
+      await collection.addOwner(ctx, userId);
 
       const ownerMembership = await UserMembership.findOne({
         where: { collectionId: id, userId },
@@ -483,7 +465,7 @@ router.post(
       owner === false ||
       membership.permission !== CollectionPermission.Admin
     ) {
-      await removeCollectionOwner(ctx, collection, userId);
+      await collection.removeOwner(ctx, userId);
     }
 
     ctx.body = {
@@ -525,7 +507,7 @@ router.post(
     }
 
     await membership.destroy(ctx.context);
-    await removeCollectionOwner(ctx, collection, userId);
+    await collection.removeOwner(ctx, userId);
 
     ctx.body = {
       success: true,
@@ -697,6 +679,9 @@ router.post(
       updatingDeprecatedReason ? "updateDeprecatedReason" : "update",
       collection
     );
+    if (ownerIds) {
+      authorize(user, "manageOwners", collection);
+    }
 
     if (deprecatedReason !== undefined) {
       authorize(user, "updateDeprecatedReason", collection);
@@ -738,11 +723,7 @@ router.post(
 
     const previousOwnerIds = collection.ownerIds ?? [];
     if (ownerIds) {
-      collection.ownerIds = await resolveCollectionOwnerIds(
-        ctx,
-        collection,
-        ownerIds
-      );
+      await collection.setOwnerIds(ctx, ownerIds);
     }
 
     collection.fill({
@@ -763,9 +744,10 @@ router.post(
 
     await collection.saveWithCtx(ctx);
 
-    if (collection.ownerIds !== previousOwnerIds) {
-      await applyCollectionOwnerChanges(ctx, collection, previousOwnerIds);
-    }
+    await collection.grantOwnerAccess(
+      ctx,
+      difference(collection.ownerIds ?? [], previousOwnerIds)
+    );
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.

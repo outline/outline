@@ -31,10 +31,6 @@ import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentRestorer from "@server/commands/documentRestorer";
-import {
-  grantDocumentOwnerAccess,
-  removeDocumentOwner,
-} from "@server/commands/documentOwners";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
@@ -1476,6 +1472,10 @@ router.post(
       authorize(user, "updateInsights", document);
     }
 
+    if (input.ownerIds) {
+      authorize(user, "manageOwners", document);
+    }
+
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
     }
@@ -1934,7 +1934,7 @@ router.post(
     const previousOwnerIds = document.ownerIds ?? [];
 
     if (isSelf && !owner) {
-      await removeDocumentOwner(ctx, document, userId);
+      await document.removeOwner(ctx, userId);
       const selfMembership = await UserMembership.findOne({
         where: { documentId: id, userId },
         transaction,
@@ -1953,22 +1953,8 @@ router.post(
     }
 
     if (owner) {
-      // Lock the document so that concurrent invitations do not overwrite the
-      // owners added by each other.
-      const locked = await Document.unscoped().findOne({
-        attributes: ["id", "ownerIds"],
-        where: { id: document.id },
-        transaction,
-        lock: transaction.LOCK.NO_KEY_UPDATE,
-        rejectOnEmpty: true,
-      });
-      document.ownerIds = locked.ownerIds ?? [];
-
-      const updated = await documentUpdater(ctx, {
-        document,
-        ownerIds: [...document.ownerIds, userId],
-      });
-      await grantDocumentOwnerAccess(ctx, updated, [userId]);
+      authorize(actor, "manageOwners", document);
+      await document.addOwner(ctx, userId);
 
       const membership = await UserMembership.findOne({
         where: { documentId: id, userId },
@@ -1980,7 +1966,7 @@ router.post(
         data: {
           users: [presentUser(user)],
           memberships: [presentMembership(membership)],
-          documents: [await presentDocument(ctx, updated)],
+          documents: [await presentDocument(ctx, document)],
         },
       };
       return;
@@ -2035,7 +2021,7 @@ router.post(
     // Owners must be able to manage the document, so other access removes the
     // ownership.
     if (owner === false || membership.permission !== DocumentPermission.Admin) {
-      await removeDocumentOwner(ctx, document, userId);
+      await document.removeOwner(ctx, userId);
     }
 
     ctx.body = {
@@ -2096,7 +2082,7 @@ router.post(
     }
 
     await membership.destroy(ctx.context);
-    await removeDocumentOwner(ctx, document, userId);
+    await document.removeOwner(ctx, userId);
 
     ctx.body = {
       success: true,

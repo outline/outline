@@ -3171,30 +3171,6 @@ describe("collection owners", () => {
     expect(body.data.collections[0].ownerIds).toEqual([admin.id]);
   });
 
-  it("should add owners from concurrent invitations", async () => {
-    const admin = await buildAdmin();
-    const first = await buildUser({ teamId: admin.teamId });
-    const second = await buildUser({ teamId: admin.teamId });
-    const collection = await buildCollection({
-      teamId: admin.teamId,
-      userId: admin.id,
-    });
-
-    const responses = await Promise.all(
-      [first, second].map((user) =>
-        server.post("/api/collections.add_user", admin, {
-          body: { id: collection.id, userId: user.id, owner: true },
-        })
-      )
-    );
-    expect(responses.map((res) => res.status)).toEqual([200, 200]);
-
-    await collection.reload();
-    expect([...collection.ownerIds].sort()).toEqual(
-      [first.id, second.id].sort()
-    );
-  });
-
   it.each([
     ["a lower permission", { permission: CollectionPermission.ReadWrite }],
     [

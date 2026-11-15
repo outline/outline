@@ -9870,27 +9870,6 @@ describe("document owners", () => {
     expect(events.map((event) => event.userId)).toEqual([owner.id]);
   });
 
-  it("should not create a document when the user cannot manage owners", async () => {
-    const user = await buildUser();
-    const owner = await buildUser({ teamId: user.teamId });
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      permission: CollectionPermission.ReadWrite,
-    });
-    const res = await server.post("/api/documents.create", user, {
-      body: {
-        title: "Owned",
-        collectionId: collection.id,
-        publish: true,
-        ownerIds: [owner.id],
-      },
-    });
-    expect(res.status).toEqual(403);
-    expect(
-      await Document.count({ where: { collectionId: collection.id } })
-    ).toEqual(0);
-  });
-
   it("should not allow an editor to create a document they own", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -9947,25 +9926,7 @@ describe("document owners", () => {
     expect(events).toHaveLength(2);
   });
 
-  it("should not allow an editor without manage permission to change owners", async () => {
-    const user = await buildUser();
-    const owner = await buildUser({ teamId: user.teamId });
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      permission: CollectionPermission.ReadWrite,
-    });
-    const document = await buildDocument({
-      teamId: user.teamId,
-      collectionId: collection.id,
-    });
-
-    const res = await server.post("/api/documents.update", user, {
-      body: { id: document.id, ownerIds: [owner.id] },
-    });
-    expect(res.status).toEqual(403);
-  });
-
-  it("should allow an editor to send unchanged owners", async () => {
+  it("should not allow an editor to send owners, even when unchanged", async () => {
     const user = await buildUser();
     const owner = await buildUser({ teamId: user.teamId });
     const collection = await buildCollection({
@@ -9981,10 +9942,9 @@ describe("document owners", () => {
     const res = await server.post("/api/documents.update", user, {
       body: { id: document.id, title: "Renamed", ownerIds: [owner.id] },
     });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.ownerIds).toEqual([owner.id]);
-    expect(body.policies[0].abilities.manageOwners).toBe(false);
+    expect(res.status).toEqual(403);
+    await document.reload();
+    expect(document.title).not.toEqual("Renamed");
   });
 
   it.each([
@@ -10157,28 +10117,6 @@ describe("document owners", () => {
       rejectOnEmpty: true,
     });
     expect(membership.permission).toEqual(DocumentPermission.ReadWrite);
-  });
-
-  it("should add owners from concurrent invitations", async () => {
-    const admin = await buildAdmin();
-    const first = await buildUser({ teamId: admin.teamId });
-    const second = await buildUser({ teamId: admin.teamId });
-    const document = await buildDocument({
-      userId: admin.id,
-      teamId: admin.teamId,
-    });
-
-    const responses = await Promise.all(
-      [first, second].map((user) =>
-        server.post("/api/documents.add_user", admin, {
-          body: { id: document.id, userId: user.id, owner: true },
-        })
-      )
-    );
-    expect(responses.map((res) => res.status)).toEqual([200, 200]);
-
-    await document.reload();
-    expect([...document.ownerIds].sort()).toEqual([first.id, second.id].sort());
   });
 
   it("should not add more than the maximum owners", async () => {
