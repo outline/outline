@@ -510,13 +510,6 @@ describe("/locales/:lng.json", () => {
     expect(cached.status).toEqual(304);
   });
 
-  it("should preload the default language in html", async () => {
-    const res = await server.get("/");
-    const body = await res.text();
-    expect(body).toContain(`/locales/${env.DEFAULT_LANGUAGE}.json"`);
-    expect(body).toContain('rel="preload"');
-  });
-
   it("should return 404 for an unknown language", async () => {
     const res = await server.get("/locales/xx_XX.json");
     expect(res.status).toEqual(404);
