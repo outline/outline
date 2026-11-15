@@ -40,6 +40,7 @@ describe("changeLanguage", () => {
   const bridge = Desktop.bridge;
 
   beforeEach(() => {
+    setSpellCheckerLanguages.mockClear();
     i18n.addResourceBundle("de-DE", "translation", {});
     Desktop.bridge = {
       setSpellCheckerLanguages,
@@ -54,5 +55,12 @@ describe("changeLanguage", () => {
     await i18n.changeLanguage("de-DE");
     await changeLanguage("de_DE", i18n);
     expect(setSpellCheckerLanguages).toHaveBeenCalledWith(["en-US", "de-DE"]);
+  });
+
+  it("should keep the current language for an unsupported language", async () => {
+    await i18n.changeLanguage("de-DE");
+    await changeLanguage("ar_EG", i18n);
+    expect(i18n.languages).toEqual(["de-DE"]);
+    expect(setSpellCheckerLanguages).not.toHaveBeenCalled();
   });
 });
