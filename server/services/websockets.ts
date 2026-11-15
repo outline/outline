@@ -14,6 +14,7 @@ import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { rejectUpgrade } from "@server/onupgrade";
+import { isDatabaseUnavailableError } from "@server/storage/database";
 import Redis from "@server/storage/redis";
 import { ShutdownHelper, ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -142,6 +143,13 @@ export default function init(
         socket.disconnect();
       });
     } catch (err) {
+      // Close the transport without a disconnect packet so the client reconnects.
+      if (isDatabaseUnavailableError(err)) {
+        Metrics.increment("database.unavailable", { source: "websockets" });
+        socket.conn.close();
+        return;
+      }
+
       const message = errToString(err);
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
         error: message,

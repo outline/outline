@@ -8,6 +8,7 @@ import tracer, {
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
+import { optionalWrite } from "@server/storage/database";
 import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -62,10 +63,9 @@ export default function auth(options: AuthenticationOptions = {}) {
       const { type, token, user, service, scope } =
         await validateAuthentication(ctx, options);
 
-      await Promise.all([
-        user.updateActiveAt(ctx),
-        user.team?.updateActiveAt(),
-      ]);
+      await optionalWrite(() =>
+        Promise.all([user.updateActiveAt(ctx), user.team?.updateActiveAt()])
+      );
 
       ctx.state.auth = {
         user,
@@ -229,7 +229,7 @@ async function validateAuthentication(
     }
 
     scope = authentication.scope;
-    await authentication.updateActiveAt();
+    await optionalWrite(authentication.updateActiveAt);
   } else if (ApiKey.match(token)) {
     if (transport === "cookie") {
       throw AuthenticationError("API key must not be passed in the cookie");
@@ -271,7 +271,7 @@ async function validateAuthentication(
     }
 
     scope = apiKey.scope ?? ["*"];
-    await apiKey.updateActiveAt();
+    await optionalWrite(apiKey.updateActiveAt);
   } else {
     // Session tokens are long-lived, so keep them out of transports that end up
     // in browser history, referrers, and request logs.
