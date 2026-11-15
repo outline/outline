@@ -297,12 +297,15 @@ export default abstract class Model {
       LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
     }
 
-    // Change hooks compare against confirmed values, not optimistic ones.
+    // Change hooks compare incoming fields against confirmed values, not
+    // optimistic ones.
     const pending = pendingFields.get(this);
     const previousAttributes = this.toAPI();
-    pending?.forEach((entry, key) =>
-      Reflect.set(previousAttributes, key, entry.confirmed)
-    );
+    pending?.forEach((entry, key) => {
+      if (key in data) {
+        Reflect.set(previousAttributes, key, entry.confirmed);
+      }
+    });
     let addedKeys = false;
 
     for (const key in data) {

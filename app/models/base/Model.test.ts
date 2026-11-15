@@ -219,6 +219,33 @@ describe("Model#save", () => {
     expect(stores.policies.get("hooks-doc")).toBeUndefined();
   });
 
+  it("should not run change hooks for an unrelated update during a save", async () => {
+    const collection = stores.collections.add({
+      id: "hooks-unrelated",
+      name: "Hooks",
+      icon: "one",
+      permission: undefined,
+    });
+    stores.documents.add({
+      id: "hooks-unrelated-doc",
+      title: "t",
+      collectionId: "hooks-unrelated",
+    });
+    stores.policies.add({ id: "hooks-unrelated-doc", abilities: {} });
+    const request = defer();
+    post.mockReturnValueOnce(request.promise);
+
+    const promise = collection.save({ permission: CollectionPermission.Read });
+    stores.collections.add({ id: "hooks-unrelated", icon: "two" });
+    expect(stores.policies.get("hooks-unrelated-doc")).toBeDefined();
+
+    request.reject(new Error("server error"));
+    await expect(promise).rejects.toThrow("server error");
+
+    expect(collection.permission).toBeUndefined();
+    expect(stores.policies.get("hooks-unrelated-doc")).toBeDefined();
+  });
+
   it("should not run change hooks when the save fails", async () => {
     const collection = stores.collections.add({
       id: "hooks-failure",
