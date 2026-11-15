@@ -697,21 +697,26 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const document = await Document.findByPk(input.id, {
-            userId: user.id,
-            includeState: true,
-            rejectOnEmpty: true,
-          });
+          // Returns null when the update persisted nothing.
+          const updated = await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
 
-          let updated;
-
-          if (input.publish === false) {
-            authorize(user, "unpublish", document);
-
-            updated = await document.unpublishWithCtx(ctx, {
-              detach: false,
+            const document = await Document.findByPk(input.id, {
+              userId: user.id,
+              includeState: true,
+              rejectOnEmpty: true,
+              transaction,
             });
-          } else {
+
+            if (input.publish === false) {
+              authorize(user, "unpublish", document);
+
+              return document.unpublishWithCtx(ctx, {
+                detach: false,
+              });
+            }
+
             authorize(user, "update", document);
 
             // The collection is only used when publishing a draft that has
@@ -735,7 +740,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const { revisionCount } = document;
 
-            updated = await documentUpdater(ctx, {
+            const result = await documentUpdater(ctx, {
               document,
               ...input,
               collectionId,
@@ -746,11 +751,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
             // the caller would read as a completed write — the request either
             // carried no recognized fields or values identical to the current
             // document.
-            if (updated.revisionCount === revisionCount) {
-              return error(
-                "The update resulted in no changes to the document. Ensure at least one field is provided and differs from the current document."
-              );
-            }
+            return result.revisionCount === revisionCount ? null : result;
+          });
+
+          if (!updated) {
+            return error(
+              "The update resulted in no changes to the document. Ensure at least one field is provided and differs from the current document."
+            );
           }
 
           // A patch only rewrites part of the document, so the resulting

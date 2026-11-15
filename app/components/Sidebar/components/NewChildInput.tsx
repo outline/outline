@@ -1,4 +1,5 @@
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import {
   DocumentValidation,
@@ -53,7 +54,9 @@ export function NewChildInput({
       } else {
         await onCreateChild(value);
       }
-      onClose();
+
+      // Remove the input in the same paint as the new tree item.
+      flushSync(onClose);
     },
     [t, onCreateChild, onCreateChildLink, onClose]
   );

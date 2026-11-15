@@ -88,7 +88,7 @@ export default abstract class ImportsProcessor<
           rejectOnEmpty: true,
           paranoid: false,
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
         });
 
         if (
@@ -167,11 +167,20 @@ export default abstract class ImportsProcessor<
    * @returns Promise that resolves when the creation flow setup is done.
    */
   private async onCreation(importModel: Import<T>, transaction: Transaction) {
-    if (!importModel.input.length) {
+    const tasksInput = importModel.input.length
+      ? await this.buildTasksInput(importModel, transaction)
+      : [];
+
+    // Without tasks nothing would move the import out of its current state.
+    if (!tasksInput.length) {
+      importModel.state = ImportState.Errored;
+      importModel.error = "Nothing to import";
+      await importModel.saveWithCtx(
+        createContext({ user: importModel.createdBy, transaction })
+      );
       return;
     }
 
-    const tasksInput = await this.buildTasksInput(importModel, transaction);
     const phase = this.getInitialPhase();
 
     const importTasks = await Promise.all(
@@ -197,9 +206,7 @@ export default abstract class ImportsProcessor<
     importModel.state = ImportState.InProgress;
     await importModel.save({ transaction });
 
-    if (importTasks.length > 0) {
-      await afterCommit(transaction, () => this.scheduleTask(importTasks[0]));
-    }
+    await afterCommit(transaction, () => this.scheduleTask(importTasks[0]));
   }
 
   /**
@@ -606,9 +613,10 @@ export default abstract class ImportsProcessor<
 
             const rootNode = rootNodesByExternalId[externalId];
 
+            // documentId is set for root pages too.
             const attachments = await Attachment.findAll({
               attributes: ["id", "size"],
-              where: { documentId: externalId }, // This will be set for root pages too
+              where: { documentId: externalId, teamId: importModel.teamId },
               transaction,
             });
 
@@ -690,7 +698,11 @@ export default abstract class ImportsProcessor<
               // Unset documentId for attachments in collection overview.
               await Attachment.update(
                 { documentId: null },
-                { where: { documentId: externalId }, silent: true, transaction }
+                {
+                  where: { documentId: externalId, teamId: importModel.teamId },
+                  silent: true,
+                  transaction,
+                }
               );
 
               continue;
@@ -832,7 +844,11 @@ export default abstract class ImportsProcessor<
             // Update document id for attachments in document content.
             await Attachment.update(
               { documentId: internalId },
-              { where: { documentId: externalId }, silent: true, transaction }
+              {
+                where: { documentId: externalId, teamId: importModel.teamId },
+                silent: true,
+                transaction,
+              }
             );
           }
         }

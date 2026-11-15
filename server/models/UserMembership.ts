@@ -171,7 +171,7 @@ class UserMembership extends IdModel<
     return this.findOne({
       ...options,
       where: collectionId ? { userId, collectionId } : { userId, documentId },
-      lock: options.transaction.LOCK.UPDATE,
+      lock: options.transaction.LOCK.NO_KEY_UPDATE,
     });
   }
 

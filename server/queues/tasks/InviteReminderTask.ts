@@ -24,7 +24,7 @@ export default class InviteReminderTask extends CronTask {
       await sequelize.transaction(async (transaction) => {
         const user = await User.scope("withTeam").findByPk(userId, {
           lock: {
-            level: transaction.LOCK.UPDATE,
+            level: transaction.LOCK.NO_KEY_UPDATE,
             of: User,
           },
           transaction,

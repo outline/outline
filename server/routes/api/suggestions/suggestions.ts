@@ -1,6 +1,9 @@
 import Router from "@koa/router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
+import { Second } from "@shared/utils/time";
+import { withinTimeLimit } from "@shared/utils/timers";
+import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
@@ -21,6 +24,9 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/** The time each section of the suggestions may take before it is left out. */
+const sectionTimeLimit = Second.ms;
 
 router.post(
   "suggestions.mention",
@@ -80,23 +86,51 @@ router.post(
       };
     };
 
+    const timedOut: string[] = [];
+    const withinLimit = <T>(
+      section: string,
+      run: () => Promise<T>,
+      fallback: T
+    ) =>
+      withinTimeLimit(run, sectionTimeLimit, fallback, () => {
+        timedOut.push(section);
+      });
+
+    // Presentation is part of each section, as presenters can also query.
     const [documents, { users, familiarity }, groups, collections] =
       await Promise.all([
-        SearchProviderManager.getProvider().searchTitlesForUser(actor, {
-          query,
-          offset,
-          limit,
-          filter: {
-            operator: "AND",
-            filters: [
-              { field: "archivedAt", operator: "isNull" },
-              { field: "publishedAt", operator: "isNotNull" },
-            ],
-          },
-        }),
-        suggestUsers(),
-        can(actor, "listGroups", actor.team)
-          ? Group.findAll({
+        withinLimit(
+          "documents",
+          async () =>
+            presentDocuments(
+              ctx,
+              await SearchProviderManager.getProvider().searchTitlesForUser(
+                actor,
+                {
+                  query,
+                  offset,
+                  limit,
+                  filter: {
+                    operator: "AND",
+                    filters: [
+                      { field: "archivedAt", operator: "isNull" },
+                      { field: "publishedAt", operator: "isNotNull" },
+                    ],
+                  },
+                }
+              )
+            ),
+          []
+        ),
+        withinLimit("users", suggestUsers, { users: [], familiarity: {} }),
+        withinLimit(
+          "groups",
+          async () => {
+            if (!can(actor, "listGroups", actor.team)) {
+              return [];
+            }
+
+            const found = await Group.findAll({
               where: {
                 teamId: actor.teamId,
                 disableMentions: false,
@@ -107,34 +141,49 @@ router.post(
                   : {},
               },
               order: [["name", "ASC"]],
-              replacements: { query: QueryHelper.likeContains(query ?? "") },
+              replacements: {
+                query: QueryHelper.likeContains(query ?? ""),
+              },
               offset,
               limit,
-            })
-          : [],
-        SearchProviderManager.getProvider().searchCollectionsForUser(actor, {
-          query,
-          offset,
-          limit,
-        }),
+            });
+            return Promise.all(found.map((group) => presentGroup(group)));
+          },
+          []
+        ),
+        withinLimit(
+          "collections",
+          () =>
+            SearchProviderManager.getProvider().searchCollectionsForUser(
+              actor,
+              {
+                query,
+                offset,
+                limit,
+              }
+            ),
+          []
+        ),
       ]);
 
-    const [presentedDocuments, presentedGroups] = await Promise.all([
-      presentDocuments(ctx, documents),
-      Promise.all(groups.map((group) => presentGroup(group))),
-    ]);
+    if (timedOut.length) {
+      addTags(
+        { "suggestions.timedOut": timedOut.join(",") },
+        getRootSpanFromRequestContext(ctx)
+      );
+    }
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        documents: presentedDocuments,
+        documents,
         users: users.map((user) =>
           presentUser(user, {
             includeEmail: !!can(actor, "readEmail", user),
             includeDetails: !!can(actor, "readDetails", user),
           })
         ),
-        groups: presentedGroups,
+        groups,
         collections,
         familiarity,
       },

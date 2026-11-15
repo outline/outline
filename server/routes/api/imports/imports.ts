@@ -209,7 +209,7 @@ router.post(
     const importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
     });
     authorize(user, "delete", importModel);
 
@@ -234,7 +234,7 @@ router.post(
     let importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: { level: transaction.LOCK.NO_KEY_UPDATE, of: Import },
     });
     authorize(user, "cancel", importModel);
 

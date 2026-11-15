@@ -9,9 +9,10 @@ import {
   createFilterSchema,
   DURATION_BY_DATE_FILTER,
   RANGE_OPERATORS,
+  statusToFilter,
 } from "@shared/helpers/FilterHelper";
 import type { DateFilter, StatusFilter } from "@shared/types";
-import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
+import { UserRole } from "@shared/types";
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
@@ -312,29 +313,6 @@ interface LegacyParams {
   documentId?: string;
   dateFilter?: DateFilter;
   statusFilter?: StatusFilter[];
-}
-
-function statusToFilter(status: StatusFilter): Filter {
-  if (status === StatusFilterEnum.Archived) {
-    return { field: "archivedAt", operator: "isNotNull" };
-  }
-  if (status === StatusFilterEnum.Published) {
-    return {
-      operator: "AND",
-      filters: [
-        { field: "archivedAt", operator: "isNull" },
-        { field: "publishedAt", operator: "isNotNull" },
-      ],
-    };
-  }
-  // Draft
-  return {
-    operator: "AND",
-    filters: [
-      { field: "archivedAt", operator: "isNull" },
-      { field: "publishedAt", operator: "isNull" },
-    ],
-  };
 }
 
 /**

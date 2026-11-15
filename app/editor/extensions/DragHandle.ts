@@ -37,7 +37,7 @@ const hoverPluginKey = new PluginKey<number | null>(HOVER_META_KEY);
 
 /**
  * Renders a floating drag handle to the left of block-level nodes when the
- * user hovers within the editor, and lets the user drag the block to reorder
+ * user hovers near the side of the editor, and lets the user drag the block to reorder
  * it. The handle is a real, always-draggable DOM element rather than a CSS
  * pseudo on the block, which keeps drag-and-drop working uniformly across
  * node types regardless of whether the schema declares `draggable: true`.

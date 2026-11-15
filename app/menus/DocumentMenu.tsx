@@ -115,9 +115,7 @@ function DocumentMenu({
 
   const handleFullWidthToggle = React.useCallback(
     (checked: boolean) => {
-      user.setPreference(UserPreference.FullWidthDocuments, checked);
-      void user.save();
-      document.fullWidth = checked;
+      void user.savePreference(UserPreference.FullWidthDocuments, checked);
       void document.save({ fullWidth: checked });
     },
     [user, document]

@@ -56,12 +56,19 @@ export function useTrackLastVisitedPath(currentPath: string): void {
  * Sets the path that the user visited before being asked to login.
  *
  * @param path The path to set as the post login path.
+ * @param options.tabOnly Whether to store the path for the current tab only, rather than
+ * also sharing it with other tabs through a cookie.
  */
-export function setPostLoginPath(path: string) {
+export function setPostLoginPath(
+  path: string,
+  options: { tabOnly?: boolean } = {}
+) {
   const key = "postLoginRedirectPath";
 
   if (isAllowedLoginRedirect(path)) {
-    setCookie(key, path, { expires: 1 });
+    if (!options.tabOnly) {
+      setCookie(key, path, { expires: 1 });
+    }
 
     try {
       sessionStorage.setItem(key, path);

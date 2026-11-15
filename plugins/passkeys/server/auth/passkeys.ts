@@ -157,8 +157,8 @@ router.post(
     const body = ctx.input.body;
     authorize(user, "createUserPasskey", user.team);
 
-    // Retrieve challenge from Redis
-    const expectedChallenge = await Redis.defaultClient.get(
+    // Consume the challenge atomically so it can only be used once
+    const expectedChallenge = await Redis.defaultClient.getdel(
       getRegistrationChallengeKey(user.id)
     );
 
@@ -238,8 +238,6 @@ router.post(
         });
       }
 
-      // Delete challenge from Redis
-      await Redis.defaultClient.del(getRegistrationChallengeKey(user.id));
       ctx.body = { data: { verified: true } };
     } else {
       throw ValidationError("Verification failed");
@@ -301,8 +299,8 @@ router.post(
     const body = ctx.input.body;
     const { challengeId, client = Client.Web } = body;
 
-    // Retrieve challenge from Redis
-    const expectedChallenge = await Redis.defaultClient.get(
+    // Consume the challenge atomically so it can only be used once
+    const expectedChallenge = await Redis.defaultClient.getdel(
       getAuthenticationChallengeKey(challengeId)
     );
 
@@ -370,9 +368,6 @@ router.post(
       passkey.counter = authenticationInfo.newCounter;
       passkey.lastActiveAt = new Date();
       await passkey.save({ silent: true });
-
-      // Delete challenge from Redis
-      await Redis.defaultClient.del(getAuthenticationChallengeKey(challengeId));
 
       // Use the signIn utility which handles all sign-in logic
       await signIn(ctx, "passkeys", {

@@ -34,10 +34,11 @@ export default class S3Storage extends BaseStorage {
       Key: key,
       Conditions: compact([
         ["content-length-range", 0, maxUploadSize],
-        ["starts-with", "$Content-Type", contentType],
         ["starts-with", "$Cache-Control", ""],
       ]),
+      // Each field is signed as an exact-match condition.
       Fields: {
+        "Content-Type": contentType,
         "Content-Disposition": this.getContentDisposition(
           contentType,
           AttachmentHelper.parseKey(key).fileName

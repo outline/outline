@@ -49,6 +49,10 @@ export const languageOptions: LanguageOption[] = [
     value: "de_DE",
   },
   {
+    label: "Ελληνικά (Greek)",
+    value: "el_GR",
+  },
+  {
     label: "עברית (Hebrew)",
     value: "he_IL",
   },

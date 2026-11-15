@@ -31,11 +31,10 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
     (val: CommentSortType | "resolved") => {
       if (val !== "resolved") {
         if (val !== preferredSortType) {
-          user.setPreference(
+          void user.savePreference(
             UserPreference.SortCommentsByOrderInDocument,
             val === CommentSortType.OrderInDocument
           );
-          void user.save();
         }
       }
 

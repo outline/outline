@@ -21,7 +21,8 @@ import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
 import type RootStore from "~/stores/RootStore";
-import Store from "~/stores/base/Store";
+import type { PaginatedResponse } from "~/stores/base/Store";
+import Store, { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
 import type {
@@ -510,7 +511,9 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  search = async (options: SearchParams): Promise<SearchResult[]> => {
+  search = async (
+    options: SearchParams
+  ): Promise<PaginatedResponse<SearchResult>> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search", {
       ...compactedOptions,
@@ -525,7 +528,7 @@ export default class DocumentsStore extends Store<Document> {
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
-    const results: SearchResult[] = compact(
+    const results: PaginatedResponse<SearchResult> = compact(
       res.data.map((result: SearchResult) => {
         const document = this.data.get(result.document.id);
         if (!document) {
@@ -539,6 +542,7 @@ export default class DocumentsStore extends Store<Document> {
         };
       })
     );
+    results[PAGINATION_SYMBOL] = res.pagination;
     return results;
   };
 

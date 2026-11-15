@@ -156,16 +156,17 @@ class Team extends Model {
   }
 
   /**
-   * Set the value for a specific preference key.
+   * Set the value for a specific preference key and save it to the server.
+   * The value is applied at once and reverted if the request fails.
    *
    * @param key The TeamPreference key to set.
    * @param value The value to set.
+   * @returns a promise that resolves when the preference is saved.
    */
-  setPreference<T extends TeamPreference>(key: T, value: TeamPreferences[T]) {
-    this.preferences = {
-      ...this.preferences,
-      [key]: value,
-    };
+  savePreference<T extends TeamPreference>(key: T, value: TeamPreferences[T]) {
+    return this.save({
+      preferences: { ...this.preferences, [key]: value },
+    });
   }
 }
 

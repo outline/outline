@@ -59,6 +59,24 @@ describe("#shares.list", () => {
     expect(body.data[0].documentTitle).toBe(document.title);
   });
 
+  it("should return the update policy for document shares", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.list", admin);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.policies[0].id).toEqual(share.id);
+    expect(body.policies[0].abilities.update).toBeTruthy();
+  });
+
   it("should allow filtering by document title", async () => {
     const user = await buildUser();
     const document = await buildDocument({

@@ -160,8 +160,7 @@ class Notification extends Model {
    */
   @action
   toggleRead() {
-    this.viewedAt = this.viewedAt ? null : new Date();
-    return this.save();
+    return this.save({ viewedAt: this.viewedAt ? null : new Date() });
   }
 
   /**
@@ -175,8 +174,7 @@ class Notification extends Model {
       return;
     }
 
-    this.viewedAt = new Date();
-    return this.save();
+    return this.save({ viewedAt: new Date() });
   }
 
   /**
@@ -190,8 +188,7 @@ class Notification extends Model {
       return;
     }
 
-    this.archivedAt = new Date();
-    return this.save();
+    return this.save({ archivedAt: new Date() });
   }
 
   /**

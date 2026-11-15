@@ -1,12 +1,3 @@
-import { Gitlab } from "@gitbeaker/rest";
-import type {
-  EpicSchema,
-  IssueSchemaWithExpandedLabels,
-  MergeRequestSchema,
-  ProjectSchema,
-  SimpleLabelSchema,
-  StatisticsSchema,
-} from "@gitbeaker/rest";
 import z from "zod";
 import {
   type IntegrationType,
@@ -14,6 +5,7 @@ import {
   UnfurlResourceType,
 } from "@shared/types";
 import { toError, errToString } from "@shared/utils/error";
+import { Second } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
@@ -22,8 +14,7 @@ import type {
   UnfurlProject,
   UnfurlSignature,
 } from "@server/types";
-import fetch from "@server/utils/fetch";
-import { validateUrlNotPrivate } from "@server/utils/url";
+import fetch, { type Headers } from "@server/utils/fetch";
 import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
 
@@ -36,10 +27,97 @@ const AccessTokenResponseSchema = z.object({
   created_at: z.number(),
 });
 
-export class GitLab {
-  private static clientSecret = env.GITLAB_CLIENT_SECRET;
-  private static clientId = env.GITLAB_CLIENT_ID;
+const UserSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  avatar_url: z.string().nullish(),
+});
 
+const LabelSchema = z.object({
+  name: z.string(),
+  color: z.string(),
+});
+
+const IssueSchema = z.object({
+  iid: z.number(),
+  title: z.string(),
+  description: z.string().nullish(),
+  web_url: z.string(),
+  state: z.string(),
+  author: UserSchema.nullish(),
+  labels: z.array(LabelSchema),
+  created_at: z.string(),
+});
+
+// Epics are returned without label color details.
+const EpicSchema = IssueSchema.extend({
+  labels: z.array(z.string()),
+});
+
+const MergeRequestSchema = z.object({
+  iid: z.number(),
+  title: z.string(),
+  description: z.string().nullish(),
+  web_url: z.string(),
+  state: z.string(),
+  author: UserSchema,
+  draft: z.boolean().nullish(),
+  merged_at: z.string().nullish(),
+  created_at: z.string(),
+});
+
+const NamespaceSchema = z.object({
+  id: z.number(),
+  full_path: z.string(),
+});
+
+const SimpleProjectSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  namespace: NamespaceSchema,
+});
+
+const ProjectSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().nullish(),
+  web_url: z.string(),
+  avatar_url: z.string().nullish(),
+  visibility: z.string().nullish(),
+  owner: z
+    .object({ name: z.string(), avatar_url: z.string().nullish() })
+    .nullish(),
+  topics: z.array(z.string()).nullish(),
+  created_at: z.string(),
+});
+
+const IssueStatisticsSchema = z.object({
+  statistics: z.object({
+    counts: z.object({
+      opened: z.number(),
+      closed: z.number(),
+    }),
+  }),
+});
+
+type Issue = z.infer<typeof IssueSchema>;
+type Epic = z.infer<typeof EpicSchema>;
+type MergeRequest = z.infer<typeof MergeRequestSchema>;
+type SimpleProject = z.infer<typeof SimpleProjectSchema>;
+type Project = z.infer<typeof ProjectSchema>;
+type IssueStatistics = z.infer<typeof IssueStatisticsSchema>;
+
+interface RequestParams {
+  accessToken: string;
+  customUrl?: string;
+}
+
+interface ResourceParams extends RequestParams {
+  path: string;
+  id: number;
+}
+
+export class GitLab {
   /**
    * Fetches the custom GitLab URL for a team from the first matching
    * integration, falling back to the default.
@@ -59,92 +137,89 @@ export class GitLab {
   }
 
   /**
-   * Creates a Gitbeaker client instance.
-   *
-   * @param accessToken - The access token for authentication.
-   * @param customUrl - Optional custom GitLab URL from integration settings.
-   * @returns A configured Gitbeaker client.
-   */
-  public static async createClient(accessToken: string, customUrl?: string) {
-    const host = customUrl || GitLabUtils.defaultGitlabUrl;
-
-    // Validate the URL to prevent SSRF as GitLab instance does not use our
-    // fetch wrapper which has built-in SSRF protection.
-    await validateUrlNotPrivate(host);
-
-    return new Gitlab({
-      host,
-      oauthToken: accessToken,
-    });
-  }
-
-  /**
    * Fetches an issue from a GitLab project.
    *
-   * @param accessToken - The access token for authentication.
-   * @param projectPath - The project path (owner/repo).
-   * @param issueIid - The issue IID (internal ID within the project).
-   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.accessToken - The access token for authentication.
+   * @param params.customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.path - The project path (owner/repo).
+   * @param params.id - The issue IID (internal ID within the project).
    * @returns The issue data.
+   * @throws If the issue does not exist.
    */
-  public static async getIssue(
-    accessToken: string,
-    projectPath: string,
-    issueIid: number,
-    customUrl?: string
-  ) {
-    const client = await this.createClient(accessToken, customUrl);
-
-    const issues = await client.Issues.all({
-      projectId: projectPath,
-      iids: [issueIid],
-      withLabelsDetails: true,
+  public static async getIssue({ path, id, ...params }: ResourceParams) {
+    const { data } = await this.request({
+      ...params,
+      path: `/projects/${encodeURIComponent(path)}/issues?iids[]=${id}&with_labels_details=true`,
+      schema: z.array(IssueSchema),
     });
 
-    if (!issues || issues.length === 0) {
-      throw new Error(`Issue ${issueIid} not found in project ${projectPath}`);
+    if (data.length === 0) {
+      throw new Error(`Issue ${id} not found in project ${path}`);
     }
 
-    return issues[0];
+    return data[0];
   }
 
   /**
    * Fetches an epic from a GitLab group.
    *
-   * @param accessToken - The access token for authentication.
-   * @param groupPath - The full path of the group.
-   * @param epicIid - The epic IID (internal ID within the group).
-   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.accessToken - The access token for authentication.
+   * @param params.customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.path - The full path of the group.
+   * @param params.id - The epic IID (internal ID within the group).
    * @returns The epic data.
    */
-  public static async getEpic(
-    accessToken: string,
-    groupPath: string,
-    epicIid: number,
-    customUrl?: string
-  ) {
-    const client = await this.createClient(accessToken, customUrl);
-    return client.Epics.show(groupPath, epicIid);
+  public static async getEpic({ path, id, ...params }: ResourceParams) {
+    const { data } = await this.request({
+      ...params,
+      path: `/groups/${encodeURIComponent(path)}/epics/${id}`,
+      schema: EpicSchema,
+    });
+    return data;
   }
 
   /**
    * Fetches a merge request from a GitLab project.
    *
-   * @param accessToken - The access token for authentication.
-   * @param projectPath - The project path (owner/repo).
-   * @param mrIid - The merge request IID (internal ID within the project).
-   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.accessToken - The access token for authentication.
+   * @param params.customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.path - The project path (owner/repo).
+   * @param params.id - The merge request IID (internal ID within the project).
    * @returns The merge request data.
    */
-  public static async getMergeRequest(
-    accessToken: string,
-    projectPath: string,
-    mrIid: number,
-    customUrl?: string
-  ) {
-    const client = await this.createClient(accessToken, customUrl);
-    const mr = await client.MergeRequests.show(projectPath, mrIid);
-    return mr;
+  public static async getMergeRequest({ path, id, ...params }: ResourceParams) {
+    const { data } = await this.request({
+      ...params,
+      path: `/projects/${encodeURIComponent(path)}/merge_requests/${id}`,
+      schema: MergeRequestSchema,
+    });
+    return data;
+  }
+
+  /**
+   * Fetches a GitLab project and its issue statistics.
+   *
+   * @param params.accessToken - The access token for authentication.
+   * @param params.customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.path - The project path (owner/repo).
+   * @returns The project data and its issue statistics, if available.
+   */
+  public static async getProject({
+    path,
+    ...params
+  }: RequestParams & { path: string }) {
+    const projectPath = `/projects/${encodeURIComponent(path)}`;
+    const [project, issueStats] = await Promise.all([
+      this.request({ ...params, path: projectPath, schema: ProjectSchema }),
+      // Statistics can be slow for projects with many issues, so they are optional.
+      this.request({
+        ...params,
+        path: `${projectPath}/issues_statistics`,
+        schema: IssueStatisticsSchema,
+      }).catch(() => undefined),
+    ]);
+
+    return { project: project.data, issueStats: issueStats?.data };
   }
 
   /**
@@ -154,26 +229,21 @@ export class GitLab {
    * @param params.customUrl - Optional custom GitLab URL. Falls back to default.
    * @returns User information including the resolved URL.
    */
-  public static async getCurrentUser({
-    accessToken,
-    customUrl,
-  }: {
-    accessToken: string;
-    customUrl?: string;
-  }) {
-    const url = customUrl || GitLabUtils.defaultGitlabUrl;
-    const client = await this.createClient(accessToken, url);
-
-    const userData = await client.Users.showCurrentUser({
-      showExpanded: false,
+  public static async getCurrentUser(params: RequestParams) {
+    const url = params.customUrl || GitLabUtils.defaultGitlabUrl;
+    const { data } = await this.request({
+      ...params,
+      path: "/user",
+      schema: UserSchema,
     });
-    return { ...userData, url };
+    return { ...data, url };
   }
 
   /**
-   * Fetches projects accessible to the user.
+   * Fetches projects that the user can maintain.
    *
-   * @param accessToken - Access token for authentication.
+   * @param params.accessToken - Access token for authentication.
+   * @param params.teamId - The team ID used to find the GitLab URL.
    * @returns Array of projects.
    */
   public static async getProjects({
@@ -184,13 +254,22 @@ export class GitLab {
     teamId: string;
   }) {
     const customUrl = await this.getGitLabUrl(teamId);
-    const client = await this.createClient(accessToken, customUrl);
+    const projects: SimpleProject[] = [];
+    let page: string | null = "1";
 
-    const projects = await client.Projects.all({
-      simple: true,
-      perPage: 100,
-      minAccessLevel: 40, // At least Maintainer access to reduce the sheer volume of projects
-    });
+    for (let i = 0; i < this.maxPages && page; i++) {
+      const res: { data: SimpleProject[]; headers: Headers } =
+        await this.request({
+          accessToken,
+          customUrl,
+          // At least Maintainer access to reduce the sheer volume of projects.
+          path: `/projects?simple=true&min_access_level=40&per_page=100&page=${page}`,
+          schema: z.array(SimpleProjectSchema),
+        });
+      projects.push(...res.data);
+      page = res.headers.get("x-next-page");
+    }
+
     return projects;
   }
 
@@ -250,7 +329,7 @@ export class GitLab {
     try {
       const customUrl = matchedIntegration.settings?.gitlab?.url;
       const { authentication } = matchedIntegration;
-      const token = await authentication.refreshTokenIfNeeded(
+      const accessToken = await authentication.refreshTokenIfNeeded(
         async (refreshToken: string) =>
           GitLab.refreshToken({
             refreshToken,
@@ -265,41 +344,41 @@ export class GitLab {
         resource.type === UnfurlResourceType.Issue &&
         resource.scope === "group"
       ) {
-        const epic = await this.getEpic(
-          token,
-          resource.owner,
-          resource.id,
-          customUrl
-        );
+        const epic = await this.getEpic({
+          accessToken,
+          customUrl,
+          path: resource.owner,
+          id: resource.id,
+        });
 
         return this.transformIssue(epic);
       }
 
-      const projectPath = `${resource.owner}/${resource.repo}`;
+      const path = `${resource.owner}/${resource.repo}`;
 
       if (resource.type === UnfurlResourceType.Issue) {
-        const issue = await this.getIssue(
-          token,
-          projectPath,
-          resource.id,
-          customUrl
-        );
+        const issue = await this.getIssue({
+          accessToken,
+          customUrl,
+          path,
+          id: resource.id,
+        });
 
         return this.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
-        const mr = await this.getMergeRequest(
-          token,
-          projectPath,
-          resource.id,
-          customUrl
-        );
+        const mr = await this.getMergeRequest({
+          accessToken,
+          customUrl,
+          path,
+          id: resource.id,
+        });
         return this.transformMR(mr);
       } else if (resource.type === UnfurlResourceType.Project) {
-        const client = await this.createClient(token, customUrl);
-        const [project, issueStats] = await Promise.all([
-          client.Projects.show(projectPath),
-          client.IssuesStatistics.all({ projectId: projectPath }),
-        ]);
+        const { project, issueStats } = await this.getProject({
+          accessToken,
+          customUrl,
+          path,
+        });
         return this.transformProject(project, issueStats);
       }
 
@@ -321,7 +400,7 @@ export class GitLab {
    * @param params.clientSecret - Optional custom client secret (falls back to env var).
    * @returns The parsed access token response.
    */
-  public static oauthAccess = async ({
+  public static async oauthAccess({
     code,
     customUrl,
     clientId,
@@ -331,30 +410,61 @@ export class GitLab {
     customUrl?: string;
     clientId?: string;
     clientSecret?: string;
-  }) => {
-    const url = customUrl || GitLabUtils.defaultGitlabUrl;
-    const res = await fetch(GitLabUtils.getOauthUrl(url) + "/token", {
-      method: "POST",
+  }) {
+    return this.requestToken(customUrl, {
+      code: code ?? "",
+      client_id: clientId || this.clientId || "",
+      client_secret: clientSecret || this.clientSecret || "",
+      grant_type: "authorization_code",
+      redirect_uri: GitLabUtils.callbackUrl(),
+    });
+  }
+
+  /** The time to wait for a response from a GitLab instance. */
+  private static timeout = 10 * Second.ms;
+
+  /** The maximum number of pages to fetch from a paginated endpoint. */
+  private static maxPages = 10;
+
+  private static clientSecret = env.GITLAB_CLIENT_SECRET;
+
+  private static clientId = env.GITLAB_CLIENT_ID;
+
+  /**
+   * Makes an authenticated GET request to the GitLab API.
+   *
+   * @param params.accessToken - The access token for authentication.
+   * @param params.customUrl - Optional custom GitLab URL from integration settings.
+   * @param params.path - The API path, starting with a slash.
+   * @param params.schema - The schema to parse the response body with.
+   * @returns The parsed body and the response headers.
+   * @throws If the response status is not successful.
+   */
+  private static async request<T extends z.ZodType>({
+    accessToken,
+    customUrl,
+    path,
+    schema,
+  }: RequestParams & { path: string; schema: T }) {
+    const baseUrl = customUrl || GitLabUtils.defaultGitlabUrl;
+    const res = await fetch(`${baseUrl}/api/v4${path}`, {
+      timeout: this.timeout,
       headers: {
-        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({
-        code,
-        client_id: clientId || this.clientId,
-        client_secret: clientSecret || this.clientSecret,
-        grant_type: "authorization_code",
-        redirect_uri: GitLabUtils.callbackUrl(),
-      }),
     });
 
-    if (res.status !== 200) {
+    if (!res.ok) {
       throw new Error(
-        `Error while validating oauth code from GitLab; status: ${res.status}`
+        `Error while requesting ${path} from GitLab; status: ${res.status}`
       );
     }
 
-    return AccessTokenResponseSchema.parse(await res.json());
-  };
+    // Read the body at once, a body left unread while awaiting other requests
+    // can be closed early.
+    return { data: schema.parse(await res.json()), headers: res.headers };
+  }
 
   private static async refreshToken({
     refreshToken,
@@ -367,39 +477,40 @@ export class GitLab {
     clientId?: string;
     clientSecret?: string;
   }) {
-    const queryParams = new URLSearchParams({
-      client_id: clientId || this.clientId!,
-      client_secret: clientSecret || this.clientSecret!,
-      grant_type: "refresh_token",
+    return this.requestToken(customUrl, {
       refresh_token: refreshToken,
+      client_id: clientId || this.clientId || "",
+      client_secret: clientSecret || this.clientSecret || "",
+      grant_type: "refresh_token",
       redirect_uri: GitLabUtils.callbackUrl(),
     });
+  }
 
-    const res = await fetch(
-      `${GitLabUtils.getOauthUrl(customUrl)}/token?${queryParams.toString()}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-        },
-      }
-    );
-    const resJson = await res.json();
+  private static async requestToken(
+    customUrl: string | undefined,
+    body: Record<string, string>
+  ) {
+    const res = await fetch(`${GitLabUtils.getOauthUrl(customUrl)}/token`, {
+      method: "POST",
+      timeout: this.timeout,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
     if (res.status !== 200) {
-      Logger.error("failed to refresh access token from GitLab", resJson);
       throw new Error(
-        `Error while refreshing access token from GitLab; status: ${res.status}`
+        `Error while requesting access token from GitLab; status: ${res.status}`
       );
     }
 
-    return AccessTokenResponseSchema.parse(resJson);
+    return AccessTokenResponseSchema.parse(await res.json());
   }
 
-  private static transformIssue(
-    issue: IssueSchemaWithExpandedLabels | EpicSchema
-  ) {
-    const labels: (string | SimpleLabelSchema)[] = issue.labels;
+  private static transformIssue(issue: Issue | Epic) {
+    const labels: (string | z.infer<typeof LabelSchema>)[] = issue.labels;
 
     return {
       type: UnfurlResourceType.Issue,
@@ -411,7 +522,6 @@ export class GitLab {
         name: issue.author?.username ?? "",
         avatarUrl: issue.author?.avatar_url ?? "",
       },
-      // Epics are returned without label color details.
       labels: labels.map((label) =>
         typeof label === "string"
           ? { name: label, color: GitLabUtils.defaultLabelColor }
@@ -425,8 +535,10 @@ export class GitLab {
     } satisfies UnfurlIssueOrPR;
   }
 
-  private static transformMR(mr: MergeRequestSchema) {
+  private static transformMR(mr: MergeRequest) {
     const mrState = mr.merged_at ? "merged" : mr.state;
+    const draft = !!mr.draft;
+
     return {
       type: UnfurlResourceType.PR,
       url: mr.web_url,
@@ -435,28 +547,30 @@ export class GitLab {
       description: GitLabUtils.sanitizeGitLabMarkdown(mr.description) ?? "",
       author: {
         name: mr.author.username,
-        avatarUrl: mr.author.avatar_url,
+        avatarUrl: mr.author.avatar_url ?? "",
       },
       state: {
         name: mrState,
-        color: GitLabUtils.getColorForStatus(mrState, !!mr.draft),
-        draft: mr.draft,
+        color: GitLabUtils.getColorForStatus(mrState, draft),
+        draft,
       },
       createdAt: mr.created_at,
     } satisfies UnfurlIssueOrPR;
   }
 
   private static transformProject(
-    project: ProjectSchema,
-    issueStats: StatisticsSchema
+    project: Project,
+    issueStats?: IssueStatistics
   ) {
     const visibility = project.visibility ?? "private";
-    const owner = project.owner as
-      | { name: string; avatar_url?: string }
-      | undefined;
-    const { opened, closed } = issueStats.statistics.counts;
-    const total = opened + closed;
-    const progress = total > 0 ? closed / total : 0;
+    const { owner } = project;
+    const counts = issueStats?.statistics.counts;
+    let progress: number | undefined;
+
+    if (counts) {
+      const total = counts.opened + counts.closed;
+      progress = total > 0 ? counts.closed / total : 0;
+    }
 
     return {
       type: UnfurlResourceType.Project,
@@ -477,7 +591,7 @@ export class GitLab {
         name: visibility.charAt(0).toUpperCase() + visibility.slice(1),
         color: GitLabUtils.getColorForVisibility(visibility),
       },
-      labels: (project.topics ?? []).map((topic: string) => ({
+      labels: (project.topics ?? []).map((topic) => ({
         name: topic,
         color: GitLabUtils.defaultLabelColor,
       })),

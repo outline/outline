@@ -154,7 +154,7 @@ router.post(
 
     const oauthClient = await OAuthClient.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       rejectOnEmpty: true,
     });
     authorize(user, "update", oauthClient);
@@ -183,7 +183,7 @@ router.post(
 
     const oauthClient = await OAuthClient.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       rejectOnEmpty: true,
     });
     authorize(user, "update", oauthClient);
@@ -212,7 +212,7 @@ router.post(
 
     const oauthClient = await OAuthClient.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
       rejectOnEmpty: true,
     });
     authorize(user, "delete", oauthClient);

@@ -219,7 +219,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
                   where: { id: document.id },
                   attributes: ["id"],
                   transaction,
-                  lock: Transaction.LOCK.UPDATE,
+                  lock: Transaction.LOCK.NO_KEY_UPDATE,
                 });
 
                 // Reload under the lock, with the state needed for the mark.

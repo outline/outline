@@ -51,7 +51,7 @@ router.post(
         where: { id: documentId },
         attributes: ["id"],
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
       });
     }
 
@@ -230,7 +230,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -306,7 +306,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -340,7 +340,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -376,7 +376,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -413,7 +413,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });
@@ -469,7 +469,7 @@ router.post(
       transaction,
       rejectOnEmpty: true,
       lock: {
-        level: transaction.LOCK.UPDATE,
+        level: transaction.LOCK.NO_KEY_UPDATE,
         of: Comment,
       },
     });

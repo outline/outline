@@ -24,7 +24,7 @@ const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
   const { user } = ctx.state.auth;
   const team = await Team.findByPk(user.teamId, {
     include: [{ model: TeamDomain, separate: true }],
-    lock: transaction.LOCK.UPDATE,
+    lock: transaction.LOCK.NO_KEY_UPDATE,
     transaction,
   });
   authorize(user, "update", team);

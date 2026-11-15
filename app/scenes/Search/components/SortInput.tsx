@@ -1,7 +1,13 @@
 import type { DirectionFilter, SortFilter as TSortFilter } from "@shared/types";
-import { SortAscendingIcon, SortDescendingIcon } from "outline-icons";
+import {
+  DisclosureIcon,
+  SortAscendingIcon,
+  SortDescendingIcon,
+} from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import { hover, s } from "@shared/styles";
 import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
@@ -64,15 +70,56 @@ export const SortInput = ({ sort, direction, onSelect }: Props) => {
     onSelect(sortField, sortDirection);
   };
 
+  const selectedLabel =
+    options.find((option) => option.key === selectedKey)?.label ??
+    t("Relevance");
+
   return (
-    <FilterOptions
-      showFilter={false}
-      showIcons={false}
-      disclosure={false}
-      options={options}
-      selectedKeys={[selectedKey]}
-      onSelect={handleSelect}
-      defaultLabel={t("Relevance")}
-    />
+    <Wrapper>
+      {t("Sorted by")}
+      <FilterOptions
+        showFilter={false}
+        showIcons={false}
+        options={options}
+        selectedKeys={[selectedKey]}
+        onSelect={handleSelect}
+        defaultLabel={t("Sort")}
+        trigger={
+          <Trigger>
+            {selectedLabel}
+            <Disclosure size={20} aria-hidden />
+          </Trigger>
+        }
+      />
+    </Wrapper>
   );
 };
+
+const Wrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const Trigger = styled.button`
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 0 0 2px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: ${s("text")};
+  cursor: var(--pointer);
+
+  &:${hover},
+  &[aria-expanded="true"] {
+    text-decoration: underline;
+  }
+`;
+
+const Disclosure = styled(DisclosureIcon)`
+  color: ${s("textTertiary")};
+`;
