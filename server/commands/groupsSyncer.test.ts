@@ -7,7 +7,7 @@ import {
   GroupUser,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { buildGroup, buildUser } from "@server/test/factories";
+import { buildGroup, buildGuestUser, buildUser } from "@server/test/factories";
 import groupsSyncer from "./groupsSyncer";
 
 describe("groupsSyncer", () => {
@@ -38,6 +38,27 @@ describe("groupsSyncer", () => {
 
     const groups = await Group.findAll({ where: { teamId: user.teamId } });
     expect(groups.map((g) => g.name).sort()).toEqual(["Design", "Engineering"]);
+  });
+
+  it("should not add guests to synced groups", async () => {
+    const user = await buildGuestUser();
+    const team = await user.$get("team");
+    const authenticationProvider = await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+      rejectOnEmpty: true,
+    });
+
+    const result = await sequelize.transaction(async (transaction) =>
+      groupsSyncer(createContext({ user, transaction, ip }), {
+        user,
+        team: team!,
+        authenticationProvider,
+        externalGroups: [{ id: "ext-1", name: "Engineering" }],
+      })
+    );
+
+    expect(result.membershipsAdded).toEqual(0);
+    expect(await GroupUser.count({ where: { userId: user.id } })).toEqual(0);
   });
 
   it("should update internal group name when external name changes", async () => {

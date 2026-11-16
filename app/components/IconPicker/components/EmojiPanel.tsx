@@ -177,7 +177,7 @@ const EmojiPanel = ({
           onChange={handleFilter}
         />
         <SkinTonePicker skinTone={skinTone} onChange={handleSkinChange} />
-        {can.update && (
+        {can.createEmoji && (
           <MenuButton
             onClick={handleUploadClick}
             aria-label={t("Upload emoji")}
@@ -196,12 +196,14 @@ const EmojiPanel = ({
         onIconActive={handleEmojiActive}
         onOverflowChange={setHasMoreBelow}
         empty={
-          <IconButton
-            onClick={handleUploadClick}
-            aria-label={t("Upload emoji")}
-          >
-            <PlusIcon />
-          </IconButton>
+          can.createEmoji ? (
+            <IconButton
+              onClick={handleUploadClick}
+              aria-label={t("Upload emoji")}
+            >
+              <PlusIcon />
+            </IconButton>
+          ) : undefined
         }
       />
       <IconPreview

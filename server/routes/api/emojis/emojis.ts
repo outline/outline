@@ -173,6 +173,7 @@ router.post(
     const { name, attachmentId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
+    authorize(user, "createEmoji", user.team);
 
     const attachment = await Attachment.findByPk(attachmentId, {
       transaction,

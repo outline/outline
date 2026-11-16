@@ -2,7 +2,13 @@ import { User, Emoji, Team } from "@server/models";
 import { allow } from "./cancan";
 import { and, isOwner, isTeamAdmin, isTeamModel, or } from "./utils";
 
-allow(User, "createEmoji", Team, isTeamModel);
+allow(User, "createEmoji", Team, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    !actor.isGuest
+  )
+);
 
 allow(User, "read", Emoji, isTeamModel);
 

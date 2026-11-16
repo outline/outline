@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { EmailDisplay, Plan, TeamPreference, UserRole } from "@shared/types";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
-import { Team, TeamDomain } from "@server/models";
+import { GroupUser, Team, TeamDomain } from "@server/models";
 import {
   buildTeam,
   buildAdmin,
@@ -9,6 +9,8 @@ import {
   buildUser,
   buildInvite,
   buildViewer,
+  buildGroup,
+  buildGroupUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -1334,6 +1336,31 @@ describe("#users.update_role", () => {
     });
     expect(res.status).toEqual(200);
     expect((await user.reload()).role).toEqual(UserRole.Guest);
+  });
+
+  it("should remove group memberships when changing role to guest", async () => {
+    const planSpy = vi
+      .spyOn(Team.prototype, "plan", "get")
+      .mockReturnValue(Plan.Business);
+    onTestFinished(() => planSpy.mockRestore());
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    await buildGroupUser({
+      groupId: group.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/users.update_role", admin, {
+      body: {
+        id: user.id,
+        role: UserRole.Guest,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(await GroupUser.count({ where: { userId: user.id } })).toEqual(0);
   });
 
   it("should promote", async () => {
