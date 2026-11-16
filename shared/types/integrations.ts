@@ -17,6 +17,7 @@ export enum IntegrationType {
 /** External services that Outline can integrate with. */
 export enum IntegrationService {
   Diagrams = "diagrams",
+  Kroki = "kroki",
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
@@ -57,6 +58,7 @@ export const ImportableIntegrationService = {
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.Diagrams
+  | IntegrationService.Kroki
   | IntegrationService.Grist
   | IntegrationService.GoogleAnalytics
   | IntegrationService.Matomo
@@ -67,6 +69,7 @@ export type UserCreatableIntegrationService = Extract<
 /** Runtime values of `UserCreatableIntegrationService`. */
 export const UserCreatableIntegrationService = {
   Diagrams: IntegrationService.Diagrams,
+  Kroki: IntegrationService.Kroki,
   Grist: IntegrationService.Grist,
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
