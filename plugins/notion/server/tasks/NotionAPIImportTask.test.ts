@@ -88,6 +88,39 @@ describe("NotionAPIImportTask", () => {
     ]);
   });
 
+  it("should wait for every page to settle before failing", async () => {
+    const importModel = await buildImport();
+    const failingId = randomUUID();
+    const slowId = randomUUID();
+    const importTask = await ImportTask.create({
+      state: ImportTaskState.InProgress,
+      phase: ImportTaskPhase.Page,
+      input: [
+        { type: PageType.Page, externalId: failingId },
+        { type: PageType.Page, externalId: slowId },
+      ],
+      importId: importModel.id,
+    });
+
+    let slowSettled = false;
+    vi.spyOn(NotionClient.prototype, "fetchPage").mockImplementation(
+      async (pageId) => {
+        if (pageId === failingId) {
+          throw new Error("Notion unavailable");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        slowSettled = true;
+        return { title: "Page", blocks: [] };
+      }
+    );
+
+    await expect(
+      new NotionAPIImportTask().perform({ importTaskId: importTask.id })
+    ).rejects.toThrow("Notion unavailable");
+    expect(slowSettled).toBe(true);
+    expect(schedule).not.toHaveBeenCalled();
+  });
+
   it("should stop when the import has already finished", async () => {
     const importModel = await buildImport({ state: ImportState.Completed });
     const importTask = await buildImportTask(importModel.id, {
