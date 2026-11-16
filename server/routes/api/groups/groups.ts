@@ -478,6 +478,10 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
+    if (user.isGuest) {
+      throw ValidationError("Guests cannot be added to groups");
+    }
+
     // Load group with group users for authorization
     const group = await Group.findByPk(id, {
       transaction,

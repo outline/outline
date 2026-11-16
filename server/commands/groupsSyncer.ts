@@ -123,6 +123,11 @@ async function groupsSyncer(
       result.groupsCreated++;
     }
 
+    // Guests cannot be members of groups
+    if (user.isGuest) {
+      continue;
+    }
+
     // Add user to group if not already a member
     const [, membershipCreated] = await GroupUser.findOrCreateWithCtx(
       ctx,

@@ -1,7 +1,26 @@
-import { buildEmoji, buildTeam, buildUser } from "@server/test/factories";
+import {
+  buildEmoji,
+  buildGuestUser,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
 import { serialize } from "./index";
 
 describe("policies/emoji", () => {
+  it("should allow members to create emoji", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const abilities = serialize(user, team);
+    expect(abilities.createEmoji).toBeTruthy();
+  });
+
+  it("should not allow guests to create emoji", async () => {
+    const team = await buildTeam();
+    const user = await buildGuestUser({ teamId: team.id });
+    const abilities = serialize(user, team);
+    expect(abilities.createEmoji).toEqual(false);
+  });
+
   it("should allow the owner to update and delete", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
