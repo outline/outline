@@ -2,6 +2,12 @@ import { omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
 import Router from "@koa/router";
+import {
+  addTags,
+  getRootSpanFromRequestContext,
+  setError,
+} from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import auth from "@server/middlewares/authentication";
 import {
   defaultRateLimiter,
@@ -196,6 +202,7 @@ async function dispatch(
     };
   } catch (err) {
     const error: HttpError = toError(err);
+    setError(error);
     return {
       status: typeof error.status === "number" ? error.status : 500,
       ok: false,
@@ -203,6 +210,28 @@ async function dispatch(
       message: error.message,
     };
   }
+}
+
+/**
+ * Dispatches a single sub-request in its own APM span, named for the method.
+ *
+ * @param ctx The parent request context.
+ * @param method The RPC method name to invoke.
+ * @param body The request body for the method.
+ * @returns the result, shaped like a standard API response envelope.
+ */
+function tracedDispatch(
+  ctx: AppContext,
+  method: string,
+  body: T.BatchRequestBody
+): Promise<BatchResult> {
+  return traceFunction({ spanName: "batch.request", resourceName: method })(
+    async () => {
+      const result = await dispatch(ctx, method, body);
+      addTags({ "http.status_code": result.status });
+      return result;
+    }
+  )();
 }
 
 /**
@@ -249,6 +278,15 @@ router.post(
   async (ctx: APIContext<T.BatchReq>) => {
     const { requests } = ctx.input.body;
 
+    // Sub-request routes would otherwise be appended to the APM route name.
+    addTags(
+      {
+        "resource.name": "POST /batch",
+        "batch.methods": requests.map((request) => request.method).join(","),
+      },
+      getRootSpanFromRequestContext(ctx)
+    );
+
     // Allow 1s per sub-request, clamped between a 15s floor and 25s ceiling.
     const originalTimeout = ctx.req.socket.timeout || 0;
     ctx.req.socket.setTimeout(
@@ -260,7 +298,7 @@ router.post(
       for (const group of groupRequests(requests)) {
         const results = await Promise.all(
           group.map((request) =>
-            dispatch(ctx, request.method, request.body ?? {})
+            tracedDispatch(ctx, request.method, request.body ?? {})
           )
         );
         data.push(...results);
