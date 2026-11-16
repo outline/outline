@@ -6225,13 +6225,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/diff@npm:^5.0.9":
-  version: 5.2.3
-  resolution: "@types/diff@npm:5.2.3"
-  checksum: 10c0/dd2e99e272a7023f3e5c71099599553c7d6c9a6b9d67f202b593b8d59b0528361eba39a8674ab18eba76217b6bad8f1a09417a9a571daaf7c0f49d67d4f305e2
-  languageName: node
-  linkType: hard
-
 "@types/escape-html@npm:^1.0.4":
   version: 1.0.4
   resolution: "@types/escape-html@npm:1.0.4"
@@ -9160,10 +9153,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:^5.2.2":
-  version: 5.2.2
-  resolution: "diff@npm:5.2.2"
-  checksum: 10c0/52da594c54e9033423da26984b1449ae6accd782d5afc4431c9a192a8507ddc83120fe8f925d7220b9da5b5963c7b6f5e46add3660a00cb36df7a13420a09d4b
+"diff@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "diff@npm:9.0.0"
+  checksum: 10c0/a971cc88f66071a33bd3942db2f51b57d484e9856265ae45cf44fb28ab2fde91f132d9c26d8be0fb6082d2be94d29e1295c1adb251b7461935d6a2dd304cd161
   languageName: node
   linkType: hard
 
@@ -14066,7 +14059,6 @@ __metadata:
     "@tanstack/react-table": "npm:^8.21.3"
     "@tanstack/react-virtual": "npm:^3.14.26"
     "@types/cookie": "npm:0.6.0"
-    "@types/diff": "npm:^5.0.9"
     "@types/escape-html": "npm:^1.0.4"
     "@types/express-useragent": "npm:^1.0.5"
     "@types/formidable": "npm:^3.5.1"
@@ -14126,7 +14118,7 @@ __metadata:
     core-js: "npm:^3.51.0"
     date-fns: "npm:^3.6.0"
     dd-trace: "npm:^5.131.1"
-    diff: "npm:^5.2.2"
+    diff: "npm:^9.0.0"
     discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^2.27.0"
     emoji-regex: "npm:^10.6.0"
