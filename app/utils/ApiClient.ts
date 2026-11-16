@@ -535,10 +535,13 @@ class ApiClient {
   private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
     if (queue.length === 1) {
       const [request] = queue;
-      await this.deduplicate(`/${request.method}`, "POST", request.body).then(
-        request.resolve,
-        request.reject
-      );
+      try {
+        request.resolve(
+          await this.deduplicate(`/${request.method}`, "POST", request.body)
+        );
+      } catch (err) {
+        request.reject(err);
+      }
       return;
     }
 
