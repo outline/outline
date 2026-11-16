@@ -201,8 +201,11 @@ export async function loadShareWithParent({
   // Load the parent shares and return one (needed for share toggle in UI).
   if (docCollectionId) {
     const [parentDocIds, collectionShare] = await Promise.all([
-      // Drafts are not in the shared tree, so they cannot inherit a parent share.
-      document.isDraft ? [] : document.findAllParentDocumentIds(),
+      // Drafts and archived documents are not in the shared tree, so they
+      // cannot inherit a parent share.
+      document.isDraft || document.archivedAt
+        ? []
+        : document.findAllParentDocumentIds(),
       Share.scope([
         { method: ["withCollectionPermissions", user.id] },
         "notExpired",
