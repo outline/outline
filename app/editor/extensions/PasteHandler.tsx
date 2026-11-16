@@ -1,6 +1,5 @@
 import { action, observable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
-import { toggleMark } from "prosemirror-commands";
 import type { Node } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
@@ -8,6 +7,7 @@ import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
+import { addMark } from "@shared/editor/commands/addMark";
 import { pasteIntoListItem } from "@shared/editor/commands/pasteIntoListItem";
 import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
@@ -126,9 +126,10 @@ export default class PasteHandler extends Extension {
                 const href =
                   signedUrlToAttachmentUrl(trimmedText) ?? trimmedText;
 
-                // If there is selected text then we want to wrap it in a link to the url
+                // If there is selected text then we want to wrap it in a link to
+                // the url, replacing any existing link.
                 if (!state.selection.empty) {
-                  toggleMark(this.editor.schema.marks.link, {
+                  addMark(this.editor.schema.marks.link, {
                     href,
                   })(state, dispatch);
                   return true;
