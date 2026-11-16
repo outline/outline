@@ -50,14 +50,19 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const client = new NotionClient(integration.authentication.token);
 
-    // The client's shared rate limiter bounds the request rate.
-    const results = await Promise.all(
+    // Settle every page before failing so no requests outlive this attempt.
+    const results = await Promise.allSettled(
       importTask.input.map((item) => this.parsePage({ item, client }))
     );
 
     const parsedPages: (ParsePageOutput & { ancestorExternalIds: string[] })[] =
       [];
-    results.forEach((parsedPage, index) => {
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        throw result.reason;
+      }
+
+      const parsedPage = result.value;
       const item = importTask.input[index];
 
       // Skip pages/databases that couldn't be accessed
