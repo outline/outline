@@ -1,4 +1,4 @@
-import { subMonths } from "date-fns";
+import { isBefore, subMonths } from "date-fns";
 import { useCallback, useState } from "react";
 import type { DateRange as DayPickerRange } from "react-day-picker";
 import { useTranslation } from "react-i18next";
@@ -42,12 +42,17 @@ export function DateRangeDialog({ defaultRange, onSubmit }: Props) {
   // (which cannot be picked) are not shown.
   const [defaultMonth] = useState(() => subMonths(range?.to ?? today, 1));
 
-  // When a whole range is selected, the next click starts a new range.
+  // The first click starts a range and the second click ends it.
   const handleSelect = useCallback(
-    (next: DayPickerRange | undefined, selectedDay: Date) => {
-      setRange((current) =>
-        current?.from && current.to ? { from: selectedDay } : next
-      );
+    (_next: DayPickerRange | undefined, selectedDay: Date) => {
+      setRange((current) => {
+        if (!current?.from || current.to) {
+          return { from: selectedDay };
+        }
+        return isBefore(selectedDay, current.from)
+          ? { from: selectedDay, to: current.from }
+          : { from: current.from, to: selectedDay };
+      });
     },
     []
   );
