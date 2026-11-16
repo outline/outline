@@ -14268,7 +14268,7 @@ __metadata:
     umzug: "npm:^3.8.3"
     unplugin-swc: "npm:^1.6.0"
     utility-types: "npm:^3.11.0"
-    uuid: "npm:^11.1.1"
+    uuid: "npm:^14.0.3"
     validator: "npm:13.15.35"
     vaul: "npm:^1.1.2"
     vite: "npm:^8.3.5"
@@ -18607,6 +18607,15 @@ __metadata:
   bin:
     uuid: dist/esm/bin/uuid
   checksum: 10c0/9e3af58eba872ece5a5e76f4773a94fc78a0ef2c2444c38dbe6b42f41dadf76c01850fd783604f27986f6195e6286aef064d45987d401b2a33127b98ddf7c0c5
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^14.0.3":
+  version: 14.0.3
+  resolution: "uuid@npm:14.0.3"
+  bin:
+    uuid: dist-node/bin/uuid
+  checksum: 10c0/e56e610ae3bd1ca099244e01ee5eff502675ede4601d971b80fff993ad97236c80197340113f759e6ead501ee6a8d52648f6deef1332ce9f192c4720f4891f62
   languageName: node
   linkType: hard
 
