@@ -50,10 +50,15 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const client = new NotionClient(integration.authentication.token);
 
+    // The client's shared rate limiter bounds the request rate.
+    const results = await Promise.all(
+      importTask.input.map((item) => this.parsePage({ item, client }))
+    );
+
     const parsedPages: (ParsePageOutput & { ancestorExternalIds: string[] })[] =
       [];
-    for (const item of importTask.input) {
-      const parsedPage = await this.parsePage({ item, client });
+    results.forEach((parsedPage, index) => {
+      const item = importTask.input[index];
 
       // Skip pages/databases that couldn't be accessed
       if (parsedPage) {
@@ -65,7 +70,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           ],
         });
       }
-    }
+    });
 
     const taskOutput: ImportTaskOutput = parsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,
