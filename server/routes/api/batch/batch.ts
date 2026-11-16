@@ -2,6 +2,12 @@ import { omit, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
 import Router from "@koa/router";
+import {
+  addTags,
+  getRootSpanFromRequestContext,
+  setError,
+} from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import auth from "@server/middlewares/authentication";
 import {
   defaultRateLimiter,
@@ -188,6 +194,7 @@ async function dispatch(
   const { sub, captured } = createSubContext(ctx, method, body);
   try {
     await compose([handleErrors, enforceRateLimit, ...stack])(sub);
+    addTags({ "http.status_code": captured.status });
     return {
       status: captured.status,
       ok: captured.status < 400,
@@ -196,6 +203,7 @@ async function dispatch(
     };
   } catch (err) {
     const error: HttpError = toError(err);
+    setError(error);
     return {
       status: typeof error.status === "number" ? error.status : 500,
       ok: false,
@@ -249,6 +257,15 @@ router.post(
   async (ctx: APIContext<T.BatchReq>) => {
     const { requests } = ctx.input.body;
 
+    // Sub-request routes would otherwise be appended to the APM route name.
+    addTags(
+      {
+        "resource.name": "POST /batch",
+        "batch.methods": requests.map((request) => request.method).join(","),
+      },
+      getRootSpanFromRequestContext(ctx)
+    );
+
     // Allow 1s per sub-request, clamped between a 15s floor and 25s ceiling.
     const originalTimeout = ctx.req.socket.timeout || 0;
     ctx.req.socket.setTimeout(
@@ -260,7 +277,10 @@ router.post(
       for (const group of groupRequests(requests)) {
         const results = await Promise.all(
           group.map((request) =>
-            dispatch(ctx, request.method, request.body ?? {})
+            traceFunction({
+              spanName: "batch.request",
+              resourceName: request.method,
+            })(dispatch)(ctx, request.method, request.body ?? {})
           )
         );
         data.push(...results);
