@@ -194,7 +194,6 @@ async function dispatch(
   const { sub, captured } = createSubContext(ctx, method, body);
   try {
     await compose([handleErrors, enforceRateLimit, ...stack])(sub);
-    addTags({ "http.status_code": captured.status });
     return {
       status: captured.status,
       ok: captured.status < 400,
@@ -211,6 +210,28 @@ async function dispatch(
       message: error.message,
     };
   }
+}
+
+/**
+ * Dispatches a single sub-request in its own APM span, named for the method.
+ *
+ * @param ctx The parent request context.
+ * @param method The RPC method name to invoke.
+ * @param body The request body for the method.
+ * @returns the result, shaped like a standard API response envelope.
+ */
+function tracedDispatch(
+  ctx: AppContext,
+  method: string,
+  body: T.BatchRequestBody
+): Promise<BatchResult> {
+  return traceFunction({ spanName: "batch.request", resourceName: method })(
+    async () => {
+      const result = await dispatch(ctx, method, body);
+      addTags({ "http.status_code": result.status });
+      return result;
+    }
+  )();
 }
 
 /**
@@ -277,10 +298,7 @@ router.post(
       for (const group of groupRequests(requests)) {
         const results = await Promise.all(
           group.map((request) =>
-            traceFunction({
-              spanName: "batch.request",
-              resourceName: request.method,
-            })(dispatch)(ctx, request.method, request.body ?? {})
+            tracedDispatch(ctx, request.method, request.body ?? {})
           )
         );
         data.push(...results);
