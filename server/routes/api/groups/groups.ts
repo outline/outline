@@ -475,7 +475,10 @@ router.post(
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
-    const user = await User.findByPk(userId, { transaction });
+    const user = await User.findByPk(userId, {
+      transaction,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
+    });
     authorize(actor, "read", user);
 
     if (user.isGuest) {
