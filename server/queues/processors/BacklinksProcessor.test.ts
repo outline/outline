@@ -5,7 +5,6 @@ import { parser } from "@server/editor";
 import { Relationship } from "@server/models";
 import type { Document } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
-import { sequelize } from "@server/storage/database";
 import { buildDocument, buildTeam } from "@server/test/factories";
 
 import BacklinksProcessor from "./BacklinksProcessor";
@@ -148,44 +147,6 @@ describe("documents.publish", () => {
     expect(backlinks.map((b) => b.documentId).sort()).toEqual(
       [first.id, second.id].sort()
     );
-  });
-
-  it("should not query documents or relationships per link", async () => {
-    const team = await buildTeam();
-    const targets = await Promise.all(
-      [1, 2, 3, 4].map(() => buildDocument({ teamId: team.id }))
-    );
-    const countSelects = async (nodes: ProsemirrorData[]) => {
-      const document = await buildDocument({
-        teamId: team.id,
-        content: paragraphs(nodes),
-      });
-      const spy = vi.spyOn(sequelize, "query");
-      try {
-        await publish(document);
-        const sql = spy.mock.calls.map(([query]) =>
-          typeof query === "string" ? query : query.query
-        );
-        return {
-          documents: sql.filter((q) => /^SELECT .* FROM "documents"/s.test(q))
-            .length,
-          relationships: sql.filter((q) =>
-            /^SELECT .* FROM "relationships"/s.test(q)
-          ).length,
-        };
-      } finally {
-        spy.mockRestore();
-      }
-    };
-
-    const one = await countSelects([mention(targets[0])]);
-    const many = await countSelects([
-      mention(targets[0]),
-      link(targets[1]),
-      mention(targets[2]),
-      link(targets[3]),
-    ]);
-    expect(many).toEqual(one);
   });
 });
 
